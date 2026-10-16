@@ -1,0 +1,21 @@
+# Locked: configuration and gates
+/.claude/                           @astevegreen
+/CLAUDE.md                          @astevegreen
+/GEMINI.md                          @astevegreen
+/.github/                           @astevegreen
+/docs/architecture.md               @astevegreen
+/tools/hooks/                       @astevegreen
+/tools/gates/                       @astevegreen
+# Held: rules, hidden information, schemas, ground truth, dependencies
+/packages/engine/src/rules/         @astevegreen
+/packages/engine/src/views.ts       @astevegreen
+/packages/server/functions/submit/  @astevegreen
+/packages/server/migrations/        @astevegreen
+/packages/content/schema/           @astevegreen
+/tests/golden/                      @astevegreen
+**/package.json                     @astevegreen
+/pnpm-lock.yaml                     @astevegreen
+/pnpm-workspace.yaml                @astevegreen
+**/tsconfig*.json                   @astevegreen
+**/vitest.config.*                  @astevegreen
+/eslint.config.*                    @astevegreen

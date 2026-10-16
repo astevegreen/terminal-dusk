@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "model": "sonnet",
+  "env": {
+    "FORCE_COLOR": "0",
+    "NO_COLOR": "1",
+    "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "2"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(pnpm gate *)", "Bash(pnpm test *)", "Bash(pnpm run *)", "Bash(pnpm install)", "Bash(pnpm add *)",
+      "Bash(node tools/*)",
+      "Bash(git status *)", "Bash(git diff *)", "Bash(git log *)", "Bash(git show *)",
+      "Bash(git add *)", "Bash(git commit *)", "Bash(git switch *)", "Bash(git fetch *)",
+      "Bash(git worktree *)", "Bash(git push -u origin task/*)", "Bash(git push -u origin design/*)",
+      "Bash(gh issue view *)", "Bash(gh issue list *)", "Bash(gh issue comment *)", "Bash(gh issue edit *)",
+      "Bash(gh issue create *)", "Bash(gh pr view *)", "Bash(gh pr list *)", "Bash(gh pr create *)",
+      "Bash(gh pr comment *)", "Bash(gh pr edit *)", "Bash(gh pr ready *)", "Bash(gh pr merge * --auto --squash)"
+    ],
+    "ask": [
+      "Edit(/.claude/settings.json)", "Edit(/.claude/settings.local.json)", "Edit(/.claude/agents/**)",
+      "Edit(/.claude/skills/**)", "Edit(/.claude/rules/**)",
+      "Edit(/CLAUDE.md)", "Edit(/GEMINI.md)", "Edit(/.github/**)",
+      "Edit(/docs/architecture.md)", "Edit(/tools/hooks/**)", "Edit(/tools/gates/**)",
+      "WebFetch", "WebSearch"
+    ],
+    "deny": [
+      "Read(./.env)", "Read(./.env.*)",
+      "Bash(git push --force *)", "Bash(git push -f *)", "Bash(git push origin main)", "Bash(git push origin main *)",
+      "Bash(git reset --hard *)", "Bash(git clean *)", "Bash(git rebase *)", "Bash(git filter-branch *)",
+      "Bash(curl *)", "Bash(wget *)", "Bash(npx *)", "Bash(pnpm dlx *)", "Bash(npm publish *)", "Bash(pnpm publish *)",
+      "Bash(gh api *)", "Bash(gh secret *)", "Bash(gh repo *)", "Bash(gh auth *)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      { "matcher": "startup", "hooks": [
+        { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/tools/hooks/env-check.mjs"], "timeout": 15 } ] }
+    ],
+    "PreToolUse": [
+      { "matcher": "Bash", "hooks": [
+        { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/tools/hooks/bash-guard.mjs"], "timeout": 10 } ] }
+    ],
+    "PostToolUse": [
+      { "matcher": "Edit|Write", "hooks": [
+        { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/tools/hooks/quick-check.mjs"], "timeout": 60 } ] }
+    ],
+    "Stop": [
+      { "hooks": [
+        { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/tools/hooks/gate.mjs"], "timeout": 600 } ] }
+    ]
+  }
+}

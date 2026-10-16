@@ -1,0 +1,28 @@
+name: Bug
+description: Something in the game didn't work the way it should
+title: "[bug] "
+labels: ["bug", "needs-spec"]
+body:
+  - type: textarea
+    id: did
+    attributes: { label: What you did, description: "The steps, in order, as you'd tell a friend" }
+    validations: { required: true }
+  - type: textarea
+    id: happened
+    attributes: { label: What happened }
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes: { label: What should have happened }
+    validations: { required: true }
+  - type: input
+    id: match-id
+    attributes: { label: Match ID, description: "From the game menu: Menu > About this match" }
+    validations: { required: true }
+  - type: input
+    id: device
+    attributes: { label: Device and browser, description: "For example: iPhone 15, Safari; or Windows PC, desktop app" }
+    validations: { required: true }
+  - type: textarea
+    id: screenshot
+    attributes: { label: Screenshot, description: "Optional. Drag an image here." }

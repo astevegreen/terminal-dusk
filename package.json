@@ -1,0 +1,13 @@
+{
+  "name": "terminal-dusk",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.14.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "gate": "node tools/gates/gate.mjs",
+    "test:hooks": "node --test tools/hooks/*.test.mjs"
+  }
+}

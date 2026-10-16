@@ -1,0 +1,14 @@
+node_modules/
+dist/
+coverage/
+*.log
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Local only
+.claude/settings.local.json
+.claude/worktrees/
+.handoff/
