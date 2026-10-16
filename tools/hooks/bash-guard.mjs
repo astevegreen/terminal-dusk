@@ -123,7 +123,7 @@ function check(seg) {
     if (why) return why;
   }
   if (UNATTENDED && name === "gh") {
-    const sub = args.filter((a, i) => !a.startsWith("-") && !["-R", "--repo"].includes(args[i - 1]))[0];
+    const sub = args.find((a, i) => !a.startsWith("-") && !["-R", "--repo"].includes(args[i - 1]));
     if (OWNER_ONLY_GH.has(sub)) return `gh ${sub} is owner-only and can't run unattended. Ask the owner on the issue instead.`;
   }
   if (NETWORK.has(name) || /\bnet\.webclient\b/i.test(seg.words.join(" ")))
