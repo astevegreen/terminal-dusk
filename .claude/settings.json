@@ -15,14 +15,15 @@
       "Bash(git worktree *)", "Bash(git push -u origin task/*)", "Bash(git push -u origin design/*)",
       "Bash(gh issue view *)", "Bash(gh issue list *)", "Bash(gh issue comment *)", "Bash(gh issue edit *)",
       "Bash(gh issue create *)", "Bash(gh pr view *)", "Bash(gh pr list *)", "Bash(gh pr create *)",
-      "Bash(gh pr comment *)", "Bash(gh pr edit *)", "Bash(gh pr ready *)", "Bash(gh pr merge * --auto --squash)"
+      "Bash(gh pr comment *)", "Bash(gh pr edit *)", "Bash(gh pr ready *)", "Bash(gh pr merge * --auto --squash)",
+      "WebSearch"
     ],
     "ask": [
       "Edit(/.claude/settings.json)", "Edit(/.claude/settings.local.json)", "Edit(/.claude/agents/**)",
       "Edit(/.claude/skills/**)", "Edit(/.claude/rules/**)",
       "Edit(/CLAUDE.md)", "Edit(/GEMINI.md)", "Edit(/.github/**)",
       "Edit(/docs/architecture.md)", "Edit(/tools/hooks/**)", "Edit(/tools/gates/**)",
-      "WebFetch", "WebSearch"
+      "WebFetch"
     ],
     "deny": [
       "Read(./.env)", "Read(./.env.*)",
