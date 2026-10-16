@@ -79,6 +79,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/gates/content-check.mjs` - `pnpm content:check [files...]`: validates content JSON against the schemas in packages/content/schema/.
 - `tools/gates/content-check.test.mjs`
 - `tools/gates/gate.mjs` - `pnpm gate`: check only what changed, stage by stage, stopping at the first failure.
+- `tools/gates/gate.test.mjs`
 - `tools/gates/suites.mjs` - `pnpm fuzz`, `pnpm fuzz:quick`, `pnpm golden:check` and `pnpm golden:update`.
 - `tools/gates/suites.test.mjs`
 - `tools/gemini-audit.mjs` - Hands Gemini (agy, headless) read-only material and posts its answer to GitHub itself.
