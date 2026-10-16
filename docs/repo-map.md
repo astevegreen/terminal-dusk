@@ -83,6 +83,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/gates/suites.mjs` - `pnpm fuzz`, `pnpm fuzz:quick`, `pnpm golden:check` and `pnpm golden:update`.
 - `tools/gates/suites.test.mjs`
 - `tools/gemini-audit.mjs` - Hands Gemini (agy, headless) read-only material and posts its answer to GitHub itself.
+- `tools/gemini/agy.mjs` - How the audits talk to agy: which models, what every prompt starts with, and how a reply is read.
+- `tools/gemini/agy.test.mjs`
 - `tools/gemini/prompts/narrative.md`
 - `tools/gemini/prompts/pr-audit.md`
 - `tools/gemini/prompts/spec-audit.md`
