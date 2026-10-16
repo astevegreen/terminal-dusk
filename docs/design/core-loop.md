@@ -31,11 +31,15 @@ gave that day. From now on this file is the source of truth; change it in Notion
 
 ## For the engine
 
-- The opening picks are one simultaneous decision group (docs/architecture.md, Decision 1). The first pick stays
-  in the `secret` compartment until both are in.
+- The opening picks are one simultaneous decision group (docs/architecture.md, Decision 1). A side's pick is
+  held in its own private compartment ("own unrevealed picks", Decision 2), so the other side and spectators
+  can't see it until both are in.
 - Undo happens only in the UI's staged answer. The engine only ever sees confirmed answers.
 - Hand size, cards played per turn and turns per era are not decided. They come from scenario data
-  (docs/architecture.md, Decision 4), so the engine must not hard-code them.
+  (docs/architecture.md, Decision 4), so the engine must not hard-code them. "Plays per turn" counts the plays
+  **each side** makes (owner, 16 Oct).
+- Until neutral events are designed, a neutral card can only be played for its action points and can't be an
+  opening pick (owner, 16 Oct). This is a stopgap, not a rule of the game.
 
 ## Not decided yet
 
