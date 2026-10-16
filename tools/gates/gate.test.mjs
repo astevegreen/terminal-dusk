@@ -53,3 +53,29 @@ test("a change outside tools/ and .claude/ leaves the tool tests out", () => {
   assert.equal(r.status, 0, r.stdout + r.stderr);
   assert.equal(r.stdout, "");
 });
+
+// A throwaway repository with the gate and the skipped-test scan. The fixture writes ^ for the dot,
+// so this file never trips the scan itself.
+const repoWithScan = () =>
+  tempRepo({
+    "tools/gates/gate.mjs": readFileSync(path.join(import.meta.dirname, "gate.mjs"), "utf8"),
+    "tools/gates/skipped-tests.mjs": readFileSync(path.join(import.meta.dirname, "skipped-tests.mjs"), "utf8"),
+  });
+
+test("a skipped test anywhere fails the gate at the skipped tests stage", () => {
+  const repo = repoWithScan();
+  writeFiles(repo, { "packages/engine/src/deck.test.ts": `import { it } from "vitest";\nit^skip("draws", () => {});\n`.replaceAll("^", ".") });
+  const r = gate(repo);
+  assert.equal(r.status, 1, r.stdout + r.stderr);
+  assert.match(r.stdout, /^GATE FAILED at: skipped tests$/m);
+  assert.match(r.stdout, /^packages\/engine\/src\/deck\.test\.ts:2: /m);
+  assert.match(r.stdout, /^Reproduce: node tools\/gates\/skipped-tests\.mjs$/m);
+});
+
+test("with no skipped tests the skipped tests stage passes silently", () => {
+  const repo = repoWithScan();
+  writeFiles(repo, { "packages/engine/src/deck.test.ts": `import { it } from "vitest";\nit("draws", () => {});\n` });
+  const r = gate(repo);
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.equal(r.stdout, "");
+});

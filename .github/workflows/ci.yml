@@ -2,6 +2,8 @@ name: CI
 
 on:
   pull_request:
+    # labeled and unlabeled re-run CI when the held label changes (see "Test count" below).
+    types: [opened, synchronize, reopened, labeled, unlabeled]
   push:
     branches: [main]
 
@@ -17,10 +19,17 @@ jobs:
   gate:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
+      # "Who labelled held" reads the pull request's label history.
+      issues: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          # Later steps run test code, so don't leave the token in .git/config. Every git command after this is local.
+          persist-credentials: false
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
       - uses: actions/setup-node@v7
         with:
@@ -30,6 +39,27 @@ jobs:
           if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm install --no-frozen-lockfile; fi
       - name: Gate (all packages)
         run: pnpm gate --all
+      # Pull requests only. The token is used here and nowhere else: the next step installs packages and runs test code,
+      # so it gets no token.
+      - name: Who labelled held
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/events" --jq '.[] | tojson' > "$RUNNER_TEMP/pr-events.ndjson"
+      # Pull requests only. Runs the tests on the base branch and here and counts them. Fails if this branch has fewer,
+      # unless the repository owner labelled the pull request held (a held label the night shift added doesn't count),
+      # and fails if any test skipped itself while running, held or not. A step, not a job: a skipped job counts as passing.
+      - name: Test count (no fewer tests than the base branch)
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA"
+          pnpm --dir "$RUNNER_TEMP/base" install --frozen-lockfile
+          node tools/gates/test-count.mjs --root "$RUNNER_TEMP/base" --save "$RUNNER_TEMP/base-tests.json"
+          node tools/gates/test-count.mjs --compare "$RUNNER_TEMP/base-tests.json" --held-events "$RUNNER_TEMP/pr-events.ndjson" --owner "$OWNER"
       - name: Full fuzz (10,000 games)
         run: pnpm run --if-present fuzz
 
