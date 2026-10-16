@@ -1,0 +1,10 @@
+// Cloudflare settings for the nightly preview (.github/workflows/preview.yml): a Worker that only serves the built
+// app from dist/. No server code runs here; online play goes through Supabase.
+{
+  "name": "terminal-dusk-preview",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application",
+  },
+}

@@ -1,0 +1,54 @@
+name: Preview
+
+# Deploys main to the Cloudflare preview after CI passes on it, so each morning's merges become the build you,
+# Gemini's browser tests and playtesters play. Settings are in packages/app/wrangler.jsonc.
+#
+# Needs two repository secrets, CLOUDFLARE_API_TOKEN (a token with the "Edit Cloudflare Workers" permission) and
+# CLOUDFLARE_ACCOUNT_ID. Until both exist the deploy step is skipped with a notice instead of failing.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preview
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    # Only a green CI run from a push to main, never one from a pull request.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The exact commit CI checked, not whatever main is by now.
+          ref: ${{ github.event.workflow_run.head_sha || 'main' }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Build the app
+        run: pnpm --filter @terminal-dusk/app run build
+      - name: Deploy to Cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::notice::Preview not deployed: add the CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID repository secrets."
+            exit 0
+          fi
+          cd packages/app
+          pnpm dlx wrangler@4 deploy

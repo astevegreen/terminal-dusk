@@ -1,0 +1,36 @@
+name: Nightly
+
+# The full gate and the 10,000-game fuzz on main once a night, so a problem that only shows up across many games is
+# caught even on days nothing merges. 09:00 UTC is 5 am Eastern (4 am in winter): after the night shift's pushes,
+# before the morning review.
+on:
+  schedule:
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly
+  cancel-in-progress: false
+
+jobs:
+  fuzz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Gate (all packages)
+        run: pnpm gate --all
+      - name: Full fuzz (10,000 games)
+        run: pnpm fuzz
