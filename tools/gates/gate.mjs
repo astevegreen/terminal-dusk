@@ -54,7 +54,8 @@ const stages = [
   ["lint", perPackage("lint")],
   ["boundary check", rootScript("boundaries")],
   ["unit and card tests", perPackage("test")],
-  ["hook tests", touched("tools/") ? "node --test tools/hooks/*.test.mjs" : null],
+  // Quoted so Node expands the pattern itself. A .claude/ change counts too: the hook tests check its settings.
+  ["tool tests", touched("tools/") || touched(".claude/") ? 'node --test "tools/**/*.test.mjs"' : null],
   ["content check", touched("packages/content/") ? rootScript("content:check") : null],
   ["quick fuzz", core ? rootScript("fuzz:quick") : null],
   ["golden replays", core ? rootScript("golden:check") : null],
