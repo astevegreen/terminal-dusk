@@ -5,9 +5,8 @@ import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { MODELS, TIMEOUT, askFirstAvailable, buildPrompt, parseReply } from "./gemini/agy.mjs";
 
-const MODEL = "gemini-4-argon-high"; // pinned on purpose; change it deliberately, not by default
-const TIMEOUT = "10m";
 const ROOT = path.resolve(import.meta.dirname, "..");
 const MARKER = "<!-- gemini-audit -->";
 const MAX_DIFF = 200_000;
@@ -19,27 +18,48 @@ const [mode, ...numbers] = argv.filter((a) => a !== "--dry-run");
 const tmp = mkdtempSync(path.join(os.tmpdir(), "gemini-audit-"));
 
 function run(cmd, args) {
-  return spawnSync(cmd, args, { cwd: ROOT, encoding: "utf8", windowsHide: true, maxBuffer: 64 * 1024 * 1024, timeout: 11 * 60_000 });
+  return spawnSync(cmd, args, {
+    cwd: ROOT,
+    encoding: "utf8",
+    windowsHide: true,
+    maxBuffer: 64 * 1024 * 1024,
+    timeout: 11 * 60_000,
+  });
 }
 function gh(...args) {
   const r = run("gh", args);
-  if (r.status !== 0) throw new Error(`gh ${args.slice(0, 2).join(" ")} failed: ${(r.stderr || r.error?.message || "").trim().split("\n")[0]}`);
+  if (r.status !== 0)
+    throw new Error(
+      `gh ${args.slice(0, 2).join(" ")} failed: ${(r.stderr || r.error?.message || "").trim().split("\n")[0]}`,
+    );
   return r.stdout;
 }
 
 function askGemini(promptName, material) {
-  let prompt = readFileSync(path.join(ROOT, "tools", "gemini", "prompts", `${promptName}.md`), "utf8");
+  const text = readFileSync(path.join(ROOT, "tools", "gemini", "prompts", `${promptName}.md`), "utf8");
+  let file;
   if (material) {
-    const file = path.join(tmp, "material.md");
+    file = path.join(tmp, "material.md");
     writeFileSync(file, material);
-    prompt += `\nThe material is in ${file}. Read all of it before answering.\n`;
   }
-  const r = run("agy", ["-p", prompt, "--output-format", "json", "--model", MODEL, "--print-timeout", TIMEOUT, "--add-dir", tmp]);
-  if (r.error) throw new Error(r.error.code === "ENOENT" ? "agy is not installed" : r.error.message);
-  let out;
-  try { out = JSON.parse(r.stdout); } catch { throw new Error(`agy exited ${r.status}: ${(r.stderr || r.stdout || "").trim().split("\n")[0]}`); }
-  if (out.status !== "SUCCESS" || !out.response) throw new Error(out.error || `agy status ${out.status}`);
-  return out.response.trim();
+  const prompt = buildPrompt(text, file);
+  // Returns { model, response }: the model is whichever one answered, so the comment can name it.
+  return askFirstAvailable(MODELS, (model) =>
+    parseReply(
+      run("agy", [
+        "-p",
+        prompt,
+        "--output-format",
+        "json",
+        "--model",
+        model,
+        "--print-timeout",
+        TIMEOUT,
+        "--add-dir",
+        tmp,
+      ]),
+    ),
+  );
 }
 
 function post(kind, number, text) {
@@ -50,7 +70,7 @@ function post(kind, number, text) {
   gh(kind, "comment", String(number), "--body-file", file);
 }
 
-const report = (label, response) => `**Gemini audit: ${label}** (${MODEL})\n\n${response}`;
+const report = (label, { model, response }) => `**Gemini audit: ${label}** (${model})\n\n${response}`;
 const skipped = (err) => `Gemini audit skipped: ${err.message}`;
 
 function issueText(n) {
@@ -59,11 +79,19 @@ function issueText(n) {
 }
 
 function pinnedIssue(title) {
-  const found = JSON.parse(gh("issue", "list", "--state", "open", "--search", `"${title}" in:title`, "--json", "number,title"))
-    .find((i) => i.title === title);
+  const found = JSON.parse(
+    gh("issue", "list", "--state", "open", "--search", `"${title}" in:title`, "--json", "number,title"),
+  ).find((i) => i.title === title);
   if (found) return found.number;
   if (DRY) return 0;
-  const url = gh("issue", "create", "--title", title, "--body", "One comment per run from tools/gemini-audit.mjs.").trim();
+  const url = gh(
+    "issue",
+    "create",
+    "--title",
+    title,
+    "--body",
+    "One comment per run from tools/gemini-audit.mjs.",
+  ).trim();
   const n = Number(url.split("/").pop());
   gh("issue", "pin", String(n));
   return n;
@@ -72,15 +100,17 @@ function pinnedIssue(title) {
 function specs() {
   if (!numbers.length) throw new Error("specs needs at least one issue number");
   const material = numbers.map(issueText).join("\n---\n\n");
-  let response;
-  try { response = askGemini("spec-audit", material); } catch (err) {
+  let answer;
+  try {
+    answer = askGemini("spec-audit", material);
+  } catch (err) {
     for (const n of numbers) post("issue", n, skipped(err));
     return;
   }
   // The prompt asks for one "## #<n>" section per issue; post each issue its own section.
   for (const n of numbers) {
-    const section = new RegExp(`^## #${n}\\b[\\s\\S]*?(?=^## #\\d+|(?![\\s\\S]))`, "m").exec(response)?.[0];
-    post("issue", n, report("spec", section ?? response));
+    const section = new RegExp(String.raw`^## #${n}\b[\s\S]*?(?=^## #\d+|(?![\s\S]))`, "m").exec(answer.response)?.[0];
+    post("issue", n, report("spec", { model: answer.model, response: section ?? answer.response }));
   }
 }
 
@@ -91,7 +121,7 @@ function prs() {
       const linked = /\b(?:closes|fixes|resolves)\s+#(\d+)/i.exec(pr.body ?? "")?.[1];
       let diff = gh("pr", "diff", String(pr.number));
       if (diff.length > MAX_DIFF) diff = `${diff.slice(0, MAX_DIFF)}\n... (diff truncated; read the rest from disk)\n`;
-      const spec = linked ? issueText(linked) : "No linked task spec (no \"Closes #n\" in the pull request).\n";
+      const spec = linked ? issueText(linked) : 'No linked task spec (no "Closes #n" in the pull request).\n';
       const material = `# Task spec\n\n${spec}\n# Pull request #${pr.number}\n\n${pr.body ?? ""}\n\n# Diff\n\n\`\`\`diff\n${diff}\`\`\`\n`;
       post("pr", pr.number, report("pull request", askGemini("pr-audit", material)));
     } catch (err) {
@@ -104,7 +134,11 @@ function repoWide(promptName, label) {
   const n = pinnedIssue(PINNED[mode]);
   const date = new Date().toISOString().slice(0, 10);
   let text;
-  try { text = report(`${label} ${date}`, askGemini(promptName)); } catch (err) { text = skipped(err); }
+  try {
+    text = report(`${label} ${date}`, askGemini(promptName));
+  } catch (err) {
+    text = skipped(err);
+  }
   post("issue", n, text);
 }
 
