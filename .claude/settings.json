@@ -4,7 +4,8 @@
   "env": {
     "FORCE_COLOR": "0",
     "NO_COLOR": "1",
-    "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "2"
+    "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "2",
+    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "200000"
   },
   "permissions": {
     "allow": [
@@ -26,6 +27,7 @@
     ],
     "deny": [
       "Read(./.env)", "Read(./.env.*)",
+      "Read(**/node_modules/**)", "Read(**/dist/**)", "Read(**/coverage/**)", "Read(**/*.log)", "Read(**/pnpm-lock.yaml)",
       "Bash(git push --force *)", "Bash(git push -f *)", "Bash(git push origin main)", "Bash(git push origin main *)",
       "Bash(git reset --hard *)", "Bash(git clean *)", "Bash(git rebase *)", "Bash(git filter-branch *)",
       "Bash(curl *)", "Bash(wget *)", "Bash(npx *)", "Bash(pnpm dlx *)", "Bash(npm publish *)", "Bash(pnpm publish *)",
