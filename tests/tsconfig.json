@@ -1,0 +1,4 @@
+{
+  // Type-checks the cross-package suites in tests/; tools/gates/suites.mjs runs it before the suites themselves.
+  "extends": "../tsconfig.base.json"
+}

@@ -1,0 +1,12 @@
+{
+  // The app runs in the browser and is bundled by Vite, so it gets the DOM and bundler-style imports.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["es2024", "dom"],
+    "types": ["vite/client"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx"
+  },
+  "include": ["src", "vite.config.ts"]
+}

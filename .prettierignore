@@ -1,0 +1,12 @@
+# Locked files are formatted by hand: the pre-commit hook must never rewrite them.
+.claude/
+CLAUDE.md
+GEMINI.md
+.github/
+docs/architecture.md
+tools/hooks/
+tools/gates/
+
+# Generated files
+pnpm-lock.yaml
+docs/repo-map.md

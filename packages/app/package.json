@@ -1,0 +1,29 @@
+{
+  "name": "@terminal-dusk/app",
+  "version": "0.0.0",
+  "private": true,
+  "description": "React UI, transports and the Platform interface. Renders frames and sends answers; no rules.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint . --format ../../tools/eslint-formatter.mjs",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@terminal-dusk/ai": "workspace:*",
+    "@terminal-dusk/engine": "workspace:*",
+    "@terminal-dusk/host": "workspace:*",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

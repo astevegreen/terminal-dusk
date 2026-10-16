@@ -6,16 +6,20 @@
 /docs/architecture.md               @astevegreen
 /tools/hooks/                       @astevegreen
 /tools/gates/                       @astevegreen
-# Held: rules, hidden information, schemas, ground truth, dependencies
-/packages/engine/src/rules/         @astevegreen
-/packages/engine/src/views.ts       @astevegreen
-/packages/server/functions/submit/  @astevegreen
-/packages/server/migrations/        @astevegreen
-/packages/content/schema/           @astevegreen
-/tests/golden/                      @astevegreen
-**/package.json                     @astevegreen
-/pnpm-lock.yaml                     @astevegreen
-/pnpm-workspace.yaml                @astevegreen
-**/tsconfig*.json                   @astevegreen
-**/vitest.config.*                  @astevegreen
-/eslint.config.*                    @astevegreen
+# Held: rules, hidden information, schemas, ground truth, dependencies, tool settings
+/packages/engine/src/rules/                  @astevegreen
+/packages/engine/src/views.ts                @astevegreen
+/packages/engine/src/rng.ts                  @astevegreen
+/packages/server/supabase/functions/submit/  @astevegreen
+/packages/server/supabase/migrations/        @astevegreen
+/packages/content/schema/                    @astevegreen
+/tests/golden/                               @astevegreen
+/tools/git-hooks/                            @astevegreen
+**/package.json                              @astevegreen
+/pnpm-lock.yaml                              @astevegreen
+/pnpm-workspace.yaml                         @astevegreen
+**/tsconfig*.json                            @astevegreen
+**/vitest.config.*                           @astevegreen
+**/vite.config.*                             @astevegreen
+/eslint.config.*                             @astevegreen
+/.prettierignore                             @astevegreen

@@ -1,0 +1,23 @@
+{
+  "name": "@terminal-dusk/ai",
+  "version": "0.0.0",
+  "private": true,
+  "description": "AI opponent: a player that sees only its own view and plans by simulating with the engine.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint . --format ../../tools/eslint-formatter.mjs",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@terminal-dusk/engine": "workspace:*",
+    "@terminal-dusk/content": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

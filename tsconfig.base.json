@@ -1,0 +1,26 @@
+{
+  // Shared compiler settings. Every package extends this file and adds only what differs.
+  // Code is never compiled to JavaScript: tsc only type-checks; Vite, Vitest and Node run the .ts files directly.
+  "compilerOptions": {
+    "target": "es2024",
+    "lib": ["es2024"],
+    "types": [],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "moduleDetection": "force",
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
+  }
+}

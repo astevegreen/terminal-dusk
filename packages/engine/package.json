@@ -1,0 +1,19 @@
+{
+  "name": "@terminal-dusk/engine",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Pure rules engine: game state, decisions, events and views. Imports nothing outside itself.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint . --format ../../tools/eslint-formatter.mjs",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

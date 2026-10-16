@@ -1,0 +1,9 @@
+{
+  // The engine sees only the JavaScript language itself: no DOM and no Node types,
+  // so timers, fetch, document and the like fail the type check (hard rule 1).
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["es2024"],
+    "types": []
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "@terminal-dusk/host",
+  "version": "0.0.0",
+  "private": true,
+  "description": "MatchHost: runs a match around the engine (players, clock, move log, frames) without doing I/O.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint . --format ../../tools/eslint-formatter.mjs",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@terminal-dusk/engine": "workspace:*",
+    "@terminal-dusk/content": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
