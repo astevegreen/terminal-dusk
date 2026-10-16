@@ -438,7 +438,7 @@ While the roguelike is still using your Claude limits, spend these weeks on setu
 **Week 2: design and the first night shift**
 
 - [ ] Design sessions: core loop and what changes from the original, the two sides, era list
-- [ ] Make the product calls listed in the architecture doc
+- [x] Make the product calls listed in the architecture doc
 - [ ] Pick the 25 cards for the first slice, at least one per mechanic type
 - [ ] Draft the art style guide (placeholders come first, so this can wait)
 - [ ] Promote the first decisions, and have `plan-tasks` write the engine-skeleton specs
