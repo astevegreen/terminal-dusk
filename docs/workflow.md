@@ -420,20 +420,20 @@ While the roguelike is still using your Claude limits, spend these weeks on setu
 
 **Week 1: set up (mostly no code)**
 
-- [ ] Install Git for Windows, Node, pnpm and the GitHub CLI (Claude can run most of this in a desktop session)
-- [ ] Upgrade your GitHub account to Pro, and create the bot machine account (for example `terminal-dusk-bot`)
-- [ ] Create the private repo `terminal-dusk`, and give the bot write access, not admin
-- [ ] Sign Git and `gh` on your PC in as the bot
-- [ ] Export the architecture doc as Markdown into `docs/architecture.md`, and this doc into `docs/workflow.md`
-- [ ] Install the Antigravity CLI (`agy`), sign in once interactively, and give it read-only permissions
-- [ ] In the desktop app: add the TypeScript language-server plugin and the Context7 connector, and turn on **Keep computer awake** and **Connect new sessions to Remote Control**
-- [ ] Set Windows Update active hours to cover the night
-- [ ] Set up Notion: Design hub, Card concepts database, Playtest feedback database and form, Open questions
-- [ ] One evening: ask Claude to scaffold build phase 1 from the architecture doc and the configuration doc (workspaces, CI, the `.claude/` folder, hooks, issue forms, CODEOWNERS)
-- [ ] Protect `main` on GitHub: pull requests only, the `gate` check, code-owner review, no force pushes
+- [x] Install Git for Windows, Node, pnpm and the GitHub CLI (Claude can run most of this in a desktop session)
+- [x] Upgrade your GitHub account to Pro, and create the bot machine account (for example `terminal-dusk-bot`)
+- [x] Create the private repo `terminal-dusk`, and give the bot write access, not admin
+- [x] Sign Git and `gh` on your PC in as the bot
+- [x] Export the architecture doc as Markdown into `docs/architecture.md`, and this doc into `docs/workflow.md`
+- [x] Install the Antigravity CLI (`agy`), sign in once interactively, and give it read-only permissions
+- [x] In the desktop app: add the TypeScript language-server plugin and the Context7 connector, and turn on **Keep computer awake** and **Connect new sessions to Remote Control**
+- [x] Set Windows Update active hours to cover the night
+- [x] Set up Notion: Design hub, Card concepts database, Playtest feedback database and form, Open questions
+- [x] One evening: ask Claude to scaffold build phase 1 from the architecture doc and the configuration doc (workspaces, CI, the `.claude/` folder, hooks, issue forms, CODEOWNERS)
+- [x] Protect `main` on GitHub: pull requests only, the `gate` check, code-owner review, no force pushes
 - [ ] Run the setup tests in the configuration doc
-- [ ] Create the night-shift scheduled task (Routines → New routine → Local) and pause it until week 2
-- [ ] Only if you use the CLI route: check that no `ANTHROPIC_API_KEY` environment variable exists
+- [x] Create the night-shift scheduled task (Routines → New routine → Local) and pause it until week 2
+- [x] Only if you use the CLI route: check that no `ANTHROPIC_API_KEY` environment variable exists
 
 **Week 2: design and the first night shift**
 
