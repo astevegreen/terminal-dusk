@@ -430,7 +430,7 @@ While the roguelike is still using your Claude limits, spend these weeks on setu
 - [x] Set Windows Update active hours to cover the night
 - [x] Set up Notion: Design hub, Card concepts database, Playtest feedback database and form, Open questions
 - [x] One evening: ask Claude to scaffold build phase 1 from the architecture doc and the configuration doc (workspaces, CI, the `.claude/` folder, hooks, issue forms, CODEOWNERS)
-- [ ] Protect `main` on GitHub: pull requests only, the `gate` check, code-owner review, no force pushes
+- [x] Protect `main` on GitHub: pull requests only, the `gate` check, code-owner review, no force pushes
 - [ ] Run the setup tests in the configuration doc
 - [x] Create the night-shift scheduled task (Routines → New routine → Local) and pause it until week 2
 - [x] Only if you use the CLI route: check that no `ANTHROPIC_API_KEY` environment variable exists
