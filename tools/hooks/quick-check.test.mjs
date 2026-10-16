@@ -1,5 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { mkdtempSync, realpathSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { runHook, tempRepo, writeFiles } from "./test-helpers.mjs";
 
@@ -43,4 +45,30 @@ test("a deleted or missing file is ignored", () => {
 test("output to Claude is capped at 20 lines", () => {
   const r = check("packages/engine/src/huge.ts", "x\n".repeat(1000));
   assert.ok(r.stderr.trim().split("\n").length <= 20);
+});
+
+// A folder outside any repository, like Claude's scratchpad. GIT_CEILING_DIRECTORIES stops git
+// looking above it, in case this machine's temp folder sits inside a repository.
+const outside = realpathSync(mkdtempSync(path.join(os.tmpdir(), "td-outside-")));
+const checkOutside = (name, content, cwd) => {
+  writeFiles(outside, { [name]: content });
+  return runHook("quick-check.mjs", { cwd, tool_name: "Write", tool_input: { file_path: path.join(outside, name) } },
+    { env: { GIT_CEILING_DIRECTORIES: path.dirname(outside) } });
+};
+
+test("a file outside the repository is ignored, even where the repo's ESLint would refuse it", () => {
+  // Stands in for the repo's ESLint, which crashes when asked to lint a file outside the project.
+  const linted = tempRepo({
+    "package.json": "{\"name\":\"t\",\"private\":true}\n",
+    "node_modules/eslint/bin/eslint.js": "process.stderr.write(\"Oops! Something went wrong! :(\\n\");\nprocess.exit(2);\n",
+  });
+  const r = checkOutside("scratch.mjs", "export const a = 1;\n", linted);
+  assert.equal(r.status, 0);
+  assert.equal(r.stderr, "");
+});
+
+test("a long file outside any repository is not flagged, even when the session runs in that folder", () => {
+  const r = checkOutside("long.mjs", "export const a = 1;\n".repeat(400), outside);
+  assert.equal(r.status, 0);
+  assert.equal(r.stderr, "");
 });
