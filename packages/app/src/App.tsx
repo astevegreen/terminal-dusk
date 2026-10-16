@@ -1,4 +1,4 @@
-// Placeholder screen until the first UI task: shows the game's name and nothing else.
+// Placeholder screen until the first UI task: shows the game's name and nothing else. (dummy edit)
 export function App() {
   return (
     <main>
