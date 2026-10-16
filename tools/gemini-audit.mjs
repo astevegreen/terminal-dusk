@@ -109,7 +109,7 @@ function specs() {
   }
   // The prompt asks for one "## #<n>" section per issue; post each issue its own section.
   for (const n of numbers) {
-    const section = new RegExp(`^## #${n}\\b[\\s\\S]*?(?=^## #\\d+|(?![\\s\\S]))`, "m").exec(answer.response)?.[0];
+    const section = new RegExp(String.raw`^## #${n}\b[\s\S]*?(?=^## #\d+|(?![\s\S]))`, "m").exec(answer.response)?.[0];
     post("issue", n, report("spec", { model: answer.model, response: section ?? answer.response }));
   }
 }
