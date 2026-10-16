@@ -15,6 +15,8 @@ const REPORTER = path.join(import.meta.dirname, "count-reporter.mjs");
 const TEST_FILE = /\.(test|spec)\.[cm]?[jt]sx?$/;
 const readJson = (f) => JSON.parse(readFileSync(f, "utf8"));
 const posix = (p) => p.split(path.sep).join("/");
+// Sorts text the same way on every machine (by character code, not by the machine's language settings).
+const byText = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 
 // The fuzz suites play one game each, so both branches count the same way, fast. Golden replays are checked, not re-recorded.
 function childEnv() {
@@ -113,8 +115,8 @@ export function countTests(rootDir) {
       files[rel] = (files[rel] ?? 0) + 1;
       if (t.skipped) skipped.push(`${rel} > ${t.name}`);
     }
-    const sorted = Object.fromEntries(Object.entries(files).sort(([a], [b]) => (a < b ? -1 : 1)));
-    return { total: tests.length, files: sorted, skipped: skipped.sort() };
+    const sorted = Object.fromEntries(Object.entries(files).sort(([a], [b]) => byText(a, b)));
+    return { total: tests.length, files: sorted, skipped: skipped.sort(byText) };
   } finally {
     rmSync(tmp, { recursive: true, force: true });
   }
@@ -131,7 +133,7 @@ export function compareCounts(base, head, { held = false } = {}) {
     );
   }
   if (head.total < base.total && !held) {
-    const files = [...new Set([...Object.keys(base.files), ...Object.keys(head.files)])].sort();
+    const files = [...new Set([...Object.keys(base.files), ...Object.keys(head.files)])].sort(byText);
     const before = (f) => base.files[f] ?? 0;
     const after = (f) => head.files[f] ?? 0;
     problems.push(
@@ -148,7 +150,7 @@ export function compareCounts(base, head, { held = false } = {}) {
 export function heldByOwner(events, owner) {
   const last = events
     .filter((e) => (e.event === "labeled" || e.event === "unlabeled") && e.label?.name?.toLowerCase() === "held")
-    .toSorted((a, b) => ((a.created_at ?? "") < (b.created_at ?? "") ? -1 : (a.created_at ?? "") > (b.created_at ?? "") ? 1 : 0))
+    .toSorted((a, b) => byText(a.created_at ?? "", b.created_at ?? ""))
     .at(-1);
   return last?.event === "labeled" && last.actor?.login?.toLowerCase() === owner.toLowerCase();
 }
