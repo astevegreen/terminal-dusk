@@ -470,7 +470,7 @@ Every development issue raised so far maps to at least one decision; none is lef
 
 ## Product calls
 
-Nine choices were yours, and each changes something in the design. All nine were decided on 2026-10-16. Three differ from the earlier recommended default; they are marked "changed".
+Nine choices were yours, and each changes something in the design. All nine were decided on 2026-10-16. Four differ from the earlier recommended default; they are marked "changed".
 
 | Question | Decision | What it changes |
 |---|---|---|
@@ -479,7 +479,7 @@ Nine choices were yours, and each changes something in the design. All nine were
 | What happens when a deadline passes? | **Changed.** Whoever sets up a private game picks one of three rules: loss on time; one grace extension, then loss on time; or the AI plays the missed turn. Ranked always uses loss on time. Open point: Decision 8 rules out server-side AI, so how the AI plays a missed online turn still needs deciding. | Deadline job, lobby settings, possibly Decision 8 |
 | Keep a headline-style simultaneous phase? | Yes | Simultaneous decisions in the engine |
 | Undo | Free undo while building an answer; none after confirming | Staged answers in the UI |
-| Recent events (2022 on) and the post-2026 "future" | Base game ends around 2020; the recent era is an optional scenario; future cards name roles, not people | Content, per-store variants |
+| Recent events (2022 on) and the post-2026 "future" | **Changed.** The base game runs 1991–2025. The years 2025–2027 are an optional scenario; future cards name roles, not people. | Content, per-store variants |
 | How terrorism works | **Changed.** Not a mechanic, force or separate system. Terrorism appears only as the historical subject of some event cards (for example September 11, 2001), because it was prominent in the period. | Card design, store approval; no terrorism mechanic to design |
 | Steam accounts | Steam players sign in through Steam automatically and can add email later | Auth |
 | Legal review | One review by a games/IP lawyer before the first store submission | Content, store metadata |
