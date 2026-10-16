@@ -4,7 +4,7 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { readInput, repoRootFor, toPosix, limitLines } from "./shared.mjs";
+import { readInput, repoRootFor, canonical, toPosix, limitLines } from "./shared.mjs";
 
 const MAX_LINES = 350;
 const CODE = /\.(ts|tsx|js|jsx|mjs|cjs)$/i;
@@ -14,7 +14,7 @@ const file = input.tool_input?.file_path;
 if (!file || !existsSync(file)) process.exit(0);
 
 const root = repoRootFor(file, input.cwd ?? process.cwd());
-const rel = toPosix(path.relative(root, file));
+const rel = toPosix(path.relative(root, canonical(file)));
 const problems = [];
 
 // 1. Lint the file with the repo's own ESLint, when it is installed.

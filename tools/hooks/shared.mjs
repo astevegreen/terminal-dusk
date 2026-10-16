@@ -1,6 +1,6 @@
 // Helpers shared by the Claude Code hook scripts. No dependencies; Node built-ins only.
 import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, realpathSync, statSync } from "node:fs";
 import path from "node:path";
 
 // Locked paths, relative to the repository (or worktree) root. Keep in sync with
@@ -40,21 +40,40 @@ export function git(args, cwd) {
   return r.status === 0 ? r.stdout.trim() : null;
 }
 
-// The git root that owns `target`: the worktree's own root inside a worktree.
-export function repoRootFor(target, fallback) {
-  let dir = path.resolve(target);
+// Resolve symlinks and Windows short names (C:\Users\RUNNER~1) in the part of `p` that exists,
+// so paths compare equal to the long form git reports.
+export function canonical(p) {
+  let dir = path.resolve(p);
+  const rest = [];
   while (!existsSync(dir)) {
+    const up = path.dirname(dir);
+    if (up === dir) break;
+    rest.unshift(path.basename(dir));
+    dir = up;
+  }
+  try { dir = realpathSync.native(dir); } catch {}
+  return path.join(dir, ...rest);
+}
+
+function existingDir(p) {
+  let dir = path.resolve(p);
+  while (!(existsSync(dir) && statSync(dir).isDirectory())) {
     const up = path.dirname(dir);
     if (up === dir) break;
     dir = up;
   }
-  return git(["rev-parse", "--show-toplevel"], dir) ?? fallback;
+  return dir;
+}
+
+// The git root that owns `target`: the worktree's own root inside a worktree.
+export function repoRootFor(target, fallback) {
+  return canonical(git(["rev-parse", "--show-toplevel"], existingDir(target)) ?? fallback);
 }
 
 // Returns the locked entry `file` falls under, or null.
 export function lockedEntry(file, cwd) {
   if (!file) return null;
-  const abs = path.resolve(cwd ?? process.cwd(), file);
+  const abs = canonical(path.resolve(cwd ?? process.cwd(), file));
   const root = repoRootFor(abs, cwd ?? process.cwd());
   const rel = fold(toPosix(path.relative(root, abs)));
   if (rel.startsWith("../") || path.isAbsolute(rel)) return null;

@@ -2,7 +2,7 @@
 // Permission rules only match prefixes; this checks every part of a chained command.
 // With --read-only (the reviewer), only a short list of inspection commands may run.
 import path from "node:path";
-import { readInput, lockedEntry, deny, git, repoRootFor } from "./shared.mjs";
+import { readInput, lockedEntry, deny, git, repoRootFor, canonical } from "./shared.mjs";
 
 const READ_ONLY = process.argv.includes("--read-only");
 const input = await readInput();
@@ -78,8 +78,9 @@ function gitSub(args) {
 const isEnvFile = (p) => /^\.env(\..*)?$/i.test(path.basename(p ?? ""));
 const worktreeRoot = () => repoRootFor(cwd, cwd);
 const outside = (target) => {
-  const root = path.resolve(worktreeRoot());
-  const abs = path.resolve(cwd, target.replace(/^~(?=$|[\\/])/, process.env.HOME ?? process.env.USERPROFILE ?? "~"));
+  if (process.platform !== "win32" && /^[A-Za-z]:[\\/]/.test(target)) return true; // a Windows absolute path
+  const root = worktreeRoot();
+  const abs = canonical(path.resolve(cwd, target.replace(/^~(?=$|[\\/])/, process.env.HOME ?? process.env.USERPROFILE ?? "~")));
   const rel = path.relative(root, abs);
   return rel === "" || rel.startsWith("..") || path.isAbsolute(rel);
 };
