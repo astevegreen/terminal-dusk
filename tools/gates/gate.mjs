@@ -53,6 +53,8 @@ const stages = [
   ["type check", perPackage("typecheck")],
   ["lint", perPackage("lint")],
   ["boundary check", rootScript("boundaries")],
+  // Every change: a skipped, todo or focused test anywhere fails, and the held label never allows one.
+  ["skipped tests", existsSync(path.join(ROOT, "tools/gates/skipped-tests.mjs")) ? "node tools/gates/skipped-tests.mjs" : null],
   ["unit and card tests", perPackage("test")],
   // Quoted so Node expands the pattern itself. A .claude/ change counts too: the hook tests check its settings.
   ["tool tests", touched("tools/") || touched(".claude/") ? 'node --test "tools/**/*.test.mjs"' : null],

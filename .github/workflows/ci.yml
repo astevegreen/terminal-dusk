@@ -2,11 +2,16 @@ name: CI
 
 on:
   pull_request:
+    # labeled and unlabeled re-run CI when the held label changes (see "Test count" below).
+    types: [opened, synchronize, reopened, labeled, unlabeled]
   push:
     branches: [main]
 
 permissions:
   contents: read
+  # "Test count" reads who added the held label.
+  issues: read
+  pull-requests: read
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -30,6 +35,22 @@ jobs:
           if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm install --no-frozen-lockfile; fi
       - name: Gate (all packages)
         run: pnpm gate --all
+      # Pull requests only. Runs the tests on the base branch and here and counts them. Fails if this branch has fewer,
+      # unless the repository owner labelled the pull request held (a held label the night shift added doesn't count),
+      # and fails if any test skipped itself while running, held or not. A step, not a job: a skipped job counts as passing.
+      - name: Test count (no fewer tests than the base branch)
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA"
+          pnpm --dir "$RUNNER_TEMP/base" install --frozen-lockfile
+          node tools/gates/test-count.mjs --root "$RUNNER_TEMP/base" --save "$RUNNER_TEMP/base-tests.json"
+          gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/events" --jq '.[] | tojson' > "$RUNNER_TEMP/pr-events.ndjson"
+          node tools/gates/test-count.mjs --compare "$RUNNER_TEMP/base-tests.json" --held-events "$RUNNER_TEMP/pr-events.ndjson" --owner "$OWNER"
       - name: Full fuzz (10,000 games)
         run: pnpm run --if-present fuzz
 

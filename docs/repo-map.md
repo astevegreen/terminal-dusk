@@ -78,10 +78,15 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/gates/boundary-rules.mjs` - What `pnpm boundaries` enforces, written as data.
 - `tools/gates/content-check.mjs` - `pnpm content:check [files...]`: validates content JSON against the schemas in packages/content/schema/.
 - `tools/gates/content-check.test.mjs`
+- `tools/gates/count-reporter.mjs` - node:test reporter for test-count.mjs: one JSON line per test that ran (suites left out), with its file, its name and whether it was skipped or todo.
 - `tools/gates/gate.mjs` - `pnpm gate`: check only what changed, stage by stage, stopping at the first failure.
 - `tools/gates/gate.test.mjs`
+- `tools/gates/skipped-tests.mjs` - Fails when any test is skipped, marked todo or focused with only, so every test always runs.
+- `tools/gates/skipped-tests.test.mjs`
 - `tools/gates/suites.mjs` - `pnpm fuzz`, `pnpm fuzz:quick`, `pnpm golden:check` and `pnpm golden:update`.
 - `tools/gates/suites.test.mjs`
+- `tools/gates/test-count.mjs` - Counts the tests by running them: Vitest in each package and in tests/, node:test in tools/.
+- `tools/gates/test-count.test.mjs`
 - `tools/gemini-audit.mjs` - Hands Gemini (agy, headless) read-only material and posts its answer to GitHub itself.
 - `tools/gemini/prompts/narrative.md`
 - `tools/gemini/prompts/pr-audit.md`
