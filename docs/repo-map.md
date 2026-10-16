@@ -34,6 +34,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/main.tsx` - Browser entry point: mounts the app into the #root element of index.html.
 - `packages/app/tsconfig.json` - The app runs in the browser and is bundled by Vite, so it gets the DOM and bundler-style imports.
 - `packages/app/vite.config.ts` - Vite settings for `pnpm dev`, `vite build` and the app's Vitest run. Exports: default.
+- `packages/app/wrangler.jsonc`
 
 ## packages/content - Cards, map, scenarios and tutorial as JSON data, plus the schemas that check them.
 
@@ -121,6 +122,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## docs
 
 - `docs/architecture.md` - Terminal Dusk — Core Architecture Decisions
+- `docs/workflow.md` - Terminal Dusk — Claude Code Workflow
 
 ## .claude
 
@@ -150,3 +152,5 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `.github/ISSUE_TEMPLATE/task.yml`
 - `.github/pull_request_template.md` - What changed
 - `.github/workflows/ci.yml`
+- `.github/workflows/nightly.yml`
+- `.github/workflows/preview.yml`

@@ -1,0 +1,73 @@
+name: Preview
+
+# Deploys main to the Cloudflare preview after CI passes on it, so each morning's merges become the build you,
+# Gemini's browser tests and playtesters play. Settings are in packages/app/wrangler.jsonc.
+#
+# Needs two repository secrets, CLOUDFLARE_API_TOKEN (a token with the "Edit Cloudflare Workers" permission) and
+# CLOUDFLARE_ACCOUNT_ID. Until both exist the deploy step is skipped with a notice instead of failing.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preview
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    # Only a green CI run from a push to this repository's main, never one from a pull request or a fork.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      # Always this repository's main, never a commit named by the triggering run: this job holds the Cloudflare
+      # secrets, so it must not run code from anywhere else.
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          persist-credentials: false
+      # If main has moved on since CI passed, the newer commit hasn't passed CI yet. Skip; its own CI run deploys it.
+      - name: Check main is the commit CI passed
+        id: current
+        env:
+          CI_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          if [ -n "$CI_SHA" ] && [ "$(git rev-parse HEAD)" != "$CI_SHA" ]; then
+            echo "::notice::Preview not deployed: main has moved on since this CI run; the newer run will deploy it."
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        if: steps.current.outputs.deploy == 'true'
+      - uses: actions/setup-node@v7
+        if: steps.current.outputs.deploy == 'true'
+        with:
+          node-version: 24
+      - name: Install
+        if: steps.current.outputs.deploy == 'true'
+        run: pnpm install --frozen-lockfile
+      - name: Build the app
+        if: steps.current.outputs.deploy == 'true'
+        run: pnpm --filter @terminal-dusk/app run build
+      - name: Deploy to Cloudflare
+        if: steps.current.outputs.deploy == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::notice::Preview not deployed: add the CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID repository secrets."
+            exit 0
+          fi
+          cd packages/app
+          pnpm dlx wrangler@4 deploy
