@@ -16,7 +16,10 @@ const TEST_FILE = /\.(test|spec)\.[cm]?[jt]sx?$/;
 const readJson = (f) => JSON.parse(readFileSync(f, "utf8"));
 const posix = (p) => p.split(path.sep).join("/");
 // Sorts text the same way on every machine (by character code, not by the machine's language settings).
-const byText = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+function byText(a, b) {
+  if (a === b) return 0;
+  return a < b ? -1 : 1;
+}
 
 // The fuzz suites play one game each, so both branches count the same way, fast. Golden replays are checked, not re-recorded.
 function childEnv() {
@@ -37,7 +40,8 @@ function walk(dir, keep) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((d) => {
     if (d.name === "node_modules" || d.name.startsWith(".")) return [];
     const abs = path.join(dir, d.name);
-    return d.isDirectory() ? walk(abs, keep) : keep(d.name) ? [abs] : [];
+    if (d.isDirectory()) return walk(abs, keep);
+    return keep(d.name) ? [abs] : [];
   });
 }
 
@@ -116,7 +120,7 @@ export function countTests(rootDir) {
       if (t.skipped) skipped.push(`${rel} > ${t.name}`);
     }
     const sorted = Object.fromEntries(Object.entries(files).sort(([a], [b]) => byText(a, b)));
-    return { total: tests.length, files: sorted, skipped: skipped.sort(byText) };
+    return { total: tests.length, files: sorted, skipped: skipped.toSorted(byText) };
   } finally {
     rmSync(tmp, { recursive: true, force: true });
   }
@@ -170,7 +174,7 @@ if (import.meta.main) {
   };
   try {
     const [save, compare, eventsFile, owner] = ["--save", "--compare", "--held-events", "--owner"].map(option);
-    if (!save === !compare) throw new Error("Pass either --save <file> or --compare <base file>.");
+    if (Boolean(save) === Boolean(compare)) throw new Error("Pass either --save <file> or --compare <base file>.");
     if (eventsFile && !owner) throw new Error("--held-events needs --owner <login>.");
     const counts = countTests(option("--root") ?? path.resolve(import.meta.dirname, "..", ".."));
     if (save) {

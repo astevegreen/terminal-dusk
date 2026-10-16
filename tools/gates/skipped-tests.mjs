@@ -32,7 +32,7 @@ export function findMarkers(text) {
     found.push({ index: m.indices[2][0], marker: `${m[1]}(name, { ${m[2]} })`, focused: m[2] === "only" });
   }
   return found
-    .sort((a, b) => a.index - b.index)
+    .toSorted((a, b) => a.index - b.index)
     .map(({ index, marker, focused }) => ({ line: lineAt(text, index), marker, focused }));
 }
 
@@ -47,7 +47,9 @@ const advice = ({ marker, focused }) =>
 
 // Scan every test file git knows about, including new files not added yet. Returns "file:line: advice" lines.
 export function scanRepo(root) {
-  const r = spawnSync("git", ["ls-files", "-z", "--cached", "--others", "--exclude-standard"], {
+  // git comes from the developer's own PATH, as in every tool and hook in this repo: it is
+  // installed in a different place on each machine, so there is no fixed path to use instead.
+  const r = spawnSync("git", ["ls-files", "-z", "--cached", "--others", "--exclude-standard"], { // NOSONAR (javascript:S4036)
     cwd: root, encoding: "utf8", windowsHide: true, maxBuffer: 64 * 1024 * 1024,
   });
   if (r.status !== 0) throw new Error(`git ls-files failed in ${root}: ${r.stderr}`);
