@@ -122,6 +122,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## docs
 
 - `docs/architecture.md` - Terminal Dusk — Core Architecture Decisions
+- `docs/design/core-loop.md` - Core loop
+- `docs/design/eras.md` - Eras
+- `docs/design/sides.md` - Sides
 - `docs/workflow.md` - Terminal Dusk — Claude Code Workflow
 
 ## .claude
