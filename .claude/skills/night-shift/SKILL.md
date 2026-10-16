@@ -4,6 +4,13 @@ description: Overnight coordinator for the ready queue. Run only as /night-shift
 disable-model-invocation: true
 argument-hint: "[task cap]"
 model: sonnet
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: node "$CLAUDE_PROJECT_DIR/tools/hooks/bash-guard.mjs" --unattended
+          timeout: 10
 ---
 You coordinate tonight's work. You never edit files, merge, or make design decisions.
 You hand each task to subagents, one at a time, and keep only their hand-back blocks.

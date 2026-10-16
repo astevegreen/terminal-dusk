@@ -77,6 +77,29 @@ test("read-only mode allows only inspection commands", () => {
   }
 });
 
+const ownerOnlyGh = ["gh api repos/o/r/branches/main/protection", "gh repo edit --visibility public", "gh auth switch", "gh secret list", "pnpm gate && gh api user", "gh -R o/r secret set X"];
+
+test("normal mode leaves owner-only gh commands to the ask rules", () => {
+  for (const command of ownerOnlyGh) assert.equal(guard(command).stdout, "", command);
+});
+
+test("unattended mode blocks owner-only gh commands", () => {
+  for (const command of ownerOnlyGh) {
+    const r = guard(command, ["--unattended"]);
+    assert.ok(denied(r), command);
+    assert.match(r.json.hookSpecificOutput.permissionDecisionReason, /owner-only/);
+  }
+});
+
+test("unattended mode still allows the night shift's gh commands and keeps the normal blocks", () => {
+  for (const ok of ["gh issue list --label ready --json number", "gh pr merge 3 --auto --squash", "gh pr create --draft --title \"api auth\""]) {
+    assert.equal(guard(ok, ["--unattended"]).stdout, "", ok);
+  }
+  for (const bad of ["git push --force origin task/1", "curl https://example.com"]) {
+    assert.ok(denied(guard(bad, ["--unattended"])), bad);
+  }
+});
+
 test("empty or malformed input is allowed silently", () => {
   const r = runHook("bash-guard.mjs", {});
   assert.equal(r.status, 0);

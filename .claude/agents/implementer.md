@@ -16,6 +16,11 @@ hooks:
         - type: command
           command: node "$CLAUDE_PROJECT_DIR/tools/hooks/file-lock.mjs"
           timeout: 10
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: node "$CLAUDE_PROJECT_DIR/tools/hooks/bash-guard.mjs" --unattended
+          timeout: 10
   Stop:
     - hooks:
         - type: command
