@@ -59,7 +59,7 @@ Use **Notion** as the design workspace and the **repo** as the source of truth. 
 
 **Notion layout**
 
-- **Design hub**: one page per topic — core loop, sides, eras, tension track, scoring, terrorism mechanic, tutorial outline, art style guide.
+- **Design hub**: one page per topic — core loop, sides, eras, tension track, scoring, tutorial outline, art style guide.
 - **Card concepts** database: one row per card, with status `idea → draft → approved → promoted`.
 - **Playtest feedback** database, filled through a Notion form your friends use.
 - **Open questions**: one row per unresolved decision, so nothing lives only in a chat.
@@ -437,7 +437,7 @@ While the roguelike is still using your Claude limits, spend these weeks on setu
 
 **Week 2: design and the first night shift**
 
-- [ ] Design sessions: core loop and what changes from the original, the two sides, era list, the terrorism mechanic
+- [ ] Design sessions: core loop and what changes from the original, the two sides, era list
 - [ ] Make the product calls listed in the architecture doc
 - [ ] Pick the 25 cards for the first slice, at least one per mechanic type
 - [ ] Draft the art style guide (placeholders come first, so this can wait)

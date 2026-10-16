@@ -57,7 +57,7 @@ These product decisions and stack choices are fixed inputs to the design. Every 
 | Steam | Electron with Steamworks |
 | Mobile | Capacitor 8.5 or newer |
 | Web payments | Paddle or Stripe Managed Payments (merchant of record) |
-| Mobile pricing | Free download plus one-time unlock (to confirm, see Product calls) |
+| Mobile pricing | Free download plus one-time "Full Game" unlock (decided, see Product calls) |
 | Testing | Vitest, fast-check, Playwright |
 | Web hosting | Cloudflare Workers with static assets |
 
@@ -272,7 +272,7 @@ Supabase Pro hosts accounts, data and exactly one write path for games: the `sub
 
 **Scheduled jobs (every minute)**
 
-- **Deadlines**: submit a Timeout system action for every match past its deadline.
+- **Deadlines**: for every match past its deadline, apply that match's deadline rule (see Product calls). Ranked matches always use loss on time: submit a Timeout system action.
 - **Matchmaking**: pair compatible tickets, widening the rating band the longer a ticket waits. Tickets persist, so players can close the app and get notified when a game starts.
 - **Notifications**: skip push if the player was active in the last 60 seconds. Email only if the turn is still unseen after about 20 minutes, plus one warning near the deadline.
 - **Finalize** (when a game ends): update Glicko-2 ratings and results by side, write the replay archive to storage, then delete the bulky rows.
@@ -282,7 +282,7 @@ Supabase Pro hosts accounts, data and exactly one write path for games: the `sub
 - Sign-in methods: 6-digit email codes (not magic links, which open in the system browser instead of the app), Sign in with Apple, Google, and Steam. For Steam, an edge function checks the Steam session ticket and issues a Supabase session.
 - Account deletion inside the app.
 - Login and notification emails go through a paid email provider (Resend Pro or similar). Resend's free tier stops at 100 emails a day, which would lock players out on a busy day.
-- `entitlement` rows come only from verified sources: Steam ownership checks, App Store and Google Play receipts, web merchant-of-record webhooks, and gift codes. Creating or joining an online match requires an entitlement for the platform being played on.
+- `entitlement` rows come only from verified sources: Steam ownership checks, App Store and Google Play receipts, web merchant-of-record webhooks, and gift codes. Creating an online match, or joining a ranked one, requires an entitlement for the platform being played on. A player without one may join a private game they were invited to by a player who has one.
 
 **Ruleset compatibility window**
 
@@ -468,19 +468,19 @@ Every development issue raised so far maps to at least one decision; none is lef
 | First slice covering every mechanic type | Gemini | Build order |
 | Legal review before launch | Claude | Product calls |
 
-## Product calls still needed
+## Product calls
 
-Nine choices are yours, and each changes something in the design. Until you decide, the design assumes the recommended default.
+Nine choices were yours, and each changes something in the design. All nine were decided on 2026-10-16. Three differ from the earlier recommended default; they are marked "changed".
 
-| Question | Recommended default | What it changes |
+| Question | Decision | What it changes |
 |---|---|---|
 | Mobile pricing | Free download with a one-time "Full Game" unlock | Entitlements, free-copy codes |
-| What can players do before unlocking? | Tutorial, spectating, replays, and the first era against the AI | Entitlement checks in the match host |
-| What happens when a deadline passes? | Loss on time in ranked; private lobbies choose | Deadline job, lobby settings |
+| What can players do before unlocking? | **Changed.** Tutorial, spectating, replays, and the first era against the AI, plus joining a private game when invited by a player who owns the game. Free players cannot create online games or play ranked. | Entitlement checks in the match host |
+| What happens when a deadline passes? | **Changed.** Whoever sets up a private game picks one of three rules: loss on time; one grace extension, then loss on time; or the AI plays the missed turn. Ranked always uses loss on time. Open point: Decision 8 rules out server-side AI, so how the AI plays a missed online turn still needs deciding. | Deadline job, lobby settings, possibly Decision 8 |
 | Keep a headline-style simultaneous phase? | Yes | Simultaneous decisions in the engine |
 | Undo | Free undo while building an answer; none after confirming | Staged answers in the UI |
 | Recent events (2022 on) and the post-2026 "future" | Base game ends around 2020; the recent era is an optional scenario; future cards name roles, not people | Content, per-store variants |
-| How terrorism works | A neutral instability mechanic that can hurt both sides; no player controls a terrorist group | Card design, store approval |
+| How terrorism works | **Changed.** Not a mechanic, force or separate system. Terrorism appears only as the historical subject of some event cards (for example September 11, 2001), because it was prominent in the period. | Card design, store approval; no terrorism mechanic to design |
 | Steam accounts | Steam players sign in through Steam automatically and can add email later | Auth |
 | Legal review | One review by a games/IP lawyer before the first store submission | Content, store metadata |
 
