@@ -24,15 +24,15 @@
       "Edit(/.claude/skills/**)", "Edit(/.claude/rules/**)",
       "Edit(/CLAUDE.md)", "Edit(/GEMINI.md)", "Edit(/.github/**)",
       "Edit(/docs/architecture.md)", "Edit(/tools/hooks/**)", "Edit(/tools/gates/**)",
-      "WebFetch"
+      "WebFetch",
+      "Bash(gh api *)", "Bash(gh secret *)", "Bash(gh repo *)", "Bash(gh auth *)"
     ],
     "deny": [
       "Read(./.env)", "Read(./.env.*)",
       "Read(**/node_modules/**)", "Read(**/dist/**)", "Read(**/coverage/**)", "Read(**/*.log)", "Read(**/pnpm-lock.yaml)",
       "Bash(git push --force *)", "Bash(git push -f *)", "Bash(git push origin main)", "Bash(git push origin main *)",
       "Bash(git reset --hard *)", "Bash(git clean *)", "Bash(git rebase *)", "Bash(git filter-branch *)",
-      "Bash(curl *)", "Bash(wget *)", "Bash(npx *)", "Bash(pnpm dlx *)", "Bash(npm publish *)", "Bash(pnpm publish *)",
-      "Bash(gh api *)", "Bash(gh secret *)", "Bash(gh repo *)", "Bash(gh auth *)"
+      "Bash(curl *)", "Bash(wget *)", "Bash(npx *)", "Bash(pnpm dlx *)", "Bash(npm publish *)", "Bash(pnpm publish *)"
     ]
   },
   "hooks": {

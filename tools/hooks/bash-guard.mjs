@@ -1,10 +1,13 @@
 // PreToolUse (Bash): catch disguised versions of denied commands anywhere in a command line.
 // Permission rules only match prefixes; this checks every part of a chained command.
 // With --read-only (the reviewer), only a short list of inspection commands may run.
+// With --unattended (the night shift), owner-only gh commands are blocked; by day they are `ask` rules.
 import path from "node:path";
 import { readInput, lockedEntry, deny, git, repoRootFor, canonical } from "./shared.mjs";
 
 const READ_ONLY = process.argv.includes("--read-only");
+const UNATTENDED = process.argv.includes("--unattended");
+const OWNER_ONLY_GH = new Set(["api", "repo", "auth", "secret"]);
 const input = await readInput();
 const command = String(input.tool_input?.command ?? "");
 const cwd = input.cwd ?? process.cwd();
@@ -118,6 +121,10 @@ function check(seg) {
     const { sub, rest } = gitSub(args);
     const why = checkGit(sub, rest);
     if (why) return why;
+  }
+  if (UNATTENDED && name === "gh") {
+    const sub = args.find((a, i) => !a.startsWith("-") && !["-R", "--repo"].includes(args[i - 1]));
+    if (OWNER_ONLY_GH.has(sub)) return `gh ${sub} is owner-only and can't run unattended. Ask the owner on the issue instead.`;
   }
   if (NETWORK.has(name) || /\bnet\.webclient\b/i.test(seg.words.join(" ")))
     return `${name} reaches the network, which agents may not do from the shell.`;
