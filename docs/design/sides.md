@@ -5,9 +5,9 @@ of truth; change it in Notion and promote again.
 
 ## The two sides
 
-- **The West**: the US-led bloc of real states.
-- **Russia–China**: one unified side. One player, one pool of influence, and no built-in friction between the
-  two partners.
+- **LIO** (Liberal International Order): the US-led bloc of real states.
+- **SAE** (Strategic Authoritarian Entente): Russia and China as one unified side. One player, one pool of
+  influence, and no built-in friction between the two partners.
 
 ## Asymmetry
 
@@ -17,12 +17,12 @@ of truth; change it in Notion and promote again.
 
 ## For the engine
 
-- There are exactly two sides. Code should name them by a side ID, never by "player 1" and "player 2".
-- Turn order between the sides is in docs/design/core-loop.md (the West plays first; ties on opening cards go to
-  the West).
+- There are exactly two sides. Code should name them by a side ID (`lio` and `sae`), never by "player 1" and
+  "player 2".
+- Turn order between the sides is in docs/design/core-loop.md (LIO plays first; ties on opening cards go to LIO).
 
 ## Not decided yet
 
-- The West's special ability and Russia–China's special ability.
+- LIO's special ability and SAE's special ability.
 - Card wording that names real states needs care for store approval; the legal review before the first store
   submission covers it. Future-era cards name roles, not people.

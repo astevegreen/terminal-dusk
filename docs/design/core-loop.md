@@ -9,10 +9,10 @@ gave that day. From now on this file is the source of truth; change it in Notion
    in secret. Neither player sees the other's pick until both have picked.
 2. **Reveal.** Both opening cards are revealed together.
 3. **Order.** The opening card with more action points resolves first. If both have the same action points,
-   the West's card resolves first.
+   LIO's card resolves first.
 4. **Opening cards are events only.** Each opening card resolves as its event. Its action points are not spent.
 5. **Card plays.** After the opening cards, the players take turns playing one card at a time.
-   The West plays first in every turn.
+   LIO plays first in every turn.
 
 ## Playing a card
 

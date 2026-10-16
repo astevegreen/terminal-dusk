@@ -297,7 +297,7 @@ The nightly preview build is the shared test bed for you, Gemini and your friend
 - **Feedback goes through the Notion form.** It asks for the match ID (shown in the game menu), the device, what was confusing, and what was fun. The form never asks for code-level detail.
 - **Weekly triage** (weekend, about 30 minutes): you and Claude (Opus, in the claude.ai Project with Notion connected) sort the week's feedback into design questions for Notion and bug issues for the queue.
 - **Every bug report with a match ID becomes a regression test.** Claude rebuilds the game from its move log and keeps it as a golden replay, so the same bug can't return unnoticed.
-- **Scripted sessions before big changes.** For a new era or a rules change, give friends one specific goal ("try to win as the West using only ops"). Focused tests find more than open play.
+- **Scripted sessions before big changes.** For a new era or a rules change, give friends one specific goal ("try to win as LIO using only ops"). Focused tests find more than open play.
 
 **Balance data.** Once AI-vs-AI games and online games run, results by side are recorded automatically. Review them monthly in a design session; balance changes then go through the normal design and promotion steps.
 
