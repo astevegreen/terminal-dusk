@@ -140,7 +140,11 @@ function engineGlobalProblems(ws, files) {
     : null;
   const program = ts.createProgram(files, { ...(parsed?.options ?? {}), allowJs: true, noEmit: true });
   const checker = program.getTypeChecker();
-  const inEngine = (sf) => !path.relative(ws.dir, sf.fileName).startsWith("..");
+  // On Windows a file on another drive (TypeScript's own lib files, say) has no relative path: it comes back absolute.
+  const inEngine = (sf) => {
+    const rel = path.relative(ws.dir, sf.fileName);
+    return !rel.startsWith("..") && !path.isAbsolute(rel);
+  };
   const declaredByEngine = (sym) => Boolean(sym?.declarations?.some((d) => inEngine(d.getSourceFile())));
   const problems = [];
 
