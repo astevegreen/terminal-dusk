@@ -49,7 +49,7 @@ export default defineConfig(
         {
           patterns: [
             {
-              regex: "^(?!\\.\\.?/)",
+              regex: String.raw`^(?!\.\.?/)`,
               message: "The engine imports nothing outside itself (hard rule 1). Use a relative import.",
             },
           ],

@@ -31,10 +31,12 @@ export function parseArgs(argv) {
 
 export function findSuites(root, kind) {
   const walk = (dir) =>
-    readdirSync(dir, { withFileTypes: true }).flatMap((d) =>
-      d.isDirectory() ? walk(path.join(dir, d.name)) : SUITE.test(d.name) ? [path.join(dir, d.name)] : []);
+    readdirSync(dir, { withFileTypes: true }).flatMap((d) => {
+      if (d.isDirectory()) return walk(path.join(dir, d.name));
+      return SUITE.test(d.name) ? [path.join(dir, d.name)] : [];
+    });
   const dir = path.join(root, "tests", kind);
-  return existsSync(dir) ? walk(dir).map((f) => path.relative(root, f).replace(/\\/g, "/")).sort() : [];
+  return existsSync(dir) ? walk(dir).map((f) => path.relative(root, f).replaceAll("\\", "/")).sort() : [];
 }
 
 // What a run does: a message when there is nothing to run, else the commands in order.

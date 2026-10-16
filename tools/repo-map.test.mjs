@@ -59,6 +59,33 @@ test("long descriptions are cut to 160 characters", () => {
   assert.ok(d.endsWith("…"));
 });
 
+test("block comments after a shebang, CRLF front matter and CRLF headings are still described", () => {
+  assert.equal(describeFile("a.mjs", "#!/usr/bin/env node\n/* Shebang then block. More. */\n"), "Shebang then block.");
+  assert.equal(describeFile("a.ts", "  /*** Many stars. */"), "Many stars.");
+  assert.equal(describeFile("a.ts", "/* Never closed"), "");
+  assert.equal(describeFile("a.md", "---\r\ndescription: CRLF file.\r\n---\r\n# Heading\r\n"), "CRLF file.");
+  assert.equal(describeFile("a.md", "---\r\nname: x\r\n---\r\n#  Spaced heading  \r\n"), "Spaced heading");
+  assert.equal(describeFile("a.md", "#NoSpace\n## Real heading\n"), "Real heading");
+});
+
+// Each of these took seconds before (the time grew with the square of the input's length).
+test("describing a file stays fast on long, hostile input", () => {
+  const n = 100_000;
+  const timed = (fn) => {
+    const start = performance.now();
+    fn();
+    return performance.now() - start;
+  };
+  assert.ok(timed(() => describeFile("a.ts", "/" + "*".repeat(n))) < 300, "unclosed block comment of stars");
+  assert.ok(timed(() => exportsOf("export { a" + " ".repeat(n) + "b }")) < 300, "export list full of spaces");
+  assert.ok(timed(() => describeFile("a.md", "---\n" + "\r\n".repeat(n))) < 300, "front matter never closed");
+  assert.ok(timed(() => describeFile("a.md", "#" + " ".repeat(n) + "\n")) < 300, "heading of spaces");
+});
+
+test("exportsOf reads renamed and type-only names in export lists", () => {
+  assert.deepEqual(exportsOf("export {  type Side  as  S, apply,\n  x as y }"), ["S", "apply", "y"]);
+});
+
 test("exportsOf lists exported names in source order", () => {
   const text = [
     "export function createGame() {}",
@@ -115,6 +142,17 @@ test("the map groups files into sections with each package's description as its 
   assert.match(map, /^- `packages\/engine\/src\/index.ts` - Entry point\. Exports: apply\.$/m);
   assert.match(map, /^- `packages\/engine\/src\/index.test.ts` - Tests\.$/m);
   assert.match(map, /^- `unreadable.bin`$/m);
+});
+
+test("buildMap orders files by character code, capitals first, the same on every machine", () => {
+  const repo = tempRepo({ "beta.md": "# b\n", "Zeta.md": "# Z\n", "alpha.md": "# a\n" });
+  const lines = buildMap(repo)
+    .split("\n")
+    .filter((l) => /^- `(alpha|beta|Zeta)\.md`/.test(l));
+  assert.deepEqual(
+    lines.map((l) => l.split("`")[1]),
+    ["Zeta.md", "alpha.md", "beta.md"],
+  );
 });
 
 test("buildMap lists tracked and new files, skips ignored files and the map itself", () => {

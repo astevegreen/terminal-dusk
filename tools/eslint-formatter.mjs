@@ -7,10 +7,11 @@ const ROOT = path.resolve(import.meta.dirname, "..");
 export default function format(results) {
   const lines = [];
   for (const result of results) {
-    const file = path.relative(ROOT, result.filePath).replace(/\\/g, "/");
+    const file = path.relative(ROOT, result.filePath).replaceAll("\\", "/");
     for (const m of result.messages) {
       const kind = m.severity === 2 ? "error" : "warning";
-      lines.push(`${file}:${m.line ?? 0}:${m.column ?? 0} ${kind} ${m.message}${m.ruleId ? ` (${m.ruleId})` : ""}`);
+      const rule = m.ruleId ? ` (${m.ruleId})` : "";
+      lines.push(`${file}:${m.line ?? 0}:${m.column ?? 0} ${kind} ${m.message}${rule}`);
     }
   }
   return lines.length ? `${lines.join("\n")}\n` : "";

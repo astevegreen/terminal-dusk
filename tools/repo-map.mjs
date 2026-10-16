@@ -39,20 +39,24 @@ function leadingComment(text, marker, { anywhere = false } = {}) {
   return firstSentence(run.join(" "));
 }
 
-// The first sentence of a `/* ... */` or `/** ... */` block that opens a code file.
+// The first sentence of a `/* ... */` or `/** ... */` block that opens a code file (after any shebang).
+// Plain string searches, not one regular expression: that took seconds on a long unclosed comment.
 function blockComment(text) {
-  const m = /^\s*(?:#!.*\n\s*)?\/\*+([\s\S]*?)\*\//.exec(text);
-  if (!m) return "";
-  const lines = m[1].split(/\r?\n/).map((l) => l.replace(/^\s*\*?\s?/, "").trim());
+  let rest = text.trimStart();
+  if (rest.startsWith("#!")) rest = rest.slice(rest.indexOf("\n") + 1).trimStart();
+  const end = rest.startsWith("/*") ? rest.indexOf("*/", 2) : -1;
+  if (end === -1) return "";
+  const body = rest.slice(2, end).replace(/^\*+/, "");
+  const lines = body.split(/\r?\n/).map((l) => l.replace(/^\s*\*?\s?/, "").trim());
   return firstSentence(lines.filter(Boolean).join(" "));
 }
 
 // A Markdown file's `description:` front matter, or else its first heading.
 function markdownSummary(text) {
   const front = /^---\r?\n([\s\S]*?)\r?\n---/.exec(text);
-  const description = front && /^description:\s*(.+)$/m.exec(front[1]);
+  const description = front && /^description:[ \t]*(\S.*)$/m.exec(front[1]);
   if (description) return description[1].trim().replace(/^(["'])(.*)\1$/, "$2");
-  const heading = /^#{1,6}\s+(.+)$/m.exec(front ? text.slice(front[0].length) : text);
+  const heading = /^#{1,6}[ \t]+(\S.*)$/m.exec(front ? text.slice(front[0].length) : text);
   return heading ? heading[1].trim() : "";
 }
 
@@ -83,15 +87,10 @@ export function exportsOf(text) {
   const found = [];
   for (const m of text.matchAll(declared)) found.push([m.index, [m[1]]]);
   for (const m of text.matchAll(listed)) {
+    // "x", "type x" and "x as y": the exported name is always the last word.
     const list = m[1]
       .split(",")
-      .map((s) =>
-        s
-          .trim()
-          .replace(/^type\s+/, "")
-          .split(/\s+as\s+/)
-          .pop(),
-      )
+      .map((s) => s.trim().split(/\s+/).pop())
       .filter(Boolean);
     found.push([m.index, list]);
   }
@@ -99,7 +98,8 @@ export function exportsOf(text) {
     found.push([m.index, ["default"]]);
   for (const m of text.matchAll(/^export\s+\*\s+(?:as\s+(\w+)\s+)?from\s+["']([^"']+)["']/gm))
     found.push([m.index, [m[1] ?? `* from ${m[2]}`]]);
-  for (const [, list] of found.sort((a, b) => a[0] - b[0])) for (const n of list) if (!names.includes(n)) names.push(n);
+  for (const [, list] of found.toSorted((a, b) => a[0] - b[0]))
+    for (const n of list) if (!names.includes(n)) names.push(n);
   return names;
 }
 
@@ -115,6 +115,17 @@ const rank = (s) => {
   const i = ORDER.findIndex((o) => (o.endsWith("/") ? s.startsWith(o) : s === o));
   return i === -1 ? ORDER.length : i;
 };
+
+// One file's line: its description and, for TypeScript files, what it exports.
+// A package's description already heads its section, so its package.json gets no description.
+function fileEntry(f, manifest) {
+  const description = f.text === null || f === manifest ? "" : describeFile(f.path, f.text);
+  const exported = f.text !== null && TYPESCRIPT.test(f.path) && !/\.test\.tsx?$/.test(f.path) ? exportsOf(f.text) : [];
+  const shown = exported.length > MAX_EXPORTS ? [...exported.slice(0, MAX_EXPORTS), "…"] : exported;
+  const parts = [description, shown.length ? `Exports: ${shown.join(", ")}.` : ""].filter(Boolean);
+  const entry = `- \`${f.path}\``;
+  return parts.length ? `${entry} - ${parts.join(" ")}` : entry;
+}
 
 // `files` is a sorted list of { path, text } (text null when unreadable).
 export function renderMap(files) {
@@ -134,28 +145,25 @@ export function renderMap(files) {
   for (const name of names) {
     const manifest = files.find((f) => f.path === `${name}/package.json`);
     const about = manifest?.text ? describeFile(manifest.path, manifest.text) : "";
-    out.push("", `## ${name}${about ? ` - ${about}` : ""}`, "");
-    for (const f of sections.get(name)) {
-      // A package's description already heads its section.
-      const description = f.text === null || f === manifest ? "" : describeFile(f.path, f.text);
-      const exported =
-        f.text !== null && TYPESCRIPT.test(f.path) && !/\.test\.tsx?$/.test(f.path) ? exportsOf(f.text) : [];
-      const shown = exported.length > MAX_EXPORTS ? [...exported.slice(0, MAX_EXPORTS), "…"] : exported;
-      const parts = [description, shown.length ? `Exports: ${shown.join(", ")}.` : ""].filter(Boolean);
-      out.push(`- \`${f.path}\`${parts.length ? ` - ${parts.join(" ")}` : ""}`);
-    }
+    out.push("", about ? `## ${name} - ${about}` : `## ${name}`, "");
+    for (const f of sections.get(name)) out.push(fileEntry(f, manifest));
   }
   return out.join("\n") + "\n";
 }
 
 function listFiles(root, staged) {
   const args = staged ? ["ls-files", "--cached"] : ["ls-files", "--cached", "--others", "--exclude-standard"];
-  const r = spawnSync("git", args, { cwd: root, encoding: "utf8", windowsHide: true });
+  // git comes from the developer's own PATH, as in every tool and hook in this repo: it is
+  // installed in a different place on each machine, so there is no fixed path to use instead.
+  const r = spawnSync("git", args, { cwd: root, encoding: "utf8", windowsHide: true }); // NOSONAR (javascript:S4036)
   if (r.status !== 0) throw new Error(`git ${args.join(" ")} failed: ${r.stderr}`);
   return [...new Set(r.stdout.split(/\r?\n/).filter(Boolean))]
     .filter((f) => f !== MAP && !f.endsWith("/.gitkeep") && existsSync(path.join(root, f)))
-    .sort();
+    .sort(byCharacterCode);
 }
+
+// Plain character-code order (capitals before lower case), so the map is identical on every machine.
+const byCharacterCode = (a, b) => (a < b ? -1 : Number(a > b));
 
 export function buildMap(root, { staged = false } = {}) {
   const files = listFiles(root, staged).map((p) => {

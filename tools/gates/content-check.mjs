@@ -10,7 +10,7 @@ import { pathToFileURL } from "node:url";
 const ROOT = path.resolve(import.meta.dirname, "..", "..");
 const CONTENT = "packages/content";
 const NOT_CONTENT = new Set(["schema", "src", "node_modules", "dist", "coverage", "test", "tests"]);
-const posix = (p) => p.replace(/\\/g, "/");
+const posix = (p) => p.replaceAll("\\", "/");
 
 // "packages/content/cards/early/c1.json" -> "cards"; null for anything that is not a content file.
 export function contentFolderOf(relPath) {

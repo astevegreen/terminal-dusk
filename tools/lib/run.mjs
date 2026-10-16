@@ -2,7 +2,8 @@
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 
-const quote = (a) => (/^[\w./:=@-]+$/.test(a) ? a : `"${a.replace(/"/g, '\\"')}"`);
+const ESCAPED_QUOTE = String.raw`\"`;
+const quote = (a) => (/^[\w./:=@-]+$/.test(a) ? a : `"${a.replaceAll('"', ESCAPED_QUOTE)}"`);
 
 // How to start pnpm: the pnpm that is running this script when there is one (`pnpm run` sets
 // npm_execpath), else `pnpm` from PATH through the shell, which Windows needs for pnpm.cmd.

@@ -21,8 +21,8 @@ import {
 
 const CODE = /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/;
 const SKIP_DIRS = new Set(["node_modules", "dist", "coverage", "build"]);
-const posix = (p) => p.replace(/\\/g, "/");
-const has = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
+const posix = (p) => p.replaceAll("\\", "/");
+const has = (obj, key) => Object.hasOwn(obj, key);
 
 // Workspace packages: packages/<name> -> key <name>; every shells/<name> -> key "shells".
 function workspaces(root) {
