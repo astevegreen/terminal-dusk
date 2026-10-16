@@ -1,0 +1,27 @@
+name: Task
+description: One night-shift-sized piece of work
+title: "[task] "
+labels: ["spec-review"]
+body:
+  - type: textarea
+    id: goal
+    attributes: { label: Goal, description: "1-2 sentences of behaviour, in game terms" }
+    validations: { required: true }
+  - type: textarea
+    id: read-first
+    attributes: { label: Read first, description: "Exact file paths and doc sections" }
+    validations: { required: true }
+  - type: textarea
+    id: criteria
+    attributes: { label: Acceptance criteria, description: "Testable statements, one per line" }
+    validations: { required: true }
+  - type: textarea
+    id: out-of-scope
+    attributes: { label: Out of scope }
+  - type: dropdown
+    id: size
+    attributes: { label: Size, options: ["S", "M"] }
+    validations: { required: true }
+  - type: input
+    id: depends
+    attributes: { label: Depends on, description: "Issue numbers, for example #12, #15" }
