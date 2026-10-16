@@ -66,8 +66,10 @@ function existingDir(p) {
 }
 
 // The git root that owns `target`: the worktree's own root inside a worktree.
+// Outside any repository it returns `fallback`, or null when no fallback is given.
 export function repoRootFor(target, fallback) {
-  return canonical(git(["rev-parse", "--show-toplevel"], existingDir(target)) ?? fallback);
+  const root = git(["rev-parse", "--show-toplevel"], existingDir(target)) ?? fallback;
+  return root ? canonical(root) : null;
 }
 
 // Returns the locked entry `file` falls under, or null.

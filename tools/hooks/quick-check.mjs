@@ -13,8 +13,12 @@ const input = await readInput();
 const file = input.tool_input?.file_path;
 if (!file || !existsSync(file)) process.exit(0);
 
-const root = repoRootFor(file, input.cwd ?? process.cwd());
+// Only files inside a git repository or worktree are checked. Files elsewhere, such as Claude's
+// scratchpad, are not the repo's to lint (its ESLint refuses them), so they pass silently.
+const root = repoRootFor(file);
+if (!root) process.exit(0);
 const rel = toPosix(path.relative(root, canonical(file)));
+if (rel.startsWith("../") || path.isAbsolute(rel)) process.exit(0);
 const problems = [];
 
 // 1. Lint the file with the repo's own ESLint, when it is installed.
