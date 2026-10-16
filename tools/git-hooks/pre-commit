@@ -1,0 +1,8 @@
+#!/bin/sh
+# Git pre-commit hook: formats the staged files with Prettier, then refreshes docs/repo-map.md.
+# `pnpm install` turns it on (the root "prepare" script sets git's core.hooksPath to this folder).
+# Locked files are never reformatted: .prettierignore lists them.
+set -e
+node node_modules/lint-staged/bin/lint-staged.js
+node tools/repo-map.mjs --staged
+git add docs/repo-map.md

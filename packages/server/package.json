@@ -1,0 +1,24 @@
+{
+  "name": "@terminal-dusk/server",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Supabase functions and SQL: the single submit write path, scheduled jobs and migrations.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint . --format ../../tools/eslint-formatter.mjs",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@terminal-dusk/engine": "workspace:*",
+    "@terminal-dusk/content": "workspace:*",
+    "@terminal-dusk/host": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

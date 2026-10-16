@@ -8,6 +8,38 @@
   },
   "scripts": {
     "gate": "node tools/gates/gate.mjs",
-    "test:hooks": "node --test tools/hooks/*.test.mjs"
+    "test": "node tools/test.mjs",
+    "test:hooks": "node --test tools/hooks/*.test.mjs",
+    "test:tools": "node --test \"tools/**/*.test.mjs\"",
+    "typecheck": "pnpm -r run typecheck",
+    "lint": "pnpm -r run lint",
+    "boundaries": "node tools/gates/boundaries.mjs",
+    "content:check": "node tools/gates/content-check.mjs",
+    "fuzz:quick": "node tools/gates/suites.mjs fuzz --games 1000",
+    "fuzz": "node tools/gates/suites.mjs fuzz --games 10000",
+    "golden:check": "node tools/gates/suites.mjs golden",
+    "golden:update": "node tools/gates/suites.mjs golden --update",
+    "replay": "node tools/replay.mjs",
+    "repo-map": "node tools/repo-map.mjs",
+    "dev": "pnpm --filter @terminal-dusk/app run dev",
+    "format": "prettier --write .",
+    "prepare": "git config core.hooksPath tools/git-hooks"
+  },
+  "lint-staged": {
+    "*": "prettier --write --ignore-unknown"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.0",
+    "@terminal-dusk/ai": "workspace:*",
+    "@terminal-dusk/content": "workspace:*",
+    "@terminal-dusk/engine": "workspace:*",
+    "@terminal-dusk/host": "workspace:*",
+    "eslint": "^10.0.0",
+    "globals": "^17.0.0",
+    "lint-staged": "^17.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "catalog:",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "catalog:"
   }
 }
