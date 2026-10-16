@@ -1,6 +1,6 @@
 # Terminal Dusk
 
-Two-player, card-driven strategy game (1990-2027) in a TypeScript monorepo.
+Two-player, card-driven strategy game (1991-2025) in a TypeScript monorepo.
 The owner is not a programmer: explain every change in plain English, and prove it with tests.
 
 ## Commands
