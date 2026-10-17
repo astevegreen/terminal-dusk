@@ -213,7 +213,7 @@ Max 5x has a 5-hour session limit and a weekly limit, shared across claude.ai, C
 1. **One task, one fresh session.** Context grows with every turn, and each turn re-sends it. The night shift already starts fresh per task; do the same by day with `/clear` between unrelated jobs.
 2. **Specs that name files.** "Read first" lists stop agents from exploring the whole repo.
 3. **Size tasks to fit one context.** If a task needs `/compact`, it was too big. Compacting is itself a large request.
-4. **Don't resume old sessions after a gap.** The subscription prompt cache lasts about an hour; after that, resuming re-sends everything at full cost. Write a short handoff note and start fresh instead.
+4. **Don't resume old sessions after a gap.** The subscription prompt cache lasts about an hour; after that, resuming re-sends everything at full cost. Write a short handoff note and start fresh instead: `/handoff` writes it, then `/clear` and `/handoff resume` pick it up. Claude writes one by itself once a conversation passes 60% of the auto-compact window, and a new or cleared session tells you when a note is waiting.
 5. **Quiet tools.** Hooks and test scripts print only failures, trimmed. A passing test run should cost one line, not a screen.
 
 **Model and effort defaults**

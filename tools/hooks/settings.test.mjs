@@ -33,6 +33,14 @@ test("opening a web page still asks the owner first", () => {
   assert.ok(!allow.includes("WebFetch"), "WebFetch is on the allow list");
 });
 
+test("the handoff hook runs when a turn ends and when a session starts or is cleared", () => {
+  const { hooks } = JSON.parse(read(".claude/settings.json"));
+  const runs = (groups) => groups.some((g) => g.hooks.some((h) => h.args?.some((a) => a.endsWith("tools/hooks/handoff-nudge.mjs"))));
+  assert.ok(runs(hooks.Stop), "handoff-nudge.mjs is missing from Stop");
+  const starts = hooks.SessionStart.filter((g) => runs([g])).map((g) => g.matcher);
+  assert.deepEqual(starts, ["startup|clear"]);
+});
+
 for (const agent of ["implementer", "reviewer"]) {
   test(`the ${agent} agent can't use the web at all`, () => {
     const tools = disallowedTools(agent);
