@@ -32,7 +32,7 @@ export const FUZZ_CARDS: readonly CardId[] = Array.from(
   (_, i) => `c${i + 1}`,
 );
 const AFFILIATIONS: readonly CardDef["affiliation"][] = ["lio", "sae", "neutral"];
-/** Every fourth card's event asks LIO or SAE yes or no, so opening events pause for a choice. */
+/** Every fourth card's event asks LIO or SAE yes or no, so opening and played events pause for a choice. */
 const asks = (i: number): EffectStep[] =>
   i % 4 === 3
     ? [
@@ -88,7 +88,8 @@ export function playRecorded(name: string, record: GameRecord): Played {
 /**
  * 1-4 turns of 1-2 plays each, and random starting hands and draw pile from cards c1 to c70. Each hand
  * gets the non-neutral cards the game needs, turns x (1 + playsPerTurn), of either side's, plus 0-8 more
- * of any affiliation, in random order; the draw pile gets 0-30. Each turn opens with a secret pair (#35).
+ * of any affiliation, in random order; the draw pile gets 0-30. Each turn opens with a secret pair (#35);
+ * the random chooser then plays cards for their events or points, rival cards included (#36).
  */
 export function randomGame(rng: Rng, game: number): { setup: Setup; seed: Seed } {
   const turns = 1 + rng.int(MAX_TURNS);

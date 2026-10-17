@@ -124,6 +124,18 @@ describe("random games", () => {
     expect(new Set(plays)).toEqual(new Set([1, 2]));
   });
 
+  it("the random games play cards for their events and their points, and play rival cards with the event before and after", () => {
+    const uses = new Set<string>();
+    for (let game = 1; game <= 20; game++) {
+      for (const answer of playFuzzGame(game).record.answers) {
+        if (!("value" in answer)) continue;
+        if (answer.value.kind === "playCardAs") uses.add(`play for ${answer.value.as}`);
+        if (answer.value.kind === "rivalEventOrder") uses.add(`rival event ${answer.value.event}`);
+      }
+    }
+    expect([...uses].sort()).toEqual(["play for event", "play for points", "rival event after", "rival event before"]);
+  });
+
   it("every state from createGame and apply is deep-frozen, and so is the ruleset", () => {
     const { final } = playFuzzGame(1);
     expect(Object.isFrozen(ruleset)).toBe(true);
@@ -232,7 +244,11 @@ describe("failure reports", () => {
   });
 
   it("a failing game prints its seed and answer list, ready to keep as a fixed case", () => {
-    const bad: Answer = { decisionId: "no-such-decision", side: "lio", value: { kind: "playCard", card: "c1" } };
+    const bad: Answer = {
+      decisionId: "no-such-decision",
+      side: "lio",
+      value: { kind: "playCardAs", card: "c1", as: "event" },
+    };
     const record: GameRecord = { setup: randomGame(seededRng(3), 3).setup, seed: "fuzz-3", answers: [bad] };
     let report = "";
     try {
