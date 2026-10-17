@@ -15,6 +15,7 @@ export type {
   CardDrawnHidden,
   CardId,
   Condition,
+  ContingencyDeck,
   Decision,
   DecisionKind,
   DecisionOptions,

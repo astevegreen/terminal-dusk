@@ -181,7 +181,14 @@ export type PublicState = {
   /** The resolution stack, bottom first. A paused program waits on the top frame's `choose`. */
   stack: Frame[];
   status: GameStatus;
+  /** Each side's Contingency deck, the numbered cards drawn instead of rolling a die. The order is secret. */
+  contingency: Record<Side, ContingencyDeck>;
 };
+/**
+ * One Contingency deck's public side: `cards` is its full contents, sorted ascending, and never changes
+ * (a reshuffle rebuilds the deck from it); `left` is the numbers still in the deck, sorted ascending.
+ */
+export type ContingencyDeck = { cards: number[]; left: number[] };
 /** A side's answer to its decision in a simultaneous group, kept secret until the other side's is in. */
 export type UnrevealedPick = { group: string; decisionId: string; value: AnswerValue };
 /** Visible to one side only: its hand, and its own unrevealed picks. */
@@ -191,8 +198,11 @@ export type PrivateState = { hand: CardId[]; picks: UnrevealedPick[] };
  * shuffled into the draw pile (eras.ts).
  */
 export type EraEntry = { era: EraId; turn: number; cards: CardId[] };
-/** Visible to the host only. `eras`: the eras still to enter, in the setup's order. */
-export type SecretState = { rng: RngState; deck: CardId[]; eras: EraEntry[] };
+/**
+ * Visible to the host only. `eras`: the eras still to enter, in the setup's order. `contingency`: the
+ * order of the cards left in each side's Contingency deck, top card first.
+ */
+export type SecretState = { rng: RngState; deck: CardId[]; eras: EraEntry[]; contingency: Record<Side, number[]> };
 export type MetaState = { ruleset: RulesetId; seedHash: string; seq: number };
 
 export type GameState = {
@@ -221,4 +231,6 @@ export type Setup = {
   playsPerTurn: number;
   /** The eras after the first, each entering on its own turn, from 2 to the last. None when left out. */
   eras?: EraEntry[];
+  /** Each side's Contingency deck: whole numbers, 1 or more, at least 2 cards, in any order. */
+  contingency: Record<Side, number[]>;
 };
