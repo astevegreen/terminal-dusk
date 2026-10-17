@@ -1,0 +1,170 @@
+import { createGame } from "@terminal-dusk/engine";
+import type { CardDef, Ruleset, Setup } from "@terminal-dusk/engine";
+import { describe, expect, it } from "vitest";
+import { cardSchema } from "./card.ts";
+
+/** A card file with every field, as plain JSON data. Each test changes one thing about it. */
+const validCard = () => ({
+  id: "test-card",
+  era: "early",
+  ops: 2,
+  affiliation: "neutral",
+  effect: [{ op: "marker", label: "ran" }],
+  text: { name: "Test card", rules: "Does nothing.", history: "A card for tests.", art: "art/test-card" },
+});
+
+/** The issues the schema finds in `data`: none when it passes. */
+const issuesOf = (data: unknown) => {
+  const result = cardSchema.safeParse(data);
+  return result.success ? [] : result.error.issues;
+};
+const pathsOf = (data: unknown) => issuesOf(data).map((issue) => issue.path);
+
+const yesNo = { op: "choose", who: "lio", decision: { kind: "yesNo" }, bind: "agreed" };
+const pickCard = { op: "choose", who: "both", decision: { kind: "chooseCard" }, bind: "picked" };
+
+describe("card schema: accepted cards", () => {
+  it("accepts a card with every field", () => {
+    expect(issuesOf(validCard())).toEqual([]);
+  });
+
+  it("accepts a card whose effect is empty", () => {
+    expect(issuesOf({ ...validCard(), effect: [] })).toEqual([]);
+  });
+
+  it("accepts every kind of step a card may hold, a forEach inside an if", () => {
+    const effect = [
+      yesNo,
+      {
+        op: "if",
+        cond: { op: "yes", var: "agreed" },
+        then: [{ op: "forEach", over: ["a", "b"], bind: "item", do: [{ op: "marker", label: "item", var: "item" }] }],
+        else: [{ op: "spendPoints", side: "sae", amount: 0 }],
+      },
+    ];
+    expect(issuesOf({ ...validCard(), effect })).toEqual([]);
+  });
+
+  it("accepts text variants for two platforms", () => {
+    const variants = { steam: { name: "Steam name" }, ios: { rules: "Shorter rules.", art: "art/test-card-ios" } };
+    expect(issuesOf({ ...validCard(), text: { ...validCard().text, variants } })).toEqual([]);
+  });
+});
+
+describe("card schema: rejected fields", () => {
+  it.each(["id", "era", "ops", "affiliation", "effect", "text"])("rejects a card missing its %s", (field) => {
+    const card: Record<string, unknown> = validCard();
+    delete card[field];
+    expect(pathsOf(card)).toEqual([[field]]);
+  });
+
+  it.each([
+    ["negative", -1],
+    ["fractional", 1.5],
+    ["a string", "2"],
+  ])("rejects ops that are %s, pointing at ops", (_, ops) => {
+    expect(pathsOf({ ...validCard(), ops })).toEqual([["ops"]]);
+  });
+
+  it("rejects an affiliation that is not lio, sae or neutral", () => {
+    expect(pathsOf({ ...validCard(), affiliation: "both" })).toEqual([["affiliation"]]);
+  });
+
+  it("rejects an empty name, pointing at text.name", () => {
+    expect(pathsOf({ ...validCard(), text: { ...validCard().text, name: "" } })).toEqual([["text", "name"]]);
+  });
+
+  it("rejects a text variant for an unknown platform, naming it", () => {
+    const variants = { xbox: { name: "Xbox name" } };
+    const issues = issuesOf({ ...validCard(), text: { ...validCard().text, variants } });
+    expect(issues.map((issue) => [issue.path, issue.message])).toEqual([
+      [["text", "variants"], expect.stringContaining("xbox")],
+    ]);
+  });
+
+  it("rejects a text variant that changes nothing", () => {
+    const variants = { web: {} };
+    expect(pathsOf({ ...validCard(), text: { ...validCard().text, variants } })).toEqual([["text", "variants", "web"]]);
+  });
+});
+
+describe("card schema: rejected unknown fields", () => {
+  it("rejects an unknown field at the top level, such as flags before their rules exist", () => {
+    const issues = issuesOf({ ...validCard(), flags: { scoring: true } });
+    expect(issues.map((issue) => [issue.path, issue.message])).toEqual([[[], expect.stringContaining("flags")]]);
+  });
+
+  it("rejects an unknown field in text", () => {
+    const issues = issuesOf({ ...validCard(), text: { ...validCard().text, flavour: "Extra." } });
+    expect(issues.map((issue) => [issue.path, issue.message])).toEqual([
+      [["text"], expect.stringContaining("flavour")],
+    ]);
+  });
+
+  it("rejects an unknown field in a step", () => {
+    const issues = issuesOf({ ...validCard(), effect: [{ op: "marker", label: "ran", colour: "red" }] });
+    expect(issues.map((issue) => [issue.path, issue.message])).toEqual([
+      [["effect", 0], expect.stringContaining("colour")],
+    ]);
+  });
+
+  it("rejects a step with an unknown op", () => {
+    expect(pathsOf({ ...validCard(), effect: [{ op: "drawCard" }] })).toEqual([["effect", 0, "op"]]);
+  });
+});
+
+describe("card schema: steps at any depth", () => {
+  it("rejects a card choice in a card's effect", () => {
+    expect(pathsOf({ ...validCard(), effect: [pickCard] })).toEqual([["effect", 0, "decision", "kind"]]);
+  });
+
+  it("rejects a card choice nested in an if", () => {
+    const effect = [{ op: "if", cond: { op: "yes", var: "agreed" }, then: [], else: [pickCard] }];
+    expect(pathsOf({ ...validCard(), effect })).toEqual([["effect", 0, "else", 0, "decision", "kind"]]);
+  });
+
+  it("rejects a card choice nested in a forEach", () => {
+    const effect = [{ op: "forEach", over: ["a"], bind: "item", do: [pickCard] }];
+    expect(pathsOf({ ...validCard(), effect })).toEqual([["effect", 0, "do", 0, "decision", "kind"]]);
+  });
+
+  it("points at a bad step nested two blocks deep", () => {
+    const spend = { op: "spendPoints", side: "lio", amount: -1 };
+    const effect = [
+      yesNo,
+      {
+        op: "if",
+        cond: { op: "yes", var: "agreed" },
+        then: [{ op: "forEach", over: ["a"], bind: "item", do: [spend] }],
+      },
+    ];
+    expect(pathsOf({ ...validCard(), effect })).toEqual([["effect", 1, "then", 0, "do", 0, "amount"]]);
+  });
+});
+
+describe("card schema and the engine", () => {
+  it("gives a card the engine accepts: a game using it starts without an invalidRuleset error", () => {
+    const parsed = cardSchema.parse({ ...validCard(), effect: [yesNo] });
+    // One turn of an opening card and one play needs two non-neutral cards in each hand.
+    const sideCard = (id: string, affiliation: "lio" | "sae"): CardDef => ({
+      id,
+      era: "early",
+      ops: 1,
+      affiliation,
+      effect: [],
+    });
+    const ruleset: Ruleset = {
+      id: "schema-test",
+      cards: [parsed, sideCard("l1", "lio"), sideCard("l2", "lio"), sideCard("s1", "sae"), sideCard("s2", "sae")],
+    };
+    const setup: Setup = {
+      seedHash: "hash",
+      hands: { lio: ["l1", "l2", "test-card"], sae: ["s1", "s2"] },
+      deck: [],
+      turns: 1,
+      playsPerTurn: 1,
+    };
+    const result = createGame(ruleset, setup, "seed");
+    expect(result.ok ? null : result.error).toBeNull();
+  });
+});
