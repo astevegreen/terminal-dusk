@@ -38,7 +38,10 @@ const holdsCardChoice = (steps: readonly Step[]): boolean =>
     }
   });
 
-/** Why the setup's cards are wrong, or null: every card in the hands and draw pile is in the ruleset, and none twice. */
+/**
+ * Why the setup's cards are wrong, or null: every card in the hands, the draw pile and the later eras
+ * is in the ruleset, and none twice, within one list or across them. Run after erasError.
+ */
 export function setupCardsError(ruleset: Ruleset, setup: Setup): EngineError | null {
   const known = new Set(ruleset.cards.map((card) => card.id));
   const used = new Set<CardId>();
@@ -46,6 +49,7 @@ export function setupCardsError(ruleset: Ruleset, setup: Setup): EngineError | n
     ["LIO's hand", setup.hands.lio],
     ["SAE's hand", setup.hands.sae],
     ["the draw pile", setup.deck],
+    ...(setup.eras ?? []).map((entry): [string, readonly CardId[]] => [`era ${entry.era}`, entry.cards]),
   ];
   for (const [place, cards] of places) {
     for (const card of cards) {

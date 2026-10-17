@@ -1,8 +1,9 @@
 import { handSizeError, rulesetError, setupCardsError } from "./cardChecks.ts";
+import { erasError } from "./eras.ts";
 import { seedRng, shuffle } from "./rng.ts";
 import { newBudget } from "./stack.ts";
 import { startTurn } from "./turn.ts";
-import type { GameEvent, GameState, Result, Ruleset, Seed, Setup } from "./types.ts";
+import type { EraEntry, GameEvent, GameState, Result, Ruleset, Seed, Setup } from "./types.ts";
 
 /** Builds a starting game, open at the first turn's opening pick. Bad input returns an error; it never throws. */
 export function createGame(
@@ -36,7 +37,7 @@ export function createGame(
       };
     }
   }
-  const badCards = setupCardsError(ruleset, setup) ?? handSizeError(ruleset, setup);
+  const badCards = erasError(setup) ?? setupCardsError(ruleset, setup) ?? handSizeError(ruleset, setup);
   if (badCards) return { ok: false, error: badCards };
   // The hands keep the setup's order; the draw pile is shuffled with the game's own generator.
   const drawPile = shuffle(seedRng(seed), setup.deck);
@@ -56,7 +57,7 @@ export function createGame(
       lio: { hand: [...setup.hands.lio], picks: [] },
       sae: { hand: [...setup.hands.sae], picks: [] },
     },
-    secret: { rng: drawPile.state, deck: drawPile.items },
+    secret: { rng: drawPile.state, deck: drawPile.items, eras: (setup.eras ?? []).map(copyEra) },
     meta: { ruleset: ruleset.id, seedHash: setup.seedHash, seq: 0 },
   };
   // The first turn opens through the stack, so the step budget covers createGame too.
@@ -64,3 +65,6 @@ export function createGame(
   const error = startTurn(state, events, newBudget(ruleset));
   return error ? { ok: false, error } : { ok: true, value: { state, events } };
 }
+
+/** A copy of an era entry, so the state shares nothing with the setup. */
+const copyEra = ({ era, turn, cards }: EraEntry): EraEntry => ({ era, turn, cards: [...cards] });

@@ -7,6 +7,7 @@
 // rival's card is played for its points, and its event still happens: the player first says whether
 // before or after the points. A played card stays in `inPlay` until everything it triggered is done.
 import { newDecision, whoseCard } from "./decisions.ts";
+import { enterEra } from "./eras.ts";
 import { runProgram } from "./stack.ts";
 import type { Budget, Closing } from "./stack.ts";
 import type { AnswerValue, CardId, EngineError, GameEvent, GameState, Ruleset, Side, Step } from "./types.ts";
@@ -14,9 +15,14 @@ import type { AnswerValue, CardId, EngineError, GameEvent, GameState, Ruleset, S
 /** The program each turn opens with: both sides secretly pick a card ("the both sides choose step"). */
 const OPENING: Step[] = [{ op: "choose", who: "both", decision: { kind: "chooseCard" }, bind: "opening" }];
 
-/** Opens the current turn: both sides' opening pick. Edits `state`, a working copy, in place. */
-export const startTurn = (state: GameState, events: GameEvent[], budget: Budget): EngineError | null =>
-  runProgram(state, OPENING, events, budget);
+/**
+ * Opens the current turn: an era entering on it is shuffled into the draw pile, then both sides make
+ * their opening pick. Edits `state`, a working copy, in place.
+ */
+export function startTurn(state: GameState, events: GameEvent[], budget: Budget): EngineError | null {
+  enterEra(state, events);
+  return runProgram(state, OPENING, events, budget);
+}
 
 /**
  * Moves the game on once an answer has closed and the stack is empty: reveals the opening cards, or

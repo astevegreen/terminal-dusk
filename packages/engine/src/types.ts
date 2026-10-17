@@ -69,13 +69,15 @@ export type MarkerEvent = { kind: "marker"; visibility: "public"; label: string;
  * `amount` action points, the card's ops. TEMPORARY until the actions are designed: nothing else happens.
  */
 export type PointsSpent = { kind: "pointsSpent"; visibility: "public"; side: Side; amount: number };
+/** A new era started: `cardsAdded` of its cards were shuffled into the draw pile. Never which cards. */
+export type EraStarted = { kind: "eraStarted"; visibility: "public"; era: EraId; cardsAdded: number };
 /** An event anyone may see. It never carries a card ID that is hidden from someone. */
-export type PublicEvent = CardDrawnHidden | MarkerEvent | PointsSpent;
+export type PublicEvent = CardDrawnHidden | MarkerEvent | PointsSpent | EraStarted;
 /**
  * What happened, for animation, the game log, sounds and the tutorial. An event visible to one side
  * may carry a `publicForm`: the public event everyone else gets instead (see eventsFor).
  */
-export type GameEvent = CardDrawn | CardDrawnHidden | MarkerEvent | PointsSpent;
+export type GameEvent = CardDrawn | CardDrawnHidden | MarkerEvent | PointsSpent | EraStarted;
 export type EventKind = GameEvent["kind"];
 
 /**
@@ -184,8 +186,13 @@ export type PublicState = {
 export type UnrevealedPick = { group: string; decisionId: string; value: AnswerValue };
 /** Visible to one side only: its hand, and its own unrevealed picks. */
 export type PrivateState = { hand: CardId[]; picks: UnrevealedPick[] };
-/** Visible to the host only. */
-export type SecretState = { rng: RngState; deck: CardId[] };
+/**
+ * An era after the first: its cards, in the setup's order, and the turn at whose start they are
+ * shuffled into the draw pile (eras.ts).
+ */
+export type EraEntry = { era: EraId; turn: number; cards: CardId[] };
+/** Visible to the host only. `eras`: the eras still to enter, in the setup's order. */
+export type SecretState = { rng: RngState; deck: CardId[]; eras: EraEntry[] };
 export type MetaState = { ruleset: RulesetId; seedHash: string; seq: number };
 
 export type GameState = {
@@ -212,4 +219,6 @@ export type Setup = {
   turns: number;
   /** How many plays each side makes per turn, after the opening cards: a whole number, 1 or more. */
   playsPerTurn: number;
+  /** The eras after the first, each entering on its own turn, from 2 to the last. None when left out. */
+  eras?: EraEntry[];
 };

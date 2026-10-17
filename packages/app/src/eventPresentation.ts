@@ -19,4 +19,5 @@ export const eventPresentation: EventPresentation = {
       event.value === undefined ? `Marker ${event.label}.` : `Marker ${event.label}: ${shown(event.value)}.`,
   },
   pointsSpent: { log: (event) => `${event.side} spent ${event.amount} points.` },
+  eraStarted: { log: (event) => `Era ${event.era} started: ${event.cardsAdded} cards shuffled into the draw pile.` },
 };

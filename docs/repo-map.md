@@ -62,6 +62,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/createGame.ts` - Exports: createGame.
 - `packages/engine/src/decisions.test.ts`
 - `packages/engine/src/decisions.ts` - Pending decisions: building them, finding the one a side must answer, and listing its legal answers. Exports: whoseCard, newDecision, newGroup, pendingFor, legalAnswers.
+- `packages/engine/src/eras.test.ts` - A new era (#37): the setup's checks, its cards waiting in secret, and the shuffle into the draw pile only.
+- `packages/engine/src/eras.ts` - Eras after the first (docs/design/eras.md, "When a new era starts"). Exports: erasError, enterEra.
 - `packages/engine/src/events.test.ts`
 - `packages/engine/src/events.ts` - Filtering events by who may see them. Exports: eventsFor.
 - `packages/engine/src/index.test.ts`
