@@ -3,6 +3,7 @@ import { apply, createGame, pendingFor, SIDES } from "@terminal-dusk/engine";
 import type { Answer, GameEvent, GameState, Side } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { attempt, checkLive, checkNoLeaks, checkRebuilds, hiddenFrom, leaksIn } from "./checks.ts";
+import { FIXED_GAMES } from "./fixedGames.ts";
 import { checkReplay, gameCount, playFuzzGame, playRecorded, randomGame, ruleset } from "./play.ts";
 import type { GameRecord } from "./play.ts";
 import { seededRng } from "./random.ts";
@@ -77,6 +78,18 @@ describe("random games", () => {
       expect(new Set(cards).size).toBe(cards.length);
       expect(setup.rounds).toBeGreaterThanOrEqual(1);
     }
+  });
+
+  it("the fuzz ruleset holds every card the random setups and the fixed games use", () => {
+    const known = new Set(ruleset.cards.map((card) => card.id));
+    const setups = [
+      ...Array.from({ length: 1000 }, (_, i) => randomGame(seededRng(i + 1), i + 1).setup),
+      ...FIXED_GAMES.map((game) => game.record.setup),
+    ];
+    const unknown = setups.flatMap(({ hands, deck }) =>
+      [...hands.lio, ...hands.sae, ...deck].filter((card) => !known.has(card)),
+    );
+    expect(unknown).toEqual([]);
   });
 
   it("when both sides are waiting, the side that answers first is picked at random, so both orders get played", () => {
