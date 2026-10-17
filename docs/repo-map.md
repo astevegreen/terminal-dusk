@@ -33,6 +33,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/App.tsx` - Placeholder screen until the first UI task: shows the game's name and nothing else. Exports: App.
 - `packages/app/src/decisionPrompts.test.tsx`
 - `packages/app/src/decisionPrompts.tsx` - One prompt component per DecisionKind. Exports: PromptComponent, decisionPrompts.
+- `packages/app/src/eventPresentation.test.ts`
+- `packages/app/src/eventPresentation.ts` - How each EventKind is presented. Exports: EventPresentation, eventPresentation.
 - `packages/app/src/main.tsx` - Browser entry point: mounts the app into the #root element of index.html.
 - `packages/app/tsconfig.json` - The app runs in the browser and is bundled by Vite, so it gets the DOM and bundler-style imports.
 - `packages/app/vite.config.ts` - Vite settings for `pnpm dev`, `vite build` and the app's Vitest run. Exports: default.
@@ -57,14 +59,19 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/createGame.ts` - Exports: createGame.
 - `packages/engine/src/decisions.test.ts`
 - `packages/engine/src/decisions.ts` - Pending decisions: building them, finding the one a side must answer, and listing its legal answers. Exports: newPassDecision, pendingFor, legalAnswers.
+- `packages/engine/src/events.test.ts`
+- `packages/engine/src/events.ts` - Filtering events by who may see them. Exports: eventsFor.
 - `packages/engine/src/index.test.ts`
-- `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, createGame, legalAnswers, pendingFor, SIDES, Answer, AnswerValue, CardId, Decision, DecisionKind, DecisionOptions, EngineError, ….
+- `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, createGame, legalAnswers, pendingFor, eventsFor, SIDES, hiddenPart, reconstruct, viewFor, Answer, AnswerValue, CardDrawn, ….
 - `packages/engine/src/placeholderGame.test.ts`
 - `packages/engine/src/rng.test.ts`
 - `packages/engine/src/rng.ts` - Seeded random numbers for the rules engine. Exports: RngState, seedRng, hashSeed, nextInt, shuffle.
 - `packages/engine/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
 - `packages/engine/src/test/game.ts` - Test helpers: a started placeholder game, and answers for it. Exports: ruleset, makeSetup, startGame, passFor, accepted, playPasses.
-- `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: Side, SIDES, CardId, RulesetId, Seed, Ruleset, EngineErrorCode, EngineError, Result, GameEvent, DecisionKind, DecisionOptions, ….
+- `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: Side, SIDES, CardId, RulesetId, Seed, Ruleset, EngineErrorCode, EngineError, Result, Visibility, Viewer, CardDrawnHidden, ….
+- `packages/engine/src/views.property.test.ts` - Property test: over random placeholder games with random hands and draw piles, views rebuild the state exactly and never leak hidden data.
+- `packages/engine/src/views.test.ts`
+- `packages/engine/src/views.ts` - Views: the part of the state one viewer may see, the part they cannot, and rebuilding the whole. Exports: viewFor, hiddenPart, reconstruct.
 - `packages/engine/tsconfig.json` - The engine sees only the JavaScript language itself: no DOM and no Node types, so timers, fetch, document and the like fail the type check (hard rule 1).
 
 ## packages/host - MatchHost: runs a match around the engine (players, clock, move log, frames) without doing I/O.
