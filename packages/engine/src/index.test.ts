@@ -13,6 +13,7 @@ describe("@terminal-dusk/engine entry point", () => {
       "pendingFor",
       "reconstruct",
       "seedHash",
+      "verifyGame",
       "viewFor",
     ]);
   });

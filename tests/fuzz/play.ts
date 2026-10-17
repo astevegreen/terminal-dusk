@@ -15,7 +15,7 @@ import type {
   Setup,
   Step as EffectStep,
 } from "@terminal-dusk/engine";
-import { attempt, checkStep, firstDifference } from "./checks.ts";
+import { attempt, checkStep, checkVerify, firstDifference } from "./checks.ts";
 import { deepFreeze } from "./deepFreeze.ts";
 import { seededRng } from "./random.ts";
 import type { Rng } from "./random.ts";
@@ -188,12 +188,14 @@ export function randomChooser(rng: Rng): Chooser {
 
 /**
  * Plays a game from `setup` and `seed`, answering with `choose` until the game ends. Checks invariants 1, 3,
- * 4 and 5 on the state from createGame and after every answer, then invariant 6 at the end.
+ * 4 and 5 on the state from createGame and after every answer, then invariant 6 at the end. A game that
+ * reached its end is also checked with verifyGame.
  */
 export function playGame(label: string, setup: Setup, seed: Seed, choose: Chooser): Played {
   const record: GameRecord = { setup: deepFreeze(setup), seed, answers: [] };
   try {
     let { state, events } = started(setup, seed);
+    const allEvents = [...events];
     checkStep(ruleset, setup, state, events, seed);
     while (state.public.status.kind === "active") {
       if (record.answers.length >= MAX_ANSWERS) throw new Error(`the game is still going after ${MAX_ANSWERS} answers`);
@@ -201,9 +203,12 @@ export function playGame(label: string, setup: Setup, seed: Seed, choose: Choose
       if (answer === null) break;
       record.answers.push(deepFreeze(answer));
       ({ state, events } = answered(state, answer));
+      allEvents.push(...events);
       checkStep(ruleset, setup, state, events, seed);
     }
     checkReplay(record, state);
+    // A recorded game may stop early; verifyGame only accepts a game that reached its end.
+    if (state.public.status.kind === "over") checkVerify(ruleset, record, state, allEvents);
     return { record, final: state };
   } catch (err) {
     throw new Error(report(label, record, err), { cause: err });

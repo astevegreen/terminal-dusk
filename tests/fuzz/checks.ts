@@ -8,9 +8,20 @@ import {
   reconstruct,
   seedHash,
   SIDES,
+  verifyGame,
   viewFor,
 } from "@terminal-dusk/engine";
-import type { CardId, GameEvent, GameState, PlayerView, Ruleset, Seed, Setup, Viewer } from "@terminal-dusk/engine";
+import type {
+  Answer,
+  CardId,
+  GameEvent,
+  GameState,
+  PlayerView,
+  Ruleset,
+  Seed,
+  Setup,
+  Viewer,
+} from "@terminal-dusk/engine";
 import { deepFreeze } from "./deepFreeze.ts";
 
 export const VIEWERS: readonly Viewer[] = ["lio", "sae", "spectator"];
@@ -231,4 +242,22 @@ export function firstDifference(a: unknown, b: unknown, path: string): string | 
     if (diff !== null) return diff;
   }
   return null;
+}
+
+/**
+ * verifyGame on a game that reached its end: it must accept the record and give the same final state and
+ * the same events, in order, as the game produced from createGame onwards.
+ */
+export function checkVerify(
+  ruleset: Ruleset,
+  record: { setup: Setup; seed: Seed; answers: readonly Answer[] },
+  final: GameState,
+  events: readonly GameEvent[],
+): void {
+  const r = attempt("verifyGame", () => verifyGame(ruleset, record.setup, record.seed, record.answers));
+  if (!r.ok) throw new Error(`verifyGame refused the game's own record: ${r.error.code} ${r.error.message ?? ""}`);
+  const stateDiff = firstDifference(r.value.state, final, "state");
+  if (stateDiff !== null) throw new Error(`verifyGame gives a different final state: ${stateDiff} differs`);
+  const eventsDiff = firstDifference(r.value.events, events, "events");
+  if (eventsDiff !== null) throw new Error(`verifyGame gives different events: ${eventsDiff} differs`);
 }

@@ -1,5 +1,5 @@
 // Tests for the fuzz harness itself: each check catches what it should, so a green fuzz run means something.
-import { apply, createGame, pendingFor, seedHash, SIDES } from "@terminal-dusk/engine";
+import { apply, createGame, pendingFor, seedHash, SIDES, verifyGame } from "@terminal-dusk/engine";
 import type { Answer, GameEvent, GameState, Setup, Side } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import {
@@ -9,6 +9,7 @@ import {
   checkRebuilds,
   checkSeedHash,
   checkStep,
+  checkVerify,
   hiddenFrom,
   leaksIn,
 } from "./checks.ts";
@@ -283,6 +284,35 @@ describe("invariant 6: replaying the answer log gives the same final state", () 
     expect(() => checkReplay(record, final)).not.toThrow();
     const changed = { ...final, public: { ...final.public, turn: final.public.turn + 1 } };
     expect(() => checkReplay(record, changed)).toThrow(/state\.public\.turn/);
+  });
+});
+
+describe("verifyGame on a finished game", () => {
+  const GAMES = 20;
+  const ended = Array.from({ length: GAMES }, (_, i) => playFuzzGame(i + 1));
+
+  it("refuses a wrong seed and a log missing its last answer, on about 20 random games", () => {
+    for (const { record } of ended) {
+      const wrongSeed = verifyGame(ruleset, record.setup, `${record.seed}-wrong`, record.answers);
+      expect(!wrongSeed.ok && wrongSeed.error.code).toBe("seedMismatch");
+      const cutShort = verifyGame(ruleset, record.setup, record.seed, record.answers.slice(0, -1));
+      expect(!cutShort.ok && cutShort.error.code).toBe("unfinishedLog");
+    }
+  });
+
+  it("checkVerify fails when the final state or the events differ from the game's own", () => {
+    const { record, final } = ended[0]!;
+    const r = verifyGame(ruleset, record.setup, record.seed, record.answers);
+    if (!r.ok) throw new Error("verifyGame refused a finished game");
+    expect(() => checkVerify(ruleset, record, final, r.value.events)).not.toThrow();
+    const changed = { ...final, public: { ...final.public, turn: final.public.turn + 1 } };
+    expect(() => checkVerify(ruleset, record, changed, r.value.events)).toThrow(
+      /different final state: state.public.turn/,
+    );
+    expect(() => checkVerify(ruleset, record, final, r.value.events.slice(1))).toThrow(/different events/);
+    expect(() =>
+      checkVerify(ruleset, { ...record, answers: record.answers.slice(0, -1) }, final, r.value.events),
+    ).toThrow(/unfinishedLog/);
   });
 });
 
