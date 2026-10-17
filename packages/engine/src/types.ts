@@ -23,8 +23,29 @@ export type EngineErrorCode =
 export type EngineError = { code: EngineErrorCode; message?: string };
 export type Result<T> = { ok: true; value: T } | { ok: false; error: EngineError };
 
-/** Placeholder until #31 defines events. */
-export type GameEvent = never;
+/** Who may see an event: everyone, or one side only. */
+export type Visibility = "public" | Side;
+/** Who a view or an event list is for. ('omniscient' arrives with the match host's replay archive.) */
+export type Viewer = Side | "spectator";
+
+/** Everyone else's version of a drawn card: who drew, never which card. */
+export type CardDrawnHidden = { kind: "cardDrawnHidden"; visibility: "public"; side: Side };
+/** A side drew `card`. Only that side sees it; everyone else gets `publicForm`. */
+export type CardDrawn = {
+  kind: "cardDrawn";
+  visibility: Side;
+  side: Side;
+  card: CardId;
+  publicForm: CardDrawnHidden;
+};
+/** An event anyone may see. It never carries a card ID that is hidden from someone. */
+export type PublicEvent = CardDrawnHidden;
+/**
+ * What happened, for animation, the game log, sounds and the tutorial. An event visible to one side
+ * may carry a `publicForm`: the public event everyone else gets instead (see eventsFor).
+ */
+export type GameEvent = CardDrawn | CardDrawnHidden;
+export type EventKind = GameEvent["kind"];
 
 export type DecisionKind = "pass";
 /** Declarative description of what is legal. Never lists hidden data such as card IDs from a hand. */
@@ -65,6 +86,15 @@ export type GameState = {
   secret: SecretState;
   meta: MetaState;
 };
+
+/** Sizes of everything a viewer cannot see. A hand the viewer cannot see is only ever a number. */
+export type HiddenCounts = { deck: number; hands: Record<Side, number> };
+/** Every meta field is public: `seedHash` is the published hash, never the seed. */
+export type PublicMeta = MetaState;
+/** What one viewer receives. `mine` is the viewer's own private compartment, or null for a spectator. */
+export type PlayerView = { public: PublicState; mine: PrivateState | null; counts: HiddenCounts; meta: PublicMeta };
+/** What `viewer` cannot see: the opponent's private compartment and the secret compartment. */
+export type HiddenPart = { viewer: Side; opponent: PrivateState; secret: SecretState };
 
 export type Setup = {
   seedHash: string;
