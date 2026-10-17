@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { legalAnswers, pendingFor, SIDES } from "./index.ts";
-import { playPasses, ruleset, startGame } from "./test/game.ts";
+import { choose, playPasses, ruleset, startGame, startWith } from "./test/game.ts";
 
 describe("pendingFor", () => {
   it("returns the decision that side must answer, or null", () => {
@@ -18,6 +18,14 @@ describe("pendingFor", () => {
 describe("legalAnswers", () => {
   it("lists the finite legal answers for that side's pending decision: one pass", () => {
     expect(legalAnswers(ruleset, startGame(), "lio")).toEqual([{ kind: "pass" }]);
+  });
+  it("lists yes then no for a yesNo decision", () => {
+    const paused = startWith([choose("go", "sae")]).state;
+    expect(legalAnswers(ruleset, paused, "sae")).toEqual([
+      { kind: "yesNo", yes: true },
+      { kind: "yesNo", yes: false },
+    ]);
+    expect(legalAnswers(ruleset, paused, "lio")).toEqual([]);
   });
   it("returns [] for a side with no pending decision", () => {
     expect(legalAnswers(ruleset, startGame(), "sae")).toEqual([]);

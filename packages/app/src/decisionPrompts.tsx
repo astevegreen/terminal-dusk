@@ -9,6 +9,12 @@ function PassPrompt({ decision }: { decision: Decision }) {
   return <p>{`${decision.side} must pass.`}</p>;
 }
 
+/** Placeholder prompt until the first UI task. */
+function YesNoPrompt({ decision }: { decision: Decision }) {
+  return <p>{`${decision.side}: yes or no?`}</p>;
+}
+
 export const decisionPrompts: Record<DecisionKind, PromptComponent> = {
   pass: PassPrompt,
+  yesNo: YesNoPrompt,
 };

@@ -45,7 +45,7 @@ describe("eventsFor", () => {
   it("keeps the events in their original order", () => {
     const all = [lioDrew, saeDrewHidden, saeOnlyNoPublicForm];
     expect(eventsFor(all, "lio").map((e) => e.kind)).toEqual(["cardDrawn", "cardDrawnHidden"]);
-    expect(eventsFor(all, "sae").map((e) => `${e.kind}:${e.side}`)).toEqual([
+    expect(eventsFor(all, "sae").map((e) => `${e.kind}:${"side" in e ? e.side : "none"}`)).toEqual([
       "cardDrawnHidden:lio",
       "cardDrawnHidden:sae",
       "cardDrawn:sae",
