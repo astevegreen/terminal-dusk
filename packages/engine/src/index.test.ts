@@ -12,6 +12,7 @@ describe("@terminal-dusk/engine entry point", () => {
       "legalAnswers",
       "pendingFor",
       "reconstruct",
+      "seedHash",
       "viewFor",
     ]);
   });
