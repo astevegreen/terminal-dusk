@@ -33,6 +33,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/App.tsx` - Placeholder screen until the first UI task: shows the game's name and nothing else. Exports: App.
 - `packages/app/src/decisionPrompts.test.tsx`
 - `packages/app/src/decisionPrompts.tsx` - One prompt component per DecisionKind. Exports: PromptComponent, decisionPrompts.
+- `packages/app/src/eventPresentation.test.ts`
+- `packages/app/src/eventPresentation.ts` - How each EventKind is presented. Exports: EventPresentation, eventPresentation.
 - `packages/app/src/main.tsx` - Browser entry point: mounts the app into the #root element of index.html.
 - `packages/app/tsconfig.json` - The app runs in the browser and is bundled by Vite, so it gets the DOM and bundler-style imports.
 - `packages/app/vite.config.ts` - Vite settings for `pnpm dev`, `vite build` and the app's Vitest run. Exports: default.
