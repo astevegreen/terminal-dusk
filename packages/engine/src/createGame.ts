@@ -1,4 +1,5 @@
 import { seedRng } from "./rng.ts";
+import { newPassDecision } from "./decisions.ts";
 import type { GameEvent, GameState, Result, Ruleset, Seed, Setup } from "./types.ts";
 
 /** Builds a starting game. Bad input returns an error; it never throws. */
@@ -20,8 +21,20 @@ export function createGame(
       error: { code: "invalidSetup", message: "The setup needs hands for both sides and a deck." },
     };
   }
+  if (!Number.isInteger(setup.rounds) || setup.rounds < 1) {
+    return {
+      ok: false,
+      error: { code: "invalidSetup", message: "The setup needs rounds of at least 1." },
+    };
+  }
   const state: GameState = {
-    public: { turn: 1, discard: [] },
+    public: {
+      turn: 1,
+      rounds: setup.rounds,
+      discard: [],
+      pending: [newPassDecision(0, "lio")],
+      status: { kind: "active" },
+    },
     private: {
       lio: { hand: [...setup.hands.lio] },
       sae: { hand: [...setup.hands.sae] },
