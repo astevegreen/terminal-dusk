@@ -5,12 +5,12 @@ import type { ComponentType } from "react";
 export type PromptComponent = ComponentType<{ decision: Decision }>;
 
 /** Placeholder prompt until the first UI task. */
-function PassPrompt({ decision }: { decision: Decision }) {
+function PassPrompt({ decision }: Readonly<{ decision: Decision }>) {
   return <p>{`${decision.side} must pass.`}</p>;
 }
 
 /** Placeholder prompt until the first UI task. */
-function YesNoPrompt({ decision }: { decision: Decision }) {
+function YesNoPrompt({ decision }: Readonly<{ decision: Decision }>) {
   return <p>{`${decision.side}: yes or no?`}</p>;
 }
 
