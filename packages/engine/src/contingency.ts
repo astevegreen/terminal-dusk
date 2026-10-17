@@ -3,7 +3,7 @@
 import { shuffle } from "./rng.ts";
 import type { RngState } from "./rng.ts";
 import { SIDES } from "./types.ts";
-import type { ContingencyDeck, EngineError, Setup, Side } from "./types.ts";
+import type { ContingencyDeck, EngineError, GameEvent, GameState, Setup, Side } from "./types.ts";
 
 /** Numbers sorted ascending, as numbers (plain `.sort()` would put 10 before 2). Returns a new list. */
 const ascending = (numbers: readonly number[]): number[] => [...numbers].sort((a, b) => a - b);
@@ -46,4 +46,27 @@ export function shuffleContingency(
   const lio = deal("lio");
   const sae = deal("sae");
   return { rng: current, open: { lio: lio.open, sae: sae.open }, order: { lio: lio.order, sae: sae.order } };
+}
+
+/**
+ * Draws a contingency for `side` and returns its number: the top card of that side's secret order comes
+ * off, and one instance of its number leaves the numbers left (a deck may repeat a number). If that
+ * leaves one card, the deck is rebuilt straight away as a shuffle, with the game's generator, of its full
+ * contents sorted ascending. Edits `state`, apply's working copy, in place, like enterEra.
+ */
+export function drawContingency(state: GameState, side: Side, events: GameEvent[]): number {
+  const open = state.public.contingency[side];
+  // A deck always holds 2 or more cards: createGame checks the setup, and a reshuffle refills it.
+  const [top, ...rest] = state.secret.contingency[side] as [number, ...number[]];
+  state.secret.contingency[side] = rest;
+  open.left.splice(open.left.indexOf(top), 1);
+  events.push({ kind: "contingencyDrawn", visibility: "public", side, value: top });
+  if (rest.length === 1) {
+    const shuffled = shuffle(state.secret.rng, ascending(open.cards));
+    state.secret.rng = shuffled.state;
+    state.secret.contingency[side] = shuffled.items;
+    open.left = ascending(open.cards);
+    events.push({ kind: "contingencyDeckReshuffled", visibility: "public", side });
+  }
+  return top;
 }

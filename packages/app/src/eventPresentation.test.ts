@@ -4,7 +4,15 @@ import { eventPresentation } from "./eventPresentation.ts";
 
 describe("eventPresentation", () => {
   it("has an entry for every event kind", () => {
-    const kinds: EventKind[] = ["cardDrawn", "cardDrawnHidden", "eraStarted", "marker", "pointsSpent"];
+    const kinds: EventKind[] = [
+      "cardDrawn",
+      "cardDrawnHidden",
+      "contingencyDeckReshuffled",
+      "contingencyDrawn",
+      "eraStarted",
+      "marker",
+      "pointsSpent",
+    ];
     expect(Object.keys(eventPresentation).sort()).toEqual(kinds);
   });
   it("logs a drawn card for the side that drew it", () => {
@@ -44,6 +52,28 @@ describe("eventPresentation", () => {
       cardsAdded: 4,
     });
     expect(line).toBe("Era era2 started: 4 cards shuffled into the draw pile.");
+  });
+  it("logs a contingency draw with the side and the number drawn", () => {
+    const line = eventPresentation.contingencyDrawn.log({
+      kind: "contingencyDrawn",
+      visibility: "public",
+      side: "lio",
+      value: 4,
+    });
+    expect(line).toBe("lio drew a contingency: 4.");
+  });
+  it("logs a reshuffle with the side whose deck was shuffled back together", () => {
+    const line = eventPresentation.contingencyDeckReshuffled.log({
+      kind: "contingencyDeckReshuffled",
+      visibility: "public",
+      side: "sae",
+    });
+    expect(line).toBe("sae's Contingency deck was shuffled back together.");
+  });
+  it("logs a marker holding a drawn number as that number", () => {
+    expect(eventPresentation.marker.log({ kind: "marker", visibility: "public", label: "drew", value: 5 })).toBe(
+      "Marker drew: 5.",
+    );
   });
   it("logs a marker holding both sides' answers as each side's yes or no, in SIDES order", () => {
     const value = { sae: false, lio: true };
