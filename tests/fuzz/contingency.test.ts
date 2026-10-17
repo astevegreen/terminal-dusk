@@ -1,6 +1,7 @@
 // Tests for the fuzz harness's Contingency deck checks (#64): the deck invariant and the structural leak
-// check each catch a hand-corrupted state, and the random games use varied decks. No draws happen yet,
-// so real games never break these checks; the corrupted states below prove each part works.
+// check each catch a hand-corrupted state, and the random games use varied decks. The random games draw
+// and reshuffle (#65, harness.test.ts), but never break these checks; the corrupted states below prove
+// each part works.
 import { createGame, viewFor } from "@terminal-dusk/engine";
 import type { GameEvent, GameState, PlayerView, Setup, Side } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";

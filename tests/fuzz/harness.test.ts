@@ -128,6 +128,28 @@ describe("random games", () => {
     expect(new Set(plays)).toEqual(new Set([1, 2]));
   });
 
+  it("the random games draw contingencies and reshuffle a deck, for each side, so the deck checks run on real draws", () => {
+    const seen = new Set<string>();
+    for (let game = 1; game <= 20; game++) {
+      const { record } = playFuzzGame(game);
+      let state = started(record.setup, record.seed);
+      for (const answer of record.answers) {
+        const next = apply(ruleset, state, answer);
+        if (!next.ok) throw new Error(`apply failed: ${next.error.code}`);
+        state = next.value.state;
+        for (const e of next.value.events) {
+          if (e.kind === "contingencyDrawn" || e.kind === "contingencyDeckReshuffled") seen.add(`${e.kind} ${e.side}`);
+        }
+      }
+    }
+    expect([...seen].sort()).toEqual([
+      "contingencyDeckReshuffled lio",
+      "contingencyDeckReshuffled sae",
+      "contingencyDrawn lio",
+      "contingencyDrawn sae",
+    ]);
+  });
+
   it("the random games play cards for their events and their points, and play rival cards with the event before and after", () => {
     const uses = new Set<string>();
     for (let game = 1; game <= 20; game++) {
