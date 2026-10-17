@@ -14,14 +14,19 @@ const TWO_32 = 4294967296;
 const MAX_N = 2147483648; // 2^31
 
 /**
- * SEED METHOD (must never change): the seed string is mixed with a four-lane integer hash
- * (a variant of cyrb128: Math.imul by fixed odd constants and xor-shifts over each UTF-16 code unit),
- * which gives the four starting words. The final step differs from real cyrb128: after the four
- * finishing mixes, the words are [h1^h2^h3^h4, h2^h1, h3^h1, h4^h1] where h1 is the value from
- * those finishing mixes (real cyrb128 XORs in the already-combined first word). Then 15 values are thrown away so a poor seed still starts well.
+ * SEED METHOD (must never change): the seed string is hashed with cyrb128, by bryc (public domain,
+ * github.com/bryc/code, jshash/PRNGs.md), over each UTF-16 code unit. That gives the four starting
+ * words. Then 15 values are thrown away so a poor seed still starts well, as that page advises for sfc32.
  * The same string always gives the same state.
  */
 export function seedRng(seed: string): RngState {
+  let state = hashSeed(seed);
+  for (let i = 0; i < 15; i++) state = step(state).state;
+  return state;
+}
+
+/** The four starting words for a seed string, before the 15 draws are thrown away. */
+export function hashSeed(seed: string): RngState {
   let h1 = 1779033703;
   let h2 = 3144134277;
   let h3 = 1013904242;
@@ -37,9 +42,8 @@ export function seedRng(seed: string): RngState {
   h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
   h3 = Math.imul(h1 ^ (h3 >>> 17), 951274213);
   h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
-  let state: RngState = [(h1 ^ h2 ^ h3 ^ h4) >>> 0, (h2 ^ h1) >>> 0, (h3 ^ h1) >>> 0, (h4 ^ h1) >>> 0];
-  for (let i = 0; i < 15; i++) state = step(state).state;
-  return state;
+  h1 = h1 ^ h2 ^ h3 ^ h4;
+  return [h1 >>> 0, (h2 ^ h1) >>> 0, (h3 ^ h1) >>> 0, (h4 ^ h1) >>> 0];
 }
 
 /** One sfc32 step: returns an unsigned 32-bit integer and the new state. Never changes its input. */

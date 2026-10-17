@@ -1,6 +1,6 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { nextInt, seedRng, shuffle, type RngState } from "./rng.ts";
+import { hashSeed, nextInt, seedRng, shuffle, type RngState } from "./rng.ts";
 
 function deepFreeze<T>(x: T): T {
   if (x && typeof x === "object") {
@@ -30,6 +30,27 @@ describe("rng: seeding", () => {
       }),
       params,
     );
+  });
+  it("the seed hash is standard cyrb128", () => {
+    // Expected words from the reference cyrb128 in bryc's PRNGs.md (github.com/bryc/code, jshash).
+    expect(hashSeed("")).toEqual([41608494, 3485963809, 1435736333, 1262568316]);
+    expect(hashSeed("terminal-dusk")).toEqual([2250789190, 3811759194, 2547120541, 3985526690]);
+    expect(hashSeed("apples")).toEqual([1353502818, 2189370424, 187770103, 4227467030]);
+    expect(hashSeed("Terminal Dusk 1991–2025")).toEqual([2929552340, 4134553289, 508974401, 3151215219]);
+  });
+  it("the four hashed words do not cancel out to zero (an earlier variant always did)", () => {
+    for (let i = 0; i < 1000; i++) {
+      const [a, b, c, d] = hashSeed(`seed-${i}`);
+      expect((a ^ b ^ c ^ d) >>> 0).not.toBe(0);
+    }
+  });
+  it("seedRng is the seed hash with its first 15 draws thrown away", () => {
+    for (const seed of ["", "terminal-dusk", "apples"]) {
+      // nextInt(_, 2^31) never redraws, so each call uses exactly one draw.
+      let s = hashSeed(seed);
+      for (let i = 0; i < 15; i++) s = nextInt(s, 2 ** 31).state;
+      expect(seedRng(seed)).toEqual(s);
+    }
   });
 });
 
@@ -76,7 +97,7 @@ describe("rng: nextInt", () => {
       s = r.state;
     }
     expect(values).toEqual([
-      688, 690, 96, 993, 444, 11, 220, 18, 966, 149, 382, 456, 441, 75, 924, 518, 856, 382, 485, 586,
+      291, 467, 206, 636, 165, 901, 617, 305, 375, 135, 992, 847, 931, 998, 232, 650, 807, 266, 961, 82,
     ]);
   });
   it("property: value is an integer in [0, n) and the state stays unsigned 32-bit after every call", () => {
