@@ -14,7 +14,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@terminal-dusk/engine": "workspace:*"
+    "@terminal-dusk/engine": "workspace:*",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "typescript": "catalog:",
