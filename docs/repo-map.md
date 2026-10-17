@@ -98,6 +98,13 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## tests
 
 - `tests/README.md` - Cross-package test suites
+- `tests/fuzz/checks.ts` - The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite"). Exports: VIEWERS, Secrets, attempt, checkStep, checkLive, hiddenFrom, leaksIn, checkNoLeaks, checkRebuilds, firstDifference.
+- `tests/fuzz/deepFreeze.ts` - Freezes a value and everything inside it, so an engine call that changes its input throws. Exports: deepFreeze.
+- `tests/fuzz/engine.test.ts` - Fuzz suite: plays FUZZ_GAMES random placeholder games and checks invariants 1, 4, 5 and 6 of docs/architecture.md ("Guardrails", "Fuzz suite") at every step.
+- `tests/fuzz/fixedGames.ts` - Fixed games the fuzz suite replays, with every check, on every run. Exports: FIXED_GAMES.
+- `tests/fuzz/harness.test.ts` - Tests for the fuzz harness itself: each check catches what it should, so a green fuzz run means something.
+- `tests/fuzz/play.ts` - Plays one game for the fuzz suite, random or recorded, and checks every invariant along the way. Exports: ruleset, DEFAULT_GAMES, MAX_ANSWERS, GameRecord, Chooser, Played, gameCount, playFuzzGame, playRecorded, randomGame, randomChooser, playGame, ….
+- `tests/fuzz/random.ts` - The fuzz suite's own seeded generator, so every random game can be played again exactly. Exports: Rng, seededRng.
 - `tests/tsconfig.json` - Type-checks the cross-package suites in tests/; tools/gates/suites.mjs runs it before the suites themselves.
 
 ## tools
