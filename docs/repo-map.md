@@ -55,21 +55,24 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/apply.property.test.ts` - Property test: random streams of good and bad answers keep the engine's invariants.
 - `packages/engine/src/apply.test.ts`
 - `packages/engine/src/apply.ts` - Takes one answer and returns the next state. Exports: apply.
+- `packages/engine/src/copy.ts` - State is plain JSON, so a JSON round trip is a complete copy that shares nothing with the original. Exports: copyJson.
 - `packages/engine/src/createGame.test.ts`
 - `packages/engine/src/createGame.ts` - Exports: createGame.
 - `packages/engine/src/decisions.test.ts`
-- `packages/engine/src/decisions.ts` - Pending decisions: building them, finding the one a side must answer, and listing its legal answers. Exports: newPassDecision, pendingFor, legalAnswers.
+- `packages/engine/src/decisions.ts` - Pending decisions: building them, finding the one a side must answer, and listing its legal answers. Exports: newDecision, pendingFor, legalAnswers.
 - `packages/engine/src/events.test.ts`
 - `packages/engine/src/events.ts` - Filtering events by who may see them. Exports: eventsFor.
 - `packages/engine/src/index.test.ts`
-- `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, createGame, legalAnswers, pendingFor, eventsFor, SIDES, hiddenPart, reconstruct, viewFor, Answer, AnswerValue, CardDrawn, ….
+- `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, createGame, legalAnswers, pendingFor, eventsFor, SIDES, hiddenPart, reconstruct, viewFor, Answer, AnswerValue, Binding, ….
 - `packages/engine/src/placeholderGame.test.ts`
 - `packages/engine/src/rng.test.ts`
 - `packages/engine/src/rng.ts` - Seeded random numbers for the rules engine. Exports: RngState, seedRng, hashSeed, nextInt, shuffle.
+- `packages/engine/src/stack.test.ts`
+- `packages/engine/src/stack.ts` - The resolution stack: runs program steps until one needs a player's choice, records that as the pending decision and stops. Exports: stepBudget, startProgram, resumeStack.
 - `packages/engine/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
-- `packages/engine/src/test/game.ts` - Test helpers: a started placeholder game, and answers for it. Exports: ruleset, makeSetup, startGame, passFor, accepted, playPasses.
+- `packages/engine/src/test/game.ts` - Test helpers: a started placeholder game, answers for it, and small programs for the stack. Exports: ruleset, makeSetup, startGame, passFor, accepted, playPasses, startWith, yesNoAnswer, answerYesNo, markers, marker, choose, ….
 - `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: Side, SIDES, CardId, RulesetId, Seed, Ruleset, EngineErrorCode, EngineError, Result, Visibility, Viewer, CardDrawnHidden, ….
-- `packages/engine/src/views.property.test.ts` - Property test: over random placeholder games with random hands and draw piles, views rebuild the state exactly and never leak hidden data.
+- `packages/engine/src/views.property.test.ts` - Property test: over random placeholder games with random hands and draw piles, and random programs on the resolution stack, views rebuild the state exactly and…
 - `packages/engine/src/views.test.ts`
 - `packages/engine/src/views.ts` - Views: the part of the state one viewer may see, the part they cannot, and rebuilding the whole. Exports: viewFor, hiddenPart, reconstruct.
 - `packages/engine/tsconfig.json` - The engine sees only the JavaScript language itself: no DOM and no Node types, so timers, fetch, document and the like fail the type check (hard rule 1).

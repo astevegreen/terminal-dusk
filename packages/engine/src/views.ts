@@ -1,8 +1,7 @@
 // Views: the part of the state one viewer may see, the part they cannot, and rebuilding the whole.
+import { copyJson as copy } from "./copy.ts";
 import type { GameState, HiddenPart, PlayerView, Side, Viewer } from "./types.ts";
 
-/** State is plain JSON, so a JSON round trip is a complete copy that shares nothing with the original. */
-const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 const other = (side: Side): Side => (side === "lio" ? "sae" : "lio");
 
 /**

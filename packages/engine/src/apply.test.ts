@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { apply } from "./apply.ts";
 import type { Answer } from "./index.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
-import { accepted, passFor, playPasses, ruleset, startGame } from "./test/game.ts";
+import { accepted, choose, passFor, playPasses, ruleset, startGame, startWith } from "./test/game.ts";
 
 const code = (r: ReturnType<typeof apply>) => (r.ok ? "ok" : r.error.code);
 
@@ -66,6 +66,20 @@ describe("apply: accepted answers", () => {
     const s = deepFreeze(startGame());
     const answer = deepFreeze(passFor(s, "lio"));
     expect(apply(deepFreeze({ ...ruleset }), s, answer).ok).toBe(true);
+  });
+  it("an answer value with its fields in another order is still accepted (JSON stores may reorder keys)", () => {
+    const paused = startWith([choose("go")]).state;
+    const d = paused.public.pending[0]!;
+    const reordered = { decisionId: d.id, side: d.side, value: { yes: true, kind: "yesNo" } } as Answer;
+    expect(apply(ruleset, paused, reordered).ok).toBe(true);
+  });
+  it("a yes/no answer with an extra field or a non-boolean yes is illegal", () => {
+    const paused = startWith([choose("go")]).state;
+    const d = paused.public.pending[0]!;
+    for (const value of [{ kind: "yesNo", yes: true, extra: 1 }, { kind: "yesNo", yes: "true" }, { kind: "pass" }]) {
+      const a = { decisionId: d.id, side: d.side, value } as unknown as Answer;
+      expect(code(apply(ruleset, paused, a))).toBe("illegalAnswer");
+    }
   });
   it("state stays plain JSON with integers only", () => {
     const s = playPasses(startGame(), 3);

@@ -9,4 +9,8 @@ export type EventPresentation = {
 export const eventPresentation: EventPresentation = {
   cardDrawn: { log: (event) => `${event.side} drew ${event.card}.` },
   cardDrawnHidden: { log: (event) => `${event.side} drew a card.` },
+  marker: {
+    log: (event) =>
+      event.value === undefined ? `Marker ${event.label}.` : `Marker ${event.label}: ${String(event.value)}.`,
+  },
 };

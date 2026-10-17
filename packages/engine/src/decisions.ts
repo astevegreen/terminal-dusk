@@ -1,9 +1,9 @@
 // Pending decisions: building them, finding the one a side must answer, and listing its legal answers.
-import type { AnswerValue, Decision, GameState, Ruleset, Side } from "./types.ts";
+import type { AnswerValue, Decision, DecisionKind, GameState, Ruleset, Side } from "./types.ts";
 
-/** A "pass" decision. Its ID comes from `seq`, which rises with every accepted answer, so IDs never repeat. */
-export function newPassDecision(seq: number, side: Side): Decision {
-  return { id: `d${seq}`, side, kind: "pass", options: {} };
+/** A new decision. Its ID comes from `seq`, which rises with every change, so IDs never repeat. */
+export function newDecision(seq: number, side: Side, kind: DecisionKind): Decision {
+  return { id: `d${seq}`, side, kind, options: {} };
 }
 
 /** The decision `side` must answer, or null. */
@@ -23,5 +23,10 @@ function expandOptions(decision: Decision): AnswerValue[] {
   switch (decision.kind) {
     case "pass":
       return [{ kind: "pass" }];
+    case "yesNo":
+      return [
+        { kind: "yesNo", yes: true },
+        { kind: "yesNo", yes: false },
+      ];
   }
 }

@@ -9,7 +9,12 @@ export type CardId = string;
 export type RulesetId = string;
 export type Seed = string;
 
-export type Ruleset = { readonly id: RulesetId };
+/** Card definitions and limits. Passed into apply on every call; never copied into the state. */
+export type Ruleset = {
+  readonly id: RulesetId;
+  /** `stepBudget`: most stack steps one call may run (default 10,000). */
+  readonly limits?: { readonly stepBudget?: number };
+};
 
 export type EngineErrorCode =
   | "invalidSeed"
@@ -19,7 +24,9 @@ export type EngineErrorCode =
   | "wrongSide"
   | "illegalAnswer"
   | "gameOver"
-  | "notSupported";
+  | "notSupported"
+  | "stepBudgetExceeded"
+  | "invalidProgram";
 export type EngineError = { code: EngineErrorCode; message?: string };
 export type Result<T> = { ok: true; value: T } | { ok: false; error: EngineError };
 
@@ -38,16 +45,18 @@ export type CardDrawn = {
   card: CardId;
   publicForm: CardDrawnHidden;
 };
+/** A `marker` step ran: its label, and the value of the variable it names, if any. */
+export type MarkerEvent = { kind: "marker"; visibility: "public"; label: string; value?: VarValue };
 /** An event anyone may see. It never carries a card ID that is hidden from someone. */
-export type PublicEvent = CardDrawnHidden;
+export type PublicEvent = CardDrawnHidden | MarkerEvent;
 /**
  * What happened, for animation, the game log, sounds and the tutorial. An event visible to one side
  * may carry a `publicForm`: the public event everyone else gets instead (see eventsFor).
  */
-export type GameEvent = CardDrawn | CardDrawnHidden;
+export type GameEvent = CardDrawn | CardDrawnHidden | MarkerEvent;
 export type EventKind = GameEvent["kind"];
 
-export type DecisionKind = "pass";
+export type DecisionKind = "pass" | "yesNo";
 /** Declarative description of what is legal. Never lists hidden data such as card IDs from a hand. */
 export type DecisionOptions = Record<string, never>;
 export type Decision = {
@@ -59,9 +68,32 @@ export type Decision = {
   options: DecisionOptions;
 };
 
-export type AnswerValue = { kind: "pass" };
+export type AnswerValue = { kind: "pass" } | { kind: "yesNo"; yes: boolean };
 export type Answer =
   { decisionId: string; side: Side; value: AnswerValue } | { system: "timeout" | "resign" | "adjudicate"; side: Side };
+
+export type VarName = string;
+/** A variable's value: a yes/no answer, or the current item of a forEach. */
+export type VarValue = boolean | string;
+/** True when the yes/no variable `var` holds yes. */
+export type Condition = { op: "yes"; var: VarName };
+/** One step of an effect program (docs/architecture.md, section 4). More kinds arrive with later tasks. */
+export type Step =
+  | { op: "choose"; who: Side; decision: { kind: "yesNo" }; bind: VarName }
+  | { op: "if"; cond: Condition; then: Step[]; else?: Step[] }
+  | { op: "forEach"; over: string[]; bind: VarName; do: Step[] }
+  | { op: "marker"; label: string; var?: VarName };
+
+export type Binding = { name: VarName; value: VarValue };
+/** The block a frame runs, the index of its next step, and the variables bound in it, in binding order. */
+type FrameBase = { steps: Step[]; next: number; vars: Binding[] };
+/**
+ * One running block on the resolution stack: a program, an `if` branch, or a `forEach` body with its
+ * items and the index of the current one. Frames are public: they never hold hidden data.
+ */
+export type Frame =
+  | (FrameBase & { kind: "program" | "if" })
+  | (FrameBase & { kind: "forEach"; bind: VarName; items: string[]; index: number });
 
 export type GameStatus = { kind: "active" } | { kind: "over"; winner: Side | null; reason: string };
 
@@ -72,6 +104,8 @@ export type PublicState = {
   discard: CardId[];
   /** Open decisions, in SIDES order. */
   pending: Decision[];
+  /** The resolution stack, bottom first. A paused program waits on the top frame's `choose`. */
+  stack: Frame[];
   status: GameStatus;
 };
 /** Visible to one side only. */

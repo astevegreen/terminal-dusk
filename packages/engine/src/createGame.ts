@@ -1,5 +1,5 @@
 import { seedRng } from "./rng.ts";
-import { newPassDecision } from "./decisions.ts";
+import { newDecision } from "./decisions.ts";
 import type { GameEvent, GameState, Result, Ruleset, Seed, Setup } from "./types.ts";
 
 /** Builds a starting game. Bad input returns an error; it never throws. */
@@ -32,7 +32,8 @@ export function createGame(
       turn: 1,
       rounds: setup.rounds,
       discard: [],
-      pending: [newPassDecision(0, "lio")],
+      pending: [newDecision(0, "lio", "pass")],
+      stack: [],
       status: { kind: "active" },
     },
     private: {
