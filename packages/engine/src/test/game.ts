@@ -53,7 +53,8 @@ export const withCards = (...cards: CardDef[]): Ruleset => ({
 
 /**
  * A setup where each side has exactly the non-neutral cards the game needs, turns x (1 + playsPerTurn),
- * plus one neutral card: LIO l1, l2, ... and n1; SAE s1, s2, ... and n2. The draw pile is z1-z3.
+ * plus one neutral card: LIO l1, l2, ... and n1; SAE s1, s2, ... and n2. The draw pile is z1-z3, and
+ * each side's Contingency deck is the default, 1 to 6.
  */
 export const makeSetup = (turns = 2, playsPerTurn = 1): Setup => {
   const needed = turns * (1 + playsPerTurn);
@@ -63,6 +64,7 @@ export const makeSetup = (turns = 2, playsPerTurn = 1): Setup => {
     deck: ["z1", "z2", "z3"],
     turns,
     playsPerTurn,
+    contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6] },
   };
 };
 

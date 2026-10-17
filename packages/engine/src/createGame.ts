@@ -1,4 +1,5 @@
 import { handSizeError, rulesetError, setupCardsError } from "./cardChecks.ts";
+import { contingencyError, shuffleContingency } from "./contingency.ts";
 import { erasError } from "./eras.ts";
 import { seedRng, shuffle } from "./rng.ts";
 import { newBudget } from "./stack.ts";
@@ -37,10 +38,14 @@ export function createGame(
       };
     }
   }
+  const badDecks = contingencyError(setup);
+  if (badDecks) return { ok: false, error: badDecks };
   const badCards = erasError(setup) ?? setupCardsError(ruleset, setup) ?? handSizeError(ruleset, setup);
   if (badCards) return { ok: false, error: badCards };
-  // The hands keep the setup's order; the draw pile is shuffled with the game's own generator.
+  // The hands keep the setup's order. One generator shuffles the draw pile, then LIO's Contingency deck,
+  // then SAE's; this order never changes, so a seed always gives the same game.
   const drawPile = shuffle(seedRng(seed), setup.deck);
+  const decks = shuffleContingency(drawPile.state, setup);
   const state: GameState = {
     public: {
       turn: 1,
@@ -52,12 +57,18 @@ export function createGame(
       pending: [],
       stack: [],
       status: { kind: "active" },
+      contingency: decks.open,
     },
     private: {
       lio: { hand: [...setup.hands.lio], picks: [] },
       sae: { hand: [...setup.hands.sae], picks: [] },
     },
-    secret: { rng: drawPile.state, deck: drawPile.items, eras: (setup.eras ?? []).map(copyEra) },
+    secret: {
+      rng: decks.rng,
+      deck: drawPile.items,
+      eras: (setup.eras ?? []).map(copyEra),
+      contingency: decks.order,
+    },
     meta: { ruleset: ruleset.id, seedHash: setup.seedHash, seq: 0 },
   };
   // The first turn opens through the stack, so the step budget covers createGame too.

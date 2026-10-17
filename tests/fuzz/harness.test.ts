@@ -22,6 +22,7 @@ function started(
     deck: DECK,
     turns: 1,
     playsPerTurn: 1,
+    contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6] },
   },
   seed = SEED,
 ): GameState {

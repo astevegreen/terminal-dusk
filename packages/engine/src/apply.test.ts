@@ -87,6 +87,15 @@ describe("apply: accepted answers", () => {
       expect(apply(frozenRuleset, s, answer).ok).toBe(true);
     }
   });
+  it("never changes deep-frozen inputs, including the Contingency decks, and carries the decks over unchanged", () => {
+    const s = deepFreeze(startGame());
+    expect(Object.isFrozen(s.public.contingency.lio.left)).toBe(true);
+    expect(Object.isFrozen(s.secret.contingency.sae)).toBe(true);
+    const r = apply(ruleset, s, deepFreeze(cardAnswer(s, "lio")));
+    if (!r.ok) throw new Error(`answer rejected: ${r.error.code}`);
+    expect(r.value.state.public.contingency).toEqual(s.public.contingency);
+    expect(r.value.state.secret.contingency).toEqual(s.secret.contingency);
+  });
   it("an answer value with its fields in another order is still accepted (JSON stores may reorder keys)", () => {
     const paused = startWith([choose("go")]).state;
     const d = paused.public.pending[0]!;

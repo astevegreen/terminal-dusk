@@ -60,6 +60,12 @@ const MOST_NEEDED = MAX_TURNS * (1 + MAX_PLAYS);
 const PREFIXES = ["l", "s", "n"];
 
 /**
+ * A Contingency deck as a setup gives it: 2-8 cards from 1 to 20, in any order, repeats allowed. The
+ * numbers stay far below 2^16, so the leak check below never mistakes one for a generator word.
+ */
+const deckArb = fc.array(fc.integer({ min: 1, max: 20 }), { minLength: 2, maxLength: 8 });
+
+/**
  * Card IDs are unique, quoted tokens ("l12z", "s40z", "n7z"), so a leak check cannot match part of
  * another value. Each side gets the non-neutral cards the game needs (rulesetWith reads the
  * affiliation from the prefix); the other cards, of any affiliation, are split between the two hands
@@ -77,8 +83,10 @@ const gameArb: fc.Arbitrary<Game> = fc
     playsPerTurn: fc.integer({ min: 1, max: MAX_PLAYS }),
     seed: fc.nat(),
     moves: fc.array(moveArb, { maxLength: 30 }),
+    lioDeck: deckArb,
+    saeDeck: deckArb,
   })
-  .map(({ ids, cutA, cutB, turns, playsPerTurn, seed, moves }) => {
+  .map(({ ids, cutA, cutB, turns, playsPerTurn, seed, moves, lioDeck, saeDeck }) => {
     const needed = turns * (1 + playsPerTurn);
     const lio = ids.slice(0, needed).map((n) => `l${n}z`);
     const sae = ids.slice(needed, 2 * needed).map((n) => `s${n}z`);
@@ -91,6 +99,7 @@ const gameArb: fc.Arbitrary<Game> = fc
       deck: rest.slice(b),
       turns,
       playsPerTurn,
+      contingency: { lio: lioDeck, sae: saeDeck },
     };
     return { setup, seed: `seed-${seed}-x`, moves };
   });
@@ -185,6 +194,27 @@ describe("views over random games", () => {
       fc.property(gameArb, (game) => {
         for (const s of play(game)) {
           for (const viewer of [...SIDES, "spectator"] as const) expect(leaks(s, viewer, game)).toEqual([]);
+        }
+      }),
+      { numRuns: 300 },
+    );
+  });
+  it("each Contingency deck's full contents are the setup's sorted, its numbers left are its secret order sorted, and views show both but never the order", () => {
+    const ascending = (xs: readonly number[]) => [...xs].sort((a, b) => a - b);
+    fc.assert(
+      fc.property(gameArb, (game) => {
+        for (const s of play(game)) {
+          for (const side of SIDES) {
+            const open = s.public.contingency[side];
+            expect(open.cards).toEqual(ascending(game.setup.contingency[side]));
+            expect(open.left).toEqual(ascending(s.secret.contingency[side]));
+            expect(s.secret.contingency[side].length).toBeGreaterThanOrEqual(2);
+            for (const viewer of [...SIDES, "spectator"] as const) {
+              const seen = viewFor(s, viewer).public.contingency[side];
+              expect(seen).toEqual(open);
+              expect(Object.keys(seen).sort()).toEqual(["cards", "left"]);
+            }
+          }
         }
       }),
       { numRuns: 300 },
