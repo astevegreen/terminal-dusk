@@ -59,7 +59,7 @@ export function resumeStack(
   events: GameEvent[],
   budget: number,
 ): EngineError | null {
-  const frame = state.public.stack[state.public.stack.length - 1];
+  const frame = state.public.stack.at(-1);
   const step = frame?.steps[frame.next];
   if (!frame || step?.op !== "choose" || value.kind !== "yesNo") {
     return problem("invalidProgram", "The stack is not paused at a yes/no choice.");
@@ -70,6 +70,10 @@ export function resumeStack(
   return runStack(state, events, budget);
 }
 
+/** What running one step did: ran on, paused at a choice, or found a broken program. */
+type StepOutcome = "ran" | "paused" | EngineError;
+type StepOf<K extends Step["op"]> = Extract<Step, { op: K }>;
+
 /**
  * Runs the top frame's steps until a `choose` pauses the stack or the stack is empty. Each step run
  * counts once against `budget`; going over returns stepBudgetExceeded.
@@ -78,7 +82,7 @@ function runStack(state: GameState, events: GameEvent[], budget: number): Engine
   const stack = state.public.stack;
   let used = 0;
   while (stack.length > 0) {
-    const frame = stack[stack.length - 1]!;
+    const frame = stack.at(-1)!;
     const step = frame.steps[frame.next];
     if (step === undefined) {
       finishBlock(stack, frame);
@@ -86,50 +90,69 @@ function runStack(state: GameState, events: GameEvent[], budget: number): Engine
     }
     used += 1;
     if (used > budget) return problem("stepBudgetExceeded", `More than ${budget} steps would run in one call.`);
-    switch (step.op) {
-      case "choose":
-        state.public.pending = [newDecision(state.meta.seq, step.who, step.decision.kind)];
-        return null;
-      case "marker": {
-        if (step.var === undefined) {
-          events.push({ kind: "marker", visibility: "public", label: step.label });
-        } else {
-          const value = lookup(stack, step.var);
-          if (value === undefined) return unbound(step.var);
-          events.push({ kind: "marker", visibility: "public", label: step.label, value });
-        }
-        frame.next += 1;
-        break;
-      }
-      case "if": {
-        const value = lookup(stack, step.cond.var);
-        if (value === undefined) return unbound(step.cond.var);
-        if (typeof value !== "boolean") {
-          return problem("invalidProgram", `"${step.cond.var}" is not a yes/no answer, so if cannot test it.`);
-        }
-        frame.next += 1;
-        const branch = value ? step.then : (step.else ?? []);
-        if (branch.length > 0) stack.push({ kind: "if", steps: branch, next: 0, vars: [] });
-        break;
-      }
-      case "forEach": {
-        frame.next += 1;
-        const first = step.over[0];
-        if (first === undefined) break;
-        stack.push({
-          kind: "forEach",
-          steps: step.do,
-          next: 0,
-          vars: [{ name: step.bind, value: first }],
-          bind: step.bind,
-          items: step.over,
-          index: 0,
-        });
-        break;
-      }
-    }
+    const outcome = runStep(state, frame, step, events);
+    if (outcome === "paused") return null;
+    if (outcome !== "ran") return outcome;
   }
   return null;
+}
+
+/** Runs one step of the top frame. */
+function runStep(state: GameState, frame: Frame, step: Step, events: GameEvent[]): StepOutcome {
+  switch (step.op) {
+    case "choose":
+      state.public.pending = [newDecision(state.meta.seq, step.who, step.decision.kind)];
+      return "paused";
+    case "marker":
+      return runMarker(state.public.stack, frame, step, events);
+    case "if":
+      return runIf(state.public.stack, frame, step);
+    case "forEach":
+      return runForEach(state.public.stack, frame, step);
+  }
+}
+
+/** Emits a public marker event, with the named variable's value if the step names one. */
+function runMarker(stack: Frame[], frame: Frame, step: StepOf<"marker">, events: GameEvent[]): StepOutcome {
+  if (step.var === undefined) {
+    events.push({ kind: "marker", visibility: "public", label: step.label });
+  } else {
+    const value = lookup(stack, step.var);
+    if (value === undefined) return unbound(step.var);
+    events.push({ kind: "marker", visibility: "public", label: step.label, value });
+  }
+  frame.next += 1;
+  return "ran";
+}
+
+/** Pushes the branch the yes/no variable picks, unless that branch is empty. */
+function runIf(stack: Frame[], frame: Frame, step: StepOf<"if">): StepOutcome {
+  const value = lookup(stack, step.cond.var);
+  if (value === undefined) return unbound(step.cond.var);
+  if (typeof value !== "boolean") {
+    return problem("invalidProgram", `"${step.cond.var}" is not a yes/no answer, so if cannot test it.`);
+  }
+  frame.next += 1;
+  const branch = value ? step.then : (step.else ?? []);
+  if (branch.length > 0) stack.push({ kind: "if", steps: branch, next: 0, vars: [] });
+  return "ran";
+}
+
+/** Pushes a loop frame with the first item bound, unless the list is empty. */
+function runForEach(stack: Frame[], frame: Frame, step: StepOf<"forEach">): StepOutcome {
+  frame.next += 1;
+  const first = step.over[0];
+  if (first === undefined) return "ran";
+  stack.push({
+    kind: "forEach",
+    steps: step.do,
+    next: 0,
+    vars: [{ name: step.bind, value: first }],
+    bind: step.bind,
+    items: step.over,
+    index: 0,
+  });
+  return "ran";
 }
 
 /** The top frame's steps are done: a forEach moves to its next item, any other frame is removed. */

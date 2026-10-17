@@ -18,7 +18,7 @@ const other = (side: Side): Side => (side === "lio" ? "sae" : "lio");
 const canonical = (value: unknown): string | undefined =>
   JSON.stringify(value, (_key, v: unknown) =>
     v !== null && typeof v === "object" && !Array.isArray(v)
-      ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)))
+      ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => (a < b ? -1 : 1))) // keys are never equal
       : v,
   );
 
