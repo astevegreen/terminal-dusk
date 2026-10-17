@@ -27,38 +27,53 @@ const READ_ONLY_ALLOWED = [
 ];
 
 // Split into tokens, keeping quoted strings together and operators as their own tokens.
+// A word is `plain` when bash reads it exactly as kept here: one quoted string, or no quotes or
+// backslashes, and not glued to the word before. `complete` is false when something this can't
+// read (such as `<`) stopped it early, so the rest of the line went unseen.
 function tokenize(line) {
   const tokens = [];
   const re = /\s*(?:(&&|\|\||;;?|\||&(?!>)|\n|\$\(|`|\(|\))|(\d?>>?|&>>?)|("(?:[^"\\]|\\.)*"|'[^']*'|(?:[^\s;&|()<>`"']|"(?:[^"\\]|\\.)*"|'[^']*')+))/gy;
   let m;
+  let end = 0;
   while ((m = re.exec(line)) && m[0] !== "") {
+    end = re.lastIndex;
     if (m[1]) tokens.push({ op: m[1] });
     else if (m[2]) tokens.push({ redirect: m[2] });
-    else if (m[3]) tokens.push({ word: m[3].replace(/^(["'])(.*)\1$/s, "$2") });
+    else if (m[3]) {
+      const prev = tokens.at(-1);
+      const glued = prev?.word !== undefined && !/^\s/.test(m[0]);
+      if (glued) prev.plain = false;
+      const plain = !glued && (/^'[^']*'$/.test(m[3]) || /^"[^"\\]*"$/.test(m[3]) || !/["'\\]/.test(m[3]));
+      tokens.push({ word: m[3].replace(/^(["'])(.*)\1$/s, "$2"), plain });
+    }
   }
-  return tokens;
+  return { tokens, complete: !line.slice(end).trim() };
 }
 
-// Group tokens into simple commands: { words: [...], redirects: [target, ...] }.
+// Group tokens into simple commands: { words: [...], redirects: [target, ...], plain }.
 function segments(line) {
-  const out = [];
-  let cur = { words: [], redirects: [] };
-  const tokens = tokenize(line);
+  const list = [];
+  const fresh = () => ({ words: [], redirects: [], plain: true });
+  let cur = fresh();
+  const { tokens, complete } = tokenize(line);
   for (let i = 0; i < tokens.length; i++) {
     const t = tokens[i];
     if (t.op) {
-      if (cur.words.length || cur.redirects.length) out.push(cur);
-      cur = { words: [], redirects: [] };
+      if (cur.words.length || cur.redirects.length) list.push(cur);
+      cur = fresh();
     } else if (t.redirect) {
       const target = tokens[i + 1]?.word;
       if (target !== undefined) {
         cur.redirects.push(target);
         i++;
       }
-    } else cur.words.push(t.word);
+    } else {
+      cur.words.push(t.word);
+      cur.plain &&= t.plain;
+    }
   }
-  if (cur.words.length || cur.redirects.length) out.push(cur);
-  return out;
+  if (cur.words.length || cur.redirects.length) list.push(cur);
+  return { list, complete };
 }
 
 function commandName(words) {
@@ -92,16 +107,20 @@ const API_LONG_VALUE = new Set(["--header", "--method", "--field", "--raw-field"
 const API_METHOD = new Set(["-X", "--method"]);
 const API_BODY = new Set(["-f", "-F", "--field", "--raw-field", "--input"]);
 
-// A gh api call only reads when its method is GET or HEAD. Sending fields without a method means POST,
-// GraphQL can hold a mutation, and a $ or backtick could expand into anything, so those count as writes.
+// A gh api call only reads when its method is GET or HEAD and it sends nothing from this PC elsewhere.
+// Fields without a method mean POST, GraphQL can hold a mutation, `-F key=@file` and --input send a
+// local file, --hostname or a full URL reach another host, and a $ or backtick could expand into anything.
 function apiReads(args) {
   if (args.some((a) => /[$`]/.test(a))) return false;
   const methods = [];
   const endpoints = [];
   let body = false;
+  let sends = false;
   const take = (flag, value) => {
-    if (API_METHOD.has(flag)) methods.push(String(value ?? "").replace(/^=/, "").toUpperCase());
+    const v = String(value ?? "").replace(/^=/, "");
+    if (API_METHOD.has(flag)) methods.push(v.toUpperCase());
     if (API_BODY.has(flag)) body = true;
+    if (["--input", "--hostname"].includes(flag) || (["-F", "--field"].includes(flag) && /^[^=]*=@/.test(v))) sends = true;
   };
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
@@ -114,20 +133,21 @@ function apiReads(args) {
       if (j > 0) take(`-${a[j]}`, j + 1 < a.length ? a.slice(j + 1) : args[++i]);
     } else endpoints.push(a);
   }
-  if (endpoints.includes("graphql")) return false;
+  if (sends || endpoints.some((e) => e === "graphql" || e.includes("://"))) return false;
   if (body && !methods.length) return false;
   return methods.every((m) => m === "GET" || m === "HEAD");
 }
 
 // By day: "read" for gh api reads and gh repo view, "write" for any other gh api or gh repo call, else null.
+// A call bash might read differently from this hook (quotes glued to text, backslashes, a prefix such
+// as GH_HOST=, or a path to some other gh) counts as a write.
 function ghKind(seg) {
   const { name, args } = commandName(seg.words);
   if (name !== "gh") return null;
   const { sub, rest } = ghSub(args);
-  let reads;
-  if (sub === "api") reads = apiReads(rest);
-  else if (sub === "repo") reads = rest.find((a) => !a.startsWith("-")) === "view";
-  else return null;
+  if (sub !== "api" && sub !== "repo") return null;
+  const exact = seg.plain && /^gh(\.exe)?$/i.test(seg.words[0]);
+  const reads = exact && (sub === "api" ? apiReads(rest) : rest.find((a) => !a.startsWith("-")) === "view");
   if (!reads) return "write";
   return seg.redirects.length ? null : "read";
 }
@@ -202,7 +222,7 @@ function check(seg) {
   return null;
 }
 
-const segs = segments(command);
+const { list: segs, complete } = segments(command);
 for (const seg of segs) {
   const why = check(seg);
   if (why) deny(`Blocked by bash-guard: ${why}`);
@@ -212,6 +232,6 @@ if (!READ_ONLY && !UNATTENDED) {
   const kinds = segs.map(ghKind);
   if (kinds.includes("write"))
     decide("ask", "bash-guard: gh api calls that can change GitHub, and gh repo commands other than view, need the owner's OK.");
-  if (kinds.length && kinds.every((k) => k === "read"))
+  if (complete && kinds.length && kinds.every((k) => k === "read"))
     decide("allow", "bash-guard: read-only gh api or gh repo view call.");
 }

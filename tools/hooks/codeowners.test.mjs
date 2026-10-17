@@ -13,9 +13,9 @@ test("every Locked path is code-owned", () => {
   for (const entry of LOCKED) assert.ok(owned.has(`/${entry}`), `/${entry} is missing from CODEOWNERS`);
 });
 
-test("database migrations, dependencies and tool settings are code-owned", () => {
+test("database migrations, golden replays, dependencies and tool settings are code-owned", () => {
   for (const p of [
-    "/packages/server/supabase/migrations/", "/tools/git-hooks/", "**/package.json", "/pnpm-lock.yaml",
+    "/packages/server/supabase/migrations/", "/tests/golden/", "/tools/git-hooks/", "**/package.json", "/pnpm-lock.yaml",
     "/pnpm-workspace.yaml", "**/tsconfig*.json", "**/vitest.config.*", "**/vite.config.*", "/eslint.config.*",
   ]) assert.ok(owned.has(p), `${p} is missing from CODEOWNERS`);
 });

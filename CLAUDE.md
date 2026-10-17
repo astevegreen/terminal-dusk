@@ -50,7 +50,7 @@ The owner is not a programmer: explain every change in plain English, and prove 
 ## Finishing
 By day, after opening a pull request: run the `reviewer` agent, fix its concerns once, then on PASS run
 `gh pr ready <n>` and `gh pr merge <n> --auto --squash`. GitHub merges once CI is green and,
-for code-owned files, once the owner approves. Concerns left: label it `held` and comment them.
+for code-owned files, once the owner approves. Concerns left: `gh pr ready <n>`, label it `held`, comment them.
 
 End every task with:
 - **What changed** - the behaviour, in plain English, 2-5 bullets
