@@ -48,10 +48,14 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## packages/engine - Pure rules engine: game state, decisions, events and views. Imports nothing outside itself.
 
 - `packages/engine/package.json`
+- `packages/engine/src/createGame.test.ts`
+- `packages/engine/src/createGame.ts` - Exports: createGame.
 - `packages/engine/src/index.test.ts`
-- `packages/engine/src/index.ts` - Public entry point of the rules engine.
+- `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: createGame, SIDES, CardId, EngineError, GameEvent, GameState, MetaState, PrivateState, PublicState, Result, Ruleset, RulesetId, ….
 - `packages/engine/src/rng.test.ts`
 - `packages/engine/src/rng.ts` - Seeded random numbers for the rules engine. Exports: RngState, seedRng, nextInt, shuffle.
+- `packages/engine/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
+- `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: Side, SIDES, CardId, RulesetId, Seed, Ruleset, EngineError, Result, GameEvent, PublicState, PrivateState, SecretState, ….
 - `packages/engine/tsconfig.json` - The engine sees only the JavaScript language itself: no DOM and no Node types, so timers, fetch, document and the like fail the type check (hard rule 1).
 
 ## packages/host - MatchHost: runs a match around the engine (players, clock, move log, frames) without doing I/O.
