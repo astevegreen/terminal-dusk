@@ -1,6 +1,6 @@
 // Tests for the fuzz harness itself: each check catches what it should, so a green fuzz run means something.
 import { apply, createGame, pendingFor, SIDES } from "@terminal-dusk/engine";
-import type { Answer, GameEvent, GameState, Side } from "@terminal-dusk/engine";
+import type { Answer, GameEvent, GameState, Setup, Side } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { attempt, checkLive, checkNoLeaks, checkRebuilds, hiddenFrom, leaksIn } from "./checks.ts";
 import { FIXED_GAMES } from "./fixedGames.ts";
@@ -9,15 +9,23 @@ import type { GameRecord } from "./play.ts";
 import { seededRng } from "./random.ts";
 
 const SEED = "harness-seed";
-const DECK = ["c4", "c5", "c6", "c7", "c8", "c9", "c10", "c11", "c12"];
+const DECK = ["c6", "c7", "c8", "c9", "c10", "c11", "c12", "c13", "c14"];
 
-/** A one-round game with known cards: LIO holds c1 and c2, SAE holds c3, the draw pile is c4 to c12. */
-function started(): GameState {
-  const r = createGame(
-    ruleset,
-    { seedHash: "hash", hands: { lio: ["c1", "c2"], sae: ["c3"] }, deck: DECK, rounds: 1 },
-    SEED,
-  );
+/**
+ * A new game; by default one turn of one play each, with known cards: LIO holds its cards c1 and c4,
+ * SAE its cards c2 and c5, the draw pile is c6 to c14.
+ */
+function started(
+  setup: Setup = {
+    seedHash: "hash",
+    hands: { lio: ["c1", "c4"], sae: ["c2", "c5"] },
+    deck: DECK,
+    turns: 1,
+    playsPerTurn: 1,
+  },
+  seed = SEED,
+): GameState {
+  const r = createGame(ruleset, setup, seed);
   if (!r.ok) throw new Error(`createGame failed: ${r.error.code}`);
   return r.value.state;
 }
@@ -76,7 +84,8 @@ describe("random games", () => {
     for (const { setup } of games) {
       const cards = [...setup.hands.lio, ...setup.hands.sae, ...setup.deck];
       expect(new Set(cards).size).toBe(cards.length);
-      expect(setup.rounds).toBeGreaterThanOrEqual(1);
+      expect(setup.turns).toBeGreaterThanOrEqual(1);
+      expect(setup.playsPerTurn).toBeGreaterThanOrEqual(1);
     }
   });
 
@@ -96,6 +105,23 @@ describe("random games", () => {
     const sides = Array.from({ length: 20 }, (_, i) => firstAnswerers(playFuzzGame(i + 1).record)).flat();
     expect(sides).toContain("lio");
     expect(sides).toContain("sae");
+  });
+
+  it("the random games pause opening events for a yes/no choice, and play one and two plays a turn", () => {
+    let pausedEvents = 0;
+    for (let game = 1; game <= 20; game++) {
+      const { record } = playFuzzGame(game);
+      let state = started(record.setup, record.seed);
+      for (const answer of record.answers) {
+        const next = apply(ruleset, state, answer);
+        if (!next.ok) throw new Error(`apply failed: ${next.error.code}`);
+        state = next.value.state;
+        if (state.public.inPlay.length > 0 && state.public.pending.some((d) => d.kind === "yesNo")) pausedEvents++;
+      }
+    }
+    expect(pausedEvents).toBeGreaterThan(5);
+    const plays = Array.from({ length: 50 }, (_, i) => randomGame(seededRng(i + 1), i + 1).setup.playsPerTurn);
+    expect(new Set(plays)).toEqual(new Set([1, 2]));
   });
 
   it("every state from createGame and apply is deep-frozen, and so is the ruleset", () => {
@@ -128,9 +154,9 @@ describe("invariant 1: someone can always answer", () => {
 describe("invariant 4: no view gives away the seed, the generator state or a hidden card", () => {
   it("hides the draw pile and the other side's hand from a side, and both hands from a spectator", () => {
     const s = started();
-    expect(hiddenFrom(s, "lio").sort()).toEqual([...DECK, "c3"].sort());
-    expect(hiddenFrom(s, "sae").sort()).toEqual([...DECK, "c1", "c2"].sort());
-    expect(hiddenFrom(s, "spectator").sort()).toEqual([...DECK, "c1", "c2", "c3"].sort());
+    expect(hiddenFrom(s, "lio").sort()).toEqual([...DECK, "c2", "c5"].sort());
+    expect(hiddenFrom(s, "sae").sort()).toEqual([...DECK, "c1", "c4"].sort());
+    expect(hiddenFrom(s, "spectator").sort()).toEqual([...DECK, "c1", "c4", "c2", "c5"].sort());
   });
 
   it("looks for each hidden card ID as a whole quoted string, so c1 is not set off by c10", () => {
@@ -158,8 +184,8 @@ describe("invariant 4: no view gives away the seed, the generator state or a hid
   });
 
   it("fails an event list that shows a card hidden from that viewer", () => {
-    const events: GameEvent[] = [{ kind: "marker", visibility: "public", label: "c3" }];
-    expect(() => checkNoLeaks(started(), events, SEED)).toThrow(/events for 'lio' show card "c3"/);
+    const events: GameEvent[] = [{ kind: "marker", visibility: "public", label: "c2" }];
+    expect(() => checkNoLeaks(started(), events, SEED)).toThrow(/events for 'lio' show card "c2"/);
   });
 
   it("does not count a card a side drew as hidden from that side", () => {
@@ -206,7 +232,7 @@ describe("failure reports", () => {
   });
 
   it("a failing game prints its seed and answer list, ready to keep as a fixed case", () => {
-    const bad: Answer = { decisionId: "no-such-decision", side: "lio", value: { kind: "pass" } };
+    const bad: Answer = { decisionId: "no-such-decision", side: "lio", value: { kind: "playCard", card: "c1" } };
     const record: GameRecord = { setup: randomGame(seededRng(3), 3).setup, seed: "fuzz-3", answers: [bad] };
     let report = "";
     try {

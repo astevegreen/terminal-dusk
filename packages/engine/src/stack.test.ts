@@ -10,6 +10,7 @@ import {
   marker,
   markers,
   ruleset,
+  startAtPlay,
   startGame,
   startWith,
   yesNoAnswer,
@@ -131,22 +132,27 @@ describe("resolution stack: choose, if, forEach and marker", () => {
   });
 });
 
-describe("resolution stack and the placeholder game", () => {
+describe("resolution stack and the turn structure", () => {
   it("starting a program does not change its input, and gives the new decision an unused ID", () => {
-    const s = deepFreeze(startGame());
+    const s = deepFreeze(startAtPlay());
     const before = JSON.stringify(s);
     const { state } = startWith([choose("go")], ruleset, s);
     expect(JSON.stringify(s)).toBe(before);
     expect(state.public.pending[0]?.id).not.toBe(s.public.pending[0]?.id);
   });
-  it("a program that never pauses leaves the placeholder's pending decision in place", () => {
-    const s = startGame();
+  it("a program that never pauses leaves the open play decision in place", () => {
+    const s = startAtPlay();
     expect(startWith([marker("m")], ruleset, s).state.public.pending).toEqual(s.public.pending);
   });
-  it("when a paused program finishes, the placeholder turn order goes on from the side that answered", () => {
-    const { state } = answerYesNo(startWith([choose("go", "lio")]).state, true);
-    expect(state.public.stack).toEqual([]);
-    expect(state.public.pending).toEqual([{ id: expect.any(String), side: "sae", kind: "pass", options: {} }]);
+  it("when a paused program finishes, the play it interrupted is open again: still LIO's, whoever answered", () => {
+    for (const chooser of ["lio", "sae"] as const) {
+      const { state } = answerYesNo(startWith([choose("go", chooser)]).state, true);
+      expect(state.public.stack).toEqual([]);
+      expect(state.public.playsMade).toBe(0);
+      expect(state.public.pending).toEqual([
+        { id: expect.any(String), side: "lio", kind: "playCard", options: { from: "hand", includeNeutral: true } },
+      ]);
+    }
   });
   it("resigning while a program is paused ends the game and clears the stack", () => {
     const paused = startWith([choose("go")]).state;
@@ -154,9 +160,13 @@ describe("resolution stack and the placeholder game", () => {
     expect(r.ok && r.value.state.public.stack).toEqual([]);
     expect(r.ok && r.value.state.public.status).toMatchObject({ kind: "over", winner: "sae" });
   });
-  it("a program cannot start while another is paused, or once the game is over", () => {
+  it("a program cannot start while another is paused, during the opening pick, or once the game is over", () => {
     const paused = startWith([choose("go")]).state;
     expect(startProgram(ruleset, paused, [marker("m")])).toMatchObject({ ok: false, error: { code: "notSupported" } });
+    expect(startProgram(ruleset, startGame(), [marker("m")])).toMatchObject({
+      ok: false,
+      error: { code: "notSupported" },
+    });
     const over = apply(ruleset, paused, { system: "resign", side: "lio" });
     if (!over.ok) throw new Error("resign rejected");
     expect(startProgram(ruleset, over.value.state, [marker("m")])).toMatchObject({
@@ -165,18 +175,18 @@ describe("resolution stack and the placeholder game", () => {
     });
   });
   it("a variable that is not bound returns invalidProgram and changes nothing", () => {
-    const s = deepFreeze(startGame());
+    const s = deepFreeze(startAtPlay());
     for (const steps of [[marker("m", "nope")], [ifYes("nope", [marker("m")])]]) {
       expect(startProgram(ruleset, s, steps)).toMatchObject({ ok: false, error: { code: "invalidProgram" } });
     }
   });
   it("an if on a forEach item (not a yes/no answer) returns invalidProgram", () => {
     const steps = [forEach(["a"], "x", [ifYes("x", [marker("m")])])];
-    expect(startProgram(ruleset, startGame(), steps)).toMatchObject({ ok: false, error: { code: "invalidProgram" } });
+    expect(startProgram(ruleset, startAtPlay(), steps)).toMatchObject({ ok: false, error: { code: "invalidProgram" } });
   });
   it("variables bound inside a block are not visible after it ends", () => {
     const steps = [forEach(["a"], "x", []), marker("m", "x")];
-    expect(startProgram(ruleset, startGame(), steps)).toMatchObject({ ok: false, error: { code: "invalidProgram" } });
+    expect(startProgram(ruleset, startAtPlay(), steps)).toMatchObject({ ok: false, error: { code: "invalidProgram" } });
   });
   it("events from a program are public", () => {
     const { events } = startWith([marker("m")]);

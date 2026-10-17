@@ -1,16 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { apply } from "./index.ts";
+import { apply, createGame } from "./index.ts";
 import type { Ruleset, Step } from "./index.ts";
 import { startProgram } from "./stack.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
 import {
   answerYesNo,
+  cardAnswer,
   choose,
   forEach,
   marker,
+  makeSetup,
   markers,
   ruleset,
-  startGame,
+  startAtPlay,
   startWith,
   yesNoAnswer,
 } from "./test/game.ts";
@@ -56,9 +58,32 @@ describe("step budget", () => {
     expect(run(10_000)).toMatchObject({ ok: false, error: { code: "stepBudgetExceeded" } });
   });
   it("starting a program counts against the budget too", () => {
-    const r = startProgram(budget(10), deepFreeze(startGame()), markersN(11));
+    const r = startProgram(budget(10), deepFreeze(startAtPlay()), markersN(11));
     expect(r).toMatchObject({ ok: false, error: { code: "stepBudgetExceeded" } });
-    expect(startProgram(budget(10), startGame(), markersN(10)).ok).toBe(true);
+    expect(startProgram(budget(10), startAtPlay(), markersN(10)).ok).toBe(true);
+  });
+  it("the budget covers createGame: a budget too small for the opening pick returns stepBudgetExceeded", () => {
+    expect(createGame(budget(0), makeSetup(), "seed-1")).toMatchObject({
+      ok: false,
+      error: { code: "stepBudgetExceeded" },
+    });
+    expect(createGame(budget(1), makeSetup(), "seed-1").ok).toBe(true);
+  });
+  it("one answer's budget covers both opening events together", () => {
+    // l1 and s1 each run 6 markers: 12 steps from the one answer that reveals them.
+    const rs = (stepBudget: number): Ruleset => ({
+      ...budget(stepBudget),
+      cards: ruleset.cards.map((c) => (c.id === "l1" || c.id === "s1" ? { ...c, effect: markersN(6) } : c)),
+    });
+    const answerBoth = (stepBudget: number) => {
+      const s = createGame(rs(stepBudget), makeSetup(), "seed-1");
+      if (!s.ok) throw new Error("createGame failed");
+      const half = apply(rs(stepBudget), s.value.state, cardAnswer(s.value.state, "lio", "l1"));
+      if (!half.ok) throw new Error("pick rejected");
+      return apply(rs(stepBudget), half.value.state, cardAnswer(half.value.state, "sae", "s1"));
+    };
+    expect(answerBoth(12).ok).toBe(true);
+    expect(answerBoth(11)).toMatchObject({ ok: false, error: { code: "stepBudgetExceeded" } });
   });
   it("the budget is never copied into the state", () => {
     const { state } = startWith([choose("go"), ...markersN(3)], budget(123));

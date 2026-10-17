@@ -1,4 +1,4 @@
-// Test helpers: a started placeholder game, answers for it, and small programs for the stack.
+// Test helpers: a started game, answers for it, and small programs for the stack.
 import { apply } from "../apply.ts";
 import { createGame } from "../createGame.ts";
 import { legalAnswers } from "../decisions.ts";
@@ -7,68 +7,110 @@ import type { Answer, CardDef, CardId, GameEvent, GameState, Ruleset, Setup, Sid
 
 type Played = { state: GameState; events: GameEvent[] };
 
-/** A plain card for tests: era "test", `ops` ops (default 1), neutral, no effect. */
-export const testCard = (id: CardId, ops = 1): CardDef => ({
+/** A card for tests: era "test", `ops` ops (default 1), neutral unless said, no effect unless given. */
+export const testCard = (
+  id: CardId,
+  ops = 1,
+  affiliation: Side | "neutral" = "neutral",
+  effect: Step[] = [],
+): CardDef => ({
   id,
   era: "test",
   ops,
-  affiliation: "neutral",
-  effect: [],
+  affiliation,
+  effect,
 });
 
-/** The test ruleset, holding exactly the cards `ids`. */
+/** LIO's cards l1 to l12, SAE's s1 to s12. */
+const sideCards = (prefix: string): CardId[] => Array.from({ length: 12 }, (_, i) => `${prefix}${i + 1}`);
+const LIO_CARDS = sideCards("l");
+const SAE_CARDS = sideCards("s");
+
+/**
+ * The test ruleset, holding exactly the cards `ids`. A card whose id starts with "l" is LIO's, with "s"
+ * SAE's; any other is neutral.
+ */
 export const rulesetWith = (ids: readonly CardId[]): Ruleset => ({
   id: "test-ruleset",
-  cards: ids.map((id) => testCard(id)),
+  cards: ids.map((id) => testCard(id, 1, affiliationOf(id))),
 });
+const affiliationOf = (id: CardId): Side | "neutral" => {
+  if (id.startsWith("l")) return "lio";
+  return id.startsWith("s") ? "sae" : "neutral";
+};
 
-/** The test ruleset: cards c1 to c6, the ones makeSetup uses. */
-export const ruleset: Ruleset = rulesetWith(["c1", "c2", "c3", "c4", "c5", "c6"]);
+/** The test ruleset: l1-l12, s1-s12, neutral n1 and n2, and neutral z1-z3 for the draw pile. */
+export const ruleset: Ruleset = rulesetWith([...LIO_CARDS, ...SAE_CARDS, "n1", "n2", "z1", "z2", "z3"]);
 
-export const makeSetup = (rounds = 2): Setup => ({
-  seedHash: "abc123",
-  hands: { lio: ["c1", "c2"], sae: ["c3"] },
-  deck: ["c4", "c5", "c6"],
-  rounds,
-});
+/**
+ * A setup where each side has exactly the non-neutral cards the game needs, turns x (1 + playsPerTurn),
+ * plus one neutral card: LIO l1, l2, ... and n1; SAE s1, s2, ... and n2. The draw pile is z1-z3.
+ */
+export const makeSetup = (turns = 2, playsPerTurn = 1): Setup => {
+  const needed = turns * (1 + playsPerTurn);
+  return {
+    seedHash: "abc123",
+    hands: { lio: [...LIO_CARDS.slice(0, needed), "n1"], sae: [...SAE_CARDS.slice(0, needed), "n2"] },
+    deck: ["z1", "z2", "z3"],
+    turns,
+    playsPerTurn,
+  };
+};
 
-/** A new placeholder game: both sides' opening yes/no pair is open. */
-export function startGame(rounds = 2): GameState {
-  const r = createGame(ruleset, makeSetup(rounds), "seed-1");
+/** A new game: both sides' opening card pick is open. */
+export function startGame(
+  turns = 2,
+  playsPerTurn = 1,
+  rs: Ruleset = ruleset,
+  setup = makeSetup(turns, playsPerTurn),
+): GameState {
+  const r = createGame(rs, setup, "seed-1");
   if (!r.ok) throw new Error(`createGame failed: ${r.error.code}`);
   return r.value.state;
 }
 
-/** A new placeholder game with the opening pair answered, so LIO's pass is the open decision. */
-export const startAtPass = (rounds = 2): GameState => playAnswers(startGame(rounds), 2);
+/** A new game with the opening cards picked (each side's first) and resolved, so LIO's play is open. */
+export const startAtPlay = (turns = 2, playsPerTurn = 1): GameState => playAnswers(startGame(turns, playsPerTurn), 2);
 
-/** The pass answer to the decision `side` has open. */
-export function passFor(state: GameState, side: Side): Answer {
+/** The answer naming `card` (default: the first legal one) to the card decision `side` has open. */
+export function cardAnswer(state: GameState, side: Side, card?: CardId, rs: Ruleset = ruleset): Answer {
   const d = state.public.pending.find((x) => x.side === side);
   if (!d) throw new Error(`no decision pending for ${side}`);
-  return { decisionId: d.id, side, value: { kind: "pass" } };
+  if (d.kind !== "chooseCard" && d.kind !== "playCard") throw new Error(`${side}'s decision is ${d.kind}`);
+  const first = legalAnswers(rs, state, side)[0];
+  const picked = card ?? (first && "card" in first ? first.card : undefined);
+  if (picked === undefined) throw new Error(`${side} has no card to pick`);
+  return { decisionId: d.id, side, value: { kind: d.kind, card: picked } };
 }
 
 /** Applies an answer that the test expects to be accepted. */
-export function accepted(state: GameState, answer: Answer): GameState {
-  const r = apply(ruleset, state, answer);
+export function accepted(state: GameState, answer: Answer, rs: Ruleset = ruleset): GameState {
+  const r = apply(rs, state, answer);
   if (!r.ok) throw new Error(`answer rejected: ${r.error.code}`);
   return r.value.state;
 }
 
-/** Plays `count` answers: each time, the first open decision gets its first legal answer (pass, or yes). */
-export function playAnswers(state: GameState, count: number): GameState {
+/** Both sides pick their opening card (LIO first), and the answer is expected to be accepted. */
+export function openWith(state: GameState, lio: CardId, sae: CardId, rs: Ruleset = ruleset): Played {
+  const half = accepted(state, cardAnswer(state, "lio", lio, rs), rs);
+  const r = apply(rs, half, cardAnswer(half, "sae", sae, rs));
+  if (!r.ok) throw new Error(`answer rejected: ${r.error.code}`);
+  return r.value;
+}
+
+/** Plays `count` answers: each time, the first open decision gets its first legal answer. */
+export function playAnswers(state: GameState, count: number, rs: Ruleset = ruleset): GameState {
   let s = state;
   for (let i = 0; i < count; i++) {
     const d = s.public.pending[0];
     if (!d) throw new Error("no decision pending");
-    s = accepted(s, { decisionId: d.id, side: d.side, value: legalAnswers(ruleset, s, d.side)[0]! });
+    s = accepted(s, { decisionId: d.id, side: d.side, value: legalAnswers(rs, s, d.side)[0]! }, rs);
   }
   return s;
 }
 
-/** Starts `steps` as a program on a fresh placeholder game (or on `state`) and expects it to be accepted. */
-export function startWith(steps: Step[], rs: Ruleset = ruleset, state: GameState = startGame()): Played {
+/** Starts `steps` as a program at LIO's first play (or on `state`) and expects it to be accepted. */
+export function startWith(steps: Step[], rs: Ruleset = ruleset, state: GameState = startAtPlay()): Played {
   const r = startProgram(rs, state, steps);
   if (!r.ok) throw new Error(`startProgram rejected: ${r.error.code}`);
   return r.value;

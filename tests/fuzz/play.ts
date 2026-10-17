@@ -12,23 +12,46 @@ import type {
   Ruleset,
   Seed,
   Setup,
+  Step as EffectStep,
 } from "@terminal-dusk/engine";
 import { attempt, checkStep, firstDifference } from "./checks.ts";
 import { deepFreeze } from "./deepFreeze.ts";
 import { seededRng } from "./random.ts";
 import type { Rng } from "./random.ts";
 
-/** Most cards in a random hand, and in a random draw pile. */
-const MAX_HAND = 8;
+/** Most turns and plays per turn in a random game, and the non-neutral cards a hand then needs. */
+const MAX_TURNS = 4;
+const MAX_PLAYS = 2;
+const MOST_NEEDED = MAX_TURNS * (1 + MAX_PLAYS);
+/** Most cards of any affiliation a random hand gets beyond the ones it needs, and most in a draw pile. */
+const MAX_EXTRA = 8;
 const MAX_PILE = 30;
-/** Every card a random setup can use: two full hands and a full draw pile, c1 to c46. */
-export const FUZZ_CARDS: readonly CardId[] = Array.from({ length: 2 * MAX_HAND + MAX_PILE }, (_, i) => `c${i + 1}`);
+/** Every card a random setup can use, c1 to c70. Affiliations go LIO, SAE, neutral, so 47 are non-neutral. */
+export const FUZZ_CARDS: readonly CardId[] = Array.from(
+  { length: 2 * (MOST_NEEDED + MAX_EXTRA) + MAX_PILE },
+  (_, i) => `c${i + 1}`,
+);
 const AFFILIATIONS: readonly CardDef["affiliation"][] = ["lio", "sae", "neutral"];
+/** Every fourth card's event asks LIO or SAE yes or no, so opening events pause for a choice. */
+const asks = (i: number): EffectStep[] =>
+  i % 4 === 3
+    ? [
+        { op: "choose", who: i % 8 === 3 ? "lio" : "sae", decision: { kind: "yesNo" }, bind: "a" },
+        { op: "marker", label: "asked", var: "a" },
+      ]
+    : [];
 
 export const ruleset: Ruleset = deepFreeze({
   id: "fuzz-ruleset",
-  cards: FUZZ_CARDS.map((id, i) => ({ id, era: "fuzz", ops: i % 5, affiliation: AFFILIATIONS[i % 3]!, effect: [] })),
+  cards: FUZZ_CARDS.map((id, i) => ({
+    id,
+    era: "fuzz",
+    ops: i % 5,
+    affiliation: AFFILIATIONS[i % 3]!,
+    effect: asks(i),
+  })),
 });
+const neutral = new Set(ruleset.cards.filter((card) => card.affiliation === "neutral").map((card) => card.id));
 /** Games played when FUZZ_GAMES is unset, as in `pnpm test`-style runs of this folder. */
 export const DEFAULT_GAMES = 100;
 /** A game still going after this many answers fails, so a rules loop can't hang the suite. */
@@ -63,19 +86,29 @@ export function playRecorded(name: string, record: GameRecord): Played {
 }
 
 /**
- * Random starting hands and draw pile (0-8 cards per hand, 0-30 in the pile) from cards c1, c2 and so on
- * in random order, and 1-6 placeholder rounds. Each round opens with a simultaneous pair (#33).
+ * 1-4 turns of 1-2 plays each, and random starting hands and draw pile from cards c1 to c70. Each hand
+ * gets the non-neutral cards the game needs, turns x (1 + playsPerTurn), of either side's, plus 0-8 more
+ * of any affiliation, in random order; the draw pile gets 0-30. Each turn opens with a secret pair (#35).
  */
 export function randomGame(rng: Rng, game: number): { setup: Setup; seed: Seed } {
-  const lio = rng.int(MAX_HAND + 1);
-  const sae = rng.int(MAX_HAND + 1);
-  const cards = shuffled(rng, FUZZ_CARDS.slice(0, lio + sae + rng.int(MAX_PILE + 1)));
+  const turns = 1 + rng.int(MAX_TURNS);
+  const playsPerTurn = 1 + rng.int(MAX_PLAYS);
+  const needed = turns * (1 + playsPerTurn);
+  const cards = shuffled(rng, FUZZ_CARDS);
+  const sided = cards.filter((card) => !neutral.has(card));
+  const others = cards.filter((card) => !sided.slice(0, 2 * needed).includes(card));
+  const lioExtra = rng.int(MAX_EXTRA + 1);
+  const saeExtra = rng.int(MAX_EXTRA + 1);
   return {
     setup: {
       seedHash: `hash-${game}`,
-      hands: { lio: cards.slice(0, lio), sae: cards.slice(lio, lio + sae) },
-      deck: cards.slice(lio + sae),
-      rounds: 1 + rng.int(6),
+      hands: {
+        lio: shuffled(rng, [...sided.slice(0, needed), ...others.slice(0, lioExtra)]),
+        sae: shuffled(rng, [...sided.slice(needed, 2 * needed), ...others.slice(lioExtra, lioExtra + saeExtra)]),
+      },
+      deck: others.slice(lioExtra + saeExtra, lioExtra + saeExtra + rng.int(MAX_PILE + 1)),
+      turns,
+      playsPerTurn,
     },
     seed: `fuzz-${game}`,
   };

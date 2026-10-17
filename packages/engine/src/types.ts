@@ -73,9 +73,16 @@ export type PublicEvent = CardDrawnHidden | MarkerEvent;
 export type GameEvent = CardDrawn | CardDrawnHidden | MarkerEvent;
 export type EventKind = GameEvent["kind"];
 
-export type DecisionKind = "pass" | "yesNo";
-/** Declarative description of what is legal. Never lists hidden data such as card IDs from a hand. */
-export type DecisionOptions = Record<string, never>;
+/**
+ * `chooseCard`: both sides secretly pick their opening card for the turn. `playCard`: one side plays a
+ * card from its hand (for now a placeholder play with no effect, see turn.ts).
+ */
+export type DecisionKind = "yesNo" | "chooseCard" | "playCard";
+/**
+ * Declarative description of what is legal. Never lists hidden data such as card IDs from a hand. A
+ * yes/no has none; a card decision says "a card from your hand", and whether neutral cards count.
+ */
+export type DecisionOptions = Record<string, never> | { from: "hand"; includeNeutral: boolean };
 export type Decision = {
   /** Unique within the game; answers quote it. */
   id: string;
@@ -90,23 +97,34 @@ export type Decision = {
   simultaneousGroup?: string;
 };
 
-export type AnswerValue = { kind: "pass" } | { kind: "yesNo"; yes: boolean };
+export type AnswerValue =
+  { kind: "yesNo"; yes: boolean } | { kind: "chooseCard"; card: CardId } | { kind: "playCard"; card: CardId };
 export type Answer =
   { decisionId: string; side: Side; value: AnswerValue } | { system: "timeout" | "resign" | "adjudicate"; side: Side };
 
 export type VarName = string;
 /** Both sides' yes/no answers to a simultaneous choice, keyed by side in SIDES order. */
 export type BothAnswers = Record<Side, boolean>;
-/** A variable's value: one side's yes/no answer, both sides' answers, or the current item of a forEach. */
-export type VarValue = boolean | BothAnswers | string;
+/** Both sides' picked cards from a simultaneous card choice, keyed by side in SIDES order. */
+export type BothCards = Record<Side, CardId>;
+/**
+ * A variable's value: one side's yes/no answer, both sides' answers or picked cards, or the current
+ * item of a forEach.
+ */
+export type VarValue = boolean | BothAnswers | BothCards | string;
 /**
  * True when the yes/no variable `var` holds yes. For a variable holding both sides' answers, `side`
  * names whose answer to read; for one side's answer it is left out.
  */
 export type Condition = { op: "yes"; var: VarName; side?: Side };
-/** One step of an effect program (docs/architecture.md, section 4). More kinds arrive with later tasks. */
+/**
+ * One step of an effect program (docs/architecture.md, section 4). More kinds arrive with later tasks.
+ * A card choice is only ever both sides at once: the turn's opening pick (turn.ts). Card effects may
+ * not hold one (cardChecks.ts).
+ */
 export type Step =
   | { op: "choose"; who: Side | "both"; decision: { kind: "yesNo" }; bind: VarName }
+  | { op: "choose"; who: "both"; decision: { kind: "chooseCard" }; bind: VarName }
   | { op: "if"; cond: Condition; then: Step[]; else?: Step[] }
   | { op: "forEach"; over: string[]; bind: VarName; do: Step[] }
   | { op: "marker"; label: string; var?: VarName };
@@ -124,10 +142,17 @@ export type Frame =
 
 export type GameStatus = { kind: "active" } | { kind: "over"; winner: Side | null; reason: string };
 
-/** Visible to everyone. `rounds` belongs to the placeholder game (see apply.ts). */
+/** Visible to everyone. */
 export type PublicState = {
+  /** The current turn: 1 in the first, up by one as each new turn starts. */
   turn: number;
-  rounds: number;
+  /** How many turns the game lasts, and how many plays each side makes per turn (from the setup). */
+  turns: number;
+  playsPerTurn: number;
+  /** Plays made this turn after the opening cards, both sides together. LIO plays when it is even. */
+  playsMade: number;
+  /** The revealed opening cards whose events have not finished, in resolution order. */
+  inPlay: CardId[];
   discard: CardId[];
   /** Open decisions, in SIDES order. */
   pending: Decision[];
@@ -163,6 +188,8 @@ export type Setup = {
   seedHash: string;
   hands: Record<Side, CardId[]>;
   deck: CardId[];
-  /** Placeholder game length in rounds (see apply.ts). Replaced by the turn structure (#35). */
-  rounds: number;
+  /** How many turns the game lasts: a whole number, 1 or more. */
+  turns: number;
+  /** How many plays each side makes per turn, after the opening cards: a whole number, 1 or more. */
+  playsPerTurn: number;
 };

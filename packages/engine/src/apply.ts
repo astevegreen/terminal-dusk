@@ -2,13 +2,13 @@
 //
 // An answer to one of a simultaneous pair is kept secret until the other side's is in (simultaneous.ts).
 // An answer to a paused program resumes the resolution stack (stack.ts). Once the stack is empty, the
-// PLACEHOLDER GAME goes on: each round, both sides answer a secret yes/no pair, then LIO passes, then
-// SAE passes, for `rounds` rounds. The turn-structure task (#35) replaces `advancePlaceholder`.
+// turn structure moves the game on (turn.ts).
 import { copyJson } from "./copy.ts";
-import { legalAnswers, newDecision, newGroup } from "./decisions.ts";
+import { legalAnswers } from "./decisions.ts";
 import { recordPick } from "./simultaneous.ts";
-import { resumeStack, stepBudget } from "./stack.ts";
+import { newBudget, resumeStack } from "./stack.ts";
 import type { Closing } from "./stack.ts";
+import { afterAnswer } from "./turn.ts";
 import { SIDES } from "./types.ts";
 import type { Answer, EngineErrorCode, GameEvent, GameState, Result, Ruleset, Side } from "./types.ts";
 
@@ -55,13 +55,15 @@ export function apply(ruleset: Ruleset, state: GameState, answer: Answer): Appli
     if (!revealed) return { ok: true, value: { state: next, events } };
     closing = { who: "both", values: revealed };
   }
+  // One budget for everything this answer runs: the paused program, then any events after it.
+  const budget = newBudget(ruleset);
   if (next.public.stack.length > 0) {
-    const error = resumeStack(next, closing, events, stepBudget(ruleset));
+    const error = resumeStack(next, closing, events, budget);
     if (error) return { ok: false, error };
     if (next.public.stack.length > 0) return { ok: true, value: { state: next, events } };
   }
-  advancePlaceholder(next, closing.who);
-  return { ok: true, value: { state: next, events } };
+  const error = afterAnswer(ruleset, next, closing, events, budget);
+  return error ? { ok: false, error } : { ok: true, value: { state: next, events } };
 }
 
 function applySystem(state: GameState, answer: Extract<Answer, { system: string }>): Applied {
@@ -75,23 +77,4 @@ function applySystem(state: GameState, answer: Extract<Answer, { system: string 
   for (const side of SIDES) next.private[side].picks = [];
   next.public.status = { kind: "over", winner: other(answer.side), reason: "resigned" };
   return { ok: true, value: { state: next, events: [] } };
-}
-
-/**
- * Placeholder round: both sides answer a secret yes/no pair, then LIO passes, then SAE passes; `turn`
- * rises after SAE's pass. The game ends when `turn` passes `rounds`, which is after rounds x 4 answers.
- * A finished program counts as an answer from whoever answered last (both, for a pair).
- */
-function advancePlaceholder(next: GameState, answered: Side | "both"): void {
-  if (answered !== "sae") {
-    next.public.pending = [newDecision(next.meta.seq, answered === "both" ? "lio" : "sae", "pass")];
-    return;
-  }
-  next.public.turn += 1;
-  if (next.public.turn > next.public.rounds) {
-    next.public.pending = [];
-    next.public.status = { kind: "over", winner: null, reason: "placeholderFinished" };
-    return;
-  }
-  next.public.pending = newGroup(next.meta.seq, "yesNo");
 }

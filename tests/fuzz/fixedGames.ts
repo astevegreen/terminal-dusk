@@ -5,20 +5,22 @@ import type { GameRecord } from "./play.ts";
 export const FIXED_GAMES: { name: string; record: GameRecord }[] = [
   {
     // Not a found failure: an example of the format, which also pins one order of a simultaneous pair.
-    name: "example: SAE answers the opening pair before LIO",
+    // SAE's c5 (4 ops) resolves before LIO's c1 (0 ops); then each side plays its other card.
+    name: "example: SAE picks its opening card before LIO",
     record: {
       setup: {
         seedHash: "hash-example",
-        hands: { lio: ["c1", "c2", "c3"], sae: ["c10", "c11"] },
-        deck: ["c4", "c5", "c6", "c7", "c8", "c9", "c12"],
-        rounds: 1,
+        hands: { lio: ["c1", "c7"], sae: ["c2", "c5"] },
+        deck: ["c3", "c6", "c9", "c12"],
+        turns: 1,
+        playsPerTurn: 1,
       },
       seed: "fixed-example",
       answers: [
-        { decisionId: "d0-sae", side: "sae", value: { kind: "yesNo", yes: false } },
-        { decisionId: "d0-lio", side: "lio", value: { kind: "yesNo", yes: true } },
-        { decisionId: "d2", side: "lio", value: { kind: "pass" } },
-        { decisionId: "d3", side: "sae", value: { kind: "pass" } },
+        { decisionId: "d0-sae", side: "sae", value: { kind: "chooseCard", card: "c5" } },
+        { decisionId: "d0-lio", side: "lio", value: { kind: "chooseCard", card: "c1" } },
+        { decisionId: "d2", side: "lio", value: { kind: "playCard", card: "c7" } },
+        { decisionId: "d3", side: "sae", value: { kind: "playCard", card: "c2" } },
       ],
     },
   },
