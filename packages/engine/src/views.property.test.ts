@@ -1,17 +1,19 @@
-// Property test: over random placeholder games with random hands and draw piles, and random programs
+// Property test: over random games with random hands and draw piles, and random programs
 // on the resolution stack (some with simultaneous pairs), views rebuild the state exactly and never
 // leak hidden data, including a side's unrevealed pick.
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { apply, createGame, hiddenPart, reconstruct, SIDES, viewFor } from "./index.ts";
-import type { Answer, GameState, PlayerView, Setup, Side, Step, Viewer } from "./index.ts";
+import { apply, createGame, hiddenPart, legalAnswers, reconstruct, SIDES, viewFor } from "./index.ts";
+import type { Answer, GameState, PlayerView, Ruleset, Setup, Side, Step, Viewer } from "./index.ts";
 import { startProgram } from "./stack.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
-import { choose, forEach, ifSaid, ifYes, marker, passFor, rulesetWith } from "./test/game.ts";
+import { choose, forEach, ifSaid, ifYes, marker, rulesetWith } from "./test/game.ts";
 
-/** An answer move answers the open decision at index `which` (mod the number open). */
+/** An answer move answers the open decision at index `which` (mod the number open), with `yes` or the card at `pick`. */
 type Move =
-  { kind: "answer"; yes: boolean; which: number } | { kind: "resign"; side: Side } | { kind: "program"; steps: Step[] };
+  | { kind: "answer"; yes: boolean; which: number; pick: number }
+  | { kind: "resign"; side: Side }
+  | { kind: "program"; steps: Step[] };
 type Game = { setup: Setup; seed: string; moves: Move[] };
 
 /**
@@ -41,42 +43,64 @@ const programArb = blockArb(3);
 
 const moveArb: fc.Arbitrary<Move> = fc.oneof(
   {
-    arbitrary: fc.record({ yes: fc.boolean(), which: fc.nat() }).map((a): Move => ({ kind: "answer", ...a })),
+    arbitrary: fc
+      .record({ yes: fc.boolean(), which: fc.nat(), pick: fc.nat() })
+      .map((a): Move => ({ kind: "answer", ...a })),
     weight: 6,
   },
   { arbitrary: programArb.map((steps): Move => ({ kind: "program", steps })), weight: 3 },
   { arbitrary: fc.constantFrom(...SIDES).map((side): Move => ({ kind: "resign", side })), weight: 1 },
 );
 
-/** Card IDs are unique, quoted tokens ("card12z"), so a leak check cannot match part of another value. */
+/** Most turns any random game has, and most plays per turn: each side needs up to 3 x (1 + 2) = 9 cards. */
+const MAX_TURNS = 3;
+const MAX_PLAYS = 2;
+const MOST_NEEDED = MAX_TURNS * (1 + MAX_PLAYS);
+/** The rulesetWith affiliation of the nth card: "l..." is LIO's, "s..." SAE's, "n..." neutral. */
+const PREFIXES = ["l", "s", "n"];
+
+/**
+ * Card IDs are unique, quoted tokens ("l12z", "s40z", "n7z"), so a leak check cannot match part of
+ * another value. Each side gets the non-neutral cards the game needs (rulesetWith reads the
+ * affiliation from the prefix); the other cards, of any affiliation, are split between the two hands
+ * and the draw pile.
+ */
 const gameArb: fc.Arbitrary<Game> = fc
   .record({
-    ids: fc.uniqueArray(fc.integer({ min: 0, max: 9999 }), { maxLength: 30 }),
+    ids: fc.uniqueArray(fc.integer({ min: 0, max: 9999 }), {
+      minLength: 2 * MOST_NEEDED,
+      maxLength: 2 * MOST_NEEDED + 30,
+    }),
     cutA: fc.nat(),
     cutB: fc.nat(),
-    rounds: fc.integer({ min: 1, max: 5 }),
+    turns: fc.integer({ min: 1, max: MAX_TURNS }),
+    playsPerTurn: fc.integer({ min: 1, max: MAX_PLAYS }),
     seed: fc.nat(),
-    moves: fc.array(moveArb, { maxLength: 20 }),
+    moves: fc.array(moveArb, { maxLength: 30 }),
   })
-  .map(({ ids, cutA, cutB, rounds, seed, moves }) => {
-    const cards = ids.map((n) => `card${n}z`);
-    const a = cutA % (cards.length + 1);
-    const b = a + (cutB % (cards.length - a + 1));
+  .map(({ ids, cutA, cutB, turns, playsPerTurn, seed, moves }) => {
+    const needed = turns * (1 + playsPerTurn);
+    const lio = ids.slice(0, needed).map((n) => `l${n}z`);
+    const sae = ids.slice(needed, 2 * needed).map((n) => `s${n}z`);
+    const rest = ids.slice(2 * needed).map((n) => `${PREFIXES[n % 3]}${n}z`);
+    const a = cutA % (rest.length + 1);
+    const b = a + (cutB % (rest.length - a + 1));
     const setup: Setup = {
       seedHash: "hash-of-seed",
-      hands: { lio: cards.slice(0, a), sae: cards.slice(a, b) },
-      deck: cards.slice(b),
-      rounds,
+      hands: { lio: [...lio, ...rest.slice(0, a)], sae: [...sae, ...rest.slice(a, b)] },
+      deck: rest.slice(b),
+      turns,
+      playsPerTurn,
     };
     return { setup, seed: `seed-${seed}-x`, moves };
   });
 
-/** The answer a move gives to one of the open decisions: pass, or yes/no. */
-function answerFor(s: GameState, move: Extract<Move, { kind: "answer" }>): Answer {
+/** The answer a move gives to one of the open decisions: yes/no, or one of the legal cards. */
+function answerFor(ruleset: Ruleset, s: GameState, move: Extract<Move, { kind: "answer" }>): Answer {
   const d = s.public.pending[move.which % s.public.pending.length]!;
-  return d.kind === "yesNo"
-    ? { decisionId: d.id, side: d.side, value: { kind: "yesNo", yes: move.yes } }
-    : passFor(s, d.side);
+  if (d.kind === "yesNo") return { decisionId: d.id, side: d.side, value: { kind: "yesNo", yes: move.yes } };
+  const legal = legalAnswers(ruleset, s, d.side);
+  return { decisionId: d.id, side: d.side, value: legal[move.pick % legal.length]! };
 }
 
 const halfAnswered = (s: GameState): boolean => SIDES.some((side) => s.private[side].picks.length > 0);
@@ -95,7 +119,11 @@ function play(game: Game): GameState[] {
     const r =
       move.kind === "program"
         ? startProgram(ruleset, s, move.steps)
-        : apply(ruleset, s, move.kind === "resign" ? { system: "resign", side: move.side } : answerFor(s, move));
+        : apply(
+            ruleset,
+            s,
+            move.kind === "resign" ? { system: "resign", side: move.side } : answerFor(ruleset, s, move),
+          );
     if (!r.ok) throw new Error(`move rejected: ${r.error.code}`);
     states.push(deepFreeze(r.value.state));
   }
@@ -164,8 +192,8 @@ describe("views over random games", () => {
   });
   it("the leak check itself finds a hidden card when one is planted in a view", () => {
     const game = fc.sample(gameArb, { numRuns: 1, seed: 7 })[0]!;
-    const s = play({ ...game, setup: { ...game.setup, deck: ["card1z"] } })[0]!;
-    const planted = { ...s, public: { ...s.public, discard: ["card1z"] } };
-    expect(leaks(planted, "spectator", game)).toContain('"card1z"');
+    const s = play({ ...game, setup: { ...game.setup, deck: ["n1z"] } })[0]!;
+    const planted = { ...s, public: { ...s.public, discard: ["n1z"] } };
+    expect(leaks(planted, "spectator", game)).toContain('"n1z"');
   });
 });

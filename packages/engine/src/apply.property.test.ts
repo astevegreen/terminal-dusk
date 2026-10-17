@@ -35,7 +35,7 @@ function toAnswer(s: GameState, m: Move): Answer {
   const id = d?.id ?? "none";
   const owner = d?.side ?? m.side;
   const legal = legalAnswers(ruleset, s, owner);
-  const value = legal[m.pick % Math.max(legal.length, 1)] ?? { kind: "pass" };
+  const value = legal[m.pick % Math.max(legal.length, 1)] ?? { kind: "yesNo", yes: true };
   switch (m.kind) {
     case "answer":
       return { decisionId: id, side: owner, value };
@@ -59,11 +59,15 @@ function toAnswer(s: GameState, m: Move): Answer {
   }
 }
 
+// Games of 1 to 4 turns with 1 or 2 plays each: the test setup has hands for up to 12 opening cards and plays.
+const turnsArb = fc.integer({ min: 1, max: 4 });
+const playsArb = fc.integer({ min: 1, max: 2 });
+
 describe("apply: invariants over random answer streams", () => {
   it("accepted answers add exactly 1 to seq; rejected ones change nothing; state stays plain integer JSON", () => {
     fc.assert(
-      fc.property(fc.integer({ min: 1, max: 5 }), fc.array(moveArb, { maxLength: 30 }), (rounds, moves) => {
-        let s = deepFreeze(startGame(rounds));
+      fc.property(turnsArb, playsArb, fc.array(moveArb, { maxLength: 30 }), (turns, plays, moves) => {
+        let s = deepFreeze(startGame(turns, plays));
         for (const m of moves) {
           const before = JSON.stringify(s);
           const r = apply(ruleset, s, deepFreeze(toAnswer(s, m)));
@@ -89,8 +93,8 @@ describe("apply: invariants over random answer streams", () => {
   it("an unrevealed pick exists only while its pair's other decision is open, and its own side has none in the pair", () => {
     let halfAnswered = 0;
     fc.assert(
-      fc.property(fc.integer({ min: 1, max: 5 }), fc.array(moveArb, { maxLength: 30 }), (rounds, moves) => {
-        let s = deepFreeze(startGame(rounds));
+      fc.property(turnsArb, playsArb, fc.array(moveArb, { maxLength: 30 }), (turns, plays, moves) => {
+        let s = deepFreeze(startGame(turns, plays));
         for (const m of moves) {
           const r = apply(ruleset, s, toAnswer(s, m));
           if (!r.ok) continue;

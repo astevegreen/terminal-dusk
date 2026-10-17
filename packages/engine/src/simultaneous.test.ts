@@ -6,6 +6,7 @@ import { deepFreeze } from "./test/deepFreeze.ts";
 import {
   accepted,
   answerYesNo,
+  cardAnswer,
   choose,
   ifSaid,
   ifYes,
@@ -190,7 +191,7 @@ describe("simultaneous decisions: resigning and starting programs", () => {
     }
   });
   it("a program cannot start while a group is half answered", () => {
-    const half = deepFreeze(accepted(startGame(), yesNoAnswer(startGame(), true, "sae")));
+    const half = deepFreeze(accepted(startGame(), cardAnswer(startGame(), "sae")));
     expect(startProgram(ruleset, half, [marker("m")])).toMatchObject({ ok: false, error: { code: "notSupported" } });
   });
 });

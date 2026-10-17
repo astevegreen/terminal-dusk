@@ -3,27 +3,29 @@ import { hiddenPart, reconstruct, viewFor } from "./index.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
 import { playAnswers, startGame } from "./test/game.ts";
 
-// startGame: LIO holds c1, c2; SAE holds c3; the deck is c4, c5, c6, shuffled.
+// startGame: LIO holds l1-l4 and n1; SAE holds s1-s4 and n2; the deck is z1-z3, shuffled.
+const LIO_HAND = ["l1", "l2", "l3", "l4", "n1"];
+const SAE_HAND = ["s1", "s2", "s3", "s4", "n2"];
 
 describe("viewFor", () => {
   it("a side gets the public compartment, its own private compartment as mine, and counts", () => {
     const s = startGame();
     const view = viewFor(s, "lio");
     expect(view.public).toEqual(s.public);
-    expect(view.mine).toEqual({ hand: ["c1", "c2"], picks: [] });
-    expect(view.counts).toEqual({ deck: 3, hands: { lio: 2, sae: 1 } });
+    expect(view.mine).toEqual({ hand: LIO_HAND, picks: [] });
+    expect(view.counts).toEqual({ deck: 3, hands: { lio: 5, sae: 5 } });
     expect(view.meta).toEqual(s.meta);
-    expect(viewFor(s, "sae").mine).toEqual({ hand: ["c3"], picks: [] });
+    expect(viewFor(s, "sae").mine).toEqual({ hand: SAE_HAND, picks: [] });
   });
   it("a spectator gets mine = null and both hand sizes", () => {
     const view = viewFor(startGame(), "spectator");
     expect(view.mine).toBeNull();
-    expect(view.counts).toEqual({ deck: 3, hands: { lio: 2, sae: 1 } });
+    expect(view.counts).toEqual({ deck: 3, hands: { lio: 5, sae: 5 } });
   });
   it("the opponent's hand appears only as a number, never as a list", () => {
     const json = JSON.stringify(viewFor(startGame(), "sae"));
-    for (const card of ["c1", "c2"]) expect(json).not.toContain(`"${card}"`);
-    expect(viewFor(startGame(), "sae").counts.hands.lio).toBe(2);
+    for (const card of LIO_HAND) expect(json).not.toContain(`"${card}"`);
+    expect(viewFor(startGame(), "sae").counts.hands.lio).toBe(5);
   });
   it("a view has exactly the four parts public, mine, counts and meta", () => {
     expect(Object.keys(viewFor(startGame(), "lio")).sort()).toEqual(["counts", "meta", "mine", "public"]);
@@ -33,7 +35,7 @@ describe("viewFor", () => {
     const view = viewFor(s, "lio");
     view.mine?.hand.push("extra");
     view.public.discard.push("extra");
-    expect(s.private.lio.hand).toEqual(["c1", "c2"]);
+    expect(s.private.lio.hand).toEqual(LIO_HAND);
     expect(s.public.discard).toEqual([]);
   });
 });
@@ -43,7 +45,7 @@ describe("hiddenPart and reconstruct", () => {
     const s = startGame();
     const hidden = hiddenPart(s, "lio");
     expect(hidden.viewer).toBe("lio");
-    expect(hidden.opponent).toEqual({ hand: ["c3"], picks: [] });
+    expect(hidden.opponent).toEqual({ hand: SAE_HAND, picks: [] });
     expect(hidden.secret).toEqual(s.secret);
   });
   it("reconstruct(viewFor(s, x), hiddenPart(s, x)) rebuilds the state exactly, for both sides", () => {
@@ -58,7 +60,7 @@ describe("hiddenPart and reconstruct", () => {
     const s = startGame();
     const guess = { ...hiddenPart(s, "lio"), opponent: { hand: ["g1"], picks: [] } };
     const rebuilt = reconstruct(viewFor(s, "lio"), guess);
-    expect(rebuilt.private).toEqual({ lio: { hand: ["c1", "c2"], picks: [] }, sae: { hand: ["g1"], picks: [] } });
+    expect(rebuilt.private).toEqual({ lio: { hand: LIO_HAND, picks: [] }, sae: { hand: ["g1"], picks: [] } });
   });
   it("the rebuilt state shares no objects with the view or the hidden part", () => {
     const s = startGame();
@@ -69,8 +71,8 @@ describe("hiddenPart and reconstruct", () => {
     rebuilt.private.sae.hand.push("x");
     rebuilt.private.lio.hand.push("x");
     rebuilt.secret.deck.push("x");
-    expect(view.mine?.hand).toEqual(["c3"]);
-    expect(hidden.opponent.hand).toEqual(["c1", "c2"]);
+    expect(view.mine?.hand).toEqual(SAE_HAND);
+    expect(hidden.opponent.hand).toEqual(LIO_HAND);
     expect(hidden.secret.deck).toEqual(deckBefore);
     expect(deckBefore).toHaveLength(3);
   });

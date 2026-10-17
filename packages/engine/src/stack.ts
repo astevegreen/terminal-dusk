@@ -1,6 +1,6 @@
 // The resolution stack: runs program steps until one needs a player's choice, records that as the
 // pending decision (or, for both sides at once, a simultaneous pair) and stops. The answer resumes
-// exactly where it stopped. A step budget per call stops runaway programs.
+// exactly where it stopped. A step budget per call (createGame or apply) stops runaway programs.
 import { copyJson } from "./copy.ts";
 import { newDecision, newGroup } from "./decisions.ts";
 import { halfAnswered } from "./simultaneous.ts";
@@ -23,15 +23,22 @@ import type {
 
 const DEFAULT_STEP_BUDGET = 10_000;
 
-/** Most steps one call may run: the ruleset's limit, else 10,000. Read on every call; never stored. */
-export const stepBudget = (ruleset: Ruleset): number => ruleset.limits?.stepBudget ?? DEFAULT_STEP_BUDGET;
+/**
+ * The steps one call has run so far, and the most it may run: the ruleset's limit, else 10,000. Each
+ * call makes a new one and shares it with everything it runs; it is never stored in the state.
+ */
+export type Budget = { used: number; limit: number };
+export const newBudget = (ruleset: Ruleset): Budget => ({
+  used: 0,
+  limit: ruleset.limits?.stepBudget ?? DEFAULT_STEP_BUDGET,
+});
 
 const problem = (code: EngineErrorCode, message: string): EngineError => ({ code, message });
 
 /**
  * Starts `steps` as a program and runs it until it pauses or ends. If it pauses, its choice replaces
  * the pending decisions. Internal: index.ts does not export it. Engine tests start programs with it;
- * real games start them from the turn structure (#35).
+ * real games start them from the turn structure (turn.ts), through runProgram.
  */
 export function startProgram(
   ruleset: Ruleset,
@@ -50,10 +57,15 @@ export function startProgram(
   }
   const next = copyJson(state);
   next.meta.seq += 1;
-  next.public.stack.push({ kind: "program", steps: copyJson(steps), next: 0, vars: [] });
   const events: GameEvent[] = [];
-  const error = runStack(next, events, stepBudget(ruleset));
+  const error = runProgram(next, steps, events, newBudget(ruleset));
   return error ? { ok: false, error } : { ok: true, value: { state: next, events } };
+}
+
+/** Pushes `steps` as a new program and runs it until it pauses or ends. Edits `state`, a working copy. */
+export function runProgram(state: GameState, steps: Step[], events: GameEvent[], budget: Budget): EngineError | null {
+  state.public.stack.push({ kind: "program", steps: copyJson(steps), next: 0, vars: [] });
+  return runStack(state, events, budget);
 }
 
 /** What closed a paused `choose`: one side's answer, or both sides' answers to a simultaneous pair. */
@@ -67,13 +79,15 @@ export function resumeStack(
   state: GameState,
   closing: Closing,
   events: GameEvent[],
-  budget: number,
+  budget: Budget,
 ): EngineError | null {
   const frame = state.public.stack.at(-1);
   const step = frame?.steps[frame.next];
   const value = boundValue(closing);
-  if (!frame || step?.op !== "choose" || (step.who === "both") !== (closing.who === "both") || value === undefined) {
-    return problem("invalidProgram", "The stack is not paused at a matching yes/no choice.");
+  const kind = closing.who === "both" ? closing.values.lio.kind : closing.value.kind;
+  const matches = step?.op === "choose" && (step.who === "both") === (closing.who === "both");
+  if (!frame || !matches || step.decision.kind !== kind || value === undefined) {
+    return problem("invalidProgram", "The stack is not paused at a matching choice.");
   }
   bind(frame, step.bind, value);
   frame.next += 1;
@@ -89,9 +103,8 @@ type StepOf<K extends Step["op"]> = Extract<Step, { op: K }>;
  * Runs the top frame's steps until a `choose` pauses the stack or the stack is empty. Each step run
  * counts once against `budget`; going over returns stepBudgetExceeded.
  */
-function runStack(state: GameState, events: GameEvent[], budget: number): EngineError | null {
+function runStack(state: GameState, events: GameEvent[], budget: Budget): EngineError | null {
   const stack = state.public.stack;
-  let used = 0;
   while (stack.length > 0) {
     const frame = stack.at(-1)!;
     const step = frame.steps[frame.next];
@@ -99,8 +112,10 @@ function runStack(state: GameState, events: GameEvent[], budget: number): Engine
       finishBlock(stack, frame);
       continue;
     }
-    used += 1;
-    if (used > budget) return problem("stepBudgetExceeded", `More than ${budget} steps would run in one call.`);
+    budget.used += 1;
+    if (budget.used > budget.limit) {
+      return problem("stepBudgetExceeded", `More than ${budget.limit} steps would run in one call.`);
+    }
     const outcome = runStep(state, frame, step, events);
     if (outcome === "paused") return null;
     if (outcome !== "ran") return outcome;
@@ -173,22 +188,29 @@ function runForEach(stack: Frame[], frame: Frame, step: StepOf<"forEach">): Step
  * answer. A condition naming a side for a one-side answer, or none for a both-sides one, is an error.
  */
 function readYes(value: VarValue, cond: Condition): boolean | EngineError {
-  if (typeof value === "boolean" && cond.side === undefined) return value;
-  if (typeof value === "object" && cond.side !== undefined && typeof value[cond.side] === "boolean") {
-    return value[cond.side];
+  const notYesNo = problem("invalidProgram", `"${cond.var}" is not a yes/no answer, so if cannot test it.`);
+  if (typeof value === "boolean") {
+    return cond.side === undefined
+      ? value
+      : problem("invalidProgram", `"${cond.var}" holds one answer; the if must not name a side.`);
   }
-  if (typeof value === "boolean")
-    return problem("invalidProgram", `"${cond.var}" holds one answer; the if must not name a side.`);
-  if (typeof value === "object")
-    return problem("invalidProgram", `"${cond.var}" holds both sides' answers; the if must name a side.`);
-  return problem("invalidProgram", `"${cond.var}" is not a yes/no answer, so if cannot test it.`);
+  if (typeof value !== "object") return notYesNo;
+  if (typeof value.lio !== "boolean" || typeof value.sae !== "boolean") return notYesNo;
+  return cond.side === undefined
+    ? problem("invalidProgram", `"${cond.var}" holds both sides' answers; the if must name a side.`)
+    : value[cond.side];
 }
 
-/** The value a closed `choose` binds: a yes/no, or both sides' yes/no keyed by side. Else undefined. */
+/**
+ * The value a closed `choose` binds: a yes/no; or, for a pair, both sides' yes/no or both picked cards,
+ * keyed by side. Undefined when the answers don't fit the choice.
+ */
 function boundValue(closing: Closing): VarValue | undefined {
   if (closing.who !== "both") return closing.value.kind === "yesNo" ? closing.value.yes : undefined;
   const { lio, sae } = closing.values;
-  return lio.kind === "yesNo" && sae.kind === "yesNo" ? { lio: lio.yes, sae: sae.yes } : undefined;
+  if (lio.kind === "yesNo" && sae.kind === "yesNo") return { lio: lio.yes, sae: sae.yes };
+  if (lio.kind === "chooseCard" && sae.kind === "chooseCard") return { lio: lio.card, sae: sae.card };
+  return undefined;
 }
 
 /** The top frame's steps are done: a forEach moves to its next item, any other frame is removed. */

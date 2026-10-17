@@ -1,9 +1,10 @@
-import { rulesetError, setupCardsError } from "./cardChecks.ts";
+import { handSizeError, rulesetError, setupCardsError } from "./cardChecks.ts";
 import { seedRng, shuffle } from "./rng.ts";
-import { newGroup } from "./decisions.ts";
+import { newBudget } from "./stack.ts";
+import { startTurn } from "./turn.ts";
 import type { GameEvent, GameState, Result, Ruleset, Seed, Setup } from "./types.ts";
 
-/** Builds a starting game. Bad input returns an error; it never throws. */
+/** Builds a starting game, open at the first turn's opening pick. Bad input returns an error; it never throws. */
 export function createGame(
   ruleset: Ruleset,
   setup: Setup,
@@ -24,22 +25,30 @@ export function createGame(
       error: { code: "invalidSetup", message: "The setup needs hands for both sides and a deck." },
     };
   }
-  if (!Number.isInteger(setup.rounds) || setup.rounds < 1) {
-    return {
-      ok: false,
-      error: { code: "invalidSetup", message: "The setup needs rounds of at least 1." },
-    };
+  for (const [name, value] of [
+    ["turns", setup.turns],
+    ["playsPerTurn", setup.playsPerTurn],
+  ] as const) {
+    if (!Number.isInteger(value) || value < 1) {
+      return {
+        ok: false,
+        error: { code: "invalidSetup", message: `The setup's ${name} must be a whole number, 1 or more.` },
+      };
+    }
   }
-  const badCards = setupCardsError(ruleset, setup);
+  const badCards = setupCardsError(ruleset, setup) ?? handSizeError(ruleset, setup);
   if (badCards) return { ok: false, error: badCards };
   // The hands keep the setup's order; the draw pile is shuffled with the game's own generator.
   const drawPile = shuffle(seedRng(seed), setup.deck);
   const state: GameState = {
     public: {
       turn: 1,
-      rounds: setup.rounds,
+      turns: setup.turns,
+      playsPerTurn: setup.playsPerTurn,
+      playsMade: 0,
+      inPlay: [],
       discard: [],
-      pending: newGroup(0, "yesNo"),
+      pending: [],
       stack: [],
       status: { kind: "active" },
     },
@@ -50,5 +59,8 @@ export function createGame(
     secret: { rng: drawPile.state, deck: drawPile.items },
     meta: { ruleset: ruleset.id, seedHash: setup.seedHash, seq: 0 },
   };
-  return { ok: true, value: { state, events: [] } };
+  // The first turn opens through the stack, so the step budget covers createGame too.
+  const events: GameEvent[] = [];
+  const error = startTurn(state, events, newBudget(ruleset));
+  return error ? { ok: false, error } : { ok: true, value: { state, events } };
 }

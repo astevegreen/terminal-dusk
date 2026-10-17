@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { apply, createGame, eventsFor } from "./index.ts";
 import type { GameEvent } from "./index.ts";
-import { makeSetup, passFor, ruleset, startAtPass } from "./test/game.ts";
+import { cardAnswer, makeSetup, playAnswers, ruleset, startAtPlay, startGame } from "./test/game.ts";
 
 // Nothing draws cards yet, so these events are built by hand.
 const lioDrew: GameEvent = {
@@ -60,11 +60,12 @@ describe("eventsFor", () => {
 });
 
 describe("createGame and apply return their events", () => {
-  it("the placeholder game emits no events yet, as an empty list", () => {
+  it("createGame, the opening picks of cards with no effect, and a placeholder play emit no events, as an empty list", () => {
     const created = createGame(ruleset, makeSetup(), "seed-1");
     expect(created.ok && created.value.events).toEqual([]);
-    const s = startAtPass();
-    const applied = apply(ruleset, s, passFor(s, "lio"));
-    expect(applied.ok && applied.value.events).toEqual([]);
+    for (const s of [startGame(), playAnswers(startGame(), 1), startAtPlay()]) {
+      const applied = apply(ruleset, s, cardAnswer(s, s.public.pending[0]!.side));
+      expect(applied.ok && applied.value.events).toEqual([]);
+    }
   });
 });

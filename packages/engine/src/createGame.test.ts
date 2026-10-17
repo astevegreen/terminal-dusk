@@ -3,17 +3,13 @@ import { createGame, SIDES } from "./index.ts";
 import type { GameState, Setup } from "./index.ts";
 import { seedRng, shuffle } from "./rng.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
-import { rulesetWith } from "./test/game.ts";
+import { makeSetup as baseSetup, ruleset as baseRuleset, testCard } from "./test/game.ts";
 
 /** Nine cards, so a shuffled pile has 9! orders and two seeds giving the same one is vanishingly rare. */
-const PILE = ["c4", "c5", "c6", "c7", "c8", "c9", "c10", "c11", "c12"];
-const ruleset = rulesetWith(["c1", "c2", "c3", ...PILE]);
-const makeSetup = (deck: string[] = ["c4", "c5", "c6"]): Setup => ({
-  seedHash: "abc123",
-  hands: { lio: ["c1", "c2"], sae: ["c3"] },
-  deck,
-  rounds: 2,
-});
+const PILE = ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9"];
+const ruleset = { ...baseRuleset, cards: [...baseRuleset.cards, ...PILE.map((id) => testCard(id))] };
+/** The shared test setup (2 turns, 1 play each), with `deck` as its draw pile. */
+const makeSetup = (deck: string[] = ["p1", "p2", "p3"]): Setup => ({ ...baseSetup(), deck });
 const build = (seed = "seed-1", deck?: string[]): GameState => {
   const r = createGame(ruleset, makeSetup(deck), seed);
   if (!r.ok) throw new Error("expected ok");
@@ -26,11 +22,11 @@ describe("createGame", () => {
   it("SIDES lists lio then sae", () => {
     expect(SIDES).toEqual(["lio", "sae"]);
   });
-  it("keeps the hands in the order given, with turn 1, seq 0, empty discard", () => {
+  it("keeps the hands in the order given, with turn 1, no plays made, nothing in play, seq 0, empty discard", () => {
     const s = build();
-    expect(s.private.lio.hand).toEqual(["c1", "c2"]);
-    expect(s.private.sae.hand).toEqual(["c3"]);
-    expect(s.public).toMatchObject({ turn: 1, discard: [] });
+    expect(s.private.lio.hand).toEqual(makeSetup().hands.lio);
+    expect(s.private.sae.hand).toEqual(makeSetup().hands.sae);
+    expect(s.public).toMatchObject({ turn: 1, turns: 2, playsPerTurn: 1, playsMade: 0, inPlay: [], discard: [] });
     expect(s.meta).toEqual({ ruleset: "test-ruleset", seedHash: "abc123", seq: 0 });
   });
   it("returns no events", () => {
@@ -52,10 +48,10 @@ describe("createGame", () => {
   });
   it("accepts an empty or one-card draw pile", () => {
     expect(build("seed-1", []).secret.deck).toEqual([]);
-    expect(build("seed-1", ["c4"]).secret.deck).toEqual(["c4"]);
+    expect(build("seed-1", ["p1"]).secret.deck).toEqual(["p1"]);
   });
   it("secret.rng holds the generator state after the shuffle, not the starting state", () => {
-    const deck = ["c4", "c5"];
+    const deck = ["p1", "p2"];
     const rng = build("seed-1", deck).secret.rng;
     expect(rng).toEqual(shuffle(seedRng("seed-1"), deck).state);
     expect(rng).not.toEqual(seedRng("seed-1"));
@@ -76,11 +72,16 @@ describe("createGame", () => {
       });
     }
   });
-  it("rounds below 1, or not a whole number, returns invalidSetup", () => {
-    for (const rounds of [0, -1, 1.5, undefined]) {
-      const setup = { ...makeSetup(), rounds } as Setup;
+  it.each(["turns", "playsPerTurn"])("%s of 0, below 0, a fraction or missing returns invalidSetup", (field) => {
+    for (const value of [0, -1, 1.5, undefined]) {
+      const setup = { ...makeSetup(), [field]: value } as Setup;
       expect(createGame(ruleset, setup, "s")).toMatchObject({ ok: false, error: { code: "invalidSetup" } });
     }
+  });
+  it("turns and playsPerTurn of 1 or more are accepted, and stored in the public compartment", () => {
+    const setup = { ...baseSetup(3, 2), deck: [] };
+    const r = createGame(ruleset, setup, "s");
+    expect(r.ok && r.value.state.public).toMatchObject({ turns: 3, playsPerTurn: 2 });
   });
   it("an empty seed returns invalidSeed", () => {
     const r = createGame(ruleset, makeSetup(), "");
@@ -101,7 +102,7 @@ describe("createGame", () => {
   });
   it("does not change deep-frozen inputs, including the ruleset and its cards", () => {
     const setup = deepFreeze(makeSetup(PILE));
-    const rs = deepFreeze(rulesetWith(["c1", "c2", "c3", ...PILE]));
+    const rs = deepFreeze({ ...ruleset, cards: ruleset.cards.map((c) => ({ ...c })) });
     expect(createGame(rs, setup, "seed-1").ok).toBe(true);
   });
   it("state survives a JSON round trip unchanged", () => {
