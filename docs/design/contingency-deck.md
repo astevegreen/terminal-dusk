@@ -1,7 +1,8 @@
 # Contingency deck
 
 Promoted on 2026-10-17 from the Notion page "Outcome deck (replaces dice)": the choice to replace dice (owner,
-16 Oct), the four calls the owner made on 17 Oct, and two answers the owner gave while promoting. From now on
+16 Oct), and the owner's 17 Oct calls on the reshuffle, what players see, whose deck and the name. Two answers
+the owner gave while promoting are marked "(owner, 17 Oct, promoting)". From now on
 this file is the source of truth; change it in Notion and promote again.
 
 ## No dice
@@ -15,7 +16,7 @@ this file is the source of truth; change it in Notion and promote again.
 
 - By default each deck has six cards, numbered 1 to 6, one of each.
 - A scenario may give the decks different cards. The default applies unless the scenario says otherwise
-  (owner, 17 Oct).
+  (owner, 17 Oct, promoting).
 - At the start of the game, each side's deck is shuffled separately.
 
 ## Drawing
@@ -23,10 +24,11 @@ this file is the source of truth; change it in Notion and promote again.
 - A draw takes the top card of the deck. Its number is the result, and the card is set aside until the deck is
   rebuilt.
 - Modifiers and thresholds treat the number exactly like a die result. For example, "+1 to the result" adds 1
-  to the number drawn, and a result may go above the highest card or below the lowest one.
+  to the number drawn.
 - **Whose deck:**
   - an action a side takes (a coup, for example) draws from that side's deck;
-  - when both sides draw at once (a realignment, for example), each side draws one card from its own deck;
+  - when both sides draw at once (the Notion page gives a realignment as an example), each side draws one card
+    from its own deck;
   - an event draws from the deck of the side the event belongs to. A rival's card played for its action
     points runs as the rival's event (docs/design/core-loop.md), so it draws from the rival's deck.
 - Neutral events have no deck yet. That waits until neutral events are designed.
@@ -35,7 +37,7 @@ this file is the source of truth; change it in Notion and promote again.
 
 - As soon as a draw leaves exactly one card in a deck, all of that deck's cards, including the one left, are
   shuffled back together into a full deck. This happens straight after the draw, before anything else
-  (owner, 17 Oct).
+  (owner, 17 Oct, promoting).
 - So in each cycle a side draws all but one of its cards, and a deck never shows a single card left.
 - Only the reshuffle rebuilds a deck. Decks carry over between turns and between eras.
 
@@ -64,5 +66,5 @@ this file is the source of truth; change it in Notion and promote again.
 
 - The exact card wording for a draw.
 - How neutral events draw.
-- Backup idea, not adopted: if playtests show single misses still sting, a bad-luck token (each 1 drawn earns
+- Backup idea from the Notion page, not adopted: if playtests show single misses still sting, a bad-luck token (each 1 drawn earns
   one, hold at most 2, spend one for +1 on a later draw).
