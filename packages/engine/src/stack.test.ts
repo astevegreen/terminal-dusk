@@ -150,7 +150,12 @@ describe("resolution stack and the turn structure", () => {
       expect(state.public.stack).toEqual([]);
       expect(state.public.playsMade).toBe(0);
       expect(state.public.pending).toEqual([
-        { id: expect.any(String), side: "lio", kind: "playCard", options: { from: "hand", includeNeutral: true } },
+        {
+          id: expect.any(String),
+          side: "lio",
+          kind: "playCardAs",
+          options: { from: "hand", uses: { own: ["event", "points"], rival: ["points"], neutral: ["points"] } },
+        },
       ]);
     }
   });

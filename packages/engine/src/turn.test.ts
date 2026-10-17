@@ -1,40 +1,25 @@
 // The turn structure (#35): secret opening cards, their events in order, then alternating plays.
+// How a play uses its card is in play.test.ts (#36).
 import { describe, expect, it } from "vitest";
 import { apply, legalAnswers, viewFor } from "./index.ts";
-import type { CardDef, CardId, GameState, Ruleset, Setup, Side, Step } from "./index.ts";
+import type { GameState, Ruleset, Side } from "./index.ts";
 import {
   accepted,
   answerYesNo,
+  asks,
   cardAnswer,
-  choose,
-  makeSetup,
   marker,
   markers,
   openWith,
+  playAnswer,
   playAnswers,
   ruleset,
+  setupPlus,
+  sideCard as card,
   startGame,
-  testCard,
+  withCards,
 } from "./test/game.ts";
 
-/** A side's card for these tests: "l..." is LIO's, "s..." SAE's. */
-const card = (id: CardId, ops: number, effect: Step[] = []): CardDef =>
-  testCard(id, ops, id.startsWith("l") ? "lio" : "sae", effect);
-/** The test ruleset with `cards` in place of the ones with the same IDs. */
-const withCards = (...cards: CardDef[]): Ruleset => ({
-  ...ruleset,
-  cards: ruleset.cards.map((c) => cards.find((o) => o.id === c.id) ?? c),
-});
-/** An event that asks `who` yes or no, then shows the answer as a marker labelled `label`. */
-const asks = (who: Side, label: string): Step[] => [choose("a", who), marker(label, "a")];
-/** makeSetup with `extra` cards added to each side's hand. */
-const setupPlus = (extra: { lio?: CardId[]; sae?: CardId[] }, turns = 2, playsPerTurn = 1): Setup => {
-  const base = makeSetup(turns, playsPerTurn);
-  return {
-    ...base,
-    hands: { lio: [...base.hands.lio, ...(extra.lio ?? [])], sae: [...base.hands.sae, ...(extra.sae ?? [])] },
-  };
-};
 const cardsOf = (rs: Ruleset, state: GameState, side: Side): string[] =>
   legalAnswers(rs, state, side).map((v) => ("card" in v ? v.card : "?"));
 
@@ -59,14 +44,14 @@ describe("the opening pick", () => {
     );
     expect(cardsOf(ruleset, s, "sae")).toEqual(["s1", "s2", "s3", "s4"]);
   });
-  it("a neutral card is never an opening pick, but in the same game it is a legal placeholder play", () => {
+  it("a neutral card is never an opening pick, but in the same game it is a legal play for its points", () => {
     const s = startGame();
     expect(cardsOf(ruleset, s, "lio")).not.toContain("n1");
     const neutralOpening = { ...cardAnswer(s, "lio"), value: { kind: "chooseCard" as const, card: "n1" } };
     expect(apply(ruleset, s, neutralOpening)).toMatchObject({ ok: false, error: { code: "illegalAnswer" } });
     const atPlay = openWith(s, "l1", "s1").state;
     expect(cardsOf(ruleset, atPlay, "lio")).toContain("n1");
-    const played = accepted(atPlay, cardAnswer(atPlay, "lio", "n1"));
+    const played = accepted(atPlay, playAnswer(atPlay, "lio", "n1", "points"));
     expect(played.public.discard.at(-1)).toBe("n1");
   });
   it("a pick stays in its owner's hand until both are in", () => {
@@ -144,28 +129,15 @@ describe("plays after the opening cards", () => {
     const sides: Side[] = [];
     while (s.public.status.kind === "active") {
       const d = s.public.pending[0]!;
-      expect(d.kind).toBe("playCard");
+      expect(d.kind).toBe("playCardAs");
       sides.push(d.side);
       s = accepted(s, cardAnswer(s, d.side));
     }
     expect(sides).toEqual(["lio", "sae", "lio", "sae"]);
   });
-  it("a play's options say any card in your hand, and legalAnswers lists the whole hand", () => {
+  it("a play offers every card in your hand", () => {
     const s = openWith(startGame(), "l1", "s1").state;
-    expect(s.public.pending).toMatchObject([
-      { side: "lio", kind: "playCard", options: { from: "hand", includeNeutral: true } },
-    ]);
-    expect(JSON.stringify(s.public.pending)).not.toContain('"l2"');
-    expect(cardsOf(ruleset, s, "lio")).toEqual(s.private.lio.hand);
-  });
-  it("a play is a placeholder: the card goes from the hand to the discard pile with no effect", () => {
-    const rs = withCards(card("l2", 1, [marker("never")]));
-    const s = openWith(startGame(2, 1, rs), "l1", "s1", rs).state;
-    const r = apply(rs, s, cardAnswer(s, "lio", "l2", rs));
-    if (!r.ok) throw new Error("play rejected");
-    expect(r.value.events).toEqual([]);
-    expect(r.value.state.private.lio.hand).not.toContain("l2");
-    expect(r.value.state.public.discard.at(-1)).toBe("l2");
+    expect(new Set(cardsOf(ruleset, s, "lio"))).toEqual(new Set(s.private.lio.hand));
   });
 });
 

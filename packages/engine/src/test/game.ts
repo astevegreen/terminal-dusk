@@ -3,7 +3,7 @@ import { apply } from "../apply.ts";
 import { createGame } from "../createGame.ts";
 import { legalAnswers } from "../decisions.ts";
 import { startProgram } from "../stack.ts";
-import type { Answer, CardDef, CardId, GameEvent, GameState, Ruleset, Setup, Side, Step } from "../types.ts";
+import type { Answer, CardDef, CardId, GameEvent, GameState, PlayUse, Ruleset, Setup, Side, Step } from "../types.ts";
 
 type Played = { state: GameState; events: GameEvent[] };
 
@@ -42,6 +42,15 @@ const affiliationOf = (id: CardId): Side | "neutral" => {
 /** The test ruleset: l1-l12, s1-s12, neutral n1 and n2, and neutral z1-z3 for the draw pile. */
 export const ruleset: Ruleset = rulesetWith([...LIO_CARDS, ...SAE_CARDS, "n1", "n2", "z1", "z2", "z3"]);
 
+/** A card for the test ruleset with its affiliation from its ID, as in rulesetWith. */
+export const sideCard = (id: CardId, ops: number, effect: Step[] = []): CardDef =>
+  testCard(id, ops, affiliationOf(id), effect);
+/** The test ruleset with `cards` in place of the ones with the same IDs. */
+export const withCards = (...cards: CardDef[]): Ruleset => ({
+  ...ruleset,
+  cards: ruleset.cards.map((c) => cards.find((o) => o.id === c.id) ?? c),
+});
+
 /**
  * A setup where each side has exactly the non-neutral cards the game needs, turns x (1 + playsPerTurn),
  * plus one neutral card: LIO l1, l2, ... and n1; SAE s1, s2, ... and n2. The draw pile is z1-z3.
@@ -54,6 +63,15 @@ export const makeSetup = (turns = 2, playsPerTurn = 1): Setup => {
     deck: ["z1", "z2", "z3"],
     turns,
     playsPerTurn,
+  };
+};
+
+/** makeSetup with `extra` cards added to each side's hand. */
+export const setupPlus = (extra: { lio?: CardId[]; sae?: CardId[] }, turns = 2, playsPerTurn = 1): Setup => {
+  const base = makeSetup(turns, playsPerTurn);
+  return {
+    ...base,
+    hands: { lio: [...base.hands.lio, ...(extra.lio ?? [])], sae: [...base.hands.sae, ...(extra.sae ?? [])] },
   };
 };
 
@@ -72,23 +90,49 @@ export function startGame(
 /** A new game with the opening cards picked (each side's first) and resolved, so LIO's play is open. */
 export const startAtPlay = (turns = 2, playsPerTurn = 1): GameState => playAnswers(startGame(turns, playsPerTurn), 2);
 
-/** The answer naming `card` (default: the first legal one) to the card decision `side` has open. */
+/**
+ * The answer naming `card` (default: the first legal one) to the card decision `side` has open. For a
+ * play it is that card's first legal use: the event for your own card, else the points.
+ */
 export function cardAnswer(state: GameState, side: Side, card?: CardId, rs: Ruleset = ruleset): Answer {
   const d = state.public.pending.find((x) => x.side === side);
   if (!d) throw new Error(`no decision pending for ${side}`);
-  if (d.kind !== "chooseCard" && d.kind !== "playCard") throw new Error(`${side}'s decision is ${d.kind}`);
-  const first = legalAnswers(rs, state, side)[0];
-  const picked = card ?? (first && "card" in first ? first.card : undefined);
-  if (picked === undefined) throw new Error(`${side} has no card to pick`);
-  return { decisionId: d.id, side, value: { kind: d.kind, card: picked } };
+  if (d.kind !== "chooseCard" && d.kind !== "playCardAs") throw new Error(`${side}'s decision is ${d.kind}`);
+  const legal = legalAnswers(rs, state, side);
+  const value = legal.find((v) => "card" in v && (card === undefined || v.card === card));
+  if (d.kind === "chooseCard") {
+    const picked = card ?? (value && "card" in value ? value.card : undefined);
+    if (picked === undefined) throw new Error(`${side} has no card to pick`);
+    return { decisionId: d.id, side, value: { kind: "chooseCard", card: picked } };
+  }
+  if (!value) throw new Error(`${side} cannot play ${card ?? "any card"}`);
+  return { decisionId: d.id, side, value };
+}
+
+/** The answer playing `card` for `as` (its event or its points) to the play `side` has open. */
+export function playAnswer(state: GameState, side: Side, card: CardId, as: PlayUse): Answer {
+  const d = state.public.pending.find((x) => x.side === side && x.kind === "playCardAs");
+  if (!d) throw new Error(`no play pending for ${side}`);
+  return { decisionId: d.id, side, value: { kind: "playCardAs", card, as } };
+}
+
+/** The answer to `side`'s open rivalEventOrder: the rival's event happens before or after the points. */
+export function orderAnswer(state: GameState, side: Side, event: "before" | "after"): Answer {
+  const d = state.public.pending.find((x) => x.side === side && x.kind === "rivalEventOrder");
+  if (!d) throw new Error(`no rivalEventOrder pending for ${side}`);
+  return { decisionId: d.id, side, value: { kind: "rivalEventOrder", event } };
+}
+
+/** Applies an answer that the test expects to be accepted, and returns the new state and its events. */
+export function applied(state: GameState, answer: Answer, rs: Ruleset = ruleset): Played {
+  const r = apply(rs, state, answer);
+  if (!r.ok) throw new Error(`answer rejected: ${r.error.code}`);
+  return r.value;
 }
 
 /** Applies an answer that the test expects to be accepted. */
-export function accepted(state: GameState, answer: Answer, rs: Ruleset = ruleset): GameState {
-  const r = apply(rs, state, answer);
-  if (!r.ok) throw new Error(`answer rejected: ${r.error.code}`);
-  return r.value.state;
-}
+export const accepted = (state: GameState, answer: Answer, rs: Ruleset = ruleset): GameState =>
+  applied(state, answer, rs).state;
 
 /** Both sides pick their opening card (LIO first), and the answer is expected to be accepted. */
 export function openWith(state: GameState, lio: CardId, sae: CardId, rs: Ruleset = ruleset): Played {
@@ -156,4 +200,6 @@ export const ifSaid = (side: Side, v: string, then: Step[], otherwise?: Step[]):
   otherwise === undefined
     ? { op: "if", cond: { op: "yes", var: v, side }, then }
     : { op: "if", cond: { op: "yes", var: v, side }, then, else: otherwise };
+/** An event that asks `who` yes or no, then shows the answer as a marker labelled `label`. */
+export const asks = (who: Side, label: string): Step[] => [choose("a", who), marker(label, "a")];
 export const forEach = (over: string[], bind: string, body: Step[]): Step => ({ op: "forEach", over, bind, do: body });
