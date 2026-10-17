@@ -74,11 +74,13 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/events.test.ts`
 - `packages/engine/src/events.ts` - Filtering events by who may see them. Exports: eventsFor.
 - `packages/engine/src/index.test.ts`
-- `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, createGame, legalAnswers, pendingFor, eventsFor, SIDES, hiddenPart, reconstruct, viewFor, Answer, AnswerValue, Binding, ….
+- `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, createGame, legalAnswers, pendingFor, eventsFor, seedHash, SIDES, hiddenPart, reconstruct, viewFor, Answer, AnswerValue, ….
 - `packages/engine/src/play.property.test.ts` - Property test: in random games with rival and neutral plays, every card is always in exactly one place, and a card whose event or points are still waiting on a…
 - `packages/engine/src/play.test.ts` - Playing a card for its event or its points, and the rival-card rules (#36).
 - `packages/engine/src/rng.test.ts`
 - `packages/engine/src/rng.ts` - Seeded random numbers for the rules engine. Exports: RngState, seedRng, hashSeed, nextInt, shuffle.
+- `packages/engine/src/sha256.test.ts`
+- `packages/engine/src/sha256.ts` - The public fingerprint of a game's seed. Exports: seedHash.
 - `packages/engine/src/simultaneous.property.test.ts` - Property test: the order in which the two sides answer a simultaneous pair changes nothing, for a turn's opening card pick and for a program's yes/no pair.
 - `packages/engine/src/simultaneous.test.ts`
 - `packages/engine/src/simultaneous.ts` - Simultaneous decisions: both sides answer at once and in secret. Exports: Revealed, recordPick, halfAnswered.
