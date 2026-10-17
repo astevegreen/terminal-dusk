@@ -5,7 +5,7 @@ import { choose, playAnswers, ruleset, startAtPlay, startGame, startWith } from 
 describe("pendingFor", () => {
   it("returns the decision that side must answer, or null", () => {
     const s = startAtPlay();
-    expect(pendingFor(s, "lio")).toMatchObject({ side: "lio", kind: "playCard" });
+    expect(pendingFor(s, "lio")).toMatchObject({ side: "lio", kind: "playCardAs" });
     expect(pendingFor(s, "sae")).toBeNull();
   });
   it("returns null for both sides once the game is over", () => {
@@ -16,9 +16,18 @@ describe("pendingFor", () => {
 });
 
 describe("legalAnswers", () => {
-  it("lists the finite legal answers for that side's pending decision: a play of each card in hand", () => {
+  it("lists the finite legal answers for that side's pending decision: each card in hand with its uses", () => {
     const s = startAtPlay();
-    expect(legalAnswers(ruleset, s, "lio")).toEqual(s.private.lio.hand.map((card) => ({ kind: "playCard", card })));
+    expect(legalAnswers(ruleset, s, "lio")).toEqual(
+      s.private.lio.hand.flatMap((card) =>
+        card.startsWith("l")
+          ? [
+              { kind: "playCardAs", card, as: "event" },
+              { kind: "playCardAs", card, as: "points" },
+            ]
+          : [{ kind: "playCardAs", card, as: "points" }],
+      ),
+    );
   });
   it("lists yes then no for a yesNo decision", () => {
     const paused = startWith([choose("go", "sae")]).state;

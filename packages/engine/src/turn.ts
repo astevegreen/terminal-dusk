@@ -3,12 +3,13 @@
 // and SAE take turns to play, until each has made `playsPerTurn` plays. After the setup's number of
 // turns the game is over.
 //
-// TEMPORARY until the event-or-points play (#36): a play is a placeholder. The side picks any card in
-// its hand, and it goes to the discard pile with no effect.
-import { newDecision } from "./decisions.ts";
+// A play uses a card for its event or its points (decisions.ts lists the uses each card allows). A
+// rival's card is played for its points, and its event still happens: the player first says whether
+// before or after the points. A played card stays in `inPlay` until everything it triggered is done.
+import { newDecision, whoseCard } from "./decisions.ts";
 import { runProgram } from "./stack.ts";
 import type { Budget, Closing } from "./stack.ts";
-import type { CardId, EngineError, GameEvent, GameState, Ruleset, Side, Step } from "./types.ts";
+import type { AnswerValue, CardId, EngineError, GameEvent, GameState, Ruleset, Side, Step } from "./types.ts";
 
 /** The program each turn opens with: both sides secretly pick a card ("the both sides choose step"). */
 const OPENING: Step[] = [{ op: "choose", who: "both", decision: { kind: "chooseCard" }, bind: "opening" }];
@@ -19,7 +20,8 @@ export const startTurn = (state: GameState, events: GameEvent[], budget: Budget)
 
 /**
  * Moves the game on once an answer has closed and the stack is empty: reveals the opening cards, or
- * makes a play, then runs on to the next decision (or the end of the game). Edits `state` in place.
+ * makes a play, then runs on to the next decision (or the end of the game). A play of a rival's card
+ * first waits for its rivalEventOrder answer. Edits `state` in place.
  */
 export function afterAnswer(
   ruleset: Ruleset,
@@ -34,8 +36,12 @@ export function afterAnswer(
       const error = revealOpening(ruleset, state, lio.card, sae.card, events, budget);
       if (error || state.public.stack.length > 0) return error;
     }
-  } else if (closing.value.kind === "playCard") {
-    playPlaceholder(state, closing.who, closing.value.card);
+  } else if (closing.value.kind === "playCardAs") {
+    const error = play(ruleset, state, closing.who, closing.value, events, budget);
+    if (error || state.public.stack.length > 0 || waitsForOrder(state)) return error;
+  } else if (closing.value.kind === "rivalEventOrder") {
+    const error = playRival(ruleset, state, closing.who, closing.value.event, events, budget);
+    if (error || state.public.stack.length > 0) return error;
   }
   return settle(ruleset, state, events, budget);
 }
@@ -73,7 +79,7 @@ function settle(ruleset: Ruleset, state: GameState, events: GameEvent[], budget:
       const error = pub.inPlay.length > 0 ? startEvent(ruleset, state, events, budget) : null;
       if (error) return error;
     } else if (pub.playsMade < 2 * pub.playsPerTurn) {
-      pub.pending = [newDecision(state.meta.seq, pub.playsMade % 2 === 0 ? "lio" : "sae", "playCard")];
+      pub.pending = [newDecision(state.meta.seq, pub.playsMade % 2 === 0 ? "lio" : "sae", "playCardAs")];
       return null;
     } else if (pub.turn >= pub.turns) {
       pub.pending = [];
@@ -95,12 +101,52 @@ function startEvent(ruleset: Ruleset, state: GameState, events: GameEvent[], bud
   return runProgram(state, card?.effect ?? [], events, budget);
 }
 
-/** TEMPORARY placeholder play (see the top of this file): the card goes to the discard pile. */
-function playPlaceholder(state: GameState, side: Side, card: CardId): void {
-  removeFromHand(state, side, card);
-  state.public.discard.push(card);
+/**
+ * `side` plays a card: it leaves the hand for `inPlay` at once. Your own card runs its event or spends
+ * its points; a neutral card spends its points; a rival's card waits for its rivalEventOrder answer.
+ */
+function play(
+  ruleset: Ruleset,
+  state: GameState,
+  side: Side,
+  value: Extract<AnswerValue, { kind: "playCardAs" }>,
+  events: GameEvent[],
+  budget: Budget,
+): EngineError | null {
+  removeFromHand(state, side, value.card);
+  state.public.inPlay = [value.card];
   state.public.playsMade += 1;
+  const card = cardOf(ruleset, value.card);
+  if (whoseCard(card, side) === "rival") {
+    state.public.pending = [newDecision(state.meta.seq, side, "rivalEventOrder")];
+    return null;
+  }
+  const steps = value.as === "event" ? (card?.effect ?? []) : [spendPoints(side, card?.ops ?? 0)];
+  return runProgram(state, steps, events, budget);
 }
+
+/**
+ * The rival's card in play, played by `side` for its points: its event runs before or after the points.
+ * Each choice in the event goes to the side its `choose` step names, never to `side` as such.
+ */
+function playRival(
+  ruleset: Ruleset,
+  state: GameState,
+  side: Side,
+  event: "before" | "after",
+  events: GameEvent[],
+  budget: Budget,
+): EngineError | null {
+  const card = cardOf(ruleset, state.public.inPlay[0]!);
+  const effect = card?.effect ?? [];
+  const points = spendPoints(side, card?.ops ?? 0);
+  return runProgram(state, event === "before" ? [...effect, points] : [points, ...effect], events, budget);
+}
+
+/** True while a rival's card is in play and its player has yet to say when its event happens. */
+const waitsForOrder = (state: GameState): boolean => state.public.pending.some((d) => d.kind === "rivalEventOrder");
+
+const spendPoints = (side: Side, amount: number): Step => ({ op: "spendPoints", side, amount });
 
 function removeFromHand(state: GameState, side: Side, card: CardId): void {
   state.private[side].hand = state.private[side].hand.filter((id) => id !== card);

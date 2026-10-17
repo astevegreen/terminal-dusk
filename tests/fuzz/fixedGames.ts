@@ -5,7 +5,8 @@ import type { GameRecord } from "./play.ts";
 export const FIXED_GAMES: { name: string; record: GameRecord }[] = [
   {
     // Not a found failure: an example of the format, which also pins one order of a simultaneous pair.
-    // SAE's c5 (4 ops) resolves before LIO's c1 (0 ops); then each side plays its other card.
+    // SAE's c5 (4 ops) resolves before LIO's c1 (0 ops); then LIO plays its c7 for its event and SAE
+    // its c2 for its points.
     name: "example: SAE picks its opening card before LIO",
     record: {
       setup: {
@@ -19,8 +20,8 @@ export const FIXED_GAMES: { name: string; record: GameRecord }[] = [
       answers: [
         { decisionId: "d0-sae", side: "sae", value: { kind: "chooseCard", card: "c5" } },
         { decisionId: "d0-lio", side: "lio", value: { kind: "chooseCard", card: "c1" } },
-        { decisionId: "d2", side: "lio", value: { kind: "playCard", card: "c7" } },
-        { decisionId: "d3", side: "sae", value: { kind: "playCard", card: "c2" } },
+        { decisionId: "d2", side: "lio", value: { kind: "playCardAs", card: "c7", as: "event" } },
+        { decisionId: "d3", side: "sae", value: { kind: "playCardAs", card: "c2", as: "points" } },
       ],
     },
   },

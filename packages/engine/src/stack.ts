@@ -138,6 +138,11 @@ function runStep(state: GameState, frame: Frame, step: Step, events: GameEvent[]
       return runIf(state.public.stack, frame, step);
     case "forEach":
       return runForEach(state.public.stack, frame, step);
+    case "spendPoints":
+      // TEMPORARY until the actions are designed: spending points only says so.
+      events.push({ kind: "pointsSpent", visibility: "public", side: step.side, amount: step.amount });
+      frame.next += 1;
+      return "ran";
   }
 }
 

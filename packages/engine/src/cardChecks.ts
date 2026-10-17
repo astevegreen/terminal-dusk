@@ -33,6 +33,7 @@ const holdsCardChoice = (steps: readonly Step[]): boolean =>
       case "forEach":
         return holdsCardChoice(step.do);
       case "marker":
+      case "spendPoints":
         return false;
     }
   });

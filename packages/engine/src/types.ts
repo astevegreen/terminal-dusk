@@ -64,25 +64,37 @@ export type CardDrawn = {
 };
 /** A `marker` step ran: its label, and the value of the variable it names, if any. */
 export type MarkerEvent = { kind: "marker"; visibility: "public"; label: string; value?: VarValue };
+/**
+ * A `spendPoints` step ran: `side`, who played the card (even when it is the rival's card), spent
+ * `amount` action points, the card's ops. TEMPORARY until the actions are designed: nothing else happens.
+ */
+export type PointsSpent = { kind: "pointsSpent"; visibility: "public"; side: Side; amount: number };
 /** An event anyone may see. It never carries a card ID that is hidden from someone. */
-export type PublicEvent = CardDrawnHidden | MarkerEvent;
+export type PublicEvent = CardDrawnHidden | MarkerEvent | PointsSpent;
 /**
  * What happened, for animation, the game log, sounds and the tutorial. An event visible to one side
  * may carry a `publicForm`: the public event everyone else gets instead (see eventsFor).
  */
-export type GameEvent = CardDrawn | CardDrawnHidden | MarkerEvent;
+export type GameEvent = CardDrawn | CardDrawnHidden | MarkerEvent | PointsSpent;
 export type EventKind = GameEvent["kind"];
 
 /**
- * `chooseCard`: both sides secretly pick their opening card for the turn. `playCard`: one side plays a
- * card from its hand (for now a placeholder play with no effect, see turn.ts).
+ * `chooseCard`: both sides secretly pick their opening card for the turn. `playCardAs`: one side plays a
+ * card from its hand for its event or its points. `rivalEventOrder`: having played a rival's card for
+ * its points, that side says whether the card's event happens before or after the points.
  */
-export type DecisionKind = "yesNo" | "chooseCard" | "playCard";
+export type DecisionKind = "yesNo" | "chooseCard" | "playCardAs" | "rivalEventOrder";
+/** What a played card is used for: its event, or its action points. */
+export type PlayUse = "event" | "points";
+/** The uses a play allows, by whose card it is: the player's own, the rival's, or neutral. */
+export type PlayUses = { own: PlayUse[]; rival: PlayUse[]; neutral: PlayUse[] };
 /**
  * Declarative description of what is legal. Never lists hidden data such as card IDs from a hand. A
- * yes/no has none; a card decision says "a card from your hand", and whether neutral cards count.
+ * yes/no or a rivalEventOrder has none; the opening pick says "a card from your hand" and whether
+ * neutral cards count; a play says "a card from your hand" and the uses each kind of card allows.
  */
-export type DecisionOptions = Record<string, never> | { from: "hand"; includeNeutral: boolean };
+export type DecisionOptions =
+  Record<string, never> | { from: "hand"; includeNeutral: boolean } | { from: "hand"; uses: PlayUses };
 export type Decision = {
   /** Unique within the game; answers quote it. */
   id: string;
@@ -98,7 +110,10 @@ export type Decision = {
 };
 
 export type AnswerValue =
-  { kind: "yesNo"; yes: boolean } | { kind: "chooseCard"; card: CardId } | { kind: "playCard"; card: CardId };
+  | { kind: "yesNo"; yes: boolean }
+  | { kind: "chooseCard"; card: CardId }
+  | { kind: "playCardAs"; card: CardId; as: PlayUse }
+  | { kind: "rivalEventOrder"; event: "before" | "after" };
 export type Answer =
   { decisionId: string; side: Side; value: AnswerValue } | { system: "timeout" | "resign" | "adjudicate"; side: Side };
 
@@ -120,14 +135,16 @@ export type Condition = { op: "yes"; var: VarName; side?: Side };
 /**
  * One step of an effect program (docs/architecture.md, section 4). More kinds arrive with later tasks.
  * A card choice is only ever both sides at once: the turn's opening pick (turn.ts). Card effects may
- * not hold one (cardChecks.ts).
+ * not hold one (cardChecks.ts). `spendPoints` is how a play for points spends them (turn.ts):
+ * TEMPORARY until the actions are designed, it only emits a pointsSpent event.
  */
 export type Step =
   | { op: "choose"; who: Side | "both"; decision: { kind: "yesNo" }; bind: VarName }
   | { op: "choose"; who: "both"; decision: { kind: "chooseCard" }; bind: VarName }
   | { op: "if"; cond: Condition; then: Step[]; else?: Step[] }
   | { op: "forEach"; over: string[]; bind: VarName; do: Step[] }
-  | { op: "marker"; label: string; var?: VarName };
+  | { op: "marker"; label: string; var?: VarName }
+  | { op: "spendPoints"; side: Side; amount: number };
 
 export type Binding = { name: VarName; value: VarValue };
 /** The block a frame runs, the index of its next step, and the variables bound in it, in binding order. */
@@ -151,7 +168,10 @@ export type PublicState = {
   playsPerTurn: number;
   /** Plays made this turn after the opening cards, both sides together. LIO plays when it is even. */
   playsMade: number;
-  /** The revealed opening cards whose events have not finished, in resolution order. */
+  /**
+   * Cards whose effects have not finished: the revealed opening cards, in resolution order, or the
+   * card being played. A card goes to the discard pile once everything it triggered has finished.
+   */
   inPlay: CardId[];
   discard: CardId[];
   /** Open decisions, in SIDES order. */

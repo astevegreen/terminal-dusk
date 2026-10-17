@@ -1,3 +1,4 @@
+import type { DecisionOptions } from "@terminal-dusk/engine";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { decisionPrompts } from "./decisionPrompts.tsx";
@@ -14,10 +15,18 @@ describe("decisionPrompts", () => {
     const html = renderToString(<Prompt decision={{ id: "d0-lio", side: "lio", kind: "chooseCard", options }} />);
     expect(html).toContain("lio: pick an opening card");
   });
-  it("has a prompt for the playCard decision", () => {
-    const Prompt = decisionPrompts.playCard;
-    const options = { from: "hand", includeNeutral: true } as const;
-    const html = renderToString(<Prompt decision={{ id: "d2", side: "sae", kind: "playCard", options }} />);
-    expect(html).toContain("sae: play a card");
+  it("has a prompt for the playCardAs decision, a play for its event or its points", () => {
+    const Prompt = decisionPrompts.playCardAs;
+    const options: DecisionOptions = {
+      from: "hand",
+      uses: { own: ["event", "points"], rival: ["points"], neutral: ["points"] },
+    };
+    const html = renderToString(<Prompt decision={{ id: "d2", side: "sae", kind: "playCardAs", options }} />);
+    expect(html).toContain("sae: play a card for its event or its points");
+  });
+  it("has a prompt for the rivalEventOrder decision", () => {
+    const Prompt = decisionPrompts.rivalEventOrder;
+    const html = renderToString(<Prompt decision={{ id: "d3", side: "lio", kind: "rivalEventOrder", options: {} }} />);
+    expect(html).toContain("lio: the rival&#x27;s event happens before or after your points?");
   });
 });

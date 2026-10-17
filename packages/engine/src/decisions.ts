@@ -1,19 +1,45 @@
 // Pending decisions: building them, finding the one a side must answer, and listing its legal answers.
 import { SIDES } from "./types.ts";
-import type { AnswerValue, Decision, DecisionKind, DecisionOptions, GameState, Ruleset, Side } from "./types.ts";
+import type {
+  AnswerValue,
+  CardDef,
+  Decision,
+  DecisionKind,
+  DecisionOptions,
+  GameState,
+  PlayUse,
+  PlayUses,
+  Ruleset,
+  Side,
+} from "./types.ts";
 
 /**
- * What a decision of `kind` allows, said without card IDs: a yes/no has no options; the opening pick
- * is any non-neutral card in your hand; a play is any card in your hand.
+ * The uses a play allows (docs/design/core-loop.md, "Playing a card"): your own card for its event or
+ * its points; a rival's card for its points only (its event still happens, see turn.ts).
+ * TEMPORARY: a neutral card is points only until neutral events are designed (owner's call, 16 Oct).
+ */
+const playUses = (): PlayUses => ({ own: ["event", "points"], rival: ["points"], neutral: ["points"] });
+
+/** Whose card `card` is, seen from `side`. */
+export function whoseCard(card: CardDef | undefined, side: Side): keyof PlayUses {
+  if (card === undefined || card.affiliation === "neutral") return "neutral";
+  return card.affiliation === side ? "own" : "rival";
+}
+
+/**
+ * What a decision of `kind` allows, said without card IDs: a yes/no or a rivalEventOrder has no
+ * options; the opening pick is any non-neutral card in your hand; a play is any card in your hand,
+ * used as its kind of card allows.
  */
 function optionsFor(kind: DecisionKind): DecisionOptions {
   switch (kind) {
     case "yesNo":
+    case "rivalEventOrder":
       return {};
     case "chooseCard":
       return { from: "hand", includeNeutral: false };
-    case "playCard":
-      return { from: "hand", includeNeutral: true };
+    case "playCardAs":
+      return { from: "hand", uses: playUses() };
   }
 }
 
@@ -49,17 +75,22 @@ export function legalAnswers(ruleset: Ruleset, state: GameState, side: Side): An
         { kind: "yesNo", yes: true },
         { kind: "yesNo", yes: false },
       ];
+    case "rivalEventOrder":
+      return [
+        { kind: "rivalEventOrder", event: "before" },
+        { kind: "rivalEventOrder", event: "after" },
+      ];
     case "chooseCard":
-    case "playCard": {
-      const kind = decision.kind;
-      return handCards(ruleset, state, side, kind === "playCard").map((card) => ({ kind, card }));
+      return state.private[side].hand
+        .filter((id) => cardOf(ruleset, id)?.affiliation !== "neutral")
+        .map((card) => ({ kind: "chooseCard", card }));
+    case "playCardAs": {
+      const uses = playUses();
+      return state.private[side].hand.flatMap((card) =>
+        uses[whoseCard(cardOf(ruleset, card), side)].map((as: PlayUse) => ({ kind: "playCardAs" as const, card, as })),
+      );
     }
   }
 }
 
-/** The cards in `side`'s hand, in hand order: all of them, or only the non-neutral ones. */
-function handCards(ruleset: Ruleset, state: GameState, side: Side, includeNeutral: boolean): string[] {
-  const hand = state.private[side].hand;
-  if (includeNeutral) return [...hand];
-  return hand.filter((id) => ruleset.cards.find((card) => card.id === id)?.affiliation !== "neutral");
-}
+const cardOf = (ruleset: Ruleset, id: string): CardDef | undefined => ruleset.cards.find((card) => card.id === id);

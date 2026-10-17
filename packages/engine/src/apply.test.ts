@@ -2,14 +2,24 @@ import { describe, expect, it } from "vitest";
 import { apply } from "./apply.ts";
 import type { Answer } from "./index.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
-import { accepted, cardAnswer, choose, playAnswers, ruleset, startAtPlay, startGame, startWith } from "./test/game.ts";
+import {
+  accepted,
+  cardAnswer,
+  choose,
+  playAnswer,
+  playAnswers,
+  ruleset,
+  startAtPlay,
+  startGame,
+  startWith,
+} from "./test/game.ts";
 
 const code = (r: ReturnType<typeof apply>) => (r.ok ? "ok" : r.error.code);
 
 describe("apply: rejected answers", () => {
   const s = startAtPlay();
   it("unknown decision ID", () => {
-    const a: Answer = { decisionId: "nope", side: "lio", value: { kind: "playCard", card: "l2" } };
+    const a: Answer = { decisionId: "nope", side: "lio", value: { kind: "playCardAs", card: "l2", as: "event" } };
     expect(code(apply(ruleset, s, a))).toBe("unknownDecision");
   });
   it("wrong side", () => {
@@ -22,7 +32,7 @@ describe("apply: rejected answers", () => {
   });
   it("a card that is not in the answering side's hand", () => {
     for (const card of ["s2", "z1", "c99"])
-      expect(code(apply(ruleset, s, cardAnswer(s, "lio", card)))).toBe("illegalAnswer");
+      expect(code(apply(ruleset, s, playAnswer(s, "lio", card, "points")))).toBe("illegalAnswer");
     const opening = startGame();
     expect(code(apply(ruleset, opening, cardAnswer(opening, "lio", "s1")))).toBe("illegalAnswer");
   });
@@ -37,7 +47,7 @@ describe("apply: rejected answers", () => {
   });
   it("a rejected answer leaves the state untouched", () => {
     const before = JSON.stringify(s);
-    apply(ruleset, s, { decisionId: "nope", side: "lio", value: { kind: "playCard", card: "l2" } });
+    apply(ruleset, s, { decisionId: "nope", side: "lio", value: { kind: "playCardAs", card: "l2", as: "event" } });
     expect(JSON.stringify(s)).toBe(before);
   });
   it("timeout and adjudicate return notSupported", () => {
@@ -84,7 +94,8 @@ describe("apply: accepted answers", () => {
     expect(apply(ruleset, paused, reordered).ok).toBe(true);
     const atPlay = startAtPlay();
     const play = atPlay.public.pending[0]!;
-    const reorderedPlay = { decisionId: play.id, side: play.side, value: { card: "l2", kind: "playCard" } } as Answer;
+    const value = { as: "points", card: "l2", kind: "playCardAs" };
+    const reorderedPlay = { decisionId: play.id, side: play.side, value } as Answer;
     expect(apply(ruleset, atPlay, reorderedPlay).ok).toBe(true);
   });
   it("a yes/no answer with an extra field or a non-boolean yes is illegal", () => {
@@ -93,7 +104,7 @@ describe("apply: accepted answers", () => {
     const wrong = [
       { kind: "yesNo", yes: true, extra: 1 },
       { kind: "yesNo", yes: "true" },
-      { kind: "playCard", card: "l2" },
+      { kind: "playCardAs", card: "l2", as: "event" },
     ];
     for (const value of wrong) {
       const a = { decisionId: d.id, side: d.side, value } as unknown as Answer;

@@ -4,7 +4,7 @@ import { eventPresentation } from "./eventPresentation.ts";
 
 describe("eventPresentation", () => {
   it("has an entry for every event kind", () => {
-    const kinds: EventKind[] = ["cardDrawn", "cardDrawnHidden", "marker"];
+    const kinds: EventKind[] = ["cardDrawn", "cardDrawnHidden", "marker", "pointsSpent"];
     expect(Object.keys(eventPresentation).sort()).toEqual(kinds);
   });
   it("logs a drawn card for the side that drew it", () => {
@@ -26,6 +26,15 @@ describe("eventPresentation", () => {
       "Marker item: a.",
     );
     expect(eventPresentation.marker.log({ kind: "marker", visibility: "public", label: "done" })).toBe("Marker done.");
+  });
+  it("logs spent points with the side that played the card and the amount", () => {
+    const line = eventPresentation.pointsSpent.log({
+      kind: "pointsSpent",
+      visibility: "public",
+      side: "sae",
+      amount: 3,
+    });
+    expect(line).toBe("sae spent 3 points.");
   });
   it("logs a marker holding both sides' answers as each side's yes or no, in SIDES order", () => {
     const value = { sae: false, lio: true };

@@ -14,13 +14,19 @@ function ChooseCardPrompt({ decision }: Readonly<{ decision: Decision }>) {
   return <p>{`${decision.side}: pick an opening card`}</p>;
 }
 
-/** Placeholder prompt until the first UI task. */
-function PlayCardPrompt({ decision }: Readonly<{ decision: Decision }>) {
-  return <p>{`${decision.side}: play a card`}</p>;
+/** Placeholder prompt until the first UI task: play a card for its event or its points. */
+function PlayCardAsPrompt({ decision }: Readonly<{ decision: Decision }>) {
+  return <p>{`${decision.side}: play a card for its event or its points`}</p>;
+}
+
+/** Placeholder prompt until the first UI task: the rival's event happens before or after the points. */
+function RivalEventOrderPrompt({ decision }: Readonly<{ decision: Decision }>) {
+  return <p>{`${decision.side}: the rival's event happens before or after your points?`}</p>;
 }
 
 export const decisionPrompts: Record<DecisionKind, PromptComponent> = {
   yesNo: YesNoPrompt,
   chooseCard: ChooseCardPrompt,
-  playCard: PlayCardPrompt,
+  playCardAs: PlayCardAsPrompt,
+  rivalEventOrder: RivalEventOrderPrompt,
 };

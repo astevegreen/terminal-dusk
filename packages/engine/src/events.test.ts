@@ -60,7 +60,7 @@ describe("eventsFor", () => {
 });
 
 describe("createGame and apply return their events", () => {
-  it("createGame, the opening picks of cards with no effect, and a placeholder play emit no events, as an empty list", () => {
+  it("createGame, the opening picks of cards with no effect, and a play of one for its event emit no events, as an empty list", () => {
     const created = createGame(ruleset, makeSetup(), "seed-1");
     expect(created.ok && created.value.events).toEqual([]);
     for (const s of [startGame(), playAnswers(startGame(), 1), startAtPlay()]) {
