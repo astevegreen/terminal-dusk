@@ -71,13 +71,18 @@ export type MarkerEvent = { kind: "marker"; visibility: "public"; label: string;
 export type PointsSpent = { kind: "pointsSpent"; visibility: "public"; side: Side; amount: number };
 /** A new era started: `cardsAdded` of its cards were shuffled into the draw pile. Never which cards. */
 export type EraStarted = { kind: "eraStarted"; visibility: "public"; era: EraId; cardsAdded: number };
-/** An event anyone may see. It never carries a card ID that is hidden from someone. */
-export type PublicEvent = CardDrawnHidden | MarkerEvent | PointsSpent | EraStarted;
+/** `side` drew a contingency: the top card of its own Contingency deck, numbered `value`. */
+export type ContingencyDrawn = { kind: "contingencyDrawn"; visibility: "public"; side: Side; value: number };
+/** A draw left one card in `side`'s Contingency deck, so all its cards were shuffled back together. */
+export type ContingencyDeckReshuffled = { kind: "contingencyDeckReshuffled"; visibility: "public"; side: Side };
+/** An event anyone may see. It never carries a card ID that is hidden from someone, or a deck's order. */
+export type PublicEvent =
+  CardDrawnHidden | MarkerEvent | PointsSpent | EraStarted | ContingencyDrawn | ContingencyDeckReshuffled;
 /**
  * What happened, for animation, the game log, sounds and the tutorial. An event visible to one side
  * may carry a `publicForm`: the public event everyone else gets instead (see eventsFor).
  */
-export type GameEvent = CardDrawn | CardDrawnHidden | MarkerEvent | PointsSpent | EraStarted;
+export type GameEvent = CardDrawn | PublicEvent;
 export type EventKind = GameEvent["kind"];
 
 /**
@@ -125,10 +130,10 @@ export type BothAnswers = Record<Side, boolean>;
 /** Both sides' picked cards from a simultaneous card choice, keyed by side in SIDES order. */
 export type BothCards = Record<Side, CardId>;
 /**
- * A variable's value: one side's yes/no answer, both sides' answers or picked cards, or the current
- * item of a forEach.
+ * A variable's value: one side's yes/no answer, both sides' answers or picked cards, the current item
+ * of a forEach, or the number a contingency draw gave.
  */
-export type VarValue = boolean | BothAnswers | BothCards | string;
+export type VarValue = boolean | BothAnswers | BothCards | string | number;
 /**
  * True when the yes/no variable `var` holds yes. For a variable holding both sides' answers, `side`
  * names whose answer to read; for one side's answer it is left out.
@@ -138,7 +143,9 @@ export type Condition = { op: "yes"; var: VarName; side?: Side };
  * One step of an effect program (docs/architecture.md, section 4). More kinds arrive with later tasks.
  * A card choice is only ever both sides at once: the turn's opening pick (turn.ts). Card effects may
  * not hold one (cardChecks.ts). `spendPoints` is how a play for points spends them (turn.ts):
- * TEMPORARY until the actions are designed, it only emits a pointsSpent event.
+ * TEMPORARY until the actions are designed, it only emits a pointsSpent event. `drawContingency`
+ * draws from `side`'s Contingency deck (an event draws from the deck of the side it belongs to) and
+ * binds the number to `bind`, if given.
  */
 export type Step =
   | { op: "choose"; who: Side | "both"; decision: { kind: "yesNo" }; bind: VarName }
@@ -146,7 +153,8 @@ export type Step =
   | { op: "if"; cond: Condition; then: Step[]; else?: Step[] }
   | { op: "forEach"; over: string[]; bind: VarName; do: Step[] }
   | { op: "marker"; label: string; var?: VarName }
-  | { op: "spendPoints"; side: Side; amount: number };
+  | { op: "spendPoints"; side: Side; amount: number }
+  | { op: "drawContingency"; side: Side; bind?: VarName };
 
 export type Binding = { name: VarName; value: VarValue };
 /** The block a frame runs, the index of its next step, and the variables bound in it, in binding order. */

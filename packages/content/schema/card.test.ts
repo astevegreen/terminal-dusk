@@ -22,6 +22,7 @@ const pathsOf = (data: unknown) => issuesOf(data).map((issue) => issue.path);
 
 const yesNo = { op: "choose", who: "lio", decision: { kind: "yesNo" }, bind: "agreed" };
 const pickCard = { op: "choose", who: "both", decision: { kind: "chooseCard" }, bind: "picked" };
+const drawFor = { op: "drawContingency", side: "lio", bind: "drawn" };
 
 describe("card schema: accepted cards", () => {
   it("accepts a card with every field", () => {
@@ -41,8 +42,13 @@ describe("card schema: accepted cards", () => {
         then: [{ op: "forEach", over: ["a", "b"], bind: "item", do: [{ op: "marker", label: "item", var: "item" }] }],
         else: [{ op: "spendPoints", side: "sae", amount: 0 }],
       },
+      drawFor,
     ];
     expect(issuesOf({ ...validCard(), effect })).toEqual([]);
+  });
+
+  it("accepts a contingency draw for one side, with or without a variable for the number", () => {
+    expect(issuesOf({ ...validCard(), effect: [drawFor, { op: "drawContingency", side: "sae" }] })).toEqual([]);
   });
 
   it("accepts text variants for two platforms", () => {
@@ -108,6 +114,22 @@ describe("card schema: rejected unknown fields", () => {
     ]);
   });
 
+  it("rejects an unknown field in a contingency draw", () => {
+    const issues = issuesOf({ ...validCard(), effect: [{ ...drawFor, modifier: 1 }] });
+    expect(issues.map((issue) => [issue.path, issue.message])).toEqual([
+      [["effect", 0], expect.stringContaining("modifier")],
+    ]);
+  });
+
+  it("rejects a contingency draw for both sides, or with no side, pointing at side", () => {
+    expect(pathsOf({ ...validCard(), effect: [{ ...drawFor, side: "both" }] })).toEqual([["effect", 0, "side"]]);
+    expect(pathsOf({ ...validCard(), effect: [{ op: "drawContingency" }] })).toEqual([["effect", 0, "side"]]);
+  });
+
+  it("rejects a contingency draw whose variable name is empty", () => {
+    expect(pathsOf({ ...validCard(), effect: [{ ...drawFor, bind: "" }] })).toEqual([["effect", 0, "bind"]]);
+  });
+
   it("rejects a step with an unknown op", () => {
     expect(pathsOf({ ...validCard(), effect: [{ op: "drawCard" }] })).toEqual([["effect", 0, "op"]]);
   });
@@ -163,6 +185,7 @@ describe("card schema and the engine", () => {
       deck: [],
       turns: 1,
       playsPerTurn: 1,
+      contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6] },
     };
     const result = createGame(ruleset, setup, "seed");
     expect(result.ok ? null : result.error).toBeNull();

@@ -16,6 +16,8 @@ export type {
   CardId,
   Condition,
   ContingencyDeck,
+  ContingencyDeckReshuffled,
+  ContingencyDrawn,
   Decision,
   DecisionKind,
   DecisionOptions,

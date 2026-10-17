@@ -1,6 +1,7 @@
 // The resolution stack: runs program steps until one needs a player's choice, records that as the
 // pending decision (or, for both sides at once, a simultaneous pair) and stops. The answer resumes
 // exactly where it stopped. A step budget per call (createGame or apply) stops runaway programs.
+import { drawContingency } from "./contingency.ts";
 import { copyJson } from "./copy.ts";
 import { newDecision, newGroup } from "./decisions.ts";
 import { halfAnswered } from "./simultaneous.ts";
@@ -143,6 +144,12 @@ function runStep(state: GameState, frame: Frame, step: Step, events: GameEvent[]
       events.push({ kind: "pointsSpent", visibility: "public", side: step.side, amount: step.amount });
       frame.next += 1;
       return "ran";
+    case "drawContingency": {
+      const value = drawContingency(state, step.side, events);
+      if (step.bind !== undefined) bind(frame, step.bind, value);
+      frame.next += 1;
+      return "ran";
+    }
   }
 }
 

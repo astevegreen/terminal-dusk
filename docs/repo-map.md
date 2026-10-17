@@ -61,12 +61,14 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/cardChecks.test.ts` - createGame's card checks: the ruleset's cards are well formed, and a setup uses only known cards, each once.
 - `packages/engine/src/cardChecks.ts` - Card checks for createGame: the ruleset's cards are well formed, and a setup uses only known cards, each once. Exports: rulesetError, setupCardsError, handSizeError.
 - `packages/engine/src/contingency.test.ts` - Contingency decks in the game state (#64): the setup's checks, the shuffle, and who sees what.
-- `packages/engine/src/contingency.ts` - Contingency decks (docs/design/contingency-deck.md): each side's numbered cards, drawn instead of rolling a die. Exports: contingencyError, shuffleContingency.
+- `packages/engine/src/contingency.ts` - Contingency decks (docs/design/contingency-deck.md): each side's numbered cards, drawn instead of rolling a die. Exports: contingencyError, shuffleContingency, drawContingency.
+- `packages/engine/src/contingencyDraw.test.ts` - Drawing a contingency (#65): the top card of a side's deck is the result, and a draw that leaves one card shuffles the whole deck back together, straight after…
 - `packages/engine/src/copy.ts` - State is plain JSON, so a JSON round trip is a complete copy that shares nothing with the original. Exports: copyJson.
 - `packages/engine/src/createGame.test.ts`
 - `packages/engine/src/createGame.ts` - Exports: createGame.
 - `packages/engine/src/decisions.test.ts`
 - `packages/engine/src/decisions.ts` - Pending decisions: building them, finding the one a side must answer, and listing its legal answers. Exports: whoseCard, newDecision, newGroup, pendingFor, legalAnswers.
+- `packages/engine/src/drawStep.test.ts` - The drawContingency step (#65): a card's effect draws from a named side's Contingency deck, and a later step of the same card can read the number drawn.
 - `packages/engine/src/eras.test.ts` - A new era (#37): the setup's checks, its cards waiting in secret, and the shuffle into the draw pile only.
 - `packages/engine/src/eras.ts` - Eras after the first (docs/design/eras.md, "When a new era starts"). Exports: erasError, enterEra.
 - `packages/engine/src/events.test.ts`

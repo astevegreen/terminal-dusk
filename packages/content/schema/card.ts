@@ -31,6 +31,7 @@ export const stepSchema = z.discriminatedUnion("op", [
   z.strictObject({ op: z.literal("forEach"), over: z.array(z.string()), bind: name, do: block }),
   z.strictObject({ op: z.literal("marker"), label: z.string(), var: name.exactOptional() }),
   z.strictObject({ op: z.literal("spendPoints"), side, amount: wholeNumber }),
+  z.strictObject({ op: z.literal("drawContingency"), side, bind: name.exactOptional() }),
 ]);
 
 /** What a platform changes about a card's text: its wording or art, never its rules. At least one of them. */

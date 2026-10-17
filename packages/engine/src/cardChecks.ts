@@ -34,6 +34,7 @@ const holdsCardChoice = (steps: readonly Step[]): boolean =>
         return holdsCardChoice(step.do);
       case "marker":
       case "spendPoints":
+      case "drawContingency":
         return false;
     }
   });

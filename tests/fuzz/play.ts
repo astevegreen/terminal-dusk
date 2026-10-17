@@ -41,14 +41,27 @@ export const FUZZ_CARDS: readonly CardId[] = Array.from(
   (_, i) => `c${i + 1}`,
 );
 const AFFILIATIONS: readonly CardDef["affiliation"][] = ["lio", "sae", "neutral"];
-/** Every fourth card's event asks LIO or SAE yes or no, so opening and played events pause for a choice. */
-const asks = (i: number): EffectStep[] =>
-  i % 4 === 3
-    ? [
-        { op: "choose", who: i % 8 === 3 ? "lio" : "sae", decision: { kind: "yesNo" }, bind: "a" },
-        { op: "marker", label: "asked", var: "a" },
-      ]
-    : [];
+/**
+ * Card `i`'s event. Every fourth asks LIO or SAE yes or no, so opening and played events pause for a choice.
+ * The other LIO and SAE cards draw a contingency from their own side's deck, so games draw and reshuffle
+ * (#65): two in three of them show the number through a variable, the rest draw without one. Neutral
+ * cards draw nothing, as neutral events have no deck yet.
+ */
+function effectOf(i: number): EffectStep[] {
+  if (i % 4 === 3) {
+    return [
+      { op: "choose", who: i % 8 === 3 ? "lio" : "sae", decision: { kind: "yesNo" }, bind: "a" },
+      { op: "marker", label: "asked", var: "a" },
+    ];
+  }
+  const side = AFFILIATIONS[i % 3]!;
+  if (side === "neutral") return [];
+  if (i % 4 === 2) return [{ op: "drawContingency", side }];
+  return [
+    { op: "drawContingency", side, bind: "n" },
+    { op: "marker", label: "drew", var: "n" },
+  ];
+}
 
 export const ruleset: Ruleset = deepFreeze({
   id: "fuzz-ruleset",
@@ -57,7 +70,7 @@ export const ruleset: Ruleset = deepFreeze({
     era: "fuzz",
     ops: i % 5,
     affiliation: AFFILIATIONS[i % 3]!,
-    effect: asks(i),
+    effect: effectOf(i),
   })),
 });
 const neutral = new Set(ruleset.cards.filter((card) => card.affiliation === "neutral").map((card) => card.id));
