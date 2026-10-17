@@ -1,9 +1,11 @@
 // PreToolUse (Bash): catch disguised versions of denied commands anywhere in a command line.
 // Permission rules only match prefixes; this checks every part of a chained command.
 // With --read-only (the reviewer), only a short list of inspection commands may run.
-// With --unattended (the night shift), owner-only gh commands are blocked; by day they are `ask` rules.
+// With --unattended (the night shift), owner-only gh commands are blocked. By day, gh auth and
+// gh secret are `ask` rules, and this hook lets gh api reads and gh repo view through but asks
+// the owner about anything else under gh api or gh repo.
 import path from "node:path";
-import { readInput, lockedEntry, deny, git, repoRootFor, canonical } from "./shared.mjs";
+import { readInput, lockedEntry, deny, decide, git, repoRootFor, canonical } from "./shared.mjs";
 
 const READ_ONLY = process.argv.includes("--read-only");
 const UNATTENDED = process.argv.includes("--unattended");
@@ -78,6 +80,58 @@ function gitSub(args) {
   return { sub: (args[i] ?? "").toLowerCase(), rest: args.slice(i + 1), globals };
 }
 
+// gh's subcommand, skipping -R/--repo <owner/repo>.
+function ghSub(args) {
+  const i = args.findIndex((a, j) => !a.startsWith("-") && !["-R", "--repo"].includes(args[j - 1]));
+  return { sub: i < 0 ? undefined : args[i], rest: i < 0 ? [] : args.slice(i + 1) };
+}
+
+// gh api flags that take a value: short ones may be bundled (-iXPOST) or joined (-Ftitle=x).
+const API_SHORT_VALUE = "HXfFqtp";
+const API_LONG_VALUE = new Set(["--header", "--method", "--field", "--raw-field", "--input", "--jq", "--template", "--preview", "--hostname", "--cache"]);
+const API_METHOD = new Set(["-X", "--method"]);
+const API_BODY = new Set(["-f", "-F", "--field", "--raw-field", "--input"]);
+
+// A gh api call only reads when its method is GET or HEAD. Sending fields without a method means POST,
+// GraphQL can hold a mutation, and a $ or backtick could expand into anything, so those count as writes.
+function apiReads(args) {
+  if (args.some((a) => /[$`]/.test(a))) return false;
+  const methods = [];
+  const endpoints = [];
+  let body = false;
+  const take = (flag, value) => {
+    if (API_METHOD.has(flag)) methods.push(String(value ?? "").replace(/^=/, "").toUpperCase());
+    if (API_BODY.has(flag)) body = true;
+  };
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i];
+    if (a.startsWith("--")) {
+      const eq = a.indexOf("=");
+      const flag = eq < 0 ? a : a.slice(0, eq);
+      if (API_LONG_VALUE.has(flag)) take(flag, eq < 0 ? args[++i] : a.slice(eq + 1));
+    } else if (a.startsWith("-") && a.length > 1) {
+      const j = [...a.slice(1)].findIndex((c) => API_SHORT_VALUE.includes(c)) + 1;
+      if (j > 0) take(`-${a[j]}`, j + 1 < a.length ? a.slice(j + 1) : args[++i]);
+    } else endpoints.push(a);
+  }
+  if (endpoints.includes("graphql")) return false;
+  if (body && !methods.length) return false;
+  return methods.every((m) => m === "GET" || m === "HEAD");
+}
+
+// By day: "read" for gh api reads and gh repo view, "write" for any other gh api or gh repo call, else null.
+function ghKind(seg) {
+  const { name, args } = commandName(seg.words);
+  if (name !== "gh") return null;
+  const { sub, rest } = ghSub(args);
+  let reads;
+  if (sub === "api") reads = apiReads(rest);
+  else if (sub === "repo") reads = rest.find((a) => !a.startsWith("-")) === "view";
+  else return null;
+  if (!reads) return "write";
+  return seg.redirects.length ? null : "read";
+}
+
 const isEnvFile = (p) => /^\.env(\..*)?$/i.test(path.basename(p ?? ""));
 const worktreeRoot = () => repoRootFor(cwd, cwd);
 const outside = (target) => {
@@ -123,7 +177,7 @@ function check(seg) {
     if (why) return why;
   }
   if (UNATTENDED && name === "gh") {
-    const sub = args.find((a, i) => !a.startsWith("-") && !["-R", "--repo"].includes(args[i - 1]));
+    const { sub } = ghSub(args);
     if (OWNER_ONLY_GH.has(sub)) return `gh ${sub} is owner-only and can't run unattended. Ask the owner on the issue instead.`;
   }
   if (NETWORK.has(name) || /\bnet\.webclient\b/i.test(seg.words.join(" ")))
@@ -148,7 +202,16 @@ function check(seg) {
   return null;
 }
 
-for (const seg of segments(command)) {
+const segs = segments(command);
+for (const seg of segs) {
   const why = check(seg);
   if (why) deny(`Blocked by bash-guard: ${why}`);
+}
+
+if (!READ_ONLY && !UNATTENDED) {
+  const kinds = segs.map(ghKind);
+  if (kinds.includes("write"))
+    decide("ask", "bash-guard: gh api calls that can change GitHub, and gh repo commands other than view, need the owner's OK.");
+  if (kinds.length && kinds.every((k) => k === "read"))
+    decide("allow", "bash-guard: read-only gh api or gh repo view call.");
 }

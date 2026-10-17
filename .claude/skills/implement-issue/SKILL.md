@@ -28,6 +28,11 @@ Then comment one specific question on the issue, add the `blocked` label, and ha
 - `git push -u origin task/<n>`.
 - New work: `gh pr create --draft`, with the pull request template filled in and "Closes #<n>".
   pr or fix mode: comment on the pull request what you changed.
+- By day only (in a night run the coordinator does this): run the `reviewer` agent with
+  "Issue <n>, branch task/<n>." Fix its concerns once and run it again.
+  PASS: `gh pr ready <pr>` and `gh pr merge <pr> --auto --squash`. GitHub merges once CI is green,
+  and waits for the owner's approval when the change touches a code-owned file.
+  Concerns left: `gh pr ready <pr>`, add the `held` label, and comment the concerns on the pull request.
 - Your final message, exactly:
 STATUS: DONE | BLOCKED | GATE-FAILED
 PR: <number or none>

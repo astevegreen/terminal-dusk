@@ -1,4 +1,4 @@
-// Tests for the web rules in .claude/settings.json and the agents' own tool limits.
+// Tests for the web and gh rules in .claude/settings.json, the night shift's web block and the agents' own tool limits.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -27,10 +27,28 @@ test("web searches run without asking the owner", () => {
   assert.ok(!deny.includes("WebSearch"), "WebSearch is on the deny list");
 });
 
-test("opening a web page still asks the owner first", () => {
-  const { allow, ask } = permissions();
-  assert.ok(ask.includes("WebFetch"), "WebFetch is missing from the ask list");
-  assert.ok(!allow.includes("WebFetch"), "WebFetch is on the allow list");
+test("opening a web page runs without asking by day", () => {
+  const { allow, ask, deny } = permissions();
+  assert.ok(allow.includes("WebFetch"), "WebFetch is missing from the allow list");
+  assert.ok(!ask.includes("WebFetch"), "WebFetch is still on the ask list");
+  assert.ok(!deny.includes("WebFetch"), "WebFetch is on the deny list");
+});
+
+test("the night shift can't open web pages", () => {
+  const front = read(".claude/skills/night-shift/SKILL.md").match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1] ?? "";
+  assert.match(front, /- matcher: "WebFetch"\s+hooks:\s+- type: command\s+command: node "\$CLAUDE_PROJECT_DIR\/tools\/hooks\/no-web\.mjs"/);
+});
+
+test("bash-guard decides gh api and gh repo; gh auth and gh secret always ask", () => {
+  const { ask } = permissions();
+  // An ask rule beats a hook's allow, so these must be off the list for bash-guard to let reads through.
+  for (const rule of ["Bash(gh api *)", "Bash(gh repo *)"]) assert.ok(!ask.includes(rule), `${rule} is still on the ask list`);
+  for (const rule of ["Bash(gh auth *)", "Bash(gh secret *)"]) assert.ok(ask.includes(rule), `${rule} is missing from the ask list`);
+});
+
+test("marking a pull request ready and turning on auto-merge run without asking", () => {
+  const { allow } = permissions();
+  for (const rule of ["Bash(gh pr ready *)", "Bash(gh pr merge * --auto --squash)"]) assert.ok(allow.includes(rule), `${rule} is missing`);
 });
 
 test("the handoff hook runs when a turn ends and when a session starts or is cleared", () => {

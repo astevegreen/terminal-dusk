@@ -142,6 +142,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/handoff-notes.test.mjs`
 - `tools/hooks/bash-guard.mjs` - PreToolUse (Bash): catch disguised versions of denied commands anywhere in a command line.
 - `tools/hooks/bash-guard.test.mjs`
+- `tools/hooks/codeowners.test.mjs` - .github/CODEOWNERS must keep the fences, database migrations and dependency files waiting for the owner.
 - `tools/hooks/env-check.mjs` - SessionStart (startup): check this machine is set up the way the project expects.
 - `tools/hooks/env-check.test.mjs`
 - `tools/hooks/file-lock.mjs` - PreToolUse (Edit|Write|MultiEdit|NotebookEdit), implementer only: refuse edits to Locked files.
@@ -150,9 +151,11 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/hooks/gate.test.mjs`
 - `tools/hooks/handoff-nudge.mjs` - Stop and SessionStart hook for the /handoff skill (the notes themselves: tools/handoff-notes.mjs).
 - `tools/hooks/handoff-nudge.test.mjs`
+- `tools/hooks/no-web.mjs` - PreToolUse (WebFetch) for the night shift: nobody is awake to judge a page, and web pages are the main route for prompt injection, so every fetch is blocked.
+- `tools/hooks/no-web.test.mjs`
 - `tools/hooks/quick-check.mjs` - PostToolUse (Edit|Write): fast checks on the one file just edited.
 - `tools/hooks/quick-check.test.mjs`
-- `tools/hooks/settings.test.mjs` - Tests for the web rules in .claude/settings.json and the agents' own tool limits.
+- `tools/hooks/settings.test.mjs` - Tests for the web and gh rules in .claude/settings.json, the night shift's web block and the agents' own tool limits.
 - `tools/hooks/shared.mjs` - Helpers shared by the Claude Code hook scripts.
 - `tools/hooks/test-helpers.mjs` - Shared helpers for the hook tests (tools/hooks/*.test.mjs).
 - `tools/lib/run.mjs` - Helpers for the tool scripts: start pnpm and other commands the same way on Windows, macOS and Linux.
@@ -194,7 +197,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 ## .github
 
-- `.github/CODEOWNERS` - Locked: configuration and gates
+- `.github/CODEOWNERS` - Locked: configuration and gates, the agents' own rules
 - `.github/ISSUE_TEMPLATE/bug.yml`
 - `.github/ISSUE_TEMPLATE/config.yml`
 - `.github/ISSUE_TEMPLATE/task.yml`

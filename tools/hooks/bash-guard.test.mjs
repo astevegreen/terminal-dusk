@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { runHook, denied, tempRepo } from "./test-helpers.mjs";
+import { runHook, denied, decision, tempRepo } from "./test-helpers.mjs";
 
 const repo = tempRepo();
 const guard = (command, args = []) => runHook("bash-guard.mjs", { cwd: repo, tool_name: "Bash", tool_input: { command } }, { args });
@@ -79,12 +79,59 @@ test("read-only mode allows only inspection commands", () => {
 
 const ownerOnlyGh = ["gh api repos/o/r/branches/main/protection", "gh repo edit --visibility public", "gh auth switch", "gh secret list", "pnpm gate && gh api user", "gh -R o/r secret set X"];
 
-test("normal mode leaves owner-only gh commands to the ask rules", () => {
-  for (const command of ownerOnlyGh) assert.equal(guard(command).stdout, "", command);
+const ghReads = [
+  "gh api user",
+  "gh api repos/o/r/pulls/3/comments --paginate --jq '.[].body'",
+  "gh api -X GET search/issues -f q=repo:o/r",
+  "gh api --method=get repos/o/r",
+  "gh api -H 'Accept: application/vnd.github+json' repos/o/r/check-runs/1/annotations",
+  "gh repo view --json name,visibility",
+  "gh repo view o/r",
+  "gh api user && gh repo view",
+];
+
+const ghWrites = [
+  "gh api -X POST repos/o/r/issues -f title=x",
+  "gh api --method DELETE repos/o/r/git/refs/heads/x",
+  "gh api --method=patch repos/o/r",
+  "gh api -iXPOST repos/o/r/labels",
+  "gh api repos/o/r/issues -f title=x",
+  "gh api repos/o/r/issues -Ftitle=x",
+  "gh api repos/o/r/issues --raw-field title=x",
+  "gh api repos/o/r/issues --input body.json",
+  "gh api graphql -f query='query { viewer { login } }'",
+  "gh api $ENDPOINT",
+  "gh api \"repos/$(cat x)\"",
+  "gh repo edit --visibility public",
+  "gh repo delete o/r --yes",
+  "gh repo clone o/r",
+  "pnpm gate && gh api -X PUT repos/o/r/topics",
+];
+
+for (const command of ghReads) {
+  test(`by day, runs without a prompt: ${command}`, () => {
+    const r = guard(command);
+    assert.equal(decision(r), "allow");
+    assert.match(r.json.hookSpecificOutput.permissionDecisionReason, /read-only/);
+  });
+}
+
+for (const command of ghWrites) {
+  test(`by day, asks the owner: ${command}`, () => {
+    const r = guard(command);
+    assert.equal(decision(r), "ask");
+    assert.match(r.json.hookSpecificOutput.permissionDecisionReason, /owner/);
+  });
+}
+
+test("by day, other gh commands and mixed command lines are left to the permission rules", () => {
+  for (const command of ["gh auth switch", "gh secret list", "gh -R o/r secret set X", "pnpm gate && gh api user", "gh api user > me.json", "gh pr view 3"]) {
+    assert.equal(decision(guard(command)), "none", command);
+  }
 });
 
 test("unattended mode blocks owner-only gh commands", () => {
-  for (const command of ownerOnlyGh) {
+  for (const command of [...ownerOnlyGh, "gh api user", "gh repo view"]) {
     const r = guard(command, ["--unattended"]);
     assert.ok(denied(r), command);
     assert.match(r.json.hookSpecificOutput.permissionDecisionReason, /owner-only/);

@@ -1,4 +1,4 @@
-# Locked: configuration and gates
+# Locked: configuration and gates, the agents' own rules
 /.claude/                           @astevegreen
 /CLAUDE.md                          @astevegreen
 /GEMINI.md                          @astevegreen
@@ -6,15 +6,10 @@
 /docs/architecture.md               @astevegreen
 /tools/hooks/                       @astevegreen
 /tools/gates/                       @astevegreen
-# Held: rules, hidden information, schemas, ground truth, dependencies, tool settings
-/packages/engine/src/rules/                  @astevegreen
-/packages/engine/src/views.ts                @astevegreen
-/packages/engine/src/rng.ts                  @astevegreen
-/packages/server/supabase/functions/submit/  @astevegreen
+/tools/git-hooks/                   @astevegreen
+# Held: database migrations, golden replays, dependencies and tool settings
 /packages/server/supabase/migrations/        @astevegreen
-/packages/content/schema/                    @astevegreen
 /tests/golden/                               @astevegreen
-/tools/git-hooks/                            @astevegreen
 **/package.json                              @astevegreen
 /pnpm-lock.yaml                              @astevegreen
 /pnpm-workspace.yaml                         @astevegreen

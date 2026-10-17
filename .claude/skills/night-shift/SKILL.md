@@ -11,6 +11,11 @@ hooks:
         - type: command
           command: node "$CLAUDE_PROJECT_DIR/tools/hooks/bash-guard.mjs" --unattended
           timeout: 10
+    - matcher: "WebFetch"
+      hooks:
+        - type: command
+          command: node "$CLAUDE_PROJECT_DIR/tools/hooks/no-web.mjs"
+          timeout: 10
 ---
 You coordinate tonight's work. You never edit files, merge, or make design decisions.
 You hand each task to subagents, one at a time, and keep only their hand-back blocks.

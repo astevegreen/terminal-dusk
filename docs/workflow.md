@@ -112,7 +112,7 @@ Every piece of work is a GitHub issue written as a spec, sized to finish in one 
 4. The night shift builds `ready` issues one at a time and opens a pull request for each.
 5. CI and Gemini check each pull request. Green `auto-merge` pull requests merge themselves; anything else is labelled `held`.
 
-**What auto-merges.** Tests, docs, content using existing effect types, UI polish and tooling can merge when green. Changes to engine rules, view filtering, the server write path, schemas, or anything a reviewer flagged wait for you. You judge them by their plain-English summary and the preview build, not the code. GitHub enforces this: the agents work through a separate bot account, and every protected path lists you as code owner, so the bot can't merge those pull requests without your approval.
+**What auto-merges.** Anything the reviewer passed merges itself once CI is green, whether a night run or a day session opened it. Three kinds of change wait for you: the agents' own rules (`.claude/`, `CLAUDE.md`, `GEMINI.md`, `.github/`, `docs/architecture.md`, `tools/hooks/`, `tools/gates/`, `tools/git-hooks/`), database migrations and golden replays, and new dependencies or tool settings. So does anything the reviewer flagged (`held`). You judge them by their plain-English summary and the preview build, not the code. Engine rules, view filtering, the server write path and schemas no longer wait for you: tests, the fuzz run, golden replays and the reviewer guard them, and you were approving them from the summary anyway. GitHub enforces this: the agents work through a separate bot account, `.github/CODEOWNERS` lists you as owner of the paths that wait, and branch protection on `main` requires your approval for those and green `gate` and `tools-windows` checks for everything. Without that protection, auto-merge would merge a pull request before CI finished.
 
 **Bugs** use a short bug form: what you did, what happened, what should have happened, and the match ID shown in the game. Because the engine is deterministic, Claude can rebuild the exact game from that ID and turn it into a permanent regression test.
 
@@ -191,7 +191,7 @@ CLI-only traps:
 **Safety for unattended runs**
 
 - **Auto mode** lets a classifier approve routine actions instead of you. In the desktop task you pick it in the task's permission picker. On the CLI, `--permission-prompts none` also refuses anything that would otherwise need a prompt. Claude Code's own docs say auto mode doesn't guarantee safety, so the deny rules below are the real fence.
-- **Deny rules** in `.claude/settings.json` apply to both options: no web fetch or web search at night (the main route for prompt injection), no `curl`, no reading `.env` files, no `git push --force`, no pushing to `main`, no `git reset --hard`, and no edits to `.claude/`, `.github/workflows/`, `docs/architecture.md` or golden replays. An agent can't loosen its own rules or skip a test.
+- **Deny rules** in `.claude/settings.json` apply to both options: no `curl` or `wget`, no reading `.env` files, no `git push --force`, no pushing to `main`, no `git reset --hard`. Hooks add the rest. The implementer's file-lock hook blocks edits to Locked paths (`.claude/`, `.github/`, `docs/architecture.md` and the others in `tools/hooks/shared.mjs`), and bash-guard blocks disguised versions of the shell rules and the owner-only `gh` commands. No web pages at night, because they are the main route for prompt injection: the night-shift skill's `no-web` hook blocks the coordinator, and the implementer and reviewer can't use the web at all. Golden replays and the other code-owned paths still wait for your approval on GitHub. An agent can't loosen its own rules or skip a test.
 - **Library docs** come through the Context7 connector, which is read-only, instead of the open web.
 - **Worktrees and branches** keep every task isolated and reversible; nothing reaches `main` except through CI.
 - **Native Windows has no command sandbox** (Claude Code's sandbox runs on macOS, Linux and WSL2). That's acceptable with the fences above. If you later want a hard sandbox, run night shifts in WSL2: the desktop app can run sessions there (without plugins), and the CLI script runs unchanged.
@@ -201,6 +201,14 @@ CLI-only traps:
 - Keep the PC from sleeping: **Keep computer awake** in the desktop app, plus a power plan that never sleeps.
 - Set Windows Update active hours to cover the night. A reboot kills running sessions.
 - Install Git for Windows; Claude Code uses its Bash for hooks and scripts.
+
+## Daytime sessions
+
+Day sessions follow the same pipeline as the night shift, so you only step in for the decisions that are yours.
+
+- **Few prompts.** Routine work runs without asking: tests, the gate, git, pull requests, web searches and web pages, and read-only `gh api` and `gh repo view` calls. You still get a prompt for edits to Locked files, `gh auth`, `gh secret`, and any `gh api` or `gh repo` call that could change GitHub (bash-guard decides which those are).
+- **Pull requests finish themselves.** After opening one, the session runs the reviewer agent and fixes its concerns once. On a pass it turns on auto-merge, and GitHub merges when CI is green. Code-owned changes wait for your approval on GitHub; anything the reviewer still doubts is labelled `held` with the concerns in a comment.
+- **One worktree per parallel session.** Two sessions in the same folder test each other's half-finished work, and the Stop hook's gate fails for both. When you run more than one at a time, start each in its own worktree: the **worktree** option when you start a session in the desktop app, or `claude --worktree <name>` on the CLI. A single session can stay in the main folder.
 
 **From your phone.** In the desktop app, turn on **Connect new sessions to Remote Control**. Your sessions then appear in the Claude mobile app, where you can steer them, and Dispatch (included with Max) starts new ones from your phone. CLI alternative: `claude remote-control --spawn worktree` gives each phone-started session its own worktree.
 
@@ -431,7 +439,7 @@ While the roguelike is still using your Claude limits, spend these weeks on setu
 - [x] Set Windows Update active hours to cover the night
 - [x] Set up Notion: Design hub, Card concepts database, Playtest feedback database and form, Open questions
 - [x] One evening: ask Claude to scaffold build phase 1 from the architecture doc and the configuration doc (workspaces, CI, the `.claude/` folder, hooks, issue forms, CODEOWNERS)
-- [x] Protect `main` on GitHub: pull requests only, the `gate` check, code-owner review, no force pushes
+- [x] Protect `main` on GitHub: pull requests only, the `gate` and `tools-windows` checks, code-owner review, no force pushes, and allow auto-merge
 - [x] Run the setup tests in the configuration doc
 - [x] Create the night-shift scheduled task (Routines → New routine → Local) and pause it until week 2
 - [x] Only if you use the CLI route: check that no `ANTHROPIC_API_KEY` environment variable exists
