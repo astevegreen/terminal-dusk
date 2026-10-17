@@ -33,7 +33,7 @@ These product decisions and stack choices are fixed inputs to the design. Every 
 
 **Product decisions (yours)**
 
-- Strictly two players; hidden hands and shuffles; no dice: each side draws from its own outcome deck instead (owner, 16 Oct; details on the Notion page "Outcome deck (replaces dice)"); follows Twilight Struggle closely with some twists.
+- Strictly two players; hidden hands and shuffles; no dice: each side draws from its own Contingency deck instead (owner, 16 and 17 Oct; rules in docs/design/contingency-deck.md); follows Twilight Struggle closely with some twists.
 - Asynchronous online play with variable turn deadlines, plus single-player against an AI with several difficulty levels.
 - Sign-in only for online play. Public ranked matchmaking and invite-a-friend games.
 - Spectating, shareable replays, an interactive tutorial, music and sound effects. English at launch.
@@ -76,7 +76,7 @@ The engine is a pure TypeScript package: it takes a game state and an answer, an
 - **Simultaneous decisions**, such as a headline phase where both sides pick a card in secret, are a group of pending decisions. The first answer stays hidden from the other side until both are in. Neither review raised this, but Twilight Struggle's headline phase needs it.
 - **System actions** (timeout, resignation, adjudication) go through the same path, so the move log is always complete.
 - The engine has **no clock**. The match host (Decision 3) tracks time and submits a Timeout action when a deadline passes.
-- Each answer produces **events** (influence placed, outcome drawn, card drawn), each tagged with who may see it. The UI animates them, the game log prints them, sounds play from them and the tutorial reacts to them.
+- Each answer produces **events** (influence placed, contingency drawn, card drawn), each tagged with who may see it. The UI animates them, the game log prints them, sounds play from them and the tutorial reacts to them.
 - Every game records an `engineVersion` and a `contentHash`. Together they form the **ruleset ID**, which drives the "update required" check now and the compatibility window after v1.
 
 **Spec for agents**
@@ -113,7 +113,7 @@ type Answer =
 
 ## 2. State is split by who may see it; only views leave the host
 
-Game state has three compartments: **public** (everyone), **private** (one per side, including that side's own unrevealed simultaneous picks) and **secret** (only the host: deck order, including both outcome decks, and random-number state). Clients, the AI and spectators only ever receive a **view** built from the compartments that viewer is allowed to see.
+Game state has three compartments: **public** (everyone), **private** (one per side, including that side's own unrevealed simultaneous picks) and **secret** (only the host: deck order, including both Contingency decks, and random-number state). Clients, the AI and spectators only ever receive a **view** built from the compartments that viewer is allowed to see.
 
 **Why.** Both reviews rank hidden-information leaks as a top risk. Filtering fields out of one big state object fails the day an agent adds a field and forgets to filter it. If every field must live in a compartment, "who can see this?" is answered once, when the field is created, and the type checker enforces it.
 
@@ -124,7 +124,7 @@ Game state has three compartments: **public** (everyone), **private** (one per s
 - The opponent's hand is a number, never a list of placeholder IDs. Stable placeholders can leak which card was drawn when.
 - Each side's private compartment includes its **knowledge**: opponent cards it has been shown, for example by a card that reveals a hand. The AI relies on this.
 - Events are filtered the same way: the drawer sees "you drew X", everyone else sees "opponent drew a card".
-- **Seed commit and reveal**: the host creates a random seed for each game and publishes only its SHA-256 hash. The seed is revealed when the game ends, so anyone can re-run the game and verify every shuffle and outcome draw.
+- **Seed commit and reveal**: the host creates a random seed for each game and publishes only its SHA-256 hash. The seed is revealed when the game ends, so anyone can re-run the game and verify every shuffle and Contingency draw.
 
 **The reconstruct invariant.** For any state `s` and side `x`: `reconstruct(viewFor(s, x), hiddenPart(s, x))` must equal `s`. The fuzz suite checks this after every step. It proves three things at once: the compartments cover every field, views carry all the public information, and the AI can rebuild complete game states from its own view (Decision 8).
 
@@ -204,7 +204,7 @@ Cards, the map, scenarios, the tutorial and mods are JSON data checked by one se
 
 **The effect format**
 
-- **Atomic steps**: add or remove influence, move a track, award VP, draw, discard, draw outcome, coup, realign.
+- **Atomic steps**: add or remove influence, move a track, award VP, draw, discard, draw contingency, coup, realign.
 - **Choice steps**: choose countries, choose a card, distribute N influence, yes or no. Each becomes a pending decision.
 - **Control steps**: if/else on conditions, and for-each over a finite set. No recursion and no open-ended loops.
 - **Modifiers**: rule changes with a scope and a duration, such as "ops values minus 1, minimum 1, until end of turn". They are stored in public state.
@@ -428,7 +428,7 @@ Every development issue raised so far maps to at least one decision; none is lef
 | Version stamp and "update required" check | Your decision | 1, 7 |
 | Deck, opponent hand or seed reaching a client | Both | 2, 5 |
 | Placeholder card IDs leaking draw order | New | 2 |
-| Provably fair shuffles and outcome draws | Claude | 2 |
+| Provably fair shuffles and Contingency draws | Claude | 2 |
 | Spectators seeing hands | Both | 2, 3 |
 | AI peeking at hidden cards | Both | 2, 8 |
 | Two answers submitted at once | Claude | 3, 5 |
