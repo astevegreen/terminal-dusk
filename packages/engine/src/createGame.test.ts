@@ -35,6 +35,22 @@ describe("createGame", () => {
     expect(r.ok && r.value.events).toEqual([]);
     expect(build().secret.rng).toEqual(seedRng("seed-1"));
   });
+  it("missing hands, a missing side's hand, or a missing deck returns invalidSetup", () => {
+    const bad: unknown[] = [
+      { seedHash: "h", deck: [] },
+      { seedHash: "h", hands: { sae: [] }, deck: [] },
+      { seedHash: "h", hands: { lio: [] }, deck: [] },
+      { seedHash: "h", hands: { lio: [], sae: [] } },
+      { seedHash: "h", hands: { lio: "x", sae: [] }, deck: [] },
+      { seedHash: "h", hands: null, deck: [] },
+    ];
+    for (const setup of bad) {
+      expect(createGame(ruleset, setup as Setup, "s")).toMatchObject({
+        ok: false,
+        error: { code: "invalidSetup" },
+      });
+    }
+  });
   it("an empty seed returns invalidSeed", () => {
     const r = createGame(ruleset, makeSetup(), "");
     expect(r).toMatchObject({ ok: false, error: { code: "invalidSeed" } });

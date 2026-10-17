@@ -13,6 +13,13 @@ export function createGame(
   if (typeof setup?.seedHash !== "string" || setup.seedHash.length === 0) {
     return { ok: false, error: { code: "invalidSetup", message: "The setup needs a seedHash." } };
   }
+  const lists = [setup.hands?.lio, setup.hands?.sae, setup.deck];
+  if (!lists.every((l) => Array.isArray(l))) {
+    return {
+      ok: false,
+      error: { code: "invalidSetup", message: "The setup needs hands for both sides and a deck." },
+    };
+  }
   const state: GameState = {
     public: { turn: 1, discard: [] },
     private: {
