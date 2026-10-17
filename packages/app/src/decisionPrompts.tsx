@@ -5,16 +5,22 @@ import type { ComponentType } from "react";
 export type PromptComponent = ComponentType<{ decision: Decision }>;
 
 /** Placeholder prompt until the first UI task. */
-function PassPrompt({ decision }: Readonly<{ decision: Decision }>) {
-  return <p>{`${decision.side} must pass.`}</p>;
-}
-
-/** Placeholder prompt until the first UI task. */
 function YesNoPrompt({ decision }: Readonly<{ decision: Decision }>) {
   return <p>{`${decision.side}: yes or no?`}</p>;
 }
 
+/** Placeholder prompt until the first UI task: the secret opening card pick. */
+function ChooseCardPrompt({ decision }: Readonly<{ decision: Decision }>) {
+  return <p>{`${decision.side}: pick an opening card`}</p>;
+}
+
+/** Placeholder prompt until the first UI task. */
+function PlayCardPrompt({ decision }: Readonly<{ decision: Decision }>) {
+  return <p>{`${decision.side}: play a card`}</p>;
+}
+
 export const decisionPrompts: Record<DecisionKind, PromptComponent> = {
-  pass: PassPrompt,
   yesNo: YesNoPrompt,
+  chooseCard: ChooseCardPrompt,
+  playCard: PlayCardPrompt,
 };
