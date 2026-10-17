@@ -6,18 +6,34 @@ export type Side = "lio" | "sae";
 export const SIDES: readonly Side[] = ["lio", "sae"];
 
 export type CardId = string;
+export type EraId = string;
 export type RulesetId = string;
 export type Seed = string;
+
+/**
+ * One card's rules (docs/architecture.md, section 4). `ops` is a whole number, 0 or more. The other
+ * fields there (`flags`, `text`) arrive with the content schemas.
+ */
+export type CardDef = {
+  readonly id: CardId;
+  readonly era: EraId;
+  readonly ops: number;
+  readonly affiliation: Side | "neutral";
+  readonly effect: Step[];
+};
 
 /** Card definitions and limits. Passed into apply on every call; never copied into the state. */
 export type Ruleset = {
   readonly id: RulesetId;
+  /** Every card the game may use, each `id` once. It may hold cards no setup uses yet (a later era's). */
+  readonly cards: readonly CardDef[];
   /** `stepBudget`: most stack steps one call may run (default 10,000). */
   readonly limits?: { readonly stepBudget?: number };
 };
 
 export type EngineErrorCode =
   | "invalidSeed"
+  | "invalidRuleset"
   | "invalidSetup"
   | "rulesetMismatch"
   | "unknownDecision"

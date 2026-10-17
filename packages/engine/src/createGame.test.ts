@@ -1,18 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { createGame, SIDES } from "./index.ts";
 import type { GameState, Setup } from "./index.ts";
-import { seedRng } from "./rng.ts";
+import { seedRng, shuffle } from "./rng.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
+import { rulesetWith } from "./test/game.ts";
 
-const ruleset = { id: "test-ruleset" };
-const makeSetup = (): Setup => ({
+/** Nine cards, so a shuffled pile has 9! orders and two seeds giving the same one is vanishingly rare. */
+const PILE = ["c4", "c5", "c6", "c7", "c8", "c9", "c10", "c11", "c12"];
+const ruleset = rulesetWith(["c1", "c2", "c3", ...PILE]);
+const makeSetup = (deck: string[] = ["c4", "c5", "c6"]): Setup => ({
   seedHash: "abc123",
   hands: { lio: ["c1", "c2"], sae: ["c3"] },
-  deck: ["c4", "c5", "c6"],
+  deck,
   rounds: 2,
 });
-const build = (seed = "seed-1"): GameState => {
-  const r = createGame(ruleset, makeSetup(), seed);
+const build = (seed = "seed-1", deck?: string[]): GameState => {
+  const r = createGame(ruleset, makeSetup(deck), seed);
   if (!r.ok) throw new Error("expected ok");
   return r.value.state;
 };
@@ -23,18 +26,39 @@ describe("createGame", () => {
   it("SIDES lists lio then sae", () => {
     expect(SIDES).toEqual(["lio", "sae"]);
   });
-  it("copies hands and deck in the order given, with turn 1, seq 0, empty discard", () => {
+  it("keeps the hands in the order given, with turn 1, seq 0, empty discard", () => {
     const s = build();
     expect(s.private.lio.hand).toEqual(["c1", "c2"]);
     expect(s.private.sae.hand).toEqual(["c3"]);
-    expect(s.secret.deck).toEqual(["c4", "c5", "c6"]);
     expect(s.public).toMatchObject({ turn: 1, discard: [] });
     expect(s.meta).toEqual({ ruleset: "test-ruleset", seedHash: "abc123", seq: 0 });
   });
-  it("seeds the rng from the seed and returns no events", () => {
+  it("returns no events", () => {
     const r = createGame(ruleset, makeSetup(), "seed-1");
     expect(r.ok && r.value.events).toEqual([]);
-    expect(build().secret.rng).toEqual(seedRng("seed-1"));
+  });
+  it("shuffles the draw pile with shuffle on the generator seeded from the game's seed", () => {
+    expect(build("seed-1", PILE).secret.deck).toEqual(shuffle(seedRng("seed-1"), PILE).items);
+  });
+  it("the shuffled draw pile holds exactly the given card IDs, each once", () => {
+    expect([...build("seed-1", PILE).secret.deck].sort()).toEqual([...PILE].sort());
+  });
+  it("the same seed always gives the same order", () => {
+    expect(build("seed-7", PILE).secret.deck).toEqual(build("seed-7", PILE).secret.deck);
+  });
+  it("across 20 different seeds, at least two orders differ", () => {
+    const orders = new Set(Array.from({ length: 20 }, (_, i) => build(`seed-${i}`, PILE).secret.deck.join(",")));
+    expect(orders.size).toBeGreaterThanOrEqual(2);
+  });
+  it("accepts an empty or one-card draw pile", () => {
+    expect(build("seed-1", []).secret.deck).toEqual([]);
+    expect(build("seed-1", ["c4"]).secret.deck).toEqual(["c4"]);
+  });
+  it("secret.rng holds the generator state after the shuffle, not the starting state", () => {
+    const deck = ["c4", "c5"];
+    const rng = build("seed-1", deck).secret.rng;
+    expect(rng).toEqual(shuffle(seedRng("seed-1"), deck).state);
+    expect(rng).not.toEqual(seedRng("seed-1"));
   });
   it("missing hands, a missing side's hand, or a missing deck returns invalidSetup", () => {
     const bad: unknown[] = [
@@ -75,9 +99,9 @@ describe("createGame", () => {
   it("stores the seed string nowhere in the state", () => {
     expect(JSON.stringify(build("zQ-distinctive-seed-9917"))).not.toContain("zQ-distinctive-seed-9917");
   });
-  it("does not change deep-frozen inputs", () => {
-    const setup = deepFreeze(makeSetup());
-    const rs = deepFreeze({ ...ruleset });
+  it("does not change deep-frozen inputs, including the ruleset and its cards", () => {
+    const setup = deepFreeze(makeSetup(PILE));
+    const rs = deepFreeze(rulesetWith(["c1", "c2", "c3", ...PILE]));
     expect(createGame(rs, setup, "seed-1").ok).toBe(true);
   });
   it("state survives a JSON round trip unchanged", () => {

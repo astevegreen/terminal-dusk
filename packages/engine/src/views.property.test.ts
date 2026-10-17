@@ -7,7 +7,7 @@ import { apply, createGame, hiddenPart, reconstruct, SIDES, viewFor } from "./in
 import type { Answer, GameState, PlayerView, Setup, Side, Step, Viewer } from "./index.ts";
 import { startProgram } from "./stack.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
-import { choose, forEach, ifSaid, ifYes, marker, passFor, ruleset } from "./test/game.ts";
+import { choose, forEach, ifSaid, ifYes, marker, passFor, rulesetWith } from "./test/game.ts";
 
 /** An answer move answers the open decision at index `which` (mod the number open). */
 type Move =
@@ -83,6 +83,8 @@ const halfAnswered = (s: GameState): boolean => SIDES.some((side) => s.private[s
 
 /** Every state the game passes through. A program starts only when none is running and no pair is half answered. */
 function play(game: Game): GameState[] {
+  const { hands, deck } = game.setup;
+  const ruleset = rulesetWith([...hands.lio, ...hands.sae, ...deck]);
   const created = createGame(ruleset, game.setup, game.seed);
   if (!created.ok) throw new Error(`createGame failed: ${created.error.code}`);
   const states = [deepFreeze(created.value.state)];

@@ -55,6 +55,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/apply.property.test.ts` - Property test: random streams of good and bad answers keep the engine's invariants.
 - `packages/engine/src/apply.test.ts`
 - `packages/engine/src/apply.ts` - Takes one answer and returns the next state. Exports: apply.
+- `packages/engine/src/cardChecks.test.ts` - createGame's card checks: the ruleset's cards are well formed, and a setup uses only known cards, each once.
+- `packages/engine/src/cardChecks.ts` - Card checks for createGame: the ruleset's cards are well formed, and a setup uses only known cards, each once. Exports: rulesetError, setupCardsError.
 - `packages/engine/src/copy.ts` - State is plain JSON, so a JSON round trip is a complete copy that shares nothing with the original. Exports: copyJson.
 - `packages/engine/src/createGame.test.ts`
 - `packages/engine/src/createGame.ts` - Exports: createGame.
@@ -74,8 +76,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/stack.ts` - The resolution stack: runs program steps until one needs a player's choice, records that as the pending decision (or, for both sides at once, a simultaneous pa… Exports: stepBudget, startProgram, Closing, resumeStack.
 - `packages/engine/src/stepBudget.test.ts`
 - `packages/engine/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
-- `packages/engine/src/test/game.ts` - Test helpers: a started placeholder game, answers for it, and small programs for the stack. Exports: ruleset, makeSetup, startGame, startAtPass, passFor, accepted, playAnswers, startWith, yesNoAnswer, answerYesNo, markers, marker, ….
-- `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: Side, SIDES, CardId, RulesetId, Seed, Ruleset, EngineErrorCode, EngineError, Result, Visibility, Viewer, CardDrawnHidden, ….
+- `packages/engine/src/test/game.ts` - Test helpers: a started placeholder game, answers for it, and small programs for the stack. Exports: testCard, rulesetWith, ruleset, makeSetup, startGame, startAtPass, passFor, accepted, playAnswers, startWith, yesNoAnswer, answerYesNo, ….
+- `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: Side, SIDES, CardId, EraId, RulesetId, Seed, CardDef, Ruleset, EngineErrorCode, EngineError, Result, Visibility, ….
 - `packages/engine/src/views.property.test.ts` - Property test: over random placeholder games with random hands and draw piles, and random programs on the resolution stack (some with simultaneous pairs), view…
 - `packages/engine/src/views.test.ts`
 - `packages/engine/src/views.ts` - Views: the part of the state one viewer may see, the part they cannot, and rebuilding the whole. Exports: viewFor, hiddenPart, reconstruct.
@@ -103,7 +105,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/engine.test.ts` - Fuzz suite: plays FUZZ_GAMES random placeholder games and checks invariants 1, 4, 5 and 6 of docs/architecture.md ("Guardrails", "Fuzz suite") at every step.
 - `tests/fuzz/fixedGames.ts` - Fixed games the fuzz suite replays, with every check, on every run. Exports: FIXED_GAMES.
 - `tests/fuzz/harness.test.ts` - Tests for the fuzz harness itself: each check catches what it should, so a green fuzz run means something.
-- `tests/fuzz/play.ts` - Plays one game for the fuzz suite, random or recorded, and checks every invariant along the way. Exports: ruleset, DEFAULT_GAMES, MAX_ANSWERS, GameRecord, Chooser, Played, gameCount, playFuzzGame, playRecorded, randomGame, randomChooser, playGame, ….
+- `tests/fuzz/play.ts` - Plays one game for the fuzz suite, random or recorded, and checks every invariant along the way. Exports: FUZZ_CARDS, ruleset, DEFAULT_GAMES, MAX_ANSWERS, GameRecord, Chooser, Played, gameCount, playFuzzGame, playRecorded, randomGame, randomChooser, ….
 - `tests/fuzz/random.ts` - The fuzz suite's own seeded generator, so every random game can be played again exactly. Exports: Rng, seededRng.
 - `tests/tsconfig.json` - Type-checks the cross-package suites in tests/; tools/gates/suites.mjs runs it before the suites themselves.
 

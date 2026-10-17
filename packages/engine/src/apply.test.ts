@@ -27,7 +27,7 @@ describe("apply: rejected answers", () => {
     expect(code(apply(ruleset, over, passFor(first, "lio")))).toBe("gameOver");
   });
   it("a ruleset whose id is not the game's", () => {
-    expect(code(apply({ id: "other" }, s, passFor(s, "lio")))).toBe("rulesetMismatch");
+    expect(code(apply({ ...ruleset, id: "other" }, s, passFor(s, "lio")))).toBe("rulesetMismatch");
   });
   it("a rejected answer leaves the state untouched", () => {
     const before = JSON.stringify(s);

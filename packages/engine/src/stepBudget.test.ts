@@ -3,9 +3,19 @@ import { apply } from "./index.ts";
 import type { Ruleset, Step } from "./index.ts";
 import { startProgram } from "./stack.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
-import { answerYesNo, choose, forEach, marker, markers, startGame, startWith, yesNoAnswer } from "./test/game.ts";
+import {
+  answerYesNo,
+  choose,
+  forEach,
+  marker,
+  markers,
+  ruleset,
+  startGame,
+  startWith,
+  yesNoAnswer,
+} from "./test/game.ts";
 
-const budget = (stepBudget: number): Ruleset => ({ id: "test-ruleset", limits: { stepBudget } });
+const budget = (stepBudget: number): Ruleset => ({ ...ruleset, limits: { stepBudget } });
 const markersN = (n: number): Step[] => Array.from({ length: n }, (_, i) => marker(`m${i}`));
 const items = (n: number): string[] => Array.from({ length: n }, (_, i) => `i${i}`);
 
@@ -40,7 +50,7 @@ describe("step budget", () => {
   it("the budget defaults to 10,000 steps per call when the ruleset gives none", () => {
     const run = (n: number) => {
       const paused = startWith([choose("go"), forEach(items(n), "x", [marker("m")])]).state;
-      return apply({ id: "test-ruleset" }, paused, yesNoAnswer(paused, true));
+      return apply(ruleset, paused, yesNoAnswer(paused, true));
     };
     expect(run(9_999).ok).toBe(true);
     expect(run(10_000)).toMatchObject({ ok: false, error: { code: "stepBudgetExceeded" } });
