@@ -84,8 +84,9 @@ The engine is a pure TypeScript package: it takes a game state and an answer, an
 ```typescript
 // The only exports other packages may use
 createGame(ruleset: Ruleset, setup: Setup, seed: Seed): Result<{ state: GameState; events: GameEvent[] }>
-apply(state: GameState, answer: Answer): Result<{ state: GameState; events: GameEvent[] }> // illegal answers return a typed error
+apply(ruleset: Ruleset, state: GameState, answer: Answer): Result<{ state: GameState; events: GameEvent[] }> // illegal answers return a typed error
 pendingFor(state: GameState, side: Side): Decision | null
+legalAnswers(ruleset: Ruleset, state: GameState, side: Side): AnswerValue[]
 
 type Decision = {
   id: string;                 // unique within the game; answers quote it
@@ -99,6 +100,7 @@ type Answer =
   | { system: 'timeout' | 'resign' | 'adjudicate'; side: Side };
 ```
 
+- The **ruleset** (card definitions, and limits such as the step budget) is passed into `apply` and `legalAnswers` on every call. It is never copied into the state, which holds only its ID (`meta.ruleset`), so saves, frames and AI simulations stay small. A ruleset whose ID is not the state's is refused: `apply` returns a typed error and `legalAnswers` returns no answers (owner, 17 Oct).
 - State is plain JSON data: no classes, Maps, Dates or functions. It can be saved, sent, hashed and copied with structuredClone.
 - Integers only. No floating-point maths anywhere in the rules.
 - One small, published PRNG algorithm (for example sfc32), copied into the repo so no library update can change it.
