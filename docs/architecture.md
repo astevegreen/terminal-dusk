@@ -73,7 +73,7 @@ The engine is a pure TypeScript package: it takes a game state and an answer, an
 
 - A **resolution stack** holds the steps still to run. The engine runs steps until one needs a choice, records that decision, and stops.
 - The answer resumes the stack exactly where it stopped. Ordinary turn actions ("play this card for ops or event") are pending decisions too.
-- **Simultaneous decisions**, such as a headline phase where both sides pick a card in secret, are a group of pending decisions. The first answer stays secret until both are in. Neither review raised this, but Twilight Struggle's headline phase needs it.
+- **Simultaneous decisions**, such as a headline phase where both sides pick a card in secret, are a group of pending decisions. The first answer stays hidden from the other side until both are in. Neither review raised this, but Twilight Struggle's headline phase needs it.
 - **System actions** (timeout, resignation, adjudication) go through the same path, so the move log is always complete.
 - The engine has **no clock**. The match host (Decision 3) tracks time and submits a Timeout action when a deadline passes.
 - Each answer produces **events** (influence placed, outcome drawn, card drawn), each tagged with who may see it. The UI animates them, the game log prints them, sounds play from them and the tutorial reacts to them.
@@ -111,7 +111,7 @@ type Answer =
 
 ## 2. State is split by who may see it; only views leave the host
 
-Game state has three compartments: **public** (everyone), **private** (one per side) and **secret** (only the host: deck order, including both outcome decks, random-number state, unrevealed simultaneous picks). Clients, the AI and spectators only ever receive a **view** built from the compartments that viewer is allowed to see.
+Game state has three compartments: **public** (everyone), **private** (one per side, including that side's own unrevealed simultaneous picks) and **secret** (only the host: deck order, including both outcome decks, and random-number state). Clients, the AI and spectators only ever receive a **view** built from the compartments that viewer is allowed to see.
 
 **Why.** Both reviews rank hidden-information leaks as a top risk. Filtering fields out of one big state object fails the day an agent adds a field and forgets to filter it. If every field must live in a compartment, "who can see this?" is answered once, when the field is created, and the type checker enforces it.
 
@@ -132,7 +132,7 @@ Game state has three compartments: **public** (everyone), **private** (one per s
 type GameState = {
   public: PublicState;                 // board, tracks, discard, removed, modifiers, turn, public stack frames
   private: Record<Side, PrivateState>; // hand, knowledge, own unrevealed picks
-  secret: SecretState;                 // deck order, PRNG state, held simultaneous answers
+  secret: SecretState;                 // deck order, PRNG state
   meta: { ruleset: RulesetId; seedHash: string; seq: number };
 };
 type PlayerView = { public: PublicState; mine: PrivateState | null; counts: HiddenCounts; meta: PublicMeta };
