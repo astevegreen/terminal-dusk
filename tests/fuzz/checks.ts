@@ -1,7 +1,7 @@
 // The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite").
 // Each check throws an Error saying what is wrong; play.ts adds the game's seed and answers to it.
 import { eventsFor, hiddenPart, legalAnswers, pendingFor, reconstruct, SIDES, viewFor } from "@terminal-dusk/engine";
-import type { CardId, GameEvent, GameState, Ruleset, Seed, Setup, Viewer } from "@terminal-dusk/engine";
+import type { CardId, GameEvent, GameState, PlayerView, Ruleset, Seed, Setup, Viewer } from "@terminal-dusk/engine";
 import { deepFreeze } from "./deepFreeze.ts";
 
 export const VIEWERS: readonly Viewer[] = ["lio", "sae", "spectator"];
@@ -18,7 +18,10 @@ export function attempt<T>(call: string, run: () => T): T {
   }
 }
 
-/** All the checks for one step: invariants 1, 3, 4 and 5. `events` are the ones that step produced. */
+/**
+ * All the checks for one step: invariants 1, 3, 4 and 5, and the Contingency decks. `events` are the ones
+ * that step produced.
+ */
 export function checkStep(
   ruleset: Ruleset,
   setup: Setup,
@@ -28,6 +31,7 @@ export function checkStep(
 ): void {
   checkLive(ruleset, state);
   checkCards(setup, state);
+  checkContingency(setup, state);
   checkNoLeaks(state, events, seed);
   checkRebuilds(state);
 }
@@ -70,6 +74,74 @@ export function checkCards(setup: Setup, state: GameState): void {
   );
 }
 
+/** Numbers sorted ascending, as numbers (plain `.sort()` would put 10 before 2). */
+const ascending = (numbers: readonly number[]): number[] => [...numbers].sort((a, b) => a - b);
+const sameJson = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b);
+
+/** Whether each number in `part` is in `whole` at least as many times as in `part`. */
+export function isSubMultiset(part: readonly number[], whole: readonly number[]): boolean {
+  const rest = [...whole];
+  return part.every((n) => {
+    const i = rest.indexOf(n);
+    if (i >= 0) rest.splice(i, 1);
+    return i >= 0;
+  });
+}
+
+/**
+ * The Contingency decks (#64), for each side: the full contents are the setup's deck, sorted; the numbers
+ * left are the secret order, sorted, and a sub-multiset of the full contents; the deck holds at least 2
+ * cards. The public lists are compared as they are, never re-sorted here, so a list in draw order is caught.
+ */
+export function checkContingency(setup: Setup, state: GameState): void {
+  for (const side of SIDES) {
+    const { cards, left } = state.public.contingency[side];
+    const order = state.secret.contingency[side];
+    const deck = `${side}'s Contingency deck`;
+    if (!sameJson(cards, ascending(setup.contingency[side]))) {
+      throw new Error(`${deck}: the full contents ${JSON.stringify(cards)} are not the setup's deck, sorted`);
+    }
+    if (!sameJson(left, ascending(order))) {
+      throw new Error(`${deck}: the numbers left ${JSON.stringify(left)} are not the secret order, sorted`);
+    }
+    if (!isSubMultiset(left, cards)) {
+      throw new Error(`${deck}: the numbers left ${JSON.stringify(left)} are not all in ${JSON.stringify(cards)}`);
+    }
+    if (order.length < 2) throw new Error(`${deck} holds ${order.length} cards; it must always hold 2 or more`);
+  }
+}
+
+/** The path to every field in `value` whose name mentions contingency, in any case. */
+function contingencyFields(value: unknown, path: string): string[] {
+  if (!isObject(value)) return [];
+  return Object.entries(value).flatMap(([key, inner]) => [
+    ...(/contingency/i.test(key) ? [`${path}.${key}`] : []),
+    ...contingencyFields(inner, `${path}.${key}`),
+  ]);
+}
+
+/**
+ * What `view` gives away about the Contingency decks' order. Not found by looking for the order as text:
+ * an order that happens to be sorted reads the same as the public numbers left. So, structurally: each
+ * public deck has exactly `cards` and `left`, `left` is as long as the secret order, and the view has no
+ * other contingency field.
+ */
+export function contingencyLeaksIn(view: PlayerView, state: GameState): string[] {
+  const found: string[] = [];
+  const { contingency, ...rest } = view.public;
+  for (const side of SIDES) {
+    const keys = Object.keys(contingency[side]).sort();
+    if (!sameJson(keys, ["cards", "left"])) found.push(`${side}'s Contingency deck with the fields ${keys.join(", ")}`);
+    if (contingency[side].left.length !== state.secret.contingency[side].length) {
+      found.push(`${side}'s Contingency deck with a count left that is not the secret order's`);
+    }
+  }
+  const sides = Object.keys(contingency).sort();
+  if (!sameJson(sides, ["lio", "sae"])) found.push(`Contingency decks for ${sides.join(", ")}`);
+  for (const field of contingencyFields({ ...view, public: rest }, "view")) found.push(`the field ${field}`);
+  return found;
+}
+
 /** The card IDs `viewer` may not see: the draw pile, the eras still to enter, and every hand but the viewer's own. */
 export function hiddenFrom(state: GameState, viewer: Viewer): CardId[] {
   const hands = SIDES.filter((side) => side !== viewer).flatMap((side) => state.private[side].hand);
@@ -92,17 +164,21 @@ export function leaksIn(text: string, secrets: Secrets): string[] {
 }
 
 /**
- * Invariant 4: no view, and no list of this step's events, gives a viewer the seed, the generator state
- * or a card hidden from it in `state` (the state after the step).
+ * Invariant 4: no view, and no list of this step's events, gives a viewer the seed, the generator state,
+ * a card hidden from it in `state` (the state after the step) or a Contingency deck's order. No event
+ * carries a contingency field at all.
  */
 export function checkNoLeaks(state: GameState, events: readonly GameEvent[], seed: Seed): void {
   for (const viewer of VIEWERS) {
     const secrets: Secrets = { seed, rng: state.secret.rng, hidden: hiddenFrom(state, viewer) };
     const view = attempt(`viewFor('${viewer}')`, () => viewFor(state, viewer));
-    const viewLeaks = leaksIn(JSON.stringify(view), secrets);
+    const viewLeaks = [...leaksIn(JSON.stringify(view), secrets), ...contingencyLeaksIn(view, state)];
     if (viewLeaks.length > 0) throw new Error(`the view for '${viewer}' shows ${viewLeaks.join(", ")}`);
     const seen = attempt(`eventsFor('${viewer}')`, () => eventsFor(events, viewer));
-    const eventLeaks = leaksIn(JSON.stringify(seen), secrets);
+    const eventLeaks = [
+      ...leaksIn(JSON.stringify(seen), secrets),
+      ...contingencyFields(seen, "events").map((field) => `the field ${field}`),
+    ];
     if (eventLeaks.length > 0) throw new Error(`the events for '${viewer}' show ${eventLeaks.join(", ")}`);
   }
 }

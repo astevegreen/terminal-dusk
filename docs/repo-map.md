@@ -108,6 +108,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 - `tests/README.md` - Cross-package test suites
 - `tests/fuzz/checks.ts` - The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite"). Exports: VIEWERS, Secrets, attempt, checkStep, checkLive, enteredCards, checkCards, isSubMultiset, checkContingency, contingencyLeaksIn, hiddenFrom, leaksIn, ….
+- `tests/fuzz/contingency.test.ts` - Tests for the fuzz harness's Contingency deck checks (#64): the deck invariant and the structural leak check each catch a hand-corrupted state, and the random…
 - `tests/fuzz/deepFreeze.ts` - Freezes a value and everything inside it, so an engine call that changes its input throws. Exports: deepFreeze.
 - `tests/fuzz/engine.test.ts` - Fuzz suite: plays FUZZ_GAMES random games and checks invariants 1, 3, 4, 5 and 6 of docs/architecture.md ("Guardrails", "Fuzz suite") at every step.
 - `tests/fuzz/eras.test.ts` - Tests for the fuzz harness's era checks (#37): invariant 3 catches a card out of place, waiting era cards count as hidden, and the random games really change e…

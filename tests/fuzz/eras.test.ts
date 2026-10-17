@@ -16,6 +16,7 @@ const SETUP: Setup = {
   turns: 2,
   playsPerTurn: 1,
   eras: [{ era: "fuzz", turn: 2, cards: ["c3", "c6"] }],
+  contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6] },
 };
 
 function started(setup: Setup = SETUP): GameState {

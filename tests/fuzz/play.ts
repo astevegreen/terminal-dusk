@@ -30,6 +30,11 @@ const MAX_PILE = 30;
 /** Most eras after the first (one for each turn after the first), and most cards in one era. */
 const MAX_ERAS = MAX_TURNS - 1;
 const MAX_ERA_CARDS = 5;
+/** Most cards in a random Contingency deck (the fewest is 2), and the highest number on one. */
+const MAX_DECK = 8;
+const MAX_NUMBER = 12;
+/** The default Contingency deck (docs/design/contingency-deck.md), which about one random deck in four is. */
+const DEFAULT_DECK: readonly number[] = [1, 2, 3, 4, 5, 6];
 /** Every card a random setup can use, c1 to c85. Affiliations go LIO, SAE, neutral, so 57 are non-neutral. */
 export const FUZZ_CARDS: readonly CardId[] = Array.from(
   { length: 2 * (MOST_NEEDED + MAX_EXTRA) + MAX_PILE + MAX_ERAS * MAX_ERA_CARDS },
@@ -95,6 +100,7 @@ export function playRecorded(name: string, record: GameRecord): Played {
  * of any affiliation, in random order; the draw pile gets 0-30. A game of two or more turns gets up to one
  * era for each later turn, of 1-5 cards each, on random turns (#37). Each turn opens with a secret pair
  * (#35); the random chooser then plays cards for their events or points, rival cards included (#36).
+ * Each side gets its own random Contingency deck (#64).
  */
 export function randomGame(rng: Rng, game: number): { setup: Setup; seed: Seed } {
   const turns = 1 + rng.int(MAX_TURNS);
@@ -119,6 +125,8 @@ export function randomGame(rng: Rng, game: number): { setup: Setup; seed: Seed }
       turns,
       playsPerTurn,
       ...(eras.length > 0 ? { eras } : {}),
+      // Last, so the decks' draws leave every other part of a game's setup as it was before #64.
+      contingency: { lio: randomDeck(rng), sae: randomDeck(rng) },
     },
     seed: `fuzz-${game}`,
   };
@@ -136,6 +144,15 @@ function randomEras(rng: Rng, turns: number, pool: readonly CardId[]): EraEntry[
       next += cards.length;
       return { era: "fuzz", turn, cards };
     });
+}
+
+/**
+ * A Contingency deck: the default 1 to 6 about one time in four, otherwise 2-8 cards numbered 1 to 12, in
+ * random order, so lengths vary and repeats and two-digit numbers turn up.
+ */
+function randomDeck(rng: Rng): number[] {
+  if (rng.int(4) === 0) return shuffled(rng, DEFAULT_DECK);
+  return Array.from({ length: 2 + rng.int(MAX_DECK - 1) }, () => 1 + rng.int(MAX_NUMBER));
 }
 
 /**
