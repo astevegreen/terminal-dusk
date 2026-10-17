@@ -11,14 +11,48 @@ export type Seed = string;
 
 export type Ruleset = { readonly id: RulesetId };
 
-export type EngineError = { code: string; message?: string };
+export type EngineErrorCode =
+  | "invalidSeed"
+  | "invalidSetup"
+  | "rulesetMismatch"
+  | "unknownDecision"
+  | "wrongSide"
+  | "illegalAnswer"
+  | "gameOver"
+  | "notSupported";
+export type EngineError = { code: EngineErrorCode; message?: string };
 export type Result<T> = { ok: true; value: T } | { ok: false; error: EngineError };
 
 /** Placeholder until #31 defines events. */
 export type GameEvent = never;
 
-/** Visible to everyone. */
-export type PublicState = { turn: number; discard: CardId[] };
+export type DecisionKind = "pass";
+/** Declarative description of what is legal. Never lists hidden data such as card IDs from a hand. */
+export type DecisionOptions = Record<string, never>;
+export type Decision = {
+  /** Unique within the game; answers quote it. */
+  id: string;
+  /** Who must answer. */
+  side: Side;
+  kind: DecisionKind;
+  options: DecisionOptions;
+};
+
+export type AnswerValue = { kind: "pass" };
+export type Answer =
+  { decisionId: string; side: Side; value: AnswerValue } | { system: "timeout" | "resign" | "adjudicate"; side: Side };
+
+export type GameStatus = { kind: "active" } | { kind: "over"; winner: Side | null; reason: string };
+
+/** Visible to everyone. `rounds` belongs to the placeholder game (see apply.ts). */
+export type PublicState = {
+  turn: number;
+  rounds: number;
+  discard: CardId[];
+  /** Open decisions, in SIDES order. */
+  pending: Decision[];
+  status: GameStatus;
+};
 /** Visible to one side only. */
 export type PrivateState = { hand: CardId[] };
 /** Visible to the host only. */
@@ -36,4 +70,6 @@ export type Setup = {
   seedHash: string;
   hands: Record<Side, CardId[]>;
   deck: CardId[];
+  /** Placeholder game length: how many times each side answers. Replaced by the turn structure (#35). */
+  rounds: number;
 };

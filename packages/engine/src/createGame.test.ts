@@ -9,6 +9,7 @@ const makeSetup = (): Setup => ({
   seedHash: "abc123",
   hands: { lio: ["c1", "c2"], sae: ["c3"] },
   deck: ["c4", "c5", "c6"],
+  rounds: 2,
 });
 const build = (seed = "seed-1"): GameState => {
   const r = createGame(ruleset, makeSetup(), seed);
@@ -27,7 +28,7 @@ describe("createGame", () => {
     expect(s.private.lio.hand).toEqual(["c1", "c2"]);
     expect(s.private.sae.hand).toEqual(["c3"]);
     expect(s.secret.deck).toEqual(["c4", "c5", "c6"]);
-    expect(s.public).toEqual({ turn: 1, discard: [] });
+    expect(s.public).toMatchObject({ turn: 1, discard: [] });
     expect(s.meta).toEqual({ ruleset: "test-ruleset", seedHash: "abc123", seq: 0 });
   });
   it("seeds the rng from the seed and returns no events", () => {
@@ -49,6 +50,12 @@ describe("createGame", () => {
         ok: false,
         error: { code: "invalidSetup" },
       });
+    }
+  });
+  it("rounds below 1, or not a whole number, returns invalidSetup", () => {
+    for (const rounds of [0, -1, 1.5, undefined]) {
+      const setup = { ...makeSetup(), rounds } as Setup;
+      expect(createGame(ruleset, setup, "s")).toMatchObject({ ok: false, error: { code: "invalidSetup" } });
     }
   });
   it("an empty seed returns invalidSeed", () => {
