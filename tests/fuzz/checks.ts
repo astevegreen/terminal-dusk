@@ -1,7 +1,7 @@
 // The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite").
 // Each check throws an Error saying what is wrong; play.ts adds the game's seed and answers to it.
 import { eventsFor, hiddenPart, legalAnswers, pendingFor, reconstruct, SIDES, viewFor } from "@terminal-dusk/engine";
-import type { CardId, GameEvent, GameState, Ruleset, Seed, Viewer } from "@terminal-dusk/engine";
+import type { CardId, GameEvent, GameState, Ruleset, Seed, Setup, Viewer } from "@terminal-dusk/engine";
 import { deepFreeze } from "./deepFreeze.ts";
 
 export const VIEWERS: readonly Viewer[] = ["lio", "sae", "spectator"];
@@ -18,9 +18,16 @@ export function attempt<T>(call: string, run: () => T): T {
   }
 }
 
-/** All the checks for one step: invariants 1, 4 and 5. `events` are the ones that step produced. */
-export function checkStep(ruleset: Ruleset, state: GameState, events: readonly GameEvent[], seed: Seed): void {
+/** All the checks for one step: invariants 1, 3, 4 and 5. `events` are the ones that step produced. */
+export function checkStep(
+  ruleset: Ruleset,
+  setup: Setup,
+  state: GameState,
+  events: readonly GameEvent[],
+  seed: Seed,
+): void {
   checkLive(ruleset, state);
+  checkCards(setup, state);
   checkNoLeaks(state, events, seed);
   checkRebuilds(state);
 }
@@ -36,10 +43,38 @@ export function checkLive(ruleset: Ruleset, state: GameState): void {
   if (!canAnswer) throw new Error("the game is active, but no side has a decision with a legal answer");
 }
 
-/** The card IDs `viewer` may not see: the draw pile, plus every hand but the viewer's own. */
+/**
+ * The cards that have entered the game by `turn`: both starting hands and the draw pile, plus the cards
+ * of each era whose turn has come. Worked out from the setup alone, never from the engine's state.
+ */
+export function enteredCards(setup: Setup, turn: number): CardId[] {
+  const eras = (setup.eras ?? []).filter((entry) => entry.turn <= turn).flatMap((entry) => entry.cards);
+  return [...setup.hands.lio, ...setup.hands.sae, ...setup.deck, ...eras];
+}
+
+/**
+ * Invariant 3: the cards in the draw pile, both hands, the discard pile and `inPlay` are exactly the cards
+ * that have entered the game, each exactly once. Compared as sorted lists of IDs, so a card missing and
+ * another card twice is caught even though the count is right.
+ */
+export function checkCards(setup: Setup, state: GameState): void {
+  const hands = [...state.private.lio.hand, ...state.private.sae.hand];
+  const found = [...state.secret.deck, ...hands, ...state.public.discard, ...state.public.inPlay].sort();
+  const expected = enteredCards(setup, state.public.turn).sort();
+  if (JSON.stringify(found) === JSON.stringify(expected)) return;
+  const missing = expected.filter((card) => !found.includes(card));
+  const extra = found.filter((card, i) => !expected.includes(card) || found.indexOf(card) !== i);
+  throw new Error(
+    `the cards in play are not the cards that have entered the game: missing ${JSON.stringify(missing)}, ` +
+      `extra or twice ${JSON.stringify(extra)}`,
+  );
+}
+
+/** The card IDs `viewer` may not see: the draw pile, the eras still to enter, and every hand but the viewer's own. */
 export function hiddenFrom(state: GameState, viewer: Viewer): CardId[] {
   const hands = SIDES.filter((side) => side !== viewer).flatMap((side) => state.private[side].hand);
-  return [...state.secret.deck, ...hands];
+  const waiting = state.secret.eras.flatMap((entry) => entry.cards);
+  return [...state.secret.deck, ...waiting, ...hands];
 }
 
 /**

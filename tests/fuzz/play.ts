@@ -7,6 +7,7 @@ import type {
   CardDef,
   CardId,
   Decision,
+  EraEntry,
   GameEvent,
   GameState,
   Ruleset,
@@ -26,9 +27,12 @@ const MOST_NEEDED = MAX_TURNS * (1 + MAX_PLAYS);
 /** Most cards of any affiliation a random hand gets beyond the ones it needs, and most in a draw pile. */
 const MAX_EXTRA = 8;
 const MAX_PILE = 30;
-/** Every card a random setup can use, c1 to c70. Affiliations go LIO, SAE, neutral, so 47 are non-neutral. */
+/** Most eras after the first (one for each turn after the first), and most cards in one era. */
+const MAX_ERAS = MAX_TURNS - 1;
+const MAX_ERA_CARDS = 5;
+/** Every card a random setup can use, c1 to c85. Affiliations go LIO, SAE, neutral, so 57 are non-neutral. */
 export const FUZZ_CARDS: readonly CardId[] = Array.from(
-  { length: 2 * (MOST_NEEDED + MAX_EXTRA) + MAX_PILE },
+  { length: 2 * (MOST_NEEDED + MAX_EXTRA) + MAX_PILE + MAX_ERAS * MAX_ERA_CARDS },
   (_, i) => `c${i + 1}`,
 );
 const AFFILIATIONS: readonly CardDef["affiliation"][] = ["lio", "sae", "neutral"];
@@ -86,10 +90,11 @@ export function playRecorded(name: string, record: GameRecord): Played {
 }
 
 /**
- * 1-4 turns of 1-2 plays each, and random starting hands and draw pile from cards c1 to c70. Each hand
+ * 1-4 turns of 1-2 plays each, and random starting hands and draw pile from cards c1 to c85. Each hand
  * gets the non-neutral cards the game needs, turns x (1 + playsPerTurn), of either side's, plus 0-8 more
- * of any affiliation, in random order; the draw pile gets 0-30. Each turn opens with a secret pair (#35);
- * the random chooser then plays cards for their events or points, rival cards included (#36).
+ * of any affiliation, in random order; the draw pile gets 0-30. A game of two or more turns gets up to one
+ * era for each later turn, of 1-5 cards each, on random turns (#37). Each turn opens with a secret pair
+ * (#35); the random chooser then plays cards for their events or points, rival cards included (#36).
  */
 export function randomGame(rng: Rng, game: number): { setup: Setup; seed: Seed } {
   const turns = 1 + rng.int(MAX_TURNS);
@@ -100,19 +105,37 @@ export function randomGame(rng: Rng, game: number): { setup: Setup; seed: Seed }
   const others = cards.filter((card) => !sided.slice(0, 2 * needed).includes(card));
   const lioExtra = rng.int(MAX_EXTRA + 1);
   const saeExtra = rng.int(MAX_EXTRA + 1);
+  const pileStart = lioExtra + saeExtra;
+  const pileEnd = pileStart + rng.int(MAX_PILE + 1);
+  const eras = randomEras(rng, turns, others.slice(pileEnd));
   return {
     setup: {
       seedHash: `hash-${game}`,
       hands: {
         lio: shuffled(rng, [...sided.slice(0, needed), ...others.slice(0, lioExtra)]),
-        sae: shuffled(rng, [...sided.slice(needed, 2 * needed), ...others.slice(lioExtra, lioExtra + saeExtra)]),
+        sae: shuffled(rng, [...sided.slice(needed, 2 * needed), ...others.slice(lioExtra, pileStart)]),
       },
-      deck: others.slice(lioExtra + saeExtra, lioExtra + saeExtra + rng.int(MAX_PILE + 1)),
+      deck: others.slice(pileStart, pileEnd),
       turns,
       playsPerTurn,
+      ...(eras.length > 0 ? { eras } : {}),
     },
     seed: `fuzz-${game}`,
   };
+}
+
+/** 0 to turns - 1 eras, each on its own random turn from 2 to `turns`, with 1-5 cards taken in order from `pool`. */
+function randomEras(rng: Rng, turns: number, pool: readonly CardId[]): EraEntry[] {
+  const count = rng.int(turns);
+  const laterTurns = Array.from({ length: turns - 1 }, (_, i) => i + 2);
+  let next = 0;
+  return shuffled(rng, laterTurns)
+    .slice(0, count)
+    .map((turn) => {
+      const cards = pool.slice(next, next + 1 + rng.int(MAX_ERA_CARDS));
+      next += cards.length;
+      return { era: `era-${turn}`, turn, cards };
+    });
 }
 
 /**
@@ -134,21 +157,21 @@ export function randomChooser(rng: Rng): Chooser {
 }
 
 /**
- * Plays a game from `setup` and `seed`, answering with `choose` until the game ends. Checks invariants 1, 4
- * and 5 on the state from createGame and after every answer, then invariant 6 at the end.
+ * Plays a game from `setup` and `seed`, answering with `choose` until the game ends. Checks invariants 1, 3,
+ * 4 and 5 on the state from createGame and after every answer, then invariant 6 at the end.
  */
 export function playGame(label: string, setup: Setup, seed: Seed, choose: Chooser): Played {
   const record: GameRecord = { setup: deepFreeze(setup), seed, answers: [] };
   try {
     let { state, events } = started(setup, seed);
-    checkStep(ruleset, state, events, seed);
+    checkStep(ruleset, setup, state, events, seed);
     while (state.public.status.kind === "active") {
       if (record.answers.length >= MAX_ANSWERS) throw new Error(`the game is still going after ${MAX_ANSWERS} answers`);
       const answer = choose(state);
       if (answer === null) break;
       record.answers.push(deepFreeze(answer));
       ({ state, events } = answered(state, answer));
-      checkStep(ruleset, state, events, seed);
+      checkStep(ruleset, setup, state, events, seed);
     }
     checkReplay(record, state);
     return { record, final: state };

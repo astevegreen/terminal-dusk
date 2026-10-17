@@ -30,6 +30,9 @@ function started(
   return r.value.state;
 }
 
+/** The cards of all the setup's later eras. */
+const eraCards = (setup: Setup) => (setup.eras ?? []).flatMap((entry) => entry.cards);
+
 /** For each answer given while both sides had a decision open, the side that answered. */
 function firstAnswerers(record: GameRecord): Side[] {
   const r = createGame(ruleset, record.setup, record.seed);
@@ -82,7 +85,7 @@ describe("random games", () => {
     );
     expect(games.filter((g) => g.setup.deck.length > 0).length).toBeGreaterThan(40);
     for (const { setup } of games) {
-      const cards = [...setup.hands.lio, ...setup.hands.sae, ...setup.deck];
+      const cards = [...setup.hands.lio, ...setup.hands.sae, ...setup.deck, ...eraCards(setup)];
       expect(new Set(cards).size).toBe(cards.length);
       expect(setup.turns).toBeGreaterThanOrEqual(1);
       expect(setup.playsPerTurn).toBeGreaterThanOrEqual(1);
@@ -95,8 +98,8 @@ describe("random games", () => {
       ...Array.from({ length: 1000 }, (_, i) => randomGame(seededRng(i + 1), i + 1).setup),
       ...FIXED_GAMES.map((game) => game.record.setup),
     ];
-    const unknown = setups.flatMap(({ hands, deck }) =>
-      [...hands.lio, ...hands.sae, ...deck].filter((card) => !known.has(card)),
+    const unknown = setups.flatMap((setup) =>
+      [...setup.hands.lio, ...setup.hands.sae, ...setup.deck, ...eraCards(setup)].filter((card) => !known.has(card)),
     );
     expect(unknown).toEqual([]);
   });
