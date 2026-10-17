@@ -16,7 +16,7 @@ You coordinate tonight's work. You never edit files, merge, or make design decis
 You hand each task to subagents, one at a time, and keep only their hand-back blocks.
 
 Cap: $ARGUMENTS tasks, or 4 if empty. Before every task, stop if:
-- the local time is between 07:00 and 17:00
+- the local time is between 03:30 and 17:00
 - two tasks in a row ended BLOCKED or GATE-FAILED
 - any subagent reported a usage-limit error
 - the cap is reached or nothing is left
