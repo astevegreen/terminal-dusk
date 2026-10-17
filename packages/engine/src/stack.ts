@@ -1,10 +1,13 @@
 // The resolution stack: runs program steps until one needs a player's choice, records that as the
-// pending decision and stops. The answer resumes exactly where it stopped. A step budget per call
-// stops runaway programs.
+// pending decision (or, for both sides at once, a simultaneous pair) and stops. The answer resumes
+// exactly where it stopped. A step budget per call stops runaway programs.
 import { copyJson } from "./copy.ts";
-import { newDecision } from "./decisions.ts";
+import { newDecision, newGroup } from "./decisions.ts";
+import { halfAnswered } from "./simultaneous.ts";
+import type { Revealed } from "./simultaneous.ts";
 import type {
   AnswerValue,
+  Condition,
   EngineError,
   EngineErrorCode,
   Frame,
@@ -12,6 +15,7 @@ import type {
   GameState,
   Result,
   Ruleset,
+  Side,
   Step,
   VarName,
   VarValue,
@@ -41,6 +45,9 @@ export function startProgram(
   if (state.public.stack.length > 0) {
     return { ok: false, error: problem("notSupported", "A program is already running.") };
   }
+  if (halfAnswered(state)) {
+    return { ok: false, error: problem("notSupported", "A simultaneous choice is half answered.") };
+  }
   const next = copyJson(state);
   next.meta.seq += 1;
   next.public.stack.push({ kind: "program", steps: copyJson(steps), next: 0, vars: [] });
@@ -49,22 +56,26 @@ export function startProgram(
   return error ? { ok: false, error } : { ok: true, value: { state: next, events } };
 }
 
+/** What closed a paused `choose`: one side's answer, or both sides' answers to a simultaneous pair. */
+export type Closing = { who: Side; value: AnswerValue } | { who: "both"; values: Revealed };
+
 /**
- * Resumes a paused program with a legal answer to its `choose`: binds the answer, then runs on.
- * Edits `state`, a working copy, in place.
+ * Resumes a paused program once its `choose` is closed: binds the answer (for a pair, both answers
+ * keyed by side), then runs on. Edits `state`, a working copy, in place.
  */
 export function resumeStack(
   state: GameState,
-  value: AnswerValue,
+  closing: Closing,
   events: GameEvent[],
   budget: number,
 ): EngineError | null {
   const frame = state.public.stack.at(-1);
   const step = frame?.steps[frame.next];
-  if (!frame || step?.op !== "choose" || value.kind !== "yesNo") {
-    return problem("invalidProgram", "The stack is not paused at a yes/no choice.");
+  const value = boundValue(closing);
+  if (!frame || step?.op !== "choose" || (step.who === "both") !== (closing.who === "both") || value === undefined) {
+    return problem("invalidProgram", "The stack is not paused at a matching yes/no choice.");
   }
-  bind(frame, step.bind, value.yes);
+  bind(frame, step.bind, value);
   frame.next += 1;
   state.public.pending = [];
   return runStack(state, events, budget);
@@ -101,7 +112,10 @@ function runStack(state: GameState, events: GameEvent[], budget: number): Engine
 function runStep(state: GameState, frame: Frame, step: Step, events: GameEvent[]): StepOutcome {
   switch (step.op) {
     case "choose":
-      state.public.pending = [newDecision(state.meta.seq, step.who, step.decision.kind)];
+      state.public.pending =
+        step.who === "both"
+          ? newGroup(state.meta.seq, step.decision.kind)
+          : [newDecision(state.meta.seq, step.who, step.decision.kind)];
       return "paused";
     case "marker":
       return runMarker(state.public.stack, frame, step, events);
@@ -129,11 +143,10 @@ function runMarker(stack: Frame[], frame: Frame, step: StepOf<"marker">, events:
 function runIf(stack: Frame[], frame: Frame, step: StepOf<"if">): StepOutcome {
   const value = lookup(stack, step.cond.var);
   if (value === undefined) return unbound(step.cond.var);
-  if (typeof value !== "boolean") {
-    return problem("invalidProgram", `"${step.cond.var}" is not a yes/no answer, so if cannot test it.`);
-  }
+  const yes = readYes(value, step.cond);
+  if (typeof yes !== "boolean") return yes;
   frame.next += 1;
-  const branch = value ? step.then : (step.else ?? []);
+  const branch = yes ? step.then : (step.else ?? []);
   if (branch.length > 0) stack.push({ kind: "if", steps: branch, next: 0, vars: [] });
   return "ran";
 }
@@ -153,6 +166,29 @@ function runForEach(stack: Frame[], frame: Frame, step: StepOf<"forEach">): Step
     index: 0,
   });
   return "ran";
+}
+
+/**
+ * The yes/no a condition tests: a one-side answer as it is, or the named side's half of a both-sides
+ * answer. A condition naming a side for a one-side answer, or none for a both-sides one, is an error.
+ */
+function readYes(value: VarValue, cond: Condition): boolean | EngineError {
+  if (typeof value === "boolean" && cond.side === undefined) return value;
+  if (typeof value === "object" && cond.side !== undefined && typeof value[cond.side] === "boolean") {
+    return value[cond.side];
+  }
+  if (typeof value === "boolean")
+    return problem("invalidProgram", `"${cond.var}" holds one answer; the if must not name a side.`);
+  if (typeof value === "object")
+    return problem("invalidProgram", `"${cond.var}" holds both sides' answers; the if must name a side.`);
+  return problem("invalidProgram", `"${cond.var}" is not a yes/no answer, so if cannot test it.`);
+}
+
+/** The value a closed `choose` binds: a yes/no, or both sides' yes/no keyed by side. Else undefined. */
+function boundValue(closing: Closing): VarValue | undefined {
+  if (closing.who !== "both") return closing.value.kind === "yesNo" ? closing.value.yes : undefined;
+  const { lio, sae } = closing.values;
+  return lio.kind === "yesNo" && sae.kind === "yesNo" ? { lio: lio.yes, sae: sae.yes } : undefined;
 }
 
 /** The top frame's steps are done: a forEach moves to its next item, any other frame is removed. */

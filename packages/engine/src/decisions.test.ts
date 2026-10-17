@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { legalAnswers, pendingFor, SIDES } from "./index.ts";
-import { choose, playPasses, ruleset, startGame, startWith } from "./test/game.ts";
+import { choose, playAnswers, ruleset, startAtPass, startGame, startWith } from "./test/game.ts";
 
 describe("pendingFor", () => {
   it("returns the decision that side must answer, or null", () => {
-    const s = startGame();
+    const s = startAtPass();
     expect(pendingFor(s, "lio")).toMatchObject({ side: "lio", kind: "pass" });
     expect(pendingFor(s, "sae")).toBeNull();
   });
   it("returns null for both sides once the game is over", () => {
-    const over = playPasses(startGame(1), 2);
+    const over = playAnswers(startGame(1), 4);
     expect(pendingFor(over, "lio")).toBeNull();
     expect(pendingFor(over, "sae")).toBeNull();
   });
@@ -17,7 +17,7 @@ describe("pendingFor", () => {
 
 describe("legalAnswers", () => {
   it("lists the finite legal answers for that side's pending decision: one pass", () => {
-    expect(legalAnswers(ruleset, startGame(), "lio")).toEqual([{ kind: "pass" }]);
+    expect(legalAnswers(ruleset, startAtPass(), "lio")).toEqual([{ kind: "pass" }]);
   });
   it("lists yes then no for a yesNo decision", () => {
     const paused = startWith([choose("go", "sae")]).state;
@@ -28,10 +28,10 @@ describe("legalAnswers", () => {
     expect(legalAnswers(ruleset, paused, "lio")).toEqual([]);
   });
   it("returns [] for a side with no pending decision", () => {
-    expect(legalAnswers(ruleset, startGame(), "sae")).toEqual([]);
+    expect(legalAnswers(ruleset, startAtPass(), "sae")).toEqual([]);
   });
   it("returns [] once the game is over", () => {
-    const over = playPasses(startGame(1), 2);
+    const over = playAnswers(startGame(1), 4);
     expect(legalAnswers(ruleset, over, "lio")).toEqual([]);
     expect(legalAnswers(ruleset, over, "sae")).toEqual([]);
   });
@@ -41,27 +41,32 @@ describe("legalAnswers", () => {
 });
 
 describe("public.pending", () => {
-  it("holds the open decisions; a new game has LIO's pass decision only", () => {
+  it("holds the open decisions; a new game has the opening yes/no pair, one decision per side", () => {
     const s = startGame();
-    expect(s.public.pending).toEqual([{ id: expect.any(String), side: "lio", kind: "pass", options: {} }]);
+    const group = expect.any(String);
+    expect(s.public.pending).toEqual([
+      { id: expect.any(String), side: "lio", kind: "yesNo", options: {}, simultaneousGroup: group },
+      { id: expect.any(String), side: "sae", kind: "yesNo", options: {}, simultaneousGroup: group },
+    ]);
   });
   it("is kept in SIDES order", () => {
     let s = startGame(3);
     while (s.public.pending.length > 0) {
       const sides = s.public.pending.map((x) => x.side);
       expect(sides).toEqual(SIDES.filter((side) => sides.includes(side)));
-      s = playPasses(s, 1);
+      s = playAnswers(s, 1);
     }
   });
   it("decision IDs are unique within a game", () => {
     let s = startGame(3);
     const ids: string[] = [];
     while (s.public.pending.length > 0) {
-      ids.push(...s.public.pending.map((x) => x.id));
-      s = playPasses(s, 1);
+      // Each decision is answered exactly once, so list each one's ID as it is answered.
+      ids.push(s.public.pending[0]!.id);
+      s = playAnswers(s, 1);
     }
     expect(new Set(ids).size).toBe(ids.length);
-    expect(ids).toHaveLength(6);
+    expect(ids).toHaveLength(12);
   });
   it("a decision's options never list cards from a hand or the deck", () => {
     const s = startGame();
@@ -77,7 +82,7 @@ describe("public.status", () => {
     expect(startGame().public.status).toEqual({ kind: "active" });
   });
   it("is { kind: 'over', winner, reason } once the game ends", () => {
-    expect(playPasses(startGame(1), 2).public.status).toEqual({
+    expect(playAnswers(startGame(1), 4).public.status).toEqual({
       kind: "over",
       winner: null,
       reason: "placeholderFinished",

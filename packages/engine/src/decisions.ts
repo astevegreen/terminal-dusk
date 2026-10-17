@@ -1,9 +1,15 @@
 // Pending decisions: building them, finding the one a side must answer, and listing its legal answers.
+import { SIDES } from "./types.ts";
 import type { AnswerValue, Decision, DecisionKind, GameState, Ruleset, Side } from "./types.ts";
 
 /** A new decision. Its ID comes from `seq`, which rises with every change, so IDs never repeat. */
 export function newDecision(seq: number, side: Side, kind: DecisionKind): Decision {
   return { id: `d${seq}`, side, kind, options: {} };
+}
+
+/** A new simultaneous group: one decision per side, in SIDES order, sharing the group `g<seq>`. */
+export function newGroup(seq: number, kind: DecisionKind): Decision[] {
+  return SIDES.map((side) => ({ id: `d${seq}-${side}`, side, kind, options: {}, simultaneousGroup: `g${seq}` }));
 }
 
 /** The decision `side` must answer, or null. */

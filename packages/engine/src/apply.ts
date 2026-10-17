@@ -1,11 +1,14 @@
 // Takes one answer and returns the next state. Illegal answers return a typed error and never throw.
 //
-// An answer to a paused program resumes the resolution stack (stack.ts). Once the stack is empty,
-// the PLACEHOLDER GAME goes on: the sides take turns answering "pass" for `rounds` rounds. The
-// turn-structure task (#35) replaces `advancePlaceholder` with the real turn structure.
+// An answer to one of a simultaneous pair is kept secret until the other side's is in (simultaneous.ts).
+// An answer to a paused program resumes the resolution stack (stack.ts). Once the stack is empty, the
+// PLACEHOLDER GAME goes on: each round, both sides answer a secret yes/no pair, then LIO passes, then
+// SAE passes, for `rounds` rounds. The turn-structure task (#35) replaces `advancePlaceholder`.
 import { copyJson } from "./copy.ts";
-import { legalAnswers, newDecision } from "./decisions.ts";
+import { legalAnswers, newDecision, newGroup } from "./decisions.ts";
+import { recordPick } from "./simultaneous.ts";
 import { resumeStack, stepBudget } from "./stack.ts";
+import type { Closing } from "./stack.ts";
 import { SIDES } from "./types.ts";
 import type { Answer, EngineErrorCode, GameEvent, GameState, Result, Ruleset, Side } from "./types.ts";
 
@@ -33,7 +36,11 @@ export function apply(ruleset: Ruleset, state: GameState, answer: Answer): Appli
   if ("system" in answer) return applySystem(state, answer);
 
   const decision = state.public.pending.find((d) => d.id === answer.decisionId);
-  if (!decision) return fail("unknownDecision", "No open decision has that ID.");
+  if (!decision) {
+    return state.private[answer.side].picks.some((p) => p.decisionId === answer.decisionId)
+      ? fail("alreadyAnswered", "That side has already answered this simultaneous choice.")
+      : fail("unknownDecision", "No open decision has that ID.");
+  }
   if (decision.side !== answer.side) return fail("wrongSide", "That decision belongs to the other side.");
   const given = canonical(answer.value);
   const value = legalAnswers(ruleset, state, answer.side).find((v) => canonical(v) === given);
@@ -42,12 +49,18 @@ export function apply(ruleset: Ruleset, state: GameState, answer: Answer): Appli
   const next = copyJson(state);
   next.meta.seq += 1;
   const events: GameEvent[] = [];
+  let closing: Closing = { who: answer.side, value };
+  if (decision.simultaneousGroup !== undefined) {
+    const revealed = recordPick(next, decision, decision.simultaneousGroup, value);
+    if (!revealed) return { ok: true, value: { state: next, events } };
+    closing = { who: "both", values: revealed };
+  }
   if (next.public.stack.length > 0) {
-    const error = resumeStack(next, value, events, stepBudget(ruleset));
+    const error = resumeStack(next, closing, events, stepBudget(ruleset));
     if (error) return { ok: false, error };
     if (next.public.stack.length > 0) return { ok: true, value: { state: next, events } };
   }
-  advancePlaceholder(next, answer.side);
+  advancePlaceholder(next, closing.who);
   return { ok: true, value: { state: next, events } };
 }
 
@@ -59,20 +72,26 @@ function applySystem(state: GameState, answer: Extract<Answer, { system: string 
   next.meta.seq += 1;
   next.public.pending = [];
   next.public.stack = [];
+  for (const side of SIDES) next.private[side].picks = [];
   next.public.status = { kind: "over", winner: other(answer.side), reason: "resigned" };
   return { ok: true, value: { state: next, events: [] } };
 }
 
 /**
- * Placeholder turn order: LIO answers first, then the sides alternate; `turn` rises after each pair.
- * The game ends when `turn` passes `rounds`, which is after rounds x 2 answers.
+ * Placeholder round: both sides answer a secret yes/no pair, then LIO passes, then SAE passes; `turn`
+ * rises after SAE's pass. The game ends when `turn` passes `rounds`, which is after rounds x 4 answers.
+ * A finished program counts as an answer from whoever answered last (both, for a pair).
  */
-function advancePlaceholder(next: GameState, answered: Side): void {
-  if (answered === "sae") next.public.turn += 1;
+function advancePlaceholder(next: GameState, answered: Side | "both"): void {
+  if (answered !== "sae") {
+    next.public.pending = [newDecision(next.meta.seq, answered === "both" ? "lio" : "sae", "pass")];
+    return;
+  }
+  next.public.turn += 1;
   if (next.public.turn > next.public.rounds) {
     next.public.pending = [];
     next.public.status = { kind: "over", winner: null, reason: "placeholderFinished" };
     return;
   }
-  next.public.pending = [newDecision(next.meta.seq, other(answered), "pass")];
+  next.public.pending = newGroup(next.meta.seq, "yesNo");
 }
