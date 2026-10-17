@@ -1,6 +1,6 @@
 // Plays one game for the fuzz suite, random or recorded, and checks every invariant along the way.
 // A failing game throws a report with its seed and answers, ready to keep in fixedGames.ts.
-import { apply, createGame, legalAnswers, pendingFor, SIDES } from "@terminal-dusk/engine";
+import { apply, createGame, legalAnswers, pendingFor, seedHash, SIDES } from "@terminal-dusk/engine";
 import type {
   Answer,
   AnswerValue,
@@ -129,7 +129,7 @@ export function randomGame(rng: Rng, game: number): { setup: Setup; seed: Seed }
   const eras = randomEras(rng, turns, others.slice(pileEnd));
   return {
     setup: {
-      seedHash: `hash-${game}`,
+      seedHash: seedHash(`fuzz-${game}`),
       hands: {
         lio: shuffled(rng, [...sided.slice(0, needed), ...others.slice(0, lioExtra)]),
         sae: shuffled(rng, [...sided.slice(needed, 2 * needed), ...others.slice(lioExtra, pileStart)]),

@@ -2,6 +2,7 @@
 import { apply } from "../apply.ts";
 import { createGame } from "../createGame.ts";
 import { legalAnswers } from "../decisions.ts";
+import { seedHash } from "../sha256.ts";
 import { startProgram } from "../stack.ts";
 import type { Answer, CardDef, CardId, GameEvent, GameState, PlayUse, Ruleset, Setup, Side, Step } from "../types.ts";
 
@@ -56,10 +57,10 @@ export const withCards = (...cards: CardDef[]): Ruleset => ({
  * plus one neutral card: LIO l1, l2, ... and n1; SAE s1, s2, ... and n2. The draw pile is z1-z3, and
  * each side's Contingency deck is the default, 1 to 6.
  */
-export const makeSetup = (turns = 2, playsPerTurn = 1): Setup => {
+export const makeSetup = (turns = 2, playsPerTurn = 1, seed = "seed-1"): Setup => {
   const needed = turns * (1 + playsPerTurn);
   return {
-    seedHash: "abc123",
+    seedHash: seedHash(seed),
     hands: { lio: [...LIO_CARDS.slice(0, needed), "n1"], sae: [...SAE_CARDS.slice(0, needed), "n2"] },
     deck: ["z1", "z2", "z3"],
     turns,

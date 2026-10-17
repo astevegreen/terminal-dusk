@@ -1,6 +1,15 @@
 // The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite").
 // Each check throws an Error saying what is wrong; play.ts adds the game's seed and answers to it.
-import { eventsFor, hiddenPart, legalAnswers, pendingFor, reconstruct, SIDES, viewFor } from "@terminal-dusk/engine";
+import {
+  eventsFor,
+  hiddenPart,
+  legalAnswers,
+  pendingFor,
+  reconstruct,
+  seedHash,
+  SIDES,
+  viewFor,
+} from "@terminal-dusk/engine";
 import type { CardId, GameEvent, GameState, PlayerView, Ruleset, Seed, Setup, Viewer } from "@terminal-dusk/engine";
 import { deepFreeze } from "./deepFreeze.ts";
 
@@ -33,6 +42,7 @@ export function checkStep(
   checkCards(setup, state);
   checkContingency(setup, state);
   checkNoLeaks(state, events, seed);
+  checkSeedHash(state, seed);
   checkRebuilds(state);
 }
 
@@ -180,6 +190,20 @@ export function checkNoLeaks(state: GameState, events: readonly GameEvent[], see
       ...contingencyFields(seen, "events").map((field) => `the field ${field}`),
     ];
     if (eventLeaks.length > 0) throw new Error(`the events for '${viewer}' show ${eventLeaks.join(", ")}`);
+  }
+}
+
+/**
+ * Every view (each side and the spectator) shows the true fingerprint of the seed. It is compared with
+ * seedHash(seed) worked out here from the seed, not with the state's own meta.seedHash.
+ */
+export function checkSeedHash(state: GameState, seed: Seed): void {
+  const expected = seedHash(seed);
+  for (const viewer of VIEWERS) {
+    const view = attempt(`viewFor('${viewer}')`, () => viewFor(state, viewer));
+    if (view.meta.seedHash !== expected) {
+      throw new Error(`the view for '${viewer}' shows a seedHash that is not the hash of the seed`);
+    }
   }
 }
 

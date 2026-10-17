@@ -6,6 +6,7 @@ import { createGame } from "./createGame.ts";
 import { legalAnswers } from "./decisions.ts";
 import { enterEra } from "./eras.ts";
 import { eventsFor } from "./events.ts";
+import { seedHash } from "./sha256.ts";
 import { hiddenPart, reconstruct, viewFor } from "./views.ts";
 import { makeSetup, playAnswers, ruleset, rulesetWith } from "./test/game.ts";
 import type { EraEntry, GameEvent, GameState, Setup } from "./types.ts";
@@ -25,7 +26,7 @@ const withEras = (eras: EraEntry[], turns = 3): Setup => ({ ...makeSetup(turns),
 const ERA_2: EraEntry = { era: "era2", turn: 2, cards: ["e1", "e2", "e3", "e4"] };
 
 function start(setup: Setup, seed = "seed-1"): { state: GameState; events: GameEvent[] } {
-  const r = createGame(rs, setup, seed);
+  const r = createGame(rs, { ...setup, seedHash: seedHash(seed) }, seed);
   if (!r.ok) throw new Error(`createGame failed: ${r.error.code} ${r.error.message ?? ""}`);
   return r.value;
 }

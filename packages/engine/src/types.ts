@@ -35,6 +35,7 @@ export type EngineErrorCode =
   | "invalidSeed"
   | "invalidRuleset"
   | "invalidSetup"
+  | "seedMismatch"
   | "rulesetMismatch"
   | "unknownDecision"
   | "wrongSide"

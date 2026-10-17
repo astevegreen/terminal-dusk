@@ -1,4 +1,4 @@
-import { createGame } from "@terminal-dusk/engine";
+import { createGame, seedHash } from "@terminal-dusk/engine";
 import type { CardDef, Ruleset, Setup } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { cardSchema } from "./card.ts";
@@ -180,7 +180,7 @@ describe("card schema and the engine", () => {
       cards: [parsed, sideCard("l1", "lio"), sideCard("l2", "lio"), sideCard("s1", "sae"), sideCard("s2", "sae")],
     };
     const setup: Setup = {
-      seedHash: "hash",
+      seedHash: seedHash("seed"),
       hands: { lio: ["l1", "l2", "test-card"], sae: ["s1", "s2"] },
       deck: [],
       turns: 1,

@@ -2,7 +2,7 @@
 // check each catch a hand-corrupted state, and the random games use varied decks. The random games draw
 // and reshuffle (#65, harness.test.ts), but never break these checks; the corrupted states below prove
 // each part works.
-import { createGame, viewFor } from "@terminal-dusk/engine";
+import { createGame, seedHash, viewFor } from "@terminal-dusk/engine";
 import type { GameEvent, GameState, PlayerView, Setup, Side } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { checkContingency, checkNoLeaks, contingencyLeaksIn, isSubMultiset } from "./checks.ts";
@@ -12,7 +12,7 @@ import { seededRng } from "./random.ts";
 const SEED = "contingency-seed";
 /** One turn of one play each. LIO's Contingency deck is 1 to 6; SAE's is [6, 2, 4, 2], so it reads [2, 2, 4, 6]. */
 const SETUP: Setup = {
-  seedHash: "hash",
+  seedHash: seedHash(SEED),
   hands: { lio: ["c1", "c4"], sae: ["c2", "c5"] },
   deck: ["c6", "c7", "c8"],
   turns: 1,

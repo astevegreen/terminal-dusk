@@ -1,6 +1,6 @@
 // Tests for the fuzz harness's era checks (#37): invariant 3 catches a card out of place, waiting era
 // cards count as hidden, and the random games really change era.
-import { createGame } from "@terminal-dusk/engine";
+import { createGame, seedHash } from "@terminal-dusk/engine";
 import type { GameState, Setup } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { checkCards, checkNoLeaks, enteredCards, hiddenFrom } from "./checks.ts";
@@ -10,7 +10,7 @@ import { seededRng } from "./random.ts";
 const SEED = "eras-seed";
 /** Two turns of one play each: LIO holds c1, c4, c7, c10; SAE c2, c5, c8, c11; the fuzz era brings c3 and c6. */
 const SETUP: Setup = {
-  seedHash: "hash",
+  seedHash: seedHash(SEED),
   hands: { lio: ["c1", "c4", "c7", "c10"], sae: ["c2", "c5", "c8", "c11"] },
   deck: ["c12", "c13", "c14"],
   turns: 2,

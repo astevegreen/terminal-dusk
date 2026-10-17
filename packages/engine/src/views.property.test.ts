@@ -3,7 +3,7 @@
 // leak hidden data, including a side's unrevealed pick.
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { apply, createGame, hiddenPart, legalAnswers, reconstruct, SIDES, viewFor } from "./index.ts";
+import { apply, createGame, hiddenPart, legalAnswers, reconstruct, seedHash, SIDES, viewFor } from "./index.ts";
 import type { Answer, GameState, PlayerView, Ruleset, Setup, Side, Step, Viewer } from "./index.ts";
 import { startProgram } from "./stack.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
@@ -94,7 +94,7 @@ const gameArb: fc.Arbitrary<Game> = fc
     const a = cutA % (rest.length + 1);
     const b = a + (cutB % (rest.length - a + 1));
     const setup: Setup = {
-      seedHash: "hash-of-seed",
+      seedHash: seedHash(`seed-${seed}-x`),
       hands: { lio: [...lio, ...rest.slice(0, a)], sae: [...sae, ...rest.slice(a, b)] },
       deck: rest.slice(b),
       turns,

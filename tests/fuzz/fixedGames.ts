@@ -10,7 +10,7 @@ export const FIXED_GAMES: { name: string; record: GameRecord }[] = [
     name: "example: SAE picks its opening card before LIO",
     record: {
       setup: {
-        seedHash: "hash-example",
+        seedHash: "1fd8eb26858a1e8304ab35b040df3efd3a186f375855f61db6212c2f2271ef71",
         hands: { lio: ["c1", "c7"], sae: ["c2", "c5"] },
         deck: ["c3", "c6", "c9", "c12"],
         turns: 1,
