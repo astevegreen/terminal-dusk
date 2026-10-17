@@ -8,7 +8,8 @@ argument-hint: "[Notion page, or 'approved cards']"
 2. Rules and systems go to docs/design/<topic>.md, rewritten as precise rules: numbers, timing, edge cases.
    List every ambiguity you find and ask the owner before writing.
 3. Cards go to docs/design/cards/<era>.md as table rows. These are the specs the card skill builds from,
-   not card JSON.
+   not card JSON. Never copy an "Inspired by (original game; ...)" note from a card page, or any original-game
+   card name, into the repo, a commit message or a pull request. If one appears in a card's fields, stop and ask.
 4. Show the owner the diff. Commit on a branch design/<topic> and open a pull request labelled held.
 5. Set the Notion items to Promoted, with the pull request link.
 6. If engine or content work follows, offer to run /plan-tasks.
