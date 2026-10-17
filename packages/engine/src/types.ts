@@ -44,7 +44,8 @@ export type EngineErrorCode =
   | "notSupported"
   | "stepBudgetExceeded"
   | "invalidProgram"
-  | "alreadyAnswered";
+  | "alreadyAnswered"
+  | "unfinishedLog";
 export type EngineError = { code: EngineErrorCode; message?: string };
 export type Result<T> = { ok: true; value: T } | { ok: false; error: EngineError };
 
