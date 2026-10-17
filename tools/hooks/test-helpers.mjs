@@ -20,6 +20,8 @@ export function runHook(script, input, { args = [], env = {} } = {}) {
 }
 
 export const denied = (r) => r.json?.hookSpecificOutput?.permissionDecision === "deny";
+// The hook's permission decision ("allow", "ask" or "deny"), or "none" when it stayed silent.
+export const decision = (r) => r.json?.hookSpecificOutput?.permissionDecision ?? (r.stdout.trim() ? r.stdout : "none");
 
 export function sh(cmd, args, cwd) {
   const r = spawnSync(cmd, args, { cwd, encoding: "utf8", windowsHide: true });

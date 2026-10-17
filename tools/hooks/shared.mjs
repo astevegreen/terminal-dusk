@@ -83,17 +83,23 @@ export function lockedEntry(file, cwd) {
   return LOCKED.find((l) => (l.endsWith("/") ? rel.startsWith(fold(l)) : rel === fold(l))) ?? null;
 }
 
-export function deny(reason) {
+// Print a PreToolUse permission decision ("allow", "ask" or "deny") and stop the hook.
+// An "allow" never overrides the deny or ask rules in .claude/settings.json.
+export function decide(decision, reason) {
   process.stdout.write(
     JSON.stringify({
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
-        permissionDecision: "deny",
+        permissionDecision: decision,
         permissionDecisionReason: reason,
       },
     }),
   );
   process.exit(0);
+}
+
+export function deny(reason) {
+  decide("deny", reason);
 }
 
 export function limitLines(text, max) {
