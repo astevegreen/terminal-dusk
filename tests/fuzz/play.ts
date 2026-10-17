@@ -134,7 +134,7 @@ function randomEras(rng: Rng, turns: number, pool: readonly CardId[]): EraEntry[
     .map((turn) => {
       const cards = pool.slice(next, next + 1 + rng.int(MAX_ERA_CARDS));
       next += cards.length;
-      return { era: `era-${turn}`, turn, cards };
+      return { era: "fuzz", turn, cards };
     });
 }
 
