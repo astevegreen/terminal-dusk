@@ -1,4 +1,5 @@
-import { seedRng } from "./rng.ts";
+import { rulesetError, setupCardsError } from "./cardChecks.ts";
+import { seedRng, shuffle } from "./rng.ts";
 import { newGroup } from "./decisions.ts";
 import type { GameEvent, GameState, Result, Ruleset, Seed, Setup } from "./types.ts";
 
@@ -11,6 +12,8 @@ export function createGame(
   if (typeof seed !== "string" || seed.length === 0) {
     return { ok: false, error: { code: "invalidSeed", message: "The seed must not be empty." } };
   }
+  const badRuleset = rulesetError(ruleset);
+  if (badRuleset) return { ok: false, error: badRuleset };
   if (typeof setup?.seedHash !== "string" || setup.seedHash.length === 0) {
     return { ok: false, error: { code: "invalidSetup", message: "The setup needs a seedHash." } };
   }
@@ -27,6 +30,10 @@ export function createGame(
       error: { code: "invalidSetup", message: "The setup needs rounds of at least 1." },
     };
   }
+  const badCards = setupCardsError(ruleset, setup);
+  if (badCards) return { ok: false, error: badCards };
+  // The hands keep the setup's order; the draw pile is shuffled with the game's own generator.
+  const drawPile = shuffle(seedRng(seed), setup.deck);
   const state: GameState = {
     public: {
       turn: 1,
@@ -40,7 +47,7 @@ export function createGame(
       lio: { hand: [...setup.hands.lio], picks: [] },
       sae: { hand: [...setup.hands.sae], picks: [] },
     },
-    secret: { rng: seedRng(seed), deck: [...setup.deck] },
+    secret: { rng: drawPile.state, deck: drawPile.items },
     meta: { ruleset: ruleset.id, seedHash: setup.seedHash, seq: 0 },
   };
   return { ok: true, value: { state, events: [] } };

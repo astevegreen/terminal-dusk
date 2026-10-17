@@ -36,7 +36,7 @@ describe("legalAnswers", () => {
     expect(legalAnswers(ruleset, over, "sae")).toEqual([]);
   });
   it("rulesetMismatch: returns [] for a ruleset whose id is not state.meta.ruleset", () => {
-    expect(legalAnswers({ id: "another-ruleset" }, startGame(), "lio")).toEqual([]);
+    expect(legalAnswers({ ...ruleset, id: "another-ruleset" }, startGame(), "lio")).toEqual([]);
   });
 });
 

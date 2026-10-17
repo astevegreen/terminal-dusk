@@ -1,13 +1,34 @@
 // Plays one game for the fuzz suite, random or recorded, and checks every invariant along the way.
 // A failing game throws a report with its seed and answers, ready to keep in fixedGames.ts.
 import { apply, createGame, legalAnswers, pendingFor, SIDES } from "@terminal-dusk/engine";
-import type { Answer, AnswerValue, Decision, GameEvent, GameState, Ruleset, Seed, Setup } from "@terminal-dusk/engine";
+import type {
+  Answer,
+  AnswerValue,
+  CardDef,
+  CardId,
+  Decision,
+  GameEvent,
+  GameState,
+  Ruleset,
+  Seed,
+  Setup,
+} from "@terminal-dusk/engine";
 import { attempt, checkStep, firstDifference } from "./checks.ts";
 import { deepFreeze } from "./deepFreeze.ts";
 import { seededRng } from "./random.ts";
 import type { Rng } from "./random.ts";
 
-export const ruleset: Ruleset = deepFreeze({ id: "fuzz-ruleset" });
+/** Most cards in a random hand, and in a random draw pile. */
+const MAX_HAND = 8;
+const MAX_PILE = 30;
+/** Every card a random setup can use: two full hands and a full draw pile, c1 to c46. */
+export const FUZZ_CARDS: readonly CardId[] = Array.from({ length: 2 * MAX_HAND + MAX_PILE }, (_, i) => `c${i + 1}`);
+const AFFILIATIONS: readonly CardDef["affiliation"][] = ["lio", "sae", "neutral"];
+
+export const ruleset: Ruleset = deepFreeze({
+  id: "fuzz-ruleset",
+  cards: FUZZ_CARDS.map((id, i) => ({ id, era: "fuzz", ops: i % 5, affiliation: AFFILIATIONS[i % 3]!, effect: [] })),
+});
 /** Games played when FUZZ_GAMES is unset, as in `pnpm test`-style runs of this folder. */
 export const DEFAULT_GAMES = 100;
 /** A game still going after this many answers fails, so a rules loop can't hang the suite. */
@@ -46,12 +67,9 @@ export function playRecorded(name: string, record: GameRecord): Played {
  * in random order, and 1-6 placeholder rounds. Each round opens with a simultaneous pair (#33).
  */
 export function randomGame(rng: Rng, game: number): { setup: Setup; seed: Seed } {
-  const lio = rng.int(9);
-  const sae = rng.int(9);
-  const cards = shuffled(
-    rng,
-    Array.from({ length: lio + sae + rng.int(31) }, (_, i) => `c${i + 1}`),
-  );
+  const lio = rng.int(MAX_HAND + 1);
+  const sae = rng.int(MAX_HAND + 1);
+  const cards = shuffled(rng, FUZZ_CARDS.slice(0, lio + sae + rng.int(MAX_PILE + 1)));
   return {
     setup: {
       seedHash: `hash-${game}`,

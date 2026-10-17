@@ -3,11 +3,27 @@ import { apply } from "../apply.ts";
 import { createGame } from "../createGame.ts";
 import { legalAnswers } from "../decisions.ts";
 import { startProgram } from "../stack.ts";
-import type { Answer, GameEvent, GameState, Ruleset, Setup, Side, Step } from "../types.ts";
+import type { Answer, CardDef, CardId, GameEvent, GameState, Ruleset, Setup, Side, Step } from "../types.ts";
 
 type Played = { state: GameState; events: GameEvent[] };
 
-export const ruleset: Ruleset = { id: "test-ruleset" };
+/** A plain card for tests: era "test", `ops` ops (default 1), neutral, no effect. */
+export const testCard = (id: CardId, ops = 1): CardDef => ({
+  id,
+  era: "test",
+  ops,
+  affiliation: "neutral",
+  effect: [],
+});
+
+/** The test ruleset, holding exactly the cards `ids`. */
+export const rulesetWith = (ids: readonly CardId[]): Ruleset => ({
+  id: "test-ruleset",
+  cards: ids.map((id) => testCard(id)),
+});
+
+/** The test ruleset: cards c1 to c6, the ones makeSetup uses. */
+export const ruleset: Ruleset = rulesetWith(["c1", "c2", "c3", "c4", "c5", "c6"]);
 
 export const makeSetup = (rounds = 2): Setup => ({
   seedHash: "abc123",

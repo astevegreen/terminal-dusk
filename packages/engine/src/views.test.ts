@@ -3,7 +3,7 @@ import { hiddenPart, reconstruct, viewFor } from "./index.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
 import { playAnswers, startGame } from "./test/game.ts";
 
-// startGame: LIO holds c1, c2; SAE holds c3; the deck is c4, c5, c6.
+// startGame: LIO holds c1, c2; SAE holds c3; the deck is c4, c5, c6, shuffled.
 
 describe("viewFor", () => {
   it("a side gets the public compartment, its own private compartment as mine, and counts", () => {
@@ -65,12 +65,14 @@ describe("hiddenPart and reconstruct", () => {
     const view = viewFor(s, "sae");
     const hidden = hiddenPart(s, "sae");
     const rebuilt = reconstruct(view, hidden);
+    const deckBefore = [...hidden.secret.deck];
     rebuilt.private.sae.hand.push("x");
     rebuilt.private.lio.hand.push("x");
     rebuilt.secret.deck.push("x");
     expect(view.mine?.hand).toEqual(["c3"]);
     expect(hidden.opponent.hand).toEqual(["c1", "c2"]);
-    expect(hidden.secret.deck).toEqual(["c4", "c5", "c6"]);
+    expect(hidden.secret.deck).toEqual(deckBefore);
+    expect(deckBefore).toHaveLength(3);
   });
   it("a spectator view cannot be rebuilt, because it has no own hand", () => {
     const s = startGame();
