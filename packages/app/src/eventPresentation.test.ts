@@ -27,4 +27,10 @@ describe("eventPresentation", () => {
     );
     expect(eventPresentation.marker.log({ kind: "marker", visibility: "public", label: "done" })).toBe("Marker done.");
   });
+  it("logs a marker holding both sides' answers as each side's yes or no, in SIDES order", () => {
+    const value = { sae: false, lio: true };
+    expect(eventPresentation.marker.log({ kind: "marker", visibility: "public", label: "pick", value })).toBe(
+      "Marker pick: lio yes, sae no.",
+    );
+  });
 });

@@ -1,29 +1,37 @@
 // Property test: over random placeholder games with random hands and draw piles, and random programs
-// on the resolution stack, views rebuild the state exactly and never leak hidden data.
+// on the resolution stack (some with simultaneous pairs), views rebuild the state exactly and never
+// leak hidden data, including a side's unrevealed pick.
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { apply, createGame, hiddenPart, reconstruct, SIDES, viewFor } from "./index.ts";
-import type { Answer, GameState, Setup, Side, Step } from "./index.ts";
+import type { Answer, GameState, PlayerView, Setup, Side, Step, Viewer } from "./index.ts";
 import { startProgram } from "./stack.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
-import { choose, forEach, ifYes, marker, passFor, ruleset } from "./test/game.ts";
+import { choose, forEach, ifSaid, ifYes, marker, passFor, ruleset } from "./test/game.ts";
 
-type Move = { kind: "answer"; yes: boolean } | { kind: "resign"; side: Side } | { kind: "program"; steps: Step[] };
+/** An answer move answers the open decision at index `which` (mod the number open). */
+type Move =
+  { kind: "answer"; yes: boolean; which: number } | { kind: "resign"; side: Side } | { kind: "program"; steps: Step[] };
 type Game = { setup: Setup; seed: string; moves: Move[] };
 
 /**
  * A small random block, nested up to `depth` levels. Every `if` follows the `choose` that binds its
- * variable, and markers name only a variable in scope, so every program is valid.
+ * variable (naming a side when both sides chose), and markers name only a variable in scope, so every
+ * program is valid.
  */
 function blockArb(depth: number): fc.Arbitrary<Step[]> {
   const parts: fc.Arbitrary<Step[]>[] = [fc.constant([marker("m")])];
   if (depth > 0) {
-    const who = fc.constantFrom(...SIDES);
+    const who = fc.constantFrom<Side | "both">(...SIDES, "both");
     const over = fc.array(fc.constantFrom("a", "b", "c"), { maxLength: 3 });
     parts.push(
       fc
-        .tuple(who, blockArb(depth - 1), blockArb(depth - 1))
-        .map(([side, then, otherwise]) => [choose("c", side), ifYes("c", then, otherwise), marker("v", "c")]),
+        .tuple(who, fc.constantFrom(...SIDES), blockArb(depth - 1), blockArb(depth - 1))
+        .map(([chooser, side, then, otherwise]) => [
+          choose("c", chooser),
+          chooser === "both" ? ifSaid(side, "c", then, otherwise) : ifYes("c", then, otherwise),
+          marker("v", "c"),
+        ]),
       fc.tuple(over, blockArb(depth - 1)).map(([items, body]) => [forEach(items, "x", [marker("i", "x"), ...body])]),
     );
   }
@@ -32,7 +40,10 @@ function blockArb(depth: number): fc.Arbitrary<Step[]> {
 const programArb = blockArb(3);
 
 const moveArb: fc.Arbitrary<Move> = fc.oneof(
-  { arbitrary: fc.boolean().map((yes): Move => ({ kind: "answer", yes })), weight: 6 },
+  {
+    arbitrary: fc.record({ yes: fc.boolean(), which: fc.nat() }).map((a): Move => ({ kind: "answer", ...a })),
+    weight: 6,
+  },
   { arbitrary: programArb.map((steps): Move => ({ kind: "program", steps })), weight: 3 },
   { arbitrary: fc.constantFrom(...SIDES).map((side): Move => ({ kind: "resign", side })), weight: 1 },
 );
@@ -60,15 +71,17 @@ const gameArb: fc.Arbitrary<Game> = fc
     return { setup, seed: `seed-${seed}-x`, moves };
   });
 
-/** The answer a move gives to the open decision: pass, or yes/no for a paused program. */
+/** The answer a move gives to one of the open decisions: pass, or yes/no. */
 function answerFor(s: GameState, move: Extract<Move, { kind: "answer" }>): Answer {
-  const d = s.public.pending[0]!;
+  const d = s.public.pending[move.which % s.public.pending.length]!;
   return d.kind === "yesNo"
     ? { decisionId: d.id, side: d.side, value: { kind: "yesNo", yes: move.yes } }
     : passFor(s, d.side);
 }
 
-/** Every state the game passes through. A program starts only when none is running. */
+const halfAnswered = (s: GameState): boolean => SIDES.some((side) => s.private[side].picks.length > 0);
+
+/** Every state the game passes through. A program starts only when none is running and no pair is half answered. */
 function play(game: Game): GameState[] {
   const created = createGame(ruleset, game.setup, game.seed);
   if (!created.ok) throw new Error(`createGame failed: ${created.error.code}`);
@@ -76,7 +89,7 @@ function play(game: Game): GameState[] {
   for (const move of game.moves) {
     const s = states[states.length - 1]!;
     if (s.public.status.kind === "over") break;
-    if (move.kind === "program" && s.public.stack.length > 0) continue;
+    if (move.kind === "program" && (s.public.stack.length > 0 || halfAnswered(s))) continue;
     const r =
       move.kind === "program"
         ? startProgram(ruleset, s, move.steps)
@@ -114,12 +127,28 @@ describe("views over random games", () => {
       { numRuns: 300 },
     );
   });
-  it("the random games really pause programs on the stack", () => {
-    const paused = fc
-      .sample(gameArb, { numRuns: 200, seed: 1 })
-      .flatMap(play)
-      .filter((s) => s.public.stack.length > 1);
-    expect(paused.length).toBeGreaterThan(20);
+  it("the random games really pause programs on the stack, and really leave pairs half answered", () => {
+    const states = fc.sample(gameArb, { numRuns: 200, seed: 1 }).flatMap(play);
+    expect(states.filter((s) => s.public.stack.length > 1).length).toBeGreaterThan(20);
+    expect(states.filter(halfAnswered).length).toBeGreaterThan(20);
+    expect(states.filter((s) => s.public.stack.length > 0 && halfAnswered(s)).length).toBeGreaterThan(5);
+  });
+  it("when a side makes its pick, the other side's and the spectator's views change only in meta.seq and public.pending", () => {
+    const setAside = (v: PlayerView) => ({ ...v, meta: { ...v.meta, seq: 0 }, public: { ...v.public, pending: [] } });
+    fc.assert(
+      fc.property(gameArb, (game) => {
+        const states = play(game);
+        for (let i = 1; i < states.length; i++) {
+          const [before, after] = [states[i - 1]!, states[i]!];
+          const picker = SIDES.find((side) => after.private[side].picks.length > before.private[side].picks.length);
+          if (!picker) continue;
+          for (const viewer of [...SIDES.filter((x) => x !== picker), "spectator"] as Viewer[]) {
+            expect(setAside(viewFor(after, viewer))).toEqual(setAside(viewFor(before, viewer)));
+          }
+        }
+      }),
+      { numRuns: 300 },
+    );
   });
   it("no view for lio, sae or spectator contains generator state, the seed, a draw-pile card or an unseen hand card", () => {
     fc.assert(

@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 import { apply } from "./apply.ts";
 import type { Answer } from "./index.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
-import { accepted, choose, passFor, playPasses, ruleset, startGame, startWith } from "./test/game.ts";
+import { accepted, choose, passFor, playAnswers, ruleset, startAtPass, startGame, startWith } from "./test/game.ts";
 
 const code = (r: ReturnType<typeof apply>) => (r.ok ? "ok" : r.error.code);
 
 describe("apply: rejected answers", () => {
-  const s = startGame();
+  const s = startAtPass();
   it("unknown decision ID", () => {
     const a: Answer = { decisionId: "nope", side: "lio", value: { kind: "pass" } };
     expect(code(apply(ruleset, s, a))).toBe("unknownDecision");
@@ -21,8 +21,8 @@ describe("apply: rejected answers", () => {
     expect(code(apply(ruleset, s, a))).toBe("illegalAnswer");
   });
   it("a game that is already over", () => {
-    const first = startGame(1);
-    const over = playPasses(first, 2);
+    const first = startAtPass(1);
+    const over = playAnswers(first, 2);
     expect(code(apply(ruleset, over, { system: "resign", side: "lio" }))).toBe("gameOver");
     expect(code(apply(ruleset, over, passFor(first, "lio")))).toBe("gameOver");
   });
@@ -53,17 +53,17 @@ describe("apply: accepted answers", () => {
     let s = startGame(3);
     for (let i = 0; i < 6; i++) {
       expect(s.meta.seq).toBe(i);
-      s = playPasses(s, 1);
+      s = playAnswers(s, 1);
     }
     expect(s.meta.seq).toBe(6);
   });
   it("returns no events", () => {
-    const s = startGame();
+    const s = startAtPass();
     const r = apply(ruleset, s, passFor(s, "lio"));
     expect(r.ok && r.value.events).toEqual([]);
   });
   it("never changes deep-frozen inputs", () => {
-    const s = deepFreeze(startGame());
+    const s = deepFreeze(startAtPass());
     const answer = deepFreeze(passFor(s, "lio"));
     expect(apply(deepFreeze({ ...ruleset }), s, answer).ok).toBe(true);
   });
@@ -82,7 +82,7 @@ describe("apply: accepted answers", () => {
     }
   });
   it("state stays plain JSON with integers only", () => {
-    const s = playPasses(startGame(), 3);
+    const s = playAnswers(startGame(), 3);
     expect(JSON.parse(JSON.stringify(s))).toEqual(s);
     expect(Number.isInteger(s.public.turn) && Number.isInteger(s.meta.seq)).toBe(true);
   });

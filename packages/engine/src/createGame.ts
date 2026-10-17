@@ -1,5 +1,5 @@
 import { seedRng } from "./rng.ts";
-import { newDecision } from "./decisions.ts";
+import { newGroup } from "./decisions.ts";
 import type { GameEvent, GameState, Result, Ruleset, Seed, Setup } from "./types.ts";
 
 /** Builds a starting game. Bad input returns an error; it never throws. */
@@ -32,13 +32,13 @@ export function createGame(
       turn: 1,
       rounds: setup.rounds,
       discard: [],
-      pending: [newDecision(0, "lio", "pass")],
+      pending: newGroup(0, "yesNo"),
       stack: [],
       status: { kind: "active" },
     },
     private: {
-      lio: { hand: [...setup.hands.lio] },
-      sae: { hand: [...setup.hands.sae] },
+      lio: { hand: [...setup.hands.lio], picks: [] },
+      sae: { hand: [...setup.hands.sae], picks: [] },
     },
     secret: { rng: seedRng(seed), deck: [...setup.deck] },
     meta: { ruleset: ruleset.id, seedHash: setup.seedHash, seq: 0 },

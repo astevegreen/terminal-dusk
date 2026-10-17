@@ -26,7 +26,8 @@ export type EngineErrorCode =
   | "gameOver"
   | "notSupported"
   | "stepBudgetExceeded"
-  | "invalidProgram";
+  | "invalidProgram"
+  | "alreadyAnswered";
 export type EngineError = { code: EngineErrorCode; message?: string };
 export type Result<T> = { ok: true; value: T } | { ok: false; error: EngineError };
 
@@ -66,6 +67,11 @@ export type Decision = {
   side: Side;
   kind: DecisionKind;
   options: DecisionOptions;
+  /**
+   * Set when both sides answer at once and in secret: the group both decisions share. Each answer
+   * stays in the answering side's private compartment until the other side's is in.
+   */
+  simultaneousGroup?: string;
 };
 
 export type AnswerValue = { kind: "pass" } | { kind: "yesNo"; yes: boolean };
@@ -73,13 +79,18 @@ export type Answer =
   { decisionId: string; side: Side; value: AnswerValue } | { system: "timeout" | "resign" | "adjudicate"; side: Side };
 
 export type VarName = string;
-/** A variable's value: a yes/no answer, or the current item of a forEach. */
-export type VarValue = boolean | string;
-/** True when the yes/no variable `var` holds yes. */
-export type Condition = { op: "yes"; var: VarName };
+/** Both sides' yes/no answers to a simultaneous choice, keyed by side in SIDES order. */
+export type BothAnswers = Record<Side, boolean>;
+/** A variable's value: one side's yes/no answer, both sides' answers, or the current item of a forEach. */
+export type VarValue = boolean | BothAnswers | string;
+/**
+ * True when the yes/no variable `var` holds yes. For a variable holding both sides' answers, `side`
+ * names whose answer to read; for one side's answer it is left out.
+ */
+export type Condition = { op: "yes"; var: VarName; side?: Side };
 /** One step of an effect program (docs/architecture.md, section 4). More kinds arrive with later tasks. */
 export type Step =
-  | { op: "choose"; who: Side; decision: { kind: "yesNo" }; bind: VarName }
+  | { op: "choose"; who: Side | "both"; decision: { kind: "yesNo" }; bind: VarName }
   | { op: "if"; cond: Condition; then: Step[]; else?: Step[] }
   | { op: "forEach"; over: string[]; bind: VarName; do: Step[] }
   | { op: "marker"; label: string; var?: VarName };
@@ -108,8 +119,10 @@ export type PublicState = {
   stack: Frame[];
   status: GameStatus;
 };
-/** Visible to one side only. */
-export type PrivateState = { hand: CardId[] };
+/** A side's answer to its decision in a simultaneous group, kept secret until the other side's is in. */
+export type UnrevealedPick = { group: string; decisionId: string; value: AnswerValue };
+/** Visible to one side only: its hand, and its own unrevealed picks. */
+export type PrivateState = { hand: CardId[]; picks: UnrevealedPick[] };
 /** Visible to the host only. */
 export type SecretState = { rng: RngState; deck: CardId[] };
 export type MetaState = { ruleset: RulesetId; seedHash: string; seq: number };
@@ -134,6 +147,6 @@ export type Setup = {
   seedHash: string;
   hands: Record<Side, CardId[]>;
   deck: CardId[];
-  /** Placeholder game length: how many times each side answers. Replaced by the turn structure (#35). */
+  /** Placeholder game length in rounds (see apply.ts). Replaced by the turn structure (#35). */
   rounds: number;
 };
