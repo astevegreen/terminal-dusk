@@ -126,6 +126,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/gemini/prompts/weekly-audit.md`
 - `tools/git-hooks/pre-commit` - Git pre-commit hook: formats the staged files with Prettier, then refreshes docs/repo-map.md.
 - `tools/git-hooks/pre-commit.test.mjs`
+- `tools/handoff-notes.mjs` - Handoff notes for the /handoff skill.
+- `tools/handoff-notes.test.mjs`
 - `tools/hooks/bash-guard.mjs` - PreToolUse (Bash): catch disguised versions of denied commands anywhere in a command line.
 - `tools/hooks/bash-guard.test.mjs`
 - `tools/hooks/env-check.mjs` - SessionStart (startup): check this machine is set up the way the project expects.
@@ -134,6 +136,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/hooks/file-lock.test.mjs`
 - `tools/hooks/gate.mjs` - Stop (and the implementer's SubagentStop): run `pnpm gate` before Claude may finish.
 - `tools/hooks/gate.test.mjs`
+- `tools/hooks/handoff-nudge.mjs` - Stop and SessionStart hook for the /handoff skill (the notes themselves: tools/handoff-notes.mjs).
+- `tools/hooks/handoff-nudge.test.mjs`
 - `tools/hooks/quick-check.mjs` - PostToolUse (Edit|Write): fast checks on the one file just edited.
 - `tools/hooks/quick-check.test.mjs`
 - `tools/hooks/settings.test.mjs` - Tests for the web rules in .claude/settings.json and the agents' own tool limits.
@@ -169,7 +173,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `.claude/settings.json`
 - `.claude/skills/art-prompts/SKILL.md` - Write image-generation prompts for cards from their data and the art style guide. Run as /art-prompts.
 - `.claude/skills/card/SKILL.md` - Add or change a card in packages/content - data, test and history note. Use for any card work.
-- `.claude/skills/handoff/SKILL.md` - Write a short hand-off note before ending a long session or switching devices. Run as /handoff.
+- `.claude/skills/handoff/SKILL.md` - Write a handoff note so a fresh session can pick up the work, or resume from one. Use when the owner says handoff, wrap up or resume, when the handoff hook say…
 - `.claude/skills/implement-issue/SKILL.md` - Implement one GitHub issue or fix one pull request end to end, with tests and a pull request.
 - `.claude/skills/night-shift/SKILL.md` - Overnight coordinator for the ready queue. Run only as /night-shift.
 - `.claude/skills/plan-tasks/SKILL.md` - Turn a promoted design decision into night-shift-ready GitHub issues. Run as /plan-tasks.
