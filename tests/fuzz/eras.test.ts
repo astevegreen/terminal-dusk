@@ -8,14 +8,14 @@ import { playFuzzGame, randomGame, ruleset } from "./play.ts";
 import { seededRng } from "./random.ts";
 
 const SEED = "eras-seed";
-/** Two turns of one play each: LIO holds c1, c4, c7, c10; SAE c2, c5, c8, c11; era-2 brings c3 and c6. */
+/** Two turns of one play each: LIO holds c1, c4, c7, c10; SAE c2, c5, c8, c11; the fuzz era brings c3 and c6. */
 const SETUP: Setup = {
   seedHash: "hash",
   hands: { lio: ["c1", "c4", "c7", "c10"], sae: ["c2", "c5", "c8", "c11"] },
   deck: ["c12", "c13", "c14"],
   turns: 2,
   playsPerTurn: 1,
-  eras: [{ era: "era-2", turn: 2, cards: ["c3", "c6"] }],
+  eras: [{ era: "fuzz", turn: 2, cards: ["c3", "c6"] }],
 };
 
 function started(setup: Setup = SETUP): GameState {

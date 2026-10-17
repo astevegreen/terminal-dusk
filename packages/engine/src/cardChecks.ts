@@ -40,20 +40,28 @@ const holdsCardChoice = (steps: readonly Step[]): boolean =>
 
 /**
  * Why the setup's cards are wrong, or null: every card in the hands, the draw pile and the later eras
- * is in the ruleset, and none twice, within one list or across them. Run after erasError.
+ * is in the ruleset, and none twice, within one list or across them. A card listed under a later era
+ * must be from that era (its `era` matches the entry's). Run after erasError.
  */
 export function setupCardsError(ruleset: Ruleset, setup: Setup): EngineError | null {
-  const known = new Set(ruleset.cards.map((card) => card.id));
+  const eraOfCard = new Map(ruleset.cards.map((card) => [card.id, card.era]));
   const used = new Set<CardId>();
-  const places: [string, readonly CardId[]][] = [
+  const places: [string, readonly CardId[], string?][] = [
     ["LIO's hand", setup.hands.lio],
     ["SAE's hand", setup.hands.sae],
     ["the draw pile", setup.deck],
-    ...(setup.eras ?? []).map((entry): [string, readonly CardId[]] => [`era ${entry.era}`, entry.cards]),
+    ...(setup.eras ?? []).map((entry): [string, readonly CardId[], string?] => [
+      `era ${entry.era}`,
+      entry.cards,
+      entry.era,
+    ]),
   ];
-  for (const [place, cards] of places) {
+  for (const [place, cards, era] of places) {
     for (const card of cards) {
-      if (!known.has(card)) return invalidSetup(`${place} holds ${card}, which the ruleset doesn't have.`);
+      if (!eraOfCard.has(card)) return invalidSetup(`${place} holds ${card}, which the ruleset doesn't have.`);
+      if (era !== undefined && eraOfCard.get(card) !== era) {
+        return invalidSetup(`${place} holds ${card}, which belongs to era ${eraOfCard.get(card)}, not ${era}.`);
+      }
       if (used.has(card)) return invalidSetup(`${card} is in the setup twice (again in ${place}).`);
       used.add(card);
     }

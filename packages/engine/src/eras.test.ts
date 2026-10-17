@@ -12,7 +12,13 @@ import type { EraEntry, GameEvent, GameState, Setup } from "./types.ts";
 
 /** The test ruleset plus e1-e8, neutral cards for the eras. */
 const ERA_CARDS = ["e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8"];
-const rs = rulesetWith([...ruleset.cards.map((card) => card.id), ...ERA_CARDS]);
+/** e1-e4 belong to era2, e5-e8 to era3: a card listed under an era must say it is from that era. */
+const eraOf = (id: string) => (Number(id.slice(1)) <= 4 ? "era2" : "era3");
+const base = rulesetWith([...ruleset.cards.map((card) => card.id), ...ERA_CARDS]);
+const rs = {
+  ...base,
+  cards: base.cards.map((card) => (ERA_CARDS.includes(card.id) ? { ...card, era: eraOf(card.id) } : card)),
+};
 
 /** makeSetup over `turns` turns, with `eras`. */
 const withEras = (eras: EraEntry[], turns = 3): Setup => ({ ...makeSetup(turns), eras });
@@ -75,6 +81,13 @@ describe("createGame checks the setup's eras", () => {
   });
   it("rejects an era card already in a hand", () => {
     expect(codeFor(withEras([{ ...ERA_2, cards: ["e1", "n1"] }]))).toBe("invalidSetup");
+  });
+  it("rejects an era card that belongs to a different era than the one it is listed under", () => {
+    expect(codeFor(withEras([{ ...ERA_2, cards: ["e1", "e5"] }]))).toBe("invalidSetup");
+  });
+  it("says which card and which eras clash", () => {
+    const r = createGame(rs, withEras([{ ...ERA_2, cards: ["e1", "e5"] }]), "seed-1");
+    expect(!r.ok && r.error.message).toMatch(/e5.*era3.*era2/);
   });
   it("rejects an era card already in another era", () => {
     expect(codeFor(withEras([ERA_2, { era: "era3", turn: 3, cards: ["e5", "e2"] }]))).toBe("invalidSetup");
