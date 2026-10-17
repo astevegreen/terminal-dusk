@@ -140,13 +140,13 @@ function apiReads(args) {
 
 // By day: "read" for gh api reads and gh repo view, "write" for any other gh api or gh repo call, else null.
 // A call bash might read differently from this hook (quotes glued to text, backslashes, a prefix such
-// as GH_HOST=, or a path to some other gh) counts as a write.
+// as GH_HOST=, a path to some other gh, or a $ or backtick that could run a command) counts as a write.
 function ghKind(seg) {
   const { name, args } = commandName(seg.words);
   if (name !== "gh") return null;
   const { sub, rest } = ghSub(args);
   if (sub !== "api" && sub !== "repo") return null;
-  const exact = seg.plain && /^gh(\.exe)?$/i.test(seg.words[0]);
+  const exact = seg.plain && /^gh(\.exe)?$/i.test(seg.words[0]) && !seg.words.some((w) => /[$`]/.test(w));
   const reads = exact && (sub === "api" ? apiReads(rest) : rest.find((a) => !a.startsWith("-")) === "view");
   if (!reads) return "write";
   return seg.redirects.length ? null : "read";
