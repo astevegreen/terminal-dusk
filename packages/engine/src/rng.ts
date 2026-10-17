@@ -15,8 +15,10 @@ const MAX_N = 2147483648; // 2^31
 
 /**
  * SEED METHOD (must never change): the seed string is mixed with a four-lane integer hash
- * (the cyrb128 scheme: Math.imul by fixed odd constants and xor-shifts over each UTF-16 code unit),
- * which gives the four starting words. Then 15 values are thrown away so a poor seed still starts well.
+ * (a variant of cyrb128: Math.imul by fixed odd constants and xor-shifts over each UTF-16 code unit),
+ * which gives the four starting words. The final step differs from real cyrb128: after the four
+ * finishing mixes, the words are [h1^h2^h3^h4, h2^h1, h3^h1, h4^h1] where h1 is the value from
+ * those finishing mixes (real cyrb128 XORs in the already-combined first word). Then 15 values are thrown away so a poor seed still starts well.
  * The same string always gives the same state.
  */
 export function seedRng(seed: string): RngState {
