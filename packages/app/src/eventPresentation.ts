@@ -18,4 +18,5 @@ export const eventPresentation: EventPresentation = {
     log: (event) =>
       event.value === undefined ? `Marker ${event.label}.` : `Marker ${event.label}: ${shown(event.value)}.`,
   },
+  pointsSpent: { log: (event) => `${event.side} spent ${event.amount} points.` },
 };
