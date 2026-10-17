@@ -69,6 +69,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/rng.ts` - Seeded random numbers for the rules engine. Exports: RngState, seedRng, hashSeed, nextInt, shuffle.
 - `packages/engine/src/stack.test.ts`
 - `packages/engine/src/stack.ts` - The resolution stack: runs program steps until one needs a player's choice, records that as the pending decision and stops. Exports: stepBudget, startProgram, resumeStack.
+- `packages/engine/src/stepBudget.test.ts`
 - `packages/engine/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
 - `packages/engine/src/test/game.ts` - Test helpers: a started placeholder game, answers for it, and small programs for the stack. Exports: ruleset, makeSetup, startGame, passFor, accepted, playPasses, startWith, yesNoAnswer, answerYesNo, markers, marker, choose, ….
 - `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: Side, SIDES, CardId, RulesetId, Seed, Ruleset, EngineErrorCode, EngineError, Result, Visibility, Viewer, CardDrawnHidden, ….
