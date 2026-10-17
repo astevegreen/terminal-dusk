@@ -101,9 +101,13 @@ describe("simultaneous decisions: the first answer stays secret", () => {
     expect(r.ok && r.value.events).toEqual([]);
   });
   it("hiddenPart carries the other side's unrevealed pick, and reconstruct rebuilds the state exactly", () => {
-    const half = deepFreeze(accepted(paused(), yesNoAnswer(paused(), true, "lio")));
-    expect(hiddenPart(half, "sae").opponent.picks).toEqual(half.private.lio.picks);
-    for (const side of SIDES) expect(reconstruct(viewFor(half, side), hiddenPart(half, side))).toStrictEqual(half);
+    const halfPair = deepFreeze(accepted(paused(), yesNoAnswer(paused(), true, "lio")));
+    const halfOpening = deepFreeze(accepted(startGame(), cardAnswer(startGame(), "lio", "l2")));
+    for (const half of [halfPair, halfOpening]) {
+      expect(hiddenPart(half, "sae").opponent.picks).toEqual(half.private.lio.picks);
+      expect(half.private.lio.picks).toHaveLength(1);
+      for (const side of SIDES) expect(reconstruct(viewFor(half, side), hiddenPart(half, side))).toStrictEqual(half);
+    }
   });
 });
 
