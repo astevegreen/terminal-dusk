@@ -126,7 +126,7 @@ Set it up once in the desktop app's Code tab, under Routines → New routine →
 
 | Setting         | Value                                                                                                     |
 | --------------- | --------------------------------------------------------------------------------------------------------- |
-| Schedule        | Daily, 11:30 pm                                                                                           |
+| Schedule        | Daily, 11:00 pm                                                                                           |
 | Folder          | The `terminal-dusk` repo                                                                                  |
 | Permission mode | Auto                                                                                                      |
 | Model           | Sonnet                                                                                                    |
@@ -143,7 +143,7 @@ then, for each issue labelled ready, in dependency order, up to the nightly cap 
   3. hand the result to the reviewer subagent; if it raises concerns, one more implementer pass
   4. gates green and review passed -> push, open a pull request (auto-merge if allowed)
      otherwise -> label blocked or held, attach the report
-stop early if: the queue is empty, two tasks in a row fail, a usage-limit error appears, or it is after 7 am
+stop early if: the queue is empty, two tasks in a row fail, a usage-limit error appears, or it is after 3:30 am
 finally: post one "Night shift" summary comment: done, held, blocked, usage notes
 ```
 
@@ -151,13 +151,13 @@ finally: post one "Night shift" summary comment: done, held, blocked, usage note
 - **Subagents run one at a time**, never in parallel. Parallel runs use your limits faster and can conflict.
 - **The implementer agent file** (`.claude/agents/implementer.md`) sets `model`, `isolation: worktree`, `maxTurns` and the gate hook. A Stop hook in an agent's file runs when that subagent tries to hand back.
 - **The task only fires while the desktop app is running and the PC is awake.** Turn on **Keep computer awake** (Settings → Desktop app → General) and leave the app open; minimised is fine.
-- **Missed nights.** If the PC was asleep at 11:30 pm, the app starts one catch-up run when it wakes. The "after 7 am, stop" rule keeps that from using your day's limits.
+- **Missed nights.** If the PC was asleep at 11:00 pm, the app starts one catch-up run when it wakes. The "stop between 3:30 am and 5 pm" rule keeps that from using your day's limits.
 - **Where to look.** Runs appear under **Scheduled** in the sidebar, with a notification. A run that stalls on a permission prompt waits there for you.
 - **First run.** Click **Run now** once while you're watching, and answer any prompt with "always allow" so later runs don't stall.
 
 **Option B: a script and the CLI (alternative)**
 
-The same procedure as plain code (`tools/night-shift.ts`), started by Windows Task Scheduler at about 11:30 pm or by `pnpm night` before bed. It enforces turn limits and the 7 am cutoff in code, spends no usage on the loop itself, and writes log files. The cost is that it runs in a terminal you'll rarely look at. Switch to it if the desktop coordinator proves unreliable.
+The same procedure as plain code (`tools/night-shift.ts`), started by Windows Task Scheduler at about 11:00 pm or by `pnpm night` before bed. It enforces turn limits and the 3:30 am cutoff in code, spends no usage on the loop itself, and writes log files. The cost is that it runs in a terminal you'll rarely look at. Switch to it if the desktop coordinator proves unreliable.
 
 ```text
 first: give each held pull request with new comments (yours or Gemini's) one fix pass
@@ -168,7 +168,7 @@ then, for each issue labelled ready, in dependency order, up to the nightly cap 
   3. gates green and reviewer passed -> push, open a pull request (auto-merge if allowed)
      otherwise -> label blocked or held, attach the session's report
   4. remove the worktree
-stop early if: the queue is empty, two tasks in a row fail, a usage-limit error appears, or it is 7 am
+stop early if: the queue is empty, two tasks in a row fail, a usage-limit error appears, or it is 3:30 am
 finally: post one "Night shift" summary comment: done, held, blocked, usage notes
 ```
 
@@ -246,14 +246,14 @@ Gemini works through Antigravity: the desktop app for interactive work and brows
 | Job                | When                              | How                                                                                                    | Output                                                                           |
 | ------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
 | Spec audit         | Evenings, after `plan-tasks`      | `agy -p` with a saved audit prompt; plan-tasks runs it at the end                                      | A comment on each new issue: gaps, contradictions, missing edge cases            |
-| Pull request audit | 6 am, after the night shift       | A 6 am scheduled task runs `agy -p` on each new pull request's diff                                    | A pull request comment marked blocker or note                                    |
+| Pull request audit | 4:30 am, after the night shift    | A 4:30 am scheduled task runs `agy -p` on each new pull request's diff                                 | A pull request comment marked blocker or note                                    |
 | Repo audit         | Weekly                            | `agy -p` over the whole repo against `docs/architecture.md`                                            | A comment on the pinned "Gemini weekly audit" issue: drift, dead code, test gaps |
 | Browser test       | Weekly, and before every playtest | Antigravity app's browser agent plays the nightly build from a test script, at phone and desktop sizes | Screenshots and bug issues                                                       |
 | Research briefs    | On request                        | Antigravity app                                                                                        | `docs/research/<topic>.md` with sources                                          |
 | Design prep        | Before a design session           | Antigravity app                                                                                        | Event lists, critiques or idea lists for Notion                                  |
 | Repo narrative     | Monthly                           | `agy -p`                                                                                               | A plain-English "how the code is organised" page for you                         |
 
-**Scheduling the audits.** The 6 am and weekly audits are small desktop scheduled tasks whose only step is running `tools/gemini-audit.ts`. Use Haiku in Manual mode with that one command set to "always allow" (Auto mode doesn't support Haiku), so each run costs almost no Claude usage. Windows Task Scheduler can run the same script with no Claude usage at all.
+**Scheduling the audits.** The 4:30 am and weekly audits are small desktop scheduled tasks whose only step is running `tools/gemini-audit.ts`. Use Haiku in Manual mode with that one command set to "always allow" (Auto mode doesn't support Haiku), so each run costs almost no Claude usage. Windows Task Scheduler can run the same script with no Claude usage at all.
 
 **Settings.** Gemini gets read access and nothing else. The `tools/gemini-audit.mjs` script hands it the material, runs `agy -p`, and posts the findings to GitHub itself, so Gemini never needs GitHub access. Never use `--dangerously-skip-permissions`; in headless runs, anything not pre-approved is quietly refused.
 
@@ -297,7 +297,7 @@ The nightly preview build is the shared test bed for you, Gemini and your friend
 - **Feedback goes through the Notion form.** It asks for the match ID (shown in the game menu), the device, what was confusing, and what was fun. The form never asks for code-level detail.
 - **Weekly triage** (weekend, about 30 minutes): you and Claude (Opus, in the claude.ai Project with Notion connected) sort the week's feedback into design questions for Notion and bug issues for the queue.
 - **Every bug report with a match ID becomes a regression test.** Claude rebuilds the game from its move log and keeps it as a golden replay, so the same bug can't return unnoticed.
-- **Scripted sessions before big changes.** For a new era or a rules change, give friends one specific goal ("try to win as the West using only ops"). Focused tests find more than open play.
+- **Scripted sessions before big changes.** For a new era or a rules change, give friends one specific goal ("try to win as LIO using only ops"). Focused tests find more than open play.
 
 **Balance data.** Once AI-vs-AI games and online games run, results by side are recorded automatically. Review them monthly in a design session; balance changes then go through the normal design and promotion steps.
 
@@ -388,16 +388,17 @@ The desktop app keeps scheduled tasks outside the repo, in `~/.claude/scheduled-
 
 Your attention goes to three short slots a day; machines fill the rest. Times are suggestions in Eastern time.
 
-| When                     | Who                   | What                                                                                                                                                         | Your time |
-| ------------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- |
-| 11:30 pm–7 am            | Night shift           | Held pull requests first, then `ready` issues, one at a time                                                                                                 | None      |
-| 6 am                     | Gemini                | Audits each new pull request                                                                                                                                 | None      |
-| Morning, on your phone   | You                   | Read the "Night shift" summary in the GitHub app. Answer questions on `held` and `blocked` items in plain words. Merge held pull requests you're happy with. | 10–15 min |
-| After the morning merges | CI                    | Deploys the nightly preview                                                                                                                                  | None      |
-| Daytime, optional        | You                   | Play the preview for five minutes if something visible changed; file a bug from your phone if needed                                                         | 0–10 min  |
-| Evening                  | You and Claude (Opus) | One of: a design session, a spec session (`plan-tasks`), or a fix session through Remote Control                                                             | ~1 hour   |
-| Evening, after specs     | Gemini                | Audits new specs                                                                                                                                             | None      |
-| Before bed               | You                   | Skim spec audits, ask Claude to fold in the valid points, add `ready` to 2–6 issues                                                                          | 5–10 min  |
+| When                        | Who                   | What                                                                                                                                                         | Your time |
+| --------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- |
+| 11:00 pm–3:30 am            | Night shift           | Held pull requests first, then `ready` issues, one at a time                                                                                                 | None      |
+| 4 am                        | Nightly CI            | Full gate and 10,000-game fuzz on `main` (08:00 UTC; an hour earlier in winter)                                                                              | None      |
+| 4:30 am                     | Gemini                | Audits each new pull request                                                                                                                                 | None      |
+| 6:00–6:30 am, on your phone | You                   | Read the "Night shift" summary in the GitHub app. Answer questions on `held` and `blocked` items in plain words. Merge held pull requests you're happy with. | 10–15 min |
+| After the morning merges    | CI                    | Deploys the nightly preview                                                                                                                                  | None      |
+| Daytime, optional           | You                   | Play the preview for five minutes if something visible changed; file a bug from your phone if needed                                                         | 0–10 min  |
+| Evening                     | You and Claude (Opus) | One of: a design session, a spec session (`plan-tasks`), or a fix session through Remote Control                                                             | ~1 hour   |
+| Evening, after specs        | Gemini                | Audits new specs                                                                                                                                             | None      |
+| Before bed                  | You                   | Skim spec audits, ask Claude to fold in the valid points, add `ready` to 2–6 issues                                                                          | 5–10 min  |
 
 **Weekly (weekend)**
 
