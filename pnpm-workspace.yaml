@@ -6,6 +6,7 @@ packages:
 # One version of each shared tool for the whole repo. Packages ask for it with "catalog:".
 # TypeScript stays on 6.0: typescript-eslint and the boundary check need its compiler API, which 7.0 lacks.
 catalog:
+  fast-check: ^4.0.0
   "@types/react": ^19.0.0
   "@types/react-dom": ^19.0.0
   "@vitejs/plugin-react": ^6.0.0

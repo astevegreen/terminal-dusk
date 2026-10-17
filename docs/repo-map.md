@@ -50,6 +50,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/package.json`
 - `packages/engine/src/index.test.ts`
 - `packages/engine/src/index.ts` - Public entry point of the rules engine.
+- `packages/engine/src/rng.test.ts`
+- `packages/engine/src/rng.ts` - Seeded random numbers for the rules engine. Exports: RngState, seedRng, nextInt, shuffle.
 - `packages/engine/tsconfig.json` - The engine sees only the JavaScript language itself: no DOM and no Node types, so timers, fetch, document and the like fail the type check (hard rule 1).
 
 ## packages/host - MatchHost: runs a match around the engine (players, clock, move log, frames) without doing I/O.
