@@ -61,7 +61,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, createGame, legalAnswers, pendingFor, SIDES, Answer, AnswerValue, CardId, Decision, DecisionKind, DecisionOptions, EngineError, ….
 - `packages/engine/src/placeholderGame.test.ts`
 - `packages/engine/src/rng.test.ts`
-- `packages/engine/src/rng.ts` - Seeded random numbers for the rules engine. Exports: RngState, seedRng, nextInt, shuffle.
+- `packages/engine/src/rng.ts` - Seeded random numbers for the rules engine. Exports: RngState, seedRng, hashSeed, nextInt, shuffle.
 - `packages/engine/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
 - `packages/engine/src/test/game.ts` - Test helpers: a started placeholder game, and answers for it. Exports: ruleset, makeSetup, startGame, passFor, accepted, playPasses.
 - `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: Side, SIDES, CardId, RulesetId, Seed, Ruleset, EngineErrorCode, EngineError, Result, GameEvent, DecisionKind, DecisionOptions, ….
