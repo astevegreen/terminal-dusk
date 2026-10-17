@@ -43,6 +43,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## packages/content - Cards, map, scenarios and tutorial as JSON data, plus the schemas that check them.
 
 - `packages/content/package.json`
+- `packages/content/schema/card.test.ts`
+- `packages/content/schema/card.ts` - The card schema: what one card file in packages/content/cards/ must hold (docs/architecture.md, section 4). Exports: CardStep, stepSchema, cardSchema.
+- `packages/content/schema/card.types.test.ts` - Type-level checks, run by `tsc` (the typecheck script): the card schema and the engine's types can't drift apart.
 - `packages/content/schema/index.test.ts`
 - `packages/content/schema/index.ts` - Content schemas, one per content folder of this package (cards/ is checked by schemas.cards, and so on). Exports: ContentIssue, ContentSchema, schemas.
 - `packages/content/src/index.test.ts`
