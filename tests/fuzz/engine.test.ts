@@ -1,4 +1,4 @@
-// Fuzz suite: plays FUZZ_GAMES random placeholder games and checks invariants 1, 4, 5 and 6 of
+// Fuzz suite: plays FUZZ_GAMES random games and checks invariants 1, 4, 5 and 6 of
 // docs/architecture.md ("Guardrails", "Fuzz suite") at every step. See tests/fuzz/play.ts.
 import { describe, expect, it } from "vitest";
 import { FIXED_GAMES } from "./fixedGames.ts";
