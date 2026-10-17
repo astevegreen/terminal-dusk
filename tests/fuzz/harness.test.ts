@@ -1,8 +1,17 @@
 // Tests for the fuzz harness itself: each check catches what it should, so a green fuzz run means something.
-import { apply, createGame, pendingFor, SIDES } from "@terminal-dusk/engine";
+import { apply, createGame, pendingFor, seedHash, SIDES } from "@terminal-dusk/engine";
 import type { Answer, GameEvent, GameState, Setup, Side } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
-import { attempt, checkLive, checkNoLeaks, checkRebuilds, hiddenFrom, leaksIn } from "./checks.ts";
+import {
+  attempt,
+  checkLive,
+  checkNoLeaks,
+  checkRebuilds,
+  checkSeedHash,
+  checkStep,
+  hiddenFrom,
+  leaksIn,
+} from "./checks.ts";
 import { FIXED_GAMES } from "./fixedGames.ts";
 import { checkReplay, gameCount, playFuzzGame, playRecorded, randomGame, ruleset } from "./play.ts";
 import type { GameRecord } from "./play.ts";
@@ -11,21 +20,20 @@ import { seededRng } from "./random.ts";
 const SEED = "harness-seed";
 const DECK = ["c6", "c7", "c8", "c9", "c10", "c11", "c12", "c13", "c14"];
 
+const harnessSetup: Setup = {
+  seedHash: seedHash(SEED),
+  hands: { lio: ["c1", "c4"], sae: ["c2", "c5"] },
+  deck: DECK,
+  turns: 1,
+  playsPerTurn: 1,
+  contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6] },
+};
+
 /**
  * A new game; by default one turn of one play each, with known cards: LIO holds its cards c1 and c4,
  * SAE its cards c2 and c5, the draw pile is c6 to c14.
  */
-function started(
-  setup: Setup = {
-    seedHash: "hash",
-    hands: { lio: ["c1", "c4"], sae: ["c2", "c5"] },
-    deck: DECK,
-    turns: 1,
-    playsPerTurn: 1,
-    contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6] },
-  },
-  seed = SEED,
-): GameState {
+function started(setup: Setup = harnessSetup, seed = SEED): GameState {
   const r = createGame(ruleset, setup, seed);
   if (!r.ok) throw new Error(`createGame failed: ${r.error.code}`);
   return r.value.state;
@@ -237,6 +245,24 @@ describe("invariant 4: no view gives away the seed, the generator state or a hid
       },
     ];
     expect(() => checkNoLeaks(started(), events, SEED)).not.toThrow();
+  });
+});
+
+describe("the seed fingerprint: every view shows the true hash of the seed", () => {
+  it("passes a fresh game", () => {
+    expect(() => checkSeedHash(started(), SEED)).not.toThrow();
+  });
+
+  it("fails when a view's meta.seedHash has been changed by hand", () => {
+    const s = started();
+    const forged = { ...s, meta: { ...s.meta, seedHash: seedHash("another-seed") } };
+    expect(() => checkSeedHash(forged, SEED)).toThrow(/view for 'lio' shows a seedHash that is not the hash/);
+  });
+
+  it("is part of the checks on every step of a played game", () => {
+    const s = started();
+    const forged = { ...s, meta: { ...s.meta, seedHash: seedHash("another-seed") } };
+    expect(() => checkStep(ruleset, harnessSetup, forged, [], SEED)).toThrow(/not the hash of the seed/);
   });
 });
 

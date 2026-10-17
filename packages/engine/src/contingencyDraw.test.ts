@@ -3,7 +3,7 @@
 import { describe, expect, it } from "vitest";
 import { drawContingency } from "./contingency.ts";
 import { copyJson } from "./copy.ts";
-import { createGame } from "./index.ts";
+import { createGame, seedHash } from "./index.ts";
 import type { GameEvent, GameState, Setup, Side } from "./index.ts";
 import { shuffle } from "./rng.ts";
 import { makeSetup, ruleset } from "./test/game.ts";
@@ -14,7 +14,7 @@ const ONE_TO_SIX = [1, 2, 3, 4, 5, 6];
 /** A new game with these Contingency decks. */
 function fresh(lio: number[], sae: number[] = ONE_TO_SIX): GameState {
   const setup: Setup = { ...makeSetup(), contingency: { lio, sae } };
-  const r = createGame(ruleset, setup, SEED);
+  const r = createGame(ruleset, { ...setup, seedHash: seedHash(SEED) }, SEED);
   if (!r.ok) throw new Error(`createGame failed: ${r.error.code}`);
   return r.value.state;
 }
@@ -89,7 +89,7 @@ describe("drawing a contingency", () => {
   it("the reshuffle is not the opening order played again, across seeds", () => {
     const seeds = Array.from({ length: 20 }, (_, i) => `draw-seed-${i}`);
     const replays = seeds.filter((seed) => {
-      const r = createGame(ruleset, makeSetup(), seed);
+      const r = createGame(ruleset, makeSetup(2, 1, seed), seed);
       if (!r.ok) throw new Error(`createGame failed: ${r.error.code}`);
       const opening = r.value.state.secret.contingency.lio;
       return (

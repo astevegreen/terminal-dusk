@@ -1,18 +1,21 @@
 // Contingency decks in the game state (#64): the setup's checks, the shuffle, and who sees what.
 import { describe, expect, it } from "vitest";
-import { createGame, hiddenPart, reconstruct, SIDES, viewFor } from "./index.ts";
+import { createGame, hiddenPart, reconstruct, seedHash, SIDES, viewFor } from "./index.ts";
 import type { GameState, Setup } from "./index.ts";
 import { seedRng, shuffle } from "./rng.ts";
 import { makeSetup, ruleset } from "./test/game.ts";
 
 const withDecks = (lio: unknown, sae: unknown): Setup => ({ ...makeSetup(), contingency: { lio, sae } }) as Setup;
 const build = (setup: Setup = makeSetup(), seed = "seed-1"): GameState => {
-  const r = createGame(ruleset, setup, seed);
+  const r = createGame(ruleset, { ...setup, seedHash: seedHash(seed) }, seed);
   if (!r.ok) throw new Error(`createGame failed: ${r.error.code}`);
   return r.value.state;
 };
 const invalid = (setup: Setup) =>
-  expect(createGame(ruleset, setup, "s")).toMatchObject({ ok: false, error: { code: "invalidSetup" } });
+  expect(createGame(ruleset, { ...setup, seedHash: seedHash("s") }, "s")).toMatchObject({
+    ok: false,
+    error: { code: "invalidSetup" },
+  });
 
 describe("the setup's Contingency decks", () => {
   it("a missing contingency returns invalidSetup", () => {

@@ -2,6 +2,7 @@ import { handSizeError, rulesetError, setupCardsError } from "./cardChecks.ts";
 import { contingencyError, shuffleContingency } from "./contingency.ts";
 import { erasError } from "./eras.ts";
 import { seedRng, shuffle } from "./rng.ts";
+import { seedHash } from "./sha256.ts";
 import { newBudget } from "./stack.ts";
 import { startTurn } from "./turn.ts";
 import type { EraEntry, GameEvent, GameState, Result, Ruleset, Seed, Setup } from "./types.ts";
@@ -19,6 +20,9 @@ export function createGame(
   if (badRuleset) return { ok: false, error: badRuleset };
   if (typeof setup?.seedHash !== "string" || setup.seedHash.length === 0) {
     return { ok: false, error: { code: "invalidSetup", message: "The setup needs a seedHash." } };
+  }
+  if (setup.seedHash !== seedHash(seed)) {
+    return { ok: false, error: { code: "seedMismatch", message: "The setup's seedHash is not the hash of the seed." } };
   }
   const lists = [setup.hands?.lio, setup.hands?.sae, setup.deck];
   if (!lists.every((l) => Array.isArray(l))) {

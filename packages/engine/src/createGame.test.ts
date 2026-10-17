@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createGame, SIDES } from "./index.ts";
+import { createGame, seedHash, SIDES } from "./index.ts";
 import type { GameState, Setup } from "./index.ts";
 import { seedRng, shuffle } from "./rng.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
@@ -9,9 +9,11 @@ import { makeSetup as baseSetup, ruleset as baseRuleset, testCard } from "./test
 const PILE = ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9"];
 const ruleset = { ...baseRuleset, cards: [...baseRuleset.cards, ...PILE.map((id) => testCard(id))] };
 /** The shared test setup (2 turns, 1 play each), with `deck` as its draw pile. */
-const makeSetup = (deck: string[] = ["p1", "p2", "p3"]): Setup => ({ ...baseSetup(), deck });
+const makeSetup = (deck: string[] = ["p1", "p2", "p3"], seed = "seed-1"): Setup => ({ ...baseSetup(2, 1, seed), deck });
+/** A setup carrying the true hash of "s", the seed the setup-error tests use. */
+const forS = (setup: Setup): Setup => ({ ...setup, seedHash: seedHash("s") });
 const build = (seed = "seed-1", deck?: string[]): GameState => {
-  const r = createGame(ruleset, makeSetup(deck), seed);
+  const r = createGame(ruleset, makeSetup(deck, seed), seed);
   if (!r.ok) throw new Error("expected ok");
   return r.value.state;
 };
@@ -27,7 +29,7 @@ describe("createGame", () => {
     expect(s.private.lio.hand).toEqual(makeSetup().hands.lio);
     expect(s.private.sae.hand).toEqual(makeSetup().hands.sae);
     expect(s.public).toMatchObject({ turn: 1, turns: 2, playsPerTurn: 1, playsMade: 0, inPlay: [], discard: [] });
-    expect(s.meta).toEqual({ ruleset: "test-ruleset", seedHash: "abc123", seq: 0 });
+    expect(s.meta).toEqual({ ruleset: "test-ruleset", seedHash: seedHash("seed-1"), seq: 0 });
   });
   it("returns no events", () => {
     const r = createGame(ruleset, makeSetup(), "seed-1");
@@ -64,12 +66,12 @@ describe("createGame", () => {
   });
   it("missing hands, a missing side's hand, or a missing deck returns invalidSetup", () => {
     const bad: unknown[] = [
-      { seedHash: "h", deck: [] },
-      { seedHash: "h", hands: { sae: [] }, deck: [] },
-      { seedHash: "h", hands: { lio: [] }, deck: [] },
-      { seedHash: "h", hands: { lio: [], sae: [] } },
-      { seedHash: "h", hands: { lio: "x", sae: [] }, deck: [] },
-      { seedHash: "h", hands: null, deck: [] },
+      { seedHash: seedHash("s"), deck: [] },
+      { seedHash: seedHash("s"), hands: { sae: [] }, deck: [] },
+      { seedHash: seedHash("s"), hands: { lio: [] }, deck: [] },
+      { seedHash: seedHash("s"), hands: { lio: [], sae: [] } },
+      { seedHash: seedHash("s"), hands: { lio: "x", sae: [] }, deck: [] },
+      { seedHash: seedHash("s"), hands: null, deck: [] },
     ];
     for (const setup of bad) {
       expect(createGame(ruleset, setup as Setup, "s")).toMatchObject({
@@ -80,17 +82,17 @@ describe("createGame", () => {
   });
   it.each(["turns", "playsPerTurn"])("%s of 0, below 0, a fraction or missing returns invalidSetup", (field) => {
     for (const value of [0, -1, 1.5, undefined]) {
-      const setup = { ...makeSetup(), [field]: value } as Setup;
+      const setup = forS({ ...makeSetup(), [field]: value } as Setup);
       expect(createGame(ruleset, setup, "s")).toMatchObject({ ok: false, error: { code: "invalidSetup" } });
     }
   });
   it("turns and playsPerTurn of 1 or more are accepted, and stored in the public compartment", () => {
-    const setup = { ...baseSetup(3, 2), deck: [] };
+    const setup = forS({ ...baseSetup(3, 2), deck: [] });
     const r = createGame(ruleset, setup, "s");
     expect(r.ok && r.value.state.public).toMatchObject({ turns: 3, playsPerTurn: 2 });
   });
   it("an empty seed returns invalidSeed", () => {
-    const r = createGame(ruleset, makeSetup(), "");
+    const r = createGame(ruleset, forS(makeSetup()), "");
     expect(r).toMatchObject({ ok: false, error: { code: "invalidSeed" } });
   });
   it("a missing or empty seedHash returns invalidSetup", () => {
@@ -102,6 +104,25 @@ describe("createGame", () => {
       ok: false,
       error: { code: "invalidSetup" },
     });
+  });
+  it("a seedHash that is the true hash of the seed is accepted", () => {
+    expect(createGame(ruleset, makeSetup([], "seed-9"), "seed-9").ok).toBe(true);
+  });
+  it("a seedHash that is the hash of a different seed returns seedMismatch", () => {
+    const setup = { ...makeSetup(), seedHash: seedHash("seed-2") };
+    expect(createGame(ruleset, setup, "seed-1")).toMatchObject({ ok: false, error: { code: "seedMismatch" } });
+  });
+  it("the true hash in upper case returns seedMismatch", () => {
+    const setup = { ...makeSetup(), seedHash: seedHash("seed-1").toUpperCase() };
+    expect(createGame(ruleset, setup, "seed-1")).toMatchObject({ ok: false, error: { code: "seedMismatch" } });
+  });
+  it("the seedMismatch message includes neither the seed nor the true hash", () => {
+    const seed = "zQ-distinctive-seed-9917";
+    const r = createGame(ruleset, { ...makeSetup(), seedHash: seedHash("other") }, seed);
+    expect(r).toMatchObject({ ok: false, error: { code: "seedMismatch" } });
+    const message = r.ok ? "" : r.error.message;
+    expect(message).not.toContain(seed);
+    expect(message).not.toContain(seedHash(seed));
   });
   it("stores the seed string nowhere in the state", () => {
     expect(JSON.stringify(build("zQ-distinctive-seed-9917"))).not.toContain("zQ-distinctive-seed-9917");
