@@ -4,6 +4,7 @@ import type {
   Answer,
   AnswerValue,
   Decision,
+  OmniscientView,
   EngineErrorCode,
   GameEvent,
   GameState,
@@ -64,6 +65,22 @@ export type HostResult = {
   effects: HostEffect[];
 };
 
-export type HostErrorCode = "invalidConfig" | "invalidTime" | "notPlayer" | "staleSeq" | "verifyFailed";
+export type HostErrorCode = "invalidConfig" | "invalidTime" | "notPlayer" | "staleSeq" | "verifyFailed" | "gameNotOver";
 export type HostError = { code: EngineErrorCode | HostErrorCode; message?: string };
 export type HostOutcome = { ok: true; value: HostResult } | { ok: false; error: HostError };
+
+/** One step of a replay: its seq, the omniscient view after it, and the events it produced (as that viewer sees them). */
+export type ReplayFrame = { seq: number; view: OmniscientView; events: GameEvent[] };
+
+/** A finished game as plain data: one frame per step, plus the seed and move log so anyone can verify it. */
+export type ReplayArchive = {
+  matchId: string;
+  ruleset: RulesetId;
+  players: Record<Side, PlayerId>;
+  seedHash: string;
+  seed: Seed;
+  setup: Setup;
+  log: Answer[];
+  status: GameStatus;
+  frames: ReplayFrame[];
+};

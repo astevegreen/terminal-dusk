@@ -1,6 +1,7 @@
 // Public entry point of MatchHost (docs/architecture.md, Decision 3).
 export { hostCreate } from "./hostCreate.ts";
 export { hostSubmit } from "./hostSubmit.ts";
+export { hostArchive } from "./hostArchive.ts";
 export type {
   Frame,
   HostEffect,
@@ -12,5 +13,7 @@ export type {
   MatchRecord,
   MatchSecret,
   PlayerId,
+  ReplayArchive,
+  ReplayFrame,
   Submission,
 } from "./types.ts";
