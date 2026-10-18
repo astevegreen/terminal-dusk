@@ -10,8 +10,7 @@ import type {
   Side,
   Viewer,
 } from "./types.ts";
-
-const other = (side: Side): Side => (side === "lio" ? "sae" : "lio");
+import { otherSide } from "./types.ts";
 
 const countsOf = (state: GameState): HiddenCounts => ({
   deck: state.secret.deck.length,
@@ -46,7 +45,7 @@ export function viewFor(state: GameState, viewer: ReplayViewer): PlayerView | Om
 
 /** Everything `viewer` cannot see: the opponent's private compartment and the secret compartment. */
 export function hiddenPart(state: GameState, viewer: Side): HiddenPart {
-  return { viewer, opponent: copy(state.private[other(viewer)]), secret: copy(state.secret) };
+  return { viewer, opponent: copy(state.private[otherSide(viewer)]), secret: copy(state.secret) };
 }
 
 /**

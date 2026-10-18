@@ -1,9 +1,10 @@
 // Test helpers: a started game, answers for it, and small programs for the stack.
 import { apply } from "../apply.ts";
 import { createGame } from "../createGame.ts";
-import { legalAnswers } from "../decisions.ts";
+import { legalAnswers, pendingFor } from "../decisions.ts";
 import { seedHash } from "../sha256.ts";
 import { startProgram } from "../stack.ts";
+import { SIDES } from "../types.ts";
 import type { Answer, CardDef, CardId, GameEvent, GameState, PlayUse, Ruleset, Setup, Side, Step } from "../types.ts";
 
 type Played = { state: GameState; events: GameEvent[] };
@@ -98,7 +99,7 @@ export const startAtPlay = (turns = 2, playsPerTurn = 1): GameState => playAnswe
  * play it is that card's first legal use: the event for your own card, else the points.
  */
 export function cardAnswer(state: GameState, side: Side, card?: CardId, rs: Ruleset = ruleset): Answer {
-  const d = state.public.pending.find((x) => x.side === side);
+  const d = pendingFor(state, side);
   if (!d) throw new Error(`no decision pending for ${side}`);
   if (d.kind !== "chooseCard" && d.kind !== "playCardAs") throw new Error(`${side}'s decision is ${d.kind}`);
   const legal = legalAnswers(rs, state, side);
@@ -114,15 +115,15 @@ export function cardAnswer(state: GameState, side: Side, card?: CardId, rs: Rule
 
 /** The answer playing `card` for `as` (its event or its points) to the play `side` has open. */
 export function playAnswer(state: GameState, side: Side, card: CardId, as: PlayUse): Answer {
-  const d = state.public.pending.find((x) => x.side === side && x.kind === "playCardAs");
-  if (!d) throw new Error(`no play pending for ${side}`);
+  const d = pendingFor(state, side);
+  if (d?.kind !== "playCardAs") throw new Error(`no play pending for ${side}`);
   return { decisionId: d.id, side, value: { kind: "playCardAs", card, as } };
 }
 
 /** The answer to `side`'s open rivalEventOrder: the rival's event happens before or after the points. */
 export function orderAnswer(state: GameState, side: Side, event: "before" | "after"): Answer {
-  const d = state.public.pending.find((x) => x.side === side && x.kind === "rivalEventOrder");
-  if (!d) throw new Error(`no rivalEventOrder pending for ${side}`);
+  const d = pendingFor(state, side);
+  if (d?.kind !== "rivalEventOrder") throw new Error(`no rivalEventOrder pending for ${side}`);
   return { decisionId: d.id, side, value: { kind: "rivalEventOrder", event } };
 }
 
@@ -165,7 +166,7 @@ export function startWith(steps: Step[], rs: Ruleset = ruleset, state: GameState
 
 /** The yes/no answer to the first open yes/no decision (or to `side`'s), which a paused program waits on. */
 export function yesNoAnswer(state: GameState, yes: boolean, side?: Side): Answer {
-  const d = state.public.pending.find((x) => x.kind === "yesNo" && (side === undefined || x.side === side));
+  const d = (side === undefined ? SIDES : [side]).map((s) => pendingFor(state, s)).find((x) => x?.kind === "yesNo");
   if (!d) throw new Error(`no yesNo decision pending${side ? ` for ${side}` : ""}`);
   return { decisionId: d.id, side: d.side, value: { kind: "yesNo", yes } };
 }

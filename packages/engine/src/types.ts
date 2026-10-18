@@ -5,6 +5,9 @@ export type Side = "lio" | "sae";
 /** Both sides, in the one order the engine always loops in. */
 export const SIDES: readonly Side[] = ["lio", "sae"];
 
+/** The other side: LIO for SAE, SAE for LIO. */
+export const otherSide = (side: Side): Side => (side === "lio" ? "sae" : "lio");
+
 export type CardId = string;
 export type EraId = string;
 export type RulesetId = string;
