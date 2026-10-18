@@ -138,3 +138,27 @@ describe("createGame: a card's event draws only from its own side's Contingency 
     expect(!r.ok && r.error.message).toContain("neutral events have no Contingency deck yet");
   });
 });
+
+describe("createGame: a card's number steps hold whole numbers", () => {
+  const badAdd = (amount: number): Step => ({ op: "addToNumber", var: "n", amount });
+  const badTest = (value: number): Step => ({ op: "if", cond: { op: "atLeast", var: "n", value }, then: [] });
+  const nested = (step: Step): Step[][] => [
+    [step],
+    [choose("go"), ifYes("go", [step])],
+    [choose("go"), ifYes("go", [], [step])],
+    [forEach(["a"], "x", [step])],
+  ];
+  const outcomeOf = (effect: Step[]) =>
+    outcome(withCards([...ruleset.cards.slice(1), testCard("l1", 1, "lio", effect)]));
+
+  it.each([0, 1.5, Number.NaN])("refuses an addToNumber amount of %s, at any depth", (amount) => {
+    for (const effect of nested(badAdd(amount))) expect(outcomeOf(effect)).toBe("invalidRuleset");
+  });
+  it.each([0.5, Number.NaN, Infinity])("refuses a number test value of %s, at any depth", (value) => {
+    for (const effect of nested(badTest(value))) expect(outcomeOf(effect)).toBe("invalidRuleset");
+  });
+  it("accepts whole amounts and values, negative and zero values included", () => {
+    for (const effect of nested(badAdd(-2))) expect(outcomeOf(effect)).toBe("ok");
+    for (const effect of nested(badTest(0))) expect(outcomeOf(effect)).toBe("ok");
+  });
+});

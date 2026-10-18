@@ -22,7 +22,10 @@ const choose = z.strictObject({
   }),
   bind: name,
 });
-const condition = z.strictObject({ op: z.literal("yes"), var: name, side: side.exactOptional() });
+const condition = z.discriminatedUnion("op", [
+  z.strictObject({ op: z.literal("yes"), var: name, side: side.exactOptional() }),
+  z.strictObject({ op: z.enum(["atLeast", "atMost", "equals"]), var: name, value: z.int() }),
+]);
 
 /** One step of a card's effect. Every kind of engine step but a card choice, at any depth. */
 export const stepSchema = z.discriminatedUnion("op", [
@@ -32,6 +35,11 @@ export const stepSchema = z.discriminatedUnion("op", [
   z.strictObject({ op: z.literal("marker"), label: z.string(), var: name.exactOptional() }),
   z.strictObject({ op: z.literal("spendPoints"), side, amount: wholeNumber }),
   z.strictObject({ op: z.literal("drawContingency"), side, bind: name.exactOptional() }),
+  z.strictObject({
+    op: z.literal("addToNumber"),
+    var: name,
+    amount: z.int().refine((n) => n !== 0, { error: "An addToNumber amount must not be 0." }),
+  }),
 ]);
 
 /** What a platform changes about a card's text: its wording or art, never its rules. At least one of them. */
