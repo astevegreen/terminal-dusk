@@ -2,8 +2,8 @@ import { legalAnswers, reconstruct, SIDES, viewFor } from "@terminal-dusk/engine
 
 import { describe, expect, it } from "vitest";
 import { guessHidden } from "./guess.ts";
-import { applyAnswer, newGame, ruleset, seededRandom } from "./testGames.ts";
-import type { TestState } from "./testGames.ts";
+import { applyAnswer, newGame, ruleset, seededRandom } from "./test/testGames.ts";
+import type { TestState } from "./test/testGames.ts";
 
 const sorted = (numbers: readonly number[]): number[] => [...numbers].sort((a, b) => a - b);
 

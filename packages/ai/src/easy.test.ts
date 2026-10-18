@@ -2,8 +2,8 @@ import { legalAnswers, SIDES, viewFor } from "@terminal-dusk/engine";
 import type { Answer, AnswerValue } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { easyAnswer } from "./easy.ts";
-import { applyAnswer, newGame, ruleset, seededRandom } from "./testGames.ts";
-import type { TestState } from "./testGames.ts";
+import { applyAnswer, newGame, ruleset, seededRandom } from "./test/testGames.ts";
+import type { TestState } from "./test/testGames.ts";
 import type { Weights } from "./types.ts";
 import { EASY_WEIGHTS } from "./weights/easy.ts";
 

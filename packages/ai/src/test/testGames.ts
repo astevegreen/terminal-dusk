@@ -1,5 +1,5 @@
 // Test helpers: a small ruleset and seeded games, so the AI tests can make real views with the engine.
-import { apply, createGame, seedHash, SIDES } from "@terminal-dusk/engine";
+import { apply, createGame, seedHash } from "@terminal-dusk/engine";
 import type { Answer, CardDef, Ruleset, Setup } from "@terminal-dusk/engine";
 
 /** The full game record the engine makes, named by what createGame returns. */
@@ -65,9 +65,4 @@ export function applyAnswer(state: TestState, answer: Answer): TestState {
   const r = apply(ruleset, state, answer);
   if (!r.ok) throw new Error(`apply refused ${JSON.stringify(answer)}: ${r.error.code}`);
   return r.value.state;
-}
-
-/** The first side with something pending, in SIDES order. */
-export function firstWaiting(state: TestState): (typeof SIDES)[number] | null {
-  return SIDES.find((side) => state.public.pending.some((d) => d.side === side)) ?? null;
 }
