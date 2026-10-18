@@ -1,6 +1,7 @@
 // Plays one game for the fuzz suite, random or recorded, and checks every invariant along the way.
 // A failing game throws a report with its seed and answers, ready to keep in fixedGames.ts.
-import { apply, createGame, legalAnswers, pendingFor, seedHash, SIDES } from "@terminal-dusk/engine";
+import { easyAnswer, EASY_WEIGHTS } from "@terminal-dusk/ai";
+import { apply, createGame, legalAnswers, pendingFor, seedHash, SIDES, viewFor } from "@terminal-dusk/engine";
 import type {
   Answer,
   AnswerValue,
@@ -13,6 +14,7 @@ import type {
   Ruleset,
   Seed,
   Setup,
+  Side,
   Step as EffectStep,
 } from "@terminal-dusk/engine";
 import { attempt, checkStep, checkVerify, firstDifference } from "./checks.ts";
@@ -94,11 +96,16 @@ export function gameCount(raw: string | undefined): number {
   return n;
 }
 
-/** Fuzz game `game`, played from its own seed. */
+/**
+ * Fuzz game `game`, played from its own seed. Every third game has the Easy AI on one side (LIO when
+ * game % 6 is 0, SAE when it is 3) and the random chooser on the other; the rest are random on both.
+ */
 export function playFuzzGame(game: number): Played {
   const rng = seededRng(game);
   const { setup, seed } = randomGame(rng, game);
-  return playGame(`Fuzz game ${game} (playFuzzGame(${game}) plays it again)`, setup, seed, randomChooser(rng));
+  const easy: Side | null = game % 6 === 0 ? "lio" : game % 6 === 3 ? "sae" : null;
+  const choose = easy === null ? randomChooser(rng) : easyChooser(easy, rng);
+  return playGame(`Fuzz game ${game} (playFuzzGame(${game}) plays it again)`, setup, seed, choose);
 }
 
 /** A recorded game, answer by answer, with every check. It may stop before the game ends. */
@@ -174,15 +181,41 @@ function randomDeck(rng: Rng): number[] {
  */
 export function randomChooser(rng: Rng): Chooser {
   return (state) => {
-    const waiting: { decision: Decision; legal: AnswerValue[] }[] = [];
-    for (const side of SIDES) {
-      const decision = attempt(`pendingFor('${side}')`, () => pendingFor(state, side));
-      const legal = attempt(`legalAnswers('${side}')`, () => legalAnswers(ruleset, state, side));
-      if (decision !== null && legal.length > 0) waiting.push({ decision, legal });
-    }
-    if (waiting.length === 0) throw new Error("no side has an answer to give"); // checkStep catches this first
-    const { decision, legal } = waiting[rng.int(waiting.length)]!;
+    const { decision, legal } = nextToAnswer(state, rng);
     return { decisionId: decision.id, side: decision.side, value: legal[rng.int(legal.length)]! };
+  };
+}
+
+type Waiting = { decision: Decision; legal: AnswerValue[] };
+
+/** Of the sides that can answer now, one picked with `rng`, and its legal answers. */
+function nextToAnswer(state: GameState, rng: Rng): Waiting {
+  const waiting: Waiting[] = [];
+  for (const side of SIDES) {
+    const decision = attempt(`pendingFor('${side}')`, () => pendingFor(state, side));
+    const legal = attempt(`legalAnswers('${side}')`, () => legalAnswers(ruleset, state, side));
+    if (decision !== null && legal.length > 0) waiting.push({ decision, legal });
+  }
+  if (waiting.length === 0) throw new Error("no side has an answer to give"); // checkStep catches this first
+  return waiting[rng.int(waiting.length)]!;
+}
+
+const TWO_32 = 4294967296;
+/**
+ * Like randomChooser, but `side` is played by the Easy AI: it sees only its `viewFor` view and answers with
+ * easyAnswer. Which waiting side answers next (so Easy is not always first in a simultaneous pair) and the
+ * other side's answers are chosen as randomChooser does.
+ */
+export function easyChooser(side: Side, rng: Rng): Chooser {
+  const random = (): number => rng.int(TWO_32) / TWO_32;
+  return (state) => {
+    const { decision, legal } = nextToAnswer(state, rng);
+    if (decision.side !== side) {
+      return { decisionId: decision.id, side: decision.side, value: legal[rng.int(legal.length)]! };
+    }
+    const value = easyAnswer(ruleset, viewFor(state, side), side, EASY_WEIGHTS, random);
+    if (value === null) throw new Error("the Easy AI gave no answer for a pending decision");
+    return { decisionId: decision.id, side, value };
   };
 }
 

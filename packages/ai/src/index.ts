@@ -1,3 +1,5 @@
 // Public entry point of the AI opponent (docs/architecture.md, Decision 8).
-// Empty until the first AI task adds the Easy player.
-export {};
+export { easyAnswer } from "./easy.ts";
+export { guessHidden } from "./guess.ts";
+export { EASY_WEIGHTS } from "./weights/easy.ts";
+export type { Weights } from "./types.ts";
