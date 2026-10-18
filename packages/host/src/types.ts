@@ -27,6 +27,8 @@ export type MatchRecord = {
   players: Record<Side, PlayerId>;
   ruleset: RulesetId;
   seedHash: string;
+  /** Absent while the game is active; the game's seed once it is over, so anyone can re-check it. */
+  seed?: Seed;
   seq: number;
   status: GameStatus;
   createdAt: number;
@@ -53,7 +55,7 @@ export type Submission =
   | { player: PlayerId; resign: true };
 
 /** Something the adapter must do after a host call. `notify`: tell this player a decision waits. */
-export type HostEffect = { notify: PlayerId };
+export type HostEffect = { notify: PlayerId } | { finalize: true };
 
 export type HostResult = {
   record: MatchRecord;
@@ -62,6 +64,6 @@ export type HostResult = {
   effects: HostEffect[];
 };
 
-export type HostErrorCode = "invalidConfig" | "invalidTime" | "notPlayer" | "staleSeq";
+export type HostErrorCode = "invalidConfig" | "invalidTime" | "notPlayer" | "staleSeq" | "verifyFailed";
 export type HostError = { code: EngineErrorCode | HostErrorCode; message?: string };
 export type HostOutcome = { ok: true; value: HostResult } | { ok: false; error: HostError };

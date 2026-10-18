@@ -17,10 +17,12 @@ function allSteps(): HostResult[] {
 }
 
 describe("hostSubmit: nothing hidden leaves the secret", () => {
-  it("after every step, the record holds no seed, generator state or hidden card", () => {
+  it("after every step, the record holds no seed (until the game ends), generator state or hidden card", () => {
     for (const step of allSteps()) {
       const { state } = step.secret;
-      expect(leaksIn(JSON.stringify(step.record), SEED, state, hiddenFrom(state, "spectator"))).toEqual([]);
+      const { seed: revealed, ...rest } = step.record; // the seed is revealed once the game is over
+      expect(revealed === undefined || step.record.status.kind === "over").toBe(true);
+      expect(leaksIn(JSON.stringify(rest), SEED, state, hiddenFrom(state, "spectator"))).toEqual([]);
     }
   });
 

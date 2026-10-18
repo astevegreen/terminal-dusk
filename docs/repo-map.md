@@ -117,6 +117,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/src/hostCreate.leaks.test.ts`
 - `packages/host/src/hostCreate.test.ts`
 - `packages/host/src/hostCreate.ts` - Starting a match: checks the config, creates the game with the engine, and splits the result into what everyone may read (the record), what only the host may r… Exports: hostCreate.
+- `packages/host/src/hostFinish.test.ts`
+- `packages/host/src/hostFinish.ts` - The end of a game: check it again from its seed and move log, then reveal the seed. Exports: checkFinished.
 - `packages/host/src/hostSubmit.leaks.test.ts`
 - `packages/host/src/hostSubmit.test.ts`
 - `packages/host/src/hostSubmit.ts` - Taking an answer: the host's own checks, then the engine, then the new record, secret, frames and effects. Exports: hostSubmit.
