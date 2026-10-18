@@ -28,6 +28,10 @@ is the source of truth; change it in Notion and promote again.
 - **Who answers a choice in an event.** Each choice goes to the side the card names, for opening cards and
   card plays alike. A card names LIO or SAE, never "the player who played this card", so who played a card
   never changes who answers. Example: SAE plays an LIO card whose event says "SAE chooses a country"; SAE chooses.
+- **Neutral events.** A neutral card's event works like any other card's: each choice goes to the side the card
+  names (LIO, SAE or both). A neutral card can be an opening pick; it then resolves as its event, like any
+  opening card. A neutral card played for its action points has no event (owner, 18 Oct, decision 17 option c).
+  For whose Contingency deck a neutral event draws from, see docs/design/contingency-deck.md.
 - **The new action.** One new kind of action sits alongside the familiar ones. Which one is not decided yet.
 
 ## Undo
@@ -44,8 +48,8 @@ is the source of truth; change it in Notion and promote again.
 - Hand size, cards played per turn and turns per era are not decided. They come from scenario data
   (docs/architecture.md, Decision 4), so the engine must not hard-code them. "Plays per turn" counts the plays
   **each side** makes (owner, 16 Oct).
-- Until neutral events are designed, a neutral card can only be played for its action points and can't be an
-  opening pick (owner, 16 Oct). This is a stopgap, not a rule of the game.
+- The 16 Oct stopgap (a neutral card only for its action points, never an opening pick) is lifted by the
+  neutral events rule above (owner, 18 Oct). Neutral cards in card data now carry events like other cards.
 - Until refilling hands is designed, each side starts with at least turns × (1 + plays per turn) cards that are
   not neutral, where "turns" is the number of turns in the game. Neutral cards come on top of that. This gives
   each side a legal opening pick every turn, even if every play used a non-neutral card (owner, 16 Oct). This is
@@ -57,5 +61,5 @@ is the source of truth; change it in Notion and promote again.
 
 - Which new action joins the loop, and the full list of actions and their costs.
 - Hand size, how many cards each player plays per turn, and how a turn ends.
-- Who resolves a neutral card's event, and how scoring cards are played.
+- How scoring cards are played.
 - The tension track and scoring (their own topic pages).

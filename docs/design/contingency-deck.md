@@ -31,7 +31,10 @@ this file is the source of truth; change it in Notion and promote again.
     from its own deck;
   - an event draws from the deck of the side the event belongs to. A rival's card played for its action
     points runs as the rival's event (docs/design/core-loop.md), so it draws from the rival's deck.
-- Neutral events have no deck yet. That waits until neutral events are designed.
+  - a neutral event draws from the deck of the side that played the card (for an opening pick, the side
+    that picked it). This holds for every draw in the event, whichever side answers its choices. Example:
+    LIO plays a neutral card whose event says "SAE chooses, then draw a contingency"; the draw comes from
+    LIO's deck (owner, 18 Oct, decision 17 option c).
 
 ## Reshuffle
 
@@ -65,6 +68,5 @@ this file is the source of truth; change it in Notion and promote again.
 ## Not decided yet
 
 - The exact card wording for a draw.
-- How neutral events draw.
 - Backup idea from the Notion page, not adopted: if playtests show single misses still sting, a bad-luck token (each 1 drawn earns
   one, hold at most 2, spend one for +1 on a later draw).
