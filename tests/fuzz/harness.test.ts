@@ -281,9 +281,9 @@ describe("invariant 5: reconstruct rebuilds the exact state", () => {
 describe("invariant 6: replaying the answer log gives the same final state", () => {
   it("fails when the final state differs from the replay", () => {
     const { record, final } = playFuzzGame(2);
-    expect(() => checkReplay(record, final)).not.toThrow();
+    expect(() => checkReplay(ruleset, record, final)).not.toThrow();
     const changed = { ...final, public: { ...final.public, turn: final.public.turn + 1 } };
-    expect(() => checkReplay(record, changed)).toThrow(/state\.public\.turn/);
+    expect(() => checkReplay(ruleset, record, changed)).toThrow(/state\.public\.turn/);
   });
 });
 
