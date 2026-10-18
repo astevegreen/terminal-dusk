@@ -250,3 +250,29 @@ describe("card schema and the engine", () => {
     expect(result.ok ? null : result.error).toBeNull();
   });
 });
+
+describe("card schema: number tests and addToNumber", () => {
+  const withEffect = (effect: unknown[]) => ({ ...lioCard(), effect });
+  const test = (op: string, value: unknown) => ({ op: "if", cond: { op, var: "drawn", value }, then: [] });
+  const add = (amount: unknown) => ({ op: "addToNumber", var: "drawn", amount });
+
+  it("accepts the three number tests and addToNumber, at any depth", () => {
+    const inner = [add(1), add(-2), test("atLeast", 4), test("atMost", 0), test("equals", -1)];
+    expect(issuesOf(withEffect([drawFor, { op: "forEach", over: ["a"], bind: "x", do: inner }]))).toEqual([]);
+  });
+
+  it("refuses a number test with a missing or non-integer value", () => {
+    expect(issuesOf(withEffect([test("atLeast", undefined)])).length).toBeGreaterThan(0);
+    expect(issuesOf(withEffect([test("equals", 1.5)])).length).toBeGreaterThan(0);
+  });
+
+  it("refuses an addToNumber amount of 0 or a non-integer", () => {
+    expect(issuesOf(withEffect([add(0)])).length).toBeGreaterThan(0);
+    expect(issuesOf(withEffect([add(0.5)])).length).toBeGreaterThan(0);
+    expect(issuesOf(withEffect([add(undefined)])).length).toBeGreaterThan(0);
+  });
+
+  it("refuses an unknown condition op", () => {
+    expect(issuesOf(withEffect([test("greaterThan", 1)])).length).toBeGreaterThan(0);
+  });
+});

@@ -19,6 +19,8 @@ export function rulesetError(ruleset: Ruleset): EngineError | null {
       return invalidRuleset(`Card ${card.id}'s effect asks both sides to pick a card; only a turn's opening does.`);
     }
     if (Array.isArray(card.effect)) {
+      const badNumber = findBadNumber(card.effect);
+      if (badNumber !== null) return invalidRuleset(`Card ${card.id}'s effect ${badNumber}`);
       const bad = findForeignDraw(card.effect, card.affiliation);
       if (bad !== null) return invalidRuleset(foreignDrawMessage(card.id, card.affiliation, bad));
     }
@@ -51,6 +53,25 @@ const findForeignDraw = (steps: readonly Step[], affiliation: Side | "neutral"):
   return null;
 };
 
+/**
+ * Why the first number test or addToNumber in `steps` (at any depth) is malformed, or null: a test's
+ * `value` and a step's `amount` must be whole numbers, and an `amount` may not be 0.
+ */
+const findBadNumber = (steps: readonly Step[]): string | null => {
+  for (const step of steps) {
+    if (step.op === "addToNumber" && (!Number.isInteger(step.amount) || step.amount === 0)) {
+      return "adds an amount that is not a non-zero whole number.";
+    }
+    if (step.op === "if" && step.cond.op !== "yes" && !Number.isInteger(step.cond.value)) {
+      return "tests a number against a value that is not whole.";
+    }
+    const inner = step.op === "if" ? [...step.then, ...(step.else ?? [])] : step.op === "forEach" ? step.do : [];
+    const found = findBadNumber(inner);
+    if (found !== null) return found;
+  }
+  return null;
+};
+
 /** True if `steps`, or any block inside them, holds a choice of a card. */
 const holdsCardChoice = (steps: readonly Step[]): boolean =>
   steps.some((step) => {
@@ -64,6 +85,7 @@ const holdsCardChoice = (steps: readonly Step[]): boolean =>
       case "marker":
       case "spendPoints":
       case "drawContingency":
+      case "addToNumber":
         return false;
     }
   });

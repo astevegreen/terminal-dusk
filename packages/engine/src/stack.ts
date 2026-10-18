@@ -8,6 +8,7 @@ import { halfAnswered } from "./simultaneous.ts";
 import type { Revealed } from "./simultaneous.ts";
 import type {
   AnswerValue,
+  Binding,
   Condition,
   EngineError,
   EngineErrorCode,
@@ -144,6 +145,8 @@ function runStep(state: GameState, frame: Frame, step: Step, events: GameEvent[]
       events.push({ kind: "pointsSpent", visibility: "public", side: step.side, amount: step.amount });
       frame.next += 1;
       return "ran";
+    case "addToNumber":
+      return runAddToNumber(state.public.stack, frame, step);
     case "drawContingency": {
       const value = drawContingency(state, step.side, events);
       if (step.bind !== undefined) bind(frame, step.bind, value);
@@ -170,13 +173,34 @@ function runMarker(stack: Frame[], frame: Frame, step: StepOf<"marker">, events:
 function runIf(stack: Frame[], frame: Frame, step: StepOf<"if">): StepOutcome {
   const value = lookup(stack, step.cond.var);
   if (value === undefined) return unbound(step.cond.var);
-  const yes = readYes(value, step.cond);
+  const yes = step.cond.op === "yes" ? readYes(value, step.cond) : readNumberTest(value, step.cond);
   if (typeof yes !== "boolean") return yes;
   frame.next += 1;
   const branch = yes ? step.then : (step.else ?? []);
   if (branch.length > 0) stack.push({ kind: "if", steps: branch, next: 0, vars: [] });
   return "ran";
 }
+
+/** Adds the step's amount to the number bound to its variable, in the frame that holds the binding. */
+function runAddToNumber(stack: Frame[], frame: Frame, step: StepOf<"addToNumber">): StepOutcome {
+  const found = findBinding(stack, step.var);
+  if (found === undefined) return unbound(step.var);
+  if (typeof found.value !== "number") return notANumber(step.var, "addToNumber");
+  found.value += step.amount;
+  frame.next += 1;
+  return "ran";
+}
+
+/** The result of an atLeast, atMost or equals test on a number. */
+function readNumberTest(value: VarValue, cond: Exclude<Condition, { op: "yes" }>): boolean | EngineError {
+  if (typeof value !== "number") return notANumber(cond.var, cond.op);
+  if (cond.op === "atLeast") return value >= cond.value;
+  if (cond.op === "atMost") return value <= cond.value;
+  return value === cond.value;
+}
+
+const notANumber = (name: VarName, user: string): EngineError =>
+  problem("invalidProgram", `"${name}" does not hold a number, so ${user} cannot use it.`);
 
 /** Pushes a loop frame with the first item bound, unless the list is empty. */
 function runForEach(stack: Frame[], frame: Frame, step: StepOf<"forEach">): StepOutcome {
@@ -199,7 +223,7 @@ function runForEach(stack: Frame[], frame: Frame, step: StepOf<"forEach">): Step
  * The yes/no a condition tests: a one-side answer as it is, or the named side's half of a both-sides
  * answer. A condition naming a side for a one-side answer, or none for a both-sides one, is an error.
  */
-function readYes(value: VarValue, cond: Condition): boolean | EngineError {
+function readYes(value: VarValue, cond: Extract<Condition, { op: "yes" }>): boolean | EngineError {
   const notYesNo = problem("invalidProgram", `"${cond.var}" is not a yes/no answer, so if cannot test it.`);
   if (typeof value === "boolean") {
     return cond.side === undefined
@@ -239,10 +263,15 @@ function finishBlock(stack: Frame[], frame: Frame): void {
 
 /** A variable's value, looked up from the innermost block outward, within the running program. */
 function lookup(stack: Frame[], name: VarName): VarValue | undefined {
+  return findBinding(stack, name)?.value;
+}
+
+/** The binding of `name`, looked up from the innermost block outward, within the running program. */
+function findBinding(stack: Frame[], name: VarName): Binding | undefined {
   for (let i = stack.length - 1; i >= 0; i--) {
     const frame = stack[i]!;
     const found = frame.vars.find((b) => b.name === name);
-    if (found) return found.value;
+    if (found) return found;
     if (frame.kind === "program") break;
   }
   return undefined;

@@ -138,9 +138,11 @@ export type BothCards = Record<Side, CardId>;
 export type VarValue = boolean | BothAnswers | BothCards | string | number;
 /**
  * True when the yes/no variable `var` holds yes. For a variable holding both sides' answers, `side`
- * names whose answer to read; for one side's answer it is left out.
+ * names whose answer to read; for one side's answer it is left out. `atLeast`, `atMost` and `equals`
+ * test the number bound to `var` (a contingency draw) against the whole number `value`.
  */
-export type Condition = { op: "yes"; var: VarName; side?: Side };
+export type Condition =
+  { op: "yes"; var: VarName; side?: Side } | { op: "atLeast" | "atMost" | "equals"; var: VarName; value: number };
 /**
  * One step of an effect program (docs/architecture.md, section 4). More kinds arrive with later tasks.
  * A card choice is only ever both sides at once: the turn's opening pick (turn.ts). Card effects may
@@ -148,6 +150,7 @@ export type Condition = { op: "yes"; var: VarName; side?: Side };
  * TEMPORARY until the actions are designed, it only emits a pointsSpent event. `drawContingency`
  * draws from `side`'s Contingency deck (an event draws from the deck of the side it belongs to) and
  * binds the number to `bind`, if given.
+ * `addToNumber` adds the non-zero whole `amount` (negative subtracts) to the number bound to `var`.
  */
 export type Step =
   | { op: "choose"; who: Side | "both"; decision: { kind: "yesNo" }; bind: VarName }
@@ -156,7 +159,8 @@ export type Step =
   | { op: "forEach"; over: string[]; bind: VarName; do: Step[] }
   | { op: "marker"; label: string; var?: VarName }
   | { op: "spendPoints"; side: Side; amount: number }
-  | { op: "drawContingency"; side: Side; bind?: VarName };
+  | { op: "drawContingency"; side: Side; bind?: VarName }
+  | { op: "addToNumber"; var: VarName; amount: number };
 
 export type Binding = { name: VarName; value: VarValue };
 /** The block a frame runs, the index of its next step, and the variables bound in it, in binding order. */
