@@ -168,7 +168,10 @@ describe("card schema: a card's event draws only from its own side's Contingency
     ["sae", "lio"],
   ])("rejects a %s card drawing from %s's deck, pointing at the step's side", (own, other) => {
     for (const [, effect, path] of placements(drawOf(other))) {
-      expect(pathsOf({ ...validCard(), affiliation: own, effect })).toEqual([path]);
+      const issues = issuesOf({ ...validCard(), affiliation: own, effect });
+      const names = { lio: "LIO", sae: "SAE" } as const;
+      const message = `This is an ${names[own as "lio" | "sae"]} card, so its event can only draw from ${names[own as "lio" | "sae"]}'s Contingency deck, not ${names[other as "lio" | "sae"]}'s.`;
+      expect(issues.map((issue) => [issue.path, issue.message])).toEqual([[path, message]]);
     }
   });
 
