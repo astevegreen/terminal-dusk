@@ -1,6 +1,6 @@
 // Taking an answer: the host's own checks, then the engine, then the new record, secret, frames and effects.
 import { apply, pendingFor, SIDES } from "@terminal-dusk/engine";
-import type { Answer, GameState, Ruleset, Side } from "@terminal-dusk/engine";
+import type { Answer, AnswerValue, GameState, Ruleset, Side } from "@terminal-dusk/engine";
 import { copyJson, framesFor } from "./frames.ts";
 import type { HostEffect, HostError, HostOutcome, MatchRecord, MatchSecret, Submission } from "./types.ts";
 
@@ -21,13 +21,15 @@ export function hostSubmit(
   if (!Number.isInteger(now) || now < record.updatedAt) {
     return refuse("invalidTime", "The time must be a whole number, not earlier than the last update.");
   }
-  if ("expectedSeq" in submission && submission.expectedSeq !== record.seq) {
+  // Input may come from JSON over the wire: only `resign: true` is a resignation; any answer needs a matching whole-number expectedSeq.
+  const loose = submission as Partial<Extract<Submission, { expectedSeq: number }>> & { resign?: unknown };
+  const resigning = loose.resign === true;
+  if (!resigning && (!Number.isInteger(loose.expectedSeq) || loose.expectedSeq !== record.seq)) {
     return refuse("staleSeq", "The game has moved on since that answer was made.");
   }
-  const answer: Answer =
-    "resign" in submission
-      ? { system: "resign", side }
-      : { decisionId: submission.decisionId, side, value: copyJson(submission.value) };
+  const answer: Answer = resigning
+    ? { system: "resign", side }
+    : { decisionId: loose.decisionId as string, side, value: copyJson(loose.value as AnswerValue) };
   const result = apply(ruleset, secret.state, answer);
   if (!result.ok) return { ok: false, error: result.error };
   const { state, events } = result.value;

@@ -110,6 +110,24 @@ describe("hostSubmit: refusals leave the inputs unchanged", () => {
     expect(JSON.stringify(host)).toBe(before);
   });
 
+  it("staleSeq: an answer sent without expectedSeq, or with one that is not a whole number", () => {
+    const { host, before } = frozen();
+    const noSeq: Record<string, unknown> = { ...submissionFor(host, "lio") };
+    delete noSeq.expectedSeq;
+    expect(code(host, noSeq)).toBe("staleSeq");
+    expect(code(host, { ...noSeq, expectedSeq: "0" })).toBe("staleSeq");
+    expect(code(host, { ...noSeq, expectedSeq: host.record.seq + 0.5 })).toBe("staleSeq");
+    expect(JSON.stringify(host)).toBe(before);
+  });
+
+  it("a submission with resign: false is not a resignation", () => {
+    const { host, before } = frozen();
+    expect(code(host, { player: "alice", resign: false })).toBe("staleSeq");
+    expect(JSON.stringify(host)).toBe(before);
+    const s = submissionFor(host, "lio");
+    expect(code(host, { ...s, resign: false })).toBe("ok");
+  });
+
   it("the host's checks run in the order notPlayer, invalidTime, staleSeq", () => {
     const { host } = frozen();
     const s = { ...submissionFor(host, "lio"), expectedSeq: 99 } as Submission;
