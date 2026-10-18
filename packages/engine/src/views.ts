@@ -1,21 +1,45 @@
 // Views: the part of the state one viewer may see, the part they cannot, and rebuilding the whole.
 import { copyJson as copy } from "./copy.ts";
-import type { GameState, HiddenPart, PlayerView, Side, Viewer } from "./types.ts";
+import type {
+  GameState,
+  HiddenCounts,
+  HiddenPart,
+  OmniscientView,
+  PlayerView,
+  ReplayViewer,
+  Side,
+  Viewer,
+} from "./types.ts";
 
 const other = (side: Side): Side => (side === "lio" ? "sae" : "lio");
+
+const countsOf = (state: GameState): HiddenCounts => ({
+  deck: state.secret.deck.length,
+  hands: { lio: state.private.lio.hand.length, sae: state.private.sae.hand.length },
+});
 
 /**
  * What `viewer` may see: the public compartment, their own private compartment as `mine` (null for
  * a spectator), and counts for everything hidden. Never the secret compartment or another side's hand.
+ * The replay-only `omniscient` viewer gets an OmniscientView instead: both sides' private compartments
+ * as `sides`, but still never the secret compartment. Every part is a copy, never shared with the state.
  */
-export function viewFor(state: GameState, viewer: Viewer): PlayerView {
+export function viewFor(state: GameState, viewer: "omniscient"): OmniscientView;
+export function viewFor(state: GameState, viewer: Viewer): PlayerView;
+export function viewFor(state: GameState, viewer: ReplayViewer): PlayerView | OmniscientView;
+export function viewFor(state: GameState, viewer: ReplayViewer): PlayerView | OmniscientView {
+  if (viewer === "omniscient") {
+    return {
+      public: copy(state.public),
+      sides: { lio: copy(state.private.lio), sae: copy(state.private.sae) },
+      counts: countsOf(state),
+      meta: copy(state.meta),
+    };
+  }
   return {
     public: copy(state.public),
     mine: viewer === "spectator" ? null : copy(state.private[viewer]),
-    counts: {
-      deck: state.secret.deck.length,
-      hands: { lio: state.private.lio.hand.length, sae: state.private.sae.hand.length },
-    },
+    counts: countsOf(state),
     meta: copy(state.meta),
   };
 }

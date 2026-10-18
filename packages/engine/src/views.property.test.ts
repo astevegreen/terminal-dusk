@@ -220,6 +220,19 @@ describe("views over random games", () => {
       { numRuns: 300 },
     );
   });
+  it("the omniscient view's sides equal the state's private compartments and its public equals the state's public compartment", () => {
+    fc.assert(
+      fc.property(gameArb, (game) => {
+        for (const s of play(game)) {
+          const view = viewFor(s, "omniscient");
+          expect(view.sides).toStrictEqual(s.private);
+          expect(view.public).toStrictEqual(s.public);
+          expect("secret" in view).toBe(false);
+        }
+      }),
+      { numRuns: 300 },
+    );
+  });
   it("the leak check itself finds a hidden card when one is planted in a view", () => {
     const game = fc.sample(gameArb, { numRuns: 1, seed: 7 })[0]!;
     const s = play({ ...game, setup: { ...game.setup, deck: ["n1z"] } })[0]!;
