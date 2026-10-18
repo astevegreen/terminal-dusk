@@ -8,6 +8,7 @@ export { SIDES } from "./types.ts";
 export { verifyGame } from "./verifyGame.ts";
 export { hiddenPart, reconstruct, viewFor } from "./views.ts";
 export type {
+  ActiveModifier,
   Answer,
   AnswerValue,
   Binding,
@@ -23,6 +24,7 @@ export type {
   Decision,
   DecisionKind,
   DecisionOptions,
+  Duration,
   EngineError,
   EngineErrorCode,
   EraEntry,
@@ -37,6 +39,10 @@ export type {
   HiddenPart,
   MarkerEvent,
   MetaState,
+  ModifierEnded,
+  ModifierExpiry,
+  ModifierSpec,
+  ModifierStarted,
   OmniscientView,
   PlayerView,
   PlayUse,

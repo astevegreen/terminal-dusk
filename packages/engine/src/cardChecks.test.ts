@@ -169,3 +169,38 @@ describe("createGame: a card's number steps hold whole numbers", () => {
     for (const effect of nested(badTest(0))) expect(outcomeOf(effect)).toBe("ok");
   });
 });
+
+describe("createGame: a card's modifier steps hold values the engine knows", () => {
+  const good = { hook: "opsValue", side: "both", add: -1, min: 1 };
+  const modifier = (mod: object, duration: object = { kind: "turnEnd" }): Step =>
+    ({ op: "modifier", mod, duration }) as unknown as Step;
+  const nested = (step: Step): Step[][] => [
+    [step],
+    [choose("go"), ifYes("go", [step])],
+    [choose("go"), ifYes("go", [], [step])],
+    [forEach(["a"], "x", [step])],
+  ];
+  const outcomeOf = (effect: Step[]) =>
+    outcome(withCards([...ruleset.cards.slice(1), testCard("l1", 1, "lio", effect)]));
+
+  it.each([
+    ["an unknown hook", modifier({ ...good, hook: "coupResult" })],
+    ["an add of 0", modifier({ ...good, add: 0 })],
+    ["an add that is not whole", modifier({ ...good, add: 1.5 })],
+    ["a missing add", modifier({ hook: "opsValue", side: "both" })],
+    ["a negative min", modifier({ ...good, min: -1 })],
+    ["a min that is not whole", modifier({ ...good, min: 0.5 })],
+    ["an unknown duration", modifier(good, { kind: "gameEnd" })],
+    ["a side that is not lio, sae or both", modifier({ ...good, side: "neutral" })],
+  ])("returns invalidRuleset for a modifier with %s, at the top and nested in an if and a forEach", (_what, step) => {
+    for (const effect of nested(step)) expect(outcomeOf(effect)).toBe("invalidRuleset");
+  });
+  it("accepts good modifiers at any depth: each side, a negative or positive add, a min of 0 or none", () => {
+    const steps = [
+      modifier(good),
+      modifier({ hook: "opsValue", side: "lio", add: 2 }),
+      modifier({ hook: "opsValue", side: "sae", add: -2, min: 0 }),
+    ];
+    for (const step of steps) for (const effect of nested(step)) expect(outcomeOf(effect)).toBe("ok");
+  });
+});

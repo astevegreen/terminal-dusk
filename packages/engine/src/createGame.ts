@@ -62,6 +62,7 @@ export function createGame(
       stack: [],
       status: { kind: "active" },
       contingency: decks.open,
+      modifiers: [],
     },
     private: {
       lio: { hand: [...setup.hands.lio], picks: [] },
