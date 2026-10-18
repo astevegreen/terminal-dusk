@@ -120,7 +120,7 @@ Game state has three compartments: **public** (everyone), **private** (one per s
 **How it works**
 
 - `viewFor(state, viewer)` returns the public compartment, the viewer's own private compartment, and **counts** for everything hidden (deck size, opponent hand size).
-- Viewers are side A, side B, `spectator` (public only) and `omniscient` (everything, used only for replays of finished games).
+- Viewers are side A, side B, `spectator` (public only) and `omniscient` (both sides' private compartments, used only for replays of finished games). The omniscient view is its own type, `OmniscientView`, and never includes the secret compartment: a finished game's seed and move log recompute it. It has no `mine`, so it can never stand in for a live frame's `PlayerView`.
 - The opponent's hand is a number, never a list of placeholder IDs. Stable placeholders can leak which card was drawn when.
 - Each side's private compartment includes its **knowledge**: opponent cards it has been shown, for example by a card that reveals a hand. The AI relies on this.
 - Events are filtered the same way: the drawer sees "you drew X", everyone else sees "opponent drew a card".
@@ -139,7 +139,10 @@ type GameState = {
 };
 type PlayerView = { public: PublicState; mine: PrivateState | null; counts: HiddenCounts; meta: PublicMeta };
 
-viewFor(state: GameState, viewer: Side | 'spectator' | 'omniscient'): PlayerView
+type OmniscientView = { public: PublicState; sides: Record<Side, PrivateState>; counts: HiddenCounts; meta: PublicMeta };
+
+viewFor(state: GameState, viewer: Side | 'spectator'): PlayerView
+viewFor(state: GameState, viewer: 'omniscient'): OmniscientView
 hiddenPart(state: GameState, viewer: Side): HiddenPart
 reconstruct(view: PlayerView, hidden: HiddenPart): GameState
 ```
