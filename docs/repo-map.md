@@ -111,10 +111,12 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/simultaneous.test.ts`
 - `packages/engine/src/simultaneous.ts` - Simultaneous decisions: both sides answer at once and in secret. Exports: Revealed, recordPick, halfAnswered.
 - `packages/engine/src/stack.test.ts`
-- `packages/engine/src/stack.ts` - The resolution stack: runs program steps until one needs a player's choice, records that as the pending decision (or, for both sides at once, a simultaneous pa… Exports: Budget, newBudget, startProgram, runProgram, Closing, resumeStack.
+- `packages/engine/src/stack.ts` - The resolution stack: runs program steps until one needs a player's choice, records that as the pending decision (or, for both sides at once, a simultaneous pa… Exports: Budget, newBudget, startProgram, runProgram, Closing, resumeStack, runStack.
 - `packages/engine/src/stepBudget.test.ts`
 - `packages/engine/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
 - `packages/engine/src/test/game.ts` - Test helpers: a started game, answers for it, and small programs for the stack. Exports: testCard, rulesetWith, ruleset, sideCard, withCards, makeSetup, setupPlus, startGame, startAtPlay, cardAnswer, playAnswer, orderAnswer, ….
+- `packages/engine/src/triggers.test.ts` - Triggers (#90): reactions a card leaves behind, fired at the cardPlayed and turnEnd hooks.
+- `packages/engine/src/triggers.ts` - Triggers (docs/architecture.md, section 4): reactions a card leaves behind, kept in public state and run only at fixed hook points. Exports: setTrigger, afterProgram, fireTurnEnd, endTurnTriggers, badTrigger.
 - `packages/engine/src/turn.test.ts` - The turn structure (#35): secret opening cards, their events in order, then alternating plays.
 - `packages/engine/src/turn.ts` - The turn structure (docs/design/core-loop.md). Exports: startTurn, afterAnswer.
 - `packages/engine/src/types.test.ts`

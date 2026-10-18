@@ -1,5 +1,6 @@
 // Card checks for createGame: the ruleset's cards are well formed, and a setup uses only known cards, each once.
 import { badModifier } from "./modifiers.ts";
+import { badTrigger } from "./triggers.ts";
 import { SIDES } from "./types.ts";
 import type { CardId, EngineError, Ruleset, Setup, Side, Step } from "./types.ts";
 
@@ -17,12 +18,13 @@ export function rulesetError(ruleset: Ruleset): EngineError | null {
     if (!Number.isInteger(card?.ops) || card.ops < 0) {
       return invalidRuleset(`Card ${card?.id}'s ops must be a whole number, 0 or more.`);
     }
-    if (Array.isArray(card.effect) && holdsCardChoice(card.effect)) {
-      return invalidRuleset(`Card ${card.id}'s effect asks both sides to pick a card; only a turn's opening does.`);
-    }
     if (Array.isArray(card.effect)) {
-      const badNumber = findBadNumber(card.effect);
-      if (badNumber !== null) return invalidRuleset(`Card ${card.id}'s effect ${badNumber}`);
+      // Malformed steps first, so the walks below only ever meet lists of steps where steps hold them.
+      const badStep = findBadStep(card.effect);
+      if (badStep !== null) return invalidRuleset(`Card ${card.id}'s effect ${badStep}`);
+      if (holdsCardChoice(card.effect)) {
+        return invalidRuleset(`Card ${card.id}'s effect asks both sides to pick a card; only a turn's opening does.`);
+      }
       const bad = findForeignDraw(card.effect, card.affiliation);
       if (bad !== null) return invalidRuleset(foreignDrawMessage(card.id, card.affiliation, bad));
     }
@@ -48,30 +50,59 @@ function foreignDrawMessage(id: CardId, affiliation: Side | "neutral", drawn: Si
 const findForeignDraw = (steps: readonly Step[], affiliation: Side | "neutral"): Side | null => {
   for (const step of steps) {
     if (step.op === "drawContingency" && step.side !== affiliation) return step.side;
-    const inner = step.op === "if" ? [...step.then, ...(step.else ?? [])] : step.op === "forEach" ? step.do : [];
-    const found = findForeignDraw(inner, affiliation);
+    const found = findForeignDraw(innerSteps(step), affiliation);
     if (found !== null) return found;
   }
   return null;
 };
 
+/** The steps held inside `step`: an if's two branches, a forEach's or a trigger's `do`; none for the rest. */
+function innerSteps(step: Step): readonly Step[] {
+  switch (step.op) {
+    case "if":
+      return [...step.then, ...(step.else ?? [])];
+    case "forEach":
+    case "trigger":
+      return step.do;
+    case "choose":
+    case "marker":
+    case "spendPoints":
+    case "drawContingency":
+    case "addToNumber":
+    case "modifier":
+      return [];
+  }
+}
+
 /**
- * Why the first number test, addToNumber or modifier in `steps` (at any depth) is malformed, or null: a
- * test's `value` and a step's `amount` must be whole numbers, and an `amount` may not be 0. A modifier
- * must use a hook, side, add, min and duration the engine knows (badModifier).
+ * Why `step` itself (not the steps inside it) is malformed, or null: a number test's `value` and an
+ * addToNumber's `amount` must be whole numbers, and an `amount` may not be 0. A modifier must use a hook,
+ * side, add, min and duration the engine knows (badModifier); a trigger a hook and duration, and a
+ * reaction of at least one step (badTrigger).
  */
-const findBadNumber = (steps: readonly Step[]): string | null => {
+function badStep(step: Step): string | null {
+  switch (step.op) {
+    case "addToNumber":
+      return Number.isInteger(step.amount) && step.amount !== 0
+        ? null
+        : "adds an amount that is not a non-zero whole number.";
+    case "if":
+      return step.cond.op === "yes" || Number.isInteger(step.cond.value)
+        ? null
+        : "tests a number against a value that is not whole.";
+    case "modifier":
+      return badModifier(step.mod, step.duration);
+    case "trigger":
+      return badTrigger(step);
+    default:
+      return null;
+  }
+}
+
+/** Why the first malformed step in `steps`, at any depth, is malformed (badStep), or null. */
+const findBadStep = (steps: readonly Step[]): string | null => {
   for (const step of steps) {
-    if (step.op === "addToNumber" && (!Number.isInteger(step.amount) || step.amount === 0)) {
-      return "adds an amount that is not a non-zero whole number.";
-    }
-    if (step.op === "if" && step.cond.op !== "yes" && !Number.isInteger(step.cond.value)) {
-      return "tests a number against a value that is not whole.";
-    }
-    const badMod = step.op === "modifier" ? badModifier(step.mod, step.duration) : null;
-    if (badMod !== null) return badMod;
-    const inner = step.op === "if" ? [...step.then, ...(step.else ?? [])] : step.op === "forEach" ? step.do : [];
-    const found = findBadNumber(inner);
+    const found = badStep(step) ?? findBadStep(innerSteps(step));
     if (found !== null) return found;
   }
   return null;
@@ -79,22 +110,9 @@ const findBadNumber = (steps: readonly Step[]): string | null => {
 
 /** True if `steps`, or any block inside them, holds a choice of a card. */
 const holdsCardChoice = (steps: readonly Step[]): boolean =>
-  steps.some((step) => {
-    switch (step.op) {
-      case "choose":
-        return step.decision.kind === "chooseCard";
-      case "if":
-        return holdsCardChoice(step.then) || holdsCardChoice(step.else ?? []);
-      case "forEach":
-        return holdsCardChoice(step.do);
-      case "marker":
-      case "spendPoints":
-      case "drawContingency":
-      case "addToNumber":
-      case "modifier":
-        return false;
-    }
-  });
+  steps.some((step) =>
+    step.op === "choose" ? step.decision.kind === "chooseCard" : holdsCardChoice(innerSteps(step)),
+  );
 
 /**
  * Why the setup's cards are wrong, or null: every card in the hands, the draw pile and the later eras
