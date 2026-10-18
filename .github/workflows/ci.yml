@@ -63,6 +63,29 @@ jobs:
       - name: Full fuzz (10,000 games)
         run: pnpm run --if-present fuzz
 
+  # The app's Playwright smoke tests (packages/app/e2e) at both sizes in playwright.config.ts, phone and desktop, so a
+  # layout break (sideways scroll, buttons under 44 px) fails the pull request. Runs on every pull request, not only
+  # ones that touch packages/app: the app renders what the engine and host produce, and a job that always runs can be
+  # made a required check.
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      # The Chromium build that matches the @playwright/test version packages/app already has, plus its system libraries.
+      - name: Install Chromium
+        run: pnpm --filter @terminal-dusk/app exec playwright install --with-deps chromium
+      - name: Playwright smoke tests
+        run: pnpm --filter @terminal-dusk/app test:e2e
+
   # The hooks, the git hooks and the local gate run on the owner's Windows PC, so the tool tests run on Windows too.
   tools-windows:
     runs-on: windows-latest
