@@ -2,6 +2,7 @@
 // receives; the engine's type of the same name is a resolution-stack frame, a different thing.
 import type {
   Answer,
+  AnswerValue,
   Decision,
   EngineErrorCode,
   GameEvent,
@@ -46,6 +47,11 @@ export type Frame = {
   decision: Decision | null;
 };
 
+/** What a player sends: an answer to a waiting decision (with the seq it expects), or a resignation. */
+export type Submission =
+  | { player: PlayerId; expectedSeq: number; decisionId: string; value: AnswerValue }
+  | { player: PlayerId; resign: true };
+
 /** Something the adapter must do after a host call. `notify`: tell this player a decision waits. */
 export type HostEffect = { notify: PlayerId };
 
@@ -56,6 +62,6 @@ export type HostResult = {
   effects: HostEffect[];
 };
 
-export type HostErrorCode = "invalidConfig" | "invalidTime";
+export type HostErrorCode = "invalidConfig" | "invalidTime" | "notPlayer" | "staleSeq";
 export type HostError = { code: EngineErrorCode | HostErrorCode; message?: string };
 export type HostOutcome = { ok: true; value: HostResult } | { ok: false; error: HostError };
