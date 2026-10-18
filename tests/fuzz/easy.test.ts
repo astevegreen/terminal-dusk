@@ -2,7 +2,7 @@
 import { SIDES } from "@terminal-dusk/engine";
 import type { Answer, Side } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
-import { easyChooser, playFuzzGame, playGame, randomGame } from "./play.ts";
+import { easyChooser, playFuzzGame, playGame, randomGame, ruleset } from "./play.ts";
 import { seededRng } from "./random.ts";
 
 describe("Easy in the fuzz games", () => {
@@ -17,7 +17,7 @@ describe("Easy in the fuzz games", () => {
       for (let game = 1; game <= 20; game++) {
         const rng = seededRng(game);
         const { setup, seed } = randomGame(rng, game);
-        const played = playGame(`Easy as ${easy}, game ${game}`, setup, seed, easyChooser(easy, rng));
+        const played = playGame(ruleset, `Easy as ${easy}, game ${game}`, setup, seed, easyChooser(ruleset, easy, rng));
         expect(played.final.public.status.kind).toBe("over");
       }
     }
@@ -28,8 +28,13 @@ describe("Easy in the fuzz games", () => {
     for (let game = 1; game <= 30; game++) {
       const rng = seededRng(game);
       const { setup, seed } = randomGame(rng, game);
-      const answers: Answer[] = playGame(`Easy as lio, game ${game}`, setup, seed, easyChooser("lio", rng)).record
-        .answers;
+      const answers: Answer[] = playGame(
+        ruleset,
+        `Easy as lio, game ${game}`,
+        setup,
+        seed,
+        easyChooser(ruleset, "lio", rng),
+      ).record.answers;
       firstSides.add(answers[0]!.side);
     }
     expect(firstSides.size).toBe(2);

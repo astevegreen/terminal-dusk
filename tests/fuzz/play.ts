@@ -84,7 +84,7 @@ function modifierOf(k: number): EffectStep {
  * reshuffle (#65): two in three of them show the number through a variable, the rest draw without one.
  * Neutral cards draw nothing, as neutral events have no deck yet.
  */
-function baseEffectOf(i: number): EffectStep[] {
+export function baseEffectOf(i: number): EffectStep[] {
   if (i % 4 === 3) {
     return [
       { op: "choose", who: i % 8 === 3 ? "lio" : "sae", decision: { kind: "yesNo" }, bind: "a" },
@@ -135,18 +135,18 @@ export function gameCount(raw: string | undefined): number {
  * Fuzz game `game`, played from its own seed. Every third game has the Easy AI on one side (LIO when
  * game % 6 is 0, SAE when it is 3) and the random chooser on the other; the rest are random on both.
  */
-export function playFuzzGame(game: number): Played {
+export function playFuzzGame(game: number, rules: Ruleset = ruleset): Played {
   const rng = seededRng(game);
   const { setup, seed } = randomGame(rng, game);
   const easy: Side | null = game % 6 === 0 ? "lio" : game % 6 === 3 ? "sae" : null;
-  const choose = easy === null ? randomChooser(rng) : easyChooser(easy, rng);
-  return playGame(`Fuzz game ${game} (playFuzzGame(${game}) plays it again)`, setup, seed, choose);
+  const choose = easy === null ? randomChooser(rules, rng) : easyChooser(rules, easy, rng);
+  return playGame(rules, `Fuzz game ${game} (playFuzzGame(${game}) plays it again)`, setup, seed, choose);
 }
 
 /** A recorded game, answer by answer, with every check. It may stop before the game ends. */
 export function playRecorded(name: string, record: GameRecord): Played {
   let next = 0;
-  return playGame(`Fixed game "${name}"`, record.setup, record.seed, () => record.answers[next++] ?? null);
+  return playGame(ruleset, `Fixed game "${name}"`, record.setup, record.seed, () => record.answers[next++] ?? null);
 }
 
 /**
@@ -214,9 +214,9 @@ function randomDeck(rng: Rng): number[] {
  * Picks one of the sides that can answer, then one of its legal answers, each uniformly at random.
  * When both sides are waiting (a simultaneous pair), either may answer first.
  */
-export function randomChooser(rng: Rng): Chooser {
+export function randomChooser(rules: Ruleset, rng: Rng): Chooser {
   return (state) => {
-    const { decision, legal } = nextToAnswer(state, rng);
+    const { decision, legal } = nextToAnswer(rules, state, rng);
     return { decisionId: decision.id, side: decision.side, value: legal[rng.int(legal.length)]! };
   };
 }
@@ -224,11 +224,11 @@ export function randomChooser(rng: Rng): Chooser {
 type Waiting = { decision: Decision; legal: AnswerValue[] };
 
 /** Of the sides that can answer now, one picked with `rng`, and its legal answers. */
-function nextToAnswer(state: GameState, rng: Rng): Waiting {
+function nextToAnswer(rules: Ruleset, state: GameState, rng: Rng): Waiting {
   const waiting: Waiting[] = [];
   for (const side of SIDES) {
     const decision = attempt(`pendingFor('${side}')`, () => pendingFor(state, side));
-    const legal = attempt(`legalAnswers('${side}')`, () => legalAnswers(ruleset, state, side));
+    const legal = attempt(`legalAnswers('${side}')`, () => legalAnswers(rules, state, side));
     if (decision !== null && legal.length > 0) waiting.push({ decision, legal });
   }
   if (waiting.length === 0) throw new Error("no side has an answer to give"); // checkStep catches this first
@@ -241,14 +241,14 @@ const TWO_32 = 4294967296;
  * easyAnswer. Which waiting side answers next (so Easy is not always first in a simultaneous pair) and the
  * other side's answers are chosen as randomChooser does.
  */
-export function easyChooser(side: Side, rng: Rng): Chooser {
+export function easyChooser(rules: Ruleset, side: Side, rng: Rng): Chooser {
   const random = (): number => rng.int(TWO_32) / TWO_32;
   return (state) => {
-    const { decision, legal } = nextToAnswer(state, rng);
+    const { decision, legal } = nextToAnswer(rules, state, rng);
     if (decision.side !== side) {
       return { decisionId: decision.id, side: decision.side, value: legal[rng.int(legal.length)]! };
     }
-    const value = easyAnswer(ruleset, viewFor(state, side), side, EASY_WEIGHTS, random);
+    const value = easyAnswer(rules, viewFor(state, side), side, EASY_WEIGHTS, random);
     if (value === null) throw new Error("the Easy AI gave no answer for a pending decision");
     return { decisionId: decision.id, side, value };
   };
@@ -259,24 +259,24 @@ export function easyChooser(side: Side, rng: Rng): Chooser {
  * 4 and 5 on the state from createGame and after every answer, then invariant 6 at the end. A game that
  * reached its end is also checked with verifyGame.
  */
-export function playGame(label: string, setup: Setup, seed: Seed, choose: Chooser): Played {
+export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed, choose: Chooser): Played {
   const record: GameRecord = { setup: deepFreeze(setup), seed, answers: [] };
   try {
-    let { state, events } = started(setup, seed);
+    let { state, events } = started(rules, setup, seed);
     const allEvents = [...events];
-    checkStep(ruleset, setup, state, events, seed);
+    checkStep(rules, setup, state, events, seed);
     while (state.public.status.kind === "active") {
       if (record.answers.length >= MAX_ANSWERS) throw new Error(`the game is still going after ${MAX_ANSWERS} answers`);
       const answer = choose(state);
       if (answer === null) break;
       record.answers.push(deepFreeze(answer));
-      ({ state, events } = answered(state, answer));
+      ({ state, events } = answered(rules, state, answer));
       allEvents.push(...events);
-      checkStep(ruleset, setup, state, events, seed);
+      checkStep(rules, setup, state, events, seed);
     }
-    checkReplay(record, state);
+    checkReplay(rules, record, state);
     // A recorded game may stop early; verifyGame only accepts a game that reached its end.
-    if (state.public.status.kind === "over") checkVerify(ruleset, record, state, allEvents);
+    if (state.public.status.kind === "over") checkVerify(rules, record, state, allEvents);
     return { record, final: state };
   } catch (err) {
     throw new Error(report(label, record, err), { cause: err });
@@ -284,11 +284,11 @@ export function playGame(label: string, setup: Setup, seed: Seed, choose: Choose
 }
 
 /** Invariant 6: replaying the record's answers from createGame gives a state deep-equal to `final`. */
-export function checkReplay(record: GameRecord, final: GameState): void {
-  let { state } = started(record.setup, record.seed);
+export function checkReplay(rules: Ruleset, record: GameRecord, final: GameState): void {
+  let { state } = started(rules, record.setup, record.seed);
   for (const [i, answer] of record.answers.entries()) {
     try {
-      state = answered(state, answer).state;
+      state = answered(rules, state, answer).state;
     } catch (err) {
       throw new Error(`replaying answer ${i + 1} of the log failed: ${String(err)}`, { cause: err });
     }
@@ -298,15 +298,15 @@ export function checkReplay(record: GameRecord, final: GameState): void {
 }
 
 /** createGame, with its result deep-frozen the moment it returns. */
-function started(setup: Setup, seed: Seed): Step {
-  const r = attempt("createGame", () => createGame(ruleset, setup, seed));
+function started(rules: Ruleset, setup: Setup, seed: Seed): Step {
+  const r = attempt("createGame", () => createGame(rules, setup, seed));
   if (!r.ok) throw new Error(`createGame refused the setup: ${r.error.code} ${r.error.message ?? ""}`);
   return deepFreeze(r.value);
 }
 
 /** apply, with its result deep-frozen the moment it returns. A legal answer must be accepted. */
-function answered(state: GameState, answer: Answer): Step {
-  const r = attempt("apply", () => apply(ruleset, state, answer));
+function answered(rules: Ruleset, state: GameState, answer: Answer): Step {
+  const r = attempt("apply", () => apply(rules, state, answer));
   if (!r.ok) throw new Error(`apply refused ${JSON.stringify(answer)}: ${r.error.code} ${r.error.message ?? ""}`);
   return deepFreeze(r.value);
 }
