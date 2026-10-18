@@ -2,6 +2,7 @@
 import { apply, pendingFor, SIDES } from "@terminal-dusk/engine";
 import type { Answer, AnswerValue, GameState, Ruleset, Side } from "@terminal-dusk/engine";
 import { copyJson, framesFor } from "./frames.ts";
+import { checkFinished } from "./hostFinish.ts";
 import type { HostEffect, HostError, HostOutcome, MatchRecord, MatchSecret, Submission } from "./types.ts";
 
 /**
@@ -36,6 +37,16 @@ export function hostSubmit(
   const result = apply(ruleset, secret.state, answer);
   if (!result.ok) return { ok: false, error: result.error };
   const { state, events } = result.value;
+  const log = [...copyJson(secret.log), answer];
+  const over = state.public.status.kind === "over";
+  if (over) {
+    const failed = checkFinished(ruleset, secret, log, state);
+    if (failed) return { ok: false, error: failed };
+  }
+  const effects: HostEffect[] = SIDES.filter((s) => newDecision(secret.state, state, s)).map((s) => ({
+    notify: record.players[s],
+  }));
+  if (over) effects.push({ finalize: true });
   return {
     ok: true,
     value: {
@@ -45,12 +56,11 @@ export function hostSubmit(
         seq: state.meta.seq,
         status: copyJson(state.public.status),
         updatedAt: now,
+        ...(over ? { seed: secret.seed } : {}),
       },
-      secret: { seed: secret.seed, setup: copyJson(secret.setup), state, log: [...copyJson(secret.log), answer] },
+      secret: { seed: secret.seed, setup: copyJson(secret.setup), state, log },
       frames: framesFor(record.matchId, state, events),
-      effects: SIDES.filter((s) => newDecision(secret.state, state, s)).map((s): HostEffect => ({
-        notify: record.players[s],
-      })),
+      effects,
     },
   };
 }

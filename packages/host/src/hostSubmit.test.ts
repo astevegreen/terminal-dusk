@@ -226,7 +226,7 @@ describe("hostSubmit: resigning", () => {
       expect(next.record.seq).toBe(host.record.seq + 1);
       expect(next.secret.log).toEqual([{ system: "resign", side }]);
       for (const viewer of ["lio", "sae", "spectator"] as const) expect(next.frames[viewer].decision).toBeNull();
-      expect(next.effects).toEqual([]);
+      expect(next.effects).toEqual([{ finalize: true }]);
     });
   }
 
@@ -253,7 +253,7 @@ describe("hostSubmit: notify effects", () => {
     expect(steps[2]!.effects).toEqual([{ notify: "alice" }]);
     expect(steps[3]!.effects).toEqual([{ notify: "bob" }]);
     expect(steps[4]!.effects).toEqual([{ notify: "alice" }, { notify: "bob" }]);
-    expect(steps[8]!.effects).toEqual([]);
+    expect(steps[8]!.effects).toEqual([{ finalize: true }]);
   });
 
   it("sae picking first leaves lio waiting without a second notification", () => {
