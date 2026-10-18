@@ -25,8 +25,11 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/ai/src/easy.ts` - The Easy tier (docs/architecture.md, Decision 8): score every legal answer with a small evaluation plus random noise, and take the best. Exports: easyAnswer.
 - `packages/ai/src/guess.test.ts`
 - `packages/ai/src/guess.ts` - Guessing the cards a side cannot see, so the AI can rebuild a full state with `reconstruct`. Exports: guessHidden.
-- `packages/ai/src/index.ts` - Public entry point of the AI opponent (docs/architecture.md, Decision 8). Exports: easyAnswer, guessHidden, EASY_WEIGHTS, Weights.
-- `packages/ai/src/test/testGames.ts` - Test helpers: a small ruleset and seeded games, so the AI tests can make real views with the engine. Exports: TestState, ruleset, seededRandom, newGame, applyAnswer.
+- `packages/ai/src/index.ts` - Public entry point of the AI opponent (docs/architecture.md, Decision 8). Exports: easyAnswer, guessHidden, EASY_WEIGHTS, seededRandom, createEasyPlayer, createAiWorkerHandler, AiRequest, AiResponse, Weights.
+- `packages/ai/src/player.test.ts`
+- `packages/ai/src/player.ts` - A ready-made Easy player and the plain-data protocol a worker uses to run it (Decision 8). Exports: createEasyPlayer, AiRequest, AiResponse, createAiWorkerHandler.
+- `packages/ai/src/random.ts` - The AI's own noise, kept apart from the game's randomness (which stays in the engine's PRNG). Exports: seededRandom.
+- `packages/ai/src/test/testGames.ts` - Test helpers: a small ruleset and seeded games, so the AI tests can make real views with the engine. Exports: TestState, ruleset, newGame, applyAnswer.
 - `packages/ai/src/types.ts` - Shared types of the AI package. Exports: Weights.
 - `packages/ai/src/weights/easy.ts` - The Easy tier's weights, as plain data (docs/architecture.md, Decision 8). Exports: EASY_WEIGHTS.
 - `packages/ai/tsconfig.json`
