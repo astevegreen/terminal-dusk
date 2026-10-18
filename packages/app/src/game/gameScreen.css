@@ -1,0 +1,74 @@
+/* Placeholder look only: system font, grey borders, no colours, no images. */
+.game {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
+  grid-template-rows: auto minmax(220px, 1fr) auto;
+  grid-template-areas:
+    "status status"
+    "map side"
+    "hand side";
+  gap: 4px;
+  width: 100%;
+  max-width: 100vw;
+  min-height: 300px;
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+}
+.game > section,
+.game .game-side > section {
+  box-sizing: border-box;
+  min-width: 0;
+  border: 1px solid #999;
+  padding: 4px;
+}
+.game > section {
+  overflow: auto;
+}
+.game ul,
+.game ol {
+  margin: 0;
+  padding-left: 18px;
+}
+.game p {
+  margin: 0 0 2px;
+}
+.game .game-status {
+  grid-area: status;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+.game .game-map {
+  grid-area: map;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-style: dashed;
+}
+.game .game-hand {
+  grid-area: hand;
+  max-height: 120px;
+}
+.game .game-side {
+  grid-area: side;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 0;
+  overflow: auto;
+}
+.game .game-log ol {
+  max-height: 90px;
+  overflow-y: auto;
+}
+@media (min-width: 1000px) {
+  .game {
+    font-size: 16px;
+    min-height: 600px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+  }
+  .game .game-log ol {
+    max-height: 200px;
+  }
+}

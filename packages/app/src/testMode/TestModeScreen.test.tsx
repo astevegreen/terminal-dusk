@@ -53,15 +53,16 @@ describe("test mode screen", () => {
   });
   it("renders the turn, the plays, the hand and the open prompt from the frame", () => {
     const out = html(fresh());
-    expect(out).toContain("Turn 1 of 2");
-    expect(out).toContain("Plays made: 0 of 2");
-    expect(out).toContain("Game active");
-    expect(out).toContain(
-      "Your hand: Test card 1, Test card 2, Test card 3, Test card 4, Test card 5, Test card 7, Test card 13",
-    );
-    expect(out).toContain("sae hand: 7 cards");
-    expect(out).toContain("lio: pick an opening card");
-    expect(out).toContain("min-height:44px");
+    const texts = [
+      "Turn 1 of 2",
+      "Plays made: 0 of 2",
+      "Your decision",
+      "<li>Test card 1</li><li>Test card 2</li><li>Test card 3</li><li>Test card 4</li><li>Test card 5</li><li>Test card 7</li><li>Test card 13</li>",
+      "SAE holds 7 cards",
+      "lio: pick an opening card",
+      "min-height:44px",
+    ];
+    for (const text of texts) expect(out).toContain(text);
   });
   it("shows the game's events as a log, oldest first, once cards are revealed", async () => {
     const session = fresh();
@@ -80,18 +81,18 @@ describe("the viewer switch", () => {
     const session = fresh();
     session.setViewer("sae");
     const out = html(session);
-    expect(out).toContain("Viewing as sae");
+    expect(out).toContain("You play SAE");
     expect(out).toContain(
-      "Your hand: Test card 9, Test card 10, Test card 11, Test card 12, Test card 8, Test card 6, Test card 14",
+      "<li>Test card 9</li><li>Test card 10</li><li>Test card 11</li><li>Test card 12</li><li>Test card 8</li><li>Test card 6</li><li>Test card 14</li>",
     );
-    expect(out).toContain("lio hand: 7 cards");
+    expect(out).toContain("LIO holds 7 cards");
   });
   it("shows a spectator two hand counts, no card ids, read-only prompts and no answer buttons", () => {
     const session = fresh();
     session.setViewer("spectator");
     const out = html(session);
-    expect(out).toContain("Hands: lio 7 cards, sae 7 cards");
-    expect(out).not.toContain("Your hand");
+    expect(out).toContain("LIO holds 7 cards, SAE holds 7 cards");
+    expect(out).not.toContain('data-testid="opponent"');
     expect(out).not.toMatch(/\bt\d+\b/);
     expect(out).not.toContain("Test card 1,");
     expect(out.match(/pick an opening card/g)).toHaveLength(2);
