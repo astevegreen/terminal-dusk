@@ -23,18 +23,15 @@ function DecisionRegion({ frame, label, onAnswer, refusal }: Readonly<Omit<GameS
   const hand = frame.view.mine?.hand ?? [];
   // The waiting decision is answerable; otherwise the open ones are shown read-only (a spectator's are always these).
   const waiting = frame.decision;
-  const Waiting = waiting ? decisionPrompts[waiting.kind] : null;
-  const readOnly = waiting ? [] : frame.view.public.pending;
+  const open = waiting ? [waiting] : frame.view.public.pending;
   return (
     <Region id="decision" title="Decision">
-      {waiting && Waiting && (
-        <Waiting decision={waiting} hand={hand} label={label} {...(onAnswer ? { onAnswer } : {})} />
-      )}
-      {readOnly.map((decision) => {
+      {open.map((decision) => {
         const Prompt = decisionPrompts[decision.kind];
-        return <Prompt key={decision.id} decision={decision} hand={hand} label={label} />;
+        const answer = waiting && onAnswer ? { onAnswer } : {};
+        return <Prompt key={decision.id} decision={decision} hand={hand} label={label} {...answer} />;
       })}
-      {typeof refusal === "string" && <p role="status">{`Refused: ${refusal}`}</p>}
+      {typeof refusal === "string" && <output>{`Refused: ${refusal}`}</output>}
     </Region>
   );
 }

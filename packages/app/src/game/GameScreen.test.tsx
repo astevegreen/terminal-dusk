@@ -67,7 +67,7 @@ describe("GameScreen for a side", () => {
     for (const id of ["status-bar", "map-area", "hand", "opponent", "table", "contingency", "log", "decision"]) {
       expect(out).toContain(`data-testid="${id}"`);
     }
-    expect(out).toContain('role="region"');
+    expect(out).toContain('<section aria-label="Your hand"');
   });
   it("shows the map box with only the not-designed text", () => {
     expect(out).toMatch(/data-testid="map-area"[^>]*><p>Map: not designed yet<\/p><\/section>/);

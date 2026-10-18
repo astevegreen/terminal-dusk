@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 export type Label = (card: CardId) => string;
 const DISCARD_SHOWN = 5;
 
-/** A named region: `role="region"`, an accessible name and a test id. */
+/** A named region: an accessible name and a test id. */
 export function Region({
   id,
   title,
@@ -16,7 +16,7 @@ export function Region({
   children,
 }: Readonly<{ id: string; title: string; className?: string; children: ReactNode }>) {
   return (
-    <section role="region" aria-label={title} data-testid={id} className={className}>
+    <section aria-label={title} data-testid={id} className={className}>
       {children}
     </section>
   );

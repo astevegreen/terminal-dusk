@@ -33,6 +33,15 @@ const sends = (viewer: Viewer, seq: number, events: GameEvent[]): void => {
   replacement[viewer] = (real) => ({ ...real, seq, events });
 };
 
+/** Makes the viewer receive these events, then looks at another viewer and back, so the era is read from the kept value. */
+function eraAfterRoundTrip(events: GameEvent[]): { session: ReturnType<typeof createTestSession>; era: string | null } {
+  const session = createTestSession(() => 0);
+  sends("lio", 1, events);
+  session.setViewer("sae");
+  session.setViewer("lio");
+  return { session, era: session.getSnapshot().era };
+}
+
 describe("the session's era", () => {
   it("starts null, becomes the era of an eraStarted event, and is kept per viewer", () => {
     const session = createTestSession(() => 0);
@@ -46,18 +55,11 @@ describe("the session's era", () => {
     expect(session.getSnapshot().era).toBe("late");
   });
   it("keeps the latest of several eraStarted events", () => {
-    const session = createTestSession(() => 0);
-    sends("lio", 1, [eraEvent("middle"), eraEvent("late")]);
-    session.setViewer("sae");
-    session.setViewer("lio");
-    expect(session.getSnapshot().era).toBe("late");
+    expect(eraAfterRoundTrip([eraEvent("middle"), eraEvent("late")]).era).toBe("late");
   });
   it("restart sets it back to null", () => {
-    const session = createTestSession(() => 0);
-    sends("lio", 1, [eraEvent("late")]);
-    session.setViewer("sae");
-    session.setViewer("lio");
-    expect(session.getSnapshot().era).toBe("late");
+    const { session, era } = eraAfterRoundTrip([eraEvent("late")]);
+    expect(era).toBe("late");
     replacement.lio = null;
     session.restart("another");
     expect(session.getSnapshot().era).toBeNull();
