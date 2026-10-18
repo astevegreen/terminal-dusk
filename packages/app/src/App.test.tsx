@@ -4,6 +4,6 @@ import { App } from "./App.tsx";
 
 describe("App placeholder screen", () => {
   it("shows the game's name", () => {
-    expect(renderToString(<App />)).toContain("Terminal Dusk");
+    expect(renderToString(<App clock={() => 0} />)).toContain("Terminal Dusk");
   });
 });

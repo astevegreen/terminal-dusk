@@ -7,6 +7,6 @@ const root = document.getElementById("root");
 if (!root) throw new Error("index.html has no #root element");
 createRoot(root).render(
   <StrictMode>
-    <App />
+    <App clock={() => Date.now()} />
   </StrictMode>,
 );

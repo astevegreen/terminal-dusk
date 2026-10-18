@@ -9,7 +9,8 @@
     "build": "vite build",
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint . --format ../../tools/eslint-formatter.mjs",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@terminal-dusk/ai": "workspace:*",
@@ -19,6 +20,7 @@
     "react-dom": "catalog:"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.0",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "catalog:",
