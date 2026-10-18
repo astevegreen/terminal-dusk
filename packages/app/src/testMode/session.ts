@@ -1,6 +1,6 @@
 // The state behind the test-mode screen: one local match, the viewer being looked at, that viewer's latest
 // frame and game log, and the last refusal. It holds display data only; the rules stay in the host.
-import type { AnswerValue, GameEvent, Viewer } from "@terminal-dusk/engine";
+import type { AnswerValue, EraId, GameEvent, Viewer } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import { eventPresentation } from "../eventPresentation.ts";
 import { createLocalMatch } from "../transport/localMatch.ts";
@@ -14,6 +14,8 @@ export type Snapshot = {
   frame: Frame | null;
   /** The game's events as log lines for this viewer, oldest first. */
   log: string[];
+  /** The era of the latest eraStarted event in this viewer's log, or null if none yet. */
+  era: EraId | null;
   /** The error code of the last refused answer or failed start, or null. */
   refusal: string | null;
 };
@@ -39,7 +41,8 @@ export function createTestSession(clock: () => number, startSeed: string = DEFAU
   let stop = (): void => {};
   let logs: Record<Viewer, string[]> = { lio: [], sae: [], spectator: [] };
   let lastSeq: Record<Viewer, number> = { lio: -1, sae: -1, spectator: -1 };
-  let snapshot: Snapshot = { viewer: "lio", seed: startSeed, frame: null, log: [], refusal: null };
+  let eras: Record<Viewer, EraId | null> = { lio: null, sae: null, spectator: null };
+  let snapshot: Snapshot = { viewer: "lio", seed: startSeed, frame: null, log: [], era: null, refusal: null };
 
   const publish = (change: Partial<Snapshot>): void => {
     snapshot = { ...snapshot, ...change };
@@ -51,8 +54,9 @@ export function createTestSession(clock: () => number, startSeed: string = DEFAU
     if (frame.seq > lastSeq[viewer]) {
       logs[viewer] = [...logs[viewer], ...frame.events.map(logLine)];
       lastSeq[viewer] = frame.seq;
+      for (const event of frame.events) if (event.kind === "eraStarted") eras[viewer] = event.era;
     }
-    publish({ frame, log: logs[viewer], refusal: null });
+    publish({ frame, log: logs[viewer], era: eras[viewer], refusal: null });
   };
 
   const watch = (viewer: Viewer): void => {
@@ -64,9 +68,10 @@ export function createTestSession(clock: () => number, startSeed: string = DEFAU
     stop();
     logs = { lio: [], sae: [], spectator: [] };
     lastSeq = { lio: -1, sae: -1, spectator: -1 };
+    eras = { lio: null, sae: null, spectator: null };
     const made = createLocalMatch(fixtureRuleset, fixtureConfig, seed, clock);
     match = made.ok ? made.value : null;
-    snapshot = { viewer, seed, frame: null, log: [], refusal: made.ok ? null : made.error.code };
+    snapshot = { viewer, seed, frame: null, log: [], era: null, refusal: made.ok ? null : made.error.code };
     if (made.ok) watch(viewer);
     else publish({});
   };
@@ -81,7 +86,7 @@ export function createTestSession(clock: () => number, startSeed: string = DEFAU
       };
     },
     setViewer(viewer) {
-      snapshot = { ...snapshot, viewer, frame: null, log: logs[viewer] };
+      snapshot = { ...snapshot, viewer, frame: null, log: logs[viewer], era: eras[viewer] };
       watch(viewer);
     },
     restart(seed) {
