@@ -102,8 +102,15 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## packages/host - MatchHost: runs a match around the engine (players, clock, move log, frames) without doing I/O.
 
 - `packages/host/package.json`
+- `packages/host/src/hostCreate.leaks.test.ts`
+- `packages/host/src/hostCreate.test.ts`
+- `packages/host/src/hostCreate.ts` - Starting a match: checks the config, creates the game with the engine, and splits the result into what everyone may read (the record), what only the host may r… Exports: hostCreate.
 - `packages/host/src/index.test.ts`
-- `packages/host/src/index.ts` - Public entry point of MatchHost (docs/architecture.md, Decision 3).
+- `packages/host/src/index.ts` - Public entry point of MatchHost (docs/architecture.md, Decision 3). Exports: hostCreate, Frame, HostEffect, HostError, HostErrorCode, HostOutcome, HostResult, MatchConfig, MatchRecord, MatchSecret, PlayerId.
+- `packages/host/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
+- `packages/host/src/test/leaks.ts` - Test helpers for leak checks, copying the idea of tests/fuzz/checks.ts (hiddenFrom, leaksIn). Exports: hiddenFrom, leaksIn.
+- `packages/host/src/test/match.ts` - Test helpers: a small ruleset, a match config with an era still to enter, and a seed. Exports: SEED, NOW, LATE_ERA_CARDS, ruleset, makeConfig.
+- `packages/host/src/types.ts` - The match host's own types (docs/architecture.md, Decision 3). Exports: PlayerId, MatchConfig, MatchRecord, MatchSecret, Frame, HostEffect, HostResult, HostErrorCode, HostError, HostOutcome.
 - `packages/host/tsconfig.json`
 
 ## packages/server - Supabase functions and SQL: the single submit write path, scheduled jobs and migrations.
