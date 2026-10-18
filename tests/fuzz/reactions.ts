@@ -101,5 +101,5 @@ export const reactionsRuleset: Ruleset = deepFreeze({
 
 /** Reaction game `game`: the setup, seed and choosers of fuzz game `game`, on the reaction cards. */
 export function playReactionGame(game: number): Played {
-  return playFuzzGame(game, reactionsRuleset);
+  return playFuzzGame(game, reactionsRuleset, "playReactionGame");
 }

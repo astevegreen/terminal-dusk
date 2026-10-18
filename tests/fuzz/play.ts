@@ -135,12 +135,12 @@ export function gameCount(raw: string | undefined): number {
  * Fuzz game `game`, played from its own seed. Every third game has the Easy AI on one side (LIO when
  * game % 6 is 0, SAE when it is 3) and the random chooser on the other; the rest are random on both.
  */
-export function playFuzzGame(game: number, rules: Ruleset = ruleset): Played {
+export function playFuzzGame(game: number, rules: Ruleset = ruleset, again = "playFuzzGame"): Played {
   const rng = seededRng(game);
   const { setup, seed } = randomGame(rng, game);
   const easy: Side | null = game % 6 === 0 ? "lio" : game % 6 === 3 ? "sae" : null;
   const choose = easy === null ? randomChooser(rules, rng) : easyChooser(rules, easy, rng);
-  return playGame(rules, `Fuzz game ${game} (playFuzzGame(${game}) plays it again)`, setup, seed, choose);
+  return playGame(rules, `Fuzz game ${game} (${again}(${game}) plays it again)`, setup, seed, choose);
 }
 
 /** A recorded game, answer by answer, with every check. It may stop before the game ends. */
