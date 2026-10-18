@@ -61,6 +61,7 @@ describe("hostSubmit: the end of the game", () => {
     expect(r.ok).toBe(false);
     if (r.ok) return;
     expect(r.error.code).toBe("verifyFailed");
+    expect(r.error.message).toContain("did not check out");
     expect(r.error.message).not.toContain(SEED);
     expect(tampered.secret.log).toHaveLength(6);
     expect("seed" in tampered.record).toBe(false);
@@ -86,7 +87,11 @@ describe("hostSubmit: the end of the game", () => {
   });
 
   it("after the end, any further answer or resignation is refused with gameOver", () => {
-    const over = deepFreeze(play(ended).at(-1)!);
+    const steps = play(ended);
+    const over = deepFreeze(steps.at(-1)!);
+    const answer = { ...submissionFor(steps.at(-2)!, nextSide(steps.at(-2)!)), expectedSeq: over.record.seq };
+    const late = hostSubmit(ruleset, over.record, over.secret, answer, over.record.updatedAt);
+    expect(late.ok ? "ok" : late.error.code).toBe("gameOver");
     for (const player of ["alice", "bob"]) {
       const r = hostSubmit(ruleset, over.record, over.secret, { player, resign: true }, over.record.updatedAt);
       expect(r.ok ? "ok" : r.error.code).toBe("gameOver");
