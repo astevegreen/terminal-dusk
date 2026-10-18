@@ -27,6 +27,17 @@ const condition = z.discriminatedUnion("op", [
   z.strictObject({ op: z.enum(["atLeast", "atMost", "equals"]), var: name, value: z.int() }),
 ]);
 
+/**
+ * A rule change a `modifier` step makes. The one hook so far is a card's ops value: for cards whose points
+ * `side` (or either side) spends, `add` more (a non-zero whole number), never below `min` (0 or more) if given.
+ */
+const modifierSpec = z.strictObject({
+  hook: z.literal("opsValue"),
+  side: z.enum(["lio", "sae", "both"]),
+  add: z.int().refine((n) => n !== 0, { error: "A modifier's add must not be 0." }),
+  min: wholeNumber.exactOptional(),
+});
+
 /** One step of a card's effect. Every kind of engine step but a card choice, at any depth. */
 export const stepSchema = z.discriminatedUnion("op", [
   choose,
@@ -39,6 +50,11 @@ export const stepSchema = z.discriminatedUnion("op", [
     op: z.literal("addToNumber"),
     var: name,
     amount: z.int().refine((n) => n !== 0, { error: "An addToNumber amount must not be 0." }),
+  }),
+  z.strictObject({
+    op: z.literal("modifier"),
+    mod: modifierSpec,
+    duration: z.strictObject({ kind: z.literal("turnEnd") }),
   }),
 ]);
 

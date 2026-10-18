@@ -1,4 +1,5 @@
 // Card checks for createGame: the ruleset's cards are well formed, and a setup uses only known cards, each once.
+import { badModifier } from "./modifiers.ts";
 import { SIDES } from "./types.ts";
 import type { CardId, EngineError, Ruleset, Setup, Side, Step } from "./types.ts";
 
@@ -55,8 +56,9 @@ const findForeignDraw = (steps: readonly Step[], affiliation: Side | "neutral"):
 };
 
 /**
- * Why the first number test or addToNumber in `steps` (at any depth) is malformed, or null: a test's
- * `value` and a step's `amount` must be whole numbers, and an `amount` may not be 0.
+ * Why the first number test, addToNumber or modifier in `steps` (at any depth) is malformed, or null: a
+ * test's `value` and a step's `amount` must be whole numbers, and an `amount` may not be 0. A modifier
+ * must use a hook, side, add, min and duration the engine knows (badModifier).
  */
 const findBadNumber = (steps: readonly Step[]): string | null => {
   for (const step of steps) {
@@ -66,6 +68,8 @@ const findBadNumber = (steps: readonly Step[]): string | null => {
     if (step.op === "if" && step.cond.op !== "yes" && !Number.isInteger(step.cond.value)) {
       return "tests a number against a value that is not whole.";
     }
+    const badMod = step.op === "modifier" ? badModifier(step.mod, step.duration) : null;
+    if (badMod !== null) return badMod;
     const inner = step.op === "if" ? [...step.then, ...(step.else ?? [])] : step.op === "forEach" ? step.do : [];
     const found = findBadNumber(inner);
     if (found !== null) return found;
@@ -87,6 +91,7 @@ const holdsCardChoice = (steps: readonly Step[]): boolean =>
       case "spendPoints":
       case "drawContingency":
       case "addToNumber":
+      case "modifier":
         return false;
     }
   });

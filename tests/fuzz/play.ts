@@ -44,12 +44,34 @@ export const FUZZ_CARDS: readonly CardId[] = Array.from(
 );
 const AFFILIATIONS: readonly CardDef["affiliation"][] = ["lio", "sae", "neutral"];
 /**
- * Card `i`'s event. Every fourth asks LIO or SAE yes or no, so opening and played events pause for a choice.
- * The other LIO and SAE cards draw a contingency from their own side's deck, so games draw and reshuffle
- * (#65): two in three of them show the number through a variable, the rest draw without one. Neutral
- * cards draw nothing, as neutral events have no deck yet.
+ * Card `i`'s event: its base event (baseEffectOf), and for every fifth card from c2 on, a modifier of the
+ * ops value too (#89). Only a step is added after the base event, never a choice, so the decisions of the
+ * games in fixedGames.ts keep their IDs.
  */
 function effectOf(i: number): EffectStep[] {
+  return i % 5 === 1 ? [...baseEffectOf(i), modifierOf(Math.floor(i / 5))] : baseEffectOf(i);
+}
+
+const ADDS: readonly number[] = [-2, -1, 1, 2];
+const MINS: readonly (number | undefined)[] = [0, 1, undefined];
+const MODIFIER_SIDES: readonly (Side | "both")[] = ["lio", "sae", "both"];
+/** The `k`th modifier card's step: its add, min and side spread by `k` over every value, until the turn ends. */
+function modifierOf(k: number): EffectStep {
+  const [add, min, side] = [ADDS[k % 4]!, MINS[k % 3], MODIFIER_SIDES[Math.floor(k / 3) % 3]!];
+  return {
+    op: "modifier",
+    mod: min === undefined ? { hook: "opsValue", side, add } : { hook: "opsValue", side, add, min },
+    duration: { kind: "turnEnd" },
+  };
+}
+
+/**
+ * Card `i`'s base event. Every fourth asks LIO or SAE yes or no, so opening and played events pause for a
+ * choice. The other LIO and SAE cards draw a contingency from their own side's deck, so games draw and
+ * reshuffle (#65): two in three of them show the number through a variable, the rest draw without one.
+ * Neutral cards draw nothing, as neutral events have no deck yet.
+ */
+function baseEffectOf(i: number): EffectStep[] {
   if (i % 4 === 3) {
     return [
       { op: "choose", who: i % 8 === 3 ? "lio" : "sae", decision: { kind: "yesNo" }, bind: "a" },

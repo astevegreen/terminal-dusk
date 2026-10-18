@@ -85,9 +85,26 @@ export type EraStarted = { kind: "eraStarted"; visibility: "public"; era: EraId;
 export type ContingencyDrawn = { kind: "contingencyDrawn"; visibility: "public"; side: Side; value: number };
 /** A draw left one card in `side`'s Contingency deck, so all its cards were shuffled back together. */
 export type ContingencyDeckReshuffled = { kind: "contingencyDeckReshuffled"; visibility: "public"; side: Side };
+/** A `modifier` step ran: `source`'s effect made the rule change `mod`, in force until `expires`. */
+export type ModifierStarted = {
+  kind: "modifierStarted";
+  visibility: "public";
+  source: CardId;
+  mod: ModifierSpec;
+  expires: ModifierExpiry;
+};
+/** A modifier's duration ran out (the turn it was made in ended), so its rule change no longer applies. */
+export type ModifierEnded = { kind: "modifierEnded"; visibility: "public"; source: CardId; mod: ModifierSpec };
 /** An event anyone may see. It never carries a card ID that is hidden from someone, or a deck's order. */
 export type PublicEvent =
-  CardDrawnHidden | MarkerEvent | PointsSpent | EraStarted | ContingencyDrawn | ContingencyDeckReshuffled;
+  | CardDrawnHidden
+  | MarkerEvent
+  | PointsSpent
+  | EraStarted
+  | ContingencyDrawn
+  | ContingencyDeckReshuffled
+  | ModifierStarted
+  | ModifierEnded;
 /**
  * What happened, for animation, the game log, sounds and the tutorial. An event visible to one side
  * may carry a `publicForm`: the public event everyone else gets instead (see eventsFor).
@@ -159,6 +176,8 @@ export type Condition =
  * draws from `side`'s Contingency deck (an event draws from the deck of the side it belongs to) and
  * binds the number to `bind`, if given.
  * `addToNumber` adds the non-zero whole `amount` (negative subtracts) to the number bound to `var`.
+ * `modifier` makes a rule change, `mod`, that lasts for `duration`; its source is the card whose effect runs it.
+ * A `spendPoints` `amount` is the printed ops: the opsValue modifiers in force change it when the step runs.
  */
 export type Step =
   | { op: "choose"; who: Side | "both"; decision: { kind: "yesNo" }; bind: VarName }
@@ -168,17 +187,35 @@ export type Step =
   | { op: "marker"; label: string; var?: VarName }
   | { op: "spendPoints"; side: Side; amount: number }
   | { op: "drawContingency"; side: Side; bind?: VarName }
-  | { op: "addToNumber"; var: VarName; amount: number };
+  | { op: "addToNumber"; var: VarName; amount: number }
+  | { op: "modifier"; mod: ModifierSpec; duration: Duration };
+
+/** How long a modifier lasts. `turnEnd`: until the end of the turn in which it was made. */
+export type Duration = { kind: "turnEnd" };
+/**
+ * A rule change (docs/architecture.md, section 4, "Modifiers"), consulted only at its hook. `opsValue`:
+ * for cards whose action points `side` (or either side, for "both") spends, the ops value is `add` more
+ * (negative: less), then never below `min` when given. `add` is a non-zero whole number, `min` a whole
+ * number, 0 or more. How several combine, and the floor of 0, are in modifiers.ts.
+ */
+export type ModifierSpec = { hook: "opsValue"; side: Side | "both"; add: number; min?: number };
+/** When a modifier in force ends: at the end of turn `turn`, the turn it was made in. */
+export type ModifierExpiry = { kind: "turnEnd"; turn: number };
+/** A modifier in force: the card whose effect made it, the rule change, and when it ends. */
+export type ActiveModifier = { source: CardId; mod: ModifierSpec; expires: ModifierExpiry };
 
 export type Binding = { name: VarName; value: VarValue };
 /** The block a frame runs, the index of its next step, and the variables bound in it, in binding order. */
 type FrameBase = { steps: Step[]; next: number; vars: Binding[] };
 /**
  * One running block on the resolution stack: a program, an `if` branch, or a `forEach` body with its
- * items and the index of the current one. Frames are public: they never hold hidden data.
+ * items and the index of the current one. Frames are public: they never hold hidden data. A program run
+ * for a card's effect or play records that card as `source`; the blocks inside it read their program's.
+ * A program no card started (a turn's opening pick) has none.
  */
 export type Frame =
-  | (FrameBase & { kind: "program" | "if" })
+  | (FrameBase & { kind: "program"; source?: CardId })
+  | (FrameBase & { kind: "if" })
   | (FrameBase & { kind: "forEach"; bind: VarName; items: string[]; index: number });
 
 export type GameStatus = { kind: "active" } | { kind: "over"; winner: Side | null; reason: string };
@@ -205,6 +242,8 @@ export type PublicState = {
   status: GameStatus;
   /** Each side's Contingency deck, the numbered cards drawn instead of rolling a die. The order is secret. */
   contingency: Record<Side, ContingencyDeck>;
+  /** The rule changes in force, in the order they were made (modifiers.ts). */
+  modifiers: ActiveModifier[];
 };
 /**
  * One Contingency deck's public side: `cards` is its full contents, sorted ascending, and never changes

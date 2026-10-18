@@ -8,6 +8,7 @@
 // before or after the points. A played card stays in `inPlay` until everything it triggered is done.
 import { newDecision, whoseCard } from "./decisions.ts";
 import { enterEra } from "./eras.ts";
+import { endTurnModifiers } from "./modifiers.ts";
 import { runProgram } from "./stack.ts";
 import type { Budget, Closing } from "./stack.ts";
 import type { AnswerValue, CardId, EngineError, GameEvent, GameState, Ruleset, Side, Step } from "./types.ts";
@@ -87,11 +88,14 @@ function settle(ruleset: Ruleset, state: GameState, events: GameEvent[], budget:
     } else if (pub.playsMade < 2 * pub.playsPerTurn) {
       pub.pending = [newDecision(state.meta.seq, pub.playsMade % 2 === 0 ? "lio" : "sae", "playCardAs")];
       return null;
-    } else if (pub.turn >= pub.turns) {
-      pub.pending = [];
-      pub.status = { kind: "over", winner: null, reason: "turnLimitReached" };
-      return null;
     } else {
+      // The turn ends: the modifiers lasting until then end first, before the game ends or a turn starts.
+      endTurnModifiers(state, events);
+      if (pub.turn >= pub.turns) {
+        pub.pending = [];
+        pub.status = { kind: "over", winner: null, reason: "turnLimitReached" };
+        return null;
+      }
       pub.turn += 1;
       pub.playsMade = 0;
       const error = startTurn(state, events, budget);
@@ -103,8 +107,8 @@ function settle(ruleset: Ruleset, state: GameState, events: GameEvent[], budget:
 
 /** Starts the event of the first card in play. Its choices go to whichever side the card names. */
 function startEvent(ruleset: Ruleset, state: GameState, events: GameEvent[], budget: Budget): EngineError | null {
-  const card = cardOf(ruleset, state.public.inPlay[0]!);
-  return runProgram(state, card?.effect ?? [], events, budget);
+  const id = state.public.inPlay[0]!;
+  return runProgram(state, cardOf(ruleset, id)?.effect ?? [], events, budget, id);
 }
 
 /**
@@ -128,7 +132,7 @@ function play(
     return null;
   }
   const steps = value.as === "event" ? (card?.effect ?? []) : [spendPoints(side, card?.ops ?? 0)];
-  return runProgram(state, steps, events, budget);
+  return runProgram(state, steps, events, budget, value.card);
 }
 
 /**
@@ -143,10 +147,12 @@ function playRival(
   events: GameEvent[],
   budget: Budget,
 ): EngineError | null {
-  const card = cardOf(ruleset, state.public.inPlay[0]!);
+  const id = state.public.inPlay[0]!;
+  const card = cardOf(ruleset, id);
   const effect = card?.effect ?? [];
+  // The printed ops: the modifiers in force when this step runs change them, its own event's included.
   const points = spendPoints(side, card?.ops ?? 0);
-  return runProgram(state, event === "before" ? [...effect, points] : [points, ...effect], events, budget);
+  return runProgram(state, event === "before" ? [...effect, points] : [points, ...effect], events, budget, id);
 }
 
 /** True while a rival's card is in play and its player has yet to say when its event happens. */

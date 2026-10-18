@@ -11,6 +11,8 @@ describe("eventPresentation", () => {
       "contingencyDrawn",
       "eraStarted",
       "marker",
+      "modifierEnded",
+      "modifierStarted",
       "pointsSpent",
     ];
     expect(Object.keys(eventPresentation).sort()).toEqual(kinds);
@@ -80,5 +82,24 @@ describe("eventPresentation", () => {
     expect(eventPresentation.marker.log({ kind: "marker", visibility: "public", label: "pick", value })).toBe(
       "Marker pick: lio yes, sae no.",
     );
+  });
+  it("logs a new modifier with the card that made it, its change and how long it lasts", () => {
+    const line = eventPresentation.modifierStarted.log({
+      kind: "modifierStarted",
+      visibility: "public",
+      source: "c4",
+      mod: { hook: "opsValue", side: "both", add: -1, min: 1 },
+      expires: { kind: "turnEnd", turn: 2 },
+    });
+    expect(line).toBe("c4: ops values for both sides -1, minimum 1, until the end of the turn.");
+  });
+  it("logs a modifier's end with the card that made it and its change", () => {
+    const line = eventPresentation.modifierEnded.log({
+      kind: "modifierEnded",
+      visibility: "public",
+      source: "c4",
+      mod: { hook: "opsValue", side: "sae", add: 2 },
+    });
+    expect(line).toBe("c4's change ended: ops values for sae +2.");
   });
 });

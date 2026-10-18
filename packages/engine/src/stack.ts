@@ -4,11 +4,13 @@
 import { drawContingency } from "./contingency.ts";
 import { copyJson } from "./copy.ts";
 import { newDecision, newGroup } from "./decisions.ts";
+import { opsValue, startModifier } from "./modifiers.ts";
 import { halfAnswered } from "./simultaneous.ts";
 import type { Revealed } from "./simultaneous.ts";
 import type {
   AnswerValue,
   Binding,
+  CardId,
   Condition,
   EngineError,
   EngineErrorCode,
@@ -40,12 +42,14 @@ const problem = (code: EngineErrorCode, message: string): EngineError => ({ code
 /**
  * Starts `steps` as a program and runs it until it pauses or ends. If it pauses, its choice replaces
  * the pending decisions. Internal: index.ts does not export it. Engine tests start programs with it;
- * real games start them from the turn structure (turn.ts), through runProgram.
+ * real games start them from the turn structure (turn.ts), through runProgram. `source`, if given, is
+ * the card the program runs for.
  */
 export function startProgram(
   ruleset: Ruleset,
   state: GameState,
   steps: Step[],
+  source?: CardId,
 ): Result<{ state: GameState; events: GameEvent[] }> {
   if (ruleset.id !== state.meta.ruleset) {
     return { ok: false, error: problem("rulesetMismatch", "That ruleset is not the one this game started with.") };
@@ -60,13 +64,24 @@ export function startProgram(
   const next = copyJson(state);
   next.meta.seq += 1;
   const events: GameEvent[] = [];
-  const error = runProgram(next, steps, events, newBudget(ruleset));
+  const error = runProgram(next, steps, events, newBudget(ruleset), source);
   return error ? { ok: false, error } : { ok: true, value: { state: next, events } };
 }
 
-/** Pushes `steps` as a new program and runs it until it pauses or ends. Edits `state`, a working copy. */
-export function runProgram(state: GameState, steps: Step[], events: GameEvent[], budget: Budget): EngineError | null {
-  state.public.stack.push({ kind: "program", steps: copyJson(steps), next: 0, vars: [] });
+/**
+ * Pushes `steps` as a new program and runs it until it pauses or ends. `source` is the card whose effect
+ * or play it runs, if any: the frame records it. Edits `state`, a working copy.
+ */
+export function runProgram(
+  state: GameState,
+  steps: Step[],
+  events: GameEvent[],
+  budget: Budget,
+  source?: CardId,
+): EngineError | null {
+  const frame: Frame = { kind: "program", steps: copyJson(steps), next: 0, vars: [] };
+  if (source !== undefined) frame.source = source;
+  state.public.stack.push(frame);
   return runStack(state, events, budget);
 }
 
@@ -140,11 +155,21 @@ function runStep(state: GameState, frame: Frame, step: Step, events: GameEvent[]
       return runIf(state.public.stack, frame, step);
     case "forEach":
       return runForEach(state.public.stack, frame, step);
-    case "spendPoints":
-      // TEMPORARY until the actions are designed: spending points only says so.
-      events.push({ kind: "pointsSpent", visibility: "public", side: step.side, amount: step.amount });
+    case "spendPoints": {
+      // TEMPORARY until the actions are designed: spending points only says so. The printed ops are
+      // changed by the modifiers in force now, so an event that ran just before counts (owner, 18 Oct).
+      const amount = opsValue(state, { ops: step.amount }, step.side);
+      events.push({ kind: "pointsSpent", visibility: "public", side: step.side, amount });
       frame.next += 1;
       return "ran";
+    }
+    case "modifier": {
+      const source = programSource(state.public.stack);
+      if (source === undefined) return problem("invalidProgram", "A modifier step needs the card it runs for.");
+      startModifier(state, source, step, events);
+      frame.next += 1;
+      return "ran";
+    }
     case "addToNumber":
       return runAddToNumber(state.public.stack, frame, step);
     case "drawContingency": {
@@ -273,6 +298,15 @@ function findBinding(stack: Frame[], name: VarName): Binding | undefined {
     const found = frame.vars.find((b) => b.name === name);
     if (found) return found;
     if (frame.kind === "program") break;
+  }
+  return undefined;
+}
+
+/** The card the running program is for: its program frame's `source`, read through any if or forEach blocks. */
+function programSource(stack: Frame[]): CardId | undefined {
+  for (let i = stack.length - 1; i >= 0; i--) {
+    const frame = stack[i]!;
+    if (frame.kind === "program") return frame.source;
   }
   return undefined;
 }

@@ -276,3 +276,38 @@ describe("card schema: number tests and addToNumber", () => {
     expect(issuesOf(withEffect([test("greaterThan", 1)])).length).toBeGreaterThan(0);
   });
 });
+
+describe("card schema: modifier steps", () => {
+  const withEffect = (effect: unknown[]) => ({ ...lioCard(), effect });
+  const good = { hook: "opsValue", side: "both", add: -1, min: 1 };
+  const modifier = (mod: object, duration: object = { kind: "turnEnd" }) => ({ op: "modifier", mod, duration });
+  /** The step at the top, in an if's then and else, and in a forEach. */
+  const placed = (step: object): unknown[][] => [
+    [step],
+    [yesNo, { op: "if", cond: { op: "yes", var: "agreed" }, then: [step] }],
+    [yesNo, { op: "if", cond: { op: "yes", var: "agreed" }, then: [], else: [step] }],
+    [{ op: "forEach", over: ["a"], bind: "x", do: [step] }],
+  ];
+
+  it("accepts a modifier at any depth: each side, a negative or positive add, a min of 0 or none", () => {
+    const steps = [
+      modifier(good),
+      modifier({ hook: "opsValue", side: "lio", add: 2 }),
+      modifier({ hook: "opsValue", side: "sae", add: -2, min: 0 }),
+    ];
+    for (const step of steps) for (const effect of placed(step)) expect(issuesOf(withEffect(effect))).toEqual([]);
+  });
+
+  it.each([
+    ["an unknown hook", modifier({ ...good, hook: "coupResult" })],
+    ["an add of 0", modifier({ ...good, add: 0 })],
+    ["an add that is not whole", modifier({ ...good, add: 1.5 })],
+    ["a missing add", modifier({ hook: "opsValue", side: "both" })],
+    ["a negative min", modifier({ ...good, min: -1 })],
+    ["a min that is not whole", modifier({ ...good, min: 0.5 })],
+    ["an unknown duration", modifier(good, { kind: "gameEnd" })],
+    ["a side that is not lio, sae or both", modifier({ ...good, side: "neutral" })],
+  ])("refuses a modifier with %s, at any depth", (_what, step) => {
+    for (const effect of placed(step)) expect(issuesOf(withEffect(effect)).length).toBeGreaterThan(0);
+  });
+});
