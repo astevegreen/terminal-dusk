@@ -21,8 +21,14 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## packages/ai - AI opponent: a player that sees only its own view and plans by simulating with the engine.
 
 - `packages/ai/package.json`
-- `packages/ai/src/index.test.ts`
-- `packages/ai/src/index.ts` - Public entry point of the AI opponent (docs/architecture.md, Decision 8).
+- `packages/ai/src/easy.test.ts`
+- `packages/ai/src/easy.ts` - The Easy tier (docs/architecture.md, Decision 8): score every legal answer with a small evaluation plus random noise, and take the best. Exports: easyAnswer.
+- `packages/ai/src/guess.test.ts`
+- `packages/ai/src/guess.ts` - Guessing the cards a side cannot see, so the AI can rebuild a full state with `reconstruct`. Exports: guessHidden.
+- `packages/ai/src/index.ts` - Public entry point of the AI opponent (docs/architecture.md, Decision 8). Exports: easyAnswer, guessHidden, EASY_WEIGHTS, Weights.
+- `packages/ai/src/testGames.ts` - Test helpers: a small ruleset and seeded games, so the AI tests can make real views with the engine. Exports: TestState, ruleset, seededRandom, newGame, applyAnswer, firstWaiting.
+- `packages/ai/src/types.ts` - Shared types of the AI package. Exports: Weights.
+- `packages/ai/src/weights/easy.ts` - The Easy tier's weights, as plain data (docs/architecture.md, Decision 8). Exports: EASY_WEIGHTS.
 - `packages/ai/tsconfig.json`
 
 ## packages/app - React UI, transports and the Platform interface. Renders frames and sends answers; no rules.
@@ -139,6 +145,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/checks.ts` - The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite"). Exports: VIEWERS, Secrets, attempt, checkStep, checkLive, enteredCards, checkCards, isSubMultiset, checkContingency, contingencyLeaksIn, hiddenFrom, leaksIn, ….
 - `tests/fuzz/contingency.test.ts` - Tests for the fuzz harness's Contingency deck checks (#64): the deck invariant and the structural leak check each catch a hand-corrupted state, and the random…
 - `tests/fuzz/deepFreeze.ts` - Freezes a value and everything inside it, so an engine call that changes its input throws. Exports: deepFreeze.
+- `tests/fuzz/easy.test.ts` - The Easy AI inside the fuzz suite (#91): every third game has it on one side, with every invariant checked.
 - `tests/fuzz/engine.test.ts` - Fuzz suite: plays FUZZ_GAMES random games and checks invariants 1, 3, 4, 5 and 6 of docs/architecture.md ("Guardrails", "Fuzz suite") at every step.
 - `tests/fuzz/eras.test.ts` - Tests for the fuzz harness's era checks (#37): invariant 3 catches a card out of place, waiting era cards count as hidden, and the random games really change e…
 - `tests/fuzz/fixedGames.ts` - Fixed games the fuzz suite replays, with every check, on every run. Exports: FIXED_GAMES.
