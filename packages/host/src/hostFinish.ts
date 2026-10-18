@@ -4,7 +4,7 @@ import type { Answer, GameState, Ruleset } from "@terminal-dusk/engine";
 import type { HostError, MatchSecret } from "./types.ts";
 
 /** JSON with object keys sorted, so equal values match whatever order their keys arrived in. */
-const canonical = (value: unknown): string | undefined =>
+export const canonical = (value: unknown): string | undefined =>
   JSON.stringify(value, (_key, v: unknown) =>
     v !== null && typeof v === "object" && !Array.isArray(v)
       ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => (a < b ? -1 : 1))) // keys are never equal
