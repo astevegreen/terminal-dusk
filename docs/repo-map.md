@@ -159,7 +159,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## tests
 
 - `tests/README.md` - Cross-package test suites
-- `tests/fuzz/checks.ts` - The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite"). Exports: VIEWERS, Secrets, attempt, checkStep, checkLive, enteredCards, checkCards, isSubMultiset, checkContingency, contingencyLeaksIn, hiddenFrom, leaksIn, ….
+- `tests/fuzz/checks.ts` - The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite"). Exports: VIEWERS, Secrets, attempt, checkStep, checkLive, checkModifiers, enteredCards, checkCards, isSubMultiset, checkContingency, contingencyLeaksIn, hiddenFrom, ….
 - `tests/fuzz/contingency.test.ts` - Tests for the fuzz harness's Contingency deck checks (#64): the deck invariant and the structural leak check each catch a hand-corrupted state, and the random…
 - `tests/fuzz/deepFreeze.ts` - Freezes a value and everything inside it, so an engine call that changes its input throws. Exports: deepFreeze.
 - `tests/fuzz/easy.test.ts` - The Easy AI inside the fuzz suite (#91): every third game has it on one side, with every invariant checked.
@@ -167,6 +167,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/eras.test.ts` - Tests for the fuzz harness's era checks (#37): invariant 3 catches a card out of place, waiting era cards count as hidden, and the random games really change e…
 - `tests/fuzz/fixedGames.ts` - Fixed games the fuzz suite replays, with every check, on every run. Exports: FIXED_GAMES.
 - `tests/fuzz/harness.test.ts` - Tests for the fuzz harness itself: each check catches what it should, so a green fuzz run means something.
+- `tests/fuzz/modifiers.test.ts` - The fuzz suite and modifiers (#89): the fuzz cards make modifiers, and the modifier check catches what it should.
 - `tests/fuzz/play.ts` - Plays one game for the fuzz suite, random or recorded, and checks every invariant along the way. Exports: FUZZ_CARDS, ruleset, DEFAULT_GAMES, MAX_ANSWERS, GameRecord, Chooser, Played, gameCount, playFuzzGame, playRecorded, randomGame, randomChooser, ….
 - `tests/fuzz/random.ts` - The fuzz suite's own seeded generator, so every random game can be played again exactly. Exports: Rng, seededRng.
 - `tests/tsconfig.json` - Type-checks the cross-package suites in tests/; tools/gates/suites.mjs runs it before the suites themselves.

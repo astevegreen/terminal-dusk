@@ -50,6 +50,7 @@ export function checkStep(
   seed: Seed,
 ): void {
   checkLive(ruleset, state);
+  checkModifiers(state);
   checkCards(setup, state);
   checkContingency(setup, state);
   checkNoLeaks(state, events, seed);
@@ -66,6 +67,22 @@ export function checkLive(ruleset: Ruleset, state: GameState): void {
       attempt(`legalAnswers('${side}')`, () => legalAnswers(ruleset, state, side)).length > 0,
   );
   if (!canAnswer) throw new Error("the game is active, but no side has a decision with a legal answer");
+}
+
+/**
+ * Modifiers end with the turn they were made in (#89): while the game is active, every modifier in force
+ * expires at the end of the current turn; once it is over, none is left. Runs on finished games too.
+ */
+export function checkModifiers(state: GameState): void {
+  const { modifiers, status, turn } = state.public;
+  if (status.kind === "over") {
+    if (modifiers.length > 0) throw new Error(`the game is over, but ${modifiers.length} modifiers are still in force`);
+    return;
+  }
+  const stale = modifiers.filter((m) => m.expires.kind !== "turnEnd" || m.expires.turn !== turn);
+  if (stale.length > 0) {
+    throw new Error(`in turn ${turn}, modifiers that do not end with this turn are in force: ${JSON.stringify(stale)}`);
+  }
 }
 
 /**
