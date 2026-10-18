@@ -9,13 +9,12 @@ import { recordPick } from "./simultaneous.ts";
 import { newBudget, resumeStack } from "./stack.ts";
 import type { Closing } from "./stack.ts";
 import { afterAnswer } from "./turn.ts";
-import { SIDES } from "./types.ts";
-import type { Answer, EngineErrorCode, GameEvent, GameState, Result, Ruleset, Side } from "./types.ts";
+import { otherSide, SIDES } from "./types.ts";
+import type { Answer, EngineErrorCode, GameEvent, GameState, Result, Ruleset } from "./types.ts";
 
 type Applied = Result<{ state: GameState; events: GameEvent[] }>;
 
 const fail = (code: EngineErrorCode, message: string): Applied => ({ ok: false, error: { code, message } });
-const other = (side: Side): Side => (side === "lio" ? "sae" : "lio");
 
 /** JSON with object keys sorted, so equal values match whatever order their keys arrived in. */
 const canonical = (value: unknown): string | undefined =>
@@ -75,6 +74,6 @@ function applySystem(state: GameState, answer: Extract<Answer, { system: string 
   next.public.pending = [];
   next.public.stack = [];
   for (const side of SIDES) next.private[side].picks = [];
-  next.public.status = { kind: "over", winner: other(answer.side), reason: "resigned" };
+  next.public.status = { kind: "over", winner: otherSide(answer.side), reason: "resigned" };
   return { ok: true, value: { state: next, events: [] } };
 }

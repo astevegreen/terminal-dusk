@@ -3,12 +3,12 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { apply, legalAnswers, SIDES } from "./index.ts";
 import type { Answer, GameState, Side } from "./index.ts";
+import { otherSide } from "./types.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
 import { ruleset, startGame } from "./test/game.ts";
 
 const numbers = (v: unknown): number[] =>
   typeof v === "number" ? [v] : v && typeof v === "object" ? Object.values(v).flatMap(numbers) : [];
-const otherSide = (side: Side): Side => SIDES.find((x) => x !== side)!;
 
 type MoveKind = "answer" | "again" | "wrongSide" | "unknownId" | "badValue" | "resign" | "timeout";
 /** `pick` chooses which open decision to answer and which of its legal answers to give. */

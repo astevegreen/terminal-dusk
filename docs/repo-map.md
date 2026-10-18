@@ -98,7 +98,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/test/game.ts` - Test helpers: a started game, answers for it, and small programs for the stack. Exports: testCard, rulesetWith, ruleset, sideCard, withCards, makeSetup, setupPlus, startGame, startAtPlay, cardAnswer, playAnswer, orderAnswer, ….
 - `packages/engine/src/turn.test.ts` - The turn structure (#35): secret opening cards, their events in order, then alternating plays.
 - `packages/engine/src/turn.ts` - The turn structure (docs/design/core-loop.md). Exports: startTurn, afterAnswer.
-- `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: Side, SIDES, CardId, EraId, RulesetId, Seed, CardDef, Ruleset, EngineErrorCode, EngineError, Result, Visibility, ….
+- `packages/engine/src/types.test.ts`
+- `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: Side, SIDES, otherSide, CardId, EraId, RulesetId, Seed, CardDef, Ruleset, EngineErrorCode, EngineError, Result, ….
 - `packages/engine/src/verifyGame.test.ts`
 - `packages/engine/src/verifyGame.ts` - Exports: verifyGame.
 - `packages/engine/src/views.property.test.ts` - Property test: over random games with random hands and draw piles, and random programs on the resolution stack (some with simultaneous pairs), views rebuild th…

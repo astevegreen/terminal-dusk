@@ -8,6 +8,7 @@ import type { CardId, EngineError, Ruleset, Setup, Side, Step } from "./types.ts
  */
 export function rulesetError(ruleset: Ruleset): EngineError | null {
   if (!Array.isArray(ruleset?.cards)) return invalidRuleset("The ruleset needs a list of cards.");
+  if (typeof ruleset.id !== "string" || ruleset.id.length === 0) return invalidRuleset("The ruleset needs an id.");
   const seen = new Set<CardId>();
   for (const card of ruleset.cards) {
     if (seen.has(card?.id)) return invalidRuleset(`Two cards share the id ${card.id}.`);

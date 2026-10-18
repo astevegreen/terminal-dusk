@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { apply, hiddenPart, pendingFor, reconstruct, SIDES, viewFor } from "./index.ts";
-import type { GameState, PlayerView, Side, Step, Viewer } from "./index.ts";
+import { otherSide } from "./types.ts";
+import type { GameState, PlayerView, Step, Viewer } from "./index.ts";
 import { startProgram } from "./stack.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
 import {
@@ -18,7 +19,6 @@ import {
   yesNoAnswer,
 } from "./test/game.ts";
 
-const other = (side: Side): Side => (side === "lio" ? "sae" : "lio");
 const code = (r: ReturnType<typeof apply>) => (r.ok ? "ok" : r.error.code);
 
 // "Both sides choose yes or no; then mark both answers; then LIO chooses yes or no."
@@ -56,7 +56,7 @@ describe("simultaneous decisions: the first answer stays secret", () => {
       expect(half.private[side].picks).toEqual([
         { group, decisionId: "decisionId" in answer && answer.decisionId, value: { kind: "yesNo", yes: true } },
       ]);
-      expect(half.private[other(side)].picks).toEqual([]);
+      expect(half.private[otherSide(side)].picks).toEqual([]);
     }
   });
   it("that side's own view shows its pick; the other side's view and the spectator view do not", () => {
@@ -66,7 +66,7 @@ describe("simultaneous decisions: the first answer stays secret", () => {
         expect.objectContaining({ value: { kind: "yesNo", yes: false } }),
       ]);
       expect(JSON.stringify(viewFor(half, side))).toContain('"yes":false');
-      for (const viewer of [other(side), "spectator"] as const) {
+      for (const viewer of [otherSide(side), "spectator"] as const) {
         expect(JSON.stringify(viewFor(half, viewer))).not.toContain('"yes":');
       }
     }
@@ -76,7 +76,7 @@ describe("simultaneous decisions: the first answer stays secret", () => {
       const s = paused();
       const half = accepted(s, yesNoAnswer(s, true, side));
       expect(pendingFor(half, side)).toBeNull();
-      expect(pendingFor(half, other(side))).toEqual(pendingFor(s, other(side)));
+      expect(pendingFor(half, otherSide(side))).toEqual(pendingFor(s, otherSide(side)));
     }
   });
   it("the other side's and the spectator's views change only in meta.seq and that side's decision leaving public.pending", () => {
@@ -84,14 +84,14 @@ describe("simultaneous decisions: the first answer stays secret", () => {
       for (const yes of [true, false]) {
         const s = paused();
         const half = accepted(s, yesNoAnswer(s, yes, side));
-        for (const viewer of [other(side), "spectator"] as Viewer[]) {
+        for (const viewer of [otherSide(side), "spectator"] as Viewer[]) {
           const before = viewFor(s, viewer);
           const after = viewFor(half, viewer);
           expect(setAside(after)).toEqual(setAside(before));
           expect(after.meta.seq).toBe(before.meta.seq + 1);
           expect(after.public.pending).toEqual(before.public.pending.filter((d) => d.side !== side));
         }
-        expect(half.private[other(side)]).toEqual(s.private[other(side)]);
+        expect(half.private[otherSide(side)]).toEqual(s.private[otherSide(side)]);
       }
     }
   });
@@ -164,7 +164,7 @@ describe("simultaneous decisions: the reveal", () => {
         for (const first of SIDES) {
           const yes = { lio, sae };
           const half = answerYesNo(startWith(program).state, yes[first], ruleset, first).state;
-          const { events } = answerYesNo(half, yes[other(first)], ruleset, other(first));
+          const { events } = answerYesNo(half, yes[otherSide(first)], ruleset, otherSide(first));
           expect(markers(events)).toEqual([lio ? "lio-yes" : "lio-no", sae ? "sae-yes" : "sae-no"]);
         }
       }
@@ -187,7 +187,11 @@ describe("simultaneous decisions: resigning and starting programs", () => {
     for (const s of [open, accepted(open, yesNoAnswer(open, true, "lio"))]) {
       for (const side of SIDES) {
         const r = apply(ruleset, s, { system: "resign", side });
-        expect(r.ok && r.value.state.public.status).toEqual({ kind: "over", winner: other(side), reason: "resigned" });
+        expect(r.ok && r.value.state.public.status).toEqual({
+          kind: "over",
+          winner: otherSide(side),
+          reason: "resigned",
+        });
         expect(r.ok && r.value.state.public.pending).toEqual([]);
         expect(r.ok && r.value.state.public.stack).toEqual([]);
         expect(r.ok && SIDES.map((x) => r.value.state.private[x].picks)).toEqual([[], []]);

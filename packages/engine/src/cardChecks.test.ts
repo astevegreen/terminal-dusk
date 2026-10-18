@@ -38,6 +38,13 @@ describe("createGame: the ruleset's cards", () => {
   it("returns invalidRuleset when a card's ops is not a whole number", () => {
     expect(outcome(withCards([...ruleset.cards.slice(1), testCard("l1", 1.5)]))).toBe("invalidRuleset");
   });
+  it.each([
+    ["missing", undefined],
+    ["not a string", 7],
+    ["empty", ""],
+  ])("returns invalidRuleset when the ruleset id is %s", (_what, id) => {
+    expect(outcome({ ...ruleset, id } as unknown as Ruleset)).toBe("invalidRuleset");
+  });
   it("returns invalidRuleset when the ruleset has no card list", () => {
     expect(outcome({ id: ruleset.id } as Ruleset)).toBe("invalidRuleset");
   });
