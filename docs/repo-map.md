@@ -60,7 +60,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## packages/engine - Pure rules engine: game state, decisions, events and views. Imports nothing outside itself.
 
 - `packages/engine/package.json`
-- `packages/engine/src/apply.property.test.ts` - Property test: random streams of good and bad answers keep the engine's invariants.
+- `packages/engine/src/apply.property.test.ts` - Property test: random streams of good and bad answers keep the engine's invariants, and every answer gets exactly the outcome the rules call for (accepted, or…
 - `packages/engine/src/apply.test.ts`
 - `packages/engine/src/apply.ts` - Takes one answer and returns the next state. Exports: apply.
 - `packages/engine/src/cardChecks.test.ts` - createGame's card checks: the ruleset's cards are well formed, and a setup uses only known cards, each once.
