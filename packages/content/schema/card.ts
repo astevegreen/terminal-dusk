@@ -48,12 +48,52 @@ const text = z.strictObject({
   variants: z.partialRecord(z.enum(["web", "steam", "ios", "android"]), variant).exactOptional(),
 });
 
+const SIDE_NAMES = { lio: "LIO", sae: "SAE" } as const;
+
+/**
+ * Every contingency draw in `steps`, at any depth, that this card may not make: the path to its `side`
+ * and the message. A side's card draws only from its own deck. A neutral card may not draw at all:
+ * TEMPORARY until neutral events are designed. A missing or invalid side is left to the step's own check.
+ */
+function foreignDraws(
+  steps: readonly Step[],
+  affiliation: "lio" | "sae" | "neutral",
+  path: (string | number)[],
+): { path: (string | number)[]; message: string }[] {
+  return steps.flatMap((step, i) => {
+    const here = [...path, i];
+    if (step.op === "drawContingency") {
+      if (step.side !== "lio" && step.side !== "sae") return [];
+      if (step.side === affiliation) return [];
+      const message =
+        affiliation === "neutral"
+          ? "A neutral card can't draw from a Contingency deck: neutral events have no Contingency deck yet."
+          : `This is an ${SIDE_NAMES[affiliation]} card, so its event can only draw from ${SIDE_NAMES[affiliation]}'s Contingency deck, not ${SIDE_NAMES[step.side]}'s.`;
+      return [{ path: [...here, "side"], message }];
+    }
+    if (step.op === "if") {
+      return [
+        ...foreignDraws(step.then, affiliation, [...here, "then"]),
+        ...foreignDraws(step.else ?? [], affiliation, [...here, "else"]),
+      ];
+    }
+    if (step.op === "forEach") return foreignDraws(step.do, affiliation, [...here, "do"]);
+    return [];
+  });
+}
+
 /** One card file. `flags` are not allowed yet: they arrive with the rules that use them. */
-export const cardSchema = z.strictObject({
-  id: name,
-  era: name,
-  ops: wholeNumber,
-  affiliation: z.enum(["lio", "sae", "neutral"]),
-  effect: block,
-  text,
-});
+export const cardSchema = z
+  .strictObject({
+    id: name,
+    era: name,
+    ops: wholeNumber,
+    affiliation: z.enum(["lio", "sae", "neutral"]),
+    effect: block,
+    text,
+  })
+  .check((ctx) => {
+    for (const found of foreignDraws(ctx.value.effect, ctx.value.affiliation, ["effect"])) {
+      ctx.issues.push({ code: "custom", input: ctx.value, path: found.path, message: found.message });
+    }
+  });

@@ -23,6 +23,7 @@ const pathsOf = (data: unknown) => issuesOf(data).map((issue) => issue.path);
 const yesNo = { op: "choose", who: "lio", decision: { kind: "yesNo" }, bind: "agreed" };
 const pickCard = { op: "choose", who: "both", decision: { kind: "chooseCard" }, bind: "picked" };
 const drawFor = { op: "drawContingency", side: "lio", bind: "drawn" };
+const lioCard = () => ({ ...validCard(), affiliation: "lio" });
 
 describe("card schema: accepted cards", () => {
   it("accepts a card with every field", () => {
@@ -44,11 +45,21 @@ describe("card schema: accepted cards", () => {
       },
       drawFor,
     ];
-    expect(issuesOf({ ...validCard(), effect })).toEqual([]);
+    expect(issuesOf({ ...lioCard(), effect })).toEqual([]);
   });
 
   it("accepts a contingency draw for one side, with or without a variable for the number", () => {
-    expect(issuesOf({ ...validCard(), effect: [drawFor, { op: "drawContingency", side: "sae" }] })).toEqual([]);
+    expect(issuesOf({ ...lioCard(), effect: [drawFor, { op: "drawContingency", side: "lio" }] })).toEqual([]);
+    const saeCard = { ...validCard(), affiliation: "sae" };
+    expect(
+      issuesOf({
+        ...saeCard,
+        effect: [
+          { ...drawFor, side: "sae" },
+          { op: "drawContingency", side: "sae" },
+        ],
+      }),
+    ).toEqual([]);
   });
 
   it("accepts text variants for two platforms", () => {
@@ -115,23 +126,68 @@ describe("card schema: rejected unknown fields", () => {
   });
 
   it("rejects an unknown field in a contingency draw", () => {
-    const issues = issuesOf({ ...validCard(), effect: [{ ...drawFor, modifier: 1 }] });
+    const issues = issuesOf({ ...lioCard(), effect: [{ ...drawFor, modifier: 1 }] });
     expect(issues.map((issue) => [issue.path, issue.message])).toEqual([
       [["effect", 0], expect.stringContaining("modifier")],
     ]);
   });
 
   it("rejects a contingency draw for both sides, or with no side, pointing at side", () => {
-    expect(pathsOf({ ...validCard(), effect: [{ ...drawFor, side: "both" }] })).toEqual([["effect", 0, "side"]]);
-    expect(pathsOf({ ...validCard(), effect: [{ op: "drawContingency" }] })).toEqual([["effect", 0, "side"]]);
+    expect(pathsOf({ ...lioCard(), effect: [{ ...drawFor, side: "both" }] })).toEqual([["effect", 0, "side"]]);
+    expect(pathsOf({ ...lioCard(), effect: [{ op: "drawContingency" }] })).toEqual([["effect", 0, "side"]]);
   });
 
   it("rejects a contingency draw whose variable name is empty", () => {
-    expect(pathsOf({ ...validCard(), effect: [{ ...drawFor, bind: "" }] })).toEqual([["effect", 0, "bind"]]);
+    expect(pathsOf({ ...lioCard(), effect: [{ ...drawFor, bind: "" }] })).toEqual([["effect", 0, "bind"]]);
   });
 
   it("rejects a step with an unknown op", () => {
     expect(pathsOf({ ...validCard(), effect: [{ op: "drawCard" }] })).toEqual([["effect", 0, "op"]]);
+  });
+});
+
+describe("card schema: a card's event draws only from its own side's Contingency deck", () => {
+  const drawOf = (side: string) => ({ op: "drawContingency", side });
+  const placements = (step: unknown): [string, unknown[], (string | number)[]][] => [
+    ["at the top", [step], ["effect", 0, "side"]],
+    [
+      "inside an if's then",
+      [{ op: "if", cond: { op: "yes", var: "a" }, then: [step] }],
+      ["effect", 0, "then", 0, "side"],
+    ],
+    [
+      "inside an if's else",
+      [{ op: "if", cond: { op: "yes", var: "a" }, then: [], else: [step] }],
+      ["effect", 0, "else", 0, "side"],
+    ],
+    ["inside a forEach", [{ op: "forEach", over: ["a"], bind: "x", do: [step] }], ["effect", 0, "do", 0, "side"]],
+  ];
+
+  it.each([
+    ["lio", "sae"],
+    ["sae", "lio"],
+  ])("rejects a %s card drawing from %s's deck, pointing at the step's side", (own, other) => {
+    for (const [, effect, path] of placements(drawOf(other))) {
+      expect(pathsOf({ ...validCard(), affiliation: own, effect })).toEqual([path]);
+    }
+  });
+
+  it.each(["lio", "sae"])(
+    "rejects a neutral card drawing from %s's deck, saying neutral events have no deck yet",
+    (side) => {
+      for (const [, effect, path] of placements(drawOf(side))) {
+        const issues = issuesOf({ ...validCard(), effect });
+        expect(issues.map((issue) => [issue.path, issue.message])).toEqual([
+          [path, expect.stringContaining("neutral events have no Contingency deck yet")],
+        ]);
+      }
+    },
+  );
+
+  it.each(["lio", "sae"])("accepts a %s card drawing from its own deck, at any depth", (side) => {
+    for (const [, effect] of placements(drawOf(side))) {
+      expect(issuesOf({ ...validCard(), affiliation: side, effect })).toEqual([]);
+    }
   });
 });
 

@@ -1,6 +1,6 @@
 // Card checks for createGame: the ruleset's cards are well formed, and a setup uses only known cards, each once.
 import { SIDES } from "./types.ts";
-import type { CardId, EngineError, Ruleset, Setup, Step } from "./types.ts";
+import type { CardId, EngineError, Ruleset, Setup, Side, Step } from "./types.ts";
 
 /**
  * Why the ruleset's card list is unusable, or null: it must be a list, each `id` once, each `ops` a
@@ -18,9 +18,38 @@ export function rulesetError(ruleset: Ruleset): EngineError | null {
     if (Array.isArray(card.effect) && holdsCardChoice(card.effect)) {
       return invalidRuleset(`Card ${card.id}'s effect asks both sides to pick a card; only a turn's opening does.`);
     }
+    if (Array.isArray(card.effect)) {
+      const bad = findForeignDraw(card.effect, card.affiliation);
+      if (bad !== null) return invalidRuleset(foreignDrawMessage(card.id, card.affiliation, bad));
+    }
   }
   return null;
 }
+
+const SIDE_NAMES = { lio: "LIO", sae: "SAE" } as const;
+
+/** The plain-English reason a card may not draw from `drawn`'s Contingency deck. */
+function foreignDrawMessage(id: CardId, affiliation: Side | "neutral", drawn: Side): string {
+  if (affiliation === "neutral") {
+    return `Card ${id} is a neutral card, but its event draws a Contingency card; neutral events have no Contingency deck yet.`;
+  }
+  return `Card ${id} is an ${SIDE_NAMES[affiliation]} card, but its event draws from ${SIDE_NAMES[drawn]}'s Contingency deck.`;
+}
+
+/**
+ * The side of the first `drawContingency` in `steps` (at any depth) that this card may not make, or null.
+ * A side's card may only draw its own deck. A neutral card may not draw at all: TEMPORARY until neutral
+ * events are designed.
+ */
+const findForeignDraw = (steps: readonly Step[], affiliation: Side | "neutral"): Side | null => {
+  for (const step of steps) {
+    if (step.op === "drawContingency" && step.side !== affiliation) return step.side;
+    const inner = step.op === "if" ? [...step.then, ...(step.else ?? [])] : step.op === "forEach" ? step.do : [];
+    const found = findForeignDraw(inner, affiliation);
+    if (found !== null) return found;
+  }
+  return null;
+};
 
 /** True if `steps`, or any block inside them, holds a choice of a card. */
 const holdsCardChoice = (steps: readonly Step[]): boolean =>
