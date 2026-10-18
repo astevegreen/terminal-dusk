@@ -9,6 +9,7 @@ export { verifyGame } from "./verifyGame.ts";
 export { hiddenPart, reconstruct, viewFor } from "./views.ts";
 export type {
   ActiveModifier,
+  ActiveTrigger,
   Answer,
   AnswerValue,
   Binding,
@@ -37,6 +38,7 @@ export type {
   GameStatus,
   HiddenCounts,
   HiddenPart,
+  HookId,
   MarkerEvent,
   MetaState,
   ModifierEnded,
@@ -61,6 +63,10 @@ export type {
   Setup,
   Side,
   Step,
+  TriggerEnded,
+  TriggerEvent,
+  TriggerFired,
+  TriggerSet,
   UnrevealedPick,
   VarName,
   VarValue,

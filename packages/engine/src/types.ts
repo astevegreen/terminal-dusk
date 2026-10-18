@@ -95,6 +95,16 @@ export type ModifierStarted = {
 };
 /** A modifier's duration ran out (the turn it was made in ended), so its rule change no longer applies. */
 export type ModifierEnded = { kind: "modifierEnded"; visibility: "public"; source: CardId; mod: ModifierSpec };
+/**
+ * A trigger's life, each told to everyone with the card that set it and its hook: `triggerSet` when a
+ * `trigger` step runs, `triggerFired` each time its hook runs its reaction, `triggerEnded` when it
+ * expires at the end of its turn. A turnEnd trigger ends by firing, so it is never `triggerEnded`.
+ */
+type TriggerEventOf<K extends string> = { kind: K; visibility: "public"; source: CardId; hook: HookId };
+export type TriggerSet = TriggerEventOf<"triggerSet">;
+export type TriggerFired = TriggerEventOf<"triggerFired">;
+export type TriggerEnded = TriggerEventOf<"triggerEnded">;
+export type TriggerEvent = TriggerSet | TriggerFired | TriggerEnded;
 /** An event anyone may see. It never carries a card ID that is hidden from someone, or a deck's order. */
 export type PublicEvent =
   | CardDrawnHidden
@@ -104,7 +114,8 @@ export type PublicEvent =
   | ContingencyDrawn
   | ContingencyDeckReshuffled
   | ModifierStarted
-  | ModifierEnded;
+  | ModifierEnded
+  | TriggerEvent;
 /**
  * What happened, for animation, the game log, sounds and the tutorial. An event visible to one side
  * may carry a `publicForm`: the public event everyone else gets instead (see eventsFor).
@@ -178,6 +189,7 @@ export type Condition =
  * `addToNumber` adds the non-zero whole `amount` (negative subtracts) to the number bound to `var`.
  * `modifier` makes a rule change, `mod`, that lasts for `duration`; its source is the card whose effect runs it.
  * A `spendPoints` `amount` is the printed ops: the opsValue modifiers in force change it when the step runs.
+ * `trigger` leaves a reaction, `do`, that runs each time `hook` happens until `duration` ends (triggers.ts).
  */
 export type Step =
   | { op: "choose"; who: Side | "both"; decision: { kind: "yesNo" }; bind: VarName }
@@ -188,7 +200,14 @@ export type Step =
   | { op: "spendPoints"; side: Side; amount: number }
   | { op: "drawContingency"; side: Side; bind?: VarName }
   | { op: "addToNumber"; var: VarName; amount: number }
-  | { op: "modifier"; mod: ModifierSpec; duration: Duration };
+  | { op: "modifier"; mod: ModifierSpec; duration: Duration }
+  | { op: "trigger"; hook: HookId; do: Step[]; duration: Duration };
+
+/**
+ * The named moments a trigger can react to. `cardPlayed`: a side's play has fully resolved, before the
+ * card goes to the discard pile (never an opening card). `turnEnd`: the turn's last play has finished.
+ */
+export type HookId = "cardPlayed" | "turnEnd";
 
 /** How long a modifier lasts. `turnEnd`: until the end of the turn in which it was made. */
 export type Duration = { kind: "turnEnd" };
@@ -203,6 +222,8 @@ export type ModifierSpec = { hook: "opsValue"; side: Side | "both"; add: number;
 export type ModifierExpiry = { kind: "turnEnd"; turn: number };
 /** A modifier in force: the card whose effect made it, the rule change, and when it ends. */
 export type ActiveModifier = { source: CardId; mod: ModifierSpec; expires: ModifierExpiry };
+/** A trigger waiting for its hook: the card that set it, the hook, its reaction, and when it ends (as a modifier). */
+export type ActiveTrigger = { source: CardId; hook: HookId; do: Step[]; expires: ModifierExpiry };
 
 export type Binding = { name: VarName; value: VarValue };
 /** The block a frame runs, the index of its next step, and the variables bound in it, in binding order. */
@@ -244,6 +265,10 @@ export type PublicState = {
   contingency: Record<Side, ContingencyDeck>;
   /** The rule changes in force, in the order they were made (modifiers.ts). */
   modifiers: ActiveModifier[];
+  /** The triggers waiting for their hooks, in the order they were set (triggers.ts). */
+  triggers: ActiveTrigger[];
+  /** False at every turn start; true once this turn's turnEnd hook has fired, while its reactions finish. */
+  turnEndFired: boolean;
 };
 /**
  * One Contingency deck's public side: `cards` is its full contents, sorted ascending, and never changes

@@ -38,6 +38,9 @@ const modifierSpec = z.strictObject({
   min: wholeNumber.exactOptional(),
 });
 
+/** How long a modifier or trigger lasts. The one duration so far: until the end of the turn it was made in. */
+const duration = z.strictObject({ kind: z.literal("turnEnd") });
+
 /** One step of a card's effect. Every kind of engine step but a card choice, at any depth. */
 export const stepSchema = z.discriminatedUnion("op", [
   choose,
@@ -51,10 +54,13 @@ export const stepSchema = z.discriminatedUnion("op", [
     var: name,
     amount: z.int().refine((n) => n !== 0, { error: "An addToNumber amount must not be 0." }),
   }),
+  z.strictObject({ op: z.literal("modifier"), mod: modifierSpec, duration }),
+  // A reaction that runs each time `hook` happens until the duration ends: at least one step.
   z.strictObject({
-    op: z.literal("modifier"),
-    mod: modifierSpec,
-    duration: z.strictObject({ kind: z.literal("turnEnd") }),
+    op: z.literal("trigger"),
+    hook: z.enum(["cardPlayed", "turnEnd"]),
+    do: block.min(1, { error: "A trigger needs at least one step to run." }),
+    duration,
   }),
 ]);
 
@@ -101,7 +107,7 @@ function foreignDraws(
         ...foreignDraws(step.else ?? [], affiliation, [...here, "else"]),
       ];
     }
-    if (step.op === "forEach") return foreignDraws(step.do, affiliation, [...here, "do"]);
+    if (step.op === "forEach" || step.op === "trigger") return foreignDraws(step.do, affiliation, [...here, "do"]);
     return [];
   });
 }

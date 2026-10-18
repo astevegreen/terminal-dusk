@@ -7,6 +7,7 @@ import { newDecision, newGroup } from "./decisions.ts";
 import { opsValue, startModifier } from "./modifiers.ts";
 import { halfAnswered } from "./simultaneous.ts";
 import type { Revealed } from "./simultaneous.ts";
+import { afterProgram, setTrigger } from "./triggers.ts";
 import type {
   AnswerValue,
   Binding,
@@ -118,15 +119,16 @@ type StepOf<K extends Step["op"]> = Extract<Step, { op: K }>;
 
 /**
  * Runs the top frame's steps until a `choose` pauses the stack or the stack is empty. Each step run
- * counts once against `budget`; going over returns stepBudgetExceeded.
+ * counts once against `budget`; going over returns stepBudgetExceeded. A finished program may fire the
+ * cardPlayed hook, whose reactions then run on the same stack (triggers.ts).
  */
-function runStack(state: GameState, events: GameEvent[], budget: Budget): EngineError | null {
+export function runStack(state: GameState, events: GameEvent[], budget: Budget): EngineError | null {
   const stack = state.public.stack;
   while (stack.length > 0) {
     const frame = stack.at(-1)!;
     const step = frame.steps[frame.next];
     if (step === undefined) {
-      finishBlock(stack, frame);
+      if (finishBlock(stack, frame)) afterProgram(state, frame, events);
       continue;
     }
     budget.used += 1;
@@ -163,10 +165,12 @@ function runStep(state: GameState, frame: Frame, step: Step, events: GameEvent[]
       frame.next += 1;
       return "ran";
     }
-    case "modifier": {
+    case "modifier":
+    case "trigger": {
       const source = programSource(state.public.stack);
-      if (source === undefined) return problem("invalidProgram", "A modifier step needs the card it runs for.");
-      startModifier(state, source, step, events);
+      if (source === undefined) return problem("invalidProgram", `A ${step.op} step needs the card it runs for.`);
+      if (step.op === "modifier") startModifier(state, source, step, events);
+      else setTrigger(state, source, step, events);
       frame.next += 1;
       return "ran";
     }
@@ -274,16 +278,20 @@ function boundValue(closing: Closing): VarValue | undefined {
   return undefined;
 }
 
-/** The top frame's steps are done: a forEach moves to its next item, any other frame is removed. */
-function finishBlock(stack: Frame[], frame: Frame): void {
+/**
+ * The top frame's steps are done: a forEach moves to its next item, any other frame is removed. True when
+ * the frame left the stack.
+ */
+function finishBlock(stack: Frame[], frame: Frame): boolean {
   const nextItem = frame.kind === "forEach" ? frame.items[frame.index + 1] : undefined;
   if (frame.kind === "forEach" && nextItem !== undefined) {
     frame.index += 1;
     frame.next = 0;
     frame.vars = [{ name: frame.bind, value: nextItem }];
-    return;
+    return false;
   }
   stack.pop();
+  return true;
 }
 
 /** A variable's value, looked up from the innermost block outward, within the running program. */

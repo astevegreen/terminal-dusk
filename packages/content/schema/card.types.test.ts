@@ -25,10 +25,12 @@ describe("card schema types", () => {
     expectTypeOf<WithoutBlocks<CardStep>>().toExtend<WithoutBlocks<z.input<typeof stepSchema>>>();
   });
 
-  it("holds lists of the same steps inside an if and a forEach", () => {
+  it("holds lists of the same steps inside an if, a forEach and a trigger", () => {
     type If = Extract<z.input<typeof stepSchema>, { op: "if" }>;
     type ForEach = Extract<z.input<typeof stepSchema>, { op: "forEach" }>;
+    type Trigger = Extract<z.input<typeof stepSchema>, { op: "trigger" }>;
     expectTypeOf<If["then"]>().toEqualTypeOf<CardStep[]>();
     expectTypeOf<ForEach["do"]>().toEqualTypeOf<CardStep[]>();
+    expectTypeOf<Trigger["do"]>().toEqualTypeOf<CardStep[]>();
   });
 });

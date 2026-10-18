@@ -9,8 +9,9 @@
 import { newDecision, whoseCard } from "./decisions.ts";
 import { enterEra } from "./eras.ts";
 import { endTurnModifiers } from "./modifiers.ts";
-import { runProgram } from "./stack.ts";
+import { runProgram, runStack } from "./stack.ts";
 import type { Budget, Closing } from "./stack.ts";
+import { endTurnTriggers, fireTurnEnd } from "./triggers.ts";
 import type { AnswerValue, CardId, EngineError, GameEvent, GameState, Ruleset, Side, Step } from "./types.ts";
 
 /** The program each turn opens with: both sides secretly pick a card ("the both sides choose step"). */
@@ -73,36 +74,50 @@ function revealOpening(
 }
 
 /**
- * Runs the game on while nothing waits on the stack. The first card in play has finished its event, so
- * it goes to the discard pile and the next card's event starts. With no card in play, the next side
- * plays; once both have made all their plays, the next turn opens, or after the last turn the game ends.
+ * Runs the game on while nothing waits on the stack. The first card in play has finished its event (and
+ * any reactions to it), so it goes to the discard pile and the next card's event starts. With no card in
+ * play, the next side plays. Once both have made all their plays, the turnEnd hook fires; when its
+ * reactions have finished, the turn ends.
  */
 function settle(ruleset: Ruleset, state: GameState, events: GameEvent[], budget: Budget): EngineError | null {
   const pub = state.public;
-  while (pub.stack.length === 0) {
+  while (pub.stack.length === 0 && pub.status.kind === "active") {
     const finished = pub.inPlay.shift();
+    let error: EngineError | null = null;
     if (finished !== undefined) {
       pub.discard.push(finished);
-      const error = pub.inPlay.length > 0 ? startEvent(ruleset, state, events, budget) : null;
-      if (error) return error;
+      if (pub.inPlay.length > 0) error = startEvent(ruleset, state, events, budget);
     } else if (pub.playsMade < 2 * pub.playsPerTurn) {
       pub.pending = [newDecision(state.meta.seq, pub.playsMade % 2 === 0 ? "lio" : "sae", "playCardAs")];
       return null;
+    } else if (pub.turnEndFired) {
+      error = endTurn(state, events, budget);
     } else {
-      // The turn ends: the modifiers lasting until then end first, before the game ends or a turn starts.
-      endTurnModifiers(state, events);
-      if (pub.turn >= pub.turns) {
-        pub.pending = [];
-        pub.status = { kind: "over", winner: null, reason: "turnLimitReached" };
-        return null;
-      }
-      pub.turn += 1;
-      pub.playsMade = 0;
-      const error = startTurn(state, events, budget);
-      if (error) return error;
+      fireTurnEnd(state, events);
+      error = runStack(state, events, budget);
     }
+    if (error) return error;
   }
   return null;
+}
+
+/**
+ * The turn ends: the triggers and modifiers lasting until then end first, then the next turn opens, or
+ * after the last turn the game is over.
+ */
+function endTurn(state: GameState, events: GameEvent[], budget: Budget): EngineError | null {
+  const pub = state.public;
+  endTurnTriggers(state, events);
+  endTurnModifiers(state, events);
+  if (pub.turn >= pub.turns) {
+    pub.pending = [];
+    pub.status = { kind: "over", winner: null, reason: "turnLimitReached" };
+    return null;
+  }
+  pub.turn += 1;
+  pub.playsMade = 0;
+  pub.turnEndFired = false;
+  return startTurn(state, events, budget);
 }
 
 /** Starts the event of the first card in play. Its choices go to whichever side the card names. */

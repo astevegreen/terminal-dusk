@@ -1,8 +1,9 @@
-// The fuzz suite and modifiers (#89): the fuzz cards make modifiers, and the modifier check catches what it should.
+// The fuzz suite and the lasting effects, modifiers (#89) and triggers (#90): the fuzz cards make them, and
+// the checks catch what they should.
 import { createGame, seedHash } from "@terminal-dusk/engine";
-import type { ActiveModifier, GameState, Step } from "@terminal-dusk/engine";
+import type { ActiveModifier, ActiveTrigger, GameState, Step } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
-import { checkModifiers } from "./checks.ts";
+import { checkModifiers, checkTriggers } from "./checks.ts";
 import { ruleset } from "./play.ts";
 
 const SEED = "modifier-seed";
@@ -66,5 +67,51 @@ describe("checkModifiers", () => {
       modifiers: [modifierIn(1)],
     });
     expect(() => checkModifiers(s)).toThrow(/the game is over/);
+  });
+});
+
+describe("the fuzz cards set triggers", () => {
+  const triggers = ruleset.cards.flatMap((card) =>
+    card.effect.filter((step): step is Extract<Step, { op: "trigger" }> => step.op === "trigger"),
+  );
+  it("some cards' effects end with a trigger, for both hooks, whose reaction asks nothing", () => {
+    expect(new Set(triggers.map((s) => s.hook))).toEqual(new Set(["cardPlayed", "turnEnd"]));
+    expect(triggers.flatMap((s) => s.do).every((step) => step.op === "marker")).toBe(true);
+  });
+  it("is the same fixed list on every run, built from each card's index", () => {
+    expect(ruleset.cards.filter((card) => card.effect.at(-1)?.op === "trigger").map((card) => card.id)).toEqual(
+      Array.from({ length: 9 }, (_, k) => `c${10 * k + 4}`),
+    );
+  });
+});
+
+describe("checkTriggers", () => {
+  const triggerIn = (turn: number): ActiveTrigger => ({
+    source: "c4",
+    hook: "cardPlayed",
+    do: [{ op: "marker", label: "m" }],
+    expires: { kind: "turnEnd", turn },
+  });
+  it("passes a new game, and one whose triggers end with the current turn", () => {
+    expect(() => checkTriggers(started())).not.toThrow();
+    expect(() => checkTriggers(withPublic(started(), { triggers: [triggerIn(1)] }))).not.toThrow();
+  });
+  it("catches an active game holding a trigger from an earlier turn", () => {
+    const s = withPublic(started(), { turn: 2, triggers: [triggerIn(1)] });
+    expect(() => checkTriggers(s)).toThrow(/triggers that do not end with this turn/);
+  });
+  it("catches a finished game that still holds a trigger", () => {
+    const s = withPublic(started(), {
+      status: { kind: "over", winner: null, reason: "turnLimitReached" },
+      triggers: [triggerIn(1)],
+    });
+    expect(() => checkTriggers(s)).toThrow(/the game is over, but 1 triggers/);
+  });
+  it("catches an open play after the turnEnd hook has fired", () => {
+    const opened = withPublic(started(), {
+      turnEndFired: true,
+      pending: [{ id: "d9", side: "lio", kind: "playCardAs", options: {} }],
+    });
+    expect(() => checkTriggers(opened)).toThrow(/turnEnd hook has already fired/);
   });
 });

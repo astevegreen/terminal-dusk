@@ -21,6 +21,20 @@ const setupWith = (lists: { lio?: string[]; sae?: string[]; deck?: string[] }): 
   };
 };
 
+/** A trigger step, "at the turn's end, run `reaction`", with any of its fields replaced by `fields`. */
+const trigger = (fields: object = {}, reaction: Step[] = [{ op: "marker", label: "m" }]): Step =>
+  ({ op: "trigger", hook: "turnEnd", do: reaction, duration: { kind: "turnEnd" }, ...fields }) as Step;
+/** `step` at the top of an effect, in an if's then and else, in a forEach and in a trigger's reaction. */
+const nested = (step: Step): Step[][] => [
+  [step],
+  [choose("go"), ifYes("go", [step])],
+  [choose("go"), ifYes("go", [], [step])],
+  [forEach(["a"], "x", [step])],
+  [trigger({}, [step])],
+];
+/** "ok", or the error code createGame returns, with LIO's card l1 given `effect`. */
+const outcomeOf = (effect: Step[]) => outcome(withCards([...ruleset.cards.slice(1), testCard("l1", 1, "lio", effect)]));
+
 describe("createGame: the ruleset's cards", () => {
   it("accepts the test ruleset, and a card with 0 ops", () => {
     expect(outcome(ruleset)).toBe("ok");
@@ -149,14 +163,6 @@ describe("createGame: a card's event draws only from its own side's Contingency 
 describe("createGame: a card's number steps hold whole numbers", () => {
   const badAdd = (amount: number): Step => ({ op: "addToNumber", var: "n", amount });
   const badTest = (value: number): Step => ({ op: "if", cond: { op: "atLeast", var: "n", value }, then: [] });
-  const nested = (step: Step): Step[][] => [
-    [step],
-    [choose("go"), ifYes("go", [step])],
-    [choose("go"), ifYes("go", [], [step])],
-    [forEach(["a"], "x", [step])],
-  ];
-  const outcomeOf = (effect: Step[]) =>
-    outcome(withCards([...ruleset.cards.slice(1), testCard("l1", 1, "lio", effect)]));
 
   it.each([0, 1.5, Number.NaN])("refuses an addToNumber amount of %s, at any depth", (amount) => {
     for (const effect of nested(badAdd(amount))) expect(outcomeOf(effect)).toBe("invalidRuleset");
@@ -174,14 +180,6 @@ describe("createGame: a card's modifier steps hold values the engine knows", () 
   const good = { hook: "opsValue", side: "both", add: -1, min: 1 };
   const modifier = (mod: object, duration: object = { kind: "turnEnd" }): Step =>
     ({ op: "modifier", mod, duration }) as unknown as Step;
-  const nested = (step: Step): Step[][] => [
-    [step],
-    [choose("go"), ifYes("go", [step])],
-    [choose("go"), ifYes("go", [], [step])],
-    [forEach(["a"], "x", [step])],
-  ];
-  const outcomeOf = (effect: Step[]) =>
-    outcome(withCards([...ruleset.cards.slice(1), testCard("l1", 1, "lio", effect)]));
 
   it.each([
     ["an unknown hook", modifier({ ...good, hook: "coupResult" })],
@@ -200,6 +198,35 @@ describe("createGame: a card's modifier steps hold values the engine knows", () 
       modifier(good),
       modifier({ hook: "opsValue", side: "lio", add: 2 }),
       modifier({ hook: "opsValue", side: "sae", add: -2, min: 0 }),
+    ];
+    for (const step of steps) for (const effect of nested(step)) expect(outcomeOf(effect)).toBe("ok");
+  });
+});
+
+describe("createGame: a card's trigger steps hold values the engine knows", () => {
+  const pickCard: Step = { op: "choose", who: "both", decision: { kind: "chooseCard" }, bind: "c" };
+  it.each([
+    ["an unknown hook", trigger({ hook: "coupResolved" })],
+    ["an empty do", trigger({}, [])],
+    ["a missing do", trigger({ do: undefined })],
+    ["an unknown duration", trigger({ duration: { kind: "gameEnd" } })],
+    ["a missing duration", trigger({ duration: undefined })],
+    ["a card choice in its do", trigger({}, [pickCard])],
+    ["an addToNumber of 0 in its do", trigger({}, [{ op: "addToNumber", var: "n", amount: 0 }])],
+  ])("returns invalidRuleset for a trigger with %s, at the top and nested", (_what, step) => {
+    for (const effect of nested(step)) expect(outcomeOf(effect)).toBe("invalidRuleset");
+  });
+  it("accepts good triggers at any depth: each hook, holding a yes/no, a modifier or another trigger", () => {
+    const opsMod: Step = {
+      op: "modifier",
+      mod: { hook: "opsValue", side: "both", add: 1 },
+      duration: { kind: "turnEnd" },
+    };
+    const steps = [
+      trigger(),
+      trigger({ hook: "cardPlayed" }, [choose("ok"), ifYes("ok", [{ op: "marker", label: "y" }])]),
+      trigger({}, [opsMod]),
+      trigger({}, [trigger({ hook: "cardPlayed" })]),
     ];
     for (const step of steps) for (const effect of nested(step)) expect(outcomeOf(effect)).toBe("ok");
   });
