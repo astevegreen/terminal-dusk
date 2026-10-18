@@ -1,5 +1,6 @@
 // Test helpers: a small ruleset and seeded games, so the AI tests can make real views with the engine.
 import { apply, createGame, seedHash } from "@terminal-dusk/engine";
+import { seededRandom } from "../random.ts";
 import type { Answer, CardDef, Ruleset, Setup } from "@terminal-dusk/engine";
 
 /** The full game record the engine makes, named by what createGame returns. */
@@ -21,18 +22,6 @@ export const ruleset: Ruleset = {
         : [],
   })),
 };
-
-/** A small seeded generator (mulberry32) giving numbers from 0 up to, not including, 1. */
-export function seededRandom(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 /** A game from `seed`: each side holds 2 x turns non-neutral cards and 2 neutral ones, with 10 in the pile. */
 export function newGame(seed: number, turns = 2): TestState {
