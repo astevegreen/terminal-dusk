@@ -2,28 +2,7 @@ import { createGame, seedHash } from "@terminal-dusk/engine";
 import type { CardDef, Ruleset, Setup } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { cardSchema } from "./card.ts";
-
-/** A card file with every field, as plain JSON data. Each test changes one thing about it. */
-const validCard = () => ({
-  id: "test-card",
-  era: "early",
-  ops: 2,
-  affiliation: "neutral",
-  effect: [{ op: "marker", label: "ran" }],
-  text: { name: "Test card", rules: "Does nothing.", history: "A card for tests.", art: "art/test-card" },
-});
-
-/** The issues the schema finds in `data`: none when it passes. */
-const issuesOf = (data: unknown) => {
-  const result = cardSchema.safeParse(data);
-  return result.success ? [] : result.error.issues;
-};
-const pathsOf = (data: unknown) => issuesOf(data).map((issue) => issue.path);
-
-const yesNo = { op: "choose", who: "lio", decision: { kind: "yesNo" }, bind: "agreed" };
-const pickCard = { op: "choose", who: "both", decision: { kind: "chooseCard" }, bind: "picked" };
-const drawFor = { op: "drawContingency", side: "lio", bind: "drawn" };
-const lioCard = () => ({ ...validCard(), affiliation: "lio" });
+import { drawFor, issuesOf, lioCard, pathsOf, pickCard, validCard, yesNo } from "./test/cards.ts";
 
 describe("card schema: accepted cards", () => {
   it("accepts a card with every field", () => {
@@ -274,40 +253,5 @@ describe("card schema: number tests and addToNumber", () => {
 
   it("refuses an unknown condition op", () => {
     expect(issuesOf(withEffect([test("greaterThan", 1)])).length).toBeGreaterThan(0);
-  });
-});
-
-describe("card schema: modifier steps", () => {
-  const withEffect = (effect: unknown[]) => ({ ...lioCard(), effect });
-  const good = { hook: "opsValue", side: "both", add: -1, min: 1 };
-  const modifier = (mod: object, duration: object = { kind: "turnEnd" }) => ({ op: "modifier", mod, duration });
-  /** The step at the top, in an if's then and else, and in a forEach. */
-  const placed = (step: object): unknown[][] => [
-    [step],
-    [yesNo, { op: "if", cond: { op: "yes", var: "agreed" }, then: [step] }],
-    [yesNo, { op: "if", cond: { op: "yes", var: "agreed" }, then: [], else: [step] }],
-    [{ op: "forEach", over: ["a"], bind: "x", do: [step] }],
-  ];
-
-  it("accepts a modifier at any depth: each side, a negative or positive add, a min of 0 or none", () => {
-    const steps = [
-      modifier(good),
-      modifier({ hook: "opsValue", side: "lio", add: 2 }),
-      modifier({ hook: "opsValue", side: "sae", add: -2, min: 0 }),
-    ];
-    for (const step of steps) for (const effect of placed(step)) expect(issuesOf(withEffect(effect))).toEqual([]);
-  });
-
-  it.each([
-    ["an unknown hook", modifier({ ...good, hook: "coupResult" })],
-    ["an add of 0", modifier({ ...good, add: 0 })],
-    ["an add that is not whole", modifier({ ...good, add: 1.5 })],
-    ["a missing add", modifier({ hook: "opsValue", side: "both" })],
-    ["a negative min", modifier({ ...good, min: -1 })],
-    ["a min that is not whole", modifier({ ...good, min: 0.5 })],
-    ["an unknown duration", modifier(good, { kind: "gameEnd" })],
-    ["a side that is not lio, sae or both", modifier({ ...good, side: "neutral" })],
-  ])("refuses a modifier with %s, at any depth", (_what, step) => {
-    for (const effect of placed(step)) expect(issuesOf(withEffect(effect)).length).toBeGreaterThan(0);
   });
 });

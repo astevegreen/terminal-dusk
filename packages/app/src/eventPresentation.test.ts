@@ -14,6 +14,9 @@ describe("eventPresentation", () => {
       "modifierEnded",
       "modifierStarted",
       "pointsSpent",
+      "triggerEnded",
+      "triggerFired",
+      "triggerSet",
     ];
     expect(Object.keys(eventPresentation).sort()).toEqual(kinds);
   });
@@ -101,5 +104,23 @@ describe("eventPresentation", () => {
       mod: { hook: "opsValue", side: "sae", add: 2 },
     });
     expect(line).toBe("c4's change ended: ops values for sae +2.");
+  });
+  it("logs a modifier without a minimum with just its change", () => {
+    const line = eventPresentation.modifierEnded.log({
+      kind: "modifierEnded",
+      visibility: "public",
+      source: "c4",
+      mod: { hook: "opsValue", side: "lio", add: -2 },
+    });
+    expect(line).toBe("c4's change ended: ops values for lio -2.");
+  });
+  it.each([
+    ["triggerSet", "cardPlayed", "c4 set a reaction whenever a card is played this turn."],
+    ["triggerSet", "turnEnd", "c4 set a reaction at the end of this turn."],
+    ["triggerFired", "cardPlayed", "c4's reaction ran (whenever a card is played this turn)."],
+    ["triggerFired", "turnEnd", "c4's reaction ran (at the end of this turn)."],
+    ["triggerEnded", "cardPlayed", "c4's reaction ended (whenever a card is played this turn)."],
+  ] as const)("logs %s for a %s trigger with the card that set it and its hook", (kind, hook, expected) => {
+    expect(eventPresentation[kind].log({ kind, visibility: "public", source: "c4", hook } as never)).toBe(expected);
   });
 });

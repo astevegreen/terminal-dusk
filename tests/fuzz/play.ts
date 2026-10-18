@@ -45,11 +45,24 @@ export const FUZZ_CARDS: readonly CardId[] = Array.from(
 const AFFILIATIONS: readonly CardDef["affiliation"][] = ["lio", "sae", "neutral"];
 /**
  * Card `i`'s event: its base event (baseEffectOf), and for every fifth card from c2 on, a modifier of the
- * ops value too (#89). Only a step is added after the base event, never a choice, so the decisions of the
- * games in fixedGames.ts keep their IDs.
+ * ops value too (#89); for every tenth from c4 on (never a modifier card), a trigger (#90). Only steps are
+ * added after the base event, never a choice, so the decisions of the games in fixedGames.ts keep their IDs.
  */
 function effectOf(i: number): EffectStep[] {
+  if (i % 10 === 3) return [...baseEffectOf(i), triggerOf(Math.floor(i / 10))];
   return i % 5 === 1 ? [...baseEffectOf(i), modifierOf(Math.floor(i / 5))] : baseEffectOf(i);
+}
+
+/**
+ * The `k`th trigger card's step, cardPlayed and turnEnd in turn, until the turn ends. Its reaction is only
+ * a marker showing what the hook binds, so it never asks a new question.
+ */
+function triggerOf(k: number): EffectStep {
+  const reaction: EffectStep[] =
+    k % 2 === 0
+      ? [{ op: "marker", label: "reacted", var: "card" }]
+      : [{ op: "marker", label: "turnEnded", var: "turn" }];
+  return { op: "trigger", hook: k % 2 === 0 ? "cardPlayed" : "turnEnd", do: reaction, duration: { kind: "turnEnd" } };
 }
 
 const ADDS: readonly number[] = [-2, -1, 1, 2];
