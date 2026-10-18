@@ -53,15 +53,16 @@ describe("test mode screen", () => {
   });
   it("renders the turn, the plays, the hand and the open prompt from the frame", () => {
     const out = html(fresh());
-    expect(out).toContain("Turn 1 of 2");
-    expect(out).toContain("Plays made: 0 of 2");
-    expect(out).toContain("Your decision");
-    expect(out).toContain(
+    const texts = [
+      "Turn 1 of 2",
+      "Plays made: 0 of 2",
+      "Your decision",
       "<li>Test card 1</li><li>Test card 2</li><li>Test card 3</li><li>Test card 4</li><li>Test card 5</li><li>Test card 7</li><li>Test card 13</li>",
-    );
-    expect(out).toContain("SAE holds 7 cards");
-    expect(out).toContain("lio: pick an opening card");
-    expect(out).toContain("min-height:44px");
+      "SAE holds 7 cards",
+      "lio: pick an opening card",
+      "min-height:44px",
+    ];
+    for (const text of texts) expect(out).toContain(text);
   });
   it("shows the game's events as a log, oldest first, once cards are revealed", async () => {
     const session = fresh();

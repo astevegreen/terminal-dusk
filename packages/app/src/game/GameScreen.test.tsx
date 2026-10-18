@@ -31,26 +31,28 @@ const html = (frame: Frame, extra: Partial<GameScreenProps> = {}): string =>
 const over = (winner: Side | null): Frame =>
   withPublic(frameFor("lio"), { status: { kind: "over", winner, reason: "turns ran out" } });
 
+/** Every text must appear in the page. */
+const expectAll = (out: string, texts: string[]): void => {
+  for (const text of texts) expect(out).toContain(text);
+};
+
 describe("GameScreen for a side", () => {
   const lio = frameFor("lio");
   const out = html(withPublic(lio, { discard: ["t1", "t2"], inPlay: ["t3"] }), { log: ["first", "second"] });
   it("shows the viewer, the turn line and the plays", () => {
-    expect(out).toContain("You play LIO");
-    expect(out).toContain("Turn 1 of 2");
-    expect(out).toContain("Plays made: 0 of 2");
-    expect(out).toContain("Your decision");
+    expectAll(out, ["You play LIO", "Turn 1 of 2", "Plays made: 0 of 2", "Your decision"]);
   });
   it("shows the hand by name in the frame's order and the opponent's count", () => {
-    expect(out).toContain("<li>Test card 1</li><li>Test card 2</li><li>Test card 3</li>");
-    expect(out).toContain("SAE holds 7 cards");
+    expectAll(out, ["<li>Test card 1</li><li>Test card 2</li><li>Test card 3</li>", "SAE holds 7 cards"]);
   });
   it("shows the table, with the cards in play and the discard pile", () => {
-    expect(out).toContain("In play: Test card 3");
-    expect(out).toContain("Discard pile: 2 cards. Last 5, newest first: Test card 2, Test card 1");
+    expectAll(out, ["In play: Test card 3", "Discard pile: 2 cards. Last 5, newest first: Test card 2, Test card 1"]);
   });
   it("shows both Contingency decks with what is left and the full deck", () => {
-    expect(out).toContain("LIO: 6 left: 1, 2, 3, 4, 5, 6. Deck: 1, 2, 3, 4, 5, 6");
-    expect(out).toContain("SAE: 6 left: 1, 2, 3, 4, 5, 6. Deck: 1, 2, 3, 4, 5, 6");
+    expectAll(out, [
+      "LIO: 6 left: 1, 2, 3, 4, 5, 6. Deck: 1, 2, 3, 4, 5, 6",
+      "SAE: 6 left: 1, 2, 3, 4, 5, 6. Deck: 1, 2, 3, 4, 5, 6",
+    ]);
     const used = withPublic(lio, {
       contingency: { ...lio.view.public.contingency, sae: { cards: [1, 2, 3], left: [2, 3] } },
     });
@@ -96,8 +98,7 @@ describe("the era line", () => {
 describe("GameScreen for a spectator", () => {
   const out = html(frameFor("spectator"), { onAnswer: () => {} });
   it("shows two hand counts, no opponent region and Game active", () => {
-    expect(out).toContain("Spectating");
-    expect(out).toContain("LIO holds 7 cards, SAE holds 7 cards");
+    expectAll(out, ["Spectating", "LIO holds 7 cards, SAE holds 7 cards"]);
     expect(out).not.toContain('data-testid="opponent"');
     expect(out).toContain("Game active");
   });
