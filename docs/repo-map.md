@@ -36,6 +36,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/eventPresentation.test.ts`
 - `packages/app/src/eventPresentation.ts` - How each EventKind is presented. Exports: EventPresentation, eventPresentation.
 - `packages/app/src/main.tsx` - Browser entry point: mounts the app into the #root element of index.html.
+- `packages/app/src/transport/localMatch.test.ts`
+- `packages/app/src/transport/localMatch.ts` - A match run entirely in memory: it keeps the host's record and secret, and gives each viewer a transport. Exports: LocalMatch, createLocalMatch.
+- `packages/app/src/transport/matchTransport.ts` - What the screens talk to: one viewer's window onto a match. Exports: SubmitResult, MatchTransport.
 - `packages/app/tsconfig.json` - The app runs in the browser and is bundled by Vite, so it gets the DOM and bundler-style imports.
 - `packages/app/vite.config.ts` - Vite settings for `pnpm dev`, `vite build` and the app's Vitest run. Exports: default.
 - `packages/app/wrangler.jsonc`
