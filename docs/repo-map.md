@@ -81,6 +81,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/index.test.ts`
 - `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, createGame, legalAnswers, pendingFor, eventsFor, seedHash, SIDES, verifyGame, hiddenPart, reconstruct, viewFor, Answer, ….
 - `packages/engine/src/numberSteps.test.ts` - Number tests (atLeast, atMost, equals) and the addToNumber step (#74): a card changes the number a Contingency draw gave and branches on the result.
+- `packages/engine/src/omniscient.test.ts` - The omniscient viewer: everything except the secret compartment, for replays of finished games.
 - `packages/engine/src/play.property.test.ts` - Property test: in random games with rival and neutral plays, every card is always in exactly one place, and a card whose event or points are still waiting on a…
 - `packages/engine/src/play.test.ts` - Playing a card for its event or its points, and the rival-card rules (#36).
 - `packages/engine/src/rng.test.ts`

@@ -51,8 +51,13 @@ export type Result<T> = { ok: true; value: T } | { ok: false; error: EngineError
 
 /** Who may see an event: everyone, or one side only. */
 export type Visibility = "public" | Side;
-/** Who a view or an event list is for. ('omniscient' arrives with the match host's replay archive.) */
+/**
+ * Who a live view or event list is for: a side or a spectator. Frames and the fuzz suite use only these.
+ * Replays also have the omniscient viewer: see ReplayViewer.
+ */
 export type Viewer = Side | "spectator";
+/** Every viewer: the live ones, plus `omniscient` (everything but the secret compartment), only for replays. */
+export type ReplayViewer = Viewer | "omniscient";
 
 /** Everyone else's version of a drawn card: who drew, never which card. */
 export type CardDrawnHidden = { kind: "cardDrawnHidden"; visibility: "public"; side: Side };
@@ -232,6 +237,17 @@ export type HiddenCounts = { deck: number; hands: Record<Side, number> };
 export type PublicMeta = MetaState;
 /** What one viewer receives. `mine` is the viewer's own private compartment, or null for a spectator. */
 export type PlayerView = { public: PublicState; mine: PrivateState | null; counts: HiddenCounts; meta: PublicMeta };
+/**
+ * What a replay's omniscient viewer receives: the public compartment, both sides' private compartments,
+ * the counts and the meta. Never the secret compartment: a finished game's seed and move log recompute it.
+ * It has no `mine`, so it can never stand in for a live frame's PlayerView.
+ */
+export type OmniscientView = {
+  public: PublicState;
+  sides: Record<Side, PrivateState>;
+  counts: HiddenCounts;
+  meta: PublicMeta;
+};
 /** What `viewer` cannot see: the opponent's private compartment and the secret compartment. */
 export type HiddenPart = { viewer: Side; opponent: PrivateState; secret: SecretState };
 
