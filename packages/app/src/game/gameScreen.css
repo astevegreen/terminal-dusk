@@ -15,11 +15,14 @@
   font-family: system-ui, sans-serif;
   font-size: 13px;
 }
-.game > section {
+.game > section,
+.game .game-side > section {
   box-sizing: border-box;
   min-width: 0;
   border: 1px solid #999;
   padding: 4px;
+}
+.game > section {
   overflow: auto;
 }
 .game ul,
@@ -54,12 +57,6 @@
   gap: 4px;
   min-height: 0;
   overflow: auto;
-}
-.game .game-side > section {
-  box-sizing: border-box;
-  border: 1px solid #999;
-  padding: 4px;
-  min-width: 0;
 }
 .game .game-log ol {
   max-height: 90px;
