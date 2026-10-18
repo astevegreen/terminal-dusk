@@ -59,7 +59,7 @@ export function TestModeView({ snapshot, session }: Readonly<{ snapshot: Snapsho
               ? "Game active"
               : `Game over: ${pub.status.winner ?? "no winner"}, ${pub.status.reason}`}
           </p>
-          <p data-testid="progress">{`Viewing as ${viewer}. Turn ${pub.turn} of ${pub.turns}. Plays made: ${pub.playsMade} of ${2 * pub.playsPerTurn}. Step ${frame.seq}.`}</p>
+          <p data-testid="progress">{`Viewing as ${viewer}. Turn ${pub.turn} of ${pub.turns}. Plays made: ${pub.playsMade} of ${pub.playsPerTurn}. Step ${frame.seq}.`}</p>
           <p data-testid="in-play">{`In play: ${names(pub.inPlay)}`}</p>
           <p data-testid="discard">{`Discard pile: ${names(pub.discard)}`}</p>
           {frame.view.mine ? (

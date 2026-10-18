@@ -8,6 +8,7 @@ import { buttonsOf } from "./promptTree.ts";
 import { cardName } from "./fixture.ts";
 import { createTestSession } from "./session.ts";
 import type { TestSession } from "./session.ts";
+import type { AnswerValue } from "@terminal-dusk/engine";
 
 let tick = 0;
 const clock = (): number => 1_700_000_000_000 + tick++;
@@ -16,7 +17,8 @@ const html = (session: TestSession): string =>
   renderToString(<TestModeView snapshot={session.getSnapshot()} session={session} />);
 
 /** Presses the first prompt button the screen offers (in `order`) that the transport does not refuse. */
-async function answerOnce(session: TestSession, order: "first" | "last"): Promise<string> {
+async function answerOnce(session: TestSession, order: "first" | "last", accepted?: AnswerValue[]): Promise<string> {
+  let pressed: AnswerValue | null = null;
   const decision = session.getSnapshot().frame?.decision;
   if (!decision) throw new Error("nothing to answer");
   const hand = session.getSnapshot().frame?.view.mine?.hand ?? [];
@@ -25,14 +27,20 @@ async function answerOnce(session: TestSession, order: "first" | "last"): Promis
       decision,
       hand,
       label: cardName,
-      onAnswer: (value) => void session.answer(value),
+      onAnswer: (value) => {
+        pressed = value;
+        void session.answer(value);
+      },
     }),
   );
   for (const button of order === "first" ? buttons : [...buttons].reverse()) {
     const before = session.getSnapshot().frame?.seq;
     button.click();
     await new Promise((resolve) => setTimeout(resolve, 0));
-    if (session.getSnapshot().frame?.seq !== before) return decision.kind;
+    if (session.getSnapshot().frame?.seq !== before) {
+      if (pressed) accepted?.push(pressed);
+      return decision.kind;
+    }
     if (session.getSnapshot().viewer !== "spectator" && session.getSnapshot().frame?.decision === null)
       return decision.kind;
   }
@@ -46,7 +54,7 @@ describe("test mode screen", () => {
   it("renders the turn, the plays, the hand and the open prompt from the frame", () => {
     const out = html(fresh());
     expect(out).toContain("Turn 1 of 2");
-    expect(out).toContain("Plays made: 0 of 4");
+    expect(out).toContain("Plays made: 0 of 2");
     expect(out).toContain("Game active");
     expect(out).toContain(
       "Your hand: Test card 1, Test card 2, Test card 3, Test card 4, Test card 5, Test card 7, Test card 13",
@@ -146,12 +154,13 @@ describe("a whole game through the prompts", () => {
   it("plays every kind of prompt to the end of the 2-turn fixture and shows the game over", async () => {
     const session = fresh();
     const seen = new Set<string>();
+    const accepted: AnswerValue[] = [];
     for (let step = 0; step < 100 && session.getSnapshot().frame?.view.public.status.kind === "active"; step++) {
       let acted = false;
       for (const viewer of ["lio", "sae"] as const) {
         session.setViewer(viewer);
         if (session.getSnapshot().frame?.decision) {
-          seen.add(await answerOnce(session, viewer === "lio" ? "last" : "first"));
+          seen.add(await answerOnce(session, viewer === "lio" ? "last" : "first", accepted));
           acted = true;
           break;
         }
@@ -159,6 +168,11 @@ describe("a whole game through the prompts", () => {
       if (!acted) throw new Error("nobody has a prompt");
     }
     expect([...seen].sort()).toEqual(["chooseCard", "playCardAs", "rivalEventOrder", "yesNo"]);
+    // A card really was played for its event, and it ended up in the discard pile.
+    const eventPlays = accepted.flatMap((a) => (a.kind === "playCardAs" && a.as === "event" ? [a.card] : []));
+    expect(eventPlays.length).toBeGreaterThan(0);
+    const pub = session.getSnapshot().frame?.view.public;
+    expect(eventPlays.some((card) => pub?.discard.includes(card) || pub?.inPlay.includes(card))).toBe(true);
     expect(html(session)).toContain("Game over");
     expect(session.getSnapshot().frame?.view.public.status.kind).toBe("over");
   });
