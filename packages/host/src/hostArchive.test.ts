@@ -91,7 +91,16 @@ describe("hostArchive", () => {
 
   it("a log with one answer changed to an illegal value gives verifyFailed", () => {
     const host = playedOut();
-    const log = host.secret.log.map((a, i) => (i === 2 ? { ...a, decisionId: "nope" } : a));
+    const value = { kind: "chooseCard", card: "no-such-card" } as const;
+    const log = host.secret.log.map((a, i) => (i === 2 && "decisionId" in a ? { ...a, value } : a));
+    expect(log).not.toEqual(host.secret.log);
+    expectRefused({ ...host, secret: { ...host.secret, log } }, "verifyFailed", "was refused");
+  });
+
+  it("a log with one answer pointing at the wrong decision gives verifyFailed", () => {
+    const host = playedOut();
+    const log = host.secret.log.map((a, i) => (i === 2 && "decisionId" in a ? { ...a, decisionId: "nope" } : a));
+    expect(log).not.toEqual(host.secret.log);
     expectRefused({ ...host, secret: { ...host.secret, log } }, "verifyFailed", "was refused");
   });
 
