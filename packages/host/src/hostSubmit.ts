@@ -27,6 +27,9 @@ export function hostSubmit(
   if (!resigning && (!Number.isInteger(loose.expectedSeq) || loose.expectedSeq !== record.seq)) {
     return refuse("staleSeq", "The game has moved on since that answer was made.");
   }
+  if (!resigning && (typeof loose.decisionId !== "string" || !isObject(loose.value))) {
+    return refuse("illegalAnswer", "The answer must name a decision and carry a value.");
+  }
   const answer: Answer = resigning
     ? { system: "resign", side }
     : { decisionId: loose.decisionId as string, side, value: copyJson(loose.value as AnswerValue) };
@@ -57,5 +60,7 @@ function newDecision(before: GameState, after: GameState, side: Side): boolean {
   const now = pendingFor(after, side);
   return now !== null && pendingFor(before, side)?.id !== now.id;
 }
+
+const isObject = (v: unknown): boolean => typeof v === "object" && v !== null && !Array.isArray(v);
 
 const refuse = (code: HostError["code"], message: string): HostOutcome => ({ ok: false, error: { code, message } });

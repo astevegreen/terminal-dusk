@@ -120,6 +120,17 @@ describe("hostSubmit: refusals leave the inputs unchanged", () => {
     expect(JSON.stringify(host)).toBe(before);
   });
 
+  it("an answer with a matching expectedSeq and decisionId but no value is refused, not thrown", () => {
+    const { host, before } = frozen();
+    const noValue: Record<string, unknown> = { ...submissionFor(host, "lio") };
+    delete noValue.value;
+    expect(() => hostSubmit(ruleset, host.record, host.secret, noValue as unknown as Submission, NOW)).not.toThrow();
+    expect(code(host, noValue)).toBe("illegalAnswer");
+    expect(code(host, { ...noValue, value: null })).toBe("illegalAnswer");
+    expect(code(host, { ...noValue, decisionId: undefined, value: {} })).toBe("illegalAnswer");
+    expect(JSON.stringify(host)).toBe(before);
+  });
+
   it("a submission with resign: false is not a resignation", () => {
     const { host, before } = frozen();
     expect(code(host, { player: "alice", resign: false })).toBe("staleSeq");
