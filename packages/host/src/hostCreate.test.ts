@@ -1,4 +1,5 @@
 import { createGame, eventsFor, pendingFor, seedHash, viewFor } from "@terminal-dusk/engine";
+import type { Seed } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { hostCreate } from "./hostCreate.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
@@ -116,6 +117,13 @@ describe("hostCreate: refusals", () => {
   it("returns the engine's invalidSeed for an empty seed", () => {
     const r = hostCreate(ruleset, makeConfig(), "", NOW);
     expect(r.ok ? undefined : r.error.code).toBe("invalidSeed");
+  });
+
+  it("returns the engine's invalidSeed, without throwing, for a seed that is not text", () => {
+    for (const seed of [42, null, undefined, { text: SEED }]) {
+      const r = hostCreate(ruleset, makeConfig(), seed as unknown as Seed, NOW);
+      expect(r.ok ? undefined : r.error.code).toBe("invalidSeed");
+    }
   });
 });
 
