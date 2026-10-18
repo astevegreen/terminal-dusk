@@ -2,6 +2,7 @@
 // `pnpm content:check` validates every JSON file under packages/content/<folder>/ with schemas[<folder>].
 // A folder with no schema here is rejected until its schema is written.
 import { cardSchema } from "./card.ts";
+import { scenarioSchema } from "./scenario.ts";
 
 /** One problem found in a content file: where (a path into the JSON) and what is wrong. */
 export type ContentIssue = { readonly path: readonly PropertyKey[]; readonly message: string };
@@ -11,4 +12,4 @@ export type ContentSchema = {
   safeParse(data: unknown): { success: true } | { success: false; error: { issues: readonly ContentIssue[] } };
 };
 
-export const schemas: Readonly<Record<string, ContentSchema>> = { cards: cardSchema };
+export const schemas: Readonly<Record<string, ContentSchema>> = { cards: cardSchema, scenarios: scenarioSchema };
