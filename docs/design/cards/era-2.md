@@ -197,6 +197,7 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 
 - **Event:** A new virus spreads from Guangdong while officials stay quiet.
 - **Design:** Each side: report openly (that side 1) or hide it (+1 Ops now, the rival 1 at turn end when it leaks).
+- **Rules note:** if both hide it, each turn-end spend counts 2, because the spender's own +1 is still in force; the rules text says so (owner: keep it at 2, question 35).
 - **Playable:** `marker "outbreak"; ask both "Report cases openly?" -> v; if yes v[lio] { spend lio 1 } else { mod lio +1 (turn); on turnEnd { spend sae 1 } }; if yes v[sae] { spend sae 1 } else { mod sae +1 (turn); on turnEnd { spend lio 1 } }`
 - **History:** SARS emerged in Guangdong, China, in November 2002; by the time the WHO declared it contained on 5 July 2003, 8,098 cases and 774 deaths had been recorded.
 - **Theme:** pandemics · **Notion:** create
@@ -251,5 +252,5 @@ planned. The rules text of each file is written from the JSON.
   Their tests run the event as if the card were LIO's.
 - **Entering the game:** the TEST scenario `first-deck-test` lists all 34 Era 2 cards in its `eras` at turn 3. They
   are shuffled into the draw pile then, but hands never refill, so the AI game does not play them yet (question 34).
-- **SARS (e2-neu-003):** turn-end spends happen while the other side's Ops swing is still in force (question 35).
+- **SARS (e2-neu-003):** turn-end spends happen while the spender's own Ops swing is still in force, so if both hide it each pays 2; kept, and the rules text says so (question 35).
 - **Ruleset:** the first-deck ruleset now holds 68 cards (Era 1 and Era 2); it lives in `firstDeckRules.ts`.

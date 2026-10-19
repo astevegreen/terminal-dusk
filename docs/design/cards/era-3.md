@@ -83,8 +83,8 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 ### e3-sae-002 · Belt and Road · SAE · Ops 3 · Split (LIO)
 
 - **Event:** China lends the world its roads, ports and railways.
-- **Design:** SAE 3; LIO may expose the debt traps: LIO 1 at turn end, but -1 Ops this turn spent on the campaign.
-- **Playable:** `marker "corridors"; spend sae 3; ask lio "Expose the debt traps?" -> v; if yes v { mod lio -1 min 1 (turn); on turnEnd { spend lio 1 } } else { marker "unanswered" }`
+- **Design:** SAE 3; LIO may challenge the loan terms: LIO 1 at turn end, but -1 Ops this turn spent on the campaign.
+- **Playable:** `marker "corridors"; spend sae 3; ask lio "Challenge the loan terms?" -> v; if yes v { mod lio -1 min 1 (turn); on turnEnd { spend lio 1 } } else { marker "unanswered" }`
 - **History:** China's leader announced the "Silk Road Economic Belt" in Astana on 7 September 2013 and a maritime counterpart in Jakarta that October; in December 2017 Sri Lanka handed the Chinese-financed port of Hambantota to a Chinese company on a 99-year lease.
 - **Theme:** supply chains, finance · **Notion:** update `3fceb012942f81478758f96150bc0d64` (Sri Lanka/Zambia row folded in)
 
