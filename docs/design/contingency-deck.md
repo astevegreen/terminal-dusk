@@ -19,6 +19,8 @@ decks. From now on this file is the source of truth; change it in Notion and pro
 - By default each deck, the World deck included, has six cards, numbered 1 to 6, one of each.
 - A scenario may give the decks different cards. The default applies unless the scenario says otherwise
   (owner, 17 Oct, promoting).
+- Every deck holds at least three cards. A deck of two would never reach "two cards left" after a draw, so it
+  would never reshuffle (owner, 19 Oct). A scenario with a smaller deck is refused.
 - At the start of the game, each deck is shuffled separately.
 
 ## Drawing
@@ -116,7 +118,7 @@ Owner, 19 Oct.
   code in the engine to rework.
 - The AI reads which numbers are left in each deck from its view, like any other public information.
 - Until its own task lands, the engine still follows the earlier rules: two decks, reshuffle when one card is
-  left, and a rival's card drawing from the rival's deck.
+  left, decks of two cards allowed, and a rival's card drawing from the rival's deck.
 
 ## Not decided yet
 
@@ -125,7 +127,5 @@ Owner, 19 Oct.
 - Once modifiers can change a drawn number: when a side's card draws from the rival's deck, whether that
   side's bonuses apply (it is that side's event) or the deck owner's (owner, 19 Oct: decide later). The same
   question applies to a World deck draw.
-- The smallest deck a scenario may use. A deck of two cards would never reach "two cards left" after a draw,
-  so the reshuffle rule only works with three or more. Whether to require that is for the owner to confirm.
 - Backup idea from the Notion page, not adopted: if playtests show single misses still sting, a bad-luck token (each 1 drawn earns
   one, hold at most 2, spend one for +1 on a later draw).
