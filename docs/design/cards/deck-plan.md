@@ -250,7 +250,7 @@ answer follows the question as **Answered**.
    **Answered:** keep the plain labels; display names can come later.
 7. **Rules-text verb for `spendPoints`.** The step only records a `pointsSpent` event today. I write "LIO spends
    2 points". If the rules later make this influence or tension, every rules text changes with it.
-   **Answered:** keep "spends points" until points have a designed use; then reword every card in one pass.
+   **Answered:** keep "spends points" until points have a designed use; then reword every card in one pass. Questions 19, 28, 44, 45 and 46 are revisited at the same time.
 8. **Notion rows in the trash.** Eighteen of the original rows I planned to update are in the Notion trash and
    cannot be edited (Notion refuses: "This page is in the trash"). I did not restore them, since that would undo
    something you did. Instead each got a fresh Draft row with the new content; the era files name both ids
@@ -340,40 +340,40 @@ answer follows the question as **Answered**.
     card. The TEST scenario `first-deck-test` therefore has no `eras`; all Era 1 cards are dealt by the game setup.
 30. **TEST scenario numbers are placeholders.** 4 turns, 1 play per turn (needs 8 non-neutral cards per side;
     the deal gives 8). It was 6 turns until the owner's removal left LIO with only 8 Era 1 cards. Please set the
-    real numbers.
+    real numbers. **Answered:** set the real turn count and era arrival turns together with hand refills (question 27), in the Core loop page first; the placeholders stay until then.
 31. **The app reaches the real cards through the host.** The app may not import content, so
     `packages/host/src/firstDeck.ts` (exported as `@terminal-dusk/host/first-deck`) holds the seeded deal and card
     names. Two new package subpath exports were added (content `./first-deck`, host `./first-deck`) so that the
-    existing "exports nothing else yet" tests stay as they are. Confirm this route, or say where the deal should live.
+    existing "exports nothing else yet" tests stay as they are. Confirm this route, or say where the deal should live. **Answered:** keep this route.
 32. **The deal comes from the game seed.** It is a plain function of the seed in the local practice game, so the
     hands are derivable by anyone who knows the seed. Fine for practice against the AI; an online game must deal on
-    the server.
+    the server. **Answered:** fine for practice; online games deal on the server.
 33. **Commit trailer model name.** The task said "Claude Opus 5.5"; a system reminder said "Claude Sonnet 5.5". The
-    task text was followed. Please correct if needed.
+    task text was followed. Please correct if needed. **Resolved:** the session's own attribution line also names Claude Opus 5.5, so the trailer stands.
 34. **Era 2 cards never reach a hand in the practice game.** Era 2 enters through the TEST scenario's `eras` entry
     (turn 2), so its 29 cards are shuffled into the draw pile then. The engine never moves cards from the draw pile
     into hands, so in the AI game no Era 2 card is ever played. The cards are built, tested and loaded; they will
-    appear in games once the rules say how hands refill (see question 27).
+    appear in games once the rules say how hands refill (see question 27). **Answered by question 27:** fixed when hand refills are built.
 35. **A "count more" bonus also hits a turn-end spend (SARS).** At the end of a turn the turn-end triggers fire
     before the Ops swings expire. If both sides say no to the SARS card, the penalty each side pays at turn end is
     spent while the other side's "+1" is still in force, so it counts 2 instead of 1. The plan's "never below 1"
-    safety note does not cover this. Built as the engine behaves; please say if the penalty should stay 1.
+    safety note does not cover this. Built as the engine behaves; please say if the penalty should stay 1. **Answered:** keep it at 2 (a joint cover-up costs both more). The rules text now says so.
 36. **Several turn-end triggers are logged before any of them spends.** When two turn-end triggers are waiting, the
     engine records both as fired and then runs their spends. This only changes the order of the history log, not the
     result. SARS (both say no) shows it.
 37. **Era 2 test scenario is still a test.** Era 2 enters at turn 2 of the placeholder 4-turn scenario purely to
-    exercise the `eras` setup; the real turn of entry depends on the unresolved turn count (question 30).
+    exercise the `eras` setup; the real turn of entry depends on the unresolved turn count (question 30). **Answered:** set with the turn count (question 30).
 38. **Future cards enter on turn 4.** The plan names the era string `future` but no turn. They enter the TEST scenario
     on turn 4 (the last of the placeholder 4) in their own `eras` entry and live in `cards/future/` with ids `ef-...`.
-    Say where they should really go, or whether they should be built at all (question 18).
-39. **Era 3 enters on turn 3.** A placeholder like Era 2's turn 2 (question 37).
+    Say where they should really go, or whether they should be built at all (question 18). **Answered:** keep them (question 18); the arrival turn is set with the turn count (question 30).
+39. **Era 3 enters on turn 3.** A placeholder like Era 2's turn 2 (question 37). **Answered:** set with the turn count (question 30).
 40. **Ruleset size.** The first-deck ruleset now holds 90 cards, future cards included. An owner who drops the optional
     cards removes `futureFiles.ts`, its `eras` entry and one line in `firstDeckRules.ts`; nothing else depends on them.
 41. **Era 3 cards still dormant in the AI game.** Same cause as question 34: hands never refill, so no Era 3 or future
-    card is ever played in the practice game. They are built, tested and loaded.
+    card is ever played in the practice game. They are built, tested and loaded. **Answered by question 27:** fixed when hand refills are built.
 42. **Test-writing method.** The Era 3 and future tests take their expected results from the engine's real output,
     checked by hand against the Playable line, rather than being written out by hand first as in Era 2. Say if you want
-    them rewritten the Era 2 way.
+    them rewritten the Era 2 way. **Answered:** keep them as they are.
 43. **Commit trailer.** This stage's commit ends with the model line the task asked for (Claude Opus 5.5); the session
     was reminded of a different model name. See question 33.
 44. **Choices with one clearly better answer (stage 5 review).** Played as a player would, these yes/no choices have
@@ -385,19 +385,19 @@ answer follows the question as **Answered**.
     AI Compute Race (LIO: yes gives LIO 1 more and SAE the same 1; make no `spend sae 2` or give yes a cost);
     Tariff Shock (SAE: no gives SAE 1 at turn end with no penalty, yes gives SAE 1 now plus a -1; give no a cost or
     drop the penalty); Populist Wave (SAE: yes gives SAE 1 and LIO 1 less, no gives LIO 1; one-sided by design?).
-    Question 19 already covers Partnership for Peace and Ghost Stories.
+    Question 19 already covers Partnership for Peace and Ghost Stories. **Answered:** revisit all of these with question 7; the cards stay as designed until then.
 45. **"Both get 1" choices.** Shock Therapy Backlash, China in the WTO, Litvinenko, Parallel Plumbing and the Hong Kong security
     law give both sides 1 point on one answer. Whether that is a real choice depends on what points are for
-    (question 7): if only the gap between the sides counts, these answers change nothing.
+    (question 7): if only the gap between the sides counts, these answers change nothing. **Answered:** decide with question 7.
 46. **Test Ban Treaty as a stag hunt.** If only the gap between the sides' points counts, saying no is always best for
-    both sides, so the card is not a stag hunt; it is one only if each side's own total matters. Same open point as 45.
+    both sides, so the card is not a stag hunt; it is one only if each side's own total matters. Same open point as 45. **Answered:** decide with question 7.
 47. **Names close to another game.** "Test Ban Treaty" and "Arrest of Aldrich Ames" are real historical names, not
     copied titles or wording, but another well-known Cold War card game has cards on the same two subjects. Kept
-    as planned. The name swap list already has neutral titles for both if you would rather be safe.
+    as planned. The name swap list already has neutral titles for both if you would rather be safe. **Answered:** keep them; check both in the pre-release name check (question 12).
 48. **Belt and Road wording.** The LIO question "Expose the debt traps?" uses one side's framing of a disputed claim.
-    The rules text has to match the plan, so it was kept; a neutral wording would be "Challenge the loan terms?".
+    The rules text has to match the plan, so it was kept; a neutral wording would be "Challenge the loan terms?". **Answered:** use "Challenge the loan terms?"; changed in era-3.md and the card.
 49. **One wording for "both sides" Ops changes.** Five cards said "points spent by both sides count 1 more" and two
     said "either side" for the same step. All seven now say "either side" (Era 1's wording). The plan's template list
-    has no line for this case; please confirm the wording.
+    has no line for this case; please confirm the wording. **Answered:** keep "either side".
 50. **Future cards' plan lines.** The six future cards use a combined "Design/Playable:" line in era-3.md rather than
     separate lines. Their JSON matches it; noted so a tool that reads "Playable:" lines does not miss them.
