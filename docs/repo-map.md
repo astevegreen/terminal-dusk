@@ -262,6 +262,12 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## docs
 
 - `docs/architecture.md` - Terminal Dusk — Core Architecture Decisions
+- `docs/design/cards/deck-plan.md` - First deck: plan
+- `docs/design/cards/era-1.md` - Era 1 cards: 1991 to 2001 (the Cold War's end to 9/11)
+- `docs/design/cards/era-2.md` - Era 2 cards: 2001 to 2008 (9/11 to the crash)
+- `docs/design/cards/era-3.md` - Era 3 cards: 2008 to 2025 (the crash to today)
+- `docs/design/cards/name-swap.md` - Name swap list
+- `docs/design/cards/progress.md` - First deck: progress
 - `docs/design/contingency-deck.md` - Contingency deck
 - `docs/design/core-loop.md` - Core loop
 - `docs/design/eras.md` - Eras
