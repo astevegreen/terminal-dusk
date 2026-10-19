@@ -1,6 +1,6 @@
 import { legalAnswers, pendingFor, SIDES } from "@terminal-dusk/engine";
 import type { AnswerValue, CardDef, CardId, Ruleset, Side, Viewer } from "@terminal-dusk/engine";
-import { hostCreate, hostSubmit } from "@terminal-dusk/host";
+import { hostArchive, hostCreate, hostSubmit } from "@terminal-dusk/host";
 import type { Frame, HostResult, MatchConfig, Submission } from "@terminal-dusk/host";
 import { describe, expect, it } from "vitest";
 import { createLocalMatch } from "./localMatch.ts";
@@ -204,5 +204,87 @@ describe("local transport: answering from inside onFrame", () => {
     expect(spectator.frames.map((f) => f.seq)).toEqual(upTo);
     expect(lioSeen).toEqual(upTo);
     expect(saeSeen).toEqual(upTo);
+  });
+});
+
+describe("local transport: the replay archive", () => {
+  /** Plays the fixture game to its end through the lio and sae transports. */
+  async function playToEnd(match: LocalMatch, mirror: { current: HostResult }): Promise<number> {
+    let steps = 0;
+    while (mirror.current.record.status.kind === "active") {
+      const move = nextMove(mirror.current);
+      const hosted = hostSubmit(ruleset, mirror.current.record, mirror.current.secret, move.submission, T0 + steps + 1);
+      if (!hosted.ok) throw new Error(hosted.error.code);
+      mirror.current = hosted.value;
+      steps++;
+      expect(await match.transportFor(move.s).submit(move.args)).toEqual({ ok: true });
+    }
+    return steps;
+  }
+
+  it("is null during the game and after a refused submission", async () => {
+    const { match, mirror } = setup();
+    expect(match.archive()).toBeNull();
+    const move = nextMove(mirror.current);
+    await match.transportFor(move.s).submit({ ...move.args, expectedSeq: 5 });
+    expect(match.archive()).toBeNull();
+    expect(match.archiveError()).toBeNull();
+  });
+
+  it("holds one frame per answer plus the first once the game ends, with the last frame's status", async () => {
+    const { match, mirror } = setup();
+    const steps = await playToEnd(match, mirror);
+    const archive = match.archive();
+    expect(archive).not.toBeNull();
+    expect(archive!.frames).toHaveLength(steps + 1);
+    expect(archive!.status).toEqual(archive!.frames.at(-1)!.view.public.status);
+    expect(archive!.status.kind).toBe("over");
+    expect(match.archiveError()).toBeNull();
+  });
+
+  it("is already there when a subscriber handles the game-over frame", async () => {
+    const { match, mirror } = setup();
+    const seenAtEnd: boolean[] = [];
+    match.transportFor("spectator").subscribe((frame) => {
+      if (frame.view.public.status.kind !== "active") seenAtEnd.push(match.archive() !== null);
+    });
+    await playToEnd(match, mirror);
+    expect(seenAtEnd).toEqual([true]);
+  });
+
+  it("archives a resignation", async () => {
+    const { match } = setup();
+    await match.transportFor("lio").resign();
+    expect(match.archive()).not.toBeNull();
+    expect(match.archive()!.frames).toHaveLength(2);
+  });
+
+  it("runs the archive step once, however many frames are delivered", async () => {
+    tick = 0;
+    let calls = 0;
+    const made = createLocalMatch(ruleset, config, SEED, clock, (...args) => {
+      calls++;
+      return hostArchive(...args);
+    });
+    if (!made.ok) throw new Error(made.error.code);
+    record(made.value, "lio");
+    await made.value.transportFor("lio").resign();
+    await made.value.transportFor("sae").resign();
+    expect(calls).toBe(1);
+    expect(made.value.archive()).not.toBeNull();
+  });
+
+  it("leaves archive() null and reports the code when the archive step fails; the game itself is unaffected", async () => {
+    tick = 0;
+    const made = createLocalMatch(ruleset, config, SEED, clock, () => ({
+      ok: false,
+      error: { code: "verifyFailed" },
+    }));
+    if (!made.ok) throw new Error(made.error.code);
+    const lio = record(made.value, "lio");
+    expect(await made.value.transportFor("lio").resign()).toEqual({ ok: true });
+    expect(made.value.archive()).toBeNull();
+    expect(made.value.archiveError()).toBe("verifyFailed");
+    expect(lio.frames.at(-1)!.view.public.status.kind).not.toBe("active");
   });
 });

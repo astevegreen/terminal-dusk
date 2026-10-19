@@ -2,11 +2,33 @@
 // The app only hands the record and secret back to the host; it never reads the secret (hard rule 2).
 // The seed and the clock are passed in, so there is no platform code here (hard rule 8).
 import type { Ruleset, Seed, Side, Viewer } from "@terminal-dusk/engine";
-import { hostCreate, hostSubmit } from "@terminal-dusk/host";
-import type { Frame, HostError, HostResult, MatchConfig, Submission } from "@terminal-dusk/host";
+import { hostArchive, hostCreate, hostSubmit } from "@terminal-dusk/host";
+import type {
+  Frame,
+  HostError,
+  HostResult,
+  MatchConfig,
+  MatchRecord,
+  MatchSecret,
+  ReplayArchive,
+  Submission,
+} from "@terminal-dusk/host";
 import type { MatchTransport, SubmitResult } from "./matchTransport.ts";
 
-export type LocalMatch = { transportFor(viewer: Viewer): MatchTransport };
+/** Builds the replay archive of a finished match; hostArchive unless a test passes another. */
+export type ArchiveWith = (
+  ruleset: Ruleset,
+  record: MatchRecord,
+  secret: MatchSecret,
+) => { ok: true; value: ReplayArchive } | { ok: false; error: HostError };
+
+export type LocalMatch = {
+  transportFor(viewer: Viewer): MatchTransport;
+  /** The replay archive once the game is over, else null. Only the transport and the sessions may read it. */
+  archive(): ReplayArchive | null;
+  /** The code of a failed archive step (a bug to report), or null. */
+  archiveError(): string | null;
+};
 
 const VIEWERS: readonly Viewer[] = ["lio", "sae", "spectator"];
 const notPlayer: SubmitResult = { ok: false, error: { code: "notPlayer" } };
@@ -16,6 +38,7 @@ export function createLocalMatch(
   config: MatchConfig,
   seed: Seed,
   clock: () => number,
+  archiveWith: ArchiveWith = hostArchive,
 ): { ok: true; value: LocalMatch } | { ok: false; error: HostError } {
   const created = hostCreate(ruleset, config, seed, clock());
   if (!created.ok) return created;
@@ -28,6 +51,8 @@ export function createLocalMatch(
   // Every submission waits its turn here, so one finishes (including its frame delivery) before the next starts.
   // A submission made from inside an onFrame callback therefore runs after every subscriber has the current frame.
   let queue: Promise<unknown> = Promise.resolve();
+  let archive: ReplayArchive | null = null;
+  let archiveError: string | null = null;
 
   const deliver = (): void => {
     for (const viewer of VIEWERS) {
@@ -37,13 +62,21 @@ export function createLocalMatch(
     }
   };
 
+  const finalizeGame = (): void => {
+    const built = archiveWith(ruleset, current.record, current.secret);
+    if (built.ok) archive = built.value;
+    else archiveError = built.error.code;
+  };
+
   const send = (side: Side, build: (player: string) => Submission): Promise<SubmitResult> => {
     const run = queue.then((): SubmitResult => {
       const submission = build(current.record.players[side]);
       const outcome = hostSubmit(ruleset, current.record, current.secret, submission, clock());
       if (!outcome.ok) return { ok: false, error: outcome.error };
       current = outcome.value;
-      // Host effects (notify, finalize) are ignored for now. The AI turn and the end-of-game step hook in here.
+      // The archive is made before any frame goes out, so a subscriber handling the game-over frame can read it.
+      if (outcome.value.effects.some((effect) => "finalize" in effect)) finalizeGame();
+      // Other host effects (notify) are ignored for now. The AI turn hooks in here.
       deliver();
       return { ok: true };
     });
@@ -74,5 +107,5 @@ export function createLocalMatch(
     },
   });
 
-  return { ok: true, value: { transportFor } };
+  return { ok: true, value: { transportFor, archive: () => archive, archiveError: () => archiveError } };
 }
