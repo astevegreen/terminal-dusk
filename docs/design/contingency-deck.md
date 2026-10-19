@@ -29,14 +29,15 @@ this file is the source of truth; change it in Notion and promote again.
   - an action a side takes (a coup, for example) draws from that side's deck;
   - when both sides draw at once (the Notion page gives a realignment as an example), each side draws one card
     from its own deck;
-  - an event draws from the deck of the side the event belongs to. A rival's card played for its action
+  - an event draws from the deck of the side the event belongs to, unless its text names the rival's deck
+    (below). A rival's card played for its action
     points runs as the rival's event (docs/design/core-loop.md), so it draws from the rival's deck.
   - a neutral event draws from the deck of the side that played the card (for an opening pick, the side
     that picked it). This holds for every draw in the event, whichever side answers its choices. Example:
     LIO plays a neutral card whose event says "SAE chooses, then draw a contingency"; the draw comes from
     LIO's deck (owner, 18 Oct, decision 17 option c).
-  - **Drawing from the rival's deck** (owner, 19 Oct, answering Owner question 2 in
-    docs/design/cards/deck-plan.md). Any LIO or SAE card's event may draw from the rival's deck instead of
+  - **Drawing from the rival's deck** (owner, 19 Oct, answering Owner question 2 of the first-deck plan,
+    PR #121). Any LIO or SAE card's event may draw from the rival's deck instead of
     its own, when its text names that deck. One card may draw from both decks, for example "each side
     draws; the higher number wins". The card names the deck; who played the card never changes it. So when
     SAE plays an LIO card for its action points and the LIO event draws from SAE's deck, SAE's own deck is
