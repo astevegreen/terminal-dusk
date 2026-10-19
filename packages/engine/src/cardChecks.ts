@@ -2,7 +2,7 @@
 import { badModifier } from "./modifiers.ts";
 import { badTrigger } from "./triggers.ts";
 import { SIDES } from "./types.ts";
-import type { CardId, EngineError, Ruleset, Setup, Step } from "./types.ts";
+import type { CardId, EngineError, Ruleset, Setup, Side, Step } from "./types.ts";
 
 /**
  * Why the ruleset's card list is unusable, or null: it must be a list, each `id` once, each `ops` a
@@ -25,23 +25,37 @@ export function rulesetError(ruleset: Ruleset): EngineError | null {
       if (holdsCardChoice(card.effect)) {
         return invalidRuleset(`Card ${card.id}'s effect asks both sides to pick a card; only a turn's opening does.`);
       }
-      if (card.affiliation === "neutral" && holdsDraw(card.effect)) {
-        return invalidRuleset(
-          `Card ${card.id} is a neutral card, but its event draws a Contingency card; neutral events have no Contingency deck yet.`,
-        );
-      }
+      const misplaced = findMisplacedDraw(card.effect, card.affiliation);
+      if (misplaced !== null) return invalidRuleset(misplacedDrawMessage(card.id, card.affiliation, misplaced));
     }
   }
   return null;
 }
 
+const SIDE_NAMES = { lio: "LIO", sae: "SAE" } as const;
+
+/** The plain-English reason a card may not draw from `drawn`, a deck it may not name. */
+function misplacedDrawMessage(id: CardId, affiliation: Side | "neutral", drawn: Side | "player"): string {
+  if (affiliation === "neutral") {
+    return `Card ${id} is a neutral card, but its event draws from ${SIDE_NAMES[drawn as Side]}'s Contingency deck; a neutral event draws from the deck of the side that played it ("side": "player").`;
+  }
+  return `Card ${id} is an ${SIDE_NAMES[affiliation]} card, but its event draws from the deck of the side that played it; only a neutral event does, and an ${SIDE_NAMES[affiliation]} event names LIO's or SAE's deck.`;
+}
+
 /**
- * True if `steps`, or any block inside them, draws a contingency. Only a neutral card is refused one:
- * TEMPORARY until neutral draws are built. An LIO or SAE card may draw from either deck, the rival's
- * included, and from both (docs/design/contingency-deck.md, owner 19 Oct).
+ * The deck named by the first `drawContingency` in `steps` (at any depth) that this card may not draw
+ * from, or null. An LIO or SAE card may draw from either deck, the rival's included, and from both (owner
+ * 19 Oct); a neutral card only from the deck of the side that played it, "player" (decision 17). Both are
+ * in docs/design/contingency-deck.md.
  */
-const holdsDraw = (steps: readonly Step[]): boolean =>
-  steps.some((step) => step.op === "drawContingency" || holdsDraw(innerSteps(step)));
+const findMisplacedDraw = (steps: readonly Step[], affiliation: Side | "neutral"): Side | "player" | null => {
+  for (const step of steps) {
+    if (step.op === "drawContingency" && (step.side === "player") !== (affiliation === "neutral")) return step.side;
+    const found = findMisplacedDraw(innerSteps(step), affiliation);
+    if (found !== null) return found;
+  }
+  return null;
+};
 
 /** The steps held inside `step`: an if's two branches, a forEach's or a trigger's `do`; none for the rest. */
 function innerSteps(step: Step): readonly Step[] {

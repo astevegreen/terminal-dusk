@@ -48,7 +48,12 @@ export const stepSchema = z.discriminatedUnion("op", [
   z.strictObject({ op: z.literal("forEach"), over: z.array(z.string()), bind: name, do: block }),
   z.strictObject({ op: z.literal("marker"), label: z.string(), var: name.exactOptional() }),
   z.strictObject({ op: z.literal("spendPoints"), side, amount: wholeNumber }),
-  z.strictObject({ op: z.literal("drawContingency"), side, bind: name.exactOptional() }),
+  // "player" is the side that played the card: only a neutral card's draws name it (misplacedDraws, below).
+  z.strictObject({
+    op: z.literal("drawContingency"),
+    side: z.enum(["lio", "sae", "player"]),
+    bind: name.exactOptional(),
+  }),
   z.strictObject({
     op: z.literal("addToNumber"),
     var: name,
@@ -78,25 +83,44 @@ const text = z.strictObject({
   variants: z.partialRecord(z.enum(["web", "steam", "ios", "android"]), variant).exactOptional(),
 });
 
+const SIDE_NAMES = { lio: "LIO", sae: "SAE" } as const;
+
+/** Why a card of `affiliation` may not draw from `drawn`: a deck it may not name. */
+function misplacedDrawMessage(affiliation: "lio" | "sae" | "neutral", drawn: "lio" | "sae" | "player"): string {
+  if (affiliation === "neutral") {
+    return `This is a neutral card, so its event can only draw from the deck of the side that played it ("side": "player"), not ${SIDE_NAMES[drawn as "lio" | "sae"]}'s.`;
+  }
+  return `This is an ${SIDE_NAMES[affiliation]} card, so its event names the deck it draws from, "lio" or "sae"; only a neutral card draws from the deck of the side that played it ("player").`;
+}
+
 /**
- * The path to the `side` of every contingency draw in `steps`, at any depth. Only a neutral card is refused
- * these: TEMPORARY until neutral draws are built. An LIO or SAE card may draw from either deck, the rival's
- * included, and from both (docs/design/contingency-deck.md, owner 19 Oct). A missing or invalid side is
- * left to the step's own check.
+ * Every contingency draw in `steps`, at any depth, that this card may not make: the path to its `side`
+ * and the message. An LIO or SAE card may draw from either deck, the rival's included, and from both
+ * (owner 19 Oct); a neutral card only from the deck of the side that played it, "player" (decision 17).
+ * Both are in docs/design/contingency-deck.md. A missing or invalid side is left to the step's own check.
  */
-function drawPaths(steps: readonly Step[], path: (string | number)[]): (string | number)[][] {
+function misplacedDraws(
+  steps: readonly Step[],
+  affiliation: "lio" | "sae" | "neutral",
+  path: (string | number)[],
+): { path: (string | number)[]; message: string }[] {
   return steps.flatMap((step, i) => {
     const here = [...path, i];
-    if (step.op === "drawContingency") return step.side === "lio" || step.side === "sae" ? [[...here, "side"]] : [];
-    if (step.op === "if") {
-      return [...drawPaths(step.then, [...here, "then"]), ...drawPaths(step.else ?? [], [...here, "else"])];
+    if (step.op === "drawContingency") {
+      if (step.side !== "lio" && step.side !== "sae" && step.side !== "player") return [];
+      if ((step.side === "player") === (affiliation === "neutral")) return [];
+      return [{ path: [...here, "side"], message: misplacedDrawMessage(affiliation, step.side) }];
     }
-    if (step.op === "forEach" || step.op === "trigger") return drawPaths(step.do, [...here, "do"]);
+    if (step.op === "if") {
+      return [
+        ...misplacedDraws(step.then, affiliation, [...here, "then"]),
+        ...misplacedDraws(step.else ?? [], affiliation, [...here, "else"]),
+      ];
+    }
+    if (step.op === "forEach" || step.op === "trigger") return misplacedDraws(step.do, affiliation, [...here, "do"]);
     return [];
   });
 }
-
-const NEUTRAL_DRAW = "A neutral card can't draw from a Contingency deck: neutral events have no Contingency deck yet.";
 
 /** One card file. `flags` are not allowed yet: they arrive with the rules that use them. */
 export const cardSchema = z
@@ -109,8 +133,7 @@ export const cardSchema = z
     text,
   })
   .check((ctx) => {
-    if (ctx.value.affiliation !== "neutral") return;
-    for (const path of drawPaths(ctx.value.effect, ["effect"])) {
-      ctx.issues.push({ code: "custom", input: ctx.value, path, message: NEUTRAL_DRAW });
+    for (const { path, message } of misplacedDraws(ctx.value.effect, ctx.value.affiliation, ["effect"])) {
+      ctx.issues.push({ code: "custom", input: ctx.value, path, message });
     }
   });
