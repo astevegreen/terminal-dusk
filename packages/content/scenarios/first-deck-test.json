@@ -1,8 +1,9 @@
 {
   "id": "first-deck-test",
-  "name": "TEST scenario for the first deck (placeholder numbers: 4 turns, 1 play each, Era 2 enters on turn 2, Era 3 on turn 3, the future cards on turn 4)",
+  "name": "TEST scenario for the first deck (hands of 8; placeholder numbers: 4 turns, 1 play each, Era 2 enters on turn 2, Era 3 on turn 3, the future cards on turn 4)",
   "turns": 4,
   "playsPerTurn": 1,
+  "handSize": 8,
   "eras": [
     {
       "era": "era-2",

@@ -2,7 +2,7 @@
 
 Part of the [deck plan](deck-plan.md). Notation, rules-text templates and the wish-list codes (W1-W8) are
 defined there. Every card: LIO 8, SAE 13, neutral 7 (the plan had 13, 13 and 8; the owner removed the rest as not well known or significant enough, and their numbers stay unused). Era string in JSON: `"era-1"`. Era 1 is the
-starting deck, so it is the only era whose non-neutral count must meet the stopgap on its own.
+starting deck: the turn 1 refill deals both hands from it, so it must hold at least 2 x the hand size (16 cards).
 
 ## LIO (8)
 

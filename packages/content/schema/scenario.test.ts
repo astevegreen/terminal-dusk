@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { scenarioSchema } from "./scenario.ts";
 
-const base = { id: "s1", name: "Test", turns: 4, playsPerTurn: 2 };
+const base = { id: "s1", name: "Test", turns: 4, playsPerTurn: 2, handSize: 3 };
 const eras = [
   { era: "mid", turn: 2, cards: ["a", "b"] },
   { era: "late", turn: 3, cards: ["c"] },
@@ -35,6 +35,18 @@ describe("scenario schema", () => {
     expect(paths({ ...base, turns: 0 })).toEqual([["turns"]]);
     expect(paths({ ...base, turns: 2.5 })).toEqual([["turns"]]);
     expect(paths({ ...base, playsPerTurn: 0 })).toEqual([["playsPerTurn"]]);
+  });
+  it("refuses a scenario with no hand size, or one that is not a whole number of 1 or more", () => {
+    const noHandSize: Partial<typeof base> = { ...base };
+    delete noHandSize.handSize;
+    expect(paths(noHandSize)).toEqual([["handSize"]]);
+    expect(paths({ ...base, handSize: 0 })).toEqual([["handSize"]]);
+    expect(paths({ ...base, handSize: 3.5 })).toEqual([["handSize"]]);
+  });
+  it("refuses a hand size below 1 + plays per turn, at handSize, and accepts it at exactly that", () => {
+    expect(paths({ ...base, handSize: 2 })).toEqual([["handSize"]]);
+    expect(paths({ ...base, handSize: 3 })).toEqual([]);
+    expect(paths({ ...base, playsPerTurn: 1, handSize: 2 })).toEqual([]);
   });
   it("refuses eras, contingency, lio and sae written as undefined", () => {
     expect(paths({ ...base, eras: undefined })).toEqual([["eras"]]);

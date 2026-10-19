@@ -35,6 +35,8 @@ const MAX_ERA_CARDS = 5;
 /** Most cards in a random Contingency deck (the fewest is 2), and the highest number on one. */
 const MAX_DECK = 8;
 const MAX_NUMBER = 12;
+/** Most cards a random hand size has beyond the smallest, 1 + plays per turn. */
+const MAX_HAND_EXTRA = 4;
 /** The default Contingency deck (docs/design/contingency-deck.md), which about one random deck in four is. */
 const DEFAULT_DECK: readonly number[] = [1, 2, 3, 4, 5, 6];
 /** Every card a random setup can use, c1 to c85. Affiliations go LIO, SAE, neutral, so 57 are non-neutral. */
@@ -155,7 +157,9 @@ export function playRecorded(name: string, record: GameRecord): Played {
  * of any affiliation, in random order; the draw pile gets 0-30. A game of two or more turns gets up to one
  * era for each later turn, of 1-5 cards each, on random turns (#37). Each turn opens with a secret pair
  * (#35); the random chooser then plays cards for their events or points, rival cards included (#36).
- * Each side gets its own random Contingency deck (#64).
+ * Each side gets its own random Contingency deck (#64). The hand size is 1 + playsPerTurn plus 0-4, but never more
+ * than half the first era's cards (createGame's check), so the turn-start refill draws cards and can run the draw
+ * pile out. The cards a hand needs are all dealt, so a hand always holds a card that can open the turn.
  */
 export function randomGame(rng: Rng, game: number): { setup: Setup; seed: Seed } {
   const turns = 1 + rng.int(MAX_TURNS);
@@ -169,19 +173,24 @@ export function randomGame(rng: Rng, game: number): { setup: Setup; seed: Seed }
   const pileStart = lioExtra + saeExtra;
   const pileEnd = pileStart + rng.int(MAX_PILE + 1);
   const eras = randomEras(rng, turns, others.slice(pileEnd));
+  const lio = shuffled(rng, [...sided.slice(0, needed), ...others.slice(0, lioExtra)]);
+  const sae = shuffled(rng, [...sided.slice(needed, 2 * needed), ...others.slice(lioExtra, pileStart)]);
+  const deck = others.slice(pileStart, pileEnd);
+  const contingency = { lio: randomDeck(rng), sae: randomDeck(rng) };
+  // Drawn last, so it leaves every other part of a game's setup as it was before hands refilled.
+  const firstEra = Math.floor((lio.length + sae.length + deck.length) / 2);
+  const handSize = Math.min(1 + playsPerTurn + rng.int(MAX_HAND_EXTRA + 1), firstEra);
   return {
     setup: {
       seedHash: seedHash(`fuzz-${game}`),
-      hands: {
-        lio: shuffled(rng, [...sided.slice(0, needed), ...others.slice(0, lioExtra)]),
-        sae: shuffled(rng, [...sided.slice(needed, 2 * needed), ...others.slice(lioExtra, pileStart)]),
-      },
-      deck: others.slice(pileStart, pileEnd),
+      hands: { lio, sae },
+      deck,
       turns,
       playsPerTurn,
+      handSize,
       ...(eras.length > 0 ? { eras } : {}),
-      // Last, so the decks' draws leave every other part of a game's setup as it was before #64.
-      contingency: { lio: randomDeck(rng), sae: randomDeck(rng) },
+      // The decks are drawn after the rest, so they leave every other part of a game's setup as it was before #64.
+      contingency,
     },
     seed: `fuzz-${game}`,
   };

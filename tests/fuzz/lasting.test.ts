@@ -18,6 +18,7 @@ function started(): GameState {
       deck: ["c6"],
       turns: 1,
       playsPerTurn: 1,
+      handSize: 2,
       contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6] },
     },
     SEED,

@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import type { Scenario } from "../schema/scenario.ts";
 import { DEFAULT_CONTINGENCY, scenarioSetup } from "./scenario.ts";
 
-const base: Scenario = { id: "s1", name: "Test", turns: 3, playsPerTurn: 1 };
+const base: Scenario = { id: "s1", name: "Test", turns: 3, playsPerTurn: 1, handSize: 2 };
 const withEras: Scenario = {
   ...base,
   eras: [
@@ -22,8 +22,8 @@ describe("scenarioSetup", () => {
     const got = scenarioSetup({ ...base, contingency: { lio: [2, 3, 3] } });
     expect(got.contingency).toEqual({ lio: [2, 3, 3], sae: [1, 2, 3, 4, 5, 6] });
   });
-  it("copies turns and playsPerTurn", () => {
-    expect(scenarioSetup(base)).toMatchObject({ turns: 3, playsPerTurn: 1 });
+  it("copies turns, playsPerTurn and handSize", () => {
+    expect(scenarioSetup(base)).toMatchObject({ turns: 3, playsPerTurn: 1, handSize: 2 });
   });
   it("returns an object with no eras key when the scenario has no eras", () => {
     expect("eras" in scenarioSetup(base)).toBe(false);

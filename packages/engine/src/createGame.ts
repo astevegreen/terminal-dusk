@@ -34,6 +34,7 @@ export function createGame(
   for (const [name, value] of [
     ["turns", setup.turns],
     ["playsPerTurn", setup.playsPerTurn],
+    ["handSize", setup.handSize],
   ] as const) {
     if (!Number.isInteger(value) || value < 1) {
       return {
@@ -44,10 +45,10 @@ export function createGame(
   }
   const badDecks = contingencyError(setup);
   if (badDecks) return { ok: false, error: badDecks };
-  const badCards = erasError(setup) ?? setupCardsError(ruleset, setup) ?? handSizeError(ruleset, setup);
+  const badCards = erasError(setup) ?? setupCardsError(ruleset, setup) ?? handSizeError(setup);
   if (badCards) return { ok: false, error: badCards };
-  // The hands keep the setup's order. One generator shuffles the draw pile, then LIO's Contingency deck,
-  // then SAE's; this order never changes, so a seed always gives the same game.
+  // The hands keep the setup's order; the turn 1 refill fills them from the draw pile. One generator shuffles the
+  // draw pile, then LIO's Contingency deck, then SAE's; this order never changes, so a seed always gives the same game.
   const drawPile = shuffle(seedRng(seed), setup.deck);
   const decks = shuffleContingency(drawPile.state, setup);
   const state: GameState = {
@@ -55,6 +56,7 @@ export function createGame(
       turn: 1,
       turns: setup.turns,
       playsPerTurn: setup.playsPerTurn,
+      handSize: setup.handSize,
       playsMade: 0,
       inPlay: [],
       discard: [],

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ERA_1_CARDS } from "./era1.ts";
 import { FIRST_DECK_RULESET, cardName } from "./firstDeckRules.ts";
 import { FIRST_DECK_SCENARIO } from "./firstDeckScenario.ts";
-import { eraDeckChecks, eraOneDeal, startEraOneGame } from "./test/eraChecks.ts";
+import { eraDeckChecks, startEraOneGame } from "./test/eraChecks.ts";
 
 describe("the Era 1 deck", () => {
   eraDeckChecks(ERA_1_CARDS, "era-1", [8, 13, 7]);
@@ -23,16 +23,21 @@ describe("the first-deck TEST scenario", () => {
     expect(FIRST_DECK_SCENARIO.name).toMatch(/TEST/);
     expect(FIRST_DECK_SCENARIO.name).toMatch(/placeholder/);
   });
-  it("needs no more non-neutral cards per side than the deck can give", () => {
-    const needed = FIRST_DECK_SCENARIO.turns * (1 + FIRST_DECK_SCENARIO.playsPerTurn);
-    // Hands are never refilled (deck-plan.md, Owner question 27), so each hand must hold a card for every play.
-    const { hands } = eraOneDeal();
-    for (const hand of [hands.lio, hands.sae]) {
-      expect(hand.filter((id) => !id.includes("-neu-")).length).toBeGreaterThanOrEqual(needed);
-    }
+  it("refills hands to 8, the owner's hand size (deck-plan.md, Owner question 27)", () => {
+    expect(FIRST_DECK_SCENARIO.handSize).toBe(8);
   });
-  it("is accepted by createGame with the Era 1 deck dealt", () => {
+  it("starts with an Era 1 draw pile that holds both sides' first hands", () => {
+    expect(ERA_1_CARDS.length).toBeGreaterThanOrEqual(2 * FIRST_DECK_SCENARIO.handSize);
+  });
+  it("is accepted by createGame, and the turn 1 refill deals each side 8 Era 1 cards from the draw pile", () => {
     const made = startEraOneGame();
     expect(made.ok || made.error.code).toBe(true);
+    if (!made.ok) return;
+    const { state } = made.value;
+    for (const side of ["lio", "sae"] as const) {
+      expect(state.private[side].hand).toHaveLength(8);
+      expect(state.private[side].hand.every((id) => id.startsWith("e1-"))).toBe(true);
+    }
+    expect(state.secret.deck).toHaveLength(ERA_1_CARDS.length - 16);
   });
 });

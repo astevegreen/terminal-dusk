@@ -274,7 +274,7 @@ of each file is written from the JSON.
   event as if the card were LIO's. The two future neutral cards behave the same.
 - **Entering the game:** the TEST scenario `first-deck-test` lists the 34 Era 3 cards in its `eras` at turn 5 (the
   plan's placeholder) and the 6 future cards at turn 6 (the last turn; the plan gave no turn, Owner question 38). They
-  are shuffled into the draw pile then, but hands never refill, so the AI game does not play them yet (question 34).
+  are shuffled into the draw pile then, and the turn-start refill draws them into hands (question 27).
 - **Future cards:** era string `future`, folder `cards/future/`, ids `ef-...` (the plan's choice). Roles only; their
   history notes describe a trend or a dated event, not a named person. Wired in `futureFiles.ts`.
 - **Ruleset:** the first-deck ruleset now holds 108 cards (Eras 1 to 3 and the future cards).

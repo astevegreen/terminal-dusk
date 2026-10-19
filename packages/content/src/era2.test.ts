@@ -35,7 +35,7 @@ describe("Era 2 in the first-deck TEST scenario", () => {
     expect(made.ok).toBe(true);
     if (made.ok) {
       expect(made.value.state.secret.eras).toHaveLength(3); // Era 2, Era 3 and the future cards (era3.test.ts, future.test.ts)
-      // The draw pile holds only the Era 1 cards left over from the deal.
+      // The draw pile holds only the Era 1 cards left after the turn 1 refill dealt both hands.
       expect(made.value.state.secret.deck.every((id) => id.startsWith("e1-"))).toBe(true);
     }
   });

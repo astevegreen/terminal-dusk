@@ -1,5 +1,5 @@
-// The turn structure (docs/design/core-loop.md). Each turn opens with both sides secretly picking a
-// non-neutral card. Both are revealed together and their events resolve, more ops first. Then LIO
+// The turn structure (docs/design/core-loop.md). Each turn opens with both hands refilled to the hand
+// size, then both sides secretly picking a non-neutral card. Both are revealed together and their events resolve, more ops first. Then LIO
 // and SAE take turns to play, until each has made `playsPerTurn` plays. After the setup's number of
 // turns the game is over.
 //
@@ -8,6 +8,7 @@
 // before or after the points. A played card stays in `inPlay` until everything it triggered is done.
 import { newDecision, whoseCard } from "./decisions.ts";
 import { enterEra } from "./eras.ts";
+import { refillHands } from "./refill.ts";
 import { endTurnModifiers } from "./modifiers.ts";
 import { runProgram, runStack } from "./stack.ts";
 import type { Budget, Closing } from "./stack.ts";
@@ -18,11 +19,12 @@ import type { AnswerValue, CardId, EngineError, GameEvent, GameState, Ruleset, S
 const OPENING: Step[] = [{ op: "choose", who: "both", decision: { kind: "chooseCard" }, bind: "opening" }];
 
 /**
- * Opens the current turn: an era entering on it is shuffled into the draw pile, then both sides make
- * their opening pick. Edits `state`, a working copy, in place.
+ * Opens the current turn: an era entering on it is shuffled into the draw pile, both hands are refilled
+ * to the hand size (refill.ts), then both sides make their opening pick. Edits `state`, a working copy, in place.
  */
 export function startTurn(state: GameState, events: GameEvent[], budget: Budget): EngineError | null {
   enterEra(state, events);
+  refillHands(state, events);
   return runProgram(state, OPENING, events, budget);
 }
 

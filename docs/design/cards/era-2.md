@@ -250,6 +250,6 @@ planned. The rules text of each file is written from the JSON.
 - **Neutral cards (all 8): the event is built but stays dormant in a real game**, as in Era 1 (Owner question 26).
   Their tests run the event as if the card were LIO's.
 - **Entering the game:** the TEST scenario `first-deck-test` lists all 34 Era 2 cards in its `eras` at turn 3. They
-  are shuffled into the draw pile then, but hands never refill, so the AI game does not play them yet (question 34).
+  are shuffled into the draw pile then, and the turn-start refill draws them into hands (question 27).
 - **SARS (e2-neu-003):** turn-end spends happen while the other side's Ops swing is still in force (question 35).
 - **Ruleset:** the first-deck ruleset now holds 68 cards (Era 1 and Era 2); it lives in `firstDeckRules.ts`.

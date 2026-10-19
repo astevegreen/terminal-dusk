@@ -99,6 +99,8 @@ const gameArb: fc.Arbitrary<Game> = fc
       deck: rest.slice(b),
       turns,
       playsPerTurn,
+      // The smallest hand size: the dealt hands never drop below it, so this test's games draw no cards.
+      handSize: 1 + playsPerTurn,
       contingency: { lio: lioDeck, sae: saeDeck },
     };
     return { setup, seed: `seed-${seed}-x`, moves };
