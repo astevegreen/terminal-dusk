@@ -1,7 +1,7 @@
 // The small regions of the game screen. Each one only shows fields of the frame it is given; none works
 // anything out from the cards (.claude/rules/app.md).
 import { SIDES } from "@terminal-dusk/engine";
-import type { CardId, EraId, Side } from "@terminal-dusk/engine";
+import type { CardId, EraId, PublicState, Side } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import type { ReactNode } from "react";
 
@@ -86,8 +86,8 @@ export function Opponent({ frame }: Readonly<{ frame: Frame }>) {
   );
 }
 
-export function Table({ frame, label }: Readonly<{ frame: Frame; label: Label }>) {
-  const { inPlay, discard } = frame.view.public;
+export function Table({ pub, label }: Readonly<{ pub: PublicState; label: Label }>) {
+  const { inPlay, discard } = pub;
   const newest = discard.slice(-DISCARD_SHOWN).reverse();
   return (
     <Region id="table" title="Table">
@@ -97,11 +97,11 @@ export function Table({ frame, label }: Readonly<{ frame: Frame; label: Label }>
   );
 }
 
-export function Contingency({ frame }: Readonly<{ frame: Frame }>) {
+export function Contingency({ pub }: Readonly<{ pub: PublicState }>) {
   return (
     <Region id="contingency" title="Contingency decks">
       {SIDES.map((s) => {
-        const deck = frame.view.public.contingency[s];
+        const deck = pub.contingency[s];
         return (
           <p
             key={s}

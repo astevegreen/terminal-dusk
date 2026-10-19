@@ -5,6 +5,8 @@ import type { AnswerValue, EraId, Seed, Side } from "@terminal-dusk/engine";
 import type { Frame, HostError } from "@terminal-dusk/host";
 import { fixtureConfig, fixtureRuleset } from "../testMode/fixture.ts";
 import { logLine } from "../testMode/session.ts";
+import { toRecording } from "../replay/recording.ts";
+import type { ReplayRecording } from "../replay/recording.ts";
 import { createLocalMatch } from "../transport/localMatch.ts";
 import type { LocalMatch } from "../transport/localMatch.ts";
 import type { MakeAi } from "./aiOpponent.ts";
@@ -21,6 +23,8 @@ export type VsAiSnapshot = {
   refusal: string | null;
   /** The error code of a refused AI answer (a bug to report), or null. Once set, the AI is stopped. */
   aiRefusal: string | null;
+  /** True once the game is over and its replay is ready (the replay itself is not in the snapshot). */
+  replayReady: boolean;
 };
 
 export type VsAiOptions = {
@@ -38,6 +42,8 @@ export type VsAiSession = {
   subscribe(listener: () => void): () => void;
   /** Sends the human's answer; a refusal shows up in the snapshot. */
   answer(value: AnswerValue): Promise<void>;
+  /** The finished game as a recording for the replay viewer, or null while it is not ready. */
+  replay(): ReplayRecording | null;
   /** Stops the AI and the session. Nothing is asked or sent afterwards. */
   stop(): void;
 };
@@ -51,7 +57,15 @@ export function createVsAiSession(options: VsAiOptions): VsAiSession {
   const { human, clock } = options;
   const aiSide: Side = human === "lio" ? "sae" : "lio";
   const listeners = new Set<() => void>();
-  let snapshot: VsAiSnapshot = { human, frame: null, log: [], era: null, refusal: null, aiRefusal: null };
+  let snapshot: VsAiSnapshot = {
+    human,
+    frame: null,
+    log: [],
+    era: null,
+    refusal: null,
+    aiRefusal: null,
+    replayReady: false,
+  };
   const publish = (change: Partial<VsAiSnapshot>): void => {
     snapshot = { ...snapshot, ...change };
     for (const listener of [...listeners]) listener();
@@ -69,7 +83,7 @@ export function createVsAiSession(options: VsAiOptions): VsAiSession {
   const made = (options.makeMatch ?? fixtureMatch)(options.gameSeed, clock);
   if (!made.ok) {
     snapshot = { ...snapshot, refusal: made.error.code };
-    return { ...base, answer: () => Promise.resolve(), stop: () => {} };
+    return { ...base, answer: () => Promise.resolve(), replay: () => null, stop: () => {} };
   }
   const humanTransport = made.value.transportFor(human);
   const aiTransport = made.value.transportFor(aiSide);
@@ -94,7 +108,7 @@ export function createVsAiSession(options: VsAiOptions): VsAiSession {
       lastSeq = frame.seq;
       for (const event of frame.events) if (event.kind === "eraStarted") era = event.era;
     }
-    publish({ frame, log, era, refusal: null });
+    publish({ frame, log, era, refusal: null, replayReady: made.value.archive() !== null });
   };
 
   // Sends the AI's answer to `decisionId` if the AI's latest frame still waits on it. A stale seq means a newer
@@ -139,6 +153,10 @@ export function createVsAiSession(options: VsAiOptions): VsAiSession {
       if (snapshot.refusal !== null) publish({ refusal: null });
       const result = await humanTransport.submit({ decisionId: decision.id, expectedSeq: frame.seq, value });
       if (!stopped && !result.ok) publish({ refusal: result.error.code });
+    },
+    replay() {
+      const archive = made.value.archive();
+      return archive ? toRecording(archive) : null;
     },
     stop() {
       stopped = true;

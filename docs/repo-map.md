@@ -54,8 +54,11 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/gameScreen.css`
 - `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, Hand, Opponent, Table, Contingency, Log.
 - `packages/app/src/main.tsx` - Browser entry point: mounts the app into the #root element of index.html.
+- `packages/app/src/replay/ReplayScreen.test.tsx`
+- `packages/app/src/replay/ReplayScreen.tsx` - The replay viewer: steps through a finished game's recorded frames, both hands showing. Exports: ReplayScreenProps, ReplayView, ReplayScreen.
 - `packages/app/src/replay/recording.test.ts`
 - `packages/app/src/replay/recording.ts` - What the app is allowed to hold of a finished game: the frames and the final status, but never the archive's seed, setup or move log (CLAUDE.md, Never). Exports: ReplayRecording, toRecording.
+- `packages/app/src/replay/replayScreen.css`
 - `packages/app/src/testMode/TestModeScreen.test.tsx`
 - `packages/app/src/testMode/TestModeScreen.tsx` - Test mode (docs/architecture.md, Decision 3): the Local transport with a switch to view the game as LIO, as SAE or as a spectator. Exports: TestModeView, TestModeScreen.
 - `packages/app/src/testMode/fixture.ts` - DEVELOPER FIXTURE for test mode. Exports: DEFAULT_SEED, cardName, fixtureRuleset, fixtureConfig.

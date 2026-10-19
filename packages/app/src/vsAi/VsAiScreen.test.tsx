@@ -81,3 +81,28 @@ describe("leaving the screen", () => {
     expect(standIn.stops).toBe(1);
   });
 });
+
+describe("the replay after a game against the AI", () => {
+  it("is not ready during the game, and the screen offers no Watch replay button", () => {
+    const { session } = start({ hold: true });
+    expect(session.getSnapshot().replayReady).toBe(false);
+    expect(session.replay()).toBeNull();
+    expect(view(session)).not.toContain("Watch replay");
+  });
+  it("is ready at the end: Watch replay shows, and the snapshot and the recording hold no seed", async () => {
+    const { session, standIn } = start();
+    await playOut(session, standIn);
+    expect(session.getSnapshot().replayReady).toBe(true);
+    expect(view(session)).toContain("Watch replay</button>");
+    const recording = session.replay();
+    expect(recording?.frames.length).toBeGreaterThan(2);
+    expect(Object.keys(recording!).sort()).toEqual(["frames", "matchId", "seedHash", "status"]);
+    expect(JSON.stringify(session.getSnapshot())).not.toContain(GAME_SEED);
+    expect(JSON.stringify(recording)).not.toContain(GAME_SEED);
+  });
+  it("stays not ready when the game is stopped part-way", () => {
+    const { session } = start({ hold: true });
+    session.stop();
+    expect(session.replay()).toBeNull();
+  });
+});

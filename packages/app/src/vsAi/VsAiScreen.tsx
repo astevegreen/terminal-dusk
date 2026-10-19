@@ -3,6 +3,8 @@
 import type { Side } from "@terminal-dusk/engine";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { GameScreen } from "../game/GameScreen.tsx";
+import { ReplayScreen } from "../replay/ReplayScreen.tsx";
+import type { ReplayRecording } from "../replay/recording.ts";
 import { cardName } from "../testMode/fixture.ts";
 import type { MakeAi } from "./aiOpponent.ts";
 import { createVsAiSession } from "./session.ts";
@@ -33,7 +35,9 @@ export function VsAiView({
   session,
   onNewGame,
 }: Readonly<{ snapshot: VsAiSnapshot; session: VsAiSession; onNewGame: () => void }>) {
+  const [watching, setWatching] = useState<ReplayRecording | null>(null);
   const { frame } = snapshot;
+  if (watching) return <ReplayScreen recording={watching} label={cardName} onClose={() => setWatching(null)} />;
   return (
     <main>
       <p>{PRACTICE_NOTE}</p>
@@ -49,6 +53,11 @@ export function VsAiView({
         />
       ) : (
         <p role="alert">{`Could not start the game: ${snapshot.refusal ?? "unknown"}`}</p>
+      )}
+      {snapshot.replayReady && (
+        <button type="button" style={TAP} onClick={() => setWatching(session.replay())}>
+          Watch replay
+        </button>
       )}
       {(!frame || frame.view.public.status.kind === "over") && (
         <button type="button" style={TAP} onClick={onNewGame}>

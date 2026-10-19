@@ -44,8 +44,8 @@ export function GameScreen({ frame, log, era, label, onAnswer, refusal }: Readon
       <Hand frame={frame} label={label} />
       <div className="game-side">
         <Opponent frame={frame} />
-        <Table frame={frame} label={label} />
-        <Contingency frame={frame} />
+        <Table pub={frame.view.public} label={label} />
+        <Contingency pub={frame.view.public} />
         <DecisionRegion frame={frame} label={label} onAnswer={onAnswer} refusal={refusal} />
         <Log log={log} />
       </div>
