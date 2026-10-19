@@ -43,7 +43,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/package.json`
 - `packages/app/playwright.config.ts` - Playwright smoke tests (`pnpm test:e2e`), kept apart from Vitest: their files end in .e2e.ts. Exports: default.
 - `packages/app/src/App.test.tsx`
-- `packages/app/src/App.tsx` - Placeholder screen until the first game screen: the game's name and a button into developer test mode. Exports: App.
+- `packages/app/src/App.tsx` - The home screen: the game's name, a button to play against the AI and a button into developer test mode. Exports: AppProps, App.
 - `packages/app/src/decisionPrompts.test.tsx`
 - `packages/app/src/decisionPrompts.tsx` - One prompt component per DecisionKind. Exports: PromptProps, PromptComponent, decisionPrompts.
 - `packages/app/src/eventPresentation.test.ts`
@@ -62,6 +62,16 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/transport/localMatch.test.ts`
 - `packages/app/src/transport/localMatch.ts` - A match run entirely in memory: it keeps the host's record and secret, and gives each viewer a transport. Exports: LocalMatch, createLocalMatch.
 - `packages/app/src/transport/matchTransport.ts` - What the screens talk to: one viewer's window onto a match. Exports: SubmitResult, MatchTransport.
+- `packages/app/src/vsAi/VsAiScreen.test.tsx`
+- `packages/app/src/vsAi/VsAiScreen.tsx` - Playing against the Easy AI: a side picker, then the game screen for the human's side. Exports: PRACTICE_NOTE, SidePicker, VsAiView, openSession, VsAiScreenProps, VsAiScreen.
+- `packages/app/src/vsAi/ai.worker.ts` - The AI's Web Worker: it only passes each message to the AI package's handler and posts the reply back.
+- `packages/app/src/vsAi/aiOpponent.ts` - What the vs-AI session talks to: an opponent that answers one view at a time (docs/architecture.md, Decision 8). Exports: AiOpponent, MakeAi.
+- `packages/app/src/vsAi/session.test.ts`
+- `packages/app/src/vsAi/session.ts` - The state behind a game against the AI: one local match on the developer fixture, the human's latest frame and log, and the AI side's frames, which the session… Exports: VsAiSnapshot, VsAiOptions, VsAiSession, NO_ANSWER, createVsAiSession.
+- `packages/app/src/vsAi/test/scriptedHuman.ts` - Test helper: a human who always presses the first button of the prompt on screen, and a loop that plays a vs-AI session to the end with them. Exports: flush, pressFirst, playOut.
+- `packages/app/src/vsAi/test/standInAi.ts` - Test helper: an opponent that calls the Easy AI directly instead of through a Web Worker. Exports: StandInOptions, StandIn, standInAi.
+- `packages/app/src/vsAi/workerAi.test.ts`
+- `packages/app/src/vsAi/workerAi.ts` - The real opponent: the Easy AI in a Web Worker. Exports: createWorkerAi.
 - `packages/app/tsconfig.json` - The app runs in the browser and is bundled by Vite, so it gets the DOM and bundler-style imports.
 - `packages/app/vite.config.ts` - Vite settings for `pnpm dev`, `vite build` and the app's Vitest run. Exports: default.
 - `packages/app/wrangler.jsonc`
