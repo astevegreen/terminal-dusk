@@ -129,6 +129,19 @@ describe("a refused AI answer", () => {
   });
 });
 
+describe("a refused human answer", () => {
+  it("shows its code, and the next answer clears it before that answer is checked", async () => {
+    const { session } = start("lio", { hold: true });
+    await session.answer({ kind: "yesNo", yes: true });
+    expect(session.getSnapshot().refusal).not.toBeNull();
+    const seen: (string | null)[] = [];
+    session.subscribe(() => seen.push(session.getSnapshot().refusal));
+    await session.answer({ kind: "yesNo", yes: true });
+    expect(seen[0]).toBeNull();
+    expect(session.getSnapshot().refusal).not.toBeNull();
+  });
+});
+
 describe("the game seed", () => {
   it("is in no snapshot field or log line", async () => {
     const { session, standIn } = start("sae");

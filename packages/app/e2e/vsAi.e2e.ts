@@ -6,16 +6,21 @@ async function answerOnce(page: Page): Promise<void> {
   const buttons = page.getByTestId("decision").getByRole("button");
   const count = await buttons.count();
   for (let i = 0; i < count; i++) {
-    await buttons.nth(i).click();
-    // A refusal shows at once as a "Refused:" line; an accepted answer clears it with the next frame.
-    await page.waitForTimeout(150);
-    if (
-      !(await page
-        .getByTestId("decision")
-        .getByText(/^Refused:/)
-        .isVisible())
-    )
-      return;
+    const button = await buttons.nth(i).elementHandle();
+    if (!button) return;
+    await button.click();
+    // The tap clears any old "Refused:" line. An accepted answer brings a new decision, which replaces the button;
+    // a refused one leaves the button and shows a "Refused:" line again.
+    const refusedOrGone = await page.waitForFunction(
+      (tapped) =>
+        !tapped.isConnected ||
+        [...document.querySelectorAll('[data-testid="decision"] output')].some((line) =>
+          line.textContent?.startsWith("Refused:"),
+        ),
+      button,
+    );
+    await refusedOrGone.dispose();
+    if (!(await button.evaluate((tapped) => tapped.isConnected))) return;
   }
 }
 
@@ -26,12 +31,15 @@ test("play against the AI: pick LIO and tap through a whole game against the wor
   await page.getByRole("button", { name: "Play as LIO" }).click();
   await expect(page.getByTestId("decision")).toBeVisible();
 
+  const gameOver = page.getByText("Game over");
+  const answerButton = page.getByTestId("decision").getByRole("button").first();
   for (let step = 0; step < 100; step++) {
-    if (await page.getByText("Game over").isVisible()) break;
-    if (await page.getByTestId("decision").getByRole("button").count()) await answerOnce(page);
-    else await page.waitForTimeout(100);
+    // Waits for the AI: either the human has a decision to answer or the game has ended.
+    await answerButton.or(gameOver).first().waitFor();
+    if (await gameOver.isVisible()) break;
+    await answerOnce(page);
   }
-  await expect(page.getByText("Game over")).toBeVisible();
+  await expect(gameOver).toBeVisible();
   await expect(page.getByText(/^AI refused:/)).toHaveCount(0);
 
   const log = await page.getByTestId("log").innerText();
