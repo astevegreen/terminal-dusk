@@ -284,3 +284,16 @@ Neutral cards cannot draw a Contingency card today (schema rule; see Owner quest
 - **Playable:** `marker "targets set"; ask both "Commit to the targets?" -> v; if yes v[lio] { spend lio 1; mod lio -1 min 1 (turn) }; if yes v[sae] { spend sae 1; mod sae -1 min 1 (turn) }`
 - **History:** The Kyoto Protocol was adopted on 11 December 1997 and entered into force on 16 February 2005; the United States signed it in 1998 but never ratified it.
 - **Theme:** climate · **Notion:** create
+
+## Stage 2 build notes
+
+All 34 cards are built as `packages/content/cards/era-1/<id>.json`, each with a test that plays it in the real engine
+and checks every branch. The rules text of each file is written from the JSON and says what it does today.
+
+- **Neutral cards (all 8): the event is built but cannot run in a game yet.** The engine still lets a neutral card
+  be played for points only (a TEMPORARY rule in the engine, written before neutral events were designed), and it
+  keeps neutral cards out of opening picks. core-loop.md says neutral cards have events. The JSON holds the intended
+  effect and its tests run it as if the card were LIO's; in a real game the event stays dormant. See Owner question 26.
+- **Ops swings: "points spent", not "plays for points".** An opsValue modifier changes every point spent while it lasts
+  (including points spent by other effects), not only points from playing a card for points. The rules text
+  says "points spent by <side> count N more". See Owner question 28.

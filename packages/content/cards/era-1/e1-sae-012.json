@@ -1,0 +1,65 @@
+{
+  "id": "e1-sae-012",
+  "era": "era-1",
+  "ops": 2,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "reform backlash"
+    },
+    {
+      "op": "spendPoints",
+      "side": "sae",
+      "amount": 2
+    },
+    {
+      "op": "choose",
+      "who": "lio",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        },
+        {
+          "op": "trigger",
+          "hook": "turnEnd",
+          "do": [
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 1
+            }
+          ],
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ],
+      "else": [
+        {
+          "op": "marker",
+          "label": "left to themselves"
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Shock Therapy Backlash",
+    "rules": "Record \"reform backlash\". SAE spends 2 points. LIO chooses: Fund the reformers? If yes, LIO spends 1 point, then at the end of this turn, SAE spends 1 point; if no, record \"left to themselves\".",
+    "history": "Russia freed most prices in January 1992 and inflation wiped out savings; the confrontation between president and parliament ended when tanks shelled the parliament building on 4 October 1993.",
+    "art": "art/e1-sae-012"
+  }
+}

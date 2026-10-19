@@ -1,0 +1,61 @@
+{
+  "id": "e1-lio-009",
+  "era": "era-1",
+  "ops": 2,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "rescue"
+    },
+    {
+      "op": "choose",
+      "who": "lio",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 2
+        },
+        {
+          "op": "trigger",
+          "hook": "turnEnd",
+          "do": [
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 1
+            }
+          ],
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ],
+      "else": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Peso Bailout",
+    "rules": "Record \"rescue\". LIO chooses: Attach conditions? If yes, LIO spends 2 points, then at the end of this turn, SAE spends 1 point; if no, LIO spends 1 point.",
+    "history": "After the peso collapsed in December 1994, the United States and the IMF assembled a rescue package of up to $50 billion in early 1995, including $20 billion from the US Exchange Stabilization Fund; Mexico repaid the US loans by January 1997.",
+    "art": "art/e1-lio-009"
+  }
+}

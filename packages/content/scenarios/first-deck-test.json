@@ -1,0 +1,6 @@
+{
+  "id": "first-deck-test",
+  "name": "TEST scenario for the first deck (placeholder numbers: 6 turns, 1 play each)",
+  "turns": 6,
+  "playsPerTurn": 1
+}

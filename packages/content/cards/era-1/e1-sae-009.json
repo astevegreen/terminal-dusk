@@ -1,0 +1,45 @@
+{
+  "id": "e1-sae-009",
+  "era": "era-1",
+  "ops": 2,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "embassy hit"
+    },
+    {
+      "op": "drawContingency",
+      "side": "sae",
+      "bind": "d"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "atLeast",
+        "var": "d",
+        "value": 3
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 3
+        }
+      ],
+      "else": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Belgrade Embassy Bombing",
+    "rules": "Record \"embassy hit\". Draw from SAE's Contingency deck. If the result is 3 or more, SAE spends 3 points; otherwise, LIO spends 1 point.",
+    "history": "On 7 May 1999 NATO aircraft bombed the Chinese embassy in Belgrade, killing three Chinese journalists; the United States called it a targeting error and paid compensation, and large anti-US protests followed in China.",
+    "art": "art/e1-sae-009"
+  }
+}

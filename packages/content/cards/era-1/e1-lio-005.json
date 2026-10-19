@@ -1,0 +1,28 @@
+{
+  "id": "e1-lio-005",
+  "era": "era-1",
+  "ops": 3,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "trade order"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 2
+    },
+    {
+      "op": "spendPoints",
+      "side": "sae",
+      "amount": 1
+    }
+  ],
+  "text": {
+    "name": "NAFTA and the WTO",
+    "rules": "Record \"trade order\". LIO spends 2 points. SAE spends 1 point.",
+    "history": "The North American Free Trade Agreement took effect on 1 January 1994; the Marrakesh Agreement of 15 April 1994 created the World Trade Organization, which opened on 1 January 1995.",
+    "art": "art/e1-lio-005"
+  }
+}

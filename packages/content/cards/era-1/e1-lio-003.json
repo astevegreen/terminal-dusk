@@ -1,0 +1,37 @@
+{
+  "id": "e1-lio-003",
+  "era": "era-1",
+  "ops": 3,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "peace enforced"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 2
+    },
+    {
+      "op": "trigger",
+      "hook": "turnEnd",
+      "do": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ],
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Dayton Accords",
+    "rules": "Record \"peace enforced\". LIO spends 2 points. At the end of this turn, LIO spends 1 point.",
+    "history": "The Bosnian peace agreement was initialled at Wright-Patterson Air Force Base near Dayton, Ohio on 21 November 1995 and signed in Paris on 14 December 1995, ending a war that had lasted since 1992.",
+    "art": "art/e1-lio-003"
+  }
+}

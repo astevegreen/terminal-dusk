@@ -5,7 +5,8 @@
   "description": "MatchHost: runs a match around the engine (players, clock, move log, frames) without doing I/O.",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./first-deck": "./src/firstDeck.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",

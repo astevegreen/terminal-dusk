@@ -1,0 +1,60 @@
+{
+  "id": "e1-lio-002",
+  "era": "era-1",
+  "ops": 2,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "assurances given"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 2
+    },
+    {
+      "op": "choose",
+      "who": "sae",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v"
+      },
+      "then": [
+        {
+          "op": "marker",
+          "label": "promise kept"
+        },
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        }
+      ],
+      "else": [
+        {
+          "op": "marker",
+          "label": "hollow assurance"
+        },
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Budapest Memorandum",
+    "rules": "Record \"assurances given\". LIO spends 2 points. SAE chooses: Honour the assurances? If yes, record \"promise kept\", then SAE spends 1 point; if no, record \"hollow assurance\", then LIO spends 1 point.",
+    "history": "On 5 December 1994 Ukraine, Kazakhstan and Belarus received security assurances from the United States, the United Kingdom and Russia in the Budapest Memorandum, in return for giving up Soviet nuclear weapons left on their territory. US Nunn-Lugar funding paid for much of the dismantling.",
+    "art": "art/e1-lio-002"
+  }
+}

@@ -70,9 +70,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/transport/localMatch.ts` - A match run entirely in memory: it keeps the host's record and secret, and gives each viewer a transport. Exports: ArchiveWith, LocalMatch, createLocalMatch.
 - `packages/app/src/transport/matchTransport.ts` - What the screens talk to: one viewer's window onto a match. Exports: SubmitResult, MatchTransport.
 - `packages/app/src/vsAi/VsAiScreen.test.tsx`
-- `packages/app/src/vsAi/VsAiScreen.tsx` - Playing against the Easy AI: a side picker, then the game screen for the human's side. Exports: PRACTICE_NOTE, SidePicker, VsAiView, openSession, VsAiScreenProps, VsAiScreen.
+- `packages/app/src/vsAi/VsAiScreen.tsx` - Playing against the Easy AI: a side picker, then the game screen for the human's side. Exports: PRACTICE_NOTE, VsAiGame, SidePicker, VsAiView, openSession, VsAiScreenProps, VsAiScreen.
 - `packages/app/src/vsAi/ai.worker.ts` - The AI's Web Worker: it only passes each message to the AI package's handler and posts the reply back.
 - `packages/app/src/vsAi/aiOpponent.ts` - What the vs-AI session talks to: an opponent that answers one view at a time (docs/architecture.md, Decision 8). Exports: AiOpponent, MakeAi.
+- `packages/app/src/vsAi/firstDeckGame.test.ts`
 - `packages/app/src/vsAi/session.test.ts`
 - `packages/app/src/vsAi/session.ts` - The state behind a game against the AI: one local match on the developer fixture, the human's latest frame and log, and the AI side's frames, which the session… Exports: VsAiSnapshot, VsAiOptions, VsAiSession, NO_ANSWER, createVsAiSession.
 - `packages/app/src/vsAi/test/scriptedHuman.ts` - Test helper: a human who always presses the first button of the prompt on screen, and a loop that plays a vs-AI session to the end with them. Exports: flush, pressFirst, playOut.
@@ -85,7 +86,76 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 ## packages/content - Cards, map, scenarios and tutorial as JSON data, plus the schemas that check them.
 
+- `packages/content/cards/era-1/e1-lio-001.json`
+- `packages/content/cards/era-1/e1-lio-001.test.ts` - e1-lio-001 Maastricht Treaty: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-lio-002.json`
+- `packages/content/cards/era-1/e1-lio-002.test.ts` - e1-lio-002 Budapest Memorandum: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-lio-003.json`
+- `packages/content/cards/era-1/e1-lio-003.test.ts` - e1-lio-003 Dayton Accords: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-lio-004.json`
+- `packages/content/cards/era-1/e1-lio-004.test.ts` - e1-lio-004 NATO Enlargement 1999: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-lio-005.json`
+- `packages/content/cards/era-1/e1-lio-005.test.ts` - e1-lio-005 NAFTA and the WTO: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-lio-006.json`
+- `packages/content/cards/era-1/e1-lio-006.test.ts` - e1-lio-006 Desert Storm Coalition: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-lio-007.json`
+- `packages/content/cards/era-1/e1-lio-007.test.ts` - e1-lio-007 Kosovo Air Campaign: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-lio-008.json`
+- `packages/content/cards/era-1/e1-lio-008.test.ts` - e1-lio-008 GPS Signal Opened: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-lio-009.json`
+- `packages/content/cards/era-1/e1-lio-009.test.ts` - e1-lio-009 Peso Bailout: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-lio-010.json`
+- `packages/content/cards/era-1/e1-lio-010.test.ts` - e1-lio-010 Arrest of Aldrich Ames: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-lio-011.json`
+- `packages/content/cards/era-1/e1-lio-011.test.ts` - e1-lio-011 Dot-com Boom: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-lio-012.json`
+- `packages/content/cards/era-1/e1-lio-012.test.ts` - e1-lio-012 Partnership for Peace: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-lio-013.json`
+- `packages/content/cards/era-1/e1-lio-013.test.ts` - e1-lio-013 Oslo Accords: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-neu-001.json`
+- `packages/content/cards/era-1/e1-neu-001.test.ts` - e1-neu-001 Rwandan Genocide: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-neu-002.json`
+- `packages/content/cards/era-1/e1-neu-002.test.ts` - e1-neu-002 Asian Financial Crisis: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-neu-003.json`
+- `packages/content/cards/era-1/e1-neu-003.test.ts` - e1-neu-003 Ruble Default: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-neu-004.json`
+- `packages/content/cards/era-1/e1-neu-004.test.ts` - e1-neu-004 Test Ban Treaty: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-neu-005.json`
+- `packages/content/cards/era-1/e1-neu-005.test.ts` - e1-neu-005 Pokhran and Chagai: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-neu-006.json`
+- `packages/content/cards/era-1/e1-neu-006.test.ts` - e1-neu-006 Al Jazeera Launches: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-neu-007.json`
+- `packages/content/cards/era-1/e1-neu-007.test.ts` - e1-neu-007 First Crew on the ISS: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-neu-008.json`
+- `packages/content/cards/era-1/e1-neu-008.test.ts` - e1-neu-008 Kyoto Protocol: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-001.json`
+- `packages/content/cards/era-1/e1-sae-001.test.ts` - e1-sae-001 Battle of Mogadishu: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-002.json`
+- `packages/content/cards/era-1/e1-sae-002.test.ts` - e1-sae-002 Handover of Hong Kong: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-003.json`
+- `packages/content/cards/era-1/e1-sae-003.test.ts` - e1-sae-003 Golden Shield: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-004.json`
+- `packages/content/cards/era-1/e1-sae-004.test.ts` - e1-sae-004 Second Chechen War: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-005.json`
+- `packages/content/cards/era-1/e1-sae-005.test.ts` - e1-sae-005 The Hanssen Leak: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-006.json`
+- `packages/content/cards/era-1/e1-sae-006.test.ts` - e1-sae-006 Shanghai Five: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-007.json`
+- `packages/content/cards/era-1/e1-sae-007.test.ts` - e1-sae-007 Taiwan Strait Crisis: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-008.json`
+- `packages/content/cards/era-1/e1-sae-008.test.ts` - e1-sae-008 Primakov's U-turn: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-009.json`
+- `packages/content/cards/era-1/e1-sae-009.test.ts` - e1-sae-009 Belgrade Embassy Bombing: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-010.json`
+- `packages/content/cards/era-1/e1-sae-010.test.ts` - e1-sae-010 Hainan Island Incident: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-011.json`
+- `packages/content/cards/era-1/e1-sae-011.test.ts` - e1-sae-011 Pristina Airport Dash: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-012.json`
+- `packages/content/cards/era-1/e1-sae-012.test.ts` - e1-sae-012 Shock Therapy Backlash: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-013.json`
+- `packages/content/cards/era-1/e1-sae-013.test.ts` - e1-sae-013 Cox Report: one test for each way its effect can play out.
 - `packages/content/package.json`
+- `packages/content/scenarios/first-deck-test.json`
 - `packages/content/schema/card.test.ts`
 - `packages/content/schema/card.ts` - The card schema: what one card file in packages/content/cards/ must hold (docs/architecture.md, section 4). Exports: CardStep, stepSchema, cardSchema.
 - `packages/content/schema/card.types.test.ts` - Type-level checks, run by `tsc` (the typecheck script): the card schema and the engine's types can't drift apart.
@@ -96,10 +166,16 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/schema/scenario.ts` - The scenario schema: what one scenario file in packages/content/scenarios/ must hold (docs/architecture.md, section 4). Exports: scenarioSchema, Scenario.
 - `packages/content/schema/scenario.types.test.ts` - Type-level check, run by `tsc`: the scenario schema and the engine's Setup can't drift apart.
 - `packages/content/schema/test/cards.ts` - Test helpers for the card schema: a valid card file, the issues the schema finds, and steps to build effects from. Exports: validCard, issuesOf, pathsOf, yesNo, pickCard, drawFor, lioCard.
+- `packages/content/src/era1.test.ts`
+- `packages/content/src/era1.ts` - The Era 1 deck (1991 to 2001) as the engine and the screens use it: rules for the engine, names for the UI. Exports: ERA_1_CARDS, Card, cardDef, FIRST_DECK_RULESET, cardName.
+- `packages/content/src/era1Files.ts` - The Era 1 cards (1991 to 2001), one JSON file each in cards/era-1/. Exports: Card, ERA_1_CARDS.
+- `packages/content/src/firstDeck.ts` - What the game screens need of the first deck: the cards as engine rules, their names, and the TEST scenario. Exports: ERA_1_CARDS, FIRST_DECK_RULESET, cardDef, cardName, Card, FIRST_DECK_SCENARIO, scenarioSetup.
+- `packages/content/src/firstDeckScenario.ts` - The TEST scenario for the first deck. Exports: FIRST_DECK_SCENARIO.
 - `packages/content/src/index.test.ts`
 - `packages/content/src/index.ts` - Public entry point of the content package: the bundle of cards, map, scenarios and tutorial. Exports: DEFAULT_CONTINGENCY, scenarioSetup, ScenarioSetup.
 - `packages/content/src/scenario.test.ts`
 - `packages/content/src/scenario.ts` - Turns a scenario file into the parts of the engine's Setup it decides. Exports: DEFAULT_CONTINGENCY, ScenarioSetup, scenarioSetup.
+- `packages/content/src/test/playCard.ts` - Test helper: plays one real card through the real engine and tells what happened, in a short story. Exports: PlayOptions, story, playCard.
 - `packages/content/tsconfig.json`
 
 ## packages/engine - Pure rules engine: game state, decisions, events and views. Imports nothing outside itself.
@@ -159,6 +235,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## packages/host - MatchHost: runs a match around the engine (players, clock, move log, frames) without doing I/O.
 
 - `packages/host/package.json`
+- `packages/host/src/firstDeck.test.ts`
+- `packages/host/src/firstDeck.ts` - The first deck as a game the app can start: the ruleset, a match config with a seeded deal, and card names. Exports: FIRST_DECK_NOTE, firstDeckRuleset, firstDeckCardName, firstDeckConfig.
 - `packages/host/src/frames.ts` - Shared by the host's entry points: building the three frames, and copying plain JSON. Exports: framesFor, copyJson.
 - `packages/host/src/hostArchive.test.ts`
 - `packages/host/src/hostArchive.ts` - The replay archive: a finished game re-run step by step, one omniscient frame per step (architecture.md, section 3). Exports: hostArchive.

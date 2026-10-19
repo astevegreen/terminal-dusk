@@ -1,0 +1,29 @@
+{
+  "id": "e1-lio-008",
+  "era": "era-1",
+  "ops": 1,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "signal opened"
+    },
+    {
+      "op": "modifier",
+      "mod": {
+        "hook": "opsValue",
+        "side": "lio",
+        "add": 1
+      },
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "GPS Signal Opened",
+    "rules": "Record \"signal opened\". Until the end of this turn, points spent by LIO count 1 more.",
+    "history": "At midnight on 1-2 May 2000 the United States ended \"Selective Availability\", the deliberate degradation of civilian GPS signals, improving typical accuracy from about 100 metres to about 10 metres.",
+    "art": "art/e1-lio-008"
+  }
+}

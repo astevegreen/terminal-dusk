@@ -266,3 +266,27 @@ Each is a question, an assumption I made to carry on, or a conflict I found. Non
 25. **Modifier and trigger order at turn end.** I could not confirm whether a `turnEnd` modifier expires before or
     after a `turnEnd` trigger fires; every turn-end spend here is 1 under a `min 1` floor, so it does not matter
     today. A builder adding a turn-end spend of 2 must check.
+26. **Neutral events cannot run yet.** The engine plays a neutral card for points only (marked TEMPORARY in
+    `packages/engine/src/decisions.ts`) and excludes neutral cards from opening picks, while core-loop.md says neutral
+    cards have events and can open. All 8 neutral cards are built with their intended effect, but in a game they
+    only ever give points. Lift the engine rule when you are ready; no card needs to change.
+27. **Hands never refill, so the deal is a stopgap.** The plan's HAND_SIZE of 7 cannot work: each side must hold at
+    least turns x (1 + plays per turn) non-neutral cards for the whole game. The AI game deals all 34 Era 1 cards:
+    each side gets 9 of its own, 4 of the rival's and 4 neutral ones (17), the deck pile is empty. Cards meant to
+    arrive later (deck or later eras) would never be played. Confirm the intended hand and deal rules.
+28. **Ops swings affect all points spent.** The engine's modifier changes every point spent, not only points from
+    "play for points". The plan's wording was changed to "points spent by <side> count N more". OK, or should the
+    engine tell the two apart?
+29. **The schema cannot list Era 1 in a scenario's `eras`.** `eras` names only later eras and each needs at least one
+    card. The TEST scenario `first-deck-test` therefore has no `eras`; all Era 1 cards are dealt by the game setup.
+30. **TEST scenario numbers are placeholders.** 6 turns, 1 play per turn (needs 12 non-neutral cards per side;
+    the deal gives 13). Please set the real numbers.
+31. **The app reaches the real cards through the host.** The app may not import content, so
+    `packages/host/src/firstDeck.ts` (exported as `@terminal-dusk/host/first-deck`) holds the seeded deal and card
+    names. Two new package subpath exports were added (content `./first-deck`, host `./first-deck`) so that the
+    existing "exports nothing else yet" tests stay as they are. Confirm this route, or say where the deal should live.
+32. **The deal comes from the game seed.** It is a plain function of the seed in the local practice game, so the
+    hands are derivable by anyone who knows the seed. Fine for practice against the AI; an online game must deal on
+    the server.
+33. **Commit trailer model name.** The task said "Claude Opus 5.5"; a system reminder said "Claude Sonnet 5.5". The
+    task text was followed. Please correct if needed.

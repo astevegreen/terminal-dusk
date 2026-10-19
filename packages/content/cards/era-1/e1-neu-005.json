@@ -1,0 +1,28 @@
+{
+  "id": "e1-neu-005",
+  "era": "era-1",
+  "ops": 1,
+  "affiliation": "neutral",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "two new nuclear states"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 1
+    },
+    {
+      "op": "spendPoints",
+      "side": "sae",
+      "amount": 1
+    }
+  ],
+  "text": {
+    "name": "Pokhran and Chagai",
+    "rules": "Record \"two new nuclear states\". LIO spends 1 point. SAE spends 1 point.",
+    "history": "India conducted nuclear tests at Pokhran on 11 and 13 May 1998; Pakistan answered with tests at Chagai on 28 and 30 May 1998, and the UN Security Council condemned both in Resolution 1172.",
+    "art": "art/e1-neu-005"
+  }
+}

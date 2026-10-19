@@ -1,0 +1,34 @@
+{
+  "id": "e1-lio-001",
+  "era": "era-1",
+  "ops": 2,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "union founded"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 1
+    },
+    {
+      "op": "modifier",
+      "mod": {
+        "hook": "opsValue",
+        "side": "lio",
+        "add": 1
+      },
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Maastricht Treaty",
+    "rules": "Record \"union founded\". LIO spends 1 point. Until the end of this turn, points spent by LIO count 1 more.",
+    "history": "The Treaty on European Union was signed at Maastricht on 7 February 1992 and entered into force on 1 November 1993, creating the European Union and the path to a single currency.",
+    "art": "art/e1-lio-001"
+  }
+}

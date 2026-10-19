@@ -1,0 +1,47 @@
+{
+  "id": "e1-sae-005",
+  "era": "era-1",
+  "ops": 2,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "mole inside"
+    },
+    {
+      "op": "spendPoints",
+      "side": "sae",
+      "amount": 2
+    },
+    {
+      "op": "drawContingency",
+      "side": "sae",
+      "bind": "d"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "atMost",
+        "var": "d",
+        "value": 2
+      },
+      "then": [
+        {
+          "op": "marker",
+          "label": "mole caught"
+        },
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "The Hanssen Leak",
+    "rules": "Record \"mole inside\". SAE spends 2 points. Draw from SAE's Contingency deck. If the result is 2 or less, record \"mole caught\", then LIO spends 1 point.",
+    "history": "FBI agent Robert Hanssen was arrested on 18 February 2001 after spying for the Soviet Union and Russia on and off since 1979; he was sentenced to life imprisonment.",
+    "art": "art/e1-sae-005"
+  }
+}

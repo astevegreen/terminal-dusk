@@ -1,0 +1,37 @@
+{
+  "id": "e1-sae-006",
+  "era": "era-1",
+  "ops": 3,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "entente formed"
+    },
+    {
+      "op": "spendPoints",
+      "side": "sae",
+      "amount": 2
+    },
+    {
+      "op": "trigger",
+      "hook": "turnEnd",
+      "do": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        }
+      ],
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Shanghai Five",
+    "rules": "Record \"entente formed\". SAE spends 2 points. At the end of this turn, SAE spends 1 point.",
+    "history": "China, Russia, Kazakhstan, Kyrgyzstan and Tajikistan formed the Shanghai Five at a summit on 26 April 1996; with Uzbekistan they founded the Shanghai Cooperation Organisation on 15 June 2001.",
+    "art": "art/e1-sae-006"
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "id": "e1-neu-004",
+  "era": "era-1",
+  "ops": 2,
+  "affiliation": "neutral",
+  "effect": [
+    {
+      "op": "choose",
+      "who": "both",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v",
+        "side": "lio"
+      },
+      "then": [
+        {
+          "op": "if",
+          "cond": {
+            "op": "yes",
+            "var": "v",
+            "side": "sae"
+          },
+          "then": [
+            {
+              "op": "marker",
+              "label": "treaty in force"
+            },
+            {
+              "op": "spendPoints",
+              "side": "lio",
+              "amount": 2
+            },
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 2
+            }
+          ],
+          "else": [
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 1
+            }
+          ]
+        }
+      ],
+      "else": [
+        {
+          "op": "if",
+          "cond": {
+            "op": "yes",
+            "var": "v",
+            "side": "sae"
+          },
+          "then": [
+            {
+              "op": "spendPoints",
+              "side": "lio",
+              "amount": 1
+            }
+          ],
+          "else": [
+            {
+              "op": "marker",
+              "label": "treaty stalled"
+            },
+            {
+              "op": "spendPoints",
+              "side": "lio",
+              "amount": 1
+            },
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 1
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Test Ban Treaty",
+    "rules": "Each side chooses: Ratify? If LIO says yes, (if SAE says yes, record \"treaty in force\", then LIO spends 2 points, then SAE spends 2 points; otherwise, SAE spends 1 point); otherwise, (if SAE says yes, LIO spends 1 point; otherwise, record \"treaty stalled\", then LIO spends 1 point, then SAE spends 1 point).",
+    "history": "The Comprehensive Nuclear-Test-Ban Treaty opened for signature on 24 September 1996; the US Senate rejected ratification on 13 October 1999 and the treaty has never entered into force.",
+    "art": "art/e1-neu-004"
+  }
+}
