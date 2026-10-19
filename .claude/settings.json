@@ -9,50 +9,163 @@
   },
   "permissions": {
     "allow": [
-      "Bash(pnpm gate *)", "Bash(pnpm test *)", "Bash(pnpm run *)", "Bash(pnpm install)", "Bash(pnpm add *)",
+      "Bash(pnpm gate *)",
+      "Bash(pnpm test *)",
+      "Bash(pnpm run *)",
+      "Bash(pnpm install)",
+      "Bash(pnpm add *)",
       "Bash(node tools/*)",
-      "Bash(git status *)", "Bash(git diff *)", "Bash(git log *)", "Bash(git show *)",
-      "Bash(git add *)", "Bash(git commit *)", "Bash(git switch *)", "Bash(git fetch *)",
-      "Bash(git worktree *)", "Bash(git push -u origin task/*)", "Bash(git push -u origin design/*)",
-      "Bash(gh issue view *)", "Bash(gh issue list *)", "Bash(gh issue comment *)", "Bash(gh issue edit *)",
-      "Bash(gh issue create *)", "Bash(gh pr view *)", "Bash(gh pr list *)", "Bash(gh pr create *)",
-      "Bash(gh pr comment *)", "Bash(gh pr edit *)", "Bash(gh pr ready *)", "Bash(gh pr merge * --auto --squash)",
-      "WebSearch", "WebFetch"
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git switch *)",
+      "Bash(git fetch *)",
+      "Bash(git worktree *)",
+      "Bash(git push -u origin task/*)",
+      "Bash(git push -u origin design/*)",
+      "Bash(gh issue view *)",
+      "Bash(gh issue list *)",
+      "Bash(gh issue comment *)",
+      "Bash(gh issue edit *)",
+      "Bash(gh issue create *)",
+      "Bash(gh pr view *)",
+      "Bash(gh pr list *)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr comment *)",
+      "Bash(gh pr edit *)",
+      "Bash(gh pr ready *)",
+      "Bash(gh pr merge * --auto --squash)",
+      "WebSearch",
+      "WebFetch",
+      "mcp__claude_ai_Notion",
+      "mcp__87a483d9-4e5a-43ab-9e93-d5787ad4a8b0"
     ],
     "ask": [
-      "Edit(/.claude/settings.json)", "Edit(/.claude/settings.local.json)", "Edit(/.claude/agents/**)",
-      "Edit(/.claude/skills/**)", "Edit(/.claude/rules/**)",
-      "Edit(/CLAUDE.md)", "Edit(/GEMINI.md)", "Edit(/.github/**)",
-      "Edit(/docs/architecture.md)", "Edit(/tools/hooks/**)", "Edit(/tools/gates/**)",
-      "Bash(gh secret *)", "Bash(gh auth *)"
+      "Edit(/.claude/settings.json)",
+      "Edit(/.claude/settings.local.json)",
+      "Edit(/.claude/agents/**)",
+      "Edit(/.claude/skills/**)",
+      "Edit(/.claude/rules/**)",
+      "Edit(/CLAUDE.md)",
+      "Edit(/GEMINI.md)",
+      "Edit(/.github/**)",
+      "Edit(/docs/architecture.md)",
+      "Edit(/tools/hooks/**)",
+      "Edit(/tools/gates/**)",
+      "Bash(gh secret *)",
+      "Bash(gh auth *)",
+      "mcp__claude_ai_Notion__notion-delete-pages",
+      "mcp__claude_ai_Notion__notion-delete-databases",
+      "mcp__87a483d9-4e5a-43ab-9e93-d5787ad4a8b0__notion-delete-pages",
+      "mcp__87a483d9-4e5a-43ab-9e93-d5787ad4a8b0__notion-delete-databases"
     ],
     "deny": [
-      "Read(./.env)", "Read(./.env.*)",
-      "Read(**/node_modules/**)", "Read(**/dist/**)", "Read(**/coverage/**)", "Read(**/*.log)", "Read(**/pnpm-lock.yaml)",
-      "Bash(git push --force *)", "Bash(git push -f *)", "Bash(git push origin main)", "Bash(git push origin main *)",
-      "Bash(git reset --hard *)", "Bash(git clean *)", "Bash(git rebase *)", "Bash(git filter-branch *)",
-      "Bash(curl *)", "Bash(wget *)", "Bash(npx *)", "Bash(pnpm dlx *)", "Bash(npm publish *)", "Bash(pnpm publish *)"
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(**/node_modules/**)",
+      "Read(**/dist/**)",
+      "Read(**/coverage/**)",
+      "Read(**/*.log)",
+      "Read(**/pnpm-lock.yaml)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git push origin main)",
+      "Bash(git push origin main *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean *)",
+      "Bash(git rebase *)",
+      "Bash(git filter-branch *)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Bash(npx *)",
+      "Bash(pnpm dlx *)",
+      "Bash(npm publish *)",
+      "Bash(pnpm publish *)"
     ]
   },
   "hooks": {
     "SessionStart": [
-      { "matcher": "startup", "hooks": [
-        { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/tools/hooks/env-check.mjs"], "timeout": 15 } ] },
-      { "matcher": "startup|clear", "hooks": [
-        { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/tools/hooks/handoff-nudge.mjs"], "timeout": 10 } ] }
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/tools/hooks/env-check.mjs"
+            ],
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "startup|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/tools/hooks/handoff-nudge.mjs"
+            ],
+            "timeout": 10
+          }
+        ]
+      }
     ],
     "PreToolUse": [
-      { "matcher": "Bash", "hooks": [
-        { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/tools/hooks/bash-guard.mjs"], "timeout": 10 } ] }
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/tools/hooks/bash-guard.mjs"
+            ],
+            "timeout": 10
+          }
+        ]
+      }
     ],
     "PostToolUse": [
-      { "matcher": "Edit|Write", "hooks": [
-        { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/tools/hooks/quick-check.mjs"], "timeout": 60 } ] }
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/tools/hooks/quick-check.mjs"
+            ],
+            "timeout": 60
+          }
+        ]
+      }
     ],
     "Stop": [
-      { "hooks": [
-        { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/tools/hooks/gate.mjs"], "timeout": 600 },
-        { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/tools/hooks/handoff-nudge.mjs"], "timeout": 15 } ] }
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/tools/hooks/gate.mjs"
+            ],
+            "timeout": 600
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/tools/hooks/handoff-nudge.mjs"
+            ],
+            "timeout": 15
+          }
+        ]
+      }
     ]
   }
 }
