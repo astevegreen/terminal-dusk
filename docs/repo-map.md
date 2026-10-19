@@ -38,6 +38,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 - `packages/app/.gitignore`
 - `packages/app/e2e/game.e2e.ts`
+- `packages/app/e2e/replay.e2e.ts`
 - `packages/app/e2e/testMode.e2e.ts`
 - `packages/app/e2e/vsAi.e2e.ts`
 - `packages/app/index.html`
