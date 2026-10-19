@@ -234,16 +234,22 @@ answer follows the question as **Answered**.
    **Answered:** yes, allow it; the schema change is its own task after this pull request.
 2. **Cross-deck draws.** A side's card may draw only from its own deck. Several gambles would read better drawing
    from the rival's deck (the rival's luck). Designed around; worth allowing?
+   **Answered:** allow it later, as a separate engine task; the cards stay as built until then.
 3. **`flags` and the card skill.** `.claude/skills/card/SKILL.md` mentions `flags` and `schema/steps.ts`; the
    schema has neither (`flags` removed until the rules that use them arrive). The skill looks out of date; I did
    not edit `.claude/`.
+   **Answered:** fix it, in its own small pull request.
 4. **TEST scenario placeholders.** TURNS = 4, PLAYS_PER_TURN = 1 (dev fixture), eras entering on turns 2, 3 and 4,
    default Contingency decks. Please replace with your values; the deck size tolerates a wide range.
+   **Answered:** keep the placeholders until the map and scoring exist.
 5. **Stopgap reading.** Strict (cards at the start) or cumulative (all eras)? With the 6/2/3 deal (question 27)
    each side holds 8 non-neutral cards, which meets strict at 4 x 2 exactly.
+   **Answered:** decide together with the hand-refill rules (question 27); the strict stopgap stays until then.
 6. **Era names.** eras.md leaves them undecided. The JSON will use `era-1`, `era-2`, `era-3` and `future`.
+   **Answered:** keep the plain labels; display names can come later.
 7. **Rules-text verb for `spendPoints`.** The step only records a `pointsSpent` event today. I write "LIO spends
    2 points". If the rules later make this influence or tension, every rules text changes with it.
+   **Answered:** keep "spends points" until points have a designed use; then reword every card in one pass.
 8. **Notion rows in the trash.** Eighteen of the original rows I planned to update are in the Notion trash and
    cannot be edited (Notion refuses: "This page is in the trash"). I did not restore them, since that would undo
    something you did. Instead each got a fresh Draft row with the new content; the era files name both ids
@@ -259,14 +265,19 @@ answer follows the question as **Answered**.
 10. **Spy arrests moved to LIO.** Ames (Era 1), Montes (Era 2) and Ghost Stories (Era 3) are now LIO cards (the
     arrest is LIO's win); Hanssen stays SAE (the leak is the event). Montes spied for Cuba, not for Russia or China:
     keep her as an LIO counter-intelligence card or swap for another case?
+    **Answered:** keep Montes.
 11. **9/11 and the 2008 crash.** Both are cards (neutral Ops 1 September 11; SAE Ops 2 Global Financial Crisis)
     and both open an era. If you prefer era-opening events instead, cut them and those era counts drop by one.
+    **Answered:** keep both as cards.
 12. **Real names, legal.** Living people named in text: Putin, Snowden, Assad, Ames, Montes. Also named: Hariri (killed 2005), Litvinenko (died 2006), Hanssen (died 2023), Primakov (died 2015). Companies:
     Huawei, SpaceX/Starlink, Netscape, Apple, Nvidia, DeepSeek, COSCO, Citigroup, Morgan Stanley, Lehman Brothers,
     WikiLeaks. All in [name-swap.md](name-swap.md) with replacements. The owner chose to keep the Huawei mention in
     Chip Chokepoint and the Sri Lanka (Hambantota) mention in Belt and Road.
+    **Answered:** keep the real names during development; check them against name-swap.md before release.
 13. **Olympics.** Three overlapping Notion cards became one (Olympic Summer 2008). Sportswashing as a theme is gone.
 14. **Oct 7 and Gaza.** Omitted for tone. Say so if you want it, and whether as neutral.
+    **Answered:** add it as a neutral card. Its design (era, Ops, effect, text) is drafted for the owner's
+    approval first and built only once approved.
 15. **Populist Wave (Brexit + Jan 6) as neutral.** The card lets SAE "amplify online" and never scores voters'
     choices themselves. Is that neutral enough, or should Brexit and Jan 6 stay apart or stay out?
 16. **`cardPlayed` fires for both sides' plays.** Dot-com, Golden Shield and The Leaks score after every card this
