@@ -1,7 +1,7 @@
-// e3-neu-004 Migration Crisis 2015: one test for each way its effect can play out.
+// e3-neu-004 Migration Crises: one test for each way its effect can play out.
 import { describeCard } from "../../src/test/describeCard.ts";
 
-describeCard("e3-neu-004", "Migration Crisis 2015", [
+describeCard("e3-neu-004", "Migration Crises", [
   {
     it: "plays out as its text says",
     story: `

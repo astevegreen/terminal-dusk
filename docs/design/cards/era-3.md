@@ -196,13 +196,13 @@ Neutral cards cannot draw a Contingency card today (schema rule; see Owner quest
 - **History:** The Paris Agreement on climate change was adopted on 12 December 2015 and entered into force in November 2016; the United States announced its withdrawal in June 2017, rejoined in February 2021 and announced a second withdrawal in 2025.
 - **Theme:** climate · **Notion:** create
 
-### e3-neu-004 · Migration Crisis 2015 · neutral · Ops 1 · Hold
+### e3-neu-004 · Migration Crises · neutral · Ops 1 · Hold
 
-- **Event:** A million people cross the Mediterranean in one year.
+- **Event:** A million people cross the Mediterranean in one year, and millions more leave Venezuela.
 - **Design:** LIO -1 Ops this turn under the strain; LIO 1 at turn end as the arrivals are absorbed. Would read a "proxy war" tag (W3).
 - **Playable:** `marker "a million arrivals"; mod lio -1 min 1 (turn); on turnEnd { spend lio 1 }`
-- **History:** In 2015 just over one million refugees and migrants reached Europe by sea, more than 800,000 of them via Greece, and about half of them from Syria; at least 3,700 died or went missing at sea.
-- **Theme:** migration · **Notion:** update `3fceb012942f815a99d4d82893c377f3` (side changed from SAE to neutral)
+- **History:** In 2015 just over one million refugees and migrants reached Europe by sea, more than 800,000 of them via Greece, and about half of them from Syria; at least 3,700 died or went missing at sea. By 2024 more than 7 million people had left Venezuela since its economic collapse began in 2014, most of them for other Latin American countries.
+- **Theme:** migration · **Notion:** update `3fceb012942f815a99d4d82893c377f3` (side changed from SAE to neutral; renamed from "Migration Crisis 2015" and Venezuela added by the owner, Owner question 21)
 
 ### e3-neu-005 · Populist Wave · neutral · Ops 2 · Split (SAE)
 
