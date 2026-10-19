@@ -13,7 +13,9 @@ is the source of truth; change it in Notion and promote again.
 3. **Order.** The opening card with more action points resolves first. If both have the same action points,
    the card LIO picked resolves first, whichever side's card it is.
 4. **Opening cards are events only.** Each opening card resolves as its event. Its action points are not spent.
-   A rival's card picked as an opening card resolves as the rival's event, exactly as if the rival had played it.
+   A rival's card picked as an opening card resolves as the rival's event, exactly as if the rival had played it,
+   except that its Contingency draws from the rival's own deck come from the World deck
+   (docs/design/contingency-deck.md).
 5. **Card plays.** After the opening cards, the players take turns playing one card at a time.
    LIO plays first in every turn.
 
@@ -24,7 +26,8 @@ is the source of truth; change it in Notion and promote again.
 - A **rival's card** (one whose side is the other player's) may only be played for its action points.
   Its event then still happens, as the rival's event:
   - the player who played the card chooses whether the event happens **before or after** they spend the points;
-  - the event runs exactly as if the **rival** had played it.
+  - the event runs exactly as if the **rival** had played it, except that its Contingency draws from the
+    rival's own deck come from the World deck (docs/design/contingency-deck.md).
 - **Who answers a choice in an event.** Each choice goes to the side the card names, for opening cards and
   card plays alike. A card names LIO or SAE, never "the player who played this card", so who played a card
   never changes who answers. Example: SAE plays an LIO card whose event says "SAE chooses a country"; SAE chooses.
