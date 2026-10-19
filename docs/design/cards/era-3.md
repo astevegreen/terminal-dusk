@@ -272,6 +272,8 @@ of each file is written from the JSON.
 
 - **Neutral cards (all 7) stay dormant in a real game**, as in Eras 1 and 2 (Owner question 26). Their tests run the
   event as if the card were LIO's. The two future neutral cards behave the same.
+  **Since lifted (Owner question 26):** the engine now runs neutral events and lets a neutral card open, and the
+  tests play each neutral card as the neutral card it is.
 - **Entering the game:** the TEST scenario `first-deck-test` lists the 34 Era 3 cards in its `eras` at turn 5 (the
   plan's placeholder) and the 6 future cards at turn 6 (the last turn; the plan gave no turn, Owner question 38). They
   are shuffled into the draw pile then, but hands never refill, so the AI game does not play them yet (question 34).

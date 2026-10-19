@@ -150,8 +150,8 @@ const invalidSetup = (message: string): EngineError => ({ code: "invalidSetup", 
 
 /**
  * TEMPORARY until hands are refilled: why a side's hand is too small for the whole game, or null. Each
- * turn takes one non-neutral opening card and `playsPerTurn` plays from each side, so each side needs
- * at least turns x (1 + playsPerTurn) non-neutral cards. Neutral cards don't count: they can't open.
+ * turn takes one opening card and `playsPerTurn` plays from each side, so each side needs at least
+ * turns x (1 + playsPerTurn) non-neutral cards; neutral cards come on top (core-loop.md, "For the engine").
  */
 export function handSizeError(ruleset: Ruleset, setup: Setup): EngineError | null {
   const neutral = new Set(ruleset.cards.filter((card) => card.affiliation === "neutral").map((card) => card.id));

@@ -44,12 +44,12 @@ describe("the playCardAs decision", () => {
         id: expect.any(String),
         side: "lio",
         kind: "playCardAs",
-        options: { from: "hand", uses: { own: ["event", "points"], rival: ["points"], neutral: ["points"] } },
+        options: { from: "hand", uses: { own: ["event", "points"], rival: ["points"], neutral: ["event", "points"] } },
       },
     ]);
     for (const id of s.private.lio.hand) expect(JSON.stringify(s.public.pending)).not.toContain(`"${id}"`);
   });
-  it("legalAnswers lists that side's cards in hand order: own event or points, rival points, neutral points", () => {
+  it("legalAnswers lists that side's cards in hand order: own event or points, rival points, neutral event or points", () => {
     const s = atLioPlay(ruleset, { lio: ["s9"] });
     expect(s.private.lio.hand).toEqual(["l2", "l3", "l4", "n1", "s9"]);
     const uses = legalAnswers(ruleset, s, "lio").map((v) => (v.kind === "playCardAs" ? `${v.card} ${v.as}` : "?"));
@@ -60,18 +60,15 @@ describe("the playCardAs decision", () => {
       "l3 points",
       "l4 event",
       "l4 points",
-      // TEMPORARY: a neutral card is points only until neutral events are designed (owner's call, 16 Oct).
+      "n1 event",
       "n1 points",
       "s9 points",
     ]);
   });
-  it.each([
-    ["a rival's card", "s9"],
-    ["a neutral card (temporary, until neutral events are designed)", "n1"],
-  ])("answering event with %s is an illegalAnswer and changes nothing", (_case, card) => {
+  it("answering event with a rival's card is an illegalAnswer and changes nothing", () => {
     const s = atLioPlay(ruleset, { lio: ["s9"] });
     const before = JSON.stringify(s);
-    expect(apply(ruleset, s, playAnswer(s, "lio", card, "event"))).toMatchObject({
+    expect(apply(ruleset, s, playAnswer(s, "lio", "s9", "event"))).toMatchObject({
       ok: false,
       error: { code: "illegalAnswer" },
     });
@@ -173,8 +170,33 @@ describe("a rival's card, for its points", () => {
   });
 });
 
+describe("a neutral card, for its event", () => {
+  it("its event runs and no points are spent", () => {
+    const rs = withCards(sideCard("n1", 3, [marker("n1-event")]));
+    const s = atLioPlay(rs);
+    const r = applied(s, playAnswer(s, "lio", "n1", "event"), rs);
+    expect(story(r.events)).toEqual(["n1-event:undefined"]);
+    expect(r.state.public.discard.at(-1)).toBe("n1");
+    expect(r.state.public.pending).toMatchObject([{ side: "sae", kind: "playCardAs" }]);
+  });
+  it.each([
+    ["LIO plays a neutral card whose choice is SAE's", "lio", "n1", "sae"],
+    ["LIO plays a neutral card whose choice is LIO's", "lio", "n1", "lio"],
+    ["SAE plays a neutral card whose choice is LIO's", "sae", "n2", "lio"],
+  ] as const)("%s", (_case, player, id, chooser) => {
+    const rs = withCards(sideCard(id, 2, asks(chooser, "event")));
+    const s = player === "lio" ? atLioPlay(rs) : atSaePlay(rs);
+    const paused = applied(s, playAnswer(s, player, id, "event"), rs).state;
+    expect(paused.public.inPlay).toEqual([id]);
+    expect(pendingFor(paused, chooser)).toMatchObject({ kind: "yesNo" });
+    const done = applied(paused, yesNoAnswer(paused, true, chooser), rs);
+    expect(story(done.events)).toEqual(["event:true"]);
+    expect(done.state.public.discard.at(-1)).toBe(id);
+  });
+});
+
 describe("a neutral card, for its points", () => {
-  it("spendPoints runs and no event happens (neutral events are not designed yet)", () => {
+  it("spendPoints runs and no event happens (core-loop.md: a neutral card played for points has no event)", () => {
     const rs = withCards(sideCard("n1", 3, [marker("never")]));
     const s = atLioPlay(rs);
     const r = applied(s, playAnswer(s, "lio", "n1", "points"), rs);
