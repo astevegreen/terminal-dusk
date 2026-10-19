@@ -12,10 +12,7 @@ import { rulesetWith } from "./test/game.ts";
 import type { CardId, EraEntry, GameEvent, GameState, Setup } from "./types.ts";
 
 const ids = (prefix: string, n: number): CardId[] => Array.from({ length: n }, (_, i) => `${prefix}${i + 1}`);
-/**
- * LIO's l1-l6, SAE's s1-s6 and neutral n1-n2. Fewer neutral cards than the hand size, so every hand holds a
- * card that can open (neutral cards cannot open yet: decisions.ts).
- */
+/** LIO's l1-l6, SAE's s1-s6 and neutral n1-n2. */
 const PILE = [...ids("l", 6), ...ids("s", 6), ...ids("n", 2)];
 /** era2's cards: e1-e4, neutral. */
 const ERA = ids("e", 4);
@@ -151,6 +148,39 @@ describe("when the draw pile runs out", () => {
 
   it("the same seed gives the same new draw pile", () => {
     expect(intoTurn2(tight).after.private).toEqual(intoTurn2(tight).after.private);
+  });
+});
+
+describe("a refilled hand of only neutral cards", () => {
+  // A hand size of 2, and SAE is dealt its own s1-s3: turn 1's refill can only give LIO the pile's neutral n1-n2.
+  const allNeutral = setup({ handSize: 2, hands: { lio: [], sae: ["s1", "s2", "s3"] }, deck: ["n1", "n2"] });
+
+  it("can still open the turn: every neutral card in the hand is a legal opening pick", () => {
+    const { state } = start(allNeutral);
+    expect([...state.private.lio.hand].sort()).toEqual(["n1", "n2"]);
+    expect(rs.cards.filter((c) => state.private.lio.hand.includes(c.id)).map((c) => c.affiliation)).toEqual(
+      Array(2).fill("neutral"),
+    );
+    const lioPick = state.public.pending.find((d) => d.side === "lio");
+    expect(lioPick?.kind).toBe("chooseCard");
+    expect(legalAnswers(rs, state, "lio")).toEqual(
+      state.private.lio.hand.map((card) => ({ kind: "chooseCard", card })),
+    );
+  });
+
+  it("plays on: both turns are played to the end of the game", () => {
+    let s = start(allNeutral).state;
+    for (let answers = 0; s.public.status.kind !== "over"; answers++) {
+      if (answers > 100) throw new Error("the game did not end");
+      const d = s.public.pending[0];
+      if (!d) throw new Error("no decision pending");
+      const legal = legalAnswers(rs, s, d.side);
+      expect(legal.length).toBeGreaterThan(0);
+      const r = apply(rs, s, { decisionId: d.id, side: d.side, value: legal[0]! });
+      if (!r.ok) throw new Error(`answer rejected: ${r.error.code}`);
+      s = r.value.state;
+    }
+    expect(s.public.turn).toBe(2);
   });
 });
 

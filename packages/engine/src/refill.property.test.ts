@@ -25,10 +25,11 @@ const gameArb = fc
   })
   .map(({ turns, playsPerTurn, extraHand, neutralCut, spare, lioShare, eraCards, seed, picks }) => {
     const handSize = 1 + playsPerTurn + extraHand;
-    // Fewer neutral cards than the hand size, so every hand holds a card that can open (decisions.ts).
-    const neutrals = neutralCut % handSize;
     // The first era holds at least two hands' worth of cards: the smallest the setup checks allow, plus spare.
-    const sideCards = 2 * handSize - neutrals + spare;
+    // Any number of them may be neutral, up to all: a hand of only neutral cards can still open (decisions.ts).
+    const firstEra = 2 * handSize + spare;
+    const neutrals = neutralCut % (firstEra + 1);
+    const sideCards = firstEra - neutrals;
     const lio = lioShare % (sideCards + 1);
     const deck = [...ids("l", 1, lio), ...ids("s", 1, sideCards - lio), ...ids("n", 1, neutrals)];
     const era = [...ids("l", 100, Math.ceil(eraCards / 2)), ...ids("s", 100, Math.floor(eraCards / 2))];
