@@ -78,39 +78,25 @@ const text = z.strictObject({
   variants: z.partialRecord(z.enum(["web", "steam", "ios", "android"]), variant).exactOptional(),
 });
 
-const SIDE_NAMES = { lio: "LIO", sae: "SAE" } as const;
-
 /**
- * Every contingency draw in `steps`, at any depth, that this card may not make: the path to its `side`
- * and the message. A side's card draws only from its own deck. A neutral card may not draw at all:
- * TEMPORARY until neutral events are designed. A missing or invalid side is left to the step's own check.
+ * The path to the `side` of every contingency draw in `steps`, at any depth. Only a neutral card is refused
+ * these: TEMPORARY until neutral draws are built. An LIO or SAE card may draw from either deck, the rival's
+ * included, and from both (docs/design/contingency-deck.md, owner 19 Oct). A missing or invalid side is
+ * left to the step's own check.
  */
-function foreignDraws(
-  steps: readonly Step[],
-  affiliation: "lio" | "sae" | "neutral",
-  path: (string | number)[],
-): { path: (string | number)[]; message: string }[] {
+function drawPaths(steps: readonly Step[], path: (string | number)[]): (string | number)[][] {
   return steps.flatMap((step, i) => {
     const here = [...path, i];
-    if (step.op === "drawContingency") {
-      if (step.side !== "lio" && step.side !== "sae") return [];
-      if (step.side === affiliation) return [];
-      const message =
-        affiliation === "neutral"
-          ? "A neutral card can't draw from a Contingency deck: neutral events have no Contingency deck yet."
-          : `This is an ${SIDE_NAMES[affiliation]} card, so its event can only draw from ${SIDE_NAMES[affiliation]}'s Contingency deck, not ${SIDE_NAMES[step.side]}'s.`;
-      return [{ path: [...here, "side"], message }];
-    }
+    if (step.op === "drawContingency") return step.side === "lio" || step.side === "sae" ? [[...here, "side"]] : [];
     if (step.op === "if") {
-      return [
-        ...foreignDraws(step.then, affiliation, [...here, "then"]),
-        ...foreignDraws(step.else ?? [], affiliation, [...here, "else"]),
-      ];
+      return [...drawPaths(step.then, [...here, "then"]), ...drawPaths(step.else ?? [], [...here, "else"])];
     }
-    if (step.op === "forEach" || step.op === "trigger") return foreignDraws(step.do, affiliation, [...here, "do"]);
+    if (step.op === "forEach" || step.op === "trigger") return drawPaths(step.do, [...here, "do"]);
     return [];
   });
 }
+
+const NEUTRAL_DRAW = "A neutral card can't draw from a Contingency deck: neutral events have no Contingency deck yet.";
 
 /** One card file. `flags` are not allowed yet: they arrive with the rules that use them. */
 export const cardSchema = z
@@ -123,7 +109,8 @@ export const cardSchema = z
     text,
   })
   .check((ctx) => {
-    for (const found of foreignDraws(ctx.value.effect, ctx.value.affiliation, ["effect"])) {
-      ctx.issues.push({ code: "custom", input: ctx.value, path: found.path, message: found.message });
+    if (ctx.value.affiliation !== "neutral") return;
+    for (const path of drawPaths(ctx.value.effect, ["effect"])) {
+      ctx.issues.push({ code: "custom", input: ctx.value, path, message: NEUTRAL_DRAW });
     }
   });

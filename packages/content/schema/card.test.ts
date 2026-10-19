@@ -125,7 +125,7 @@ describe("card schema: rejected unknown fields", () => {
   });
 });
 
-describe("card schema: a card's event draws only from its own side's Contingency deck", () => {
+describe("card schema: which Contingency decks a card's event may draw from", () => {
   const drawOf = (side: string) => ({ op: "drawContingency", side });
   const placements = (step: unknown): [string, unknown[], (string | number)[]][] => [
     ["at the top", [step], ["effect", 0, "side"]],
@@ -145,13 +145,15 @@ describe("card schema: a card's event draws only from its own side's Contingency
   it.each([
     ["lio", "sae"],
     ["sae", "lio"],
-  ])("rejects a %s card drawing from %s's deck, pointing at the step's side", (own, other) => {
-    for (const [, effect, path] of placements(drawOf(other))) {
-      const issues = issuesOf({ ...validCard(), affiliation: own, effect });
-      const names = { lio: "LIO", sae: "SAE" } as const;
-      const message = `This is an ${names[own as "lio" | "sae"]} card, so its event can only draw from ${names[own as "lio" | "sae"]}'s Contingency deck, not ${names[other as "lio" | "sae"]}'s.`;
-      expect(issues.map((issue) => [issue.path, issue.message])).toEqual([[path, message]]);
+  ])("accepts a %s card drawing from %s's deck (the rival's), at any depth (owner, 19 Oct)", (own, other) => {
+    for (const [, effect] of placements(drawOf(other))) {
+      expect(issuesOf({ ...validCard(), affiliation: own, effect })).toEqual([]);
     }
+  });
+
+  it.each(["lio", "sae"])("accepts a %s card drawing from both decks", (side) => {
+    const effect = [drawOf("lio"), drawOf("sae")];
+    expect(issuesOf({ ...validCard(), affiliation: side, effect })).toEqual([]);
   });
 
   it.each(["lio", "sae"])(
