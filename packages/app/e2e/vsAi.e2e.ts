@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
 const FIRST_DECK_NOTE =
-  "First deck, Eras 1 to 3 and the future cards (TEST scenario with placeholder numbers; they join on turns 3, 5 and 6)";
+  "First deck, Eras 1 to 3 and the future cards (TEST scenario with placeholder numbers; they join on turns 2, 3 and 4)";
 
 /** Taps the decision's buttons in order until one is not refused (the fixture offers some refused moves). */
 async function answerOnce(page: Page): Promise<void> {

@@ -1,10 +1,10 @@
 # Era 1 cards: 1991 to 2001 (the Cold War's end to 9/11)
 
 Part of the [deck plan](deck-plan.md). Notation, rules-text templates and the wish-list codes (W1-W8) are
-defined there. Every card: LIO and SAE 13 each, neutral 8. Era string in JSON: `"era-1"`. Era 1 is the
+defined there. Every card: LIO 8, SAE 13, neutral 7 (the plan had 13, 13 and 8; the owner removed the rest as not well known or significant enough, and their numbers stay unused). Era string in JSON: `"era-1"`. Era 1 is the
 starting deck, so it is the only era whose non-neutral count must meet the stopgap on its own.
 
-## LIO (13)
+## LIO (8)
 
 ### e1-lio-001 · Maastricht Treaty · LIO · Ops 2 · Tempo
 
@@ -22,14 +22,6 @@ starting deck, so it is the only era whose non-neutral count must meet the stopg
 - **History:** On 5 December 1994 Ukraine, Kazakhstan and Belarus received security assurances from the United States, the United Kingdom and Russia in the Budapest Memorandum, in return for giving up Soviet nuclear weapons left on their territory. US Nunn-Lugar funding paid for much of the dismantling.
 - **Theme:** alliances, arms · **Notion:** update `3fceb012942f817a8e02cd42a2327bba`
 
-### e1-lio-003 · Dayton Accords · LIO · Ops 3 · Hold
-
-- **Event:** A US air base in Ohio hosts the talks that end the Bosnian war.
-- **Design:** LIO 2 now and 1 at turn end as the peacekeeping settles; a "peace enforced" tag (W1).
-- **Playable:** `marker "peace enforced"; spend lio 2; on turnEnd { spend lio 1 }`
-- **History:** The Bosnian peace agreement was initialled at Wright-Patterson Air Force Base near Dayton, Ohio on 21 November 1995 and signed in Paris on 14 December 1995, ending a war that had lasted since 1992.
-- **Theme:** proxy wars, alliances · **Notion:** recreated `3feeb012942f817f927ccda92db29ddf` (original row `3fceb012942f8186aef4e8ded2fab4bc` is in the Notion trash)
-
 ### e1-lio-004 · NATO Enlargement 1999 · LIO · Ops 3 · Split/Gamble (SAE)
 
 - **Event:** Poland, Hungary and the Czech Republic join the alliance.
@@ -39,14 +31,6 @@ starting deck, so it is the only era whose non-neutral count must meet the stopg
 - **History:** Poland, Hungary and the Czech Republic became NATO members on 12 March 1999 at a ceremony in Independence, Missouri, the first enlargement since the Cold War.
 - **Theme:** alliances · **Notion:** update `3fceb012942f81528f67f03656d2a2e8` (was "Visegrád NATO Enlargement"; Slovakia joined only in 2004)
 
-### e1-lio-005 · NAFTA and the WTO · LIO · Ops 3 · Swing
-
-- **Event:** Free trade becomes the world's operating system.
-- **Design:** LIO 2 and SAE 1: the rules are LIO's, but everyone trades. A "trade order" tag that China's WTO entry and the Tariff Shock reference (W3).
-- **Playable:** `marker "trade order"; spend lio 2; spend sae 1`
-- **History:** The North American Free Trade Agreement took effect on 1 January 1994; the Marrakesh Agreement of 15 April 1994 created the World Trade Organization, which opened on 1 January 1995.
-- **Theme:** supply chains, finance · **Notion:** recreated `3feeb012942f8120ad05ed82b5d382e8` (original row `3fceb012942f8122ad44d6accb9e9f30` is in the Notion trash)
-
 ### e1-lio-006 · Desert Storm Coalition · LIO · Ops 4 · Hot
 
 - **Event:** A 34-nation coalition frees Kuwait in six weeks.
@@ -54,30 +38,6 @@ starting deck, so it is the only era whose non-neutral count must meet the stopg
 - **Playable:** `marker "coalition victory"; spend lio 3; mod sae -1 min 1 (turn)`
 - **History:** Operation Desert Storm began on 17 January 1991 and ended with a ceasefire on 28 February 1991; a coalition of some 34 nations under a UN mandate expelled Iraqi forces from Kuwait.
 - **Theme:** alliances, proxy wars · **Notion:** create
-
-### e1-lio-007 · Kosovo Air Campaign · LIO · Ops 2 · Swing
-
-- **Event:** NATO bombs for 78 days without a Security Council vote.
-- **Design:** LIO 2 but SAE 1: the intervention succeeds and Moscow's grievance is born. An "intervention without mandate" tag that Iraq and Crimea quote (W3).
-- **Playable:** `marker "intervention without mandate"; spend lio 2; spend sae 1`
-- **History:** NATO's air campaign against Yugoslavia ran from 24 March to 10 June 1999, 78 days, without UN Security Council authorisation; it ended with the withdrawal of Yugoslav forces from Kosovo under UN Resolution 1244.
-- **Theme:** alliances, proxy wars · **Notion:** recreated `3feeb012942f819ebd2ec30fe79269eb` (original row `3fceb012942f810bbcecf772bfacf5aa` is in the Notion trash)
-
-### e1-lio-008 · GPS Signal Opened · LIO · Ops 1 · Opener
-
-- **Event:** The US switches off the deliberate error in civilian GPS overnight.
-- **Design:** +1 Ops this turn: the whole world's logistics suddenly run on an American signal. A "navigation" tag for later space cards (W3).
-- **Playable:** `marker "signal opened"; mod lio +1 (turn)`
-- **History:** At midnight on 1-2 May 2000 the United States ended "Selective Availability", the deliberate degradation of civilian GPS signals, improving typical accuracy from about 100 metres to about 10 metres.
-- **Theme:** space, technology · **Notion:** recreated `3feeb012942f81399675fbc73aee575a` (original row `3fceb012942f819698adddb0a1c44df2` is in the Notion trash)
-
-### e1-lio-009 · Peso Bailout · LIO · Ops 2 · Split (LIO)
-
-- **Event:** Washington rescues Mexico with a $50 billion package and strings attached.
-- **Design:** LIO chooses: attach conditions (LIO 2, but SAE 1 at turn end as the "Washington Consensus" breeds resentment) or lend quietly (LIO 1).
-- **Playable:** `marker "rescue"; ask lio "Attach conditions?" -> v; if yes v { spend lio 2; on turnEnd { spend sae 1 } } else { spend lio 1 }`
-- **History:** After the peso collapsed in December 1994, the United States and the IMF assembled a rescue package of up to $50 billion in early 1995, including $20 billion from the US Exchange Stabilization Fund; Mexico repaid the US loans by January 1997.
-- **Theme:** sanctions and finance · **Notion:** recreated `3feeb012942f81b49c40c351730c405f` (original row `3fceb012942f81bda167cf991462e45b` is in the Notion trash) (was "Brady Bonds & The Washington Consensus")
 
 ### e1-lio-010 · Arrest of Aldrich Ames · LIO · Ops 2 · Gamble
 
@@ -217,7 +177,7 @@ starting deck, so it is the only era whose non-neutral count must meet the stopg
 - **History:** The US congressional Cox Report, released on 25 May 1999, alleged that China had obtained design information on US nuclear warheads through espionage over two decades.
 - **Theme:** gray-zone, arms · **Notion:** create
 
-## Neutral (8)
+## Neutral (7)
 
 Neutral cards cannot draw a Contingency card today (schema rule; see Owner question 1).
 
@@ -253,14 +213,6 @@ Neutral cards cannot draw a Contingency card today (schema rule; see Owner quest
 - **History:** The Comprehensive Nuclear-Test-Ban Treaty opened for signature on 24 September 1996; the US Senate rejected ratification on 13 October 1999 and the treaty has never entered into force.
 - **Theme:** arms · **Notion:** update `3fceb012942f8133a5eacd533718fe5e`
 
-### e1-neu-005 · Pokhran and Chagai · neutral · Ops 1 · Plain
-
-- **Event:** India and Pakistan test bombs two weeks apart.
-- **Design:** Each side 1: two new nuclear states to court.
-- **Playable:** `marker "two new nuclear states"; spend lio 1; spend sae 1`
-- **History:** India conducted nuclear tests at Pokhran on 11 and 13 May 1998; Pakistan answered with tests at Chagai on 28 and 30 May 1998, and the UN Security Council condemned both in Resolution 1172.
-- **Theme:** arms, proxy wars · **Notion:** recreated `3feeb012942f81c8935df6e19b4970f6` (original row `3fceb012942f81f592aceef29bcec4da` is in the Notion trash)
-
 ### e1-neu-006 · Al Jazeera Launches · neutral · Ops 1 · Opener
 
 - **Event:** A satellite channel from Doha breaks the West's monopoly on the news.
@@ -287,10 +239,10 @@ Neutral cards cannot draw a Contingency card today (schema rule; see Owner quest
 
 ## Stage 2 build notes
 
-All 34 cards are built as `packages/content/cards/era-1/<id>.json`, each with a test that plays it in the real engine
+All 28 cards are built as `packages/content/cards/era-1/<id>.json`, each with a test that plays it in the real engine
 and checks every branch. The rules text of each file is written from the JSON and says what it does today.
 
-- **Neutral cards (all 8): the event is built but cannot run in a game yet.** The engine still lets a neutral card
+- **Neutral cards (all 7): the event is built but cannot run in a game yet.** The engine still lets a neutral card
   be played for points only (a TEMPORARY rule in the engine, written before neutral events were designed), and it
   keeps neutral cards out of opening picks. core-loop.md says neutral cards have events. The JSON holds the intended
   effect and its tests run it as if the card were LIO's; in a real game the event stays dormant. See Owner question 26.

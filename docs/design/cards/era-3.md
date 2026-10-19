@@ -1,10 +1,10 @@
 # Era 3 cards: 2008 to 2025 (the crash to today)
 
 Part of the [deck plan](deck-plan.md). Notation, rules-text templates and the wish-list codes (W1-W8) are
-defined there. Every card: LIO and SAE 13 each, neutral 8, plus six optional roles-only "future" cards at the
+defined there. Every card: LIO 8, SAE 12, neutral 7 (the plan had 13, 13 and 8; the owner removed the rest as not well known or significant enough, and their numbers stay unused), plus six optional roles-only "future" cards at the
 end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 on name roles, not people.
 
-## LIO (13)
+## LIO (8)
 
 ### e3-lio-001 · Stuxnet · LIO · Ops 2 · Gamble
 
@@ -30,22 +30,6 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 - **History:** On 27 June 2010 the FBI arrested ten Russian agents who had lived under false identities in the United States; on 9 July 2010 they were exchanged in Vienna for four people held in Russia.
 - **Theme:** gray-zone, intelligence · **Notion:** update `3fceb012942f81a58fe9f2ed14425fa7`
 
-### e3-lio-004 · Iran: SWIFT Cutoff and the Deal · LIO · Ops 3 · Split (LIO)
-
-- **Event:** Iran's banks are unplugged from the world, then offered a way back in.
-- **Design:** LIO 2 for the pressure; LIO may trade relief for limits (LIO 2 more and SAE 1, both get a deal) or keep squeezing (LIO 1).
-- **Playable:** `marker "disconnected"; spend lio 2; ask lio "Trade relief for limits?" -> v; if yes v { marker "deal signed"; spend lio 2; spend sae 1 } else { spend lio 1 }`
-- **History:** SWIFT disconnected sanctioned Iranian banks on 17 March 2012; the nuclear agreement with Iran was concluded on 14 July 2015, and the United States withdrew from it on 8 May 2018.
-- **Theme:** sanctions and finance · **Notion:** recreated `3feeb012942f812181e5c4f6960d1b92` (original row `3fceb012942f81c6a7e7db9bef314a0e` is in the Notion trash) (JCPOA row folded in)
-
-### e3-lio-005 · Shale Revolution · LIO · Ops 3 · Split (SAE)
-
-- **Event:** Fracking makes the United States the world's biggest oil producer.
-- **Design:** LIO 2; SAE (the old producers) may cut output to defend prices (SAE 1 but -1 Ops this turn) or pump on (LIO 1 more as prices fall).
-- **Playable:** `marker "energy independence"; spend lio 2; ask sae "Cut production?" -> v; if yes v { spend sae 1; mod sae -1 min 1 (turn) } else { spend lio 1 }`
-- **History:** Hydraulic fracturing and horizontal drilling raised US crude output to around 11 million barrels a day in 2018, passing the 1970 record and making the United States the world's largest crude producer.
-- **Theme:** energy · **Notion:** recreated `3feeb012942f8177a701fb42e3c2ee0c` (original row `3fceb012942f819f8dfdcfabd6b41ef9` is in the Notion trash)
-
 ### e3-lio-006 · Chip Chokepoint · LIO · Ops 3 · Split/Gamble (LIO)
 
 - **Event:** Export rules cut China off from the most advanced chips and the machines that make them.
@@ -53,22 +37,6 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 - **Playable:** `ask lio "Bring the allies in?" -> v; if yes v { draw lio -> d; if d >= 3 { marker "chokepoint sealed"; spend lio 3 } else { marker "controls leak"; spend lio 1 } } else { spend lio 2 }`
 - **History:** The United States added Huawei to its export-control Entity List on 16 May 2019 and on 7 October 2022 imposed sweeping controls on advanced chips and chip-making tools bound for China, tightened again in October 2023.
 - **Theme:** AI and technology, supply chains · **Notion:** update `3fceb012942f8124ba44eea677565da7` (5G/Huawei row folded in)
-
-### e3-lio-007 · Sanctions Wall · LIO · Ops 4 · Hot
-
-- **Event:** $300 billion of Russian reserves are frozen in a weekend.
-- **Design:** LIO 3 now; SAE 1 at turn end as it builds workarounds. Hot: SAE wants the 4 Ops.
-- **Playable:** `marker "reserves frozen"; spend lio 3; on turnEnd { spend sae 1 }`
-- **History:** After Russia's invasion of Ukraine on 24 February 2022, Western governments froze about $300 billion of Russian central-bank reserves and, from 12 March 2022, cut seven Russian banks off from the SWIFT payments network.
-- **Theme:** sanctions and finance · **Notion:** recreated `3feeb012942f81b4be6ffd4a5a39d354` (original row `3fceb012942f81b1aea7f684582a8859` is in the Notion trash)
-
-### e3-lio-008 · Pre-bunking · LIO · Ops 1 · Opener
-
-- **Event:** Washington publishes the Kremlin's fake-attack plan before it can be used.
-- **Design:** SAE -1 Ops this turn: the pretext is spoiled.
-- **Playable:** `marker "pretext denied"; mod sae -1 min 1 (turn)`
-- **History:** In early February 2022 US officials publicly described a Russian plan to stage a fake attack as a pretext for invading Ukraine, an approach analysts called "pre-bunking".
-- **Theme:** information warfare · **Notion:** recreated `3feeb012942f81e4badfde30502aa5a2` (original row `3fceb012942f818c92bde0ef83b017f1` is in the Notion trash)
 
 ### e3-lio-009 · Nordic Accession · LIO · Ops 2 · Plain
 
@@ -94,14 +62,6 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 - **History:** SpaceX launched the first 60 Starlink satellites on 23 May 2019; within days of Russia's February 2022 invasion the service was activated in Ukraine and became an important part of its communications.
 - **Theme:** space, technology · **Notion:** update `3fceb012942f8141aae4f4a79d9efbf8`
 
-### e3-lio-012 · Salisbury and the Sleuths · LIO · Ops 2 · Split/Gamble (SAE)
-
-- **Event:** A nerve agent in an English town; online investigators name the officers.
-- **Design:** LIO 1; SAE may deny everything: a gamble between the denial holding (SAE 1) and open-source sleuths naming names (LIO 2); or SAE stays quiet (LIO 1 more).
-- **Playable:** `marker "nerve agent"; spend lio 1; ask sae "Deny everything?" -> v; if yes v { draw lio -> d; if d >= 3 { marker "officers named"; spend lio 2 } else { spend sae 1 } } else { spend lio 1 }`
-- **History:** A former Russian officer and his daughter were poisoned with a Novichok nerve agent in Salisbury, England on 4 March 2018; Britain expelled 23 Russian diplomats, and in September and October 2018 the investigative group Bellingcat identified the two suspects as Russian military intelligence officers.
-- **Theme:** gray-zone, information · **Notion:** recreated `3feeb012942f81d18941d0f2af3dc64b` (original row `3fceb012942f81df9e61f7c89fc4010a` is in the Notion trash)
-
 ### e3-lio-013 · Fall of the Assad Regime · LIO · Ops 2 · Swing
 
 - **Event:** Damascus falls in eleven days and Russia's Mediterranean bases hang by a thread.
@@ -110,7 +70,7 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 - **History:** Syrian rebel forces took Damascus on 8 December 2024 and President Bashar al-Assad fled to Russia, ending more than fifty years of his family's rule; the future of Russia's air and naval bases in Syria became uncertain.
 - **Theme:** proxy wars · **Notion:** update `3fceb012942f81af9c28e803d68d0ffa`
 
-## SAE (13)
+## SAE (12)
 
 ### e3-sae-001 · Global Financial Crisis · SAE · Ops 2 · Swing (both)
 
@@ -151,14 +111,6 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 - **Playable:** `marker "surveillance exposed"; on cardPlayed (turn) { spend sae 1 }`
 - **History:** WikiLeaks began publishing some 250,000 US diplomatic cables on 28 November 2010; in June 2013 documents leaked by Edward Snowden revealed large-scale US surveillance programmes.
 - **Theme:** information warfare · **Notion:** update `3fceb012942f81ad9174c281c38c34e4` (WikiLeaks row folded in)
-
-### e3-sae-006 · Sandworm · SAE · Ops 2 · Gamble
-
-- **Event:** Hackers switch off Ukraine's lights, then NotPetya spreads to the world.
-- **Design:** The attack lands (SAE 2) or it spills over and costs everyone (SAE 1, LIO 1).
-- **Playable:** `draw sae -> d; if d >= 3 { marker "grid down"; spend sae 2 } else { marker "spillover"; spend sae 1; spend lio 1 }`
-- **History:** On 23 December 2015 a cyberattack cut power to about 230,000 customers in western Ukraine; on 27 June 2017 the NotPetya malware spread from Ukraine worldwide, causing an estimated $10 billion in damage, and the UK and US attributed both to Russian military intelligence.
-- **Theme:** cyber · **Notion:** recreated `3feeb012942f8123b772fc3bf9cbd1fb` (original row `3fceb012942f817f8100c53c10d8e39b` is in the Notion trash)
 
 ### e3-sae-007 · Rare Earth Squeeze · SAE · Ops 2 · Split (LIO)
 
@@ -216,7 +168,7 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 - **History:** Greece agreed its first €110 billion bailout from eurozone countries and the IMF on 3 May 2010; in 2016 China's COSCO bought a 67 per cent stake in the Piraeus Port Authority.
 - **Theme:** finance, supply chains · **Notion:** update `3fceb012942f8127a8c5c220856f4724`
 
-## Neutral (8)
+## Neutral (7)
 
 Neutral cards cannot draw a Contingency card today (schema rule; see Owner question 1).
 
@@ -259,14 +211,6 @@ Neutral cards cannot draw a Contingency card today (schema rule; see Owner quest
 - **Playable:** `marker "ballot shock"; ask sae "Amplify it online?" -> v; if yes v { spend sae 1; mod lio -1 min 1 (turn) } else { spend lio 1 }`
 - **History:** The United Kingdom voted to leave the European Union on 23 June 2016 by 51.9 per cent to 48.1; on 6 January 2021 a crowd stormed the US Capitol during the certification of the presidential election.
 - **Theme:** populism and elections · **Notion:** update `3fceb012942f81b79b47c9c908c0c373` (was "Brexit", SAE; Jan 6 and 2000 election rows folded in)
-
-### e3-neu-006 · Arms Control Unravels · neutral · Ops 1 · Swing (both)
-
-- **Event:** INF, Open Skies and finally New START lapse.
-- **Design:** +1 Ops for both this turn: no limits, no inspections.
-- **Playable:** `marker "treaties lapse"; mod both +1 (turn)`
-- **History:** The United States withdrew from the Intermediate-Range Nuclear Forces Treaty on 2 August 2019 and from the Open Skies Treaty on 22 November 2020; the New START treaty, the last US-Russia limit on strategic nuclear weapons, expired on 5 February 2026.
-- **Theme:** arms · **Notion:** recreated `3feeb012942f8134b745cf91432250f9` (original row `3fceb012942f81099dbfc68b561cbd91` is in the Notion trash) (was "INF & Open Skies", SAE; Oreshnik and Prague rows folded in)
 
 ### e3-neu-007 · AI Compute Race · neutral · Ops 2 · Split (LIO)
 
@@ -321,12 +265,12 @@ describe the trend, not a dated event. Ops: 2, 1 per side; neutral 2, 1.
 
 ## Stage 4 build notes
 
-All 34 Era 3 cards are built as `packages/content/cards/era-3/<id>.json` and the 6 future cards as
+All 27 Era 3 cards are built as `packages/content/cards/era-3/<id>.json` and the 6 future cards as
 `packages/content/cards/future/<id>.json`, each with a test that plays it in the real engine and checks every branch.
 The JSON follows the "Playable" line of each card one-for-one; no card was built weaker than planned. The rules text
 of each file is written from the JSON.
 
-- **Neutral cards (all 8) stay dormant in a real game**, as in Eras 1 and 2 (Owner question 26). Their tests run the
+- **Neutral cards (all 7) stay dormant in a real game**, as in Eras 1 and 2 (Owner question 26). Their tests run the
   event as if the card were LIO's. The two future neutral cards behave the same.
 - **Entering the game:** the TEST scenario `first-deck-test` lists the 34 Era 3 cards in its `eras` at turn 5 (the
   plan's placeholder) and the 6 future cards at turn 6 (the last turn; the plan gave no turn, Owner question 38). They

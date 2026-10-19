@@ -29,9 +29,9 @@ describe("the optional future cards (2025 to 2027)", () => {
       expect(text).not.toMatch(/Putin|Trump|Biden|Xi |Zelensky|Assad/);
     }
   });
-  it("are in the ruleset and enter the TEST scenario on turn 6, listed once", () => {
+  it("are in the ruleset and enter the TEST scenario on turn 4, listed once", () => {
     const entry = FIRST_DECK_SCENARIO.eras?.find((e) => e.era === "future");
-    expect(entry?.turn).toBe(6);
+    expect(entry?.turn).toBe(4);
     expect([...(entry?.cards ?? [])].sort(byText)).toEqual(FUTURE_CARDS.map((c) => c.id).sort(byText));
     const inRuleset = new Set(FIRST_DECK_RULESET.cards.map((c) => c.id));
     for (const card of FUTURE_CARDS) expect(inRuleset.has(card.id)).toBe(true);

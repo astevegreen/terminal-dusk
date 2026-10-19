@@ -1,7 +1,8 @@
 // The first deck as a game the app can start: the ruleset, a match config with a seeded deal, and card names.
 // The app may not import content (docs/architecture.md), so this is the route from the real cards to the screens.
 // The deal is a stopgap: hands are fixed at the start and never refilled (docs/design/cards/deck-plan.md, Owner
-// question 27), so each side gets 9 of its own cards, 4 of the rival's and 4 neutral ones, all 34 cards dealt.
+// question 27), so each side gets 6 of its own cards, 2 of the rival's and 3 neutral ones: 8 non-neutral cards for
+// the TEST scenario's 4 turns of 2 cards each. The 6 Era 1 cards left over start in the draw pile.
 import {
   ERA_1_CARDS,
   FIRST_DECK_RULESET,
@@ -13,13 +14,13 @@ import type { CardId, Ruleset, Seed } from "@terminal-dusk/engine";
 import type { MatchConfig } from "./types.ts";
 
 export const FIRST_DECK_NOTE =
-  "First deck, Eras 1 to 3 and the future cards (TEST scenario with placeholder numbers; they join on turns 3, 5 and 6)";
+  "First deck, Eras 1 to 3 and the future cards (TEST scenario with placeholder numbers; they join on turns 2, 3 and 4)";
 export const firstDeckRuleset: Ruleset = FIRST_DECK_RULESET;
 export { cardName as firstDeckCardName };
 
-const OWN = 9;
-const RIVAL = 4;
-const NEUTRAL = 4;
+const OWN = 6;
+const RIVAL = 2;
+const NEUTRAL = 3;
 
 /** A small seeded random generator (no Math.random): the same seed always gives the same numbers. */
 function randomFrom(seed: string): () => number {
@@ -62,7 +63,7 @@ export function firstDeckConfig(seed: Seed): MatchConfig {
         lio: [...lio.slice(0, OWN), ...sae.slice(OWN, OWN + RIVAL), ...neutral.slice(0, NEUTRAL)],
         sae: [...sae.slice(0, OWN), ...lio.slice(OWN, OWN + RIVAL), ...neutral.slice(NEUTRAL, 2 * NEUTRAL)],
       },
-      deck: [],
+      deck: [...lio.slice(OWN + RIVAL), ...sae.slice(OWN + RIVAL), ...neutral.slice(2 * NEUTRAL)],
       ...scenarioSetup(FIRST_DECK_SCENARIO),
     },
   };

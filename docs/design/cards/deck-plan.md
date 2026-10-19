@@ -6,23 +6,28 @@ every card here is also a Notion row with Status "Draft".
 
 ## Index
 
-- [era-1.md](era-1.md): 34 cards, 1991 to 9/11
-- [era-2.md](era-2.md): 34 cards, 9/11 to the 2008 crash
-- [era-3.md](era-3.md): 34 cards, 2008 to 2025, plus 6 optional roles-only "future" cards (2025-2027)
+- [era-1.md](era-1.md): 28 cards, 1991 to 9/11
+- [era-2.md](era-2.md): 29 cards, 9/11 to the 2008 crash
+- [era-3.md](era-3.md): 27 cards, 2008 to 2025, plus 6 optional roles-only "future" cards (2025-2027)
 - [name-swap.md](name-swap.md): every real name in card text and a neutral replacement
 - [progress.md](progress.md): stage tracker
 
 ## The deck at a glance
 
-| Era                          | LIO    | SAE    | Neutral | Total                                  |
-| ---------------------------- | ------ | ------ | ------- | -------------------------------------- |
-| Era 1 (1991-2001)            | 13     | 13     | 8       | 34                                     |
-| Era 2 (2001-2008)            | 13     | 13     | 8       | 34                                     |
-| Era 3 (2008-2025)            | 13     | 13     | 8       | 34                                     |
-| Future (2025-2027, optional) | 2      | 2      | 2       | 6                                      |
-| **All**                      | **41** | **41** | **26**  | **108** (102 without the future cards) |
+| Era                          | LIO    | SAE    | Neutral | Total                                |
+| ---------------------------- | ------ | ------ | ------- | ------------------------------------ |
+| Era 1 (1991-2001)            | 8      | 13     | 7       | 28                                   |
+| Era 2 (2001-2008)            | 10     | 11     | 8       | 29                                   |
+| Era 3 (2008-2025)            | 8      | 12     | 7       | 27                                   |
+| Future (2025-2027, optional) | 2      | 2      | 2       | 6                                    |
+| **All**                      | **28** | **38** | **24**  | **90** (84 without the future cards) |
 
-Why 13 / 13 / 8 per era:
+The plan had 13 / 13 / 8 per era (108 cards). The owner then removed 18 cards whose Notion rows they had trashed,
+because the events were not well known or significant enough (Owner question 8). Their ids stay unused, so the
+other cards keep their ids. The reasoning below is the plan's, kept for the record; the LIO side is now short in
+Era 1 and Era 3, which the TEST scenario's smaller game absorbs (see "Counts and the stopgap").
+
+Why 13 / 13 / 8 per era (the plan):
 
 - Equal LIO and SAE counts in every era keep both sides fun in every era, including Era 1, which the brief says
   modern players may not remember. No era is "LIO's era" or "SAE's era" by card count; the events carry that.
@@ -34,7 +39,7 @@ Why 13 / 13 / 8 per era:
 
 ## Ops spread
 
-Per era, per side (identical in all three eras):
+Per era, per side, as planned (identical in all three eras):
 
 | Ops           | LIO       | SAE       | Neutral   |
 | ------------- | --------- | --------- | --------- |
@@ -58,6 +63,16 @@ Justification:
   (Asian crisis, China in the WTO, COVID-19) that both sides want to shape.
 - Same spread in all eras so the TEST scenario's balance does not drift when a new era enters the pile.
 
+After the owner removed 18 cards, the built spread (cards of Ops 1 / 2 / 3 / 4) is:
+
+| Era   | LIO     | SAE     | Neutral |
+| ----- | ------- | ------- | ------- |
+| Era 1 | 2/4/1/1 | 3/6/3/1 | 2/4/1/0 |
+| Era 2 | 3/5/1/1 | 3/5/2/1 | 3/4/1/0 |
+| Era 3 | 2/5/1/0 | 3/5/3/1 | 2/4/1/0 |
+
+Era 3 LIO has no Ops 4 card now (Sanctions Wall was removed). Whether to rebalance is an open point for the owner.
+
 ## Counts and the stopgap
 
 core-loop.md's stopgap: each side holds at least `turns x (1 + plays per turn)` non-neutral cards. These are
@@ -65,17 +80,19 @@ placeholders, not rules (Owner question 4):
 
 ```
 TEST scenario "first-deck-test" (ALL VALUES ARE PLACEHOLDERS)
-  TURNS = 6            two turns per era
+  TURNS = 4            was 6; cut when the owner removed 18 cards, so Era 1's 8 LIO cards still meet the stopgap
   PLAYS_PER_TURN = 1   one alternating play each after the opening pick
   HAND_SIZE = 7        the dev fixture's value; the engine deals it, the scenario does not set it
-  eras: era-2 enters on turn 3, era-3 enters on turn 5
+  eras: era-2 enters on turn 2, era-3 on turn 3, the future cards on turn 4 (were 3, 5 and 6)
   contingency: default decks (1-6 per side); the gamble thresholds below assume this
 ```
 
-Stopgap need: 6 x (1 + 1) = **12 non-neutral cards per side**.
+Stopgap need: 4 x (1 + 1) = **8 non-neutral cards per side** (it was 6 x 2 = 12 with 6 turns).
 
-- Strict reading (cards at the start, Era 1 only): 13 per side. Met, one spare.
-- Cumulative reading (all eras in play by the end): 39 per side. Met many times over.
+- Strict reading (cards at the start, Era 1 only): 8 LIO and 13 SAE. Met exactly on the LIO side, no spare. The
+  practice game deals each side 6 of its own cards, 2 of the rival's and 3 neutral ones; the 6 Era 1 cards left
+  over (5 SAE, 1 neutral) start in the draw pile.
+- Cumulative reading (all eras in play by the end): 26 LIO and 36 SAE. Met many times over.
 - If the owner prefers a longer game (say TURNS = 9, PLAYS_PER_TURN = 3, need 36), Era 1 alone would fail the
   strict reading and the owner would need either more Era 1 cards or the cumulative reading (Owner question 5).
 
@@ -132,16 +149,17 @@ real downside), **Split** (a yes/no choice for the named side), **Plain** (point
 
 ## Designing for the rival-card dilemma
 
-- Hot cards (play for Ops, hate the event): the six Ops 4 cards (Desert Storm, Hong Kong Handover, Big Bang
-  Enlargement, Olympic Summer 2008, Sanctions Wall, Full-Scale Invasion) and the Ops 3 one-siders (Second Chechen
-  War, Invasion of Iraq, Crimea, Belt and Road, Syrian Intervention, Shale, Chip Chokepoint). A rival holding one
+Counts in this section are the plan's, from before the owner removed 18 cards; the removed cards are no longer named.
+
+- Hot cards (play for Ops, hate the event): the five Ops 4 cards (Desert Storm, Hong Kong Handover, Big Bang
+  Enlargement, Olympic Summer 2008, Full-Scale Invasion) and the Ops 3 one-siders (Second Chechen
+  War, Invasion of Iraq, Crimea, Belt and Road, Syrian Intervention, Chip Chokepoint). A rival holding one
   must weigh 3-4 Ops now against 2-3 points and a modifier for the other side.
-- Hold cards (pay again at turn end, so play them while the turn is young): Dayton, Mogadishu, Shanghai Five,
-  Jawbreaker, Euro Cash, Petrocaribe, IPCC, Natanz, Crimea, Syria, AUKUS, Private Constellation, Migration 2015.
-  Several hand the _rival_ the turn-end point (Jawbreaker, Petrocaribe, Peso Bailout, Sanctions Wall): good now, a
-  cost later, the "hold or dump" decision.
-- Early cards / openers (event only, best as the secret opening pick): GPS, Primakov, Al Jazeera, ISS, Article 5,
-  Montes, Munich Speech, September 11, Pre-bunking, Fall of Kabul, Neptune Spear.
+- Hold cards (pay again at turn end, so play them while the turn is young): Mogadishu, Shanghai Five,
+  Euro Cash, Petrocaribe, IPCC, Natanz, Crimea, Syria, AUKUS, Private Constellation, Migration 2015.
+  Some hand the _rival_ the turn-end point (Petrocaribe): good now, a cost later, the "hold or dump" decision.
+- Early cards / openers (event only, best as the secret opening pick): Primakov, Al Jazeera, ISS, Article 5,
+  Montes, Munich Speech, September 11, Fall of Kabul, Neptune Spear.
 - Gambles with a real downside: 16 cards draw a Contingency card and 15 of them can score for the rival.
 - Splits that divide the sides: 38 cards ask a yes/no; 11 ask both sides at once (Asian crisis, Test Ban, Kyoto,
   SARS, Arab Spring, COVID-19 and others), where the stag-hunt shape of the Test Ban Treaty is the purest.
@@ -150,76 +168,79 @@ real downside), **Split** (a yes/no choice for the named side), **Plain** (point
 
 ## Theme coverage (brief's list)
 
-| Theme                    | Cards (era)                                                                                                                                                 |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Cyber                    | Golden Shield (1), Estonian Cyberattacks (2), Stuxnet, Sandworm (3)                                                                                         |
-| Information warfare      | Al Jazeera, Belgrade Embassy (1), Curveball, Abu Ghraib, Munich Speech (2), Pre-bunking, The Leaks, Salisbury (3)                                           |
-| Energy and supply chains | NAFTA/WTO (1), Gas Cutoff, Petrocaribe, Oil at $147, China in the WTO (2), Shale, Rare Earth, Belt and Road, Chips, Tariff Shock, Eurozone (3)              |
-| Sanctions and finance    | Peso, Asian Crisis, Ruble, Shock Therapy (1), BDA, Argentina, Euro Cash, Sovereign Wealth Funds (2), Iran SWIFT, Sanctions Wall, GFC, Parallel Plumbing (3) |
-| Pandemics                | SARS, PEPFAR (2), COVID-19 (3)                                                                                                                              |
-| Climate                  | Kyoto (1), IPCC 2007 (2), Paris Agreement (3), Heat Dome (future)                                                                                           |
-| AI and technology        | GPS, Dot-com (1), Smartphones (2), AI Compute Race, Chips (3), Open-Weight Leak (future)                                                                    |
-| Space                    | GPS, ISS (1), Anti-Satellite Test (2), Private Constellation (3)                                                                                            |
-| Migration                | Migration Crisis 2015 (3). Thin: one card; see Owner question 21                                                                                            |
-| Populism and elections   | Chechen War (1), Colour Revolutions, Cedar (2), Arab Spring, Populist Wave (3)                                                                              |
-| Proxy wars               | Desert Storm, Dayton, Kosovo, Mogadishu, Oslo (1), Jawbreaker, Iraq (2), Syria, Assad, Kabul, Neptune Spear (3)                                             |
-| Alliances                | Maastricht, NATO 1999, PfP, Shanghai Five, Budapest (1), Article 5, Big Bang, India deal, Peace Mission (2), Nordic, AUKUS, Invasion, Arms Control (3)      |
-| Gray-zone                | Taiwan Strait, Hainan, Pristina, Ames, Hanssen, Cox (1), Litvinenko, Montes (2), Crimea, Ghost Stories, HK Security Law, Cable Cut (3/future)               |
+| Theme                    | Cards (era)                                                                                                                                   |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cyber                    | Golden Shield (1), Estonian Cyberattacks (2), Stuxnet (3)                                                                                     |
+| Information warfare      | Al Jazeera, Belgrade Embassy (1), Curveball, Abu Ghraib, Munich Speech (2), The Leaks (3)                                                     |
+| Energy and supply chains | Petrocaribe, Oil at $147, China in the WTO (2), Rare Earth, Belt and Road, Chips, Tariff Shock, Eurozone (3)                                  |
+| Sanctions and finance    | Asian Crisis, Ruble, Shock Therapy (1), Euro Cash, Sovereign Wealth Funds (2), GFC, Parallel Plumbing (3)                                     |
+| Pandemics                | SARS, PEPFAR (2), COVID-19 (3)                                                                                                                |
+| Climate                  | Kyoto (1), IPCC 2007 (2), Paris Agreement (3), Heat Dome (future)                                                                             |
+| AI and technology        | Dot-com (1), Smartphones (2), AI Compute Race, Chips (3), Open-Weight Leak (future)                                                           |
+| Space                    | ISS (1), Anti-Satellite Test (2), Private Constellation (3)                                                                                   |
+| Migration                | Migration Crisis 2015 (3). Thin: one card; see Owner question 21                                                                              |
+| Populism and elections   | Chechen War (1), Cedar (2), Arab Spring, Populist Wave (3)                                                                                    |
+| Proxy wars               | Desert Storm, Mogadishu, Oslo (1), Iraq (2), Syria, Assad, Kabul, Neptune Spear (3)                                                           |
+| Alliances                | Maastricht, NATO 1999, PfP, Shanghai Five, Budapest (1), Article 5, Big Bang, India deal, Peace Mission (2), Nordic, AUKUS, Invasion (3)      |
+| Gray-zone                | Taiwan Strait, Hainan, Pristina, Ames, Hanssen, Cox (1), Litvinenko, Montes (2), Crimea, Ghost Stories, HK Security Law, Cable Cut (3/future) |
 
 ## Engine wish list (ranked by cards unlocked)
 
 Each code appears on the cards whose design layer needs it. Nothing here is built in stage 1; the playable layer
 works without it.
 
-| Rank | Code    | Missing mechanic                                                                                                                                                                                                                                         | Cards it would unlock                                                                                  |
-| ---- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| 1    | W1 + W3 | A marker that lasts beyond the turn and a Condition that tests it (`{ op: "has", marker }`), so a later card can read a tag an earlier card set (Budapest -> Crimea, Natanz -> Stuxnet -> Iran deal, Hong Kong Handover -> Security Law, Kosovo -> Iraq) | about 35 (every card marked W1 or W3)                                                                  |
-| 2    | W4      | Contingency draws for neutral cards (and a draw from the rival's deck)                                                                                                                                                                                   | the 24 neutral cards, whose gambles are flattened into choices today; 6 side cards wanted a rival draw |
-| 3    | W5      | A Condition on who played the card (so a rival-played hot card can bite differently)                                                                                                                                                                     | the 13 hot cards; also the two Notion originals that wrote "if the player was X"                       |
-| 4    | W8      | A step that discards from, or peeks at, a hand                                                                                                                                                                                                           | 6 espionage cards (Ames, Hanssen, Cox, Montes, Ghost Stories, The Leaks)                               |
-| 5    | W2      | A trigger scoped to one side's plays, or that fires once                                                                                                                                                                                                 | 3 cardPlayed cards (Dot-com, Golden Shield, The Leaks); they fire for both sides today and say so      |
-| 6    | W6      | Remove-from-game / `flags` (schema removed them: "they arrive with the rules that use them")                                                                                                                                                             | the 6 Ops 4 cards (once-only events)                                                                   |
-| -    | W7      | Map, influence, tension track, scoring                                                                                                                                                                                                                   | every card; a rules decision for the owner, not an engine request                                      |
+| Rank | Code    | Missing mechanic                                                                                                                                                                                                                         | Cards it would unlock                                                                                  |
+| ---- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| 1    | W1 + W3 | A marker that lasts beyond the turn and a Condition that tests it (`{ op: "has", marker }`), so a later card can read a tag an earlier card set (Budapest -> Crimea, Natanz -> Stuxnet -> Iran deal, Hong Kong Handover -> Security Law) | about 35 (every card marked W1 or W3)                                                                  |
+| 2    | W4      | Contingency draws for neutral cards (and a draw from the rival's deck)                                                                                                                                                                   | the 22 neutral cards, whose gambles are flattened into choices today; 6 side cards wanted a rival draw |
+| 3    | W5      | A Condition on who played the card (so a rival-played hot card can bite differently)                                                                                                                                                     | the 11 hot cards; also the two Notion originals that wrote "if the player was X"                       |
+| 4    | W8      | A step that discards from, or peeks at, a hand                                                                                                                                                                                           | 6 espionage cards (Ames, Hanssen, Cox, Montes, Ghost Stories, The Leaks)                               |
+| 5    | W2      | A trigger scoped to one side's plays, or that fires once                                                                                                                                                                                 | 3 cardPlayed cards (Dot-com, Golden Shield, The Leaks); they fire for both sides today and say so      |
+| 6    | W6      | Remove-from-game / `flags` (schema removed them: "they arrive with the rules that use them")                                                                                                                                             | the 5 Ops 4 cards (once-only events)                                                                   |
+| -    | W7      | Map, influence, tension track, scoring                                                                                                                                                                                                   | every card; a rules decision for the owner, not an engine request                                      |
 
 ## Cut from Notion (rows left at "Idea")
 
-| Notion row                                                                                       | Why                                                                                              |
-| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
-| "Contract of the Century" (BTC Pipeline)                                                         | Dated 2005-06 (Era 2 by the owner's own open point); low hook; Shale and Gas Cutoff cover energy |
-| RTLM                                                                                             | Folded into Rwandan Genocide                                                                     |
-| 2000 US Election (Bush v. Gore)                                                                  | Folded into Populist Wave (Era 3)                                                                |
-| Oklahoma City Bombing                                                                            | Domestic terrorism with no LIO/SAE angle; tone                                                   |
-| 5G & Huawei Ban                                                                                  | Folded into Chip Chokepoint                                                                      |
-| Oreshnik & New START, Prague Reset & New START, INF & Open Skies                                 | Merged into one neutral "Arms Control Unravels" (the INF row is the one updated)                 |
-| Prompt Global Strike & X-37B                                                                     | Low hook; Hypersonics covers the arms race                                                       |
-| Sri Lanka & Zambia defaults                                                                      | Folded into Belt and Road                                                                        |
-| JCPOA & Max Pressure                                                                             | Folded into Iran: SWIFT Cutoff and the Deal                                                      |
-| Nord Stream & LNG                                                                                | Blame for the 2022 pipeline sabotage is contested; Gas Cutoff and Shale cover the theme          |
-| Sochi & Doping, "No Limits" Olympics / Sportswashing, 2008 Beijing Olympics (as a separate card) | Three Olympics cards overlap; Beijing 2008 survives inside Olympic Summer 2008                   |
-| First BRIC Summit                                                                                | Folded into Parallel Plumbing                                                                    |
-| WikiLeaks Cablegate, Snowden/PRISM                                                               | Merged into The Leaks (the Snowden row is the one updated)                                       |
-| Jan 6, Brexit (as SAE cards)                                                                     | Merged into neutral Populist Wave (the Brexit row is the one updated)                            |
-| RCEP                                                                                             | Low hook; Belt and Road and Parallel Plumbing cover it                                           |
-| Oct 7 & Gaza                                                                                     | Omitted for tone; Owner question 14                                                              |
-| Fukushima, Yellow Vests, Pegasus                                                                 | Low LIO/SAE angle; cut to make room                                                              |
-| Return of Trump, TPP & Section 301                                                               | Folded into Tariff Shock (roles only)                                                            |
+| Notion row                                                                                       | Why                                                                                                                                  |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| "Contract of the Century" (BTC Pipeline)                                                         | Dated 2005-06 (Era 2 by the owner's own open point); low hook; Shale and Gas Cutoff covered energy (both since removed by the owner) |
+| RTLM                                                                                             | Folded into Rwandan Genocide                                                                                                         |
+| 2000 US Election (Bush v. Gore)                                                                  | Folded into Populist Wave (Era 3)                                                                                                    |
+| Oklahoma City Bombing                                                                            | Domestic terrorism with no LIO/SAE angle; tone                                                                                       |
+| 5G & Huawei Ban                                                                                  | Folded into Chip Chokepoint                                                                                                          |
+| Oreshnik & New START, Prague Reset & New START, INF & Open Skies                                 | Merged into one neutral "Arms Control Unravels", since removed by the owner                                                          |
+| Prompt Global Strike & X-37B                                                                     | Low hook; Hypersonics covers the arms race                                                                                           |
+| Sri Lanka & Zambia defaults                                                                      | Folded into Belt and Road                                                                                                            |
+| JCPOA & Max Pressure                                                                             | Folded into Iran: SWIFT Cutoff and the Deal, since removed by the owner                                                              |
+| Nord Stream & LNG                                                                                | Blame for the 2022 pipeline sabotage is contested; Gas Cutoff and Shale covered the theme (both since removed by the owner)          |
+| Sochi & Doping, "No Limits" Olympics / Sportswashing, 2008 Beijing Olympics (as a separate card) | Three Olympics cards overlap; Beijing 2008 survives inside Olympic Summer 2008                                                       |
+| First BRIC Summit                                                                                | Folded into Parallel Plumbing                                                                                                        |
+| WikiLeaks Cablegate, Snowden/PRISM                                                               | Merged into The Leaks (the Snowden row is the one updated)                                                                           |
+| Jan 6, Brexit (as SAE cards)                                                                     | Merged into neutral Populist Wave (the Brexit row is the one updated)                                                                |
+| RCEP                                                                                             | Low hook; Belt and Road and Parallel Plumbing cover it                                                                               |
+| Oct 7 & Gaza                                                                                     | Omitted for tone; Owner question 14                                                                                                  |
+| Fukushima, Yellow Vests, Pegasus                                                                 | Low LIO/SAE angle; cut to make room                                                                                                  |
+| Return of Trump, TPP & Section 301                                                               | Folded into Tariff Shock (roles only)                                                                                                |
 
 ## Owner questions
 
-Each is a question, an assumption I made to carry on, or a conflict I found. None is resolved here.
+Each is a question, an assumption I made to carry on, or a conflict I found. Where the owner has answered, the
+answer follows the question as **Answered**.
 
 1. **Neutral Contingency draws.** The card schema's `foreignDraws` check forbids a neutral card drawing a
    Contingency card ("neutral events have no Contingency deck yet"), but core-loop.md and contingency-deck.md
    (decision 17) say a neutral event draws from the deck of the side that played it. I did not loosen the schema;
-   all 24 neutral cards use choices instead of draws. Should the schema follow decision 17?
+   all 22 neutral cards use choices instead of draws. Should the schema follow decision 17?
+   **Answered:** yes, allow it; the schema change is its own task after this pull request.
 2. **Cross-deck draws.** A side's card may draw only from its own deck. Several gambles would read better drawing
    from the rival's deck (the rival's luck). Designed around; worth allowing?
 3. **`flags` and the card skill.** `.claude/skills/card/SKILL.md` mentions `flags` and `schema/steps.ts`; the
    schema has neither (`flags` removed until the rules that use them arrive). The skill looks out of date; I did
    not edit `.claude/`.
-4. **TEST scenario placeholders.** TURNS = 6, PLAYS_PER_TURN = 1, HAND_SIZE = 7 (dev fixture), eras entering on
-   turns 3 and 5, default Contingency decks. Please replace with your values; the deck size tolerates a wide range.
-5. **Stopgap reading.** Strict (cards at the start) or cumulative (all eras)? 13 per side meets strict at 6 x 2.
+4. **TEST scenario placeholders.** TURNS = 4, PLAYS_PER_TURN = 1 (dev fixture), eras entering on turns 2, 3 and 4,
+   default Contingency decks. Please replace with your values; the deck size tolerates a wide range.
+5. **Stopgap reading.** Strict (cards at the start) or cumulative (all eras)? With the 6/2/3 deal (question 27)
+   each side holds 8 non-neutral cards, which meets strict at 4 x 2 exactly.
 6. **Era names.** eras.md leaves them undecided. The JSON will use `era-1`, `era-2`, `era-3` and `future`.
 7. **Rules-text verb for `spendPoints`.** The step only records a `pointsSpent` event today. I write "LIO spends
    2 points". If the rules later make this influence or tension, every rules text changes with it.
@@ -232,31 +253,34 @@ Each is a question, an assumption I made to carry on, or a conflict I found. Non
    Pre-bunking, Salisbury and the Sleuths, Sandworm, Arms Control Unravels. If you meant those cards to be gone,
    delete the new rows and tell me; if not, you can empty the trash. Twelve more rows fetch as deleted but
    accepted updates; I left them as live.
+   **Answered:** the trash was deliberate; these events are not well known or significant enough. All 18 cards
+   were removed from the deck, their numbers stay unused, and the fresh Draft rows were trashed too.
 9. **Row count.** One query returned 93 rows, the full fetch 92. I worked from 92.
 10. **Spy arrests moved to LIO.** Ames (Era 1), Montes (Era 2) and Ghost Stories (Era 3) are now LIO cards (the
     arrest is LIO's win); Hanssen stays SAE (the leak is the event). Montes spied for Cuba, not for Russia or China:
     keep her as an LIO counter-intelligence card or swap for another case?
 11. **9/11 and the 2008 crash.** Both are cards (neutral Ops 1 September 11; SAE Ops 2 Global Financial Crisis)
-    and both open an era. If you prefer era-opening events instead, cut them and the era counts drop to 33.
-12. **Real names, legal.** Living people named in text: Putin, Snowden, Assad, Ames, Montes, Shevardnadze (died
-    2014), Hariri (killed 2005), Litvinenko (died 2006), Hanssen (died 2023), Primakov (died 2015). Companies:
-    Huawei, SpaceX/Starlink, Netscape, Apple, Nvidia, DeepSeek, Bellingcat, COSCO, Citigroup, Morgan Stanley,
-    Banco Delta Asia, Lehman Brothers, WikiLeaks. All in [name-swap.md](name-swap.md) with replacements.
+    and both open an era. If you prefer era-opening events instead, cut them and those era counts drop by one.
+12. **Real names, legal.** Living people named in text: Putin, Snowden, Assad, Ames, Montes. Also named: Hariri (killed 2005), Litvinenko (died 2006), Hanssen (died 2023), Primakov (died 2015). Companies:
+    Huawei, SpaceX/Starlink, Netscape, Apple, Nvidia, DeepSeek, COSCO, Citigroup, Morgan Stanley, Lehman Brothers,
+    WikiLeaks. All in [name-swap.md](name-swap.md) with replacements. The owner chose to keep the Huawei mention in
+    Chip Chokepoint and the Sri Lanka (Hambantota) mention in Belt and Road.
 13. **Olympics.** Three overlapping Notion cards became one (Olympic Summer 2008). Sportswashing as a theme is gone.
 14. **Oct 7 and Gaza.** Omitted for tone. Say so if you want it, and whether as neutral.
 15. **Populist Wave (Brexit + Jan 6) as neutral.** The card lets SAE "amplify online" and never scores voters'
     choices themselves. Is that neutral enough, or should Brexit and Jan 6 stay apart or stay out?
 16. **`cardPlayed` fires for both sides' plays.** Dot-com, Golden Shield and The Leaks score after every card this
     turn, including the rival's. The rules text says so. OK, or wait for W2?
-17. **Ops 4 cards.** Six exist (one per side per era). Is 4 the cap you want? No card has Ops 0.
+17. **Ops 4 cards.** Five exist (one per side per era, except Era 3 LIO, whose Ops 4 card was removed). Is 4 the
+    cap you want? No card has Ops 0.
 18. **Future cards.** Six roles-only 2025-2027 cards are designed (era-3.md). Build them in stage 4 or not?
 19. **Flavour-only choices.** Partnership for Peace and Ghost Stories have a dominant answer. Keep or sharpen?
 20. **Softened facts.** Where a search could not confirm a detail I softened it: ISS Expedition 1 "November 2000";
-    Georgia ceasefire "brokered by France" without a date; BDA "about $25 million"; no Facebook date; no Avangard;
-    Baltic cable damage "late 2024"; rare earth "reported halt ... disputed"; Nvidia "nearly $600 billion"; US shale
-    "largest producer" (no "net exporter" claim); Russian 1992 inflation not quantified.
+    Georgia ceasefire "brokered by France" without a date; no Facebook date; no Avangard; Baltic cable damage
+    "late 2024"; rare earth "reported halt ... disputed"; Nvidia "nearly $600 billion"; Russian 1992 inflation not
+    quantified.
 21. **Migration is thin.** One card (Migration Crisis 2015). A second (the 2021 Belarus border crisis, SAE, Era 3)
-    would need to replace a card to keep 13/13/8. Want it?
+    could be added to Era 3 (now 8 LIO, 12 SAE, 7 neutral). Want it?
 22. **Side assignments that may read as judgement.** Mogadishu, Fall of Kabul, Abu Ghraib and Invasion of Iraq are
     SAE cards because the events hurt LIO, not because SAE caused them; same logic for Rwanda being neutral. OK?
 23. **Taiwan Strait, Hainan, Pristina: LIO chooses on an SAE card.** The rival decides the branch of your card.
@@ -268,19 +292,22 @@ Each is a question, an assumption I made to carry on, or a conflict I found. Non
     today. A builder adding a turn-end spend of 2 must check.
 26. **Neutral events cannot run yet.** The engine plays a neutral card for points only (marked TEMPORARY in
     `packages/engine/src/decisions.ts`) and excludes neutral cards from opening picks, while core-loop.md says neutral
-    cards have events and can open. All 8 neutral cards are built with their intended effect, but in a game they
+    cards have events and can open. All 22 neutral cards are built with their intended effect, but in a game they
     only ever give points. Lift the engine rule when you are ready; no card needs to change.
+    **Answered:** lift it next, as an engine task after this pull request.
 27. **Hands never refill, so the deal is a stopgap.** The plan's HAND_SIZE of 7 cannot work: each side must hold at
-    least turns x (1 + plays per turn) non-neutral cards for the whole game. The AI game deals all 34 Era 1 cards:
-    each side gets 9 of its own, 4 of the rival's and 4 neutral ones (17), the deck pile is empty. Cards meant to
-    arrive later (deck or later eras) would never be played. Confirm the intended hand and deal rules.
+    least turns x (1 + plays per turn) non-neutral cards for the whole game. The AI game deals 22 of the 28 Era 1
+    cards: each side gets 6 of its own, 2 of the rival's and 3 neutral ones (11); the other 6 (5 SAE, 1 neutral)
+    go to the draw pile, like the later eras' cards. Cards in the draw pile are never played. Confirm the intended
+    hand and deal rules.
 28. **Ops swings affect all points spent.** The engine's modifier changes every point spent, not only points from
     "play for points". The plan's wording was changed to "points spent by <side> count N more". OK, or should the
     engine tell the two apart?
 29. **The schema cannot list Era 1 in a scenario's `eras`.** `eras` names only later eras and each needs at least one
     card. The TEST scenario `first-deck-test` therefore has no `eras`; all Era 1 cards are dealt by the game setup.
-30. **TEST scenario numbers are placeholders.** 6 turns, 1 play per turn (needs 12 non-neutral cards per side;
-    the deal gives 13). Please set the real numbers.
+30. **TEST scenario numbers are placeholders.** 4 turns, 1 play per turn (needs 8 non-neutral cards per side;
+    the deal gives 8). It was 6 turns until the owner's removal left LIO with only 8 Era 1 cards. Please set the
+    real numbers.
 31. **The app reaches the real cards through the host.** The app may not import content, so
     `packages/host/src/firstDeck.ts` (exported as `@terminal-dusk/host/first-deck`) holds the seeded deal and card
     names. Two new package subpath exports were added (content `./first-deck`, host `./first-deck`) so that the
@@ -291,7 +318,7 @@ Each is a question, an assumption I made to carry on, or a conflict I found. Non
 33. **Commit trailer model name.** The task said "Claude Opus 5.5"; a system reminder said "Claude Sonnet 5.5". The
     task text was followed. Please correct if needed.
 34. **Era 2 cards never reach a hand in the practice game.** Era 2 enters through the TEST scenario's `eras` entry
-    (turn 3), so its 34 cards are shuffled into the draw pile then. The engine never moves cards from the draw pile
+    (turn 2), so its 29 cards are shuffled into the draw pile then. The engine never moves cards from the draw pile
     into hands, so in the AI game no Era 2 card is ever played. The cards are built, tested and loaded; they will
     appear in games once the rules say how hands refill (see question 27).
 35. **A "count more" bonus also hits a turn-end spend (SARS).** At the end of a turn the turn-end triggers fire
@@ -301,13 +328,13 @@ Each is a question, an assumption I made to carry on, or a conflict I found. Non
 36. **Several turn-end triggers are logged before any of them spends.** When two turn-end triggers are waiting, the
     engine records both as fired and then runs their spends. This only changes the order of the history log, not the
     result. SARS (both say no) shows it.
-37. **Era 2 test scenario is still a test.** Era 2 enters at turn 3 of the placeholder 6-turn scenario purely to
+37. **Era 2 test scenario is still a test.** Era 2 enters at turn 2 of the placeholder 4-turn scenario purely to
     exercise the `eras` setup; the real turn of entry depends on the unresolved turn count (question 30).
-38. **Future cards enter on turn 6.** The plan names the era string `future` but no turn. They enter the TEST scenario
-    on turn 6 (the last of the placeholder 6) in their own `eras` entry and live in `cards/future/` with ids `ef-...`.
+38. **Future cards enter on turn 4.** The plan names the era string `future` but no turn. They enter the TEST scenario
+    on turn 4 (the last of the placeholder 4) in their own `eras` entry and live in `cards/future/` with ids `ef-...`.
     Say where they should really go, or whether they should be built at all (question 18).
-39. **Era 3 enters on turn 5.** As planned in the TEST scenario block. It is a placeholder like Era 2's turn 3 (question 37).
-40. **Ruleset size.** The first-deck ruleset now holds 108 cards, future cards included. An owner who drops the optional
+39. **Era 3 enters on turn 3.** A placeholder like Era 2's turn 2 (question 37).
+40. **Ruleset size.** The first-deck ruleset now holds 90 cards, future cards included. An owner who drops the optional
     cards removes `futureFiles.ts`, its `eras` entry and one line in `firstDeckRules.ts`; nothing else depends on them.
 41. **Era 3 cards still dormant in the AI game.** Same cause as question 34: hands never refill, so no Era 3 or future
     card is ever played in the practice game. They are built, tested and loaded.
@@ -322,7 +349,6 @@ Each is a question, an assumption I made to carry on, or a conflict I found. Non
     Budapest Memorandum (SAE: yes gives SAE 1, no gives LIO 1; add `mod sae -1 min 1 (turn)` to yes);
     NATO Enlargement 1999 (SAE: a failed protest costs the same as no protest; make the failed branch `spend lio 2`);
     Oslo Accords (SAE: yes adds SAE 1 on top of the same LIO 1; add `mod sae -1 min 1 (turn)` to yes);
-    Argentine Default (LIO: yes gives each side 1, no gives SAE 2; add `mod lio -1 min 1 (turn)` to yes);
     AI Compute Race (LIO: yes gives LIO 1 more and SAE the same 1; make no `spend sae 2` or give yes a cost);
     Tariff Shock (SAE: no gives SAE 1 at turn end with no penalty, yes gives SAE 1 now plus a -1; give no a cost or
     drop the penalty); Populist Wave (SAE: yes gives SAE 1 and LIO 1 less, no gives LIO 1; one-sided by design?).

@@ -1,17 +1,9 @@
 # Era 2 cards: 2001 to 2008 (9/11 to the crash)
 
 Part of the [deck plan](deck-plan.md). Notation, rules-text templates and the wish-list codes (W1-W8) are
-defined there. Every card: LIO and SAE 13 each, neutral 8. Era string in JSON: `"era-2"`.
+defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8; the owner removed the rest as not well known or significant enough, and their numbers stay unused). Era string in JSON: `"era-2"`.
 
-## LIO (13)
-
-### e2-lio-001 · Jawbreaker: Fall of the Taliban · LIO · Ops 3 · Hold
-
-- **Event:** A handful of CIA officers and US air power topple the Taliban in weeks.
-- **Design:** LIO 2 now; the long war that follows feeds SAE 1 at the end of every later turn (W1).
-- **Playable:** `marker "swift campaign"; spend lio 2; on turnEnd { spend sae 1 }`
-- **History:** A small CIA team code-named Jawbreaker landed in Afghanistan's Panjshir Valley on 26 September 2001; with US air support and Afghan allies, the Taliban lost Kabul on 13-14 November 2001.
-- **Theme:** proxy wars · **Notion:** recreated `3feeb012942f8175a23cc8a42fb76174` (original row `3fceb012942f810ab15dc20ddc8179ca` is in the Notion trash)
+## LIO (10)
 
 ### e2-lio-002 · Article 5 Invoked · LIO · Ops 1 · Opener
 
@@ -21,14 +13,6 @@ defined there. Every card: LIO and SAE 13 each, neutral 8. Era string in JSON: `
 - **History:** NATO invoked Article 5 of its founding treaty for the first time after the 11 September 2001 attacks, provisionally on 12 September and definitively on 2 October 2001.
 - **Theme:** alliances · **Notion:** create
 
-### e2-lio-003 · Colour Revolutions · LIO · Ops 3 · Tempo
-
-- **Event:** Disputed elections in Georgia and Ukraine are overturned by crowds in the streets.
-- **Design:** LIO 2 and +1 Ops this turn; SAE later treats every protest as foreign-made (W3 tag).
-- **Playable:** `marker "colour revolution"; spend lio 2; mod lio +1 (turn)`
-- **History:** Georgia's Rose Revolution forced President Shevardnadze to resign on 23 November 2003 after a disputed election; Ukraine's Orange Revolution, from 22 November 2004 into January 2005, overturned a disputed presidential run-off.
-- **Theme:** populism and elections · **Notion:** recreated `3feeb012942f8188beedc9e6b0f877a4` (original row `3fceb012942f817692b0ef1b99dc99ea` is in the Notion trash)
-
 ### e2-lio-004 · ABM Treaty Withdrawal · LIO · Ops 2 · Split (LIO)
 
 - **Event:** Washington leaves the 1972 missile-defence treaty to build interceptors.
@@ -36,14 +20,6 @@ defined there. Every card: LIO and SAE 13 each, neutral 8. Era string in JSON: `
 - **Playable:** `ask lio "Leave the treaty?" -> v; if yes v { marker "treaty gone"; spend lio 2; spend sae 1 } else { spend lio 1 }`
 - **History:** The United States gave notice of withdrawal from the 1972 Anti-Ballistic Missile Treaty on 13 December 2001; the withdrawal took effect on 13 June 2002.
 - **Theme:** alliances, arms · **Notion:** update `3fceb012942f81a8b2f5dc9d24719954`
-
-### e2-lio-005 · Banco Delta Asia · LIO · Ops 2 · Gamble
-
-- **Event:** The Treasury blacklists a small Macau bank and North Korea's money freezes.
-- **Design:** Financial pressure works (LIO 2) or Pyongyang walks out of talks (LIO 1, SAE 1). Would use a neutral-style outcome table (W4).
-- **Playable:** `marker "accounts frozen"; draw lio -> d; if d >= 3 { spend lio 2 } else { spend lio 1; spend sae 1 }`
-- **History:** On 15 September 2005 the US Treasury designated Banco Delta Asia in Macau a "primary money laundering concern" over North Korean accounts; Macau froze about 50 accounts holding some $25 million.
-- **Theme:** sanctions and finance · **Notion:** recreated `3feeb012942f8146895afd2a323bba30` (original row `3fceb012942f81f191e0fc0cf4cfe8ad` is in the Notion trash)
 
 ### e2-lio-006 · Libya Disarms · LIO · Ops 2 · Plain
 
@@ -109,7 +85,7 @@ defined there. Every card: LIO and SAE 13 each, neutral 8. Era string in JSON: `
 - **History:** The United States and India announced a civil nuclear cooperation initiative on 18 July 2005; the Nuclear Suppliers Group granted India a waiver on 6 September 2008 and the bilateral "123 Agreement" was signed on 10 October 2008.
 - **Theme:** alliances · **Notion:** create
 
-## SAE (13)
+## SAE (11)
 
 ### e2-sae-001 · Invasion of Iraq · SAE · Ops 3 · Hot
 
@@ -151,14 +127,6 @@ defined there. Every card: LIO and SAE 13 each, neutral 8. Era string in JSON: `
 - **History:** Former Russian officer Alexander Litvinenko fell ill in London on 1 November 2006 and died on 23 November from polonium-210 poisoning; in 2021 the European Court of Human Rights found Russia responsible.
 - **Theme:** gray-zone · **Notion:** update `3fceb012942f81d58bdec2e6d2fb0185`
 
-### e2-sae-006 · Gas Cutoff · SAE · Ops 3 · Split (SAE)
-
-- **Event:** Moscow turns off the gas to Ukraine in midwinter and Europe shivers.
-- **Design:** SAE chooses: close the valves (SAE 2 and -1 Ops this turn; LIO 1 at turn end as Europe diversifies) or keep selling (SAE 1).
-- **Playable:** `marker "valves closed"; ask sae "Turn off the gas?" -> v; if yes v { spend sae 2; mod sae -1 min 1 (turn); on turnEnd { spend lio 1 } } else { spend sae 1 }`
-- **History:** Russia cut gas deliveries to Ukraine on 1 January 2006 and again on 1 January 2009 in pricing disputes; in January 2009 transit to Europe stopped for days, leaving around a dozen countries short of gas in midwinter.
-- **Theme:** energy and supply chains · **Notion:** recreated `3feeb012942f81d0acabf90f8c9ae5a5` (original row `3fceb012942f813fab60c4f002116433` is in the Notion trash)
-
 ### e2-sae-007 · North Korean Nuclear Test · SAE · Ops 2 · Gamble
 
 - **Event:** Pyongyang leaves the NPT and sets off its first bomb.
@@ -174,14 +142,6 @@ defined there. Every card: LIO and SAE 13 each, neutral 8. Era string in JSON: `
 - **Playable:** `marker "oil diplomacy"; spend sae 2; on turnEnd { spend lio 1 }`
 - **History:** Venezuela founded Petrocaribe on 29 June 2005, offering Caribbean states oil on preferential terms; in November 2005 the US-backed Free Trade Area of the Americas stalled at the Mar del Plata summit.
 - **Theme:** energy, finance · **Notion:** update `3fceb012942f81eda8fdc6cdba372363`
-
-### e2-sae-009 · Argentine Default · SAE · Ops 2 · Split (LIO)
-
-- **Event:** The IMF's model pupil defaults on $93 billion.
-- **Design:** LIO may offer new loans (LIO 1 now, SAE 1 at turn end as resentment lingers) or walk away (SAE 2).
-- **Playable:** `marker "consensus cracks"; ask lio "Offer new loans?" -> v; if yes v { spend lio 1; on turnEnd { spend sae 1 } } else { spend sae 2 }`
-- **History:** Argentina froze bank withdrawals on 1 December 2001 and in late December 2001 defaulted on roughly $93 billion of debt, then the largest sovereign default in history.
-- **Theme:** sanctions and finance · **Notion:** recreated `3feeb012942f81249343deb3d54cb543` (original row `3fceb012942f81df97c4e8ffb33acaf4` is in the Notion trash)
 
 ### e2-sae-010 · Peace Mission 2005 · SAE · Ops 3 · Tempo
 
@@ -283,7 +243,7 @@ defined there. Every card: LIO and SAE 13 each, neutral 8. Era string in JSON: `
 
 ## Stage 3 build notes
 
-All 34 cards are built as `packages/content/cards/era-2/<id>.json`, each with a test that plays it in the real engine
+All 29 cards are built as `packages/content/cards/era-2/<id>.json`, each with a test that plays it in the real engine
 and checks every branch. The JSON follows the "Playable" line of each card one-for-one; no card was built weaker than
 planned. The rules text of each file is written from the JSON.
 
