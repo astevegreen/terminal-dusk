@@ -29,12 +29,22 @@ this file is the source of truth; change it in Notion and promote again.
   - an action a side takes (a coup, for example) draws from that side's deck;
   - when both sides draw at once (the Notion page gives a realignment as an example), each side draws one card
     from its own deck;
-  - an event draws from the deck of the side the event belongs to. A rival's card played for its action
+  - an event draws from the deck of the side the event belongs to, unless its text names the rival's deck
+    (below). A rival's card played for its action
     points runs as the rival's event (docs/design/core-loop.md), so it draws from the rival's deck.
   - a neutral event draws from the deck of the side that played the card (for an opening pick, the side
     that picked it). This holds for every draw in the event, whichever side answers its choices. Example:
     LIO plays a neutral card whose event says "SAE chooses, then draw a contingency"; the draw comes from
     LIO's deck (owner, 18 Oct, decision 17 option c).
+  - **Drawing from the rival's deck** (owner, 19 Oct, answering Owner question 2 of the first-deck plan,
+    PR #121). Any LIO or SAE card's event may draw from the rival's deck instead of
+    its own, when its text names that deck. One card may draw from both decks, for example "each side
+    draws; the higher number wins". The card names the deck; who played the card never changes it. So when
+    SAE plays an LIO card for its action points and the LIO event draws from SAE's deck, SAE's own deck is
+    drawn.
+  - Such a draw is an ordinary draw from that deck: the card is used up and set aside, it counts toward
+    that deck's reshuffle exactly like its owner's own draws, and players see it like any other draw
+    (below). A neutral card drawing from the deck of the side that did not play it is not part of this rule.
 
 ## Reshuffle
 
@@ -67,6 +77,9 @@ this file is the source of truth; change it in Notion and promote again.
 
 ## Not decided yet
 
-- The exact card wording for a draw.
+- The exact card wording for a draw. A draw from the rival's deck uses a placeholder too, such as
+  "draw a contingency from SAE's deck".
+- Once modifiers can change a drawn number: when a side's card draws from the rival's deck, whether that
+  side's bonuses apply (it is that side's event) or the deck owner's (owner, 19 Oct: decide later).
 - Backup idea from the Notion page, not adopted: if playtests show single misses still sting, a bad-luck token (each 1 drawn earns
   one, hold at most 2, spend one for +1 on a later draw).

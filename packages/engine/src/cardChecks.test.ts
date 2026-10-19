@@ -125,7 +125,7 @@ describe("createGame: each hand holds turns x (1 + playsPerTurn) non-neutral car
   });
 });
 
-describe("createGame: a side's card draws only from its own deck, a neutral card from the player's", () => {
+describe("createGame: which Contingency decks a card's event may draw from", () => {
   const draw = (side: Side | "player"): Step => ({ op: "drawContingency", side });
   const placements = (step: Step): [string, Step[]][] => [
     ["at the top", [step]],
@@ -143,19 +143,17 @@ describe("createGame: a side's card draws only from its own deck, a neutral card
   it.each([
     ["lio", "sae"],
     ["sae", "lio"],
-  ] as const)("refuses a %s card drawing from %s's deck", (own, other) => {
-    for (const [, effect] of placements(draw(other))) expect(outcomeOf(own, effect)).toBe("invalidRuleset");
+  ] as const)("accepts a %s card drawing from %s's deck (the rival's), at any depth (owner, 19 Oct)", (own, other) => {
+    for (const [, effect] of placements(draw(other))) expect(outcomeOf(own, effect)).toBe("ok");
+  });
+  it.each(["lio", "sae"] as const)("accepts a %s card drawing from both decks", (side) => {
+    expect(outcomeOf(side, [draw("lio"), draw("sae")])).toBe("ok");
   });
   it.each(["lio", "sae"] as const)("refuses a neutral card drawing from %s's deck", (side) => {
     for (const [, effect] of placements(draw(side))) expect(neutralOutcome(effect)).toBe("invalidRuleset");
   });
   it.each(["lio", "sae"] as const)("accepts a %s card drawing from its own deck, at any depth", (side) => {
     for (const [, effect] of placements(draw(side))) expect(outcomeOf(side, effect)).toBe("ok");
-  });
-  it("names the card and both sides in the error", () => {
-    const rs = withCards([...ruleset.cards.slice(1), testCard("l1", 1, "lio", [draw("sae")])]);
-    const r = createGame(rs, makeSetup(), "seed-1");
-    expect(!r.ok && r.error.message).toBe("Card l1 is an LIO card, but its event draws from SAE's Contingency deck.");
   });
   it("accepts a neutral card drawing from the deck of the side that played it, at any depth", () => {
     for (const [, effect] of placements(draw("player"))) expect(neutralOutcome(effect)).toBe("ok");
@@ -167,14 +165,14 @@ describe("createGame: a side's card draws only from its own deck, a neutral card
     const rs = withCards([...ruleset.cards.slice(1), testCard("l1", 1, "neutral", [draw("lio")])]);
     const r = createGame(rs, makeSetup(), "seed-1");
     expect(!r.ok && r.error.message).toBe(
-      'Card l1 is a neutral card, but its event draws from LIO\'s Contingency deck; a neutral event draws from the deck of the side that played it ("side": "player").',
+      `Card l1 is a neutral card, but its event draws from LIO's Contingency deck; a neutral event draws from the deck of the side that played it ("side": "player").`,
     );
   });
-  it("tells a side's card drawing from the player's deck to use its own deck", () => {
+  it("tells a side's card drawing from the player's deck to name LIO's or SAE's deck", () => {
     const rs = withCards([...ruleset.cards.slice(1), testCard("l1", 1, "sae", [draw("player")])]);
     const r = createGame(rs, makeSetup(), "seed-1");
     expect(!r.ok && r.error.message).toBe(
-      "Card l1 is an SAE card, but its event draws from the deck of the side that played it; an SAE event draws from SAE's Contingency deck.",
+      "Card l1 is an SAE card, but its event draws from the deck of the side that played it; only a neutral event does, and an SAE event names LIO's or SAE's deck.",
     );
   });
 });

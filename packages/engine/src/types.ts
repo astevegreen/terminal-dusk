@@ -184,7 +184,7 @@ export type Condition =
  * A card choice is only ever both sides at once: the turn's opening pick (turn.ts). Card effects may
  * not hold one (cardChecks.ts). `spendPoints` is how a play for points spends them (turn.ts):
  * TEMPORARY until the actions are designed, it only emits a pointsSpent event. `drawContingency`
- * draws from `side`'s Contingency deck (an event draws from the deck of the side it belongs to) and
+ * draws from `side`'s Contingency deck (an LIO or SAE card may name either deck) and
  * binds the number to `bind`, if given. `side` "player" is the side that played the card: a neutral
  * event's draws, and only theirs, name it (docs/design/contingency-deck.md, cardChecks.ts).
  * `addToNumber` adds the non-zero whole `amount` (negative subtracts) to the number bound to `var`.

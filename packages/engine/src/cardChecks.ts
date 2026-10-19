@@ -25,8 +25,8 @@ export function rulesetError(ruleset: Ruleset): EngineError | null {
       if (holdsCardChoice(card.effect)) {
         return invalidRuleset(`Card ${card.id}'s effect asks both sides to pick a card; only a turn's opening does.`);
       }
-      const bad = findForeignDraw(card.effect, card.affiliation);
-      if (bad !== null) return invalidRuleset(foreignDrawMessage(card.id, card.affiliation, bad));
+      const misplaced = findMisplacedDraw(card.effect, card.affiliation);
+      if (misplaced !== null) return invalidRuleset(misplacedDrawMessage(card.id, card.affiliation, misplaced));
     }
   }
   return null;
@@ -34,28 +34,24 @@ export function rulesetError(ruleset: Ruleset): EngineError | null {
 
 const SIDE_NAMES = { lio: "LIO", sae: "SAE" } as const;
 
-/** The plain-English reason a card may not draw from `drawn`'s Contingency deck. */
-function foreignDrawMessage(id: CardId, affiliation: Side | "neutral", drawn: Side | "player"): string {
+/** The plain-English reason a card may not draw from `drawn`, a deck it may not name. */
+function misplacedDrawMessage(id: CardId, affiliation: Side | "neutral", drawn: Side | "player"): string {
   if (affiliation === "neutral") {
     return `Card ${id} is a neutral card, but its event draws from ${SIDE_NAMES[drawn as Side]}'s Contingency deck; a neutral event draws from the deck of the side that played it ("side": "player").`;
   }
-  const own = SIDE_NAMES[affiliation];
-  if (drawn === "player") {
-    return `Card ${id} is an ${own} card, but its event draws from the deck of the side that played it; an ${own} event draws from ${own}'s Contingency deck.`;
-  }
-  return `Card ${id} is an ${own} card, but its event draws from ${SIDE_NAMES[drawn]}'s Contingency deck.`;
+  return `Card ${id} is an ${SIDE_NAMES[affiliation]} card, but its event draws from the deck of the side that played it; only a neutral event does, and an ${SIDE_NAMES[affiliation]} event names LIO's or SAE's deck.`;
 }
 
 /**
  * The deck named by the first `drawContingency` in `steps` (at any depth) that this card may not draw
- * from, or null. A side's card may only draw its own deck; a neutral card only the deck of the side that
- * played it, "player" (docs/design/contingency-deck.md, decision 17).
+ * from, or null. An LIO or SAE card may draw from either deck, the rival's included, and from both (owner
+ * 19 Oct); a neutral card only from the deck of the side that played it, "player" (decision 17). Both are
+ * in docs/design/contingency-deck.md.
  */
-const findForeignDraw = (steps: readonly Step[], affiliation: Side | "neutral"): Side | "player" | null => {
-  const allowed = affiliation === "neutral" ? "player" : affiliation;
+const findMisplacedDraw = (steps: readonly Step[], affiliation: Side | "neutral"): Side | "player" | null => {
   for (const step of steps) {
-    if (step.op === "drawContingency" && step.side !== allowed) return step.side;
-    const found = findForeignDraw(innerSteps(step), affiliation);
+    if (step.op === "drawContingency" && (step.side === "player") !== (affiliation === "neutral")) return step.side;
+    const found = findMisplacedDraw(innerSteps(step), affiliation);
     if (found !== null) return found;
   }
   return null;

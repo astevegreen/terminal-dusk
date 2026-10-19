@@ -125,7 +125,7 @@ describe("card schema: rejected unknown fields", () => {
   });
 });
 
-describe("card schema: a side's card draws only from its own deck, a neutral card from the player's", () => {
+describe("card schema: which Contingency decks a card's event may draw from", () => {
   const drawOf = (side: string) => ({ op: "drawContingency", side });
   const placements = (step: unknown): [string, unknown[], (string | number)[]][] => [
     ["at the top", [step], ["effect", 0, "side"]],
@@ -150,13 +150,15 @@ describe("card schema: a side's card draws only from its own deck, a neutral car
   it.each([
     ["lio", "sae"],
     ["sae", "lio"],
-  ])("rejects a %s card drawing from %s's deck, pointing at the step's side", (own, other) => {
-    for (const [, effect, path] of placements(drawOf(other))) {
-      const issues = issuesOf({ ...validCard(), affiliation: own, effect });
-      const names = { lio: "LIO", sae: "SAE" } as const;
-      const message = `This is an ${names[own as "lio" | "sae"]} card, so its event can only draw from ${names[own as "lio" | "sae"]}'s Contingency deck, not ${names[other as "lio" | "sae"]}'s.`;
-      expect(issues.map((issue) => [issue.path, issue.message])).toEqual([[path, message]]);
+  ])("accepts a %s card drawing from %s's deck (the rival's), at any depth (owner, 19 Oct)", (own, other) => {
+    for (const [, effect] of placements(drawOf(other))) {
+      expect(issuesOf({ ...validCard(), affiliation: own, effect })).toEqual([]);
     }
+  });
+
+  it.each(["lio", "sae"])("accepts a %s card drawing from both decks", (side) => {
+    const effect = [drawOf("lio"), drawOf("sae")];
+    expect(issuesOf({ ...validCard(), affiliation: side, effect })).toEqual([]);
   });
 
   it.each(["lio", "sae"])(
@@ -181,7 +183,7 @@ describe("card schema: a side's card draws only from its own deck, a neutral car
     ["lio", "LIO"],
     ["sae", "SAE"],
   ])("rejects a %s card drawing from the deck of the side that played it, pointing at the step's side", (own, name) => {
-    const message = `This is an ${name} card, so its event can only draw from ${name}'s Contingency deck, not the deck of the side that played it ("player").`;
+    const message = `This is an ${name} card, so its event names the deck it draws from, "lio" or "sae"; only a neutral card draws from the deck of the side that played it ("player").`;
     for (const [, effect, path] of placements(drawOf("player"))) {
       const issues = issuesOf({ ...validCard(), affiliation: own, effect });
       expect(issues.map((issue) => [issue.path, issue.message])).toEqual([[path, message]]);
