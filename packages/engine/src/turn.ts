@@ -129,6 +129,7 @@ function startEvent(ruleset: Ruleset, state: GameState, events: GameEvent[], bud
 /**
  * `side` plays a card: it leaves the hand for `inPlay` at once. Your own card runs its event or spends
  * its points; a neutral card spends its points; a rival's card waits for its rivalEventOrder answer.
+ * A neutral card's event, once neutral cards may run one (decisions.ts), records `side` for its draws.
  */
 function play(
   ruleset: Ruleset,
@@ -147,7 +148,8 @@ function play(
     return null;
   }
   const steps = value.as === "event" ? (card?.effect ?? []) : [spendPoints(side, card?.ops ?? 0)];
-  return runProgram(state, steps, events, budget, value.card);
+  const player = value.as === "event" && card?.affiliation === "neutral" ? side : undefined;
+  return runProgram(state, steps, events, budget, value.card, player);
 }
 
 /**

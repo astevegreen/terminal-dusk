@@ -184,8 +184,9 @@ export type Condition =
  * A card choice is only ever both sides at once: the turn's opening pick (turn.ts). Card effects may
  * not hold one (cardChecks.ts). `spendPoints` is how a play for points spends them (turn.ts):
  * TEMPORARY until the actions are designed, it only emits a pointsSpent event. `drawContingency`
- * draws from `side`'s Contingency deck (an event draws from the deck of the side it belongs to) and
- * binds the number to `bind`, if given.
+ * draws from `side`'s Contingency deck (an LIO or SAE card may name either deck) and
+ * binds the number to `bind`, if given. `side` "player" is the side that played the card: a neutral
+ * event's draws, and only theirs, name it (docs/design/contingency-deck.md, cardChecks.ts).
  * `addToNumber` adds the non-zero whole `amount` (negative subtracts) to the number bound to `var`.
  * `modifier` makes a rule change, `mod`, that lasts for `duration`; its source is the card whose effect runs it.
  * A `spendPoints` `amount` is the printed ops: the opsValue modifiers in force change it when the step runs.
@@ -198,7 +199,7 @@ export type Step =
   | { op: "forEach"; over: string[]; bind: VarName; do: Step[] }
   | { op: "marker"; label: string; var?: VarName }
   | { op: "spendPoints"; side: Side; amount: number }
-  | { op: "drawContingency"; side: Side; bind?: VarName }
+  | { op: "drawContingency"; side: Side | "player"; bind?: VarName }
   | { op: "addToNumber"; var: VarName; amount: number }
   | { op: "modifier"; mod: ModifierSpec; duration: Duration }
   | { op: "trigger"; hook: HookId; do: Step[]; duration: Duration };
@@ -222,8 +223,11 @@ export type ModifierSpec = { hook: "opsValue"; side: Side | "both"; add: number;
 export type ModifierExpiry = { kind: "turnEnd"; turn: number };
 /** A modifier in force: the card whose effect made it, the rule change, and when it ends. */
 export type ActiveModifier = { source: CardId; mod: ModifierSpec; expires: ModifierExpiry };
-/** A trigger waiting for its hook: the card that set it, the hook, its reaction, and when it ends (as a modifier). */
-export type ActiveTrigger = { source: CardId; hook: HookId; do: Step[]; expires: ModifierExpiry };
+/**
+ * A trigger waiting for its hook: the card that set it, the hook, its reaction, and when it ends (as a modifier).
+ * `player`, when its program had one, is who played that card: its reaction runs with it (Frame, below).
+ */
+export type ActiveTrigger = { source: CardId; hook: HookId; do: Step[]; expires: ModifierExpiry; player?: Side };
 
 export type Binding = { name: VarName; value: VarValue };
 /** The block a frame runs, the index of its next step, and the variables bound in it, in binding order. */
@@ -232,10 +236,11 @@ type FrameBase = { steps: Step[]; next: number; vars: Binding[] };
  * One running block on the resolution stack: a program, an `if` branch, or a `forEach` body with its
  * items and the index of the current one. Frames are public: they never hold hidden data. A program run
  * for a card's effect or play records that card as `source`; the blocks inside it read their program's.
- * A program no card started (a turn's opening pick) has none.
+ * A program no card started (a turn's opening pick) has none. A neutral card's event also records
+ * `player`, the side that played the card, whose deck its "player" draws use.
  */
 export type Frame =
-  | (FrameBase & { kind: "program"; source?: CardId })
+  | (FrameBase & { kind: "program"; source?: CardId; player?: Side })
   | (FrameBase & { kind: "if" })
   | (FrameBase & { kind: "forEach"; bind: VarName; items: string[]; index: number });
 
