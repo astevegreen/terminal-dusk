@@ -8,7 +8,7 @@ every card here is also a Notion row with Status "Draft".
 
 - [era-1.md](era-1.md): 28 cards, 1991 to 9/11
 - [era-2.md](era-2.md): 29 cards, 9/11 to the 2008 crash
-- [era-3.md](era-3.md): 27 cards, 2008 to 2025, plus 6 optional roles-only "future" cards (2025-2027)
+- [era-3.md](era-3.md): 28 cards, 2008 to 2025, plus 6 optional roles-only "future" cards (2025-2027)
 - [name-swap.md](name-swap.md): every real name in card text and a neutral replacement
 - [progress.md](progress.md): stage tracker
 
@@ -218,7 +218,7 @@ works without it.
 | WikiLeaks Cablegate, Snowden/PRISM                                                               | Merged into The Leaks (the Snowden row is the one updated)                                                                           |
 | Jan 6, Brexit (as SAE cards)                                                                     | Merged into neutral Populist Wave (the Brexit row is the one updated)                                                                |
 | RCEP                                                                                             | Low hook; Belt and Road and Parallel Plumbing cover it                                                                               |
-| Oct 7 & Gaza                                                                                     | Omitted for tone; Owner question 14                                                                                                  |
+| Oct 7 & Gaza                                                                                     | Omitted for tone at first; added by the owner as neutral e3-neu-009 (Owner question 14)                                              |
 | Fukushima, Yellow Vests, Pegasus                                                                 | Low LIO/SAE angle; cut to make room                                                                                                  |
 | Return of Trump, TPP & Section 301                                                               | Folded into Tariff Shock (roles only)                                                                                                |
 
@@ -278,7 +278,8 @@ answer follows the question as **Answered**.
 13. **Olympics.** Three overlapping Notion cards became one (Olympic Summer 2008). Sportswashing as a theme is gone.
 14. **Oct 7 and Gaza.** Omitted for tone. Say so if you want it, and whether as neutral.
     **Answered:** add it as a neutral card. Its design (era, Ops, effect, text) is drafted for the owner's
-    approval first and built only once approved.
+    approval first and built only once approved. **Approved and built:** e3-neu-009 "October 7 and Gaza", Era 3,
+    Ops 2: each side chooses whether to press for a ceasefire (the owner picked this over a version with no choice).
 15. **Populist Wave (Brexit + Jan 6) as neutral.** The card lets SAE "amplify online" and never scores voters'
     choices themselves. Is that neutral enough, or should Brexit and Jan 6 stay apart or stay out?
     **Answered:** keep one card and widen it: the history note now also covers Italy's populist coalition (2018)
@@ -365,7 +366,7 @@ answer follows the question as **Answered**.
     on turn 4 (the last of the placeholder 4) in their own `eras` entry and live in `cards/future/` with ids `ef-...`.
     Say where they should really go, or whether they should be built at all (question 18). **Answered:** keep them (question 18); the arrival turn is set with the turn count (question 30).
 39. **Era 3 enters on turn 3.** A placeholder like Era 2's turn 2 (question 37). **Answered:** set with the turn count (question 30).
-40. **Ruleset size.** The first-deck ruleset now holds 90 cards, future cards included. An owner who drops the optional
+40. **Ruleset size.** The first-deck ruleset now holds 91 cards, future cards included (90 until the owner added October 7 and Gaza, question 14). An owner who drops the optional
     cards removes `futureFiles.ts`, its `eras` entry and one line in `firstDeckRules.ts`; nothing else depends on them.
 41. **Era 3 cards still dormant in the AI game.** Same cause as question 34: hands never refill, so no Era 3 or future
     card is ever played in the practice game. They are built, tested and loaded. **Answered by question 27:** fixed when hand refills are built.

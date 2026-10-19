@@ -39,11 +39,11 @@ describe("the first deck as a game", () => {
     expect(era2?.cards.every((id) => id.startsWith("e2-"))).toBe(true);
     for (const id of era2?.cards ?? []) expect([...hands.lio, ...hands.sae]).not.toContain(id);
   });
-  it("lets Era 3 enter on turn 3 with its 27 cards and the future cards on turn 4 with their 6, none dealt", () => {
+  it("lets Era 3 enter on turn 3 with its 28 cards and the future cards on turn 4 with their 6, none dealt", () => {
     const { eras, hands } = firstDeckConfig("a").setup;
     expect(eras?.map((e) => [e.era, e.turn, e.cards.length])).toEqual([
       ["era-2", 2, 29],
-      ["era-3", 3, 27],
+      ["era-3", 3, 28],
       ["future", 4, 6],
     ]);
     expect(eras?.find((e) => e.era === "era-3")?.cards.every((id) => id.startsWith("e3-"))).toBe(true);

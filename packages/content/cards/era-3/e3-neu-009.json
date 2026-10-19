@@ -1,0 +1,94 @@
+{
+  "id": "e3-neu-009",
+  "era": "era-3",
+  "ops": 2,
+  "affiliation": "neutral",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "the region on edge"
+    },
+    {
+      "op": "choose",
+      "who": "both",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v",
+        "side": "lio"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        },
+        {
+          "op": "modifier",
+          "mod": {
+            "hook": "opsValue",
+            "side": "lio",
+            "add": -1,
+            "min": 1
+          },
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ],
+      "else": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v",
+        "side": "sae"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        },
+        {
+          "op": "modifier",
+          "mod": {
+            "hook": "opsValue",
+            "side": "sae",
+            "add": -1,
+            "min": 1
+          },
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ],
+      "else": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "October 7 and Gaza",
+    "rules": "Record \"the region on edge\". Each side chooses: Press for a ceasefire? If LIO says yes, LIO spends 1 point, then until the end of this turn, points spent by LIO count 1 less, never below 1; otherwise, SAE spends 1 point. If SAE says yes, SAE spends 1 point, then until the end of this turn, points spent by SAE count 1 less, never below 1; otherwise, LIO spends 1 point.",
+    "history": "On 7 October 2023 Hamas-led attacks on Israel killed about 1,200 people and took 251 hostages. The war in Gaza that followed killed tens of thousands of people, according to Gaza's health ministry, and displaced most of its 2.1 million people.",
+    "art": "art/e3-neu-009"
+  }
+}

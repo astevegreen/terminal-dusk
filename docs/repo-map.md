@@ -230,6 +230,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/cards/era-3/e3-neu-007.test.ts` - e3-neu-007 AI Compute Race: one test for each way its effect can play out.
 - `packages/content/cards/era-3/e3-neu-008.json`
 - `packages/content/cards/era-3/e3-neu-008.test.ts` - e3-neu-008 Tariff Shock: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-neu-009.json`
+- `packages/content/cards/era-3/e3-neu-009.test.ts` - e3-neu-009 October 7 and Gaza: one test for each way its effect can play out.
 - `packages/content/cards/era-3/e3-sae-001.json`
 - `packages/content/cards/era-3/e3-sae-001.test.ts` - e3-sae-001 Global Financial Crisis: one test for each way its effect can play out.
 - `packages/content/cards/era-3/e3-sae-002.json`
@@ -295,7 +297,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/src/scenario.test.ts`
 - `packages/content/src/scenario.ts` - Turns a scenario file into the parts of the engine's Setup it decides. Exports: DEFAULT_CONTINGENCY, ScenarioSetup, scenarioSetup.
 - `packages/content/src/test/describeCard.ts` - Test helper for the card test files: each file lists its card's cases as data, and this turns every case into one test that plays the real card (playCard) and… Exports: CardCase, storyLines, bothSidesAsked, describeCard.
-- `packages/content/src/test/eraChecks.ts` - Test helpers shared by the era tests (era1.test.ts, era2.test.ts, era3.test.ts): the checks every era makes of its own cards, and the TEST-scenario game with t… Exports: byText, byNumber, REMOVED_CARDS, eraDeckChecks, opsSpread, eraOneDeal, startEraOneGame.
+- `packages/content/src/test/eraChecks.ts` - Test helpers shared by the era tests (era1.test.ts, era2.test.ts, era3.test.ts): the checks every era makes of its own cards, and the TEST-scenario game with t… Exports: byText, byNumber, REMOVED_CARDS, ADDED_CARDS, eraDeckChecks, opsSpread, eraOneDeal, startEraOneGame.
 - `packages/content/src/test/playCard.ts` - Test helper: plays one real card through the real engine and tells what happened, in a short story. Exports: PlayOptions, story, playCard.
 - `packages/content/tsconfig.json`
 
