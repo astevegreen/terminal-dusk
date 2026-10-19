@@ -206,11 +206,11 @@ Neutral cards cannot draw a Contingency card today (schema rule; see Owner quest
 
 ### e3-neu-005 · Populist Wave · neutral · Ops 2 · Split (SAE)
 
-- **Event:** From the Brexit vote to the storming of the Capitol, voters upend the establishment.
+- **Event:** From the Brexit vote and Italy's populist coalition to the storming of the Capitol and of Brasília's seat of power, voters upend the establishment.
 - **Design:** SAE may amplify the turmoil online (SAE 1 and LIO -1 Ops this turn) or stand back (LIO 1 as institutions hold). The card judges no voter; see Owner questions.
 - **Playable:** `marker "ballot shock"; ask sae "Amplify it online?" -> v; if yes v { spend sae 1; mod lio -1 min 1 (turn) } else { spend lio 1 }`
-- **History:** The United Kingdom voted to leave the European Union on 23 June 2016 by 51.9 per cent to 48.1; on 6 January 2021 a crowd stormed the US Capitol during the certification of the presidential election.
-- **Theme:** populism and elections · **Notion:** update `3fceb012942f81b79b47c9c908c0c373` (was "Brexit", SAE; Jan 6 and 2000 election rows folded in)
+- **History:** The United Kingdom voted to leave the European Union on 23 June 2016 by 51.9 per cent to 48.1, and on 1 June 2018 a coalition of the Five Star Movement and the League took office in Italy. On 6 January 2021 a crowd stormed the US Capitol during the certification of the presidential election; on 8 January 2023 supporters of Brazil's defeated former president stormed the country's Congress, Supreme Court and presidential palace.
+- **Theme:** populism and elections · **Notion:** update `3fceb012942f81b79b47c9c908c0c373` (was "Brexit", SAE; Jan 6 and 2000 election rows folded in; Italy 2018 and Brasília 2023 added by the owner, Owner question 15)
 
 ### e3-neu-007 · AI Compute Race · neutral · Ops 2 · Split (LIO)
 

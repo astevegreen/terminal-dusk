@@ -280,10 +280,14 @@ answer follows the question as **Answered**.
     approval first and built only once approved.
 15. **Populist Wave (Brexit + Jan 6) as neutral.** The card lets SAE "amplify online" and never scores voters'
     choices themselves. Is that neutral enough, or should Brexit and Jan 6 stay apart or stay out?
+    **Answered:** keep one card and widen it: the history note now also covers Italy's populist coalition (2018)
+    and the storming of Brazil's seats of power (8 January 2023). The effect is unchanged.
 16. **`cardPlayed` fires for both sides' plays.** Dot-com, Golden Shield and The Leaks score after every card this
     turn, including the rival's. The rules text says so. OK, or wait for W2?
+    **Answered:** keep them as they are; revisit their wording when W2 is built.
 17. **Ops 4 cards.** Five exist (one per side per era, except Era 3 LIO, whose Ops 4 card was removed). Is 4 the
     cap you want? No card has Ops 0.
+    **Answered:** keep the cap at 4; the missing Era 3 LIO Ops 4 card is a balance question for later.
 18. **Future cards.** Six roles-only 2025-2027 cards are designed (era-3.md). Build them in stage 4 or not?
 19. **Flavour-only choices.** Partnership for Peace and Ghost Stories have a dominant answer. Keep or sharpen?
 20. **Softened facts.** Where a search could not confirm a detail I softened it: ISS Expedition 1 "November 2000";
