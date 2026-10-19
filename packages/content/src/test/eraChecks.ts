@@ -37,9 +37,14 @@ export const REMOVED_CARDS: readonly string[] = [
   "e3-neu-006",
 ];
 
+/** Cards the owner added after the plan was numbered; each takes the next free number of its side. */
+export const ADDED_CARDS: readonly string[] = [
+  "e3-neu-009", // October 7 and Gaza (deck-plan.md, Owner question 14)
+];
+
 /**
  * The era's own tests: its LIO, SAE and neutral counts, its ids numbered lio 001-013, sae 001-013, neu 001-008
- * less the removed cards, and each card with a name and history.
+ * less the removed cards and plus the added ones, and each card with a name and history.
  */
 export function eraDeckChecks(
   cards: readonly Card[],
@@ -51,12 +56,13 @@ export function eraDeckChecks(
   it(`holds ${counts[0]} LIO cards, ${counts[1]} SAE cards and ${counts[2]} neutral cards`, () => {
     expect([count("lio"), count("sae"), count("neutral")]).toEqual(counts);
   });
-  it("numbers its cards lio 001-013, sae 001-013, neu 001-008, leaving out only the removed cards", () => {
+  it("numbers its cards lio 001-013, sae 001-013, neu 001-008, less only the removed cards, plus the added ones", () => {
     const range = (side: string, n: number) =>
       Array.from({ length: n }, (_, i) => `${prefix}-${side}-${String(i + 1).padStart(3, "0")}`);
-    const expected = [...range("lio", 13), ...range("sae", 13), ...range("neu", 8)].filter(
-      (id) => !REMOVED_CARDS.includes(id),
-    );
+    const expected = [
+      ...[...range("lio", 13), ...range("sae", 13), ...range("neu", 8)].filter((id) => !REMOVED_CARDS.includes(id)),
+      ...ADDED_CARDS.filter((id) => id.startsWith(`${prefix}-`)),
+    ];
     expect(cards.map((c) => c.id).sort(byText)).toEqual(expected.sort(byText));
   });
   it(`gives every card its own id, the era string ${era}, a name and a history note`, () => {
