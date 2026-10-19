@@ -316,3 +316,29 @@ Each is a question, an assumption I made to carry on, or a conflict I found. Non
     them rewritten the Era 2 way.
 43. **Commit trailer.** This stage's commit ends with the model line the task asked for (Claude Opus 5.5); the session
     was reminded of a different model name. See question 33.
+44. **Choices with one clearly better answer (stage 5 review).** Played as a player would, these yes/no choices have
+    an answer that is never worse for the chooser, so they are not real decisions. Each matches its approved Design
+    line, so the cards were left as designed (changing payoffs is a design choice). Suggested fixes use existing steps:
+    Budapest Memorandum (SAE: yes gives SAE 1, no gives LIO 1; add `mod sae -1 min 1 (turn)` to yes);
+    NATO Enlargement 1999 (SAE: a failed protest costs the same as no protest; make the failed branch `spend lio 2`);
+    Oslo Accords (SAE: yes adds SAE 1 on top of the same LIO 1; add `mod sae -1 min 1 (turn)` to yes);
+    Argentine Default (LIO: yes gives each side 1, no gives SAE 2; add `mod lio -1 min 1 (turn)` to yes);
+    AI Compute Race (LIO: yes gives LIO 1 more and SAE the same 1; make no `spend sae 2` or give yes a cost);
+    Tariff Shock (SAE: no gives SAE 1 at turn end with no penalty, yes gives SAE 1 now plus a -1; give no a cost or
+    drop the penalty); Populist Wave (SAE: yes gives SAE 1 and LIO 1 less, no gives LIO 1; one-sided by design?).
+    Question 19 already covers Partnership for Peace and Ghost Stories.
+45. **"Both get 1" choices.** Shock Therapy Backlash, China in the WTO, Litvinenko, Parallel Plumbing and the Hong Kong security
+    law give both sides 1 point on one answer. Whether that is a real choice depends on what points are for
+    (question 7): if only the gap between the sides counts, these answers change nothing.
+46. **Test Ban Treaty as a stag hunt.** If only the gap between the sides' points counts, saying no is always best for
+    both sides, so the card is not a stag hunt; it is one only if each side's own total matters. Same open point as 45.
+47. **Names close to another game.** "Test Ban Treaty" and "Arrest of Aldrich Ames" are real historical names, not
+    copied titles or wording, but another well-known Cold War card game has cards on the same two subjects. Kept
+    as planned. The name swap list already has neutral titles for both if you would rather be safe.
+48. **Belt and Road wording.** The LIO question "Expose the debt traps?" uses one side's framing of a disputed claim.
+    The rules text has to match the plan, so it was kept; a neutral wording would be "Challenge the loan terms?".
+49. **One wording for "both sides" Ops changes.** Five cards said "points spent by both sides count 1 more" and two
+    said "either side" for the same step. All seven now say "either side" (Era 1's wording). The plan's template list
+    has no line for this case; please confirm the wording.
+50. **Future cards' plan lines.** The six future cards use a combined "Design/Playable:" line in era-3.md rather than
+    separate lines. Their JSON matches it; noted so a tool that reads "Playable:" lines does not miss them.

@@ -23,7 +23,7 @@
   ],
   "text": {
     "name": "Heat Dome Summer",
-    "rules": "Record \"record heat\". Until the end of this turn, points spent by both sides count 1 less, never below 1.",
+    "rules": "Record \"record heat\". Until the end of this turn, points spent by either side count 1 less, never below 1.",
     "history": "The years 2023 and 2024 were the warmest in the instrumental record, with prolonged heat waves across several continents.",
     "art": "art/ef-neu-002"
   }
