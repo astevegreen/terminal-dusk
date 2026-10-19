@@ -2,7 +2,7 @@
 import { badModifier } from "./modifiers.ts";
 import { badTrigger } from "./triggers.ts";
 import { SIDES } from "./types.ts";
-import type { CardId, EngineError, Ruleset, Setup, Side, Step } from "./types.ts";
+import type { CardId, EngineError, Ruleset, Setup, Step } from "./types.ts";
 
 /**
  * Why the ruleset's card list is unusable, or null: it must be a list, each `id` once, each `ops` a
@@ -25,36 +25,23 @@ export function rulesetError(ruleset: Ruleset): EngineError | null {
       if (holdsCardChoice(card.effect)) {
         return invalidRuleset(`Card ${card.id}'s effect asks both sides to pick a card; only a turn's opening does.`);
       }
-      const bad = findForeignDraw(card.effect, card.affiliation);
-      if (bad !== null) return invalidRuleset(foreignDrawMessage(card.id, card.affiliation, bad));
+      if (card.affiliation === "neutral" && holdsDraw(card.effect)) {
+        return invalidRuleset(
+          `Card ${card.id} is a neutral card, but its event draws a Contingency card; neutral events have no Contingency deck yet.`,
+        );
+      }
     }
   }
   return null;
 }
 
-const SIDE_NAMES = { lio: "LIO", sae: "SAE" } as const;
-
-/** The plain-English reason a card may not draw from `drawn`'s Contingency deck. */
-function foreignDrawMessage(id: CardId, affiliation: Side | "neutral", drawn: Side): string {
-  if (affiliation === "neutral") {
-    return `Card ${id} is a neutral card, but its event draws a Contingency card; neutral events have no Contingency deck yet.`;
-  }
-  return `Card ${id} is an ${SIDE_NAMES[affiliation]} card, but its event draws from ${SIDE_NAMES[drawn]}'s Contingency deck.`;
-}
-
 /**
- * The side of the first `drawContingency` in `steps` (at any depth) that this card may not make, or null.
- * A side's card may only draw its own deck. A neutral card may not draw at all: TEMPORARY until neutral
- * events are designed.
+ * True if `steps`, or any block inside them, draws a contingency. Only a neutral card is refused one:
+ * TEMPORARY until neutral draws are built. An LIO or SAE card may draw from either deck, the rival's
+ * included, and from both (docs/design/contingency-deck.md, owner 19 Oct).
  */
-const findForeignDraw = (steps: readonly Step[], affiliation: Side | "neutral"): Side | null => {
-  for (const step of steps) {
-    if (step.op === "drawContingency" && step.side !== affiliation) return step.side;
-    const found = findForeignDraw(innerSteps(step), affiliation);
-    if (found !== null) return found;
-  }
-  return null;
-};
+const holdsDraw = (steps: readonly Step[]): boolean =>
+  steps.some((step) => step.op === "drawContingency" || holdsDraw(innerSteps(step)));
 
 /** The steps held inside `step`: an if's two branches, a forEach's or a trigger's `do`; none for the rest. */
 function innerSteps(step: Step): readonly Step[] {

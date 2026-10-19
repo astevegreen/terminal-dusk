@@ -125,7 +125,7 @@ describe("createGame: each hand holds turns x (1 + playsPerTurn) non-neutral car
   });
 });
 
-describe("createGame: a card's event draws only from its own side's Contingency deck", () => {
+describe("createGame: which Contingency decks a card's event may draw from", () => {
   const draw = (side: Side): Step => ({ op: "drawContingency", side });
   const placements = (step: Step): [string, Step[]][] => [
     ["at the top", [step]],
@@ -139,8 +139,11 @@ describe("createGame: a card's event draws only from its own side's Contingency 
   it.each([
     ["lio", "sae"],
     ["sae", "lio"],
-  ] as const)("refuses a %s card drawing from %s's deck", (own, other) => {
-    for (const [, effect] of placements(draw(other))) expect(outcomeOf(own, effect)).toBe("invalidRuleset");
+  ] as const)("accepts a %s card drawing from %s's deck (the rival's), at any depth (owner, 19 Oct)", (own, other) => {
+    for (const [, effect] of placements(draw(other))) expect(outcomeOf(own, effect)).toBe("ok");
+  });
+  it.each(["lio", "sae"] as const)("accepts a %s card drawing from both decks", (side) => {
+    expect(outcomeOf(side, [draw("lio"), draw("sae")])).toBe("ok");
   });
   it.each(["lio", "sae"] as const)("refuses a neutral card drawing from %s's deck", (side) => {
     for (const [, effect] of placements(draw(side))) expect(outcomeOf("neutral", effect)).toBe("invalidRuleset");
@@ -148,15 +151,12 @@ describe("createGame: a card's event draws only from its own side's Contingency 
   it.each(["lio", "sae"] as const)("accepts a %s card drawing from its own deck, at any depth", (side) => {
     for (const [, effect] of placements(draw(side))) expect(outcomeOf(side, effect)).toBe("ok");
   });
-  it("names the card and both sides in the error", () => {
-    const rs = withCards([...ruleset.cards.slice(1), testCard("l1", 1, "lio", [draw("sae")])]);
-    const r = createGame(rs, makeSetup(), "seed-1");
-    expect(!r.ok && r.error.message).toBe("Card l1 is an LIO card, but its event draws from SAE's Contingency deck.");
-  });
-  it("says neutral events have no Contingency deck yet", () => {
+  it("names the card and says neutral events have no Contingency deck yet", () => {
     const rs = withCards([...ruleset.cards.slice(1), testCard("l1", 1, "neutral", [draw("lio")])]);
     const r = createGame(rs, makeSetup(), "seed-1");
-    expect(!r.ok && r.error.message).toContain("neutral events have no Contingency deck yet");
+    expect(!r.ok && r.error.message).toBe(
+      "Card l1 is a neutral card, but its event draws a Contingency card; neutral events have no Contingency deck yet.",
+    );
   });
 });
 
