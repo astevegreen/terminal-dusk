@@ -1,0 +1,23 @@
+{
+  "id": "e2-lio-006",
+  "era": "era-2",
+  "ops": 2,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "programme surrendered"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 2
+    }
+  ],
+  "text": {
+    "name": "Libya Disarms",
+    "rules": "Record \"programme surrendered\". LIO spends 2 points.",
+    "history": "On 19 December 2003 Libya announced it would give up its nuclear, chemical and long-range missile programmes and admit international inspectors.",
+    "art": "art/e2-lio-006"
+  }
+}

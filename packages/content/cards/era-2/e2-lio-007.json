@@ -1,0 +1,37 @@
+{
+  "id": "e2-lio-007",
+  "era": "era-2",
+  "ops": 4,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "eastward"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 3
+    },
+    {
+      "op": "trigger",
+      "hook": "turnEnd",
+      "do": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ],
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Big Bang Enlargement 2004",
+    "rules": "Record \"eastward\". LIO spends 3 points. At the end of this turn, LIO spends 1 point.",
+    "history": "Seven countries, including the three Baltic states, joined NATO on 29 March 2004, and ten countries joined the European Union on 1 May 2004.",
+    "art": "art/e2-lio-007"
+  }
+}

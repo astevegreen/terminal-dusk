@@ -1,0 +1,50 @@
+{
+  "id": "e2-lio-005",
+  "era": "era-2",
+  "ops": 2,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "accounts frozen"
+    },
+    {
+      "op": "drawContingency",
+      "side": "lio",
+      "bind": "d"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "atLeast",
+        "var": "d",
+        "value": 3
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 2
+        }
+      ],
+      "else": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        },
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Banco Delta Asia",
+    "rules": "Record \"accounts frozen\". Draw from LIO's Contingency deck. If the result is 3 or more, LIO spends 2 points; otherwise, LIO spends 1 point, then SAE spends 1 point.",
+    "history": "On 15 September 2005 the US Treasury designated Banco Delta Asia in Macau a \"primary money laundering concern\" over North Korean accounts; Macau froze about 50 accounts holding some $25 million.",
+    "art": "art/e2-lio-005"
+  }
+}

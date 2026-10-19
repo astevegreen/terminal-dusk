@@ -12,7 +12,8 @@ import {
 import type { CardId, Ruleset, Seed } from "@terminal-dusk/engine";
 import type { MatchConfig } from "./types.ts";
 
-export const FIRST_DECK_NOTE = "First deck, Era 1 (TEST scenario with placeholder numbers)";
+export const FIRST_DECK_NOTE =
+  "First deck, Eras 1 and 2 (TEST scenario with placeholder numbers; Era 2 joins on turn 3)";
 export const firstDeckRuleset: Ruleset = FIRST_DECK_RULESET;
 export { cardName as firstDeckCardName };
 

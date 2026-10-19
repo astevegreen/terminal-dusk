@@ -4,7 +4,7 @@
 | ----- | ----------------------------------------------------------- | ----------- |
 | 1     | Design: deck plan in deck-plan.md, Notion rows as Draft     | done        |
 | 2     | Build Era 1 cards and wire the deck into the AI game        | done        |
-| 3     | Build Era 2 cards                                           | not started |
+| 3     | Build Era 2 cards                                           | done        |
 | 4     | Build Era 3 cards (and optional 2025-2027 cards if planned) | not started |
 | 5     | Review, checks, draft pull request                          | not started |
 
@@ -12,3 +12,4 @@
 
 - Stage 1: 102 cards (34 per era: 13 LIO, 13 SAE, 8 neutral) plus 6 optional future cards planned in deck-plan.md, era-1.md, era-2.md, era-3.md and name-swap.md; Notion "Card concepts": 51 rows updated in place and 57 created, all Status Draft (18 of the creates replace original rows that sit in the Notion trash, see Owner question 8); 25 owner questions in deck-plan.md.
 - Stage 2: 34 Era 1 cards built with tests (13 LIO, 13 SAE, 8 neutral), TEST scenario `first-deck-test`, the AI game now plays the real deck (test mode keeps its fixture); neutral events cannot run until the engine lifts its points-only rule; owner questions 26-33 added.
+- Stage 3: 34 Era 2 cards built with tests (13 LIO, 13 SAE, 8 neutral), all as planned; they enter the TEST scenario at turn 3 through `eras` but sit in the draw pile because hands never refill; owner questions 34-37 added.

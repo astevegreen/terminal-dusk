@@ -1,0 +1,37 @@
+{
+  "id": "e2-neu-006",
+  "era": "era-2",
+  "ops": 2,
+  "affiliation": "neutral",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "programme revealed"
+    },
+    {
+      "op": "spendPoints",
+      "side": "sae",
+      "amount": 1
+    },
+    {
+      "op": "trigger",
+      "hook": "turnEnd",
+      "do": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ],
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Natanz Revealed",
+    "rules": "Record \"programme revealed\". SAE spends 1 point. At the end of this turn, LIO spends 1 point.",
+    "history": "An Iranian opposition group publicised a secret uranium-enrichment site at Natanz in August 2002; Iran acknowledged the facility to the IAEA in February 2003.",
+    "art": "art/e2-neu-006"
+  }
+}

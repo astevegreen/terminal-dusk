@@ -1,0 +1,64 @@
+{
+  "id": "e2-neu-005",
+  "era": "era-2",
+  "ops": 2,
+  "affiliation": "neutral",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "oil spike"
+    },
+    {
+      "op": "choose",
+      "who": "sae",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        },
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ],
+      "else": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 2
+        },
+        {
+          "op": "modifier",
+          "mod": {
+            "hook": "opsValue",
+            "side": "sae",
+            "add": -1,
+            "min": 1
+          },
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Oil at $147",
+    "rules": "Record \"oil spike\". SAE chooses: Open the taps? If yes, SAE spends 1 point, then LIO spends 1 point; if no, SAE spends 2 points, then until the end of this turn, points spent by SAE count 1 less, never below 1.",
+    "history": "Crude oil first traded above $100 a barrel on 2 January 2008 and peaked near $147 on 11 July 2008 before collapsing with the financial crisis.",
+    "art": "art/e2-neu-005"
+  }
+}

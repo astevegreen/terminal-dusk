@@ -1,0 +1,69 @@
+{
+  "id": "e2-lio-011",
+  "era": "era-2",
+  "ops": 2,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "troops out"
+    },
+    {
+      "op": "choose",
+      "who": "sae",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v"
+      },
+      "then": [
+        {
+          "op": "drawContingency",
+          "side": "lio",
+          "bind": "d"
+        },
+        {
+          "op": "if",
+          "cond": {
+            "op": "atLeast",
+            "var": "d",
+            "value": 4
+          },
+          "then": [
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 2
+            }
+          ],
+          "else": [
+            {
+              "op": "spendPoints",
+              "side": "lio",
+              "amount": 2
+            }
+          ]
+        }
+      ],
+      "else": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Cedar Revolution",
+    "rules": "Record \"troops out\". SAE chooses: Back the old order? If yes, (draw from LIO's Contingency deck, then if the result is 4 or more, SAE spends 2 points; otherwise, LIO spends 2 points); if no, LIO spends 1 point.",
+    "history": "Mass protests in Lebanon after the assassination of former prime minister Rafik Hariri on 14 February 2005 led to the withdrawal of Syrian troops by the end of April 2005.",
+    "art": "art/e2-lio-011"
+  }
+}

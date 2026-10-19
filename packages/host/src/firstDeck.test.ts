@@ -13,7 +13,13 @@ describe("the first deck as a game", () => {
     expect(hands.sae).toHaveLength(17);
     const all = [...hands.lio, ...hands.sae];
     expect(new Set(all).size).toBe(34);
-    expect(all.sort()).toEqual(firstDeckRuleset.cards.map((c) => c.id).sort());
+    // Only Era 1 is dealt; Era 2 waits in the scenario's eras and joins the draw pile on turn 3.
+    expect(all.sort()).toEqual(
+      firstDeckRuleset.cards
+        .map((c) => c.id)
+        .filter((id) => id.startsWith("e1-"))
+        .sort(),
+    );
   });
   it("gives each side 9 own cards, 4 rival cards and 4 neutral cards", () => {
     const { hands } = firstDeckConfig("z").setup;
@@ -21,6 +27,14 @@ describe("the first deck as a game", () => {
       ["lio", "sae", "neu"].map((k) => cards.filter((c) => c.includes(`-${k}-`)).length);
     expect(kinds(hands.lio)).toEqual([9, 4, 4]);
     expect(kinds(hands.sae)).toEqual([4, 9, 4]);
+  });
+  it("lets Era 2 enter on turn 3 with all 34 of its cards, none of them dealt into a hand", () => {
+    const { eras, hands } = firstDeckConfig("a").setup;
+    expect(eras).toHaveLength(1);
+    expect(eras?.[0]).toMatchObject({ era: "era-2", turn: 3 });
+    expect(eras?.[0]?.cards).toHaveLength(34);
+    expect(eras?.[0]?.cards.every((id) => id.startsWith("e2-"))).toBe(true);
+    for (const id of eras?.[0]?.cards ?? []) expect([...hands.lio, ...hands.sae]).not.toContain(id);
   });
   it("starts a match with the engine for many seeds", () => {
     for (const seed of ["a", "b", "c", "d", "e", "f", "g", "h"]) {

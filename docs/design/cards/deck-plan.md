@@ -290,3 +290,16 @@ Each is a question, an assumption I made to carry on, or a conflict I found. Non
     the server.
 33. **Commit trailer model name.** The task said "Claude Opus 5.5"; a system reminder said "Claude Sonnet 5.5". The
     task text was followed. Please correct if needed.
+34. **Era 2 cards never reach a hand in the practice game.** Era 2 enters through the TEST scenario's `eras` entry
+    (turn 3), so its 34 cards are shuffled into the draw pile then. The engine never moves cards from the draw pile
+    into hands, so in the AI game no Era 2 card is ever played. The cards are built, tested and loaded; they will
+    appear in games once the rules say how hands refill (see question 27).
+35. **A "count more" bonus also hits a turn-end spend (SARS).** At the end of a turn the turn-end triggers fire
+    before the Ops swings expire. If both sides say no to the SARS card, the penalty each side pays at turn end is
+    spent while the other side's "+1" is still in force, so it counts 2 instead of 1. The plan's "never below 1"
+    safety note does not cover this. Built as the engine behaves; please say if the penalty should stay 1.
+36. **Several turn-end triggers are logged before any of them spends.** When two turn-end triggers are waiting, the
+    engine records both as fired and then runs their spends. This only changes the order of the history log, not the
+    result. SARS (both say no) shows it.
+37. **Era 2 test scenario is still a test.** Era 2 enters at turn 3 of the placeholder 6-turn scenario purely to
+    exercise the `eras` setup; the real turn of entry depends on the unresolved turn count (question 30).

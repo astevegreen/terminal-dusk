@@ -1,0 +1,52 @@
+{
+  "id": "e2-lio-004",
+  "era": "era-2",
+  "ops": 2,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "choose",
+      "who": "lio",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v"
+      },
+      "then": [
+        {
+          "op": "marker",
+          "label": "treaty gone"
+        },
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 2
+        },
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        }
+      ],
+      "else": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "ABM Treaty Withdrawal",
+    "rules": "LIO chooses: Leave the treaty? If yes, record \"treaty gone\", then LIO spends 2 points, then SAE spends 1 point; if no, LIO spends 1 point.",
+    "history": "The United States gave notice of withdrawal from the 1972 Anti-Ballistic Missile Treaty on 13 December 2001; the withdrawal took effect on 13 June 2002.",
+    "art": "art/e2-lio-004"
+  }
+}

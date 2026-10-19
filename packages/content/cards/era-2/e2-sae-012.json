@@ -1,0 +1,35 @@
+{
+  "id": "e2-sae-012",
+  "era": "era-2",
+  "ops": 2,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "credibility hit"
+    },
+    {
+      "op": "spendPoints",
+      "side": "sae",
+      "amount": 1
+    },
+    {
+      "op": "modifier",
+      "mod": {
+        "hook": "opsValue",
+        "side": "lio",
+        "add": -1,
+        "min": 1
+      },
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Abu Ghraib",
+    "rules": "Record \"credibility hit\". SAE spends 1 point. Until the end of this turn, points spent by LIO count 1 less, never below 1.",
+    "history": "Photographs of US soldiers abusing detainees at Iraq's Abu Ghraib prison were broadcast on 28 April 2004, damaging the standing of the United States.",
+    "art": "art/e2-sae-012"
+  }
+}

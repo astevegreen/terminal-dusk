@@ -4,7 +4,8 @@
 // shows what the card leaves behind: modifiers, then triggers that fire after later plays and at the end of the turn.
 import { apply, createGame, seedHash } from "@terminal-dusk/engine";
 import type { Answer, CardDef, CardId, GameEvent, Ruleset, Side } from "@terminal-dusk/engine";
-import { ERA_1_CARDS, cardDef } from "../era1.ts";
+import { cardDef } from "../era1.ts";
+import { FIRST_DECK_CARDS } from "../firstDeckRules.ts";
 
 export type PlayOptions = {
   /** What each side answers when its yes/no question comes up. A missing answer fails the test. */
@@ -49,10 +50,10 @@ export function story(events: readonly GameEvent[]): string[] {
   });
 }
 
-/** Plays Era 1 card `id` (the real file) in a one-turn game and returns the story from the moment the card is played. */
+/** Plays first-deck card `id` (Era 1 or 2) (the real file) in a one-turn game and returns the story from the moment the card is played. */
 export function playCard(id: CardId, options: PlayOptions = {}): string[] {
-  const card = ERA_1_CARDS.find((c) => c.id === id);
-  if (!card) throw new Error(`no Era 1 card ${id}`);
+  const card = FIRST_DECK_CARDS.find((c) => c.id === id);
+  if (!card) throw new Error(`no first-deck card ${id}`);
   const owner: Side = card.affiliation === "sae" ? "sae" : "lio";
   // The engine still lets a neutral card be played for points only (decisions.ts, marked TEMPORARY), although
   // docs/design/core-loop.md gives neutral cards events. So a neutral card's steps are run here as if it were LIO's

@@ -1,6 +1,7 @@
 import { createGame, seedHash } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
-import { ERA_1_CARDS, FIRST_DECK_RULESET, cardName } from "./era1.ts";
+import { ERA_1_CARDS } from "./era1.ts";
+import { FIRST_DECK_RULESET, cardName } from "./firstDeckRules.ts";
 import { FIRST_DECK_SCENARIO } from "./firstDeckScenario.ts";
 import { scenarioSetup } from "./scenario.ts";
 
@@ -32,7 +33,7 @@ describe("the Era 1 deck", () => {
     for (const card of ERA_1_CARDS) expect(card.id).toMatch(/^e1-(lio|sae|neu)-\d{3}$/);
   });
   it("leaves the engine's rules free of the text", () => {
-    expect(FIRST_DECK_RULESET.cards).toHaveLength(34);
+    expect(FIRST_DECK_RULESET.cards).toHaveLength(68); // Era 1 and Era 2; era2.test.ts counts Era 2 on its own
     for (const def of FIRST_DECK_RULESET.cards) expect("text" in def).toBe(false);
   });
 });

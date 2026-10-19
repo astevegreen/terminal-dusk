@@ -1,0 +1,73 @@
+{
+  "id": "e2-sae-006",
+  "era": "era-2",
+  "ops": 3,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "valves closed"
+    },
+    {
+      "op": "choose",
+      "who": "sae",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 2
+        },
+        {
+          "op": "modifier",
+          "mod": {
+            "hook": "opsValue",
+            "side": "sae",
+            "add": -1,
+            "min": 1
+          },
+          "duration": {
+            "kind": "turnEnd"
+          }
+        },
+        {
+          "op": "trigger",
+          "hook": "turnEnd",
+          "do": [
+            {
+              "op": "spendPoints",
+              "side": "lio",
+              "amount": 1
+            }
+          ],
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ],
+      "else": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Gas Cutoff",
+    "rules": "Record \"valves closed\". SAE chooses: Turn off the gas? If yes, SAE spends 2 points, then until the end of this turn, points spent by SAE count 1 less, never below 1, then at the end of this turn, LIO spends 1 point; if no, SAE spends 1 point.",
+    "history": "Russia cut gas deliveries to Ukraine on 1 January 2006 and again on 1 January 2009 in pricing disputes; in January 2009 transit to Europe stopped for days, leaving around a dozen countries short of gas in midwinter.",
+    "art": "art/e2-sae-006"
+  }
+}

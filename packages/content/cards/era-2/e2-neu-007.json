@@ -1,0 +1,28 @@
+{
+  "id": "e2-neu-007",
+  "era": "era-2",
+  "ops": 2,
+  "affiliation": "neutral",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "precedent set"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 1
+    },
+    {
+      "op": "spendPoints",
+      "side": "sae",
+      "amount": 1
+    }
+  ],
+  "text": {
+    "name": "Kosovo Declares Independence",
+    "rules": "Record \"precedent set\". LIO spends 1 point. SAE spends 1 point.",
+    "history": "Kosovo declared independence from Serbia on 17 February 2008. The United States and most EU states recognised it; Serbia and Russia did not.",
+    "art": "art/e2-neu-007"
+  }
+}

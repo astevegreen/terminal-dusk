@@ -1,0 +1,35 @@
+{
+  "id": "e2-lio-009",
+  "era": "era-2",
+  "ops": 1,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "mole exposed"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 1
+    },
+    {
+      "op": "modifier",
+      "mod": {
+        "hook": "opsValue",
+        "side": "sae",
+        "add": -1,
+        "min": 1
+      },
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Ana Montes Unmasked",
+    "rules": "Record \"mole exposed\". LIO spends 1 point. Until the end of this turn, points spent by SAE count 1 less, never below 1.",
+    "history": "Ana Montes, a senior analyst at the US Defense Intelligence Agency, was arrested on 21 September 2001 for spying for Cuba; she was sentenced to 25 years and released in January 2023.",
+    "art": "art/e2-lio-009"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "id": "e2-sae-013",
+  "era": "era-2",
+  "ops": 2,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "debris field"
+    },
+    {
+      "op": "drawContingency",
+      "side": "sae",
+      "bind": "d"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "atLeast",
+        "var": "d",
+        "value": 3
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 2
+        }
+      ],
+      "else": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        },
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Chinese Anti-Satellite Test",
+    "rules": "Record \"debris field\". Draw from SAE's Contingency deck. If the result is 3 or more, SAE spends 2 points; otherwise, SAE spends 1 point, then LIO spends 1 point.",
+    "history": "On 11 January 2007 China destroyed one of its own defunct weather satellites with a ground-launched missile, creating more than 3,000 pieces of trackable debris; it acknowledged the test on 23 January.",
+    "art": "art/e2-sae-013"
+  }
+}

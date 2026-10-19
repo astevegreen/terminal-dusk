@@ -1,0 +1,37 @@
+{
+  "id": "e2-lio-001",
+  "era": "era-2",
+  "ops": 3,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "swift campaign"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 2
+    },
+    {
+      "op": "trigger",
+      "hook": "turnEnd",
+      "do": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        }
+      ],
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Jawbreaker: Fall of the Taliban",
+    "rules": "Record \"swift campaign\". LIO spends 2 points. At the end of this turn, SAE spends 1 point.",
+    "history": "A small CIA team code-named Jawbreaker landed in Afghanistan's Panjshir Valley on 26 September 2001; with US air support and Afghan allies, the Taliban lost Kabul on 13-14 November 2001.",
+    "art": "art/e2-lio-001"
+  }
+}
