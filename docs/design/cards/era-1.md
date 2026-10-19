@@ -247,6 +247,8 @@ and checks every branch. The rules text of each file is written from the JSON an
   be played for points only (a TEMPORARY rule in the engine, written before neutral events were designed), and it
   keeps neutral cards out of opening picks. core-loop.md says neutral cards have events. The JSON holds the intended
   effect and its tests run it as if the card were LIO's; in a real game the event stays dormant. See Owner question 26.
+  **Since lifted (Owner question 26):** the engine now runs neutral events and lets a neutral card open, and the
+  tests play each neutral card as the neutral card it is.
 - **Ops swings: "points spent", not "plays for points".** An opsValue modifier changes every point spent while it lasts
   (including points spent by other effects), not only points from playing a card for points. The rules text
   says "points spent by <side> count N more". See Owner question 28.

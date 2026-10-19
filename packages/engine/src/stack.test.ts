@@ -154,7 +154,10 @@ describe("resolution stack and the turn structure", () => {
           id: expect.any(String),
           side: "lio",
           kind: "playCardAs",
-          options: { from: "hand", uses: { own: ["event", "points"], rival: ["points"], neutral: ["points"] } },
+          options: {
+            from: "hand",
+            uses: { own: ["event", "points"], rival: ["points"], neutral: ["event", "points"] },
+          },
         },
       ]);
     }

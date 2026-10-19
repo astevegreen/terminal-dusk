@@ -55,10 +55,7 @@ export function playCard(id: CardId, options: PlayOptions = {}): string[] {
   const card = FIRST_DECK_CARDS.find((c) => c.id === id);
   if (!card) throw new Error(`no first-deck card ${id}`);
   const owner: Side = card.affiliation === "sae" ? "sae" : "lio";
-  // The engine still lets a neutral card be played for points only (decisions.ts, marked TEMPORARY), although
-  // docs/design/core-loop.md gives neutral cards events. So a neutral card's steps are run here as if it were LIO's
-  // card: these are the steps that will run once the engine lifts that stopgap (deck-plan.md, Owner question 26).
-  const def: CardDef = card.affiliation === "neutral" ? { ...cardDef(card), affiliation: "lio" } : cardDef(card);
+  const def = cardDef(card);
   const ruleset: Ruleset = {
     id: "card-test",
     cards: [

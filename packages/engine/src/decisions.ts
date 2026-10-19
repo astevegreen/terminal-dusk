@@ -14,11 +14,11 @@ import type {
 } from "./types.ts";
 
 /**
- * The uses a play allows (docs/design/core-loop.md, "Playing a card"): your own card for its event or
- * its points; a rival's card for its points only (its event still happens, see turn.ts).
- * TEMPORARY: a neutral card is points only until neutral events are designed (owner's call, 16 Oct).
+ * The uses a play allows (docs/design/core-loop.md, "Playing a card"): your own card or a neutral card
+ * for its event or its points; a rival's card for its points only (its event still happens, see turn.ts).
+ * A neutral card played for its points has no event.
  */
-const playUses = (): PlayUses => ({ own: ["event", "points"], rival: ["points"], neutral: ["points"] });
+const playUses = (): PlayUses => ({ own: ["event", "points"], rival: ["points"], neutral: ["event", "points"] });
 
 /** Whose card `card` is, seen from `side`. */
 export function whoseCard(card: CardDef | undefined, side: Side): keyof PlayUses {
@@ -28,7 +28,7 @@ export function whoseCard(card: CardDef | undefined, side: Side): keyof PlayUses
 
 /**
  * What a decision of `kind` allows, said without card IDs: a yes/no or a rivalEventOrder has no
- * options; the opening pick is any non-neutral card in your hand; a play is any card in your hand,
+ * options; the opening pick is any card in your hand, neutral ones too; a play is any card in your hand,
  * used as its kind of card allows.
  */
 function optionsFor(kind: DecisionKind): DecisionOptions {
@@ -37,7 +37,7 @@ function optionsFor(kind: DecisionKind): DecisionOptions {
     case "rivalEventOrder":
       return {};
     case "chooseCard":
-      return { from: "hand", includeNeutral: false };
+      return { from: "hand", includeNeutral: true };
     case "playCardAs":
       return { from: "hand", uses: playUses() };
   }
@@ -81,9 +81,7 @@ export function legalAnswers(ruleset: Ruleset, state: GameState, side: Side): An
         { kind: "rivalEventOrder", event: "after" },
       ];
     case "chooseCard":
-      return state.private[side].hand
-        .filter((id) => cardOf(ruleset, id)?.affiliation !== "neutral")
-        .map((card) => ({ kind: "chooseCard", card }));
+      return state.private[side].hand.map((card) => ({ kind: "chooseCard", card }));
     case "playCardAs": {
       const uses = playUses();
       return state.private[side].hand.flatMap((card) =>
