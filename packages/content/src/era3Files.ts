@@ -28,8 +28,9 @@ import c_e3_neu_004 from "../cards/era-3/e3-neu-004.json" with { type: "json" };
 import c_e3_neu_005 from "../cards/era-3/e3-neu-005.json" with { type: "json" };
 import c_e3_neu_007 from "../cards/era-3/e3-neu-007.json" with { type: "json" };
 import c_e3_neu_008 from "../cards/era-3/e3-neu-008.json" with { type: "json" };
+import c_e3_neu_009 from "../cards/era-3/e3-neu-009.json" with { type: "json" };
 
-/** All 27 Era 3 cards: 8 LIO, 12 SAE and 7 neutral, in file order. */
+/** All 28 Era 3 cards: 8 LIO, 12 SAE and 8 neutral, in file order. */
 export const ERA_3_CARDS = [
   c_e3_lio_001,
   c_e3_lio_002,
@@ -58,4 +59,5 @@ export const ERA_3_CARDS = [
   c_e3_neu_005,
   c_e3_neu_007,
   c_e3_neu_008,
+  c_e3_neu_009,
 ].map((file) => cardSchema.parse(file));

@@ -1,7 +1,7 @@
 # Era 3 cards: 2008 to 2025 (the crash to today)
 
 Part of the [deck plan](deck-plan.md). Notation, rules-text templates and the wish-list codes (W1-W8) are
-defined there. Every card: LIO 8, SAE 12, neutral 7 (the plan had 13, 13 and 8; the owner removed the rest as not well known or significant enough, and their numbers stay unused), plus six optional roles-only "future" cards at the
+defined there. Every card: LIO 8, SAE 12, neutral 8 (the plan had 13, 13 and 8; the owner removed the rest as not well known or significant enough, and their numbers stay unused; the owner then added October 7 and Gaza, Owner question 14), plus six optional roles-only "future" cards at the
 end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 on name roles, not people.
 
 ## LIO (8)
@@ -168,9 +168,10 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 - **History:** Greece agreed its first €110 billion bailout from eurozone countries and the IMF on 3 May 2010; in 2016 China's COSCO bought a 67 per cent stake in the Piraeus Port Authority.
 - **Theme:** finance, supply chains · **Notion:** update `3fceb012942f8127a8c5c220856f4724`
 
-## Neutral (7)
+## Neutral (8)
 
-Neutral cards cannot draw a Contingency card today (schema rule; see Owner question 1).
+These neutral cards were built before neutral cards could draw a Contingency card (allowed since #126; see Owner
+question 1), so they use choices instead. Redesigns that use draws are a follow-up pull request.
 
 ### e3-neu-001 · Arab Spring · neutral · Ops 2 · Split (both)
 
@@ -228,6 +229,14 @@ Neutral cards cannot draw a Contingency card today (schema rule; see Owner quest
 - **History:** On 2 April 2025 the U.S. President announced a 10 per cent tariff on imports from almost all countries, effective 5 April, with higher rates for many trading partners announced for 9 April; the rates changed repeatedly in the following months.
 - **Theme:** supply chains, finance · **Notion:** update `3fceb012942f816887d1e8e9b0bc1aee` (TPP and "Return of Trump" rows folded in)
 
+### e3-neu-009 · October 7 and Gaza · neutral · Ops 2 · Split (both)
+
+- **Event:** Hamas-led attacks on Israel are followed by a war in Gaza.
+- **Design:** Each side chooses whether to press for a ceasefire: pressing scores 1 but costs 1 Ops this turn; holding back gives the rival 1. Approved by the owner (Owner question 14), who chose this over a version with no choice.
+- **Playable:** `marker "the region on edge"; ask both "Press for a ceasefire?" -> v; if yes v[lio] { spend lio 1; mod lio -1 min 1 (turn) } else { spend sae 1 }; if yes v[sae] { spend sae 1; mod sae -1 min 1 (turn) } else { spend lio 1 }`
+- **History:** On 7 October 2023 Hamas-led attacks on Israel killed about 1,200 people and took 251 hostages. The war in Gaza that followed killed tens of thousands of people, according to Gaza's health ministry, and displaced most of its 2.1 million people.
+- **Theme:** alliances · **Notion:** `3feeb012942f817ca0a0e37c453e86e2`
+
 ## Optional future cards: 2025 to 2027 (6)
 
 Only if the owner wants the optional scenario in eras.md. Era string `"future"`; roles only; history notes
@@ -265,7 +274,7 @@ describe the trend, not a dated event. Ops: 2, 1 per side; neutral 2, 1.
 
 ## Stage 4 build notes
 
-All 27 Era 3 cards are built as `packages/content/cards/era-3/<id>.json` and the 6 future cards as
+All 28 Era 3 cards are built as `packages/content/cards/era-3/<id>.json` and the 6 future cards as
 `packages/content/cards/future/<id>.json`, each with a test that plays it in the real engine and checks every branch.
 The JSON follows the "Playable" line of each card one-for-one; no card was built weaker than planned. The rules text
 of each file is written from the JSON.

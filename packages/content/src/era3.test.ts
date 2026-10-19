@@ -8,18 +8,18 @@ import { FUTURE_CARDS } from "./futureFiles.ts";
 import { byText, eraDeckChecks, opsSpread, startEraOneGame } from "./test/eraChecks.ts";
 
 describe("the Era 3 deck", () => {
-  eraDeckChecks(ERA_3_CARDS, "era-3", [8, 12, 7]);
-  it("follows the Ops spread of the plan less the removed cards: Ops 1/2/3/4 LIO 2/5/1/0, SAE 3/5/3/1, neutral 2/4/1/0", () => {
+  eraDeckChecks(ERA_3_CARDS, "era-3", [8, 12, 8]);
+  it("follows the Ops spread of the plan less the removed cards, plus October 7 and Gaza: Ops 1/2/3/4 LIO 2/5/1/0, SAE 3/5/3/1, neutral 2/5/1/0", () => {
     expect(opsSpread(ERA_3_CARDS)).toEqual([
       [2, 5, 1, 0],
       [3, 5, 3, 1],
-      [2, 4, 1, 0],
+      [2, 5, 1, 0],
     ]);
   });
   it("shares no card id with Eras 1 and 2, and the first-deck ruleset holds every era", () => {
     const all = [...ERA_1_CARDS, ...ERA_2_CARDS, ...ERA_3_CARDS, ...FUTURE_CARDS];
     const ids = new Set(all.map((c) => c.id));
-    expect(ids.size).toBe(90);
+    expect(ids.size).toBe(91);
     expect(new Set(FIRST_DECK_RULESET.cards.map((c) => c.id))).toEqual(ids);
   });
 });
