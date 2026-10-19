@@ -1,10 +1,10 @@
 // e1-sae-001 Battle of Mogadishu: one test for each way its effect can play out.
-import { describe, expect, it } from "vitest";
-import { playCard } from "../../src/test/playCard.ts";
+import { describeCard } from "../../src/test/describeCard.ts";
 
-describe("e1-sae-001 Battle of Mogadishu", () => {
-  it("plays out as its text says", () => {
-    expect(playCard("e1-sae-001", {})).toEqual([
+describeCard("e1-sae-001", "Battle of Mogadishu", [
+  {
+    it: "plays out as its text says",
+    story: [
       "points:lio:2",
       "intervention fatigue",
       "points:sae:1",
@@ -13,6 +13,6 @@ describe("e1-sae-001 Battle of Mogadishu", () => {
       "points:sae:2",
       "triggerFired:turnEnd",
       "points:sae:1",
-    ]);
-  });
-});
+    ],
+  },
+]);

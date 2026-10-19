@@ -1,10 +1,11 @@
 // e3-neu-008 Tariff Shock: one test for each way its effect can play out.
-import { describe, expect, it } from "vitest";
-import { playCard } from "../../src/test/playCard.ts";
+import { describeCard } from "../../src/test/describeCard.ts";
 
-describe("e3-neu-008 Tariff Shock", () => {
-  it("when SAE says no", () => {
-    expect(playCard("e3-neu-008", { yes: { sae: false } })).toEqual([
+describeCard("e3-neu-008", "Tariff Shock", [
+  {
+    it: "when SAE says no",
+    yes: { sae: false },
+    story: [
       "tariff wall",
       "mod:lio:-1:min1",
       "triggerSet:turnEnd",
@@ -13,10 +14,12 @@ describe("e3-neu-008 Tariff Shock", () => {
       "points:sae:2",
       "triggerFired:turnEnd",
       "points:sae:1",
-    ]);
-  });
-  it("when SAE says yes", () => {
-    expect(playCard("e3-neu-008", { yes: { sae: true } })).toEqual([
+    ],
+  },
+  {
+    it: "when SAE says yes",
+    yes: { sae: true },
+    story: [
       "tariff wall",
       "mod:lio:-1:min1",
       "points:sae:1",
@@ -24,6 +27,6 @@ describe("e3-neu-008 Tariff Shock", () => {
       "points:sae:1",
       "points:lio:1",
       "points:sae:1",
-    ]);
-  });
-});
+    ],
+  },
+]);

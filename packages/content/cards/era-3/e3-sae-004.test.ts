@@ -1,10 +1,10 @@
 // e3-sae-004 Full-Scale Invasion: one test for each way its effect can play out.
-import { describe, expect, it } from "vitest";
-import { playCard } from "../../src/test/playCard.ts";
+import { describeCard } from "../../src/test/describeCard.ts";
 
-describe("e3-sae-004 Full-Scale Invasion", () => {
-  it("plays out as its text says", () => {
-    expect(playCard("e3-sae-004", {})).toEqual([
+describeCard("e3-sae-004", "Full-Scale Invasion", [
+  {
+    it: "plays out as its text says",
+    story: [
       "points:lio:2",
       "full-scale war",
       "points:sae:3",
@@ -14,6 +14,6 @@ describe("e3-sae-004 Full-Scale Invasion", () => {
       "points:sae:2",
       "triggerFired:turnEnd",
       "points:lio:1",
-    ]);
-  });
-});
+    ],
+  },
+]);

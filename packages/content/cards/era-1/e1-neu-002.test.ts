@@ -1,10 +1,11 @@
 // e1-neu-002 Asian Financial Crisis: one test for each way its effect can play out.
-import { describe, expect, it } from "vitest";
-import { playCard } from "../../src/test/playCard.ts";
+import { describeCard } from "../../src/test/describeCard.ts";
 
-describe("e1-neu-002 Asian Financial Crisis", () => {
-  it("when LIO says yes and SAE says yes", () => {
-    expect(playCard("e1-neu-002", { yes: { lio: true, sae: true } })).toEqual([
+describeCard("e1-neu-002", "Asian Financial Crisis", [
+  {
+    it: "when LIO says yes and SAE says yes",
+    yes: { lio: true, sae: true },
+    story: [
       "contagion",
       "points:lio:2",
       "mod:lio:-1:min1",
@@ -13,10 +14,12 @@ describe("e1-neu-002 Asian Financial Crisis", () => {
       "points:sae:1",
       "points:lio:1",
       "points:sae:1",
-    ]);
-  });
-  it("when LIO says yes and SAE says no", () => {
-    expect(playCard("e1-neu-002", { yes: { lio: true, sae: false } })).toEqual([
+    ],
+  },
+  {
+    it: "when LIO says yes and SAE says no",
+    yes: { lio: true, sae: false },
+    story: [
       "contagion",
       "points:lio:2",
       "mod:lio:-1:min1",
@@ -26,10 +29,12 @@ describe("e1-neu-002 Asian Financial Crisis", () => {
       "points:sae:2",
       "triggerFired:turnEnd",
       "points:lio:1",
-    ]);
-  });
-  it("when LIO says no and SAE says yes", () => {
-    expect(playCard("e1-neu-002", { yes: { lio: false, sae: true } })).toEqual([
+    ],
+  },
+  {
+    it: "when LIO says no and SAE says yes",
+    yes: { lio: false, sae: true },
+    story: [
       "contagion",
       "triggerSet:turnEnd",
       "points:sae:2",
@@ -39,10 +44,12 @@ describe("e1-neu-002 Asian Financial Crisis", () => {
       "points:sae:1",
       "triggerFired:turnEnd",
       "points:sae:1",
-    ]);
-  });
-  it("when LIO says no and SAE says no", () => {
-    expect(playCard("e1-neu-002", { yes: { lio: false, sae: false } })).toEqual([
+    ],
+  },
+  {
+    it: "when LIO says no and SAE says no",
+    yes: { lio: false, sae: false },
+    story: [
       "contagion",
       "triggerSet:turnEnd",
       "triggerSet:turnEnd",
@@ -53,6 +60,6 @@ describe("e1-neu-002 Asian Financial Crisis", () => {
       "triggerFired:turnEnd",
       "points:sae:1",
       "points:lio:1",
-    ]);
-  });
-});
+    ],
+  },
+]);

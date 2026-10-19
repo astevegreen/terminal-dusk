@@ -1,10 +1,10 @@
 // e2-lio-007 Big Bang Enlargement 2004: one test for each way its effect can play out.
-import { describe, expect, it } from "vitest";
-import { playCard } from "../../src/test/playCard.ts";
+import { describeCard } from "../../src/test/describeCard.ts";
 
-describe("e2-lio-007 Big Bang Enlargement 2004", () => {
-  it("plays out as its text says", () => {
-    expect(playCard("e2-lio-007", {})).toEqual([
+describeCard("e2-lio-007", "Big Bang Enlargement 2004", [
+  {
+    it: "plays out as its text says",
+    story: [
       "eastward",
       "points:lio:3",
       "triggerSet:turnEnd",
@@ -13,6 +13,6 @@ describe("e2-lio-007 Big Bang Enlargement 2004", () => {
       "points:sae:2",
       "triggerFired:turnEnd",
       "points:lio:1",
-    ]);
-  });
-});
+    ],
+  },
+]);

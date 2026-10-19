@@ -1,10 +1,10 @@
 // e3-lio-007 Sanctions Wall: one test for each way its effect can play out.
-import { describe, expect, it } from "vitest";
-import { playCard } from "../../src/test/playCard.ts";
+import { describeCard } from "../../src/test/describeCard.ts";
 
-describe("e3-lio-007 Sanctions Wall", () => {
-  it("plays out as its text says", () => {
-    expect(playCard("e3-lio-007", {})).toEqual([
+describeCard("e3-lio-007", "Sanctions Wall", [
+  {
+    it: "plays out as its text says",
+    story: [
       "reserves frozen",
       "points:lio:3",
       "triggerSet:turnEnd",
@@ -13,6 +13,6 @@ describe("e3-lio-007 Sanctions Wall", () => {
       "points:sae:2",
       "triggerFired:turnEnd",
       "points:sae:1",
-    ]);
-  });
-});
+    ],
+  },
+]);

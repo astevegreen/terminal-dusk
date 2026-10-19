@@ -1,10 +1,11 @@
 // e1-lio-002 Budapest Memorandum: one test for each way its effect can play out.
-import { describe, expect, it } from "vitest";
-import { playCard } from "../../src/test/playCard.ts";
+import { describeCard } from "../../src/test/describeCard.ts";
 
-describe("e1-lio-002 Budapest Memorandum", () => {
-  it("when SAE says yes", () => {
-    expect(playCard("e1-lio-002", { yes: { sae: true } })).toEqual([
+describeCard("e1-lio-002", "Budapest Memorandum", [
+  {
+    it: "when SAE says yes",
+    yes: { sae: true },
+    story: [
       "assurances given",
       "points:lio:2",
       "promise kept",
@@ -12,10 +13,12 @@ describe("e1-lio-002 Budapest Memorandum", () => {
       "points:sae:2",
       "points:lio:2",
       "points:sae:2",
-    ]);
-  });
-  it("when SAE says no", () => {
-    expect(playCard("e1-lio-002", { yes: { sae: false } })).toEqual([
+    ],
+  },
+  {
+    it: "when SAE says no",
+    yes: { sae: false },
+    story: [
       "assurances given",
       "points:lio:2",
       "hollow assurance",
@@ -23,6 +26,6 @@ describe("e1-lio-002 Budapest Memorandum", () => {
       "points:sae:2",
       "points:lio:2",
       "points:sae:2",
-    ]);
-  });
-});
+    ],
+  },
+]);

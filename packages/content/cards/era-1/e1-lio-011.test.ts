@@ -1,10 +1,10 @@
 // e1-lio-011 Dot-com Boom: one test for each way its effect can play out.
-import { describe, expect, it } from "vitest";
-import { playCard } from "../../src/test/playCard.ts";
+import { describeCard } from "../../src/test/describeCard.ts";
 
-describe("e1-lio-011 Dot-com Boom", () => {
-  it("plays out as its text says", () => {
-    expect(playCard("e1-lio-011", {})).toEqual([
+describeCard("e1-lio-011", "Dot-com Boom", [
+  {
+    it: "plays out as its text says",
+    story: [
       "network effect",
       "points:lio:1",
       "triggerSet:cardPlayed",
@@ -17,6 +17,6 @@ describe("e1-lio-011 Dot-com Boom", () => {
       "points:sae:2",
       "triggerFired:cardPlayed",
       "points:lio:1",
-    ]);
-  });
-});
+    ],
+  },
+]);

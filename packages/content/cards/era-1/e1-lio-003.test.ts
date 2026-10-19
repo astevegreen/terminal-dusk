@@ -1,10 +1,10 @@
 // e1-lio-003 Dayton Accords: one test for each way its effect can play out.
-import { describe, expect, it } from "vitest";
-import { playCard } from "../../src/test/playCard.ts";
+import { describeCard } from "../../src/test/describeCard.ts";
 
-describe("e1-lio-003 Dayton Accords", () => {
-  it("plays out as its text says", () => {
-    expect(playCard("e1-lio-003", {})).toEqual([
+describeCard("e1-lio-003", "Dayton Accords", [
+  {
+    it: "plays out as its text says",
+    story: [
       "peace enforced",
       "points:lio:2",
       "triggerSet:turnEnd",
@@ -13,6 +13,6 @@ describe("e1-lio-003 Dayton Accords", () => {
       "points:sae:2",
       "triggerFired:turnEnd",
       "points:lio:1",
-    ]);
-  });
-});
+    ],
+  },
+]);

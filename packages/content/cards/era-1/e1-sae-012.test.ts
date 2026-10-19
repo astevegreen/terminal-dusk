@@ -1,10 +1,11 @@
 // e1-sae-012 Shock Therapy Backlash: one test for each way its effect can play out.
-import { describe, expect, it } from "vitest";
-import { playCard } from "../../src/test/playCard.ts";
+import { describeCard } from "../../src/test/describeCard.ts";
 
-describe("e1-sae-012 Shock Therapy Backlash", () => {
-  it("when LIO says yes", () => {
-    expect(playCard("e1-sae-012", { yes: { lio: true } })).toEqual([
+describeCard("e1-sae-012", "Shock Therapy Backlash", [
+  {
+    it: "when LIO says yes",
+    yes: { lio: true },
+    story: [
       "points:lio:2",
       "reform backlash",
       "points:sae:2",
@@ -14,16 +15,11 @@ describe("e1-sae-012 Shock Therapy Backlash", () => {
       "points:sae:2",
       "triggerFired:turnEnd",
       "points:sae:1",
-    ]);
-  });
-  it("when LIO says no", () => {
-    expect(playCard("e1-sae-012", { yes: { lio: false } })).toEqual([
-      "points:lio:2",
-      "reform backlash",
-      "points:sae:2",
-      "left to themselves",
-      "points:lio:2",
-      "points:sae:2",
-    ]);
-  });
-});
+    ],
+  },
+  {
+    it: "when LIO says no",
+    yes: { lio: false },
+    story: ["points:lio:2", "reform backlash", "points:sae:2", "left to themselves", "points:lio:2", "points:sae:2"],
+  },
+]);

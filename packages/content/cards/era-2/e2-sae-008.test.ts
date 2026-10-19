@@ -1,10 +1,10 @@
 // e2-sae-008 Petrocaribe: one test for each way its effect can play out.
-import { describe, expect, it } from "vitest";
-import { playCard } from "../../src/test/playCard.ts";
+import { describeCard } from "../../src/test/describeCard.ts";
 
-describe("e2-sae-008 Petrocaribe", () => {
-  it("plays out as its text says", () => {
-    expect(playCard("e2-sae-008", {})).toEqual([
+describeCard("e2-sae-008", "Petrocaribe", [
+  {
+    it: "plays out as its text says",
+    story: [
       "points:lio:2",
       "oil diplomacy",
       "points:sae:2",
@@ -13,6 +13,6 @@ describe("e2-sae-008 Petrocaribe", () => {
       "points:sae:2",
       "triggerFired:turnEnd",
       "points:lio:1",
-    ]);
-  });
-});
+    ],
+  },
+]);

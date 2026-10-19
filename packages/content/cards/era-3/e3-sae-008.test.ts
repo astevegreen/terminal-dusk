@@ -1,10 +1,10 @@
 // e3-sae-008 Syrian Intervention: one test for each way its effect can play out.
-import { describe, expect, it } from "vitest";
-import { playCard } from "../../src/test/playCard.ts";
+import { describeCard } from "../../src/test/describeCard.ts";
 
-describe("e3-sae-008 Syrian Intervention", () => {
-  it("plays out as its text says", () => {
-    expect(playCard("e3-sae-008", {})).toEqual([
+describeCard("e3-sae-008", "Syrian Intervention", [
+  {
+    it: "plays out as its text says",
+    story: [
       "points:lio:2",
       "proxy war",
       "points:sae:2",
@@ -13,6 +13,6 @@ describe("e3-sae-008 Syrian Intervention", () => {
       "points:sae:2",
       "triggerFired:turnEnd",
       "points:sae:1",
-    ]);
-  });
-});
+    ],
+  },
+]);
