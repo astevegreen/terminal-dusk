@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { copyFileSync, mkdtempSync, realpathSync, symlinkSync } from "node:fs";
+import { copyFileSync, mkdtempSync, readFileSync, realpathSync, symlinkSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { findSuites, parseArgs, planRun } from "./suites.mjs";
@@ -84,8 +84,24 @@ test("a suite that fails the type check stops the run", () => {
   assert.match(r.stdout, /bad\.test\.ts\(1,14\): error TS2322/);
 });
 
-test("the real runner passes when the repository has no suites yet", () => {
-  const r = spawnSync(process.execPath, ["tools/gates/suites.mjs", "golden"], { cwd: ROOT, encoding: "utf8", windowsHide: true });
+const runGolden = (root) =>
+  spawnSync(process.execPath, ["tools/gates/suites.mjs", "golden"], { cwd: root, encoding: "utf8", windowsHide: true });
+
+test("the real runner runs every golden suite in the repository, and they pass", () => {
+  const suites = findSuites(ROOT, "golden");
+  assert.ok(suites.length > 0, "the repository has golden suites");
+  const r = runGolden(ROOT);
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  // Vitest's summary line, with its colour codes taken out: every suite ran, and passed.
+  const plain = r.stdout.replace(new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g"), "");
+  assert.match(plain, new RegExp(`Test Files\\s+${suites.length} passed \\(${suites.length}\\)`));
+});
+
+test("the real runner passes and says so when tests/golden/ has no suites", () => {
+  // A copy of the runner in an empty root: it finds its root from its own place, two folders up.
+  const root = tempRoot({ "tests/golden/fixture.json": "{}" });
+  writeFiles(root, { "tools/gates/suites.mjs": readFileSync(path.join(ROOT, "tools/gates/suites.mjs"), "utf8") });
+  const r = runGolden(root);
   assert.equal(r.status, 0, r.stdout + r.stderr);
   assert.equal(r.stdout, "No golden suites in tests/golden/ yet, so there is nothing to run.\n");
 });

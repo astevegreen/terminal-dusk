@@ -25,6 +25,7 @@ export type {
   Decision,
   DecisionKind,
   DecisionOptions,
+  DrawPileReshuffled,
   Duration,
   EngineError,
   EngineErrorCode,

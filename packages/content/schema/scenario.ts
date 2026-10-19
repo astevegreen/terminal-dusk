@@ -1,5 +1,6 @@
 // The scenario schema: what one scenario file in packages/content/scenarios/ must hold (docs/architecture.md,
-// section 4). Part 1 covers the length of the game, plays per turn, later eras and Contingency decks.
+// section 4). Part 1 covers the length of the game, plays per turn, the hand size, later eras and Contingency
+// decks.
 // It refuses what the engine's createGame would refuse in those fields; scenario.types.test.ts checks it
 // against the engine's Setup.
 import * as z from "zod";
@@ -40,6 +41,21 @@ function checkEras(
   });
 }
 
+/**
+ * Checks the hand size against plays per turn: a side needs an opening card and all its plays each turn
+ * (docs/design/core-loop.md, "For the engine"). That the first era holds two hands is checked by createGame.
+ */
+function checkHandSize(scenario: { playsPerTurn: number; handSize: number }, ctx: z.RefinementCtx): void {
+  // A hand size below 1 is already refused by its own check; one problem gets one message.
+  if (scenario.handSize >= 1 && scenario.handSize < 1 + scenario.playsPerTurn) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["handSize"],
+      message: `The hand size must be at least 1 + plays per turn, ${1 + scenario.playsPerTurn}.`,
+    });
+  }
+}
+
 /** A scenario file. No other fields are allowed; a field written as undefined is refused, not read as left out. */
 export const scenarioSchema = z
   .strictObject({
@@ -47,10 +63,12 @@ export const scenarioSchema = z
     name,
     turns: z.int().min(1),
     playsPerTurn: z.int().min(1),
+    handSize: z.int().min(1),
     eras: z.array(eraEntry).exactOptional(),
     contingency: z.strictObject({ lio: deck.exactOptional(), sae: deck.exactOptional() }).exactOptional(),
   })
-  .superRefine(checkEras);
+  .superRefine(checkEras)
+  .superRefine(checkHandSize);
 
 /** A scenario as it reads from its file. */
 export type Scenario = z.output<typeof scenarioSchema>;

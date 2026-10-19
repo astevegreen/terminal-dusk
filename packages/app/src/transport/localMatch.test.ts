@@ -33,6 +33,8 @@ const config: MatchConfig = {
     deck: ["z1", "z2", "z3"],
     turns: 2,
     playsPerTurn: 1,
+    // The smallest hand size: the dealt hands never drop below it, so this match draws no cards.
+    handSize: 2,
     eras: [{ era: "late", turn: 2, cards: ["e1", "e2"] }],
     contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6] },
   },

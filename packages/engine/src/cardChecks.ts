@@ -1,7 +1,6 @@
 // Card checks for createGame: the ruleset's cards are well formed, and a setup uses only known cards, each once.
 import { badModifier } from "./modifiers.ts";
 import { badTrigger } from "./triggers.ts";
-import { SIDES } from "./types.ts";
 import type { CardId, EngineError, Ruleset, Setup, Side, Step } from "./types.ts";
 
 /**
@@ -150,22 +149,22 @@ const invalidRuleset = (message: string): EngineError => ({ code: "invalidRulese
 const invalidSetup = (message: string): EngineError => ({ code: "invalidSetup", message });
 
 /**
- * TEMPORARY until hands are refilled: why a side's hand is too small for the whole game, or null. Each
- * turn takes one opening card and `playsPerTurn` plays from each side, so each side needs at least
- * turns x (1 + playsPerTurn) non-neutral cards; neutral cards come on top (core-loop.md, "For the engine").
+ * Why the hand size does not fit the setup, or null (docs/design/core-loop.md, "Refilling hands"). Each
+ * turn a side needs one opening card and `playsPerTurn` plays, so the hand size is at least 1 + playsPerTurn.
+ * And the first era (both hands and the draw pile) needs at least twice the hand size in cards: then both
+ * hands fill on turn 1, and every refill after that can draw, because at a turn's start every card is in a
+ * hand, the draw pile or the discard pile. Scenarios deal no hands; tests may, and a refill only tops up.
  */
-export function handSizeError(ruleset: Ruleset, setup: Setup): EngineError | null {
-  const neutral = new Set(ruleset.cards.filter((card) => card.affiliation === "neutral").map((card) => card.id));
-  const needed = setup.turns * (1 + setup.playsPerTurn);
-  for (const side of SIDES) {
-    const have = setup.hands[side].filter((card) => !neutral.has(card)).length;
-    if (have < needed) {
-      const who = side === "lio" ? "LIO" : "SAE";
-      return invalidSetup(
-        `${who}'s hand has ${have} non-neutral cards; ${setup.turns} turns of an opening card and ` +
-          `${setup.playsPerTurn} plays need ${needed}.`,
-      );
-    }
+export function handSizeError(setup: Setup): EngineError | null {
+  const { handSize, playsPerTurn } = setup;
+  if (handSize < 1 + playsPerTurn) {
+    return invalidSetup(
+      `The hand size is ${handSize}; an opening card and ${playsPerTurn} plays need ${1 + playsPerTurn}.`,
+    );
+  }
+  const firstEra = setup.hands.lio.length + setup.hands.sae.length + setup.deck.length;
+  if (firstEra < 2 * handSize) {
+    return invalidSetup(`The first era has ${firstEra} cards; two hands of ${handSize} need at least ${2 * handSize}.`);
   }
   return null;
 }

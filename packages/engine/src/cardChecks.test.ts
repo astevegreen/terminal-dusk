@@ -95,33 +95,33 @@ describe("createGame: no card's effect holds a card choice", () => {
   });
 });
 
-// TEMPORARY, like the check itself: until hands are refilled, each side needs enough non-neutral cards
-// for the whole game, turns x (1 + playsPerTurn).
-describe("createGame: each hand holds turns x (1 + playsPerTurn) non-neutral cards (temporary)", () => {
+// Hands refill each turn (docs/design/core-loop.md, "Refilling hands"), so the old check that each dealt hand
+// covers the whole game is gone. These are the hand size checks; refill.test.ts has the rest.
+describe("createGame: the hand size fits the turn and the first era", () => {
   it.each([
     [1, 1],
     [2, 1],
     [2, 3],
-  ])("exactly enough is accepted: %i turns, %i plays", (turns, plays) => {
-    const setup = makeSetup(turns, plays);
-    expect(setup.hands.lio.filter((c) => c !== "n1")).toHaveLength(turns * (1 + plays));
-    expect(outcome(ruleset, setup)).toBe("ok");
+  ])("a hand size of 1 + plays per turn is accepted: %i turns, %i plays", (turns, plays) => {
+    expect(outcome(ruleset, { ...makeSetup(turns, plays), handSize: 1 + plays })).toBe("ok");
   });
-  it.each(["lio", "sae"] as const)("one fewer in %s's hand is rejected with invalidSetup", (side) => {
-    const base = makeSetup(2, 1);
-    const short = { ...base, hands: { ...base.hands, [side]: base.hands[side].slice(1) } };
-    expect(outcome(ruleset, short)).toBe("invalidSetup");
+  it("a hand size smaller than 1 + plays per turn is rejected, and the error says how many it needs", () => {
+    const r = createGame(ruleset, { ...makeSetup(2, 3), handSize: 3 }, "seed-1");
+    expect(r).toMatchObject({ ok: false, error: { code: "invalidSetup", message: expect.stringContaining("need 4") } });
   });
-  it("extra neutral cards don't make up the shortfall", () => {
-    const base = makeSetup(2, 1);
-    const short = { ...base, hands: { ...base.hands, lio: [...base.hands.lio.slice(1), "z1", "z2", "z3"] }, deck: [] };
-    expect(outcome(ruleset, short)).toBe("invalidSetup");
+  it("a first era with one card fewer than two hands is rejected, and the error says how many it needs", () => {
+    // makeSetup(2, 1) holds 13 cards (two hands of 5 and a draw pile of 3), so a hand size of 7 needs 14.
+    expect(outcome(ruleset, { ...makeSetup(2, 1), handSize: 6 })).toBe("ok");
+    const r = createGame(ruleset, { ...makeSetup(2, 1), handSize: 7 }, "seed-1");
+    expect(r).toMatchObject({
+      ok: false,
+      error: { code: "invalidSetup", message: expect.stringContaining("need at least 14") },
+    });
   });
-  it("the error names the side and how many cards it needs", () => {
-    const base = makeSetup(2, 1);
-    const r = createGame(ruleset, { ...base, hands: { ...base.hands, sae: ["s1", "n2"] } }, "seed-1");
-    expect(r).toMatchObject({ ok: false, error: { code: "invalidSetup", message: expect.stringContaining("SAE") } });
-    expect(!r.ok && r.error.message).toContain("need 4");
+  it("a setup without a hand size is rejected", () => {
+    const noHandSize: Partial<Setup> = makeSetup();
+    delete noHandSize.handSize;
+    expect(outcome(ruleset, noHandSize as Setup)).toBe("invalidSetup");
   });
 });
 

@@ -221,22 +221,42 @@ export function leaksIn(text: string, secrets: Secrets): string[] {
 }
 
 /**
+ * The cards a refill in this step shuffled from the discard pile into a new draw pile
+ * (docs/design/core-loop.md, "Refilling hands"): the draw pile now, plus the cards drawn after the reshuffle.
+ * Nothing else takes cards from the draw pile between a refill and the next decision. Empty with no reshuffle.
+ */
+export function reshuffledCards(state: GameState, events: readonly GameEvent[]): CardId[] {
+  const at = events.findLastIndex((event) => event.kind === "drawPileReshuffled");
+  if (at === -1) return [];
+  const drawnAfter = events.slice(at + 1).flatMap((event) => (event.kind === "cardDrawn" ? [event.card] : []));
+  return [...state.secret.deck, ...drawnAfter];
+}
+
+/**
  * Invariant 4: no view, and no list of this step's events, gives a viewer the seed, the generator state,
  * a card hidden from it in `state` (the state after the step) or a Contingency deck's order. No event
- * carries a contingency field at all.
+ * carries a contingency field at all. One exception: the events up to a reshuffle may name the cards it
+ * shuffled, which lay face up in the discard pile until then (a card played in the open, say). The events
+ * after the reshuffle get the full check, so naming a card a side then drew is still a leak.
  */
 export function checkNoLeaks(state: GameState, events: readonly GameEvent[], seed: Seed): void {
+  const reshuffled = new Set(reshuffledCards(state, events));
+  const at = events.findLastIndex((event) => event.kind === "drawPileReshuffled");
   for (const viewer of VIEWERS) {
     const secrets: Secrets = { seed, rng: state.secret.rng, hidden: hiddenFrom(state, viewer) };
     const view = attempt(`viewFor('${viewer}')`, () => viewFor(state, viewer));
     const viewLeaks = [...leaksIn(JSON.stringify(view), secrets), ...contingencyLeaksIn(view, state)];
     if (viewLeaks.length > 0) throw new Error(`the view for '${viewer}' shows ${viewLeaks.join(", ")}`);
-    const seen = attempt(`eventsFor('${viewer}')`, () => eventsFor(events, viewer));
+    const upTo: Secrets = { ...secrets, hidden: secrets.hidden.filter((card) => !reshuffled.has(card)) };
+    const seenUpTo = attempt(`eventsFor('${viewer}')`, () => eventsFor(events.slice(0, at + 1), viewer));
+    const seenAfter = attempt(`eventsFor('${viewer}')`, () => eventsFor(events.slice(at + 1), viewer));
     const eventLeaks = [
-      ...leaksIn(JSON.stringify(seen), secrets),
-      ...contingencyFields(seen, "events").map((field) => `the field ${field}`),
+      ...leaksIn(JSON.stringify(seenUpTo), upTo),
+      ...leaksIn(JSON.stringify(seenAfter), secrets),
+      ...contingencyFields([...seenUpTo, ...seenAfter], "events").map((field) => `the field ${field}`),
     ];
-    if (eventLeaks.length > 0) throw new Error(`the events for '${viewer}' show ${eventLeaks.join(", ")}`);
+    if (eventLeaks.length > 0)
+      throw new Error(`the events for '${viewer}' show ${[...new Set(eventLeaks)].join(", ")}`);
   }
 }
 

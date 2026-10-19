@@ -79,6 +79,7 @@ export function playCard(id: CardId, options: PlayOptions = {}): string[] {
       deck: ["deck-1", "deck-2"],
       turns: 1,
       playsPerTurn: 2,
+      handSize: 3,
       contingency: { lio: deckOf, sae: deckOf },
     },
     "card-test",

@@ -1,8 +1,8 @@
-// The first deck as a game the app can start: the ruleset, a match config with a seeded deal, and card names.
+// The first deck as a game the app can start: the ruleset, a match config, and card names.
 // The app may not import content (docs/architecture.md), so this is the route from the real cards to the screens.
-// The deal is a stopgap: hands are fixed at the start and never refilled (docs/design/cards/deck-plan.md, Owner
-// question 27), so each side gets 6 of its own cards, 2 of the rival's and 3 neutral ones: 8 non-neutral cards for
-// the TEST scenario's 4 turns of 2 cards each. The 6 Era 1 cards left over start in the draw pile.
+// There is no separate deal: both hands start empty and every Era 1 card starts in the draw pile, which the engine
+// shuffles with the match seed. The turn 1 refill then deals each side its first hand (docs/design/core-loop.md,
+// "Refilling hands").
 import {
   ERA_1_CARDS,
   FIRST_DECK_RULESET,
@@ -10,7 +10,7 @@ import {
   cardName,
   scenarioSetup,
 } from "@terminal-dusk/content/first-deck";
-import type { CardId, Ruleset, Seed } from "@terminal-dusk/engine";
+import type { Ruleset } from "@terminal-dusk/engine";
 import type { MatchConfig } from "./types.ts";
 
 export const FIRST_DECK_NOTE =
@@ -18,52 +18,14 @@ export const FIRST_DECK_NOTE =
 export const firstDeckRuleset: Ruleset = FIRST_DECK_RULESET;
 export { cardName as firstDeckCardName };
 
-const OWN = 6;
-const RIVAL = 2;
-const NEUTRAL = 3;
-
-/** A small seeded random generator (no Math.random): the same seed always gives the same numbers. */
-function randomFrom(seed: string): () => number {
-  let h = 2166136261;
-  for (const ch of seed) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0;
-  let a = h;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function shuffled<T>(items: readonly T[], next: () => number): T[] {
-  const out = [...items];
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(next() * (i + 1));
-    [out[i], out[j]] = [out[j]!, out[i]!];
-  }
-  return out;
-}
-
-/** The match config for the first deck: the TEST scenario's numbers and a deal that depends only on `seed`. */
-export function firstDeckConfig(seed: Seed): MatchConfig {
-  const next = randomFrom(`deal:${String(seed)}`);
-  const ids = (side: string): CardId[] =>
-    shuffled(
-      ERA_1_CARDS.filter((c) => c.affiliation === side).map((c) => c.id),
-      next,
-    );
-  const lio = ids("lio");
-  const sae = ids("sae");
-  const neutral = ids("neutral");
+/** The match config for the first deck: the TEST scenario's numbers, empty hands and the Era 1 draw pile. */
+export function firstDeckConfig(): MatchConfig {
   return {
     matchId: "first-deck",
     players: { lio: "player-lio", sae: "player-sae" },
     setup: {
-      hands: {
-        lio: [...lio.slice(0, OWN), ...sae.slice(OWN, OWN + RIVAL), ...neutral.slice(0, NEUTRAL)],
-        sae: [...sae.slice(0, OWN), ...lio.slice(OWN, OWN + RIVAL), ...neutral.slice(NEUTRAL, 2 * NEUTRAL)],
-      },
-      deck: [...lio.slice(OWN + RIVAL), ...sae.slice(OWN + RIVAL), ...neutral.slice(2 * NEUTRAL)],
+      hands: { lio: [], sae: [] },
+      deck: ERA_1_CARDS.map((c) => c.id),
       ...scenarioSetup(FIRST_DECK_SCENARIO),
     },
   };

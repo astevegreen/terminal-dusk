@@ -37,7 +37,7 @@ describe("Era 3 in the first-deck TEST scenario", () => {
     if (made.ok) {
       const waiting = made.value.state.secret.eras.flatMap((e) => e.cards);
       for (const card of ERA_3_CARDS) expect(waiting).toContain(card.id);
-      // The draw pile holds only the Era 1 cards left over from the deal.
+      // The draw pile holds only the Era 1 cards left after the turn 1 refill dealt both hands.
       expect(made.value.state.secret.deck.every((id) => id.startsWith("e1-"))).toBe(true);
     }
   });
