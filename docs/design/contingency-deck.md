@@ -42,7 +42,8 @@ decks. From now on this file is the source of truth; change it in Notion and pro
   - **Drawing from the rival's deck** (owner, 19 Oct, answering Owner question 2 of the first-deck plan,
     PR #121). Any LIO or SAE card's event may draw from the rival's deck instead of
     its own, when its text names that deck. One card may draw from both decks, for example "each side
-    draws; the higher number wins". The card names the deck; who played the card never changes it. So when
+    draws; the higher number wins". The card names the deck; who played the card never changes it, except
+    that a rival's card draws from the World deck instead of its owner's deck (below). So when
     SAE plays an LIO card for its action points and the LIO event draws from SAE's deck, SAE's own deck is
     drawn.
   - Such a draw is an ordinary draw from that deck: the card is used up and set aside, it counts toward
@@ -111,7 +112,6 @@ Owner, 19 Oct.
   and belongs to no side.
 - Decks are shuffled with the game's seeded shuffle, so replays and the seed reveal verify every draw.
 - The deck contents (default 1 to 6) come from scenario data (Decision 4); the engine must not hard-code them.
-  With the reshuffle at two cards left, every deck needs at least three cards.
 - The atomic step is "draw contingency" and the hook point is "coup result" (Decision 4). There is no dice
   code in the engine to rework.
 - The AI reads which numbers are left in each deck from its view, like any other public information.
@@ -125,5 +125,7 @@ Owner, 19 Oct.
 - Once modifiers can change a drawn number: when a side's card draws from the rival's deck, whether that
   side's bonuses apply (it is that side's event) or the deck owner's (owner, 19 Oct: decide later). The same
   question applies to a World deck draw.
+- The smallest deck a scenario may use. A deck of two cards would never reach "two cards left" after a draw,
+  so the reshuffle rule only works with three or more. Whether to require that is for the owner to confirm.
 - Backup idea from the Notion page, not adopted: if playtests show single misses still sting, a bad-luck token (each 1 drawn earns
   one, hold at most 2, spend one for +1 on a later draw).
