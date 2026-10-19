@@ -18,6 +18,7 @@ vi.mock("../transport/localMatch.ts", async () => {
       if (!made.ok) return made;
       const real = made.value;
       const fake: LocalMatch = {
+        ...real,
         transportFor: (viewer) => {
           const inner = real.transportFor(viewer);
           const change = (frame: Frame): Frame => replacement[viewer]?.(frame) ?? frame;

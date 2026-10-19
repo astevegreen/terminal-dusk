@@ -45,6 +45,11 @@ test("play against the AI: pick LIO and tap through a whole game against the wor
   const log = await page.getByTestId("log").innerText();
   expect(log).toMatch(/^lio /m);
   expect(log).toMatch(/^sae /m);
+  // The finished game can be watched back, and Close returns to it.
+  await page.getByRole("button", { name: "Watch replay" }).click();
+  await expect(page.getByText(/^Step 1 of \d+$/)).toBeVisible();
+  await page.getByRole("button", { name: "Close" }).click();
+  await expect(gameOver).toBeVisible();
   await expect(page.getByRole("button", { name: "New game" })).toBeVisible();
   await page.getByRole("button", { name: "New game" }).click();
   await expect(page.getByRole("button", { name: "Play as SAE" })).toBeVisible();

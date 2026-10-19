@@ -3,6 +3,8 @@
 import type { AnswerValue, EraId, GameEvent, Viewer } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import { eventPresentation } from "../eventPresentation.ts";
+import { toRecording } from "../replay/recording.ts";
+import type { ReplayRecording } from "../replay/recording.ts";
 import { createLocalMatch } from "../transport/localMatch.ts";
 import type { LocalMatch } from "../transport/localMatch.ts";
 import { DEFAULT_SEED, fixtureConfig, fixtureRuleset } from "./fixture.ts";
@@ -18,6 +20,8 @@ export type Snapshot = {
   era: EraId | null;
   /** The error code of the last refused answer or failed start, or null. */
   refusal: string | null;
+  /** True once the game is over and its replay is ready (the replay itself is not in the snapshot). */
+  replayReady: boolean;
 };
 
 export type TestSession = {
@@ -26,6 +30,8 @@ export type TestSession = {
   setViewer(viewer: Viewer): void;
   /** Starts a fresh match from `seed`, looking at the same viewer. */
   restart(seed: string): void;
+  /** The finished game as a recording for the replay viewer, or null while it is not ready. */
+  replay(): ReplayRecording | null;
   /** Sends an answer on the current viewer's transport; a refusal shows up in the snapshot. */
   answer(value: AnswerValue): Promise<void>;
 };
@@ -42,7 +48,15 @@ export function createTestSession(clock: () => number, startSeed: string = DEFAU
   let logs: Record<Viewer, string[]> = { lio: [], sae: [], spectator: [] };
   let lastSeq: Record<Viewer, number> = { lio: -1, sae: -1, spectator: -1 };
   let eras: Record<Viewer, EraId | null> = { lio: null, sae: null, spectator: null };
-  let snapshot: Snapshot = { viewer: "lio", seed: startSeed, frame: null, log: [], era: null, refusal: null };
+  let snapshot: Snapshot = {
+    viewer: "lio",
+    seed: startSeed,
+    frame: null,
+    log: [],
+    era: null,
+    refusal: null,
+    replayReady: false,
+  };
 
   const publish = (change: Partial<Snapshot>): void => {
     snapshot = { ...snapshot, ...change };
@@ -56,7 +70,7 @@ export function createTestSession(clock: () => number, startSeed: string = DEFAU
       lastSeq[viewer] = frame.seq;
       for (const event of frame.events) if (event.kind === "eraStarted") eras[viewer] = event.era;
     }
-    publish({ frame, log: logs[viewer], era: eras[viewer], refusal: null });
+    publish({ frame, log: logs[viewer], era: eras[viewer], refusal: null, replayReady: match?.archive() != null });
   };
 
   const watch = (viewer: Viewer): void => {
@@ -71,7 +85,15 @@ export function createTestSession(clock: () => number, startSeed: string = DEFAU
     eras = { lio: null, sae: null, spectator: null };
     const made = createLocalMatch(fixtureRuleset, fixtureConfig, seed, clock);
     match = made.ok ? made.value : null;
-    snapshot = { viewer, seed, frame: null, log: [], era: null, refusal: made.ok ? null : made.error.code };
+    snapshot = {
+      viewer,
+      seed,
+      frame: null,
+      log: [],
+      era: null,
+      refusal: made.ok ? null : made.error.code,
+      replayReady: false,
+    };
     if (made.ok) watch(viewer);
     else publish({});
   };
@@ -88,6 +110,10 @@ export function createTestSession(clock: () => number, startSeed: string = DEFAU
     setViewer(viewer) {
       snapshot = { ...snapshot, viewer, frame: null, log: logs[viewer], era: eras[viewer] };
       watch(viewer);
+    },
+    replay() {
+      const archive = match?.archive();
+      return archive ? toRecording(archive) : null;
     },
     restart(seed) {
       start(seed, snapshot.viewer);

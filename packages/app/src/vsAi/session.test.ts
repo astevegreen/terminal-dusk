@@ -100,7 +100,7 @@ describe("an AI answer that comes too late", () => {
             },
           };
         };
-        return { ok: true, value: { transportFor } };
+        return { ok: true, value: { ...real, transportFor } };
       },
     });
     expect(standIn.asked).toHaveLength(1);

@@ -3,6 +3,8 @@
 import type { Viewer } from "@terminal-dusk/engine";
 import { useState, useSyncExternalStore } from "react";
 import { GameScreen } from "../game/GameScreen.tsx";
+import { ReplayScreen } from "../replay/ReplayScreen.tsx";
+import type { ReplayRecording } from "../replay/recording.ts";
 import { cardName } from "./fixture.ts";
 import { createTestSession } from "./session.ts";
 import type { Snapshot, TestSession } from "./session.ts";
@@ -17,7 +19,9 @@ const TAP = { minHeight: 44, minWidth: 44 } as const;
 /** The screen's two controls and the frame, drawn from a snapshot. */
 export function TestModeView({ snapshot, session }: Readonly<{ snapshot: Snapshot; session: TestSession }>) {
   const [seedText, setSeedText] = useState(snapshot.seed);
+  const [watching, setWatching] = useState<ReplayRecording | null>(null);
   const { frame, viewer } = snapshot;
+  if (watching) return <ReplayScreen recording={watching} label={cardName} onClose={() => setWatching(null)} />;
   return (
     <main>
       <h1>Test mode</h1>
@@ -41,6 +45,11 @@ export function TestModeView({ snapshot, session }: Readonly<{ snapshot: Snapsho
           Restart
         </button>
       </form>
+      {snapshot.replayReady && (
+        <button type="button" style={TAP} onClick={() => setWatching(session.replay())}>
+          Watch replay
+        </button>
+      )}
       <p data-testid="refusal" role="status">
         {snapshot.refusal ? `Refused: ${snapshot.refusal}` : "No refusal"}
       </p>

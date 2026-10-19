@@ -180,3 +180,49 @@ describe("a whole game through the prompts", () => {
     expect(session.getSnapshot().frame?.view.public.status.kind).toBe("over");
   });
 });
+
+describe("the replay after a whole game", () => {
+  const SEED = "typed-seed-4417";
+  async function finish(session: TestSession): Promise<void> {
+    for (let step = 0; step < 100 && session.getSnapshot().frame?.view.public.status.kind === "active"; step++) {
+      for (const viewer of ["lio", "sae"] as const) {
+        session.setViewer(viewer);
+        if (session.getSnapshot().frame?.decision) {
+          await answerOnce(session, "first");
+          break;
+        }
+      }
+    }
+  }
+
+  it("is not ready during the game, and the screen offers no Watch replay button", () => {
+    const session = fresh(SEED);
+    expect(session.getSnapshot().replayReady).toBe(false);
+    expect(session.replay()).toBeNull();
+    expect(html(session)).not.toContain("Watch replay");
+  });
+
+  it("is ready once the game is over: Watch replay shows, and replay() gives a recording without the seed", async () => {
+    const session = fresh(SEED);
+    await finish(session);
+    expect(session.getSnapshot().replayReady).toBe(true);
+    expect(html(session)).toContain("Watch replay</button>");
+    const recording = session.replay();
+    expect(recording?.frames.length).toBeGreaterThan(2);
+    expect(recording?.status.kind).toBe("over");
+    expect(Object.keys(recording!).sort()).toEqual(["frames", "matchId", "seedHash", "status"]);
+    // The typed seed is the screen's own input; nothing else in the snapshot or the recording holds it.
+    const { seed, ...rest } = session.getSnapshot();
+    expect(seed).toBe(SEED);
+    expect(JSON.stringify(rest)).not.toContain(SEED);
+    expect(JSON.stringify(recording)).not.toContain(SEED);
+  });
+
+  it("goes back to not ready on Restart", async () => {
+    const session = fresh(SEED);
+    await finish(session);
+    session.restart("another");
+    expect(session.getSnapshot().replayReady).toBe(false);
+    expect(session.replay()).toBeNull();
+  });
+});
