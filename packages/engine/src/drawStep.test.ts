@@ -95,3 +95,51 @@ describe("the drawContingency step", () => {
     expect(JSON.stringify(s)).toBe(before);
   });
 });
+
+describe("drawing from the rival's deck (owner, 19 Oct)", () => {
+  it("an LIO card's event that names SAE's deck takes SAE's top card, shown publicly, and leaves LIO's deck alone", () => {
+    const rs = withCards(sideCard("l9", 2, [draws("sae", "n"), marker("drew", "n")]));
+    const s = atLioPlay(rs, { lio: ["l9"] });
+    const [top, ...rest] = s.secret.contingency.sae;
+    const r = applied(s, playAnswer(s, "lio", "l9", "event"), rs);
+    expect(drawnEvents(r.events)).toEqual([
+      { kind: "contingencyDrawn", visibility: "public", side: "sae", value: top },
+    ]);
+    expect(markers(r.events)).toEqual([`drew:${top}`]);
+    expect(r.state.secret.contingency.sae).toEqual(rest);
+    expect(r.state.public.contingency.sae.left).toEqual([1, 2, 3, 4, 5, 6].filter((n) => n !== top));
+    expect(r.state.secret.contingency.lio).toEqual(s.secret.contingency.lio);
+    expect(r.state.public.contingency.lio).toEqual(s.public.contingency.lio);
+  });
+
+  it("the card it uses up counts toward the rival deck's reshuffle like any draw", () => {
+    const rs = withCards(sideCard("l9", 2, [draws("sae")]));
+    const s = atLioPlay(rs, { lio: ["l9"] }, { lio: [1, 2, 3, 4, 5, 6], sae: [3, 7] });
+    const r = applied(s, playAnswer(s, "lio", "l9", "event"), rs);
+    expect(drawnEvents(r.events)).toEqual([
+      { kind: "contingencyDrawn", visibility: "public", side: "sae", value: s.secret.contingency.sae[0] },
+      { kind: "contingencyDeckReshuffled", visibility: "public", side: "sae" },
+    ]);
+    expect(r.state.public.contingency.sae).toEqual({ cards: [3, 7], left: [3, 7] });
+  });
+
+  it("the card names the deck, not who played it: SAE's card played by LIO for points draws LIO's deck", () => {
+    const rs = withCards(sideCard("s9", 2, [draws("lio", "n"), marker("drew", "n")]));
+    const s = atLioPlay(rs, { lio: ["s9"] });
+    const waiting = applied(s, playAnswer(s, "lio", "s9", "points"), rs).state;
+    const r = applied(waiting, orderAnswer(waiting, "lio", "before"), rs);
+    expect(drawnEvents(r.events)).toEqual([
+      { kind: "contingencyDrawn", visibility: "public", side: "lio", value: s.secret.contingency.lio[0] },
+    ]);
+    expect(r.state.secret.contingency.sae).toEqual(s.secret.contingency.sae);
+  });
+
+  it("one card may draw from both decks, each draw taking that deck's top card", () => {
+    const rs = withCards(sideCard("l9", 2, [draws("lio", "a"), draws("sae", "b"), marker("a", "a"), marker("b", "b")]));
+    const s = atLioPlay(rs, { lio: ["l9"] });
+    const r = applied(s, playAnswer(s, "lio", "l9", "event"), rs);
+    expect(markers(r.events)).toEqual([`a:${s.secret.contingency.lio[0]}`, `b:${s.secret.contingency.sae[0]}`]);
+    expect(r.state.secret.contingency.lio).toEqual(s.secret.contingency.lio.slice(1));
+    expect(r.state.secret.contingency.sae).toEqual(s.secret.contingency.sae.slice(1));
+  });
+});

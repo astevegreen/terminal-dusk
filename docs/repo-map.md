@@ -326,6 +326,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, createGame, legalAnswers, pendingFor, eventsFor, seedHash, SIDES, verifyGame, hiddenPart, reconstruct, viewFor, ActiveModifier, ….
 - `packages/engine/src/modifiers.test.ts` - Modifiers (#89): rule changes in public state, the opsValue hook, and their end at the turn's end.
 - `packages/engine/src/modifiers.ts` - Modifiers (docs/architecture.md, section 4): rule changes with a duration, kept in public state and consulted only at fixed hook points. Exports: opsValue, startModifier, endTurnModifiers, badModifier.
+- `packages/engine/src/neutralDraw.test.ts` - A neutral card's draw (decision 17, docs/design/contingency-deck.md): "side": "player" draws from the deck of the side that played the card, whichever side ans…
 - `packages/engine/src/numberSteps.test.ts` - Number tests (atLeast, atMost, equals) and the addToNumber step (#74): a card changes the number a Contingency draw gave and branches on the result.
 - `packages/engine/src/omniscient.test.ts` - The omniscient viewer: everything except the secret compartment, for replays of finished games.
 - `packages/engine/src/play.property.test.ts` - Property test: in random games with rival and neutral plays, every card is always in exactly one place, and a card whose event or points are still waiting on a…

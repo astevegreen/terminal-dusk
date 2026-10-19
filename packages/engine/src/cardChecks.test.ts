@@ -125,38 +125,55 @@ describe("createGame: each hand holds turns x (1 + playsPerTurn) non-neutral car
   });
 });
 
-describe("createGame: a card's event draws only from its own side's Contingency deck", () => {
-  const draw = (side: Side): Step => ({ op: "drawContingency", side });
+describe("createGame: which Contingency decks a card's event may draw from", () => {
+  const draw = (side: Side | "player"): Step => ({ op: "drawContingency", side });
   const placements = (step: Step): [string, Step[]][] => [
     ["at the top", [step]],
     ["inside an if's then", [choose("go"), ifYes("go", [step])]],
     ["inside an if's else", [choose("go"), ifYes("go", [], [step])]],
     ["inside a forEach", [forEach(["a"], "x", [step])]],
+    ["inside a trigger's reaction", [trigger({}, [step])]],
   ];
   const outcomeOf = (affiliation: Side | "neutral", effect: Step[]) =>
     outcome(withCards([...ruleset.cards.slice(1), testCard("l1", 1, affiliation, effect)]));
+  /** The outcome when the neutral card n1, in LIO's hand, has `effect`. */
+  const neutralOutcome = (effect: Step[]) =>
+    outcome(withCards(ruleset.cards.map((c) => (c.id === "n1" ? testCard("n1", 1, "neutral", effect) : c))));
 
   it.each([
     ["lio", "sae"],
     ["sae", "lio"],
-  ] as const)("refuses a %s card drawing from %s's deck", (own, other) => {
-    for (const [, effect] of placements(draw(other))) expect(outcomeOf(own, effect)).toBe("invalidRuleset");
+  ] as const)("accepts a %s card drawing from %s's deck (the rival's), at any depth (owner, 19 Oct)", (own, other) => {
+    for (const [, effect] of placements(draw(other))) expect(outcomeOf(own, effect)).toBe("ok");
+  });
+  it.each(["lio", "sae"] as const)("accepts a %s card drawing from both decks", (side) => {
+    expect(outcomeOf(side, [draw("lio"), draw("sae")])).toBe("ok");
   });
   it.each(["lio", "sae"] as const)("refuses a neutral card drawing from %s's deck", (side) => {
-    for (const [, effect] of placements(draw(side))) expect(outcomeOf("neutral", effect)).toBe("invalidRuleset");
+    for (const [, effect] of placements(draw(side))) expect(neutralOutcome(effect)).toBe("invalidRuleset");
   });
   it.each(["lio", "sae"] as const)("accepts a %s card drawing from its own deck, at any depth", (side) => {
     for (const [, effect] of placements(draw(side))) expect(outcomeOf(side, effect)).toBe("ok");
   });
-  it("names the card and both sides in the error", () => {
-    const rs = withCards([...ruleset.cards.slice(1), testCard("l1", 1, "lio", [draw("sae")])]);
-    const r = createGame(rs, makeSetup(), "seed-1");
-    expect(!r.ok && r.error.message).toBe("Card l1 is an LIO card, but its event draws from SAE's Contingency deck.");
+  it("accepts a neutral card drawing from the deck of the side that played it, at any depth", () => {
+    for (const [, effect] of placements(draw("player"))) expect(neutralOutcome(effect)).toBe("ok");
   });
-  it("says neutral events have no Contingency deck yet", () => {
+  it.each(["lio", "sae"] as const)("refuses a %s card drawing from the deck of the side that played it", (side) => {
+    for (const [, effect] of placements(draw("player"))) expect(outcomeOf(side, effect)).toBe("invalidRuleset");
+  });
+  it("tells a neutral card naming a side's deck to draw from the player's deck", () => {
     const rs = withCards([...ruleset.cards.slice(1), testCard("l1", 1, "neutral", [draw("lio")])]);
     const r = createGame(rs, makeSetup(), "seed-1");
-    expect(!r.ok && r.error.message).toContain("neutral events have no Contingency deck yet");
+    expect(!r.ok && r.error.message).toBe(
+      `Card l1 is a neutral card, but its event draws from LIO's Contingency deck; a neutral event draws from the deck of the side that played it ("side": "player").`,
+    );
+  });
+  it("tells a side's card drawing from the player's deck to name LIO's or SAE's deck", () => {
+    const rs = withCards([...ruleset.cards.slice(1), testCard("l1", 1, "sae", [draw("player")])]);
+    const r = createGame(rs, makeSetup(), "seed-1");
+    expect(!r.ok && r.error.message).toBe(
+      "Card l1 is an SAE card, but its event draws from the deck of the side that played it; only a neutral event does, and an SAE event names LIO's or SAE's deck.",
+    );
   });
 });
 

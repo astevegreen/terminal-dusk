@@ -7,17 +7,26 @@
 // does. A trigger set while they run was not pushed, so it waits for the hook's next time. A reaction can
 // neither play a card nor end a turn, so a trigger can never make its own hook happen again.
 import { copyJson } from "./copy.ts";
-import type { ActiveTrigger, Binding, CardId, Frame, GameEvent, GameState, Step } from "./types.ts";
+import type { ActiveTrigger, Binding, CardId, Frame, GameEvent, GameState, Side, Step } from "./types.ts";
 
 type TriggerStep = Extract<Step, { op: "trigger" }>;
 
 /**
  * Runs a `trigger` step for the card `source`: the trigger joins the end of the list, to end with the
- * current turn, and everyone is told. Edits `state`, a working copy.
+ * current turn, and everyone is told. `player`, the side that played a neutral card, goes with it, so the
+ * reaction's "player" draws use that side's deck. Edits `state`, a working copy.
  */
-export function setTrigger(state: GameState, source: CardId, step: TriggerStep, events: GameEvent[]): void {
+export function setTrigger(
+  state: GameState,
+  source: CardId,
+  step: TriggerStep,
+  events: GameEvent[],
+  player?: Side,
+): void {
   const expires = { kind: step.duration.kind, turn: state.public.turn };
-  state.public.triggers.push({ source, hook: step.hook, do: copyJson(step.do), expires });
+  const trigger: ActiveTrigger = { source, hook: step.hook, do: copyJson(step.do), expires };
+  if (player !== undefined) trigger.player = player;
+  state.public.triggers.push(trigger);
   events.push({ kind: "triggerSet", visibility: "public", source, hook: step.hook });
 }
 
@@ -63,7 +72,9 @@ function pushReactions(state: GameState, triggers: ActiveTrigger[], vars: Bindin
   for (const { source, hook } of triggers) events.push({ kind: "triggerFired", visibility: "public", source, hook });
   for (const trigger of [...triggers].reverse()) {
     const steps = copyJson(trigger.do);
-    state.public.stack.push({ kind: "program", steps, next: 0, vars: copyJson(vars), source: trigger.source });
+    const frame: Frame = { kind: "program", steps, next: 0, vars: copyJson(vars), source: trigger.source };
+    if (trigger.player !== undefined) frame.player = trigger.player;
+    state.public.stack.push(frame);
   }
 }
 

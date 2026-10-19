@@ -44,13 +44,14 @@ const problem = (code: EngineErrorCode, message: string): EngineError => ({ code
  * Starts `steps` as a program and runs it until it pauses or ends. If it pauses, its choice replaces
  * the pending decisions. Internal: index.ts does not export it. Engine tests start programs with it;
  * real games start them from the turn structure (turn.ts), through runProgram. `source`, if given, is
- * the card the program runs for.
+ * the card the program runs for, and `player` the side that played it (as in runProgram).
  */
 export function startProgram(
   ruleset: Ruleset,
   state: GameState,
   steps: Step[],
   source?: CardId,
+  player?: Side,
 ): Result<{ state: GameState; events: GameEvent[] }> {
   if (ruleset.id !== state.meta.ruleset) {
     return { ok: false, error: problem("rulesetMismatch", "That ruleset is not the one this game started with.") };
@@ -65,13 +66,14 @@ export function startProgram(
   const next = copyJson(state);
   next.meta.seq += 1;
   const events: GameEvent[] = [];
-  const error = runProgram(next, steps, events, newBudget(ruleset), source);
+  const error = runProgram(next, steps, events, newBudget(ruleset), source, player);
   return error ? { ok: false, error } : { ok: true, value: { state: next, events } };
 }
 
 /**
  * Pushes `steps` as a new program and runs it until it pauses or ends. `source` is the card whose effect
- * or play it runs, if any: the frame records it. Edits `state`, a working copy.
+ * or play it runs, if any, and `player` the side that played it, given for a neutral card's event: the
+ * frame records both. Edits `state`, a working copy.
  */
 export function runProgram(
   state: GameState,
@@ -79,9 +81,11 @@ export function runProgram(
   events: GameEvent[],
   budget: Budget,
   source?: CardId,
+  player?: Side,
 ): EngineError | null {
   const frame: Frame = { kind: "program", steps: copyJson(steps), next: 0, vars: [] };
   if (source !== undefined) frame.source = source;
+  if (player !== undefined) frame.player = player;
   state.public.stack.push(frame);
   return runStack(state, events, budget);
 }
@@ -167,17 +171,20 @@ function runStep(state: GameState, frame: Frame, step: Step, events: GameEvent[]
     }
     case "modifier":
     case "trigger": {
-      const source = programSource(state.public.stack);
+      const { source, player } = programFrame(state.public.stack) ?? {};
       if (source === undefined) return problem("invalidProgram", `A ${step.op} step needs the card it runs for.`);
       if (step.op === "modifier") startModifier(state, source, step, events);
-      else setTrigger(state, source, step, events);
+      else setTrigger(state, source, step, events, player);
       frame.next += 1;
       return "ran";
     }
     case "addToNumber":
       return runAddToNumber(state.public.stack, frame, step);
     case "drawContingency": {
-      const value = drawContingency(state, step.side, events);
+      const side = step.side === "player" ? programFrame(state.public.stack)?.player : step.side;
+      if (side === undefined)
+        return problem("invalidProgram", "A draw from the player's deck needs the side that played the card.");
+      const value = drawContingency(state, side, events);
       if (step.bind !== undefined) bind(frame, step.bind, value);
       frame.next += 1;
       return "ran";
@@ -310,11 +317,11 @@ function findBinding(stack: Frame[], name: VarName): Binding | undefined {
   return undefined;
 }
 
-/** The card the running program is for: its program frame's `source`, read through any if or forEach blocks. */
-function programSource(stack: Frame[]): CardId | undefined {
+/** The running program's frame, read through any if or forEach blocks: its `source` and `player`. */
+function programFrame(stack: Frame[]): Extract<Frame, { kind: "program" }> | undefined {
   for (let i = stack.length - 1; i >= 0; i--) {
     const frame = stack[i]!;
-    if (frame.kind === "program") return frame.source;
+    if (frame.kind === "program") return frame;
   }
   return undefined;
 }
