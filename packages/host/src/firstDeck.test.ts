@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { FIRST_DECK_NOTE, firstDeckCardName, firstDeckConfig, firstDeckRuleset } from "./firstDeck.ts";
 import { hostCreate } from "./index.ts";
 
+const byText = (a: string, b: string): number => a.localeCompare(b);
+
 describe("the first deck as a game", () => {
   it("deals the same hands for the same seed and different hands for another", () => {
     expect(firstDeckConfig("a")).toEqual(firstDeckConfig("a"));
@@ -14,11 +16,11 @@ describe("the first deck as a game", () => {
     const all = [...hands.lio, ...hands.sae];
     expect(new Set(all).size).toBe(34);
     // Only Era 1 is dealt; later eras wait in the scenario's eras and join the draw pile on their turns.
-    expect(all.sort()).toEqual(
+    expect(all.sort(byText)).toEqual(
       firstDeckRuleset.cards
         .map((c) => c.id)
         .filter((id) => id.startsWith("e1-"))
-        .sort(),
+        .sort(byText),
     );
   });
   it("gives each side 9 own cards, 4 rival cards and 4 neutral cards", () => {

@@ -4,6 +4,12 @@ import { describeCard } from "../../src/test/describeCard.ts";
 describeCard("e1-sae-002", "Handover of Hong Kong", [
   {
     it: "plays out as its text says",
-    story: ["points:lio:2", "one country, two systems", "points:sae:3", "points:lio:2", "points:sae:2"],
+    story: `
+      points:lio:2
+      one country, two systems
+      points:sae:3
+      points:lio:2
+      points:sae:2
+    `,
   },
 ]);

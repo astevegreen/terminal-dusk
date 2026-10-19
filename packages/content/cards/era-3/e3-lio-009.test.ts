@@ -4,6 +4,12 @@ import { describeCard } from "../../src/test/describeCard.ts";
 describeCard("e3-lio-009", "Nordic Accession", [
   {
     it: "plays out as its text says",
-    story: ["Baltic lake", "points:lio:2", "points:sae:2", "points:lio:2", "points:sae:2"],
+    story: `
+      Baltic lake
+      points:lio:2
+      points:sae:2
+      points:lio:2
+      points:sae:2
+    `,
   },
 ]);

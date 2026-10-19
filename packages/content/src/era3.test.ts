@@ -5,7 +5,7 @@ import { ERA_3_CARDS } from "./era3Files.ts";
 import { FIRST_DECK_RULESET } from "./firstDeckRules.ts";
 import { FIRST_DECK_SCENARIO } from "./firstDeckScenario.ts";
 import { FUTURE_CARDS } from "./futureFiles.ts";
-import { eraDeckChecks, opsSpread, startEraOneGame } from "./test/eraChecks.ts";
+import { byText, eraDeckChecks, opsSpread, startEraOneGame } from "./test/eraChecks.ts";
 
 describe("the Era 3 deck", () => {
   eraDeckChecks(ERA_3_CARDS, "era-3");
@@ -29,7 +29,7 @@ describe("Era 3 in the first-deck TEST scenario", () => {
   it("enters on turn 5 with every Era 3 card, listed once", () => {
     expect(FIRST_DECK_SCENARIO.eras?.filter((e) => e.era === "era-3")).toHaveLength(1);
     expect(entry?.turn).toBe(5);
-    expect([...(entry?.cards ?? [])].sort()).toEqual(ERA_3_CARDS.map((c) => c.id).sort());
+    expect([...(entry?.cards ?? [])].sort(byText)).toEqual(ERA_3_CARDS.map((c) => c.id).sort(byText));
   });
   it("is accepted by createGame, and its cards wait in the secret compartment, not in a hand or the draw pile", () => {
     const made = startEraOneGame();

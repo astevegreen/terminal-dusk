@@ -3,7 +3,7 @@ import { ERA_1_CARDS } from "./era1.ts";
 import { ERA_2_CARDS } from "./era2Files.ts";
 import { FIRST_DECK_RULESET } from "./firstDeckRules.ts";
 import { FIRST_DECK_SCENARIO } from "./firstDeckScenario.ts";
-import { eraDeckChecks, opsSpread, startEraOneGame } from "./test/eraChecks.ts";
+import { byText, eraDeckChecks, opsSpread, startEraOneGame } from "./test/eraChecks.ts";
 
 describe("the Era 2 deck", () => {
   eraDeckChecks(ERA_2_CARDS, "era-2");
@@ -28,7 +28,7 @@ describe("Era 2 in the first-deck TEST scenario", () => {
     expect(FIRST_DECK_SCENARIO.eras?.filter((e) => e.era === "era-2")).toHaveLength(1);
     expect(entry?.era).toBe("era-2");
     expect(entry?.turn).toBe(3);
-    expect([...(entry?.cards ?? [])].sort()).toEqual(ERA_2_CARDS.map((c) => c.id).sort());
+    expect([...(entry?.cards ?? [])].sort(byText)).toEqual(ERA_2_CARDS.map((c) => c.id).sort(byText));
   });
   it("is accepted by createGame, and its cards wait in the secret compartment, not in a hand or the draw pile", () => {
     const made = startEraOneGame();

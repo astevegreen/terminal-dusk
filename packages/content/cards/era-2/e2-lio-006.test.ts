@@ -4,6 +4,12 @@ import { describeCard } from "../../src/test/describeCard.ts";
 describeCard("e2-lio-006", "Libya Disarms", [
   {
     it: "plays out as its text says",
-    story: ["programme surrendered", "points:lio:2", "points:sae:2", "points:lio:2", "points:sae:2"],
+    story: `
+      programme surrendered
+      points:lio:2
+      points:sae:2
+      points:lio:2
+      points:sae:2
+    `,
   },
 ]);

@@ -8,6 +8,10 @@ import { FIRST_DECK_RULESET, cardName } from "../firstDeckRules.ts";
 import { FIRST_DECK_SCENARIO } from "../firstDeckScenario.ts";
 import { scenarioSetup } from "../scenario.ts";
 
+/** Sort orders for the tests' lists: card ids as text, Ops as numbers (a bare sort() would compare 10 before 9). */
+export const byText = (a: string, b: string): number => a.localeCompare(b);
+export const byNumber = (a: number, b: number): number => a - b;
+
 /** The era's own tests: 13 LIO, 13 SAE and 8 neutral cards, numbered without gaps, each with a name and history. */
 export function eraDeckChecks(cards: readonly Card[], era: "era-1" | "era-2" | "era-3"): void {
   const prefix = `e${era.slice(-1)}`;
@@ -19,7 +23,7 @@ export function eraDeckChecks(cards: readonly Card[], era: "era-1" | "era-2" | "
     const range = (side: string, n: number) =>
       Array.from({ length: n }, (_, i) => `${prefix}-${side}-${String(i + 1).padStart(3, "0")}`);
     const expected = [...range("lio", 13), ...range("sae", 13), ...range("neu", 8)];
-    expect(cards.map((c) => c.id).sort()).toEqual(expected.sort());
+    expect(cards.map((c) => c.id).sort(byText)).toEqual(expected.sort(byText));
   });
   it(`gives every card its own id, the era string ${era}, a name and a history note`, () => {
     expect(new Set(cards.map((c) => c.id)).size).toBe(cards.length);
