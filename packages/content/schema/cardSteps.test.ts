@@ -71,8 +71,13 @@ describe("card schema: trigger steps", () => {
     for (const effect of placed(step)) expect(issuesOf(lioWith(effect)).length).toBeGreaterThan(0);
   });
 
-  it("refuses a contingency draw from the other side's deck inside a trigger, at its path", () => {
+  it("accepts a contingency draw from the rival's deck inside a trigger (owner, 19 Oct)", () => {
     const effect = [trigger({}, [{ op: "drawContingency", side: "sae" }])];
-    expect(pathsOf(lioWith(effect))).toEqual([["effect", 0, "do", 0, "side"]]);
+    expect(pathsOf(lioWith(effect))).toEqual([]);
+  });
+
+  it("refuses a neutral card's contingency draw inside a trigger, at its path", () => {
+    const effect = [trigger({}, [{ op: "drawContingency", side: "sae" }])];
+    expect(pathsOf({ ...lioCard(), affiliation: "neutral", effect })).toEqual([["effect", 0, "do", 0, "side"]]);
   });
 });
