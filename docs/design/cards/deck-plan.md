@@ -178,7 +178,7 @@ Counts in this section are the plan's, from before the owner removed 18 cards; t
 | Climate                  | Kyoto (1), IPCC 2007 (2), Paris Agreement (3), Heat Dome (future)                                                                             |
 | AI and technology        | Dot-com (1), Smartphones (2), AI Compute Race, Chips (3), Open-Weight Leak (future)                                                           |
 | Space                    | ISS (1), Anti-Satellite Test (2), Private Constellation (3)                                                                                   |
-| Migration                | Migration Crisis 2015 (3). Thin: one card; see Owner question 21                                                                              |
+| Migration                | Migration Crises (3): Europe 2015 and Venezuela; see Owner question 21                                                                        |
 | Populism and elections   | Chechen War (1), Cedar (2), Arab Spring, Populist Wave (3)                                                                                    |
 | Proxy wars               | Desert Storm, Mogadishu, Oslo (1), Iraq (2), Syria, Assad, Kabul, Neptune Spear (3)                                                           |
 | Alliances                | Maastricht, NATO 1999, PfP, Shanghai Five, Budapest (1), Article 5, Big Bang, India deal, Peace Mission (2), Nordic, AUKUS, Invasion (3)      |
@@ -289,15 +289,21 @@ answer follows the question as **Answered**.
     cap you want? No card has Ops 0.
     **Answered:** keep the cap at 4; the missing Era 3 LIO Ops 4 card is a balance question for later.
 18. **Future cards.** Six roles-only 2025-2027 cards are designed (era-3.md). Build them in stage 4 or not?
+    **Answered:** keep them; they were built in stage 4 and stay in the deck.
 19. **Flavour-only choices.** Partnership for Peace and Ghost Stories have a dominant answer. Keep or sharpen?
+    **Answered:** keep them for now; look again once points have a designed use (question 7).
 20. **Softened facts.** Where a search could not confirm a detail I softened it: ISS Expedition 1 "November 2000";
     Georgia ceasefire "brokered by France" without a date; no Facebook date; no Avangard; Baltic cable damage
     "late 2024"; rare earth "reported halt ... disputed"; Nvidia "nearly $600 billion"; Russian 1992 inflation not
     quantified.
+    **Answered:** accept the softened wording; fact-check every history note once before release.
 21. **Migration is thin.** One card (Migration Crisis 2015). A second (the 2021 Belarus border crisis, SAE, Era 3)
     could be added to Era 3 (now 8 LIO, 12 SAE, 7 neutral). Want it?
+    **Answered:** no Belarus card; the one card becomes Migration Crises and its history note adds Venezuela's
+    exodus. The effect is unchanged.
 22. **Side assignments that may read as judgement.** Mogadishu, Fall of Kabul, Abu Ghraib and Invasion of Iraq are
     SAE cards because the events hurt LIO, not because SAE caused them; same logic for Rwanda being neutral. OK?
+    **Answered:** keep the sides as they are.
 23. **Taiwan Strait, Hainan, Pristina: LIO chooses on an SAE card.** The rival decides the branch of your card.
     This is deliberate (the card forces the other side's hand) but it is a design taste; confirm.
 24. **Gambles assume 1-6 decks.** Thresholds (d >= 3 is 4 in 6; d >= 4 is 3 in 6; d <= 2 is 2 in 6; d >= 2 is

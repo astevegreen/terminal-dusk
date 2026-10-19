@@ -223,7 +223,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/cards/era-3/e3-neu-003.json`
 - `packages/content/cards/era-3/e3-neu-003.test.ts` - e3-neu-003 Paris Agreement: one test for each way its effect can play out.
 - `packages/content/cards/era-3/e3-neu-004.json`
-- `packages/content/cards/era-3/e3-neu-004.test.ts` - e3-neu-004 Migration Crisis 2015: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-neu-004.test.ts` - e3-neu-004 Migration Crises: one test for each way its effect can play out.
 - `packages/content/cards/era-3/e3-neu-005.json`
 - `packages/content/cards/era-3/e3-neu-005.test.ts` - e3-neu-005 Populist Wave: one test for each way its effect can play out.
 - `packages/content/cards/era-3/e3-neu-007.json`
