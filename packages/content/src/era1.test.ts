@@ -33,7 +33,7 @@ describe("the Era 1 deck", () => {
     for (const card of ERA_1_CARDS) expect(card.id).toMatch(/^e1-(lio|sae|neu)-\d{3}$/);
   });
   it("leaves the engine's rules free of the text", () => {
-    expect(FIRST_DECK_RULESET.cards).toHaveLength(68); // Era 1 and Era 2; era2.test.ts counts Era 2 on its own
+    expect(FIRST_DECK_RULESET.cards).toHaveLength(108); // Eras 1 to 3 and the future cards; each era's test counts its own
     for (const def of FIRST_DECK_RULESET.cards) expect("text" in def).toBe(false);
   });
 });

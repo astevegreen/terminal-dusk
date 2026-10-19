@@ -1,0 +1,29 @@
+{
+  "id": "e3-neu-006",
+  "era": "era-3",
+  "ops": 1,
+  "affiliation": "neutral",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "treaties lapse"
+    },
+    {
+      "op": "modifier",
+      "mod": {
+        "hook": "opsValue",
+        "side": "both",
+        "add": 1
+      },
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Arms Control Unravels",
+    "rules": "Record \"treaties lapse\". Until the end of this turn, points spent by both sides count 1 more.",
+    "history": "The United States withdrew from the Intermediate-Range Nuclear Forces Treaty on 2 August 2019 and from the Open Skies Treaty on 22 November 2020; the New START treaty, the last US-Russia limit on strategic nuclear weapons, expired on 5 February 2026.",
+    "art": "art/e3-neu-006"
+  }
+}

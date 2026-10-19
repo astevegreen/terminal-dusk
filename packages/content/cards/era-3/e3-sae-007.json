@@ -1,0 +1,59 @@
+{
+  "id": "e3-sae-007",
+  "era": "era-3",
+  "ops": 2,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "supply squeezed"
+    },
+    {
+      "op": "choose",
+      "who": "lio",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 2
+        }
+      ],
+      "else": [
+        {
+          "op": "modifier",
+          "mod": {
+            "hook": "opsValue",
+            "side": "lio",
+            "add": -1,
+            "min": 1
+          },
+          "duration": {
+            "kind": "turnEnd"
+          }
+        },
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Rare Earth Squeeze",
+    "rules": "Record \"supply squeezed\". LIO chooses: Give way? If yes, SAE spends 2 points; if no, until the end of this turn, points spent by LIO count 1 less, never below 1, then SAE spends 1 point.",
+    "history": "After a Chinese trawler collided with Japanese coastguard vessels near disputed islands on 7 September 2010, Japanese importers reported a halt in Chinese rare-earth shipments that lasted into late September; China denied an embargo, and later analysts have disputed how complete the halt was.",
+    "art": "art/e3-sae-007"
+  }
+}

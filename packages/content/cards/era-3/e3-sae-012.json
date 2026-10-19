@@ -1,0 +1,62 @@
+{
+  "id": "e3-sae-012",
+  "era": "era-3",
+  "ops": 1,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "new missiles"
+    },
+    {
+      "op": "drawContingency",
+      "side": "sae",
+      "bind": "d"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "atLeast",
+        "var": "d",
+        "value": 4
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 2
+        }
+      ],
+      "else": [
+        {
+          "op": "if",
+          "cond": {
+            "op": "atMost",
+            "var": "d",
+            "value": 2
+          },
+          "then": [
+            {
+              "op": "spendPoints",
+              "side": "lio",
+              "amount": 1
+            }
+          ],
+          "else": [
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 1
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Hypersonics on Parade",
+    "rules": "Record \"new missiles\". Draw from SAE's Contingency deck. If the result is 4 or more, SAE spends 2 points; otherwise, (if the result is 2 or less, LIO spends 1 point; otherwise, SAE spends 1 point).",
+    "history": "China displayed the DF-17 hypersonic glide-vehicle missile for the first time at its 1 October 2019 National Day parade in Beijing.",
+    "art": "art/e3-sae-012"
+  }
+}

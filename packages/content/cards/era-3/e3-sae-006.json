@@ -1,0 +1,54 @@
+{
+  "id": "e3-sae-006",
+  "era": "era-3",
+  "ops": 2,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "drawContingency",
+      "side": "sae",
+      "bind": "d"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "atLeast",
+        "var": "d",
+        "value": 3
+      },
+      "then": [
+        {
+          "op": "marker",
+          "label": "grid down"
+        },
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 2
+        }
+      ],
+      "else": [
+        {
+          "op": "marker",
+          "label": "spillover"
+        },
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        },
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Sandworm",
+    "rules": "Draw from SAE's Contingency deck. If the result is 3 or more, record \"grid down\", then SAE spends 2 points; otherwise, record \"spillover\", then SAE spends 1 point, then LIO spends 1 point.",
+    "history": "On 23 December 2015 a cyberattack cut power to about 230,000 customers in western Ukraine; on 27 June 2017 the NotPetya malware spread from Ukraine worldwide, causing an estimated $10 billion in damage, and the UK and US attributed both to Russian military intelligence.",
+    "art": "art/e3-sae-006"
+  }
+}

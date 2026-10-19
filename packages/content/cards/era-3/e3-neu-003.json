@@ -1,0 +1,59 @@
+{
+  "id": "e3-neu-003",
+  "era": "era-3",
+  "ops": 1,
+  "affiliation": "neutral",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "pledges"
+    },
+    {
+      "op": "choose",
+      "who": "lio",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        },
+        {
+          "op": "modifier",
+          "mod": {
+            "hook": "opsValue",
+            "side": "lio",
+            "add": -1,
+            "min": 1
+          },
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ],
+      "else": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Paris Agreement",
+    "rules": "Record \"pledges\". LIO chooses: Stay in the agreement? If yes, LIO spends 1 point, then until the end of this turn, points spent by LIO count 1 less, never below 1; if no, SAE spends 1 point.",
+    "history": "The Paris Agreement on climate change was adopted on 12 December 2015 and entered into force in November 2016; the United States announced its withdrawal in June 2017, rejoined in February 2021 and announced a second withdrawal in 2025.",
+    "art": "art/e3-neu-003"
+  }
+}

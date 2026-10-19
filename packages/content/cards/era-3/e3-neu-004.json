@@ -1,0 +1,44 @@
+{
+  "id": "e3-neu-004",
+  "era": "era-3",
+  "ops": 1,
+  "affiliation": "neutral",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "a million arrivals"
+    },
+    {
+      "op": "modifier",
+      "mod": {
+        "hook": "opsValue",
+        "side": "lio",
+        "add": -1,
+        "min": 1
+      },
+      "duration": {
+        "kind": "turnEnd"
+      }
+    },
+    {
+      "op": "trigger",
+      "hook": "turnEnd",
+      "do": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ],
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Migration Crisis 2015",
+    "rules": "Record \"a million arrivals\". Until the end of this turn, points spent by LIO count 1 less, never below 1. At the end of this turn, LIO spends 1 point.",
+    "history": "In 2015 just over one million refugees and migrants reached Europe by sea, more than 800,000 of them via Greece, and about half of them from Syria; at least 3,700 died or went missing at sea.",
+    "art": "art/e3-neu-004"
+  }
+}

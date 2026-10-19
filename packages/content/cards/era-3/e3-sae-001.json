@@ -1,0 +1,35 @@
+{
+  "id": "e3-sae-001",
+  "era": "era-3",
+  "ops": 2,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "credit crunch"
+    },
+    {
+      "op": "modifier",
+      "mod": {
+        "hook": "opsValue",
+        "side": "both",
+        "add": -1,
+        "min": 1
+      },
+      "duration": {
+        "kind": "turnEnd"
+      }
+    },
+    {
+      "op": "spendPoints",
+      "side": "sae",
+      "amount": 1
+    }
+  ],
+  "text": {
+    "name": "Global Financial Crisis",
+    "rules": "Record \"credit crunch\". Until the end of this turn, points spent by both sides count 1 less, never below 1. SAE spends 1 point.",
+    "history": "Lehman Brothers filed for bankruptcy on 15 September 2008, the largest in US history, and the first G20 leaders' summit met in Washington in November 2008 to coordinate the response.",
+    "art": "art/e3-sae-001"
+  }
+}

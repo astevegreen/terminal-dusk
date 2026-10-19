@@ -1,0 +1,78 @@
+{
+  "id": "e3-lio-012",
+  "era": "era-3",
+  "ops": 2,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "nerve agent"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 1
+    },
+    {
+      "op": "choose",
+      "who": "sae",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v"
+      },
+      "then": [
+        {
+          "op": "drawContingency",
+          "side": "lio",
+          "bind": "d"
+        },
+        {
+          "op": "if",
+          "cond": {
+            "op": "atLeast",
+            "var": "d",
+            "value": 3
+          },
+          "then": [
+            {
+              "op": "marker",
+              "label": "officers named"
+            },
+            {
+              "op": "spendPoints",
+              "side": "lio",
+              "amount": 2
+            }
+          ],
+          "else": [
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 1
+            }
+          ]
+        }
+      ],
+      "else": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Salisbury and the Sleuths",
+    "rules": "Record \"nerve agent\". LIO spends 1 point. SAE chooses: Deny everything? If yes, (draw from LIO's Contingency deck, then if the result is 3 or more, record \"officers named\", then LIO spends 2 points; otherwise, SAE spends 1 point); if no, LIO spends 1 point.",
+    "history": "A former Russian officer and his daughter were poisoned with a Novichok nerve agent in Salisbury, England on 4 March 2018; Britain expelled 23 Russian diplomats, and in September and October 2018 the investigative group Bellingcat identified the two suspects as Russian military intelligence officers.",
+    "art": "art/e3-lio-012"
+  }
+}

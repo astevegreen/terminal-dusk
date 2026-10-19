@@ -1,0 +1,30 @@
+{
+  "id": "ef-lio-002",
+  "era": "future",
+  "ops": 1,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "cables watched"
+    },
+    {
+      "op": "modifier",
+      "mod": {
+        "hook": "opsValue",
+        "side": "sae",
+        "add": -1,
+        "min": 1
+      },
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Undersea Cable Patrols",
+    "rules": "Record \"cables watched\". Until the end of this turn, points spent by SAE count 1 less, never below 1.",
+    "history": "After a series of damaged cables in the Baltic Sea in late 2024, NATO states increased naval patrols of undersea infrastructure.",
+    "art": "art/ef-lio-002"
+  }
+}

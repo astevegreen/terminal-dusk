@@ -1,0 +1,37 @@
+{
+  "id": "ef-lio-001",
+  "era": "future",
+  "ops": 2,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "sensors along the frontier"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 1
+    },
+    {
+      "op": "trigger",
+      "hook": "turnEnd",
+      "do": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ],
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Allied Drone Wall",
+    "rules": "Record \"sensors along the frontier\". LIO spends 1 point. At the end of this turn, LIO spends 1 point.",
+    "history": "From 2024 NATO's eastern members announced joint plans for drone and sensor defences along the alliance's eastern frontier.",
+    "art": "art/ef-lio-001"
+  }
+}

@@ -318,3 +318,23 @@ describe the trend, not a dated event. Ops: 2, 1 per side; neutral 2, 1.
 
 - **Design/Playable:** `marker "record heat"; mod both -1 min 1 (turn)`
 - **History:** The years 2023 and 2024 were the warmest in the instrumental record, with prolonged heat waves across several continents.
+
+## Stage 4 build notes
+
+All 34 Era 3 cards are built as `packages/content/cards/era-3/<id>.json` and the 6 future cards as
+`packages/content/cards/future/<id>.json`, each with a test that plays it in the real engine and checks every branch.
+The JSON follows the "Playable" line of each card one-for-one; no card was built weaker than planned. The rules text
+of each file is written from the JSON.
+
+- **Neutral cards (all 8) stay dormant in a real game**, as in Eras 1 and 2 (Owner question 26). Their tests run the
+  event as if the card were LIO's. The two future neutral cards behave the same.
+- **Entering the game:** the TEST scenario `first-deck-test` lists the 34 Era 3 cards in its `eras` at turn 5 (the
+  plan's placeholder) and the 6 future cards at turn 6 (the last turn; the plan gave no turn, Owner question 38). They
+  are shuffled into the draw pile then, but hands never refill, so the AI game does not play them yet (question 34).
+- **Future cards:** era string `future`, folder `cards/future/`, ids `ef-...` (the plan's choice). Roles only; their
+  history notes describe a trend or a dated event, not a named person. Wired in `futureFiles.ts`.
+- **Ruleset:** the first-deck ruleset now holds 108 cards (Eras 1 to 3 and the future cards).
+- **Ops 4 cards** (Sanctions Wall, Full-Scale Invasion) have no once-only rule yet (wish W6), as in earlier eras.
+- **Turn-end spends under a "count more" bonus:** Arab Spring and the two neutral Ops swings follow question 35: a
+  turn-end spend may happen while a "+1" for that side is still in force. Only Arab Spring has both a turn-end spend
+  and a side modifier on different sides, so no spend of 1 is raised to 2 by this card's own modifiers.

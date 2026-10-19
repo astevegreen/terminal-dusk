@@ -1,0 +1,49 @@
+{
+  "id": "e3-lio-002",
+  "era": "era-3",
+  "ops": 1,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "drawContingency",
+      "side": "lio",
+      "bind": "d"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "atLeast",
+        "var": "d",
+        "value": 2
+      },
+      "then": [
+        {
+          "op": "marker",
+          "label": "raid succeeds"
+        },
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 2
+        }
+      ],
+      "else": [
+        {
+          "op": "marker",
+          "label": "raid fails"
+        },
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Neptune Spear",
+    "rules": "Draw from LIO's Contingency deck. If the result is 2 or more, record \"raid succeeds\", then LIO spends 2 points; otherwise, record \"raid fails\", then SAE spends 1 point.",
+    "history": "On 2 May 2011 US special forces raided a compound in Abbottabad, Pakistan and killed Osama bin Laden, the leader of al-Qaeda.",
+    "art": "art/e3-lio-002"
+  }
+}

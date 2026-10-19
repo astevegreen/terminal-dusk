@@ -1,0 +1,37 @@
+{
+  "id": "e3-lio-007",
+  "era": "era-3",
+  "ops": 4,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "reserves frozen"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 3
+    },
+    {
+      "op": "trigger",
+      "hook": "turnEnd",
+      "do": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        }
+      ],
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Sanctions Wall",
+    "rules": "Record \"reserves frozen\". LIO spends 3 points. At the end of this turn, SAE spends 1 point.",
+    "history": "After Russia's invasion of Ukraine on 24 February 2022, Western governments froze about $300 billion of Russian central-bank reserves and, from 12 March 2022, cut seven Russian banks off from the SWIFT payments network.",
+    "art": "art/e3-lio-007"
+  }
+}

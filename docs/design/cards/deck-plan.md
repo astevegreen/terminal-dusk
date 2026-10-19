@@ -303,3 +303,16 @@ Each is a question, an assumption I made to carry on, or a conflict I found. Non
     result. SARS (both say no) shows it.
 37. **Era 2 test scenario is still a test.** Era 2 enters at turn 3 of the placeholder 6-turn scenario purely to
     exercise the `eras` setup; the real turn of entry depends on the unresolved turn count (question 30).
+38. **Future cards enter on turn 6.** The plan names the era string `future` but no turn. They enter the TEST scenario
+    on turn 6 (the last of the placeholder 6) in their own `eras` entry and live in `cards/future/` with ids `ef-...`.
+    Say where they should really go, or whether they should be built at all (question 18).
+39. **Era 3 enters on turn 5.** As planned in the TEST scenario block. It is a placeholder like Era 2's turn 3 (question 37).
+40. **Ruleset size.** The first-deck ruleset now holds 108 cards, future cards included. An owner who drops the optional
+    cards removes `futureFiles.ts`, its `eras` entry and one line in `firstDeckRules.ts`; nothing else depends on them.
+41. **Era 3 cards still dormant in the AI game.** Same cause as question 34: hands never refill, so no Era 3 or future
+    card is ever played in the practice game. They are built, tested and loaded.
+42. **Test-writing method.** The Era 3 and future tests take their expected results from the engine's real output,
+    checked by hand against the Playable line, rather than being written out by hand first as in Era 2. Say if you want
+    them rewritten the Era 2 way.
+43. **Commit trailer.** This stage's commit ends with the model line the task asked for (Claude Opus 5.5); the session
+    was reminded of a different model name. See question 33.

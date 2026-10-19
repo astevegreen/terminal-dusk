@@ -40,14 +40,15 @@ describe("the Era 2 deck", () => {
   it("shares no card id with Era 1, and the first-deck ruleset holds both eras", () => {
     const ids = new Set([...ERA_1_CARDS, ...ERA_2_CARDS].map((c) => c.id));
     expect(ids.size).toBe(68);
-    expect(new Set(FIRST_DECK_RULESET.cards.map((c) => c.id))).toEqual(ids);
+    const inRuleset = new Set(FIRST_DECK_RULESET.cards.map((c) => c.id));
+    for (const id of ids) expect(inRuleset.has(id)).toBe(true);
   });
 });
 
 describe("Era 2 in the first-deck TEST scenario", () => {
-  const entry = FIRST_DECK_SCENARIO.eras?.[0];
+  const entry = FIRST_DECK_SCENARIO.eras?.find((e) => e.era === "era-2");
   it("enters on turn 3 with every Era 2 card, listed once", () => {
-    expect(FIRST_DECK_SCENARIO.eras).toHaveLength(1);
+    expect(FIRST_DECK_SCENARIO.eras?.filter((e) => e.era === "era-2")).toHaveLength(1);
     expect(entry?.era).toBe("era-2");
     expect(entry?.turn).toBe(3);
     expect([...(entry?.cards ?? [])].sort()).toEqual(ERA_2_CARDS.map((c) => c.id).sort());
@@ -66,7 +67,7 @@ describe("Era 2 in the first-deck TEST scenario", () => {
     );
     expect(made.ok).toBe(true);
     if (made.ok) {
-      expect(made.value.state.secret.eras).toHaveLength(1);
+      expect(made.value.state.secret.eras).toHaveLength(3); // Era 2, Era 3 and the future cards (era3.test.ts, future.test.ts)
       expect(made.value.state.secret.deck).toEqual([]);
     }
   });

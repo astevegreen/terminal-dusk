@@ -1,0 +1,29 @@
+{
+  "id": "ef-neu-001",
+  "era": "future",
+  "ops": 2,
+  "affiliation": "neutral",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "weights everywhere"
+    },
+    {
+      "op": "modifier",
+      "mod": {
+        "hook": "opsValue",
+        "side": "both",
+        "add": 1
+      },
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Open-Weight Model Leak",
+    "rules": "Record \"weights everywhere\". Until the end of this turn, points spent by both sides count 1 more.",
+    "history": "From 2023 several leading AI developers released model weights openly, and leaked or open models spread capability far beyond their makers.",
+    "art": "art/ef-neu-001"
+  }
+}

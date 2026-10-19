@@ -1,0 +1,49 @@
+{
+  "id": "e3-sae-004",
+  "era": "era-3",
+  "ops": 4,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "full-scale war"
+    },
+    {
+      "op": "spendPoints",
+      "side": "sae",
+      "amount": 3
+    },
+    {
+      "op": "modifier",
+      "mod": {
+        "hook": "opsValue",
+        "side": "lio",
+        "add": -1,
+        "min": 1
+      },
+      "duration": {
+        "kind": "turnEnd"
+      }
+    },
+    {
+      "op": "trigger",
+      "hook": "turnEnd",
+      "do": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ],
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Full-Scale Invasion",
+    "rules": "Record \"full-scale war\". SAE spends 3 points. Until the end of this turn, points spent by LIO count 1 less, never below 1. At the end of this turn, LIO spends 1 point.",
+    "history": "Russia launched a full-scale invasion of Ukraine on 24 February 2022, twenty days after Russia and China declared a partnership with \"no limits\" in Beijing on 4 February 2022.",
+    "art": "art/e3-sae-004"
+  }
+}

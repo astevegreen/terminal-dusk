@@ -1,0 +1,61 @@
+{
+  "id": "e3-lio-004",
+  "era": "era-3",
+  "ops": 3,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "disconnected"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 2
+    },
+    {
+      "op": "choose",
+      "who": "lio",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v"
+      },
+      "then": [
+        {
+          "op": "marker",
+          "label": "deal signed"
+        },
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 2
+        },
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        }
+      ],
+      "else": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Iran: SWIFT Cutoff and the Deal",
+    "rules": "Record \"disconnected\". LIO spends 2 points. LIO chooses: Trade relief for limits? If yes, record \"deal signed\", then LIO spends 2 points, then SAE spends 1 point; if no, LIO spends 1 point.",
+    "history": "SWIFT disconnected sanctioned Iranian banks on 17 March 2012; the nuclear agreement with Iran was concluded on 14 July 2015, and the United States withdrew from it on 8 May 2018.",
+    "art": "art/e3-lio-004"
+  }
+}

@@ -50,7 +50,7 @@ export function story(events: readonly GameEvent[]): string[] {
   });
 }
 
-/** Plays first-deck card `id` (Era 1 or 2) (the real file) in a one-turn game and returns the story from the moment the card is played. */
+/** Plays first-deck card `id` (Era 1, 2, 3 or future) (the real file) in a one-turn game and returns the story from the moment the card is played. */
 export function playCard(id: CardId, options: PlayOptions = {}): string[] {
   const card = FIRST_DECK_CARDS.find((c) => c.id === id);
   if (!card) throw new Error(`no first-deck card ${id}`);
