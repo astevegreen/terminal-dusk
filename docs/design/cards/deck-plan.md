@@ -329,6 +329,8 @@ answer follows the question as **Answered**.
     cards have events and can open. All 22 neutral cards are built with their intended effect, but in a game they
     only ever give points. Lift the engine rule when you are ready; no card needs to change.
     **Answered:** lift it next, as an engine task after this pull request.
+    **Done:** the engine now lets a neutral card be played for its event or its points, and lets it be an opening
+    pick, where it resolves as its event (core-loop.md). The card tests no longer pretend a neutral card is LIO's.
 27. **Hands never refill, so the deal is a stopgap.** The plan's HAND_SIZE of 7 cannot work: each side must hold at
     least turns x (1 + plays per turn) non-neutral cards for the whole game. The AI game deals 22 of the 28 Era 1
     cards: each side gets 6 of its own, 2 of the rival's and 3 neutral ones (11); the other 6 (5 SAE, 1 neutral)

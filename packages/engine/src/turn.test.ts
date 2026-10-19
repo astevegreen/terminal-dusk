@@ -11,7 +11,6 @@ import {
   marker,
   markers,
   openWith,
-  playAnswer,
   playAnswers,
   ruleset,
   setupPlus,
@@ -24,9 +23,9 @@ const cardsOf = (rs: Ruleset, state: GameState, side: Side): string[] =>
   legalAnswers(rs, state, side).map((v) => ("card" in v ? v.card : "?"));
 
 describe("the opening pick", () => {
-  it("each turn opens with a simultaneous chooseCard pair whose options say any non-neutral card in your hand", () => {
+  it("each turn opens with a simultaneous chooseCard pair whose options say any card in your hand, neutral ones too", () => {
     const s = startGame();
-    const options = { from: "hand", includeNeutral: false };
+    const options = { from: "hand", includeNeutral: true };
     expect(s.public.pending).toEqual([
       { id: "d0-lio", side: "lio", kind: "chooseCard", options, simultaneousGroup: "g0" },
       { id: "d0-sae", side: "sae", kind: "chooseCard", options, simultaneousGroup: "g0" },
@@ -37,22 +36,20 @@ describe("the opening pick", () => {
     const pending = JSON.stringify(s.public.pending);
     for (const id of [...s.private.lio.hand, ...s.private.sae.hand]) expect(pending).not.toContain(`"${id}"`);
   });
-  it("legalAnswers lists that side's non-neutral cards, in hand order", () => {
+  it("legalAnswers lists every card in that side's hand, neutral ones too, in hand order", () => {
     const s = startGame();
     expect(legalAnswers(ruleset, s, "lio")).toEqual(
-      ["l1", "l2", "l3", "l4"].map((c) => ({ kind: "chooseCard", card: c })),
+      ["l1", "l2", "l3", "l4", "n1"].map((c) => ({ kind: "chooseCard", card: c })),
     );
-    expect(cardsOf(ruleset, s, "sae")).toEqual(["s1", "s2", "s3", "s4"]);
+    expect(cardsOf(ruleset, s, "sae")).toEqual(["s1", "s2", "s3", "s4", "n2"]);
   });
-  it("a neutral card is never an opening pick, but in the same game it is a legal play for its points", () => {
+  it("a neutral card can be an opening pick: it is accepted and leaves the hand once both are in", () => {
     const s = startGame();
-    expect(cardsOf(ruleset, s, "lio")).not.toContain("n1");
-    const neutralOpening = { ...cardAnswer(s, "lio"), value: { kind: "chooseCard" as const, card: "n1" } };
-    expect(apply(ruleset, s, neutralOpening)).toMatchObject({ ok: false, error: { code: "illegalAnswer" } });
-    const atPlay = openWith(s, "l1", "s1").state;
-    expect(cardsOf(ruleset, atPlay, "lio")).toContain("n1");
-    const played = accepted(atPlay, playAnswer(atPlay, "lio", "n1", "points"));
-    expect(played.public.discard.at(-1)).toBe("n1");
+    const half = accepted(s, cardAnswer(s, "lio", "n1"));
+    expect(half.private.lio.hand).toContain("n1");
+    const after = accepted(half, cardAnswer(half, "sae", "s1"));
+    expect(after.private.lio.hand).not.toContain("n1");
+    expect(after.public.discard).toEqual(["n1", "s1"]);
   });
   it("a pick stays in its owner's hand until both are in", () => {
     const half = accepted(startGame(), cardAnswer(startGame(), "lio", "l2"));
@@ -120,6 +117,33 @@ describe("a side may open with its rival's card, and each choice goes to the sid
     const paused = openWith(s, picks.lio, picks.sae, rs).state;
     expect(paused.public.inPlay[0]).toBe(rivalCard);
     expect(paused.public.pending).toMatchObject([{ side: chooser, kind: "yesNo" }]);
+  });
+});
+
+describe("a neutral opening card resolves as its event, and each choice goes to the side the card names", () => {
+  it.each([
+    ["LIO opens with a neutral card whose choice is SAE's", "lio", "n1", "sae"],
+    ["LIO opens with a neutral card whose choice is LIO's", "lio", "n1", "lio"],
+    ["SAE opens with a neutral card whose choice is LIO's", "sae", "n2", "lio"],
+  ] as const)("%s", (_case, opener, neutral, chooser) => {
+    const rs = withCards(card(neutral, 3, asks(chooser, "event")));
+    const picks = { lio: "l1", sae: "s1", [opener]: neutral };
+    const paused = openWith(startGame(2, 1, rs), picks.lio, picks.sae, rs).state;
+    expect(paused.public.inPlay[0]).toBe(neutral);
+    expect(paused.public.pending).toMatchObject([{ side: chooser, kind: "yesNo" }]);
+    const { events } = answerYesNo(paused, true, rs);
+    expect(markers(events)).toEqual(["event:true"]);
+  });
+  it("its action points are not spent, and it takes its place in the order by ops like any opening card", () => {
+    const rs = withCards(card("n1", 3, [marker("n1")]), card("s1", 2, [marker("s1")]));
+    const { state, events } = openWith(startGame(2, 1, rs), "n1", "s1", rs);
+    expect(markers(events)).toEqual(["n1", "s1"]);
+    expect(events.some((e) => e.kind === "pointsSpent")).toBe(false);
+    expect(state.public.discard).toEqual(["n1", "s1"]);
+  });
+  it("both sides may open with a neutral card; on a tie the card LIO picked goes first", () => {
+    const rs = withCards(card("n1", 2, [marker("n1")]), card("n2", 2, [marker("n2")]));
+    expect(markers(openWith(startGame(2, 1, rs), "n1", "n2", rs).events)).toEqual(["n1", "n2"]);
   });
 });
 

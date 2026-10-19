@@ -18,15 +18,12 @@ describe("pendingFor", () => {
 describe("legalAnswers", () => {
   it("lists the finite legal answers for that side's pending decision: each card in hand with its uses", () => {
     const s = startAtPlay();
+    // LIO's hand holds its own cards and a neutral one: each may be played for its event or its points.
     expect(legalAnswers(ruleset, s, "lio")).toEqual(
-      s.private.lio.hand.flatMap((card) =>
-        card.startsWith("l")
-          ? [
-              { kind: "playCardAs", card, as: "event" },
-              { kind: "playCardAs", card, as: "points" },
-            ]
-          : [{ kind: "playCardAs", card, as: "points" }],
-      ),
+      s.private.lio.hand.flatMap((card) => [
+        { kind: "playCardAs", card, as: "event" },
+        { kind: "playCardAs", card, as: "points" },
+      ]),
     );
   });
   it("lists yes then no for a yesNo decision", () => {
@@ -54,7 +51,7 @@ describe("public.pending", () => {
   it("holds the open decisions; a new game has the opening card pair, one decision per side", () => {
     const s = startGame();
     const group = expect.any(String);
-    const options = { from: "hand", includeNeutral: false };
+    const options = { from: "hand", includeNeutral: true };
     expect(s.public.pending).toEqual([
       { id: expect.any(String), side: "lio", kind: "chooseCard", options, simultaneousGroup: group },
       { id: expect.any(String), side: "sae", kind: "chooseCard", options, simultaneousGroup: group },

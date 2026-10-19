@@ -179,7 +179,7 @@ describe("hostSubmit: refusals leave the inputs unchanged", () => {
   it("illegalAnswer: an answer that is not among the legal ones", () => {
     const { host, before } = frozen();
     const s = submissionFor(host, "lio");
-    expect(code(host, { ...s, value: { kind: "chooseCard", card: "n1" } })).toBe("illegalAnswer");
+    expect(code(host, { ...s, value: { kind: "chooseCard", card: "s1" } })).toBe("illegalAnswer"); // SAE holds s1, not LIO
     expect(code(host, { ...s, value: { kind: "yesNo", yes: true } })).toBe("illegalAnswer");
     expect(JSON.stringify(host)).toBe(before);
   });

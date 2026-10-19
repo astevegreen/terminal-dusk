@@ -1,7 +1,7 @@
 // The turn structure (docs/design/core-loop.md). Each turn opens with both hands refilled to the hand
-// size, then both sides secretly picking a non-neutral card. Both are revealed together and their events resolve, more ops first. Then LIO
-// and SAE take turns to play, until each has made `playsPerTurn` plays. After the setup's number of
-// turns the game is over.
+// size, then both sides secretly picking a card, a neutral one too. Both are revealed together and their
+// events resolve, more ops first. Then LIO and SAE take turns to play, until each has made
+// `playsPerTurn` plays. After the setup's number of turns the game is over.
 //
 // A play uses a card for its event or its points (decisions.ts lists the uses each card allows). A
 // rival's card is played for its points, and its event still happens: the player first says whether
@@ -129,9 +129,9 @@ function startEvent(ruleset: Ruleset, state: GameState, events: GameEvent[], bud
 }
 
 /**
- * `side` plays a card: it leaves the hand for `inPlay` at once. Your own card runs its event or spends
- * its points; a neutral card spends its points; a rival's card waits for its rivalEventOrder answer.
- * A neutral card's event, once neutral cards may run one (decisions.ts), records `side` for its draws.
+ * `side` plays a card: it leaves the hand for `inPlay` at once. Your own card or a neutral card runs its
+ * event or spends its points; a rival's card waits for its rivalEventOrder answer. A neutral card's event
+ * records `side` for its draws from the player's deck.
  */
 function play(
   ruleset: Ruleset,

@@ -250,6 +250,8 @@ planned. The rules text of each file is written from the JSON.
 
 - **Neutral cards (all 8): the event is built but stays dormant in a real game**, as in Era 1 (Owner question 26).
   Their tests run the event as if the card were LIO's.
+  **Since lifted (Owner question 26):** the engine now runs neutral events and lets a neutral card open, and the
+  tests play each neutral card as the neutral card it is.
 - **Entering the game:** the TEST scenario `first-deck-test` lists all 34 Era 2 cards in its `eras` at turn 3. They
   are shuffled into the draw pile then, and the turn-start refill draws them into hands (question 27).
 - **SARS (e2-neu-003):** turn-end spends happen while the spender's own Ops swing is still in force, so if both hide it each pays 2; kept, and the rules text says so (question 35).
