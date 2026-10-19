@@ -170,7 +170,8 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 
 ## Neutral (8)
 
-Neutral cards cannot draw a Contingency card today (schema rule; see Owner question 1).
+These neutral cards were built before neutral cards could draw a Contingency card (allowed since #126; see Owner
+question 1), so they use choices instead. Redesigns that use draws are a follow-up pull request.
 
 ### e3-neu-001 · Arab Spring · neutral · Ops 2 · Split (both)
 

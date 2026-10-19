@@ -179,7 +179,8 @@ starting deck, so it is the only era whose non-neutral count must meet the stopg
 
 ## Neutral (7)
 
-Neutral cards cannot draw a Contingency card today (schema rule; see Owner question 1).
+These neutral cards were built before neutral cards could draw a Contingency card (allowed since #126; see Owner
+question 1), so they use choices instead. Redesigns that use draws are a follow-up pull request.
 
 ### e1-neu-001 · Rwandan Genocide · neutral · Ops 2 · Swing (both)
 

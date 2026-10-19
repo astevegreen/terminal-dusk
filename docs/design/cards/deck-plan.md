@@ -34,8 +34,8 @@ Why 13 / 13 / 8 per era (the plan):
 - 13 per side is the smallest count that meets the stopgap for the TEST scenario below with one spare card, so
   Era 1 alone can start a game. Three equal eras keep the draw pile's growth even (34 cards enter per era).
 - 8 neutral cards per era (about a quarter of the era) is enough to make neutral cards a real part of every hand
-  while keeping the rival-card dilemma (below) the main event. Neutral cards cannot draw a Contingency card today
-  (Owner question 1), so too many of them would make the deck feel flat.
+  while keeping the rival-card dilemma (below) the main event. Neutral cards could not draw a Contingency card when this deck was
+  built (Owner question 1; allowed since #126), so too many of them would make the deck feel flat.
 
 ## Ops spread
 
@@ -232,9 +232,11 @@ answer follows the question as **Answered**.
    (decision 17) say a neutral event draws from the deck of the side that played it. I did not loosen the schema;
    all 22 neutral cards use choices instead of draws. Should the schema follow decision 17?
    **Answered:** yes, allow it; the schema change is its own task after this pull request.
+   **Done** in #126. Redesigning neutral cards to draw is a follow-up pull request (owner, 19 Oct).
 2. **Cross-deck draws.** A side's card may draw only from its own deck. Several gambles would read better drawing
    from the rival's deck (the rival's luck). Designed around; worth allowing?
    **Answered:** allow it later, as a separate engine task; the cards stay as built until then.
+   **Done** in #124. Redesigning cards to draw from the rival's deck is a follow-up pull request (owner, 19 Oct).
 3. **`flags` and the card skill.** `.claude/skills/card/SKILL.md` mentions `flags` and `schema/steps.ts`; the
    schema has neither (`flags` removed until the rules that use them arrive). The skill looks out of date; I did
    not edit `.claude/`.
