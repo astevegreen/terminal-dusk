@@ -245,6 +245,7 @@ answer follows the question as **Answered**.
 5. **Stopgap reading.** Strict (cards at the start) or cumulative (all eras)? With the 6/2/3 deal (question 27)
    each side holds 8 non-neutral cards, which meets strict at 4 x 2 exactly.
    **Answered:** decide together with the hand-refill rules (question 27); the strict stopgap stays until then.
+   Question 27 is now answered (refill to 8 each turn), so the stopgap goes once refilling is built.
 6. **Era names.** eras.md leaves them undecided. The JSON will use `era-1`, `era-2`, `era-3` and `future`.
    **Answered:** keep the plain labels; display names can come later.
 7. **Rules-text verb for `spendPoints`.** The step only records a `pointsSpent` event today. I write "LIO spends
@@ -306,11 +307,15 @@ answer follows the question as **Answered**.
     **Answered:** keep the sides as they are.
 23. **Taiwan Strait, Hainan, Pristina: LIO chooses on an SAE card.** The rival decides the branch of your card.
     This is deliberate (the card forces the other side's hand) but it is a design taste; confirm.
+    **Answered:** keep it.
 24. **Gambles assume 1-6 decks.** Thresholds (d >= 3 is 4 in 6; d >= 4 is 3 in 6; d <= 2 is 2 in 6; d >= 2 is
     5 in 6) assume the default decks. A scenario with other decks changes every gamble's odds.
+    **Answered:** keep the 1-6 decks fixed for every scenario.
 25. **Modifier and trigger order at turn end.** I could not confirm whether a `turnEnd` modifier expires before or
     after a `turnEnd` trigger fires; every turn-end spend here is 1 under a `min 1` floor, so it does not matter
     today. A builder adding a turn-end spend of 2 must check.
+    **Checked in the engine:** `turnEnd` triggers fire and finish while the turn's modifiers still apply; the
+    modifiers are removed afterwards, when the turn ends (`packages/engine/src/turn.ts`, `settle` and `endTurn`).
 26. **Neutral events cannot run yet.** The engine plays a neutral card for points only (marked TEMPORARY in
     `packages/engine/src/decisions.ts`) and excludes neutral cards from opening picks, while core-loop.md says neutral
     cards have events and can open. All 22 neutral cards are built with their intended effect, but in a game they
@@ -321,9 +326,14 @@ answer follows the question as **Answered**.
     cards: each side gets 6 of its own, 2 of the rival's and 3 neutral ones (11); the other 6 (5 SAE, 1 neutral)
     go to the draw pile, like the later eras' cards. Cards in the draw pile are never played. Confirm the intended
     hand and deal rules.
+    **Answered:** at the start of each turn both sides refill their hands to 8 cards from one shared draw pile
+    (any side's cards); when the pile runs out, the discards are shuffled into a new one. This is a separate task:
+    the rule goes into the Notion "Core loop" page and core-loop.md first, then the engine. The current deal and
+    the strict stopgap (question 5) stay until then.
 28. **Ops swings affect all points spent.** The engine's modifier changes every point spent, not only points from
     "play for points". The plan's wording was changed to "points spent by <side> count N more". OK, or should the
     engine tell the two apart?
+    **Answered:** keep it; revisit when points have a designed use (question 7).
 29. **The schema cannot list Era 1 in a scenario's `eras`.** `eras` names only later eras and each needs at least one
     card. The TEST scenario `first-deck-test` therefore has no `eras`; all Era 1 cards are dealt by the game setup.
 30. **TEST scenario numbers are placeholders.** 4 turns, 1 play per turn (needs 8 non-neutral cards per side;
