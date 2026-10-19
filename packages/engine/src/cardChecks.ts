@@ -35,21 +35,26 @@ export function rulesetError(ruleset: Ruleset): EngineError | null {
 const SIDE_NAMES = { lio: "LIO", sae: "SAE" } as const;
 
 /** The plain-English reason a card may not draw from `drawn`'s Contingency deck. */
-function foreignDrawMessage(id: CardId, affiliation: Side | "neutral", drawn: Side): string {
+function foreignDrawMessage(id: CardId, affiliation: Side | "neutral", drawn: Side | "player"): string {
   if (affiliation === "neutral") {
-    return `Card ${id} is a neutral card, but its event draws a Contingency card; neutral events have no Contingency deck yet.`;
+    return `Card ${id} is a neutral card, but its event draws from ${SIDE_NAMES[drawn as Side]}'s Contingency deck; a neutral event draws from the deck of the side that played it ("side": "player").`;
   }
-  return `Card ${id} is an ${SIDE_NAMES[affiliation]} card, but its event draws from ${SIDE_NAMES[drawn]}'s Contingency deck.`;
+  const own = SIDE_NAMES[affiliation];
+  if (drawn === "player") {
+    return `Card ${id} is an ${own} card, but its event draws from the deck of the side that played it; an ${own} event draws from ${own}'s Contingency deck.`;
+  }
+  return `Card ${id} is an ${own} card, but its event draws from ${SIDE_NAMES[drawn]}'s Contingency deck.`;
 }
 
 /**
- * The side of the first `drawContingency` in `steps` (at any depth) that this card may not make, or null.
- * A side's card may only draw its own deck. A neutral card may not draw at all: TEMPORARY until neutral
- * events are designed.
+ * The deck named by the first `drawContingency` in `steps` (at any depth) that this card may not draw
+ * from, or null. A side's card may only draw its own deck; a neutral card only the deck of the side that
+ * played it, "player" (docs/design/contingency-deck.md, decision 17).
  */
-const findForeignDraw = (steps: readonly Step[], affiliation: Side | "neutral"): Side | null => {
+const findForeignDraw = (steps: readonly Step[], affiliation: Side | "neutral"): Side | "player" | null => {
+  const allowed = affiliation === "neutral" ? "player" : affiliation;
   for (const step of steps) {
-    if (step.op === "drawContingency" && step.side !== affiliation) return step.side;
+    if (step.op === "drawContingency" && step.side !== allowed) return step.side;
     const found = findForeignDraw(innerSteps(step), affiliation);
     if (found !== null) return found;
   }

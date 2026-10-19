@@ -48,7 +48,12 @@ export const stepSchema = z.discriminatedUnion("op", [
   z.strictObject({ op: z.literal("forEach"), over: z.array(z.string()), bind: name, do: block }),
   z.strictObject({ op: z.literal("marker"), label: z.string(), var: name.exactOptional() }),
   z.strictObject({ op: z.literal("spendPoints"), side, amount: wholeNumber }),
-  z.strictObject({ op: z.literal("drawContingency"), side, bind: name.exactOptional() }),
+  // "player" is the side that played the card: only a neutral card's draws name it (foreignDraws, below).
+  z.strictObject({
+    op: z.literal("drawContingency"),
+    side: z.enum(["lio", "sae", "player"]),
+    bind: name.exactOptional(),
+  }),
   z.strictObject({
     op: z.literal("addToNumber"),
     var: name,
@@ -80,10 +85,21 @@ const text = z.strictObject({
 
 const SIDE_NAMES = { lio: "LIO", sae: "SAE" } as const;
 
+/** Why a card of `affiliation` may not draw from `drawn`'s deck, which is not the one it draws from. */
+function foreignDrawMessage(affiliation: "lio" | "sae" | "neutral", drawn: "lio" | "sae" | "player"): string {
+  if (affiliation === "neutral") {
+    return `This is a neutral card, so its event can only draw from the deck of the side that played it ("side": "player"), not ${SIDE_NAMES[drawn as "lio" | "sae"]}'s.`;
+  }
+  const own = SIDE_NAMES[affiliation];
+  const other = drawn === "player" ? 'the deck of the side that played it ("player")' : `${SIDE_NAMES[drawn]}'s`;
+  return `This is an ${own} card, so its event can only draw from ${own}'s Contingency deck, not ${other}.`;
+}
+
 /**
  * Every contingency draw in `steps`, at any depth, that this card may not make: the path to its `side`
- * and the message. A side's card draws only from its own deck. A neutral card may not draw at all:
- * TEMPORARY until neutral events are designed. A missing or invalid side is left to the step's own check.
+ * and the message. A side's card draws only from its own deck; a neutral card only from the deck of the
+ * side that played it, "player" (docs/design/contingency-deck.md, decision 17). A missing or invalid side
+ * is left to the step's own check.
  */
 function foreignDraws(
   steps: readonly Step[],
@@ -93,13 +109,9 @@ function foreignDraws(
   return steps.flatMap((step, i) => {
     const here = [...path, i];
     if (step.op === "drawContingency") {
-      if (step.side !== "lio" && step.side !== "sae") return [];
-      if (step.side === affiliation) return [];
-      const message =
-        affiliation === "neutral"
-          ? "A neutral card can't draw from a Contingency deck: neutral events have no Contingency deck yet."
-          : `This is an ${SIDE_NAMES[affiliation]} card, so its event can only draw from ${SIDE_NAMES[affiliation]}'s Contingency deck, not ${SIDE_NAMES[step.side]}'s.`;
-      return [{ path: [...here, "side"], message }];
+      if (step.side !== "lio" && step.side !== "sae" && step.side !== "player") return [];
+      if (step.side === (affiliation === "neutral" ? "player" : affiliation)) return [];
+      return [{ path: [...here, "side"], message: foreignDrawMessage(affiliation, step.side) }];
     }
     if (step.op === "if") {
       return [
