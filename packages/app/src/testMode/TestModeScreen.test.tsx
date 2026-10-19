@@ -49,7 +49,9 @@ async function answerOnce(session: TestSession, order: "first" | "last", accepte
 
 describe("test mode screen", () => {
   it("has a Test mode button on the placeholder screen and opens the screen", () => {
-    expect(renderToString(<App clock={clock} />)).toContain("Test mode</button>");
+    expect(renderToString(<App clock={clock} newSeed={() => "s"} newAiSeed={() => 1} />)).toContain(
+      "Test mode</button>",
+    );
   });
   it("renders the turn, the plays, the hand and the open prompt from the frame", () => {
     const out = html(fresh());

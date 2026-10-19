@@ -1,14 +1,29 @@
-// Placeholder screen until the first game screen: the game's name and a button into developer test mode.
+// The home screen: the game's name, a button to play against the AI and a button into developer test mode.
 import { useState } from "react";
 import { TestModeScreen } from "./testMode/TestModeScreen.tsx";
+import { VsAiScreen } from "./vsAi/VsAiScreen.tsx";
 
-export function App({ clock }: Readonly<{ clock: () => number }>) {
-  const [testMode, setTestMode] = useState(false);
-  if (testMode) return <TestModeScreen clock={clock} />;
+export type AppProps = {
+  clock: () => number;
+  /** A fresh game seed. Seeds are made only in main.tsx (hard rule 8) and never shown. */
+  newSeed: () => string;
+  /** A fresh seed for the AI's noise. */
+  newAiSeed: () => number;
+};
+
+const TAP = { minHeight: 44, minWidth: 44 } as const;
+
+export function App({ clock, newSeed, newAiSeed }: Readonly<AppProps>) {
+  const [screen, setScreen] = useState<"home" | "vsAi" | "testMode">("home");
+  if (screen === "testMode") return <TestModeScreen clock={clock} />;
+  if (screen === "vsAi") return <VsAiScreen clock={clock} newSeed={newSeed} newAiSeed={newAiSeed} />;
   return (
     <main>
       <h1>Terminal Dusk</h1>
-      <button type="button" style={{ minHeight: 44, minWidth: 44 }} onClick={() => setTestMode(true)}>
+      <button type="button" style={TAP} onClick={() => setScreen("vsAi")}>
+        Play against the AI
+      </button>
+      <button type="button" style={TAP} onClick={() => setScreen("testMode")}>
         Test mode
       </button>
     </main>
