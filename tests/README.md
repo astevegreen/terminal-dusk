@@ -13,4 +13,6 @@ Each package's own unit tests live inside that package instead.
   `pnpm golden:update` re-records them, and only for an intended rules change.
 
 Both are ordinary Vitest files (`*.test.ts`). `tools/gates/suites.mjs` type-checks this folder with `tsconfig.json`,
-then runs the suites. There are no golden replays yet.
+then runs the suites.
+`golden/refill.test.ts` is the first golden replay: a small fixed game that deals, refills and reshuffles hands.
+It saves only what a spectator sees (`__snapshots__/`), never the answers, hidden cards or the seed.

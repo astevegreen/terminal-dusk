@@ -18,7 +18,7 @@ describe("a game against the AI with the real first deck", () => {
         clock,
         makeAi: standIn.makeAi,
         ruleset: firstDeckRuleset,
-        makeMatch: (seed, now) => createLocalMatch(firstDeckRuleset, firstDeckConfig(seed), seed, now),
+        makeMatch: (seed, now) => createLocalMatch(firstDeckRuleset, firstDeckConfig(), seed, now),
       });
       expect(session.getSnapshot().refusal).toBeNull();
       await playOut(session, standIn);

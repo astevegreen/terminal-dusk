@@ -15,6 +15,7 @@ const SETUP: Setup = {
   deck: ["c12", "c13", "c14"],
   turns: 2,
   playsPerTurn: 1,
+  handSize: 2,
   eras: [{ era: "fuzz", turn: 2, cards: ["c3", "c6"] }],
   contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6] },
 };
@@ -93,16 +94,22 @@ describe("random games with eras", () => {
     }
   });
 
-  it("the random games play through their era changes: every era's cards end up in the draw pile", () => {
+  it("the random games play through their era changes: every era's cards enter the game, and refills draw some", () => {
     let changed = 0;
+    let drawn = 0;
     for (let game = 1; game <= 50; game++) {
       const { record, final } = playFuzzGame(game);
       const eras = record.setup.eras ?? [];
       if (eras.length === 0) continue;
       changed++;
       expect(final.secret.eras).toEqual([]);
-      expect(final.secret.deck).toEqual(expect.arrayContaining(eras.flatMap((entry) => entry.cards)));
+      const hands = [...final.private.lio.hand, ...final.private.sae.hand];
+      const inGame = [...final.secret.deck, ...hands, ...final.public.discard, ...final.public.inPlay];
+      const eraCards = eras.flatMap((entry) => entry.cards);
+      expect(inGame).toEqual(expect.arrayContaining(eraCards));
+      drawn += eraCards.filter((card) => !final.secret.deck.includes(card)).length;
     }
     expect(changed).toBeGreaterThan(10);
+    expect(drawn).toBeGreaterThan(0);
   });
 });

@@ -79,6 +79,8 @@ export type MarkerEvent = { kind: "marker"; visibility: "public"; label: string;
  * `amount` action points, the card's ops. TEMPORARY until the actions are designed: nothing else happens.
  */
 export type PointsSpent = { kind: "pointsSpent"; visibility: "public"; side: Side; amount: number };
+/** The draw pile ran out while a hand was refilling, so the discard pile's `cards` were shuffled into a new one. */
+export type DrawPileReshuffled = { kind: "drawPileReshuffled"; visibility: "public"; cards: number };
 /** A new era started: `cardsAdded` of its cards were shuffled into the draw pile. Never which cards. */
 export type EraStarted = { kind: "eraStarted"; visibility: "public"; era: EraId; cardsAdded: number };
 /** `side` drew a contingency: the top card of its own Contingency deck, numbered `value`. */
@@ -111,6 +113,7 @@ export type PublicEvent =
   | MarkerEvent
   | PointsSpent
   | EraStarted
+  | DrawPileReshuffled
   | ContingencyDrawn
   | ContingencyDeckReshuffled
   | ModifierStarted
@@ -253,6 +256,8 @@ export type PublicState = {
   /** How many turns the game lasts, and how many plays each side makes per turn (from the setup). */
   turns: number;
   playsPerTurn: number;
+  /** How many cards each hand is refilled to at the start of each turn (from the setup). */
+  handSize: number;
   /** Plays made this turn after the opening cards, both sides together. LIO plays when it is even. */
   playsMade: number;
   /**
@@ -331,6 +336,11 @@ export type Setup = {
   turns: number;
   /** How many plays each side makes per turn, after the opening cards: a whole number, 1 or more. */
   playsPerTurn: number;
+  /**
+   * How many cards each hand is refilled to at the start of each turn, from the draw pile: a whole number,
+   * at least 1 + playsPerTurn. The first era (hands and deck) must hold at least twice as many cards.
+   */
+  handSize: number;
   /** The eras after the first, each entering on its own turn, from 2 to the last. None when left out. */
   eras?: EraEntry[];
   /** Each side's Contingency deck: whole numbers, 1 or more, at least 2 cards, in any order. */

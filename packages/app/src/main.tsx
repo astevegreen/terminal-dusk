@@ -10,7 +10,7 @@ import type { VsAiGame } from "./vsAi/VsAiScreen.tsx";
 /** The game against the AI: the real first deck. Test mode keeps its own developer fixture. */
 const firstDeckGame: VsAiGame = {
   ruleset: firstDeckRuleset,
-  makeMatch: (seed, clock) => createLocalMatch(firstDeckRuleset, firstDeckConfig(seed), seed, clock),
+  makeMatch: (seed, clock) => createLocalMatch(firstDeckRuleset, firstDeckConfig(), seed, clock),
   cardName: firstDeckCardName,
   note: FIRST_DECK_NOTE,
 };

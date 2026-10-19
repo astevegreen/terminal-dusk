@@ -1,5 +1,5 @@
 // Test helpers shared by the era tests (era1.test.ts, era2.test.ts, era3.test.ts): the checks every era
-// makes of its own cards, and the TEST-scenario game with the Era 1 deck dealt that those tests start.
+// makes of its own cards, and the TEST-scenario game with the Era 1 deck in the draw pile that those tests start.
 import { createGame, seedHash } from "@terminal-dusk/engine";
 import { expect, it } from "vitest";
 import { ERA_1_CARDS } from "../era1.ts";
@@ -85,27 +85,18 @@ export function opsSpread(cards: readonly Card[]): number[][] {
 }
 
 /**
- * The Era 1 deal of the TEST scenario (packages/host/src/firstDeck.ts deals the same way, shuffled): each side 6 of
- * its own cards, 2 of the rival's and 3 neutral cards, and the 6 cards left over in the draw pile.
+ * createGame's result for the first-deck TEST scenario as packages/host/src/firstDeck.ts starts it: empty hands and
+ * every Era 1 card in the draw pile, so the turn 1 refill deals each side its first hand (core-loop.md).
  */
-export function eraOneDeal(): { hands: { lio: string[]; sae: string[] }; deck: string[] } {
-  const e1 = ERA_1_CARDS.map((c) => c.id);
-  const of = (k: string) => e1.filter((id) => id.includes(k));
-  const [lio, sae, neu] = [of("-lio-"), of("-sae-"), of("-neu-")];
-  return {
-    hands: {
-      lio: [...lio.slice(0, 6), ...sae.slice(6, 8), ...neu.slice(0, 3)],
-      sae: [...sae.slice(0, 6), ...lio.slice(6, 8), ...neu.slice(3, 6)],
-    },
-    deck: [...lio.slice(8), ...sae.slice(8), ...neu.slice(6)],
-  };
-}
-
-/** createGame's result for the first-deck TEST scenario with the Era 1 deck dealt as eraOneDeal says. */
 export function startEraOneGame(): ReturnType<typeof createGame> {
   return createGame(
     FIRST_DECK_RULESET,
-    { seedHash: seedHash("s"), ...eraOneDeal(), ...scenarioSetup(FIRST_DECK_SCENARIO) },
+    {
+      seedHash: seedHash("s"),
+      hands: { lio: [], sae: [] },
+      deck: ERA_1_CARDS.map((c) => c.id),
+      ...scenarioSetup(FIRST_DECK_SCENARIO),
+    },
     "s",
   );
 }

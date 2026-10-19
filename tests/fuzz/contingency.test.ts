@@ -17,6 +17,7 @@ const SETUP: Setup = {
   deck: ["c6", "c7", "c8"],
   turns: 1,
   playsPerTurn: 1,
+  handSize: 2,
   contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [6, 2, 4, 2] },
 };
 

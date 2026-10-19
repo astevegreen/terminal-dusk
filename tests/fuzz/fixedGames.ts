@@ -15,6 +15,7 @@ export const FIXED_GAMES: { name: string; record: GameRecord }[] = [
         deck: ["c3", "c6", "c9", "c12"],
         turns: 1,
         playsPerTurn: 1,
+        handSize: 2,
         contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6] },
       },
       seed: "fixed-example",

@@ -56,6 +56,8 @@ export const fixtureConfig: MatchConfig = {
     deck: ["t15", "t16"],
     turns: 2,
     playsPerTurn: 2,
+    // The smallest hand size: the dealt hands never drop below it, so this game draws no cards.
+    handSize: 3,
     contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6] },
   },
 };

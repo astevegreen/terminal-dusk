@@ -9,6 +9,7 @@ describe("eventPresentation", () => {
       "cardDrawnHidden",
       "contingencyDeckReshuffled",
       "contingencyDrawn",
+      "drawPileReshuffled",
       "eraStarted",
       "marker",
       "modifierEnded",
@@ -48,6 +49,14 @@ describe("eventPresentation", () => {
       amount: 3,
     });
     expect(line).toBe("sae spent 3 points.");
+  });
+  it("logs a reshuffled draw pile with how many cards it got back, never which", () => {
+    const line = eventPresentation.drawPileReshuffled.log({
+      kind: "drawPileReshuffled",
+      visibility: "public",
+      cards: 12,
+    });
+    expect(line).toBe("The draw pile ran out: 12 discarded cards were shuffled into a new one.");
   });
   it("logs a new era with its name and the number of cards added, never which cards", () => {
     const line = eventPresentation.eraStarted.log({

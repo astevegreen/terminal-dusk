@@ -25,7 +25,7 @@ every card here is also a Notion row with Status "Draft".
 The plan had 13 / 13 / 8 per era (108 cards). The owner then removed 18 cards whose Notion rows they had trashed,
 because the events were not well known or significant enough (Owner question 8). Their ids stay unused, so the
 other cards keep their ids. The reasoning below is the plan's, kept for the record; the LIO side is now short in
-Era 1 and Era 3, which the TEST scenario's smaller game absorbs (see "Counts and the stopgap").
+Era 1 and Era 3, which the TEST scenario's smaller game absorbs (see "Counts and hand size").
 
 Why 13 / 13 / 8 per era (the plan):
 
@@ -73,21 +73,24 @@ After the owner removed 18 cards, the built spread (cards of Ops 1 / 2 / 3 / 4) 
 
 Era 3 LIO has no Ops 4 card now (Sanctions Wall was removed). Whether to rebalance is an open point for the owner.
 
-## Counts and the stopgap
+## Counts and hand size
 
-core-loop.md's stopgap: each side holds at least `turns x (1 + plays per turn)` non-neutral cards. These are
-placeholders, not rules (Owner question 4):
+Hands refill to the scenario's hand size at the start of every turn (core-loop.md, "Refilling hands"; Owner
+question 27), so the old stopgap (each side dealt `turns x (1 + plays per turn)` non-neutral cards) is gone. The
+numbers below are placeholders, not rules (Owner question 4), except the hand size of 8, which is the owner's:
 
 ```
 TEST scenario "first-deck-test" (ALL VALUES ARE PLACEHOLDERS)
-  TURNS = 4            was 6; cut when the owner removed 18 cards, so Era 1's 8 LIO cards still meet the stopgap
+  TURNS = 4            was 6; cut when the owner removed 18 cards, while the stopgap still applied
   PLAYS_PER_TURN = 1   one alternating play each after the opening pick
-  HAND_SIZE = 7        the dev fixture's value; the engine deals it, the scenario does not set it
+  HAND_SIZE = 8        the owner's (question 27); the scenario's handSize, and the turn 1 refill deals it
   eras: era-2 enters on turn 2, era-3 on turn 3, the future cards on turn 4 (were 3, 5 and 6)
   contingency: default decks (1-6 per side); the gamble thresholds below assume this
 ```
 
-Stopgap need: 4 x (1 + 1) = **8 non-neutral cards per side** (it was 6 x 2 = 12 with 6 turns).
+Before the refill rule, the stopgap needed 4 x (1 + 1) = 8 non-neutral cards per side at the start; the notes
+below are kept for the record. Now the 28 Era 1 cards are shuffled into the draw pile and the turn 1 refill deals
+8 to each side from it (16 of 28), so a game needs at least 2 x 8 cards when it starts, which createGame checks.
 
 - Strict reading (cards at the start, Era 1 only): 8 LIO and 13 SAE. Met exactly on the LIO side, no spare. The
   practice game deals each side 6 of its own cards, 2 of the rival's and 3 neutral ones; the 6 Era 1 cards left
@@ -248,6 +251,8 @@ answer follows the question as **Answered**.
    each side holds 8 non-neutral cards, which meets strict at 4 x 2 exactly.
    **Answered:** decide together with the hand-refill rules (question 27); the strict stopgap stays until then.
    Question 27 is now answered (refill to 8 each turn), so the stopgap goes once refilling is built.
+   **Done:** hands refill at every turn start, so neither reading is needed and the stopgap is gone (core-loop.md,
+   "Refilling hands").
 6. **Era names.** eras.md leaves them undecided. The JSON will use `era-1`, `era-2`, `era-3` and `future`.
    **Answered:** keep the plain labels; display names can come later.
 7. **Rules-text verb for `spendPoints`.** The step only records a `pointsSpent` event today. I write "LIO spends
@@ -335,6 +340,9 @@ answer follows the question as **Answered**.
     (any side's cards); when the pile runs out, the discards are shuffled into a new one. This is a separate task:
     the rule goes into the Notion "Core loop" page and core-loop.md first, then the engine. The current deal and
     the strict stopgap (question 5) stay until then.
+    **Done:** the engine refills both hands at every turn start, after a new era's cards enter and before the
+    opening picks, LIO first; the turn 1 refill deals the first hands. Hand size is the scenario's `handSize`
+    (8 in `first-deck-test`). The practice game no longer deals: all 28 Era 1 cards start in the draw pile.
 28. **Ops swings affect all points spent.** The engine's modifier changes every point spent, not only points from
     "play for points". The plan's wording was changed to "points spent by <side> count N more". OK, or should the
     engine tell the two apart?
@@ -357,6 +365,7 @@ answer follows the question as **Answered**.
     (turn 2), so its 29 cards are shuffled into the draw pile then. The engine never moves cards from the draw pile
     into hands, so in the AI game no Era 2 card is ever played. The cards are built, tested and loaded; they will
     appear in games once the rules say how hands refill (see question 27). **Answered by question 27:** fixed when hand refills are built.
+    **Done:** hands now refill each turn, so Era 2 cards are drawn and played.
 35. **A "count more" bonus also hits a turn-end spend (SARS).** At the end of a turn the turn-end triggers fire
     before the Ops swings expire. If both sides say no to the SARS card, the penalty each side pays at turn end is
     spent while the other side's "+1" is still in force, so it counts 2 instead of 1. The plan's "never below 1"
@@ -374,6 +383,7 @@ answer follows the question as **Answered**.
     cards removes `futureFiles.ts`, its `eras` entry and one line in `firstDeckRules.ts`; nothing else depends on them.
 41. **Era 3 cards still dormant in the AI game.** Same cause as question 34: hands never refill, so no Era 3 or future
     card is ever played in the practice game. They are built, tested and loaded. **Answered by question 27:** fixed when hand refills are built.
+    **Done:** hands now refill each turn, so Era 3 and future cards are drawn and played.
 42. **Test-writing method.** The Era 3 and future tests take their expected results from the engine's real output,
     checked by hand against the Playable line, rather than being written out by hand first as in Era 2. Say if you want
     them rewritten the Era 2 way. **Answered:** keep them as they are.

@@ -1,0 +1,384 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden replay: refilling hands > deals, refills and reshuffles exactly as recorded 1`] = `
+{
+  "status": {
+    "kind": "over",
+    "reason": "turnLimitReached",
+    "winner": null,
+  },
+  "steps": [
+    {
+      "counts": {
+        "deck": 4,
+        "hands": {
+          "lio": 3,
+          "sae": 3,
+        },
+      },
+      "discard": [],
+      "events": [
+        {
+          "kind": "cardDrawnHidden",
+          "side": "lio",
+          "visibility": "public",
+        },
+        {
+          "kind": "cardDrawnHidden",
+          "side": "lio",
+          "visibility": "public",
+        },
+        {
+          "kind": "cardDrawnHidden",
+          "side": "lio",
+          "visibility": "public",
+        },
+        {
+          "kind": "cardDrawnHidden",
+          "side": "sae",
+          "visibility": "public",
+        },
+        {
+          "kind": "cardDrawnHidden",
+          "side": "sae",
+          "visibility": "public",
+        },
+        {
+          "kind": "cardDrawnHidden",
+          "side": "sae",
+          "visibility": "public",
+        },
+      ],
+      "turn": 1,
+    },
+    {
+      "counts": {
+        "deck": 4,
+        "hands": {
+          "lio": 3,
+          "sae": 3,
+        },
+      },
+      "discard": [],
+      "events": [],
+      "turn": 1,
+    },
+    {
+      "counts": {
+        "deck": 4,
+        "hands": {
+          "lio": 2,
+          "sae": 2,
+        },
+      },
+      "discard": [
+        "l1",
+        "s5",
+      ],
+      "events": [],
+      "turn": 1,
+    },
+    {
+      "counts": {
+        "deck": 4,
+        "hands": {
+          "lio": 1,
+          "sae": 2,
+        },
+      },
+      "discard": [
+        "l1",
+        "s5",
+        "l2",
+      ],
+      "events": [],
+      "turn": 1,
+    },
+    {
+      "counts": {
+        "deck": 4,
+        "hands": {
+          "lio": 1,
+          "sae": 1,
+        },
+      },
+      "discard": [
+        "l1",
+        "s5",
+        "l2",
+      ],
+      "events": [],
+      "turn": 1,
+    },
+    {
+      "counts": {
+        "deck": 0,
+        "hands": {
+          "lio": 3,
+          "sae": 3,
+        },
+      },
+      "discard": [
+        "l1",
+        "s5",
+        "l2",
+        "l3",
+      ],
+      "events": [
+        {
+          "amount": 1,
+          "kind": "pointsSpent",
+          "side": "sae",
+          "visibility": "public",
+        },
+        {
+          "kind": "cardDrawnHidden",
+          "side": "lio",
+          "visibility": "public",
+        },
+        {
+          "kind": "cardDrawnHidden",
+          "side": "lio",
+          "visibility": "public",
+        },
+        {
+          "kind": "cardDrawnHidden",
+          "side": "sae",
+          "visibility": "public",
+        },
+        {
+          "kind": "cardDrawnHidden",
+          "side": "sae",
+          "visibility": "public",
+        },
+      ],
+      "turn": 2,
+    },
+    {
+      "counts": {
+        "deck": 0,
+        "hands": {
+          "lio": 3,
+          "sae": 3,
+        },
+      },
+      "discard": [
+        "l1",
+        "s5",
+        "l2",
+        "l3",
+      ],
+      "events": [],
+      "turn": 2,
+    },
+    {
+      "counts": {
+        "deck": 0,
+        "hands": {
+          "lio": 2,
+          "sae": 2,
+        },
+      },
+      "discard": [
+        "l1",
+        "s5",
+        "l2",
+        "l3",
+        "s3",
+        "s1",
+      ],
+      "events": [],
+      "turn": 2,
+    },
+    {
+      "counts": {
+        "deck": 0,
+        "hands": {
+          "lio": 1,
+          "sae": 2,
+        },
+      },
+      "discard": [
+        "l1",
+        "s5",
+        "l2",
+        "l3",
+        "s3",
+        "s1",
+      ],
+      "events": [],
+      "turn": 2,
+    },
+    {
+      "counts": {
+        "deck": 0,
+        "hands": {
+          "lio": 1,
+          "sae": 2,
+        },
+      },
+      "discard": [
+        "l1",
+        "s5",
+        "l2",
+        "l3",
+        "s3",
+        "s1",
+        "s2",
+      ],
+      "events": [
+        {
+          "amount": 1,
+          "kind": "pointsSpent",
+          "side": "lio",
+          "visibility": "public",
+        },
+      ],
+      "turn": 2,
+    },
+    {
+      "counts": {
+        "deck": 4,
+        "hands": {
+          "lio": 3,
+          "sae": 3,
+        },
+      },
+      "discard": [],
+      "events": [
+        {
+          "cards": 8,
+          "kind": "drawPileReshuffled",
+          "visibility": "public",
+        },
+        {
+          "kind": "cardDrawnHidden",
+          "side": "lio",
+          "visibility": "public",
+        },
+        {
+          "kind": "cardDrawnHidden",
+          "side": "lio",
+          "visibility": "public",
+        },
+        {
+          "kind": "cardDrawnHidden",
+          "side": "sae",
+          "visibility": "public",
+        },
+        {
+          "kind": "cardDrawnHidden",
+          "side": "sae",
+          "visibility": "public",
+        },
+      ],
+      "turn": 3,
+    },
+    {
+      "counts": {
+        "deck": 4,
+        "hands": {
+          "lio": 3,
+          "sae": 3,
+        },
+      },
+      "discard": [],
+      "events": [],
+      "turn": 3,
+    },
+    {
+      "counts": {
+        "deck": 4,
+        "hands": {
+          "lio": 2,
+          "sae": 2,
+        },
+      },
+      "discard": [
+        "l4",
+        "l5",
+      ],
+      "events": [],
+      "turn": 3,
+    },
+    {
+      "counts": {
+        "deck": 4,
+        "hands": {
+          "lio": 1,
+          "sae": 2,
+        },
+      },
+      "discard": [
+        "l4",
+        "l5",
+      ],
+      "events": [],
+      "turn": 3,
+    },
+    {
+      "counts": {
+        "deck": 4,
+        "hands": {
+          "lio": 1,
+          "sae": 2,
+        },
+      },
+      "discard": [
+        "l4",
+        "l5",
+        "s3",
+      ],
+      "events": [
+        {
+          "amount": 1,
+          "kind": "pointsSpent",
+          "side": "lio",
+          "visibility": "public",
+        },
+      ],
+      "turn": 3,
+    },
+    {
+      "counts": {
+        "deck": 4,
+        "hands": {
+          "lio": 1,
+          "sae": 1,
+        },
+      },
+      "discard": [
+        "l4",
+        "l5",
+        "s3",
+      ],
+      "events": [],
+      "turn": 3,
+    },
+    {
+      "counts": {
+        "deck": 4,
+        "hands": {
+          "lio": 1,
+          "sae": 1,
+        },
+      },
+      "discard": [
+        "l4",
+        "l5",
+        "s3",
+        "l3",
+      ],
+      "events": [
+        {
+          "amount": 1,
+          "kind": "pointsSpent",
+          "side": "sae",
+          "visibility": "public",
+        },
+      ],
+      "turn": 3,
+    },
+  ],
+}
+`;

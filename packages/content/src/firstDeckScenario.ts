@@ -1,4 +1,5 @@
-// The TEST scenario for the first deck. Its numbers (turns, plays per turn) are placeholders, not design decisions.
+// The TEST scenario for the first deck. Its hand size of 8 is the owner's (deck-plan.md, Owner question 27); its other
+// numbers (turns, plays per turn) are placeholders, not design decisions.
 import { scenarioSchema } from "../schema/scenario.ts";
 import raw from "../scenarios/first-deck-test.json" with { type: "json" };
 
