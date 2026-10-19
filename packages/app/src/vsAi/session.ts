@@ -135,6 +135,8 @@ export function createVsAiSession(options: VsAiOptions): VsAiSession {
       const { frame } = snapshot;
       const decision = frame?.decision;
       if (stopped || !frame || !decision) return;
+      // A new answer clears the last refusal, so a repeated refusal shows again rather than looking unchanged.
+      if (snapshot.refusal !== null) publish({ refusal: null });
       const result = await humanTransport.submit({ decisionId: decision.id, expectedSeq: frame.seq, value });
       if (!stopped && !result.ok) publish({ refusal: result.error.code });
     },
