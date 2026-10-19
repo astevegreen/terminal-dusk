@@ -269,6 +269,9 @@ describe("local transport: the replay archive", () => {
     if (!made.ok) throw new Error(made.error.code);
     record(made.value, "lio");
     await made.value.transportFor("lio").resign();
+    // More frames reach new subscribers after the end, and a later submission is refused; none re-archives.
+    record(made.value, "spectator");
+    record(made.value, "sae");
     await made.value.transportFor("sae").resign();
     expect(calls).toBe(1);
     expect(made.value.archive()).not.toBeNull();
