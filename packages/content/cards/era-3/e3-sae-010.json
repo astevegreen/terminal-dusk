@@ -1,0 +1,35 @@
+{
+  "id": "e3-sae-010",
+  "era": "era-3",
+  "ops": 1,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "resolve questioned"
+    },
+    {
+      "op": "spendPoints",
+      "side": "sae",
+      "amount": 1
+    },
+    {
+      "op": "modifier",
+      "mod": {
+        "hook": "opsValue",
+        "side": "lio",
+        "add": -1,
+        "min": 1
+      },
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Fall of Kabul",
+    "rules": "Record \"resolve questioned\". SAE spends 1 point. Until the end of this turn, points spent by LIO count 1 less, never below 1.",
+    "history": "Taliban forces entered Kabul on 15 August 2021 as the Afghan government collapsed during the withdrawal of US and allied forces.",
+    "art": "art/e3-sae-010"
+  }
+}

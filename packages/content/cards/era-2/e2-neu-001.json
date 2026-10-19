@@ -1,0 +1,55 @@
+{
+  "id": "e2-neu-001",
+  "era": "era-2",
+  "ops": 3,
+  "affiliation": "neutral",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "open trade"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 1
+    },
+    {
+      "op": "spendPoints",
+      "side": "sae",
+      "amount": 2
+    },
+    {
+      "op": "choose",
+      "who": "lio",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        },
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "China Joins the WTO",
+    "rules": "Record \"open trade\". LIO spends 1 point. SAE spends 2 points. LIO chooses: Grant permanent normal trade? If yes, LIO spends 1 point, then SAE spends 1 point.",
+    "history": "China became the 143rd member of the World Trade Organization on 11 December 2001.",
+    "art": "art/e2-neu-001"
+  }
+}

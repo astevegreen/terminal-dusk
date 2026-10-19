@@ -1,0 +1,37 @@
+{
+  "id": "e3-sae-003",
+  "era": "era-3",
+  "ops": 3,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "borders redrawn"
+    },
+    {
+      "op": "spendPoints",
+      "side": "sae",
+      "amount": 3
+    },
+    {
+      "op": "trigger",
+      "hook": "turnEnd",
+      "do": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ],
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Annexation of Crimea",
+    "rules": "Record \"borders redrawn\". SAE spends 3 points. At the end of this turn, LIO spends 1 point.",
+    "history": "Russian forces took control of Crimea in late February 2014; after a referendum on 16 March 2014 Russia annexed the peninsula on 18 March, and the UN General Assembly declared the referendum invalid on 27 March 2014.",
+    "art": "art/e3-sae-003"
+  }
+}

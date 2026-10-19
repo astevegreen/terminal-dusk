@@ -1,0 +1,49 @@
+{
+  "id": "e1-sae-013",
+  "era": "era-1",
+  "ops": 2,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "designs copied"
+    },
+    {
+      "op": "drawContingency",
+      "side": "sae",
+      "bind": "d"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "atLeast",
+        "var": "d",
+        "value": 3
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 2
+        }
+      ],
+      "else": [
+        {
+          "op": "marker",
+          "label": "ring exposed"
+        },
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Cox Report",
+    "rules": "Record \"designs copied\". Draw from SAE's Contingency deck. If the result is 3 or more, SAE spends 2 points; otherwise, record \"ring exposed\", then LIO spends 1 point.",
+    "history": "The US congressional Cox Report, released on 25 May 1999, alleged that China had obtained design information on US nuclear warheads through espionage over two decades.",
+    "art": "art/e1-sae-013"
+  }
+}

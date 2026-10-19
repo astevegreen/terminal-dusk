@@ -1,0 +1,32 @@
+{
+  "id": "e3-sae-005",
+  "era": "era-3",
+  "ops": 1,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "surveillance exposed"
+    },
+    {
+      "op": "trigger",
+      "hook": "cardPlayed",
+      "do": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        }
+      ],
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "The Leaks",
+    "rules": "Record \"surveillance exposed\". After every card played this turn, by either side, SAE spends 1 point.",
+    "history": "WikiLeaks began publishing some 250,000 US diplomatic cables on 28 November 2010; in June 2013 documents leaked by Edward Snowden revealed large-scale US surveillance programmes.",
+    "art": "art/e3-sae-005"
+  }
+}

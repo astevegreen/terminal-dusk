@@ -1,0 +1,35 @@
+{
+  "id": "e2-sae-001",
+  "era": "era-2",
+  "ops": 3,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "coalition fractures"
+    },
+    {
+      "op": "spendPoints",
+      "side": "sae",
+      "amount": 2
+    },
+    {
+      "op": "modifier",
+      "mod": {
+        "hook": "opsValue",
+        "side": "lio",
+        "add": -1,
+        "min": 1
+      },
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Invasion of Iraq",
+    "rules": "Record \"coalition fractures\". SAE spends 2 points. Until the end of this turn, points spent by LIO count 1 less, never below 1.",
+    "history": "A US-led coalition invaded Iraq on 20 March 2003 and took Baghdad on 9 April 2003. The stated justification, Iraqi weapons of mass destruction, was not borne out.",
+    "art": "art/e2-sae-001"
+  }
+}

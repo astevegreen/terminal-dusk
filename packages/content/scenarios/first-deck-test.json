@@ -1,0 +1,82 @@
+{
+  "id": "first-deck-test",
+  "name": "TEST scenario for the first deck (placeholder numbers: 4 turns, 1 play each, Era 2 enters on turn 2, Era 3 on turn 3, the future cards on turn 4)",
+  "turns": 4,
+  "playsPerTurn": 1,
+  "eras": [
+    {
+      "era": "era-2",
+      "turn": 2,
+      "cards": [
+        "e2-lio-002",
+        "e2-lio-004",
+        "e2-lio-006",
+        "e2-lio-007",
+        "e2-lio-008",
+        "e2-lio-009",
+        "e2-lio-010",
+        "e2-lio-011",
+        "e2-lio-012",
+        "e2-lio-013",
+        "e2-sae-001",
+        "e2-sae-002",
+        "e2-sae-003",
+        "e2-sae-004",
+        "e2-sae-005",
+        "e2-sae-007",
+        "e2-sae-008",
+        "e2-sae-010",
+        "e2-sae-011",
+        "e2-sae-012",
+        "e2-sae-013",
+        "e2-neu-001",
+        "e2-neu-002",
+        "e2-neu-003",
+        "e2-neu-004",
+        "e2-neu-005",
+        "e2-neu-006",
+        "e2-neu-007",
+        "e2-neu-008"
+      ]
+    },
+    {
+      "era": "era-3",
+      "turn": 3,
+      "cards": [
+        "e3-lio-001",
+        "e3-lio-002",
+        "e3-lio-003",
+        "e3-lio-006",
+        "e3-lio-009",
+        "e3-lio-010",
+        "e3-lio-011",
+        "e3-lio-013",
+        "e3-sae-001",
+        "e3-sae-002",
+        "e3-sae-003",
+        "e3-sae-004",
+        "e3-sae-005",
+        "e3-sae-007",
+        "e3-sae-008",
+        "e3-sae-009",
+        "e3-sae-010",
+        "e3-sae-011",
+        "e3-sae-012",
+        "e3-sae-013",
+        "e3-neu-001",
+        "e3-neu-002",
+        "e3-neu-003",
+        "e3-neu-004",
+        "e3-neu-005",
+        "e3-neu-007",
+        "e3-neu-008",
+        "e3-neu-009"
+      ]
+    },
+    {
+      "era": "future",
+      "turn": 4,
+      "cards": ["ef-lio-001", "ef-lio-002", "ef-sae-001", "ef-sae-002", "ef-neu-001", "ef-neu-002"]
+    }
+  ]
+}

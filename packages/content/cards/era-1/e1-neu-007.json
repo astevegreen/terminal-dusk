@@ -1,0 +1,29 @@
+{
+  "id": "e1-neu-007",
+  "era": "era-1",
+  "ops": 1,
+  "affiliation": "neutral",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "crew aboard"
+    },
+    {
+      "op": "modifier",
+      "mod": {
+        "hook": "opsValue",
+        "side": "both",
+        "add": 1
+      },
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "First Crew on the ISS",
+    "rules": "Record \"crew aboard\". Until the end of this turn, points spent by either side count 1 more.",
+    "history": "Expedition 1, one American and two Russian crew members, arrived at the International Space Station in November 2000 and began continuous human occupation of the station.",
+    "art": "art/e1-neu-007"
+  }
+}

@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
+const FIRST_DECK_NOTE =
+  "First deck, Eras 1 to 3 and the future cards (TEST scenario with placeholder numbers; they join on turns 2, 3 and 4)";
+
 /** Taps the decision's buttons in order until one is not refused (the fixture offers some refused moves). */
 async function answerOnce(page: Page): Promise<void> {
   const buttons = page.getByTestId("decision").getByRole("button");
@@ -27,7 +30,9 @@ async function answerOnce(page: Page): Promise<void> {
 test("play against the AI: pick LIO and tap through a whole game against the worker AI", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Play against the AI" }).click();
-  await expect(page.getByText("Practice game with developer test cards")).toBeVisible();
+  // The game against the AI deals the real first deck (FIRST_DECK_NOTE in packages/host/src/firstDeck.ts), not the
+  // developer fixture that test mode keeps.
+  await expect(page.getByText(FIRST_DECK_NOTE, { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Play as LIO" }).click();
   await expect(page.getByTestId("decision")).toBeVisible();
 

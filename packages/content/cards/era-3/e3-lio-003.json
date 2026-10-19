@@ -1,0 +1,65 @@
+{
+  "id": "e3-lio-003",
+  "era": "era-3",
+  "ops": 2,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "sleepers exposed"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 2
+    },
+    {
+      "op": "choose",
+      "who": "lio",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v"
+      },
+      "then": [
+        {
+          "op": "trigger",
+          "hook": "turnEnd",
+          "do": [
+            {
+              "op": "spendPoints",
+              "side": "lio",
+              "amount": 1
+            },
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 1
+            }
+          ],
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ],
+      "else": [
+        {
+          "op": "marker",
+          "label": "no exchange"
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Ghost Stories",
+    "rules": "Record \"sleepers exposed\". LIO spends 2 points. LIO chooses: Trade them? If yes, at the end of this turn, LIO spends 1 point, then SAE spends 1 point; if no, record \"no exchange\".",
+    "history": "On 27 June 2010 the FBI arrested ten Russian agents who had lived under false identities in the United States; on 9 July 2010 they were exchanged in Vienna for four people held in Russia.",
+    "art": "art/e3-lio-003"
+  }
+}

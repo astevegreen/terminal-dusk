@@ -1,0 +1,49 @@
+{
+  "id": "e2-sae-004",
+  "era": "era-2",
+  "ops": 1,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "drawContingency",
+      "side": "sae",
+      "bind": "d"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "atLeast",
+        "var": "d",
+        "value": 3
+      },
+      "then": [
+        {
+          "op": "marker",
+          "label": "sites down"
+        },
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 2
+        }
+      ],
+      "else": [
+        {
+          "op": "marker",
+          "label": "cyber defence doctrine"
+        },
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Estonian Cyberattacks 2007",
+    "rules": "Draw from SAE's Contingency deck. If the result is 3 or more, record \"sites down\", then SAE spends 2 points; otherwise, record \"cyber defence doctrine\", then LIO spends 1 point.",
+    "history": "From 27 April 2007 Estonian government, bank and media websites were hit by weeks of denial-of-service attacks after a dispute over moving a Soviet war memorial in Tallinn.",
+    "art": "art/e2-sae-004"
+  }
+}

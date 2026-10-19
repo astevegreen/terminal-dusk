@@ -1,0 +1,112 @@
+{
+  "id": "e1-neu-002",
+  "era": "era-1",
+  "ops": 3,
+  "affiliation": "neutral",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "contagion"
+    },
+    {
+      "op": "choose",
+      "who": "both",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v",
+        "side": "lio"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 2
+        },
+        {
+          "op": "modifier",
+          "mod": {
+            "hook": "opsValue",
+            "side": "lio",
+            "add": -1,
+            "min": 1
+          },
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ],
+      "else": [
+        {
+          "op": "trigger",
+          "hook": "turnEnd",
+          "do": [
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 1
+            }
+          ],
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ]
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v",
+        "side": "sae"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 2
+        },
+        {
+          "op": "modifier",
+          "mod": {
+            "hook": "opsValue",
+            "side": "sae",
+            "add": -1,
+            "min": 1
+          },
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ],
+      "else": [
+        {
+          "op": "trigger",
+          "hook": "turnEnd",
+          "do": [
+            {
+              "op": "spendPoints",
+              "side": "lio",
+              "amount": 1
+            }
+          ],
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Asian Financial Crisis",
+    "rules": "Record \"contagion\". Each side chooses: Bail out your partners? If LIO says yes, LIO spends 2 points, then until the end of this turn, points spent by LIO count 1 less, never below 1; otherwise, at the end of this turn, SAE spends 1 point. If SAE says yes, SAE spends 2 points, then until the end of this turn, points spent by SAE count 1 less, never below 1; otherwise, at the end of this turn, LIO spends 1 point.",
+    "history": "Thailand floated the baht on 2 July 1997 and the crisis spread to Indonesia, South Korea and beyond; IMF-led rescue packages for the three countries together exceeded $100 billion.",
+    "art": "art/e1-neu-002"
+  }
+}

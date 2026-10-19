@@ -1,0 +1,28 @@
+{
+  "id": "e2-neu-002",
+  "era": "era-2",
+  "ops": 1,
+  "affiliation": "neutral",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "shock"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 1
+    },
+    {
+      "op": "spendPoints",
+      "side": "sae",
+      "amount": 1
+    }
+  ],
+  "text": {
+    "name": "September 11",
+    "rules": "Record \"shock\". LIO spends 1 point. SAE spends 1 point.",
+    "history": "On 11 September 2001 hijacked airliners were crashed into the World Trade Center in New York and the Pentagon, killing thousands of people.",
+    "art": "art/e2-neu-002"
+  }
+}

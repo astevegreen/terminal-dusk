@@ -1,0 +1,23 @@
+{
+  "id": "e3-lio-009",
+  "era": "era-3",
+  "ops": 2,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "Baltic lake"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 2
+    }
+  ],
+  "text": {
+    "name": "Nordic Accession",
+    "rules": "Record \"Baltic lake\". LIO spends 2 points.",
+    "history": "Finland and Sweden applied to join NATO in May 2022; Finland joined on 4 April 2023 and Sweden on 7 March 2024.",
+    "art": "art/e3-lio-009"
+  }
+}

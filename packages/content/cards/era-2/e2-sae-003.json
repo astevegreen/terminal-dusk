@@ -1,0 +1,34 @@
+{
+  "id": "e2-sae-003",
+  "era": "era-2",
+  "ops": 4,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "summer of 2008"
+    },
+    {
+      "op": "spendPoints",
+      "side": "sae",
+      "amount": 3
+    },
+    {
+      "op": "modifier",
+      "mod": {
+        "hook": "opsValue",
+        "side": "sae",
+        "add": 1
+      },
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Olympic Summer 2008",
+    "rules": "Record \"summer of 2008\". SAE spends 3 points. Until the end of this turn, points spent by SAE count 1 more.",
+    "history": "The Beijing Olympics opened on 8 August 2008; the same week, Russian forces fought a five-day war with Georgia that ended in a ceasefire brokered by France.",
+    "art": "art/e2-sae-003"
+  }
+}

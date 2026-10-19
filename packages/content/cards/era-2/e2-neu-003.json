@@ -1,0 +1,110 @@
+{
+  "id": "e2-neu-003",
+  "era": "era-2",
+  "ops": 1,
+  "affiliation": "neutral",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "outbreak"
+    },
+    {
+      "op": "choose",
+      "who": "both",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v",
+        "side": "lio"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ],
+      "else": [
+        {
+          "op": "modifier",
+          "mod": {
+            "hook": "opsValue",
+            "side": "lio",
+            "add": 1
+          },
+          "duration": {
+            "kind": "turnEnd"
+          }
+        },
+        {
+          "op": "trigger",
+          "hook": "turnEnd",
+          "do": [
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 1
+            }
+          ],
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ]
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v",
+        "side": "sae"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        }
+      ],
+      "else": [
+        {
+          "op": "modifier",
+          "mod": {
+            "hook": "opsValue",
+            "side": "sae",
+            "add": 1
+          },
+          "duration": {
+            "kind": "turnEnd"
+          }
+        },
+        {
+          "op": "trigger",
+          "hook": "turnEnd",
+          "do": [
+            {
+              "op": "spendPoints",
+              "side": "lio",
+              "amount": 1
+            }
+          ],
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "SARS",
+    "rules": "Record \"outbreak\". Each side chooses: Report cases openly? If LIO says yes, LIO spends 1 point; otherwise, until the end of this turn, points spent by LIO count 1 more, then at the end of this turn, SAE spends 1 point. If SAE says yes, SAE spends 1 point; otherwise, until the end of this turn, points spent by SAE count 1 more, then at the end of this turn, LIO spends 1 point. If both say no, each of these end-of-turn spends counts 2, because the spender's own \"count 1 more\" is still in force.",
+    "history": "SARS emerged in Guangdong, China, in November 2002; by the time the WHO declared it contained on 5 July 2003, 8,098 cases and 774 deaths had been recorded.",
+    "art": "art/e2-neu-003"
+  }
+}

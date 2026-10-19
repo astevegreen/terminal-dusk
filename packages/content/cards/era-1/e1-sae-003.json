@@ -1,0 +1,37 @@
+{
+  "id": "e1-sae-003",
+  "era": "era-1",
+  "ops": 2,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "walled network"
+    },
+    {
+      "op": "spendPoints",
+      "side": "sae",
+      "amount": 1
+    },
+    {
+      "op": "trigger",
+      "hook": "cardPlayed",
+      "do": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        }
+      ],
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Golden Shield",
+    "rules": "Record \"walled network\". SAE spends 1 point. After each later card played this turn, by either side, SAE spends 1 point.",
+    "history": "China's Ministry of Public Security launched the Golden Shield project in 1998; the filtering and surveillance system, widely known as the Great Firewall, was operational by 2003.",
+    "art": "art/e1-sae-003"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "id": "e2-neu-008",
+  "era": "era-2",
+  "ops": 2,
+  "affiliation": "neutral",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "petro-dollars"
+    },
+    {
+      "op": "choose",
+      "who": "lio",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 2
+        },
+        {
+          "op": "trigger",
+          "hook": "turnEnd",
+          "do": [
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 1
+            }
+          ],
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ],
+      "else": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Sovereign Wealth Funds",
+    "rules": "Record \"petro-dollars\". LIO chooses: Let them buy in? If yes, LIO spends 2 points, then at the end of this turn, SAE spends 1 point; if no, LIO spends 1 point.",
+    "history": "As the credit crisis spread in late 2007, state funds bought stakes in Western banks, including Abu Dhabi's $7.5 billion investment in Citigroup in November 2007 and China Investment Corporation's purchase of a Morgan Stanley stake in December 2007.",
+    "art": "art/e2-neu-008"
+  }
+}

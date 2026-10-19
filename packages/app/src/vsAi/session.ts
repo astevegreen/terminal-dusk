@@ -1,7 +1,7 @@
 // The state behind a game against the AI: one local match on the developer fixture, the human's latest frame
 // and log, and the AI side's frames, which the session answers through the AI opponent. It holds display data
 // only; the rules stay in the host, and the AI sees only its own side's view.
-import type { AnswerValue, EraId, Seed, Side } from "@terminal-dusk/engine";
+import type { AnswerValue, EraId, Ruleset, Seed, Side } from "@terminal-dusk/engine";
 import type { Frame, HostError } from "@terminal-dusk/host";
 import { fixtureConfig, fixtureRuleset } from "../testMode/fixture.ts";
 import { logLine } from "../testMode/session.ts";
@@ -33,6 +33,8 @@ export type VsAiOptions = {
   aiSeed: number;
   clock: () => number;
   makeAi: MakeAi;
+  /** The rules the match and the AI use; the developer fixture when left out. Must fit what makeMatch makes. */
+  ruleset?: Ruleset;
   /** Makes the match; the developer fixture when left out. Tests use it to watch the transports. */
   makeMatch?: (seed: Seed, clock: () => number) => { ok: true; value: LocalMatch } | { ok: false; error: HostError };
 };
@@ -87,7 +89,7 @@ export function createVsAiSession(options: VsAiOptions): VsAiSession {
   }
   const humanTransport = made.value.transportFor(human);
   const aiTransport = made.value.transportFor(aiSide);
-  const ai = options.makeAi(fixtureRuleset, aiSide, options.aiSeed);
+  const ai = options.makeAi(options.ruleset ?? fixtureRuleset, aiSide, options.aiSeed);
   let stopped = false;
   let aiStopped = false;
   let lastSeq = -1;

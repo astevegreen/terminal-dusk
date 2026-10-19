@@ -1,0 +1,80 @@
+{
+  "id": "e3-neu-008",
+  "era": "era-3",
+  "ops": 2,
+  "affiliation": "neutral",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "tariff wall"
+    },
+    {
+      "op": "modifier",
+      "mod": {
+        "hook": "opsValue",
+        "side": "lio",
+        "add": -1,
+        "min": 1
+      },
+      "duration": {
+        "kind": "turnEnd"
+      }
+    },
+    {
+      "op": "choose",
+      "who": "sae",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        },
+        {
+          "op": "modifier",
+          "mod": {
+            "hook": "opsValue",
+            "side": "sae",
+            "add": -1,
+            "min": 1
+          },
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ],
+      "else": [
+        {
+          "op": "trigger",
+          "hook": "turnEnd",
+          "do": [
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 1
+            }
+          ],
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Tariff Shock",
+    "rules": "Record \"tariff wall\". Until the end of this turn, points spent by LIO count 1 less, never below 1. SAE chooses: Retaliate? If yes, SAE spends 1 point, then until the end of this turn, points spent by SAE count 1 less, never below 1; if no, at the end of this turn, SAE spends 1 point.",
+    "history": "On 2 April 2025 the U.S. President announced a 10 per cent tariff on imports from almost all countries, effective 5 April, with higher rates for many trading partners announced for 9 April; the rates changed repeatedly in the following months.",
+    "art": "art/e3-neu-008"
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "id": "e2-sae-007",
+  "era": "era-2",
+  "ops": 2,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "first test"
+    },
+    {
+      "op": "drawContingency",
+      "side": "sae",
+      "bind": "d"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "atLeast",
+        "var": "d",
+        "value": 4
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 2
+        }
+      ],
+      "else": [
+        {
+          "op": "if",
+          "cond": {
+            "op": "atMost",
+            "var": "d",
+            "value": 2
+          },
+          "then": [
+            {
+              "op": "spendPoints",
+              "side": "lio",
+              "amount": 1
+            }
+          ],
+          "else": [
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 1
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "North Korean Nuclear Test",
+    "rules": "Record \"first test\". Draw from SAE's Contingency deck. If the result is 4 or more, SAE spends 2 points; otherwise, (if the result is 2 or less, LIO spends 1 point; otherwise, SAE spends 1 point).",
+    "history": "North Korea announced its withdrawal from the Non-Proliferation Treaty in January 2003 and conducted its first nuclear test on 9 October 2006.",
+    "art": "art/e2-sae-007"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "id": "e1-sae-001",
+  "era": "era-1",
+  "ops": 2,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "intervention fatigue"
+    },
+    {
+      "op": "spendPoints",
+      "side": "sae",
+      "amount": 1
+    },
+    {
+      "op": "trigger",
+      "hook": "turnEnd",
+      "do": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        }
+      ],
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Battle of Mogadishu",
+    "rules": "Record \"intervention fatigue\". SAE spends 1 point. At the end of this turn, SAE spends 1 point.",
+    "history": "On 3-4 October 1993 a US raid in Mogadishu, Somalia turned into a day-long battle in which 18 US soldiers were killed; US forces withdrew from Somalia by March 1994.",
+    "art": "art/e1-sae-001"
+  }
+}

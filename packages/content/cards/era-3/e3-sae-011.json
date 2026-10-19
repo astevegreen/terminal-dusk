@@ -1,0 +1,65 @@
+{
+  "id": "e3-sae-011",
+  "era": "era-3",
+  "ops": 2,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "promise ended"
+    },
+    {
+      "op": "spendPoints",
+      "side": "sae",
+      "amount": 2
+    },
+    {
+      "op": "choose",
+      "who": "lio",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        },
+        {
+          "op": "trigger",
+          "hook": "turnEnd",
+          "do": [
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 1
+            }
+          ],
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ],
+      "else": [
+        {
+          "op": "marker",
+          "label": "no sanctions"
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Hong Kong Security Law",
+    "rules": "Record \"promise ended\". SAE spends 2 points. LIO chooses: Impose sanctions? If yes, LIO spends 1 point, then at the end of this turn, SAE spends 1 point; if no, record \"no sanctions\".",
+    "history": "China's national security law for Hong Kong was passed and took effect on 30 June 2020, criminalising secession, subversion, terrorism and collusion with foreign forces.",
+    "art": "art/e3-sae-011"
+  }
+}

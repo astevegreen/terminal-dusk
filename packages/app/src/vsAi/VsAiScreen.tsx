@@ -1,6 +1,6 @@
 // Playing against the Easy AI: a side picker, then the game screen for the human's side. The AI runs in a
 // Web Worker (createWorkerAi) unless a test passes another opponent. Seeds and the clock come from main.tsx.
-import type { Side } from "@terminal-dusk/engine";
+import type { CardId, Ruleset, Side } from "@terminal-dusk/engine";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { GameScreen } from "../game/GameScreen.tsx";
 import { ReplayScreen } from "../replay/ReplayScreen.tsx";
@@ -8,17 +8,29 @@ import type { ReplayRecording } from "../replay/recording.ts";
 import { cardName } from "../testMode/fixture.ts";
 import type { MakeAi } from "./aiOpponent.ts";
 import { createVsAiSession } from "./session.ts";
+import type { VsAiOptions } from "./session.ts";
 import type { VsAiSession, VsAiSnapshot } from "./session.ts";
 import { createWorkerAi } from "./workerAi.ts";
 
 const TAP = { minHeight: 44, minWidth: 44 } as const;
 export const PRACTICE_NOTE = "Practice game with developer test cards";
 
-export function SidePicker({ onPick }: Readonly<{ onPick: (side: Side) => void }>) {
+/** A game to play against the AI: its rules, how it starts, how its cards are named and the note shown above it. */
+export type VsAiGame = {
+  ruleset: Ruleset;
+  makeMatch: NonNullable<VsAiOptions["makeMatch"]>;
+  cardName: (id: CardId) => string;
+  note: string;
+};
+
+export function SidePicker({
+  onPick,
+  note = PRACTICE_NOTE,
+}: Readonly<{ onPick: (side: Side) => void; note?: string | undefined }>) {
   return (
     <main>
       <h1>Play against the AI</h1>
-      <p>{PRACTICE_NOTE}</p>
+      <p>{note}</p>
       <button type="button" style={TAP} onClick={() => onPick("lio")}>
         Play as LIO
       </button>
@@ -34,20 +46,28 @@ export function VsAiView({
   snapshot,
   session,
   onNewGame,
-}: Readonly<{ snapshot: VsAiSnapshot; session: VsAiSession; onNewGame: () => void }>) {
+  note = PRACTICE_NOTE,
+  label = cardName,
+}: Readonly<{
+  snapshot: VsAiSnapshot;
+  session: VsAiSession;
+  onNewGame: () => void;
+  note?: string | undefined;
+  label?: ((id: CardId) => string) | undefined;
+}>) {
   const [watching, setWatching] = useState<ReplayRecording | null>(null);
   const { frame } = snapshot;
-  if (watching) return <ReplayScreen recording={watching} label={cardName} onClose={() => setWatching(null)} />;
+  if (watching) return <ReplayScreen recording={watching} label={label} onClose={() => setWatching(null)} />;
   return (
     <main>
-      <p>{PRACTICE_NOTE}</p>
+      <p>{note}</p>
       {snapshot.aiRefusal && <p role="alert">{`AI refused: ${snapshot.aiRefusal}`}</p>}
       {frame ? (
         <GameScreen
           frame={frame}
           log={snapshot.log}
           era={snapshot.era}
-          label={cardName}
+          label={label}
           onAnswer={(value) => void session.answer(value)}
           refusal={snapshot.refusal}
         />
@@ -78,15 +98,25 @@ export function openSession(start: () => VsAiSession, show: (session: VsAiSessio
   return () => session.stop();
 }
 
-function Game({ session, onNewGame }: Readonly<{ session: VsAiSession; onNewGame: () => void }>) {
+function Game({
+  session,
+  onNewGame,
+  game,
+}: Readonly<{ session: VsAiSession; onNewGame: () => void; game?: VsAiGame | undefined }>) {
   const snapshot = useSyncExternalStore(session.subscribe, session.getSnapshot, session.getSnapshot);
-  return <VsAiView snapshot={snapshot} session={session} onNewGame={onNewGame} />;
+  return (
+    <VsAiView snapshot={snapshot} session={session} onNewGame={onNewGame} note={game?.note} label={game?.cardName} />
+  );
 }
 
-function Playing({ start, onNewGame }: Readonly<{ start: () => VsAiSession; onNewGame: () => void }>) {
+function Playing({
+  start,
+  onNewGame,
+  game,
+}: Readonly<{ start: () => VsAiSession; onNewGame: () => void; game?: VsAiGame | undefined }>) {
   const [session, setSession] = useState<VsAiSession | null>(null);
   useEffect(() => openSession(start, setSession), [start]);
-  return session ? <Game session={session} onNewGame={onNewGame} /> : null;
+  return session ? <Game session={session} onNewGame={onNewGame} game={game} /> : null;
 }
 
 export type VsAiScreenProps = {
@@ -95,14 +125,24 @@ export type VsAiScreenProps = {
   newAiSeed: () => number;
   /** The AI opponent; the Web Worker one when left out. */
   makeAi?: MakeAi;
+  /** The game to play; the developer fixture when left out. */
+  game?: VsAiGame;
 };
 
-export function VsAiScreen({ clock, newSeed, newAiSeed, makeAi = createWorkerAi }: Readonly<VsAiScreenProps>) {
+export function VsAiScreen({ clock, newSeed, newAiSeed, makeAi = createWorkerAi, game }: Readonly<VsAiScreenProps>) {
   const [side, setSide] = useState<Side | null>(null);
   const start = useCallback(
-    () => createVsAiSession({ human: side ?? "lio", gameSeed: newSeed(), aiSeed: newAiSeed(), clock, makeAi }),
-    [side, newSeed, newAiSeed, clock, makeAi],
+    () =>
+      createVsAiSession({
+        human: side ?? "lio",
+        gameSeed: newSeed(),
+        aiSeed: newAiSeed(),
+        clock,
+        makeAi,
+        ...(game ? { ruleset: game.ruleset, makeMatch: game.makeMatch } : {}),
+      }),
+    [side, newSeed, newAiSeed, clock, makeAi, game],
   );
-  if (!side) return <SidePicker onPick={setSide} />;
-  return <Playing start={start} onNewGame={() => setSide(null)} />;
+  if (!side) return <SidePicker onPick={setSide} note={game?.note} />;
+  return <Playing start={start} onNewGame={() => setSide(null)} game={game} />;
 }

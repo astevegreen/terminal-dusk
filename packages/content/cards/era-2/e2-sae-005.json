@@ -1,0 +1,65 @@
+{
+  "id": "e2-sae-005",
+  "era": "era-2",
+  "ops": 1,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "polonium"
+    },
+    {
+      "op": "spendPoints",
+      "side": "sae",
+      "amount": 1
+    },
+    {
+      "op": "choose",
+      "who": "lio",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        },
+        {
+          "op": "trigger",
+          "hook": "turnEnd",
+          "do": [
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 1
+            }
+          ],
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ],
+      "else": [
+        {
+          "op": "marker",
+          "label": "unanswered"
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Litvinenko Poisoning",
+    "rules": "Record \"polonium\". SAE spends 1 point. LIO chooses: Expel diplomats? If yes, LIO spends 1 point, then at the end of this turn, SAE spends 1 point; if no, record \"unanswered\".",
+    "history": "Former Russian officer Alexander Litvinenko fell ill in London on 1 November 2006 and died on 23 November from polonium-210 poisoning; in 2021 the European Court of Human Rights found Russia responsible.",
+    "art": "art/e2-sae-005"
+  }
+}

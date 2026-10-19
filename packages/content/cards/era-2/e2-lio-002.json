@@ -1,0 +1,34 @@
+{
+  "id": "e2-lio-002",
+  "era": "era-2",
+  "ops": 1,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "allies rally"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 1
+    },
+    {
+      "op": "modifier",
+      "mod": {
+        "hook": "opsValue",
+        "side": "lio",
+        "add": 1
+      },
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Article 5 Invoked",
+    "rules": "Record \"allies rally\". LIO spends 1 point. Until the end of this turn, points spent by LIO count 1 more.",
+    "history": "NATO invoked Article 5 of its founding treaty for the first time after the 11 September 2001 attacks, provisionally on 12 September and definitively on 2 October 2001.",
+    "art": "art/e2-lio-002"
+  }
+}

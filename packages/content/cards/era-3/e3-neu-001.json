@@ -1,0 +1,139 @@
+{
+  "id": "e3-neu-001",
+  "era": "era-3",
+  "ops": 2,
+  "affiliation": "neutral",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "the square"
+    },
+    {
+      "op": "choose",
+      "who": "both",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v",
+        "side": "lio"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        },
+        {
+          "op": "modifier",
+          "mod": {
+            "hook": "opsValue",
+            "side": "lio",
+            "add": -1,
+            "min": 1
+          },
+          "duration": {
+            "kind": "turnEnd"
+          }
+        },
+        {
+          "op": "if",
+          "cond": {
+            "op": "yes",
+            "var": "v",
+            "side": "sae"
+          },
+          "then": [
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 1
+            },
+            {
+              "op": "modifier",
+              "mod": {
+                "hook": "opsValue",
+                "side": "sae",
+                "add": -1,
+                "min": 1
+              },
+              "duration": {
+                "kind": "turnEnd"
+              }
+            }
+          ],
+          "else": [
+            {
+              "op": "trigger",
+              "hook": "turnEnd",
+              "do": [
+                {
+                  "op": "spendPoints",
+                  "side": "sae",
+                  "amount": 1
+                }
+              ],
+              "duration": {
+                "kind": "turnEnd"
+              }
+            }
+          ]
+        }
+      ],
+      "else": [
+        {
+          "op": "if",
+          "cond": {
+            "op": "yes",
+            "var": "v",
+            "side": "sae"
+          },
+          "then": [
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 1
+            },
+            {
+              "op": "modifier",
+              "mod": {
+                "hook": "opsValue",
+                "side": "sae",
+                "add": -1,
+                "min": 1
+              },
+              "duration": {
+                "kind": "turnEnd"
+              }
+            },
+            {
+              "op": "trigger",
+              "hook": "turnEnd",
+              "do": [
+                {
+                  "op": "spendPoints",
+                  "side": "lio",
+                  "amount": 1
+                }
+              ],
+              "duration": {
+                "kind": "turnEnd"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Arab Spring",
+    "rules": "Record \"the square\". Each side chooses: Back the protesters? If LIO says yes, LIO spends 1 point, then until the end of this turn, points spent by LIO count 1 less, never below 1, then (if SAE says yes, SAE spends 1 point, then until the end of this turn, points spent by SAE count 1 less, never below 1; otherwise, at the end of this turn, SAE spends 1 point); otherwise, (if SAE says yes, SAE spends 1 point, then until the end of this turn, points spent by SAE count 1 less, never below 1, then at the end of this turn, LIO spends 1 point).",
+    "history": "Protests that began in Sidi Bouzid, Tunisia in December 2010 spread across the Arab world; Tunisia's president fled on 14 January 2011, Egypt's resigned on 11 February 2011, and Libya's was killed in October 2011.",
+    "art": "art/e3-neu-001"
+  }
+}

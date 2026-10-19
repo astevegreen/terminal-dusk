@@ -1,0 +1,30 @@
+{
+  "id": "ef-neu-002",
+  "era": "future",
+  "ops": 1,
+  "affiliation": "neutral",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "record heat"
+    },
+    {
+      "op": "modifier",
+      "mod": {
+        "hook": "opsValue",
+        "side": "both",
+        "add": -1,
+        "min": 1
+      },
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Heat Dome Summer",
+    "rules": "Record \"record heat\". Until the end of this turn, points spent by either side count 1 less, never below 1.",
+    "history": "The years 2023 and 2024 were the warmest in the instrumental record, with prolonged heat waves across several continents.",
+    "art": "art/ef-neu-002"
+  }
+}

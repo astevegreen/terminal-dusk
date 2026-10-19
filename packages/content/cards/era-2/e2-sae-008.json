@@ -1,0 +1,37 @@
+{
+  "id": "e2-sae-008",
+  "era": "era-2",
+  "ops": 2,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "oil diplomacy"
+    },
+    {
+      "op": "spendPoints",
+      "side": "sae",
+      "amount": 2
+    },
+    {
+      "op": "trigger",
+      "hook": "turnEnd",
+      "do": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ],
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Petrocaribe",
+    "rules": "Record \"oil diplomacy\". SAE spends 2 points. At the end of this turn, LIO spends 1 point.",
+    "history": "Venezuela founded Petrocaribe on 29 June 2005, offering Caribbean states oil on preferential terms; in November 2005 the US-backed Free Trade Area of the Americas stalled at the Mar del Plata summit.",
+    "art": "art/e2-sae-008"
+  }
+}

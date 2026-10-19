@@ -1,0 +1,23 @@
+{
+  "id": "e1-sae-002",
+  "era": "era-1",
+  "ops": 4,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "one country, two systems"
+    },
+    {
+      "op": "spendPoints",
+      "side": "sae",
+      "amount": 3
+    }
+  ],
+  "text": {
+    "name": "Handover of Hong Kong",
+    "rules": "Record \"one country, two systems\". SAE spends 3 points.",
+    "history": "Britain returned Hong Kong to China on 1 July 1997; under the 1990 Basic Law the territory was promised a high degree of autonomy for fifty years, to 2047.",
+    "art": "art/e1-sae-002"
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "id": "e2-sae-002",
+  "era": "era-2",
+  "ops": 2,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "choose",
+      "who": "lio",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v"
+      },
+      "then": [
+        {
+          "op": "drawContingency",
+          "side": "sae",
+          "bind": "d"
+        },
+        {
+          "op": "if",
+          "cond": {
+            "op": "atLeast",
+            "var": "d",
+            "value": 3
+          },
+          "then": [
+            {
+              "op": "marker",
+              "label": "intelligence discredited"
+            },
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 1
+            },
+            {
+              "op": "modifier",
+              "mod": {
+                "hook": "opsValue",
+                "side": "lio",
+                "add": -1,
+                "min": 1
+              },
+              "duration": {
+                "kind": "turnEnd"
+              }
+            }
+          ],
+          "else": [
+            {
+              "op": "spendPoints",
+              "side": "lio",
+              "amount": 2
+            }
+          ]
+        }
+      ],
+      "else": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Curveball",
+    "rules": "LIO chooses: Act on the single source? If yes, (draw from SAE's Contingency deck, then if the result is 3 or more, record \"intelligence discredited\", then SAE spends 1 point, then until the end of this turn, points spent by LIO count 1 less, never below 1; otherwise, LIO spends 2 points); if no, LIO spends 1 point.",
+    "history": "Claims that Iraq had mobile biological-weapons laboratories, presented to the UN Security Council on 5 February 2003, rested largely on an informant code-named Curveball whose account was later found to be fabricated.",
+    "art": "art/e2-sae-002"
+  }
+}

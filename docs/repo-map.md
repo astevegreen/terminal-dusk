@@ -70,9 +70,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/transport/localMatch.ts` - A match run entirely in memory: it keeps the host's record and secret, and gives each viewer a transport. Exports: ArchiveWith, LocalMatch, createLocalMatch.
 - `packages/app/src/transport/matchTransport.ts` - What the screens talk to: one viewer's window onto a match. Exports: SubmitResult, MatchTransport.
 - `packages/app/src/vsAi/VsAiScreen.test.tsx`
-- `packages/app/src/vsAi/VsAiScreen.tsx` - Playing against the Easy AI: a side picker, then the game screen for the human's side. Exports: PRACTICE_NOTE, SidePicker, VsAiView, openSession, VsAiScreenProps, VsAiScreen.
+- `packages/app/src/vsAi/VsAiScreen.tsx` - Playing against the Easy AI: a side picker, then the game screen for the human's side. Exports: PRACTICE_NOTE, VsAiGame, SidePicker, VsAiView, openSession, VsAiScreenProps, VsAiScreen.
 - `packages/app/src/vsAi/ai.worker.ts` - The AI's Web Worker: it only passes each message to the AI package's handler and posts the reply back.
 - `packages/app/src/vsAi/aiOpponent.ts` - What the vs-AI session talks to: an opponent that answers one view at a time (docs/architecture.md, Decision 8). Exports: AiOpponent, MakeAi.
+- `packages/app/src/vsAi/firstDeckGame.test.ts`
 - `packages/app/src/vsAi/session.test.ts`
 - `packages/app/src/vsAi/session.ts` - The state behind a game against the AI: one local match on the developer fixture, the human's latest frame and log, and the AI side's frames, which the session… Exports: VsAiSnapshot, VsAiOptions, VsAiSession, NO_ANSWER, createVsAiSession.
 - `packages/app/src/vsAi/test/scriptedHuman.ts` - Test helper: a human who always presses the first button of the prompt on screen, and a loop that plays a vs-AI session to the end with them. Exports: flush, pressFirst, playOut.
@@ -85,7 +86,190 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 ## packages/content - Cards, map, scenarios and tutorial as JSON data, plus the schemas that check them.
 
+- `packages/content/cards/era-1/e1-lio-001.json`
+- `packages/content/cards/era-1/e1-lio-001.test.ts` - e1-lio-001 Maastricht Treaty: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-lio-002.json`
+- `packages/content/cards/era-1/e1-lio-002.test.ts` - e1-lio-002 Budapest Memorandum: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-lio-004.json`
+- `packages/content/cards/era-1/e1-lio-004.test.ts` - e1-lio-004 NATO Enlargement 1999: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-lio-006.json`
+- `packages/content/cards/era-1/e1-lio-006.test.ts` - e1-lio-006 Desert Storm Coalition: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-lio-010.json`
+- `packages/content/cards/era-1/e1-lio-010.test.ts` - e1-lio-010 Arrest of Aldrich Ames: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-lio-011.json`
+- `packages/content/cards/era-1/e1-lio-011.test.ts` - e1-lio-011 Dot-com Boom: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-lio-012.json`
+- `packages/content/cards/era-1/e1-lio-012.test.ts` - e1-lio-012 Partnership for Peace: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-lio-013.json`
+- `packages/content/cards/era-1/e1-lio-013.test.ts` - e1-lio-013 Oslo Accords: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-neu-001.json`
+- `packages/content/cards/era-1/e1-neu-001.test.ts` - e1-neu-001 Rwandan Genocide: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-neu-002.json`
+- `packages/content/cards/era-1/e1-neu-002.test.ts` - e1-neu-002 Asian Financial Crisis: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-neu-003.json`
+- `packages/content/cards/era-1/e1-neu-003.test.ts` - e1-neu-003 Ruble Default: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-neu-004.json`
+- `packages/content/cards/era-1/e1-neu-004.test.ts` - e1-neu-004 Test Ban Treaty: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-neu-006.json`
+- `packages/content/cards/era-1/e1-neu-006.test.ts` - e1-neu-006 Al Jazeera Launches: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-neu-007.json`
+- `packages/content/cards/era-1/e1-neu-007.test.ts` - e1-neu-007 First Crew on the ISS: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-neu-008.json`
+- `packages/content/cards/era-1/e1-neu-008.test.ts` - e1-neu-008 Kyoto Protocol: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-001.json`
+- `packages/content/cards/era-1/e1-sae-001.test.ts` - e1-sae-001 Battle of Mogadishu: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-002.json`
+- `packages/content/cards/era-1/e1-sae-002.test.ts` - e1-sae-002 Handover of Hong Kong: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-003.json`
+- `packages/content/cards/era-1/e1-sae-003.test.ts` - e1-sae-003 Golden Shield: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-004.json`
+- `packages/content/cards/era-1/e1-sae-004.test.ts` - e1-sae-004 Second Chechen War: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-005.json`
+- `packages/content/cards/era-1/e1-sae-005.test.ts` - e1-sae-005 The Hanssen Leak: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-006.json`
+- `packages/content/cards/era-1/e1-sae-006.test.ts` - e1-sae-006 Shanghai Five: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-007.json`
+- `packages/content/cards/era-1/e1-sae-007.test.ts` - e1-sae-007 Taiwan Strait Crisis: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-008.json`
+- `packages/content/cards/era-1/e1-sae-008.test.ts` - e1-sae-008 Primakov's U-turn: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-009.json`
+- `packages/content/cards/era-1/e1-sae-009.test.ts` - e1-sae-009 Belgrade Embassy Bombing: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-010.json`
+- `packages/content/cards/era-1/e1-sae-010.test.ts` - e1-sae-010 Hainan Island Incident: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-011.json`
+- `packages/content/cards/era-1/e1-sae-011.test.ts` - e1-sae-011 Pristina Airport Dash: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-012.json`
+- `packages/content/cards/era-1/e1-sae-012.test.ts` - e1-sae-012 Shock Therapy Backlash: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-sae-013.json`
+- `packages/content/cards/era-1/e1-sae-013.test.ts` - e1-sae-013 Cox Report: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-lio-002.json`
+- `packages/content/cards/era-2/e2-lio-002.test.ts` - e2-lio-002 Article 5 Invoked: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-lio-004.json`
+- `packages/content/cards/era-2/e2-lio-004.test.ts` - e2-lio-004 ABM Treaty Withdrawal: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-lio-006.json`
+- `packages/content/cards/era-2/e2-lio-006.test.ts` - e2-lio-006 Libya Disarms: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-lio-007.json`
+- `packages/content/cards/era-2/e2-lio-007.test.ts` - e2-lio-007 Big Bang Enlargement 2004: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-lio-008.json`
+- `packages/content/cards/era-2/e2-lio-008.test.ts` - e2-lio-008 Smartphones and Social Networks: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-lio-009.json`
+- `packages/content/cards/era-2/e2-lio-009.test.ts` - e2-lio-009 Ana Montes Unmasked: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-lio-010.json`
+- `packages/content/cards/era-2/e2-lio-010.test.ts` - e2-lio-010 PEPFAR: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-lio-011.json`
+- `packages/content/cards/era-2/e2-lio-011.test.ts` - e2-lio-011 Cedar Revolution: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-lio-012.json`
+- `packages/content/cards/era-2/e2-lio-012.test.ts` - e2-lio-012 Euro Cash: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-lio-013.json`
+- `packages/content/cards/era-2/e2-lio-013.test.ts` - e2-lio-013 India-US Nuclear Deal: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-neu-001.json`
+- `packages/content/cards/era-2/e2-neu-001.test.ts` - e2-neu-001 China Joins the WTO: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-neu-002.json`
+- `packages/content/cards/era-2/e2-neu-002.test.ts` - e2-neu-002 September 11: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-neu-003.json`
+- `packages/content/cards/era-2/e2-neu-003.test.ts` - e2-neu-003 SARS: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-neu-004.json`
+- `packages/content/cards/era-2/e2-neu-004.test.ts` - e2-neu-004 IPCC Report and Nobel 2007: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-neu-005.json`
+- `packages/content/cards/era-2/e2-neu-005.test.ts` - e2-neu-005 Oil at $147: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-neu-006.json`
+- `packages/content/cards/era-2/e2-neu-006.test.ts` - e2-neu-006 Natanz Revealed: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-neu-007.json`
+- `packages/content/cards/era-2/e2-neu-007.test.ts` - e2-neu-007 Kosovo Declares Independence: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-neu-008.json`
+- `packages/content/cards/era-2/e2-neu-008.test.ts` - e2-neu-008 Sovereign Wealth Funds: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-sae-001.json`
+- `packages/content/cards/era-2/e2-sae-001.test.ts` - e2-sae-001 Invasion of Iraq: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-sae-002.json`
+- `packages/content/cards/era-2/e2-sae-002.test.ts` - e2-sae-002 Curveball: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-sae-003.json`
+- `packages/content/cards/era-2/e2-sae-003.test.ts` - e2-sae-003 Olympic Summer 2008: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-sae-004.json`
+- `packages/content/cards/era-2/e2-sae-004.test.ts` - e2-sae-004 Estonian Cyberattacks 2007: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-sae-005.json`
+- `packages/content/cards/era-2/e2-sae-005.test.ts` - e2-sae-005 Litvinenko Poisoning: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-sae-007.json`
+- `packages/content/cards/era-2/e2-sae-007.test.ts` - e2-sae-007 North Korean Nuclear Test: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-sae-008.json`
+- `packages/content/cards/era-2/e2-sae-008.test.ts` - e2-sae-008 Petrocaribe: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-sae-010.json`
+- `packages/content/cards/era-2/e2-sae-010.test.ts` - e2-sae-010 Peace Mission 2005: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-sae-011.json`
+- `packages/content/cards/era-2/e2-sae-011.test.ts` - e2-sae-011 Munich Speech 2007: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-sae-012.json`
+- `packages/content/cards/era-2/e2-sae-012.test.ts` - e2-sae-012 Abu Ghraib: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-sae-013.json`
+- `packages/content/cards/era-2/e2-sae-013.test.ts` - e2-sae-013 Chinese Anti-Satellite Test: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-lio-001.json`
+- `packages/content/cards/era-3/e3-lio-001.test.ts` - e3-lio-001 Stuxnet: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-lio-002.json`
+- `packages/content/cards/era-3/e3-lio-002.test.ts` - e3-lio-002 Neptune Spear: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-lio-003.json`
+- `packages/content/cards/era-3/e3-lio-003.test.ts` - e3-lio-003 Ghost Stories: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-lio-006.json`
+- `packages/content/cards/era-3/e3-lio-006.test.ts` - e3-lio-006 Chip Chokepoint: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-lio-009.json`
+- `packages/content/cards/era-3/e3-lio-009.test.ts` - e3-lio-009 Nordic Accession: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-lio-010.json`
+- `packages/content/cards/era-3/e3-lio-010.test.ts` - e3-lio-010 AUKUS: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-lio-011.json`
+- `packages/content/cards/era-3/e3-lio-011.test.ts` - e3-lio-011 Private Constellation: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-lio-013.json`
+- `packages/content/cards/era-3/e3-lio-013.test.ts` - e3-lio-013 Fall of the Assad Regime: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-neu-001.json`
+- `packages/content/cards/era-3/e3-neu-001.test.ts` - e3-neu-001 Arab Spring: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-neu-002.json`
+- `packages/content/cards/era-3/e3-neu-002.test.ts` - e3-neu-002 COVID-19: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-neu-003.json`
+- `packages/content/cards/era-3/e3-neu-003.test.ts` - e3-neu-003 Paris Agreement: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-neu-004.json`
+- `packages/content/cards/era-3/e3-neu-004.test.ts` - e3-neu-004 Migration Crises: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-neu-005.json`
+- `packages/content/cards/era-3/e3-neu-005.test.ts` - e3-neu-005 Populist Wave: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-neu-007.json`
+- `packages/content/cards/era-3/e3-neu-007.test.ts` - e3-neu-007 AI Compute Race: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-neu-008.json`
+- `packages/content/cards/era-3/e3-neu-008.test.ts` - e3-neu-008 Tariff Shock: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-neu-009.json`
+- `packages/content/cards/era-3/e3-neu-009.test.ts` - e3-neu-009 October 7 and Gaza: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-sae-001.json`
+- `packages/content/cards/era-3/e3-sae-001.test.ts` - e3-sae-001 Global Financial Crisis: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-sae-002.json`
+- `packages/content/cards/era-3/e3-sae-002.test.ts` - e3-sae-002 Belt and Road: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-sae-003.json`
+- `packages/content/cards/era-3/e3-sae-003.test.ts` - e3-sae-003 Annexation of Crimea: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-sae-004.json`
+- `packages/content/cards/era-3/e3-sae-004.test.ts` - e3-sae-004 Full-Scale Invasion: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-sae-005.json`
+- `packages/content/cards/era-3/e3-sae-005.test.ts` - e3-sae-005 The Leaks: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-sae-007.json`
+- `packages/content/cards/era-3/e3-sae-007.test.ts` - e3-sae-007 Rare Earth Squeeze: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-sae-008.json`
+- `packages/content/cards/era-3/e3-sae-008.test.ts` - e3-sae-008 Syrian Intervention: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-sae-009.json`
+- `packages/content/cards/era-3/e3-sae-009.test.ts` - e3-sae-009 Parallel Plumbing: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-sae-010.json`
+- `packages/content/cards/era-3/e3-sae-010.test.ts` - e3-sae-010 Fall of Kabul: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-sae-011.json`
+- `packages/content/cards/era-3/e3-sae-011.test.ts` - e3-sae-011 Hong Kong Security Law: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-sae-012.json`
+- `packages/content/cards/era-3/e3-sae-012.test.ts` - e3-sae-012 Hypersonics on Parade: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-sae-013.json`
+- `packages/content/cards/era-3/e3-sae-013.test.ts` - e3-sae-013 Eurozone Crisis: one test for each way its effect can play out.
+- `packages/content/cards/future/ef-lio-001.json`
+- `packages/content/cards/future/ef-lio-001.test.ts` - ef-lio-001 Allied Drone Wall: one test for each way its effect can play out.
+- `packages/content/cards/future/ef-lio-002.json`
+- `packages/content/cards/future/ef-lio-002.test.ts` - ef-lio-002 Undersea Cable Patrols: one test for each way its effect can play out.
+- `packages/content/cards/future/ef-neu-001.json`
+- `packages/content/cards/future/ef-neu-001.test.ts` - ef-neu-001 Open-Weight Model Leak: one test for each way its effect can play out.
+- `packages/content/cards/future/ef-neu-002.json`
+- `packages/content/cards/future/ef-neu-002.test.ts` - ef-neu-002 Heat Dome Summer: one test for each way its effect can play out.
+- `packages/content/cards/future/ef-sae-001.json`
+- `packages/content/cards/future/ef-sae-001.test.ts` - ef-sae-001 Shadow Fleet: one test for each way its effect can play out.
+- `packages/content/cards/future/ef-sae-002.json`
+- `packages/content/cards/future/ef-sae-002.test.ts` - ef-sae-002 Cable Cut in the Baltic: one test for each way its effect can play out.
 - `packages/content/package.json`
+- `packages/content/scenarios/first-deck-test.json`
 - `packages/content/schema/card.test.ts`
 - `packages/content/schema/card.ts` - The card schema: what one card file in packages/content/cards/ must hold (docs/architecture.md, section 4). Exports: CardStep, stepSchema, cardSchema.
 - `packages/content/schema/card.types.test.ts` - Type-level checks, run by `tsc` (the typecheck script): the card schema and the engine's types can't drift apart.
@@ -96,10 +280,25 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/schema/scenario.ts` - The scenario schema: what one scenario file in packages/content/scenarios/ must hold (docs/architecture.md, section 4). Exports: scenarioSchema, Scenario.
 - `packages/content/schema/scenario.types.test.ts` - Type-level check, run by `tsc`: the scenario schema and the engine's Setup can't drift apart.
 - `packages/content/schema/test/cards.ts` - Test helpers for the card schema: a valid card file, the issues the schema finds, and steps to build effects from. Exports: validCard, issuesOf, pathsOf, yesNo, pickCard, drawFor, lioCard.
+- `packages/content/src/era1.test.ts`
+- `packages/content/src/era1.ts` - The Era 1 deck (1991 to 2001) as the engine and the screens use it: rules for the engine, names for the UI. Exports: ERA_1_CARDS, Card, cardDef.
+- `packages/content/src/era1Files.ts` - The Era 1 cards (1991 to 2001), one JSON file each in cards/era-1/. Exports: Card, ERA_1_CARDS.
+- `packages/content/src/era2.test.ts`
+- `packages/content/src/era2Files.ts` - The Era 2 cards (2001 to 2008), one JSON file each in cards/era-2/. Exports: ERA_2_CARDS.
+- `packages/content/src/era3.test.ts`
+- `packages/content/src/era3Files.ts` - The Era 3 cards (2008 to 2025), one JSON file each in cards/era-3/. Exports: ERA_3_CARDS.
+- `packages/content/src/firstDeck.ts` - What the game screens need of the first deck: the cards as engine rules, their names, and the TEST scenario. Exports: ERA_1_CARDS, cardDef, Card, ERA_2_CARDS, ERA_3_CARDS, FUTURE_CARDS, FIRST_DECK_CARDS, FIRST_DECK_RULESET, cardName, FIRST_DECK_SCENARIO, scenarioSetup.
+- `packages/content/src/firstDeckRules.ts` - The ruleset and card names of the first deck: Era 1, Era 2, Era 3 and the optional future cards. Exports: FIRST_DECK_CARDS, FIRST_DECK_RULESET, cardName.
+- `packages/content/src/firstDeckScenario.ts` - The TEST scenario for the first deck. Exports: FIRST_DECK_SCENARIO.
+- `packages/content/src/future.test.ts`
+- `packages/content/src/futureFiles.ts` - The optional future cards (2025 to 2027), one JSON file each in cards/future/. Exports: FUTURE_CARDS.
 - `packages/content/src/index.test.ts`
 - `packages/content/src/index.ts` - Public entry point of the content package: the bundle of cards, map, scenarios and tutorial. Exports: DEFAULT_CONTINGENCY, scenarioSetup, ScenarioSetup.
 - `packages/content/src/scenario.test.ts`
 - `packages/content/src/scenario.ts` - Turns a scenario file into the parts of the engine's Setup it decides. Exports: DEFAULT_CONTINGENCY, ScenarioSetup, scenarioSetup.
+- `packages/content/src/test/describeCard.ts` - Test helper for the card test files: each file lists its card's cases as data, and this turns every case into one test that plays the real card (playCard) and… Exports: CardCase, storyLines, bothSidesAsked, describeCard.
+- `packages/content/src/test/eraChecks.ts` - Test helpers shared by the era tests (era1.test.ts, era2.test.ts, era3.test.ts): the checks every era makes of its own cards, and the TEST-scenario game with t… Exports: byText, byNumber, REMOVED_CARDS, ADDED_CARDS, eraDeckChecks, opsSpread, eraOneDeal, startEraOneGame.
+- `packages/content/src/test/playCard.ts` - Test helper: plays one real card through the real engine and tells what happened, in a short story. Exports: PlayOptions, story, playCard.
 - `packages/content/tsconfig.json`
 
 ## packages/engine - Pure rules engine: game state, decisions, events and views. Imports nothing outside itself.
@@ -160,6 +359,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## packages/host - MatchHost: runs a match around the engine (players, clock, move log, frames) without doing I/O.
 
 - `packages/host/package.json`
+- `packages/host/src/firstDeck.test.ts`
+- `packages/host/src/firstDeck.ts` - The first deck as a game the app can start: the ruleset, a match config with a seeded deal, and card names. Exports: FIRST_DECK_NOTE, firstDeckRuleset, firstDeckCardName, firstDeckConfig.
 - `packages/host/src/frames.ts` - Shared by the host's entry points: building the three frames, and copying plain JSON. Exports: framesFor, copyJson.
 - `packages/host/src/hostArchive.test.ts`
 - `packages/host/src/hostArchive.ts` - The replay archive: a finished game re-run step by step, one omniscient frame per step (architecture.md, section 3). Exports: hostArchive.
@@ -263,6 +464,12 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## docs
 
 - `docs/architecture.md` - Terminal Dusk — Core Architecture Decisions
+- `docs/design/cards/deck-plan.md` - First deck: plan
+- `docs/design/cards/era-1.md` - Era 1 cards: 1991 to 2001 (the Cold War's end to 9/11)
+- `docs/design/cards/era-2.md` - Era 2 cards: 2001 to 2008 (9/11 to the crash)
+- `docs/design/cards/era-3.md` - Era 3 cards: 2008 to 2025 (the crash to today)
+- `docs/design/cards/name-swap.md` - Name swap list
+- `docs/design/cards/progress.md` - First deck: progress
 - `docs/design/contingency-deck.md` - Contingency deck
 - `docs/design/core-loop.md` - Core loop
 - `docs/design/eras.md` - Eras

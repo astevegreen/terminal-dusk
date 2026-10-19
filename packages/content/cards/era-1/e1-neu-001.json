@@ -1,0 +1,30 @@
+{
+  "id": "e1-neu-001",
+  "era": "era-1",
+  "ops": 2,
+  "affiliation": "neutral",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "the world looks away"
+    },
+    {
+      "op": "modifier",
+      "mod": {
+        "hook": "opsValue",
+        "side": "both",
+        "add": -1,
+        "min": 1
+      },
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Rwandan Genocide",
+    "rules": "Record \"the world looks away\". Until the end of this turn, points spent by either side count 1 less, never below 1.",
+    "history": "Between April and July 1994 an estimated 500,000 to 800,000 people, mostly Tutsi, were killed in Rwanda; the radio station RTLM, broadcasting from July 1993, incited the killings.",
+    "art": "art/e1-neu-001"
+  }
+}

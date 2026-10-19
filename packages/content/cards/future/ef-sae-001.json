@@ -1,0 +1,49 @@
+{
+  "id": "ef-sae-001",
+  "era": "future",
+  "ops": 2,
+  "affiliation": "sae",
+  "effect": [
+    {
+      "op": "drawContingency",
+      "side": "sae",
+      "bind": "d"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "atLeast",
+        "var": "d",
+        "value": 3
+      },
+      "then": [
+        {
+          "op": "marker",
+          "label": "sanctions evaded"
+        },
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 2
+        }
+      ],
+      "else": [
+        {
+          "op": "marker",
+          "label": "tanker seized"
+        },
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Shadow Fleet",
+    "rules": "Draw from SAE's Contingency deck. If the result is 3 or more, record \"sanctions evaded\", then SAE spends 2 points; otherwise, record \"tanker seized\", then LIO spends 1 point.",
+    "history": "From 2022 a growing fleet of ageing, obscurely owned tankers carried Russian oil outside Western insurance and price-cap rules.",
+    "art": "art/ef-sae-001"
+  }
+}

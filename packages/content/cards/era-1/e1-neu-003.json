@@ -1,0 +1,59 @@
+{
+  "id": "e1-neu-003",
+  "era": "era-1",
+  "ops": 2,
+  "affiliation": "neutral",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "default"
+    },
+    {
+      "op": "choose",
+      "who": "sae",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 2
+        },
+        {
+          "op": "modifier",
+          "mod": {
+            "hook": "opsValue",
+            "side": "sae",
+            "add": -1,
+            "min": 1
+          },
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ],
+      "else": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Ruble Default",
+    "rules": "Record \"default\". SAE chooses: Default? If yes, SAE spends 2 points, then until the end of this turn, points spent by SAE count 1 less, never below 1; if no, LIO spends 1 point.",
+    "history": "On 17 August 1998 Russia devalued the ruble and defaulted on its domestic debt; the shock led to the $3.6 billion rescue of the hedge fund Long-Term Capital Management in September 1998.",
+    "art": "art/e1-neu-003"
+  }
+}

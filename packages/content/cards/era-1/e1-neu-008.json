@@ -1,0 +1,80 @@
+{
+  "id": "e1-neu-008",
+  "era": "era-1",
+  "ops": 2,
+  "affiliation": "neutral",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "targets set"
+    },
+    {
+      "op": "choose",
+      "who": "both",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v",
+        "side": "lio"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        },
+        {
+          "op": "modifier",
+          "mod": {
+            "hook": "opsValue",
+            "side": "lio",
+            "add": -1,
+            "min": 1
+          },
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ]
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v",
+        "side": "sae"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        },
+        {
+          "op": "modifier",
+          "mod": {
+            "hook": "opsValue",
+            "side": "sae",
+            "add": -1,
+            "min": 1
+          },
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Kyoto Protocol",
+    "rules": "Record \"targets set\". Each side chooses: Commit to the targets? If LIO says yes, LIO spends 1 point, then until the end of this turn, points spent by LIO count 1 less, never below 1. If SAE says yes, SAE spends 1 point, then until the end of this turn, points spent by SAE count 1 less, never below 1.",
+    "history": "The Kyoto Protocol was adopted on 11 December 1997 and entered into force on 16 February 2005; the United States signed it in 1998 but never ratified it.",
+    "art": "art/e1-neu-008"
+  }
+}

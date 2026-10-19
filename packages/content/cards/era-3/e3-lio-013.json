@@ -1,0 +1,35 @@
+{
+  "id": "e3-lio-013",
+  "era": "era-3",
+  "ops": 2,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "foothold lost"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 2
+    },
+    {
+      "op": "modifier",
+      "mod": {
+        "hook": "opsValue",
+        "side": "sae",
+        "add": -1,
+        "min": 1
+      },
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Fall of the Assad Regime",
+    "rules": "Record \"foothold lost\". LIO spends 2 points. Until the end of this turn, points spent by SAE count 1 less, never below 1.",
+    "history": "Syrian rebel forces took Damascus on 8 December 2024 and President Bashar al-Assad fled to Russia, ending more than fifty years of his family's rule; the future of Russia's air and naval bases in Syria became uncertain.",
+    "art": "art/e3-lio-013"
+  }
+}

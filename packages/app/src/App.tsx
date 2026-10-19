@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { TestModeScreen } from "./testMode/TestModeScreen.tsx";
 import { VsAiScreen } from "./vsAi/VsAiScreen.tsx";
+import type { VsAiGame } from "./vsAi/VsAiScreen.tsx";
 
 export type AppProps = {
   clock: () => number;
@@ -9,14 +10,17 @@ export type AppProps = {
   newSeed: () => string;
   /** A fresh seed for the AI's noise. */
   newAiSeed: () => number;
+  /** The game played against the AI; the developer fixture when left out. Test mode always uses its own fixture. */
+  game?: VsAiGame;
 };
 
 const TAP = { minHeight: 44, minWidth: 44 } as const;
 
-export function App({ clock, newSeed, newAiSeed }: Readonly<AppProps>) {
+export function App({ clock, newSeed, newAiSeed, game }: Readonly<AppProps>) {
   const [screen, setScreen] = useState<"home" | "vsAi" | "testMode">("home");
   if (screen === "testMode") return <TestModeScreen clock={clock} />;
-  if (screen === "vsAi") return <VsAiScreen clock={clock} newSeed={newSeed} newAiSeed={newAiSeed} />;
+  if (screen === "vsAi")
+    return <VsAiScreen clock={clock} newSeed={newSeed} newAiSeed={newAiSeed} {...(game ? { game } : {})} />;
   return (
     <main>
       <h1>Terminal Dusk</h1>
