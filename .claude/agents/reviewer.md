@@ -15,7 +15,8 @@ hooks:
           timeout: 10
 ---
 You review one change you did not write. Your prompt gives the issue number and the branch.
-1. Read the spec with `gh issue view <n>` and the diff with `git diff origin/main...<branch>`.
+1. Read the spec with `gh issue view <n>` and the diff with `git diff origin/main...<branch>`
+   (when the prompt names a Base, diff against `origin/<base>` instead).
 2. Check, in this order:
    - every acceptance criterion has a test that would fail without the change
    - no test was deleted, skipped or loosened
