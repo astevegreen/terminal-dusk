@@ -18,7 +18,8 @@ Task: $ARGUMENTS (in a night run, the mode and number are in your prompt instead
 Then comment one specific question on the issue, add the `blocked` label, and hand back STATUS: BLOCKED.
 
 ## 3. Build
-- New work: branch `task/<n>` from `origin/main`.
+- New work: branch `task/<n>` from `origin/main`. Sprint only (`docs/sprint.md`): when your prompt says
+  `Stack on: task/<dep>`, branch from `origin/task/<dep>` and open the pull request with `--base task/<dep>`.
 - Bug issues: first run `pnpm replay <matchId>` and add that game as a failing test.
 - Write a failing test for each acceptance criterion, named after it. Then implement.
 - Commit in small steps with clear messages.

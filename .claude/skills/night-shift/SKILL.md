@@ -27,7 +27,8 @@ Cap: $ARGUMENTS tasks, or 4 if empty. Before every task, stop if:
 - the cap is reached or nothing is left
 
 ## 1. Held pull requests (at most 2)
-`gh pr list --label held --json number,title,comments`. For each with a comment newer than the last
+`gh pr list --label held --json number,title,labels,comments`. Skip any with a `lane:*` label
+(sprint work, `docs/sprint.md`). For each with a comment newer than the last
 night-shift comment: run the implementer with "Mode: pr. Number: <n>.", then the reviewer.
 PASS: remove `held` and run `gh pr merge <n> --auto --squash`. Otherwise leave it held with the concerns.
 
