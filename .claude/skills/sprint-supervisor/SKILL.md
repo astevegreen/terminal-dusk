@@ -46,6 +46,8 @@ run `list_runs` on it. Its newest run is the session:
   archive it, so start nothing for that title; name it in step 5 with its `url` so the owner can archive it.
 - **Missing, or finished** (`worker_status` `idle`, or no run yet after its `run_once_at` plus 15 minutes means
   it never started: report that too): start one if it has work (below).
+  First `update` every enabled trigger with that name that has no run to `{"enabled": false}`, so a late
+  start can never put two coordinators in one lane.
 
 To start one, `RemoteTrigger` `create` with this body, filling the name, model and prompt:
 `{"name": "<title>", "run_once_at": "<now + 1 minute, UTC, ISO 8601 with Z>", "enabled": true,
