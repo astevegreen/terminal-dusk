@@ -13,7 +13,7 @@ change still has tests, passes `pnpm gate`, and gets a reviewer pass.
 
 1. The backlog below is an approved task list. `sprint-plan` writes and creates its specs without asking.
 2. Claude applies the valid Gemini audit points itself and adds `sprint-ready` to sprint issues
-   (the desktop night shift reads only `ready`, so it leaves sprint issues alone).
+   (the desktop night shift reads only `ready` and skips `lane:*` pull requests, so it leaves sprint work alone).
 3. Implementer and reviewer run on Opus for every task.
 4. No hour limit and no task cap. Up to four lanes run at once, one coordinator per lane.
 5. Phase 4 (online play) may start now, before the phase 3 gate in the build order of `docs/architecture.md`.
@@ -52,7 +52,7 @@ An item too big for about 300 changed lines becomes `<ID>a`, `<ID>b`, and so on.
 
 ### rules
 
-- **R1** #130, **R2** #131, **R3** #117 (already written; fold in their Gemini audits, then `ready`).
+- **R1** #130, **R2** #131, **R3** #117 (already written and tagged; fold in their Gemini audits, then `sprint-ready`).
 - **R4** W1+W3 from `docs/design/cards/deck-plan.md` "Engine wish list": a marker that lasts beyond the turn, and
   a Condition `{ op: "has", marker }` that tests it. Engine, schema, fuzz ruleset coverage.
 - **R5** W5: a Condition on who played the card.
@@ -94,6 +94,7 @@ message when it isn't running, and the pull request says so.
   the missed turn" rule is not decided and stays out of scope.
 - **O8** Email sign-in codes and email turn alerts, with the mail provider behind an interface (no secrets in code).
 - **O9** Entitlements in the match host: free players cannot create online games or play ranked (product calls).
+  The one `packages/host` task in lane `online`; the app lane's backlog has no host task, so they don't overlap.
 
 ### research
 
@@ -118,4 +119,4 @@ A proposal lays out two or three options with trade-offs and decides nothing. It
 
 - Pause: disable the "Sprint supervisor" scheduled tasks. Running sessions finish their current task.
 - Afterwards: one pull request deletes this file, `.claude/skills/sprint-*`, the sprint lines in the `implement-issue`
-  skill and the `reviewer` agent, and deletes the `lane:*` and `sprint-ready` labels.
+  and `night-shift` skills and the `reviewer` agent, and deletes the `lane:*` and `sprint-ready` labels.

@@ -25,9 +25,10 @@ Stop when `date -u +%Y%m%dT%H%M` is outside `20261021T0000` to `20261022T0600`, 
 `sprint-ready` issues, or its backlog has no item left without an issue.
 
 ## 1. Pick
-Read the lane's backlog in `docs/sprint.md`, top to bottom. An item is done when an issue titled `[task] <ID>:`
-or `[task] <ID>a:` exists (`gh issue list --state all --search "[task] <ID> in:title"`). Items given as
-issue numbers (R1-R3) already exist: check their labels and Gemini comments, then go to step 4.
+Read the lane's backlog in `docs/sprint.md`, top to bottom. An item is done when an issue title starts `[task] <ID>:` or `[task] <ID>` plus a letter and a colon
+(a split part). Get every title once with `gh issue list --state all --search "[task] in:title" --limit 500 --json title`
+and match the start of the title yourself; GitHub search matches whole words, so `R4` does not find `R4a`.
+R1-R3 are done; their issues still need step 4 and step 5 once, unless they already have `sprint-ready` or `blocked`.
 Take the first item that is not done. Read only what its spec needs: `docs/repo-map.md`, the design files it
 names, the related decisions in `docs/architecture.md`, and the code files the Explore agent points you to.
 
@@ -50,7 +51,8 @@ item; otherwise comment why not. A point that needs a design choice makes the is
 If the audit fails, comment that on the issue and continue.
 
 ## 5. Release
-`gh issue edit <n> --add-label sprint-ready`. Then go back to step 1.
+For each issue without `blocked`: `gh issue edit <n> --add-label sprint-ready --remove-label spec-review`.
+A blocked issue never gets `sprint-ready`. Then go back to step 1.
 
 When you stop, comment once on issue #2 "Night shift log": the lane, the issues created (link, ID, ready or
 blocked), and every assumption you made. Under 10 lines.

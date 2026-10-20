@@ -45,11 +45,11 @@ Run `list_sessions`. For each of the eight titles, find the newest session with 
   checkout folder, title as above, prompt `/sprint-lane <lane>` or `/sprint-plan <lane>`.
   Lane sessions run on Sonnet (the skill runs implementer and reviewer on Opus); plan sessions on Opus.
 
-Work exists for a lane session when `gh issue list --state open --label lane:<lane> --label sprint-ready`
-or `gh pr list --state open --label lane:<lane>` returns anything, or an open `lane:<lane>` issue has
-`in-progress`. Work exists for a plan session when the lane's backlog in `docs/sprint.md` has an ID
-with no issue titled `[task] <ID>:` (search with `gh issue list --state all --search "[task] <ID>: in:title"`),
-and the lane has fewer than 3 open `sprint-ready` issues.
+Work exists for a lane session when the lane has an open `sprint-ready` issue without `blocked`, an open
+`in-progress` issue, or an open pull request that step 1 of the `sprint-lane` skill would act on. Work exists for a plan session when the lane has fewer than 3 open `sprint-ready` issues and its backlog in
+`docs/sprint.md` has an ID that is not done. An ID is done when an issue title starts `[task] <ID>:` or `[task] <ID>` plus a letter and a colon
+(a split part). Get every title once with `gh issue list --state all --search "[task] in:title" --limit 500 --json title`
+and match the start of the title yourself; GitHub search matches whole words, so `R4` does not find `R4a`.
 
 If any session reported a usage limit in its last message, start nothing new this hour; restart them next hour.
 

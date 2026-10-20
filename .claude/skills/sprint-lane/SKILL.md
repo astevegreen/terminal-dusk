@@ -28,31 +28,37 @@ Run the implementer and the reviewer with model `opus` every time. Before every 
 - nothing below is left
 
 ## 1. Pull requests first
-`gh pr list --state open --label L --json number,title,headRefName,labels,mergeable,statusCheckRollup,comments`.
-Take each that needs a fix pass, at most one pass per pull request per session:
-- `held`, with a comment newer than the last sprint or night-shift comment
-- a failed required check, or `mergeable` is `CONFLICTING`
-- not draft, no `held`, all checks green, but auto-merge is off: run `gh pr merge <n> --auto --squash` only
+`gh pr list --state open --label L --json number,title,headRefName,baseRefName,labels,mergeable,statusCheckRollup,autoMergeRequest,closingIssuesReferences,comments`.
+The issue is the one in `closingIssuesReferences`. Take at most 2 fix passes per session:
+- `held`, with a comment from the owner newer than the last sprint or night-shift comment
+- no `held`, and a failed required check or `mergeable` is `CONFLICTING`. If the pass does not fix it,
+  the pull request ends `held` and waits for the owner; never retry a `held` one without a new owner comment.
+- base `main`, not draft, no `held`, checks green, `autoMergeRequest` empty: run `gh pr merge <n> --auto --squash` only.
+  This also merges a stacked pull request once GitHub has moved it onto `main`.
 
 For a fix pass, run the implementer with "Mode: pr. Number: <n>." and the failing check or conflict in one
 line, then the reviewer with "Issue <issue>, branch <headRefName>." (add "Base: <baseRefName>." when the
-base is not `main`). PASS: remove `held` and run `gh pr merge <n> --auto --squash`.
+base is not `main`). PASS: remove `held`, and when the base is `main` run `gh pr merge <n> --auto --squash`.
 Concerns left: add `held` and comment the concerns. Skip a pull request that waits only for the owner's approval.
 
 ## 2. Stale work
-An open issue with labels `L` and `in-progress` whose `task/<n>` branch has no commit in 2 hours and no open
-pull request: remove `in-progress`, add `sprint-ready`, and comment "Re-queued by the sprint: no progress in 2 hours."
+Only one coordinator runs per lane, so at the start of this session an open `L` issue with `in-progress` was left
+by a session that stopped. If it has an open pull request, remove `in-progress` (step 1 handles the pull request).
+Otherwise, unless it has `blocked`, remove `in-progress`, add `sprint-ready`, and comment
+"Re-queued by the sprint: the previous lane session stopped." Do this once, at the start.
 
 ## 3. Ready issues
-`gh issue list --state open --label L --label sprint-ready --json number,title,body`. Work in backlog order
-(the ID in the title). Skip any whose "Depends on" issues are still open, except in lane `online`:
+`gh issue list --state open --label L --label sprint-ready --json number,title,body,labels`. Leave out any with
+`blocked`. Work in backlog order (the ID in the title). Skip any whose "Depends on" issues are still open, except in lane `online`:
 there, a dependency whose pull request waits only for the owner's approval may be stacked on.
 For each:
 1. `gh issue edit <n> --add-label in-progress --remove-label sprint-ready`
 2. Run the implementer with "Mode: issue. Number: <n>." For a stacked task add "Stack on: task/<dep>."
 3. STATUS DONE: run the reviewer with "Issue <n>, branch task/<n>." (add "Base: task/<dep>." when stacked).
    CONCERNS: run the implementer once more with "Mode: fix. Number: <n>. Concerns: <list>", then the reviewer again.
-4. Final PASS: `gh pr ready <pr>`, `gh pr edit <pr> --add-label L`, `gh pr merge <pr> --auto --squash`.
+4. Final PASS: `gh pr ready <pr>`, `gh pr edit <pr> --add-label L`, then `gh pr merge <pr> --auto --squash`, except
+   for a stacked pull request: never merge it into `task/<dep>`. Leave it open; once the dependency merges, GitHub
+   moves it onto `main` and step 1 turns on auto-merge, so CI and the owner's rules apply.
    Concerns left: `gh pr ready <pr>`, add labels `L` and `held`, and comment the concerns.
 5. BLOCKED or GATE-FAILED: check the issue has `blocked` and the implementer's question or report.
 6. Remove `in-progress`.
