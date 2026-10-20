@@ -52,7 +52,7 @@ If the audit fails, comment that on the issue and continue.
 
 ## 5. Release
 For each issue without `blocked`: `gh issue edit <n> --add-label sprint-ready --remove-label spec-review`.
-A blocked issue never gets `sprint-ready`. Then go back to step 1.
+A blocked issue never gets `sprint-ready`; remove its `spec-review` too, so it is audited only once. Then go back to step 1.
 
 When you stop, comment once on issue #2 "Night shift log": the lane, the issues created (link, ID, ready or
 blocked), and every assumption you made. Under 10 lines.
