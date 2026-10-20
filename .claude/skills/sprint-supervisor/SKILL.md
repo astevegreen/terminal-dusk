@@ -39,8 +39,8 @@ Lanes: `rules`, `app`, `online`, `research`. For each lane there are two session
 `Sprint lane: <lane>` and `Sprint plan: <lane>`.
 
 Run `list_sessions`. For each of the eight titles, find the newest session with that title.
-- **Running and active** (a message in the last 45 minutes): leave it.
-- **Waiting for input, or no message in 45 minutes**: archive it, then treat it as missing.
+- **Running and active** (any activity in the last 3 hours; an Opus implementer with the gate can run over an hour): leave it.
+- **Waiting for input for 45 minutes, or no activity in 3 hours**: archive it, then treat it as missing.
 - **Missing, finished or archived**: start one if it has work (below), with `create_session`, in the main
   checkout folder, title as above, prompt `/sprint-lane <lane>` or `/sprint-plan <lane>`.
   Lane sessions run on Sonnet (the skill runs implementer and reviewer on Opus); plan sessions on Opus.

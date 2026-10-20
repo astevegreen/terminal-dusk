@@ -43,7 +43,8 @@ Concerns left: add `held` and comment the concerns. Skip a pull request that wai
 
 ## 2. Stale work
 Only one coordinator runs per lane, so at the start of this session an open `L` issue with `in-progress` was left
-by a session that stopped. If it has an open pull request, remove `in-progress` (step 1 handles the pull request).
+by a session that stopped. If `gh pr list --head task/<n> --state open` finds a pull request, add `L` to it and remove `in-progress`; if it is
+still a draft, run steps 3.3 to 3.6 of step 3 for it now.
 Otherwise, unless it has `blocked`, remove `in-progress`, add `sprint-ready`, and comment
 "Re-queued by the sprint: the previous lane session stopped." Do this once, at the start.
 

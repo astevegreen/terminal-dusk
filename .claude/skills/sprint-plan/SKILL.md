@@ -28,7 +28,7 @@ Stop when `date -u +%Y%m%dT%H%M` is outside `20261021T0000` to `20261022T0600`, 
 Read the lane's backlog in `docs/sprint.md`, top to bottom. An item is done when an issue title starts `[task] <ID>:` or `[task] <ID>` plus a letter and a colon
 (a split part). Get every title once with `gh issue list --state all --search "[task] in:title" --limit 500 --json title`
 and match the start of the title yourself; GitHub search matches whole words, so `R4` does not find `R4a`.
-R1-R3 are done; their issues still need step 4 and step 5 once, unless they already have `sprint-ready` or `blocked`.
+R1-R3 are done; their issues still need step 4 and step 5 while they have `spec-review` (step 5 removes it).
 Take the first item that is not done. Read only what its spec needs: `docs/repo-map.md`, the design files it
 names, the related decisions in `docs/architecture.md`, and the code files the Explore agent points you to.
 
