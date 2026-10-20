@@ -18,15 +18,16 @@ hooks:
           timeout: 10
 ---
 You keep the sprint in `docs/sprint.md` running. You never edit files, open pull requests, merge,
-or make design decisions. You only start, archive and report on sessions. Finish in a few minutes.
+or make design decisions. You only start sessions and report on them, with the `RemoteTrigger` tool (load it with ToolSearch). Finish in a few minutes.
 
-`$ARGUMENTS` is `dry-run`: do every check and print what you would start or archive, but start,
-archive, disable and comment nothing.
+`$ARGUMENTS` is `dry-run`: do every check and print what you would start, but create, update and
+comment nothing.
 
 ## 1. Window
 Run `date -u +%Y%m%dT%H%M`. The window is `20261021T0000` to `20261022T0600`.
 - Before it: print "before the window" and stop.
-- After it: disable every scheduled task named "Sprint supervisor" (skip in dry-run), comment
+- After it: `RemoteTrigger` `list`, then `update` each trigger whose name starts "Sprint supervisor" with
+  `{"enabled": false}` (skip in dry-run), comment
   "Sprint over" on issue #2 "Night shift log" with one line per lane from step 4, and stop.
 
 ## 2. Sync
@@ -38,12 +39,23 @@ Run `git worktree prune`.
 Lanes: `rules`, `app`, `online`, `research`. For each lane there are two session titles:
 `Sprint lane: <lane>` and `Sprint plan: <lane>`.
 
-Run `list_sessions`. For each of the eight titles, find the newest session with that title.
-- **Running and active** (any activity in the last 3 hours; an Opus implementer with the gate can run over an hour): leave it.
-- **Waiting for input for 45 minutes, or no activity in 3 hours**: archive it, then treat it as missing.
-- **Missing, finished or archived**: start one if it has work (below), with `create_session`, in the main
-  checkout folder, title as above, prompt `/sprint-lane <lane>` or `/sprint-plan <lane>`.
-  Lane sessions run on Sonnet (the skill runs implementer and reviewer on Opus); plan sessions on Opus.
+Run `RemoteTrigger` `list`. For each of the eight titles, take the newest trigger with that exact name and
+run `list_runs` on it. Its newest run is the session:
+- **Running** (`worker_status` is not `idle`, and `last_event_at` is within 3 hours): leave it.
+- **Stuck** (running, but no event in 3 hours, or waiting for input or permission for 45 minutes): you cannot
+  archive it, so start nothing for that title; name it in step 5 with its `url` so the owner can archive it.
+- **Missing, or finished** (`worker_status` `idle`, or no run yet after its `run_once_at` plus 15 minutes means
+  it never started: report that too): start one if it has work (below).
+  First `update` every enabled trigger with that name that has no run to `{"enabled": false}`, so a late
+  start can never put two coordinators in one lane.
+
+To start one, `RemoteTrigger` `create` with this body, filling the name, model and prompt:
+`{"name": "<title>", "run_once_at": "<now + 1 minute, UTC, ISO 8601 with Z>", "enabled": true,
+"job_config": {"ccr": {"environment_id": "env_01NzJ5sYBdPtRrLcXKYr7zTM", "session_context": {"model": "<model>"},
+"events": [{"data": {"type": "user", "uuid": "<new random UUID>", "parent_tool_use_id": null,
+"message": {"role": "user", "content": "<prompt>"}}}]}}}`
+Prompt `/sprint-lane <lane>` on model `claude-sonnet-5-5` (the skill runs implementer and reviewer on Opus), or
+`/sprint-plan <lane>` on `claude-opus-5-5`. The session runs on the owner's laptop in the main checkout.
 
 Work exists for a lane session when the lane has an open `sprint-ready` issue without `blocked`, an open
 `in-progress` issue, or an open pull request that step 1 of the `sprint-lane` skill would act on. Work exists for a plan session when the lane has fewer than 3 open `sprint-ready` issues and its backlog in
@@ -51,7 +63,7 @@ Work exists for a lane session when the lane has an open `sprint-ready` issue wi
 (a split part). Get every title once with `gh issue list --state all --search "[task] in:title" --limit 500 --json title`
 and match the start of the title yourself; GitHub search matches whole words, so `R4` does not find `R4a`.
 
-If any session reported a usage limit in its last message, start nothing new this hour; restart them next hour.
+For a finished run, read the end of `get_run_log`: if it stopped on a usage limit, start nothing new this hour.
 
 ## 4. Status
 For each lane: open `sprint-ready`, `in-progress`, `blocked` and `held` counts, and pull requests merged
@@ -59,6 +71,6 @@ since the window opened (`gh pr list --state merged --label lane:<lane> --search
 
 ## 5. Report
 Comment on issue #2 only on the first run of the window, every sixth hour (UTC hour 00, 06, 12, 18), or
-when you archived a session or something in step 2 needed attention. Under 15 lines:
-the time, one line per lane (counts, sessions started or archived), and anything the owner must act on,
+when a session is stuck or never started, or something in step 2 needed attention. Under 15 lines:
+the time, one line per lane (counts, sessions started), and anything the owner must act on,
 such as code-owned pull requests waiting for approval (`gh pr list --search "review:required"`).
