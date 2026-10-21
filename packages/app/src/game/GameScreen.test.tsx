@@ -2,7 +2,7 @@ import type { Side } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { cardName } from "../testMode/fixture.ts";
+import { cardName, cardQuestion } from "../testMode/fixture.ts";
 import { buttonsOf } from "../testMode/promptTree.ts";
 import { createTestSession } from "../testMode/session.ts";
 import { GameScreen } from "./GameScreen.tsx";
@@ -24,6 +24,7 @@ const props = (frame: Frame, extra: Partial<GameScreenProps> = {}): GameScreenPr
   log: [],
   era: null,
   label: cardName,
+  question: cardQuestion,
   ...extra,
 });
 const html = (frame: Frame, extra: Partial<GameScreenProps> = {}): string =>
@@ -117,6 +118,16 @@ describe("the decision region", () => {
     buttons[0]?.click();
     expect(answers).toHaveLength(1);
   });
+  it("gives the yes/no prompt the frame's stack, so it names the asking card and its question", () => {
+    const yesNo = { id: "d9", side: "sae" as const, kind: "yesNo" as const, options: {} };
+    const asking = withPublic(frameFor("spectator"), {
+      pending: [yesNo],
+      stack: [{ kind: "program", source: "t2", steps: [], next: 0, vars: [] }],
+    });
+    const question = (card: string) => (card === "t2" ? "Hold the line?" : undefined);
+    expect(html(asking, { question })).toContain("sae, Test card 2: Hold the line?");
+    expect(html(asking)).toContain("sae: yes or no?");
+  });
   it("shows the refusal code when refusal is set, and nothing when it is not", () => {
     expect(html(frameFor("lio"), { refusal: "stale_seq" })).toContain("Refused: stale_seq");
     expect(html(frameFor("lio"), { refusal: null })).not.toContain("Refused");
@@ -129,5 +140,40 @@ describe("a game that is over", () => {
   });
   it("says no winner for a tie", () => {
     expect(html(over(null))).toContain("Game over: no winner, turns ran out");
+  });
+});
+
+describe("screen-reader support", () => {
+  const out = html(frameFor("lio"), { log: ["first", "second"] });
+  it("puts only the state text in a polite live region (role=status)", () => {
+    expect(out).toContain('<span role="status">Your decision</span>');
+    expect(html({ ...frameFor("lio"), decision: null })).toContain(
+      '<span role="status">Waiting for the other side</span>',
+    );
+    expect(html(over("sae"))).toContain('<span role="status">Game over: sae, turns ran out</span>');
+    expect(out.match(/role="status"/g)).toHaveLength(1);
+    expect(out).toContain("<span>You play LIO</span>");
+  });
+  it("announces the refusal as an alert, keeping its <output> and its Refused: text", () => {
+    expect(html(frameFor("lio"), { refusal: "stale_seq" })).toContain(
+      '<output role="alert">Refused: stale_seq</output>',
+    );
+  });
+  it("gives the log section role=log and name Log, and keeps its <ol> a list, newest first", () => {
+    expect(out).toContain('<section aria-label="Log" data-testid="log" class="game-log" role="log">');
+    expect(out).toContain('<ol aria-label="Log entries" tabindex="0"><li>second</li><li>first</li></ol>');
+  });
+  it("lets the keyboard reach each scrolling element, each with a name", () => {
+    expect(out).toContain('<section aria-label="Your hand" data-testid="hand" class="game-hand" tabindex="0">');
+    expect(out).toContain('<ol aria-label="Log entries" tabindex="0">');
+    expect(out).toContain('<div class="game-side" role="region" aria-label="Game details" tabindex="0">');
+  });
+  it("gives a spectator's two open prompts different question ids", () => {
+    const spectator = html(frameFor("spectator"));
+    const ids = [...spectator.matchAll(/aria-labelledby="([^"]+)"><p id="([^"]+)"/g)];
+    expect(ids).toHaveLength(2);
+    for (const [, by, id] of ids) expect(by).toBe(id);
+    expect(ids[0]?.[1]).not.toBe(ids[1]?.[1]);
+    expect(spectator).not.toContain("<button");
   });
 });

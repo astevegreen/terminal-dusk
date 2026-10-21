@@ -47,7 +47,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/App.test.tsx`
 - `packages/app/src/App.tsx` - The home screen: the game's name, a button to play against the AI and a button into developer test mode. Exports: AppProps, App.
 - `packages/app/src/decisionPrompts.test.tsx`
-- `packages/app/src/decisionPrompts.tsx` - One prompt component per DecisionKind. Exports: PromptProps, PromptComponent, decisionPrompts.
+- `packages/app/src/decisionPrompts.tsx` - One prompt component per DecisionKind. Exports: CardQuestion, PromptProps, PromptComponent, askingCard, decisionPrompts.
 - `packages/app/src/eventPresentation.test.ts`
 - `packages/app/src/eventPresentation.ts` - How each EventKind is presented. Exports: EventPresentation, eventPresentation.
 - `packages/app/src/game/GameScreen.test.tsx`
@@ -60,9 +60,11 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/replay/recording.test.ts`
 - `packages/app/src/replay/recording.ts` - What the app is allowed to hold of a finished game: the frames and the final status, but never the archive's seed, setup or move log (CLAUDE.md, Never). Exports: ReplayRecording, toRecording.
 - `packages/app/src/replay/replayScreen.css`
+- `packages/app/src/test/order.test.ts`
+- `packages/app/src/test/order.ts` - Compare function for sorting strings in UTF-16 code-unit order: the same order as a sort with no compare function, written out so the order is explicit. Exports: byCodeUnit.
 - `packages/app/src/testMode/TestModeScreen.test.tsx`
 - `packages/app/src/testMode/TestModeScreen.tsx` - Test mode (docs/architecture.md, Decision 3): the Local transport with a switch to view the game as LIO, as SAE or as a spectator. Exports: TestModeView, TestModeScreen.
-- `packages/app/src/testMode/fixture.ts` - DEVELOPER FIXTURE for test mode. Exports: DEFAULT_SEED, cardName, fixtureRuleset, fixtureConfig.
+- `packages/app/src/testMode/fixture.ts` - DEVELOPER FIXTURE for test mode. Exports: DEFAULT_SEED, cardName, cardQuestion, fixtureRuleset, fixtureConfig.
 - `packages/app/src/testMode/promptTree.ts` - Test helper: finds the buttons a prompt would draw and lets a test press them, without a browser. Exports: Button, buttonsOf.
 - `packages/app/src/testMode/session.ts` - The state behind the test-mode screen: one local match, the viewer being looked at, that viewer's latest frame and game log, and the last refusal. Exports: Snapshot, TestSession, logLine, createTestSession.
 - `packages/app/src/testMode/sessionEra.test.ts` - The era in the test-mode session: kept per viewer next to the log, reset by restart.
@@ -312,7 +314,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/cardPlayer.test.ts` - Who picked or played a card (#117; docs/design/contingency-deck.md, "Whose deck"): the engine records it for every card's event, opening picks included, so a n…
 - `packages/engine/src/contingency.test.ts` - Contingency decks in the game state (#64): the setup's checks, the shuffle, and who sees what.
 - `packages/engine/src/contingency.ts` - Contingency decks (docs/design/contingency-deck.md): each side's numbered cards, drawn instead of rolling a die. Exports: contingencyError, shuffleContingency, drawContingency.
-- `packages/engine/src/contingencyDraw.test.ts` - Drawing a contingency (#65): the top card of a side's deck is the result, and a draw that leaves one card shuffles the whole deck back together, straight after…
+- `packages/engine/src/contingencyDraw.test.ts` - Drawing a contingency (#65, #130): the top card of a side's deck is the result, and a draw that leaves two cards shuffles the whole deck back together, straigh…
 - `packages/engine/src/copy.ts` - State is plain JSON, so a JSON round trip is a complete copy that shares nothing with the original. Exports: copyJson.
 - `packages/engine/src/createGame.test.ts`
 - `packages/engine/src/createGame.ts` - Exports: createGame.
@@ -364,7 +366,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 - `packages/host/package.json`
 - `packages/host/src/firstDeck.test.ts`
-- `packages/host/src/firstDeck.ts` - The first deck as a game the app can start: the ruleset, a match config, and card names. Exports: FIRST_DECK_NOTE, firstDeckRuleset, firstDeckCardName, firstDeckConfig.
+- `packages/host/src/firstDeck.ts` - The first deck as a game the app can start: the ruleset, a match config, and card names. Exports: FIRST_DECK_NOTE, firstDeckRuleset, firstDeckCardName, firstDeckCardQuestion, firstDeckConfig.
+- `packages/host/src/firstDeckQuestion.test.ts`
 - `packages/host/src/frames.ts` - Shared by the host's entry points: building the three frames, and copying plain JSON. Exports: framesFor, copyJson.
 - `packages/host/src/hostArchive.test.ts`
 - `packages/host/src/hostArchive.ts` - The replay archive: a finished game re-run step by step, one omniscient frame per step (architecture.md, section 3). Exports: hostArchive.
@@ -381,6 +384,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
 - `packages/host/src/test/leaks.ts` - Test helpers for leak checks, copying the idea of tests/fuzz/checks.ts (hiddenFrom, leaksIn). Exports: hiddenFrom, leaksIn.
 - `packages/host/src/test/match.ts` - Test helpers: a small ruleset, a match config with an era still to enter, and a seed. Exports: SEED, NOW, LATE_ERA_CARDS, ruleset, makeConfig.
+- `packages/host/src/test/order.test.ts`
+- `packages/host/src/test/order.ts` - Compare function for sorting strings in UTF-16 code-unit order: the same order as a sort with no compare function, written out so the order is explicit. Exports: byCodeUnit.
 - `packages/host/src/test/play.ts` - Test helpers for playing a match through the host. Exports: started, submissionFor, nextSide, accept.
 - `packages/host/src/types.ts` - The match host's own types (docs/architecture.md, Decision 3). Exports: PlayerId, MatchConfig, MatchRecord, MatchSecret, Frame, Submission, HostEffect, HostResult, HostErrorCode, HostError, HostOutcome, ReplayFrame, ….
 - `packages/host/tsconfig.json`
@@ -389,14 +394,20 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 - `packages/server/package.json`
 - `packages/server/src/index.test.ts`
-- `packages/server/src/index.ts` - Public entry point of the server package (docs/architecture.md, Decision 5). Exports: submit, ServerErrorCode, SubmitDeps, SubmitError, SubmitOutcome, SubmitRequest, MemoryStore, CommitResult, LoadedMatch, MatchStore, MatchWrite.
+- `packages/server/src/index.ts` - Public entry point of the server package (docs/architecture.md, Decision 5). Exports: submit, ServerErrorCode, SubmitDeps, SubmitError, SubmitOutcome, SubmitRequest, MemoryStore, CommitResult, LoadedMatch, MatchStore, MatchWrite, rowsFor, ….
+- `packages/server/src/read.leaks.test.ts`
+- `packages/server/src/read.test.ts`
+- `packages/server/src/read.ts` - Who may read which row (docs/architecture.md, Decision 5, "Who can read it"), and the read itself. Exports: Caller, StoredRows, ReadStore, MatchRead, canRead, readMatch.
+- `packages/server/src/rows.test.ts`
+- `packages/server/src/rows.ts` - The read model (docs/architecture.md, Decision 5): the rows a client may read, as each commit writes them. Exports: VIEWERS, MatchRow, MatchViewRow, MatchEventRow, CommitRows, rowsFor.
 - `packages/server/src/store.test.ts`
 - `packages/server/src/store.ts` - The storage port behind `submit` (docs/architecture.md, Decision 5), and an in-memory store for tests. Exports: LoadedMatch, MatchWrite, CommitResult, MatchStore, MemoryStore.
 - `packages/server/src/submit.leaks.test.ts`
 - `packages/server/src/submit.storage.test.ts`
 - `packages/server/src/submit.test.ts`
 - `packages/server/src/submit.ts` - The server's single write path (docs/architecture.md, Decision 5): load the match, run the host, and save the result only if nobody moved the match on first. Exports: SubmitDeps, SubmitRequest, ServerErrorCode, SubmitError, SubmitOutcome, submit.
-- `packages/server/src/test/leaks.ts` - Test helper for leak checks, copying the idea of the host's test/leaks.ts. Exports: leaksIn.
+- `packages/server/src/test/games.ts` - Test helper: whole games played through `submit`, calling back after every step with what is stored. Exports: Strategy, STRATEGIES, Step, playGame.
+- `packages/server/src/test/leaks.ts` - Test helper for leak checks, copying the idea of the host's test/leaks.ts. Exports: leaksIn, leaksFor.
 - `packages/server/src/test/match.ts` - Test helpers: a small ruleset and a match in an in-memory store, copying the idea of the host's tests. Exports: SEED, NOW, MATCH, ruleset, created, setup, bodyFor, nextSide.
 - `packages/server/tsconfig.json`
 
@@ -414,6 +425,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/harness.test.ts` - Tests for the fuzz harness itself: each check catches what it should, so a green fuzz run means something.
 - `tests/fuzz/lasting.test.ts` - The fuzz suite and the lasting effects, modifiers (#89) and triggers (#90): the fuzz cards make them, and the checks catch what they should.
 - `tests/fuzz/neutral.test.ts` - Neutral events in the fuzz games (#117): neutral cards draw from the deck of the side that picked or played them, in their events and in the reactions they set…
+- `tests/fuzz/order.test.ts`
+- `tests/fuzz/order.ts` - Compare function for sorting strings in UTF-16 code-unit order: the same order as a sort with no compare function, written out so the order is explicit. Exports: byCodeUnit.
 - `tests/fuzz/play.ts` - Plays one game for the fuzz suite, random or recorded, and checks every invariant along the way. Exports: baseEffectOf, FUZZ_CARDS, ruleset, DEFAULT_GAMES, MAX_ANSWERS, GameRecord, Chooser, Played, gameCount, playFuzzGame, playRecorded, randomGame, ….
 - `tests/fuzz/playerDraws.ts` - Whose deck a neutral card's draws come from (docs/design/contingency-deck.md, "Whose deck"): a neutral event's "player" draw, and one in a reaction it set, use… Exports: PLAYER_DRAW, REACTION_DRAW, playerDraw, announcedDraw, notePlayer, checkPlayerDraws.
 - `tests/fuzz/random.ts` - The fuzz suite's own seeded generator, so every random game can be played again exactly. Exports: Rng, seededRng.
@@ -499,6 +512,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `docs/design/core-loop.md` - Core loop
 - `docs/design/eras.md` - Eras
 - `docs/design/sides.md` - Sides
+- `docs/proposals/special-abilities.md` - Special abilities for LIO and SAE: options
 - `docs/sprint.md` - Sprint: 20–22 October 2026
 - `docs/workflow.md` - Terminal Dusk — Claude Code Workflow
 

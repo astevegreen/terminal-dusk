@@ -1,8 +1,11 @@
 // One prompt component per DecisionKind. A new kind without an entry here fails the type check (hard rule 9).
 // The prompts only list what a decision asks. They do not work out what is legal: an illegal pick is
 // refused by the transport and the screen shows the refusal (.claude/rules/app.md, no rules logic).
-import type { AnswerValue, CardId, Decision, PlayUse, DecisionKind } from "@terminal-dusk/engine";
+import type { AnswerValue, CardId, Decision, PlayUse, DecisionKind, Frame as StackFrame } from "@terminal-dusk/engine";
 import type { ComponentType } from "react";
+
+/** A card's yes/no question, from its rules text, or undefined when it has none. Display data only. */
+export type CardQuestion = (card: CardId) => string | undefined;
 
 export type PromptProps = {
   decision: Decision;
@@ -10,6 +13,9 @@ export type PromptProps = {
   hand: CardId[];
   /** A card's display name. Display data only. */
   label: (card: CardId) => string;
+  /** The public resolution stack from the frame, bottom first: it shows which card's effect is asking. */
+  stack: readonly StackFrame[];
+  question: CardQuestion;
   /** Present: the prompt shows a button per choice. Absent: it is read-only, with the choices as text. */
   onAnswer?: (value: AnswerValue) => void;
 };
@@ -21,15 +27,21 @@ const USES: readonly PlayUse[] = ["event", "points"];
 
 type Choice = { text: string; value: AnswerValue };
 
-/** The choices as a list of button texts and the answers they send. */
+/**
+ * The choices as a list of button texts and the answers they send, in a group named by its question.
+ * The question's id comes from the decision's id (no useId: tests call prompts as plain functions), so two
+ * prompts on one screen get different ids.
+ */
 function Choices({
+  decision,
   question,
   choices,
   onAnswer,
-}: Readonly<{ question: string; choices: Choice[]; onAnswer?: PromptProps["onAnswer"] }>) {
+}: Readonly<{ decision: Decision; question: string; choices: Choice[]; onAnswer?: PromptProps["onAnswer"] }>) {
+  const questionId = `decision-${decision.id}-question`;
   return (
-    <section>
-      <p>{question}</p>
+    <section role="group" aria-labelledby={questionId}>
+      <p id={questionId}>{question}</p>
       {onAnswer ? (
         <div>
           {choices.map((choice) => (
@@ -49,18 +61,40 @@ function Choices({
   );
 }
 
-function YesNoPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
+/** The card whose effect is running: the source of the nearest program frame from the top, if it has one. */
+export function askingCard(stack: readonly StackFrame[]): CardId | undefined {
+  const program = stack.findLast((frame) => frame.kind === "program");
+  return program?.kind === "program" ? program.source : undefined;
+}
+
+/** "<side>, <card name>: <question>" when the asking card has a question; "<side>: yes or no?" otherwise. */
+function yesNoText({ decision, label, stack, question }: Readonly<PromptProps>): string {
+  const card = askingCard(stack);
+  const asked = card === undefined ? undefined : question(card);
+  return card === undefined || asked === undefined
+    ? `${decision.side}: yes or no?`
+    : `${decision.side}, ${label(card)}: ${asked}`;
+}
+
+function YesNoPrompt(props: Readonly<PromptProps>) {
   const choices: Choice[] = [
     { text: "Yes", value: { kind: "yesNo", yes: true } },
     { text: "No", value: { kind: "yesNo", yes: false } },
   ];
-  return <Choices question={`${decision.side}: yes or no?`} choices={choices} onAnswer={onAnswer} />;
+  return <Choices decision={props.decision} question={yesNoText(props)} choices={choices} onAnswer={props.onAnswer} />;
 }
 
 /** The secret opening card pick: every card in the hand. */
 function ChooseCardPrompt({ decision, hand, label, onAnswer }: Readonly<PromptProps>) {
   const choices: Choice[] = hand.map((card) => ({ text: label(card), value: { kind: "chooseCard", card } }));
-  return <Choices question={`${decision.side}: pick an opening card`} choices={choices} onAnswer={onAnswer} />;
+  return (
+    <Choices
+      decision={decision}
+      question={`${decision.side}: pick an opening card`}
+      choices={choices}
+      onAnswer={onAnswer}
+    />
+  );
 }
 
 /** A play: every card in the hand, with every use that any kind of card is allowed. */
@@ -78,6 +112,7 @@ function PlayCardAsPrompt({ decision, hand, label, onAnswer }: Readonly<PromptPr
   );
   return (
     <Choices
+      decision={decision}
       question={`${decision.side}: play a card for its event or its points`}
       choices={choices}
       onAnswer={onAnswer}
@@ -92,6 +127,7 @@ function RivalEventOrderPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
   ];
   return (
     <Choices
+      decision={decision}
       question={`${decision.side}: the rival's event happens before or after your points?`}
       choices={choices}
       onAnswer={onAnswer}

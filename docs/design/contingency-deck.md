@@ -117,8 +117,8 @@ Owner, 19 Oct.
 - The atomic step is "draw contingency" and the hook point is "coup result" (Decision 4). There is no dice
   code in the engine to rework.
 - The AI reads which numbers are left in each deck from its view, like any other public information.
-- Until its own task lands, the engine still follows the earlier rules: two decks, reshuffle when one card is
-  left, decks of two cards allowed, and a rival's card drawing from the rival's deck.
+- Until its own task lands, the engine still follows the earlier rules: two decks, and a rival's card drawing
+  from the rival's deck.
 
 ## Not decided yet
 

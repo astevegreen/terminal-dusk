@@ -11,6 +11,8 @@ const COUNT = 16;
 const ids: CardId[] = Array.from({ length: COUNT }, (_, i) => `t${i + 1}`);
 /** A card's display name: "Test card 3" for the third. Display data only. */
 export const cardName = (id: CardId): string => `Test card ${id.slice(1)}`;
+/** A card's yes/no question: the fixture cards have no rules text, so none, and their prompts keep the plain text. */
+export const cardQuestion: (id: CardId) => string | undefined = () => undefined;
 
 /** Cards 1-6 are LIO's, 7-12 are SAE's, 13-16 are neutral. */
 const affiliationOf = (n: number): CardDef["affiliation"] => (n <= 6 ? "lio" : n <= 12 ? "sae" : "neutral");

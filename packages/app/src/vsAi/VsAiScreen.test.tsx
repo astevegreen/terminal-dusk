@@ -1,6 +1,7 @@
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { App } from "../App.tsx";
+import { byCodeUnit } from "../test/order.ts";
 import { createVsAiSession } from "./session.ts";
 import type { VsAiSession } from "./session.ts";
 import { flush, playOut } from "./test/scriptedHuman.ts";
@@ -96,7 +97,7 @@ describe("the replay after a game against the AI", () => {
     expect(view(session)).toContain("Watch replay</button>");
     const recording = session.replay();
     expect(recording?.frames.length).toBeGreaterThan(2);
-    expect(Object.keys(recording!).sort()).toEqual(["frames", "matchId", "seedHash", "status"]);
+    expect(Object.keys(recording!).sort(byCodeUnit)).toEqual(["frames", "matchId", "seedHash", "status"]);
     expect(JSON.stringify(session.getSnapshot())).not.toContain(GAME_SEED);
     expect(JSON.stringify(recording)).not.toContain(GAME_SEED);
   });

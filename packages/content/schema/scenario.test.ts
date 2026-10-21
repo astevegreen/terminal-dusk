@@ -24,7 +24,7 @@ describe("scenario schema", () => {
     expect(scenarioSchema.safeParse({ ...base, eras: [] }).success).toBe(true);
   });
   it("accepts a contingency naming only one side", () => {
-    expect(scenarioSchema.safeParse({ ...base, contingency: { sae: [1, 2] } }).success).toBe(true);
+    expect(scenarioSchema.safeParse({ ...base, contingency: { sae: [1, 2, 3] } }).success).toBe(true);
   });
   it("refuses other fields", () => {
     expect(paths({ ...base, map: "x" })).toEqual([[]]);
@@ -80,7 +80,9 @@ describe("scenario schema", () => {
     const across = [eras[0], { era: "late", turn: 3, cards: ["c", "b"] }];
     expect(paths({ ...base, eras: across })).toEqual([["eras", 1, "cards", 1]]);
   });
-  it("refuses a Contingency list with fewer than 2 cards, at the list", () => {
+  it("refuses a Contingency list with fewer than 3 cards, at the list", () => {
+    expect(paths({ ...base, contingency: { lio: [1, 2] } })).toEqual([["contingency", "lio"]]);
+    expect(paths({ ...base, contingency: { sae: [4, 4] } })).toEqual([["contingency", "sae"]]);
     expect(paths({ ...base, contingency: { lio: [1] } })).toEqual([["contingency", "lio"]]);
     expect(paths({ ...base, contingency: { sae: [] } })).toEqual([["contingency", "sae"]]);
   });

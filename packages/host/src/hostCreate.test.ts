@@ -3,6 +3,7 @@ import type { Seed } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { hostCreate } from "./hostCreate.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
+import { byCodeUnit } from "./test/order.ts";
 import { makeConfig, NOW, ruleset, SEED } from "./test/match.ts";
 import type { HostResult, MatchConfig } from "./types.ts";
 
@@ -38,8 +39,8 @@ describe("hostCreate: a successful start", () => {
 
   it("fills the record from the config, the state and now, with exactly the listed keys", () => {
     const { record, secret } = started();
-    expect(Object.keys(record).sort()).toEqual(
-      ["createdAt", "matchId", "players", "ruleset", "seedHash", "seq", "status", "updatedAt"].sort(),
+    expect(Object.keys(record).sort(byCodeUnit)).toEqual(
+      ["createdAt", "matchId", "players", "ruleset", "seedHash", "seq", "status", "updatedAt"].sort(byCodeUnit),
     );
     expect(record).toEqual({
       matchId: "match-1",
@@ -72,7 +73,7 @@ describe("hostCreate: a successful start", () => {
       expect(frame.events).toEqual(eventsFor(events, viewer));
       expect(frame.decision).toEqual(viewer === "spectator" ? null : pendingFor(state, viewer));
     }
-    expect(Object.keys(frames).sort()).toEqual(["lio", "sae", "spectator"]);
+    expect(Object.keys(frames).sort(byCodeUnit)).toEqual(["lio", "sae", "spectator"]);
     expect(frames.lio.decision).not.toBeNull();
     expect(frames.sae.decision).not.toBeNull();
   });

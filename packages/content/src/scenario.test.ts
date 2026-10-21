@@ -33,7 +33,7 @@ describe("scenarioSetup", () => {
     expect(scenarioSetup(withEras).eras).toEqual(withEras.eras);
   });
   it("holds fresh arrays: changing the result never changes the scenario or the default", () => {
-    const scenario: Scenario = { ...withEras, contingency: { lio: [2, 3], sae: [4, 5] } };
+    const scenario: Scenario = { ...withEras, contingency: { lio: [2, 3, 4], sae: [4, 5, 6] } };
     const before = JSON.parse(JSON.stringify(scenario)) as Scenario;
     const got = scenarioSetup(scenario);
     const lists = [got.contingency.lio, got.contingency.sae, got.eras!, ...got.eras!.map((e) => e.cards)];

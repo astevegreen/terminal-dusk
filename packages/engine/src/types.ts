@@ -85,7 +85,7 @@ export type DrawPileReshuffled = { kind: "drawPileReshuffled"; visibility: "publ
 export type EraStarted = { kind: "eraStarted"; visibility: "public"; era: EraId; cardsAdded: number };
 /** `side` drew a contingency: the top card of its own Contingency deck, numbered `value`. */
 export type ContingencyDrawn = { kind: "contingencyDrawn"; visibility: "public"; side: Side; value: number };
-/** A draw left one card in `side`'s Contingency deck, so all its cards were shuffled back together. */
+/** A draw left two cards in `side`'s Contingency deck, so all its cards were shuffled back together. */
 export type ContingencyDeckReshuffled = { kind: "contingencyDeckReshuffled"; visibility: "public"; side: Side };
 /** A `modifier` step ran: `source`'s effect made the rule change `mod`, in force until `expires`. */
 export type ModifierStarted = {
@@ -344,6 +344,6 @@ export type Setup = {
   handSize: number;
   /** The eras after the first, each entering on its own turn, from 2 to the last. None when left out. */
   eras?: EraEntry[];
-  /** Each side's Contingency deck: whole numbers, 1 or more, at least 2 cards, in any order. */
+  /** Each side's Contingency deck: whole numbers, 1 or more, at least 3 cards, in any order. */
   contingency: Record<Side, number[]>;
 };

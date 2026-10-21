@@ -8,15 +8,20 @@ import type { ReactNode } from "react";
 export type Label = (card: CardId) => string;
 const DISCARD_SHOWN = 5;
 
-/** A named region: an accessible name and a test id. */
+/**
+ * A named region: an accessible name and a test id. `role` overrides the section's region role (the log);
+ * `scrolls` makes it reachable by keyboard, for a region that is itself the scrolling element.
+ */
 export function Region({
   id,
   title,
   className,
+  role,
+  scrolls,
   children,
-}: Readonly<{ id: string; title: string; className?: string; children: ReactNode }>) {
+}: Readonly<{ id: string; title: string; className?: string; role?: "log"; scrolls?: boolean; children: ReactNode }>) {
   return (
-    <section aria-label={title} data-testid={id} className={className}>
+    <section aria-label={title} data-testid={id} className={className} role={role} tabIndex={scrolls ? 0 : undefined}>
       {children}
     </section>
   );
@@ -45,7 +50,8 @@ export function StatusBar({ frame, era }: Readonly<{ frame: Frame; era: EraId | 
       <span>{`Turn ${pub.turn} of ${pub.turns}`}</span>
       <span>{`Plays made: ${pub.playsMade} of ${pub.playsPerTurn}`}</span>
       <span>{era === null ? "Era not shown yet" : `Era: ${era}`}</span>
-      <span>{statusText(frame)}</span>
+      {/* Only the state text is a polite live region, so its change is announced and the rest is not. */}
+      <span role="status">{statusText(frame)}</span>
     </Region>
   );
 }
@@ -61,7 +67,7 @@ export function MapArea() {
 export function Hand({ frame, label }: Readonly<{ frame: Frame; label: Label }>) {
   const { mine } = frame.view;
   return (
-    <Region id="hand" title="Your hand" className="game-hand">
+    <Region id="hand" title="Your hand" className="game-hand" scrolls>
       {mine ? (
         <ol>
           {mine.hand.map((card) => (
@@ -112,11 +118,11 @@ export function Contingency({ pub }: Readonly<{ pub: PublicState }>) {
   );
 }
 
-/** The log arrives oldest first and is shown newest first. */
+/** The log arrives oldest first and is shown newest first. Its list is the part that scrolls. */
 export function Log({ log }: Readonly<{ log: string[] }>) {
   return (
-    <Region id="log" title="Log" className="game-log">
-      <ol>
+    <Region id="log" title="Log" className="game-log" role="log">
+      <ol aria-label="Log entries" tabIndex={0}>
         {[...log].reverse().map((line, i) => (
           <li key={log.length - i}>{line}</li>
         ))}

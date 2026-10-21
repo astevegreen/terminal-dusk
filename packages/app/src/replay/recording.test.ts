@@ -1,6 +1,7 @@
 import type { ReplayArchive } from "@terminal-dusk/host";
 import { describe, expect, it } from "vitest";
 import { toRecording } from "./recording.ts";
+import { byCodeUnit } from "../test/order.ts";
 
 const archive = {
   matchId: "m1",
@@ -25,7 +26,7 @@ describe("toRecording", () => {
 
   it("has no seed, setup or log key, and its text never holds the seed", () => {
     const recording = toRecording(archive);
-    expect(Object.keys(recording).sort()).toEqual(["frames", "matchId", "seedHash", "status"]);
+    expect(Object.keys(recording).sort(byCodeUnit)).toEqual(["frames", "matchId", "seedHash", "status"]);
     expect(JSON.stringify(recording)).not.toContain("secret-seed");
   });
 });
