@@ -52,6 +52,13 @@ export async function makeUser(keys: StackKeys, service: SupabaseClient, name: s
   return { id: made.data.user.id, db };
 }
 
+/** The test user's current access token, as an Edge Function call sends it. */
+export async function accessToken(user: TestUser): Promise<string> {
+  const { data } = await user.db.auth.getSession();
+  if (!data.session) throw new Error("the test user has no session");
+  return data.session.access_token;
+}
+
 /** A fresh match id for this run. */
 export const freshMatchId = (): string => `test-${freshId()}`;
 
