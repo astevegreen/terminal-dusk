@@ -393,14 +393,16 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 - `packages/server/package.json`
 - `packages/server/src/index.test.ts`
-- `packages/server/src/index.ts` - Public entry point of the server package (docs/architecture.md, Decision 5). Exports: submit, ServerErrorCode, SubmitDeps, SubmitError, SubmitOutcome, SubmitRequest, MemoryStore, CommitResult, LoadedMatch, MatchStore, MatchWrite.
+- `packages/server/src/index.ts` - Public entry point of the server package (docs/architecture.md, Decision 5). Exports: submit, ServerErrorCode, SubmitDeps, SubmitError, SubmitOutcome, SubmitRequest, MemoryStore, CommitResult, LoadedMatch, MatchStore, MatchWrite, rowsFor, ….
+- `packages/server/src/rows.test.ts`
+- `packages/server/src/rows.ts` - The read model (docs/architecture.md, Decision 5): the rows a client may read, as each commit writes them. Exports: VIEWERS, MatchRow, MatchViewRow, MatchEventRow, CommitRows, rowsFor.
 - `packages/server/src/store.test.ts`
 - `packages/server/src/store.ts` - The storage port behind `submit` (docs/architecture.md, Decision 5), and an in-memory store for tests. Exports: LoadedMatch, MatchWrite, CommitResult, MatchStore, MemoryStore.
 - `packages/server/src/submit.leaks.test.ts`
 - `packages/server/src/submit.storage.test.ts`
 - `packages/server/src/submit.test.ts`
 - `packages/server/src/submit.ts` - The server's single write path (docs/architecture.md, Decision 5): load the match, run the host, and save the result only if nobody moved the match on first. Exports: SubmitDeps, SubmitRequest, ServerErrorCode, SubmitError, SubmitOutcome, submit.
-- `packages/server/src/test/leaks.ts` - Test helper for leak checks, copying the idea of the host's test/leaks.ts. Exports: leaksIn.
+- `packages/server/src/test/leaks.ts` - Test helper for leak checks, copying the idea of the host's test/leaks.ts. Exports: leaksIn, leaksFor.
 - `packages/server/src/test/match.ts` - Test helpers: a small ruleset and a match in an in-memory store, copying the idea of the host's tests. Exports: SEED, NOW, MATCH, ruleset, created, setup, bodyFor, nextSide.
 - `packages/server/tsconfig.json`
 
