@@ -77,7 +77,10 @@ describe("the fuzz cards set triggers", () => {
   );
   it("some cards' effects end with a trigger, for both hooks, whose reaction asks nothing", () => {
     expect(new Set(triggers.map((s) => s.hook))).toEqual(new Set(["cardPlayed", "turnEnd"]));
-    expect(triggers.flatMap((s) => s.do).every((step) => step.op === "marker")).toBe(true);
+    // Markers only, but for a neutral card's draw from the player's deck (#117), which asks nothing either.
+    const reactions = triggers.flatMap((s) => s.do);
+    const isPlayerDraw = (step: Step) => step.op === "drawContingency" && step.side === "player";
+    expect(reactions.every((step) => step.op === "marker" || isPlayerDraw(step))).toBe(true);
   });
   it("is the same fixed list on every run, built from each card's index", () => {
     expect(ruleset.cards.filter((card) => card.effect.at(-1)?.op === "trigger").map((card) => card.id)).toEqual(

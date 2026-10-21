@@ -7,6 +7,7 @@ import type { Ruleset, Side, Step } from "@terminal-dusk/engine";
 import { deepFreeze } from "./deepFreeze.ts";
 import { baseEffectOf, playFuzzGame, ruleset } from "./play.ts";
 import type { Played } from "./play.ts";
+import { playerDraw } from "./playerDraws.ts";
 
 type TriggerStep = Extract<Step, { op: "trigger" }>;
 const UNTIL_TURN_END = { kind: "turnEnd" } as const;
@@ -43,7 +44,8 @@ const KINDS = 11; // coprime to 3, so every kind turns up with every affiliation
 /**
  * Card `i`'s reaction step, or null for the cards that keep only their existing fuzz effect. `k` counts the
  * cards of the same kind, so the modifiers spread over every add, min and side. Questions go to the side
- * picked by `k`; a contingency draw is for the card's own side, so neutral cards have none.
+ * picked by `k`; a contingency draw is from the card's own side's deck, or for a neutral card from the deck
+ * of the side that picked or played it.
  */
 function reactionOf(i: number): Step | null {
   const [kind, k] = [i % KINDS, Math.floor(i / KINDS)];
@@ -65,12 +67,12 @@ function reactionOf(i: number): Step | null {
         { op: "choose", who: "both", decision: { kind: "yesNo" }, bind: "both" },
         { op: "marker", label: "bothAsked" },
       ]);
-    case 6:
-      if (i % 3 === 2) return null; // a neutral card's event may not draw a contingency (cardChecks.ts)
-      return trigger("cardPlayed", [
-        { op: "drawContingency", side: own, bind: "n" },
-        { op: "marker", label: "drewInReaction", var: "n" },
-      ]);
+    case 6: {
+      // A neutral card's reaction draws from the deck of the side that picked or played it (#117).
+      const draw: Step[] =
+        i % 3 === 2 ? playerDraw(`c${i + 1}`, "n", true) : [{ op: "drawContingency", side: own, bind: "n" }];
+      return trigger("cardPlayed", [...draw, { op: "marker", label: "drewInReaction", var: "n" }]);
+    }
     case 7:
       return opsModifier(k + 1);
     default:

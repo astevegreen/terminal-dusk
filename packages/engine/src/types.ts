@@ -138,11 +138,10 @@ export type PlayUse = "event" | "points";
 export type PlayUses = { own: PlayUse[]; rival: PlayUse[]; neutral: PlayUse[] };
 /**
  * Declarative description of what is legal. Never lists hidden data such as card IDs from a hand. A
- * yes/no or a rivalEventOrder has none; the opening pick says "a card from your hand" and whether
- * neutral cards count; a play says "a card from your hand" and the uses each kind of card allows.
+ * yes/no or a rivalEventOrder has none; the opening pick says "any card from your hand", neutral ones
+ * too; a play says "a card from your hand" and the uses each kind of card allows.
  */
-export type DecisionOptions =
-  Record<string, never> | { from: "hand"; includeNeutral: boolean } | { from: "hand"; uses: PlayUses };
+export type DecisionOptions = Record<string, never> | { from: "hand" } | { from: "hand"; uses: PlayUses };
 export type Decision = {
   /** Unique within the game; answers quote it. */
   id: string;
@@ -228,7 +227,7 @@ export type ModifierExpiry = { kind: "turnEnd"; turn: number };
 export type ActiveModifier = { source: CardId; mod: ModifierSpec; expires: ModifierExpiry };
 /**
  * A trigger waiting for its hook: the card that set it, the hook, its reaction, and when it ends (as a modifier).
- * `player`, when its program had one, is who played that card: its reaction runs with it (Frame, below).
+ * `player`, when its program had one, is who picked or played that card: its reaction runs with it (Frame, below).
  */
 export type ActiveTrigger = { source: CardId; hook: HookId; do: Step[]; expires: ModifierExpiry; player?: Side };
 
@@ -239,8 +238,8 @@ type FrameBase = { steps: Step[]; next: number; vars: Binding[] };
  * One running block on the resolution stack: a program, an `if` branch, or a `forEach` body with its
  * items and the index of the current one. Frames are public: they never hold hidden data. A program run
  * for a card's effect or play records that card as `source`; the blocks inside it read their program's.
- * A program no card started (a turn's opening pick) has none. A neutral card's event also records
- * `player`, the side that played the card, whose deck its "player" draws use.
+ * A program no card started (a turn's opening pick) has none. A card's event also records `player`, the
+ * side that picked or played the card (turn.ts), whose deck a neutral event's "player" draws use.
  */
 export type Frame =
   | (FrameBase & { kind: "program"; source?: CardId; player?: Side })
@@ -265,6 +264,8 @@ export type PublicState = {
    * card being played. A card goes to the discard pile once everything it triggered has finished.
    */
   inPlay: CardId[];
+  /** Who picked or played each card in `inPlay`, in the same order; null for a card played for points only. */
+  inPlayBy: (Side | null)[];
   discard: CardId[];
   /** Open decisions, in SIDES order. */
   pending: Decision[];
