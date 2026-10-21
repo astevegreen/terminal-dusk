@@ -42,8 +42,11 @@
   ],
   "text": {
     "name": "Full-Scale Invasion",
-    "rules": "Record \"full-scale war\". SAE spends 3 points. Until the end of this turn, points spent by LIO count 1 less, never below 1. At the end of this turn, LIO spends 1 point.",
+    "rules": "Record \"full-scale war\". SAE spends 3 points. Until the end of this turn, points spent by LIO count 1 less, never below 1. At the end of this turn, LIO spends 1 point. If this card's event happens, remove it from the game afterwards.",
     "history": "Russia launched a full-scale invasion of Ukraine on 24 February 2022, twenty days after Russia and China declared a partnership with \"no limits\" in Beijing on 4 February 2022.",
     "art": "art/e3-sae-004"
+  },
+  "flags": {
+    "removeAfterEvent": true
   }
 }
