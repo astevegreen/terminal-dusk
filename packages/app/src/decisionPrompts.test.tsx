@@ -107,6 +107,8 @@ describe("the yes/no prompt names the card that asks and its question", () => {
   const ifBlock: StackFrame = { kind: "if", steps: [], next: 0, vars: [] };
   const asked = "e1-lio-002";
   const expected = `sae, ${firstDeckCardName(asked)}: Honour the assurances?`;
+  /** The question's paragraph, with the id its group is labelled by. */
+  const questionLine = (question: string): string => `<p id="decision-d1-question">${question}</p>`;
   const text = (stack: StackFrame[], onAnswer?: PromptProps["onAnswer"]) =>
     renderToString(
       <decisionPrompts.yesNo
@@ -121,21 +123,21 @@ describe("the yes/no prompt names the card that asks and its question", () => {
 
   it("shows '<side>, <card name>: <question>' when the program frame's source card has a question", () => {
     expect(firstDeckCardName(asked)).not.toBe(asked);
-    expect(text([program(), program(asked)], () => {})).toContain(`<p>${expected}</p>`);
+    expect(text([program(), program(asked)], () => {})).toContain(questionLine(expected));
   });
   it("still finds the program's source card when an if frame is above it", () => {
-    expect(text([program(asked), ifBlock, ifBlock], () => {})).toContain(`<p>${expected}</p>`);
+    expect(text([program(asked), ifBlock, ifBlock], () => {})).toContain(questionLine(expected));
   });
   it("uses the nearest program frame from the top, not a lower one", () => {
-    expect(text([program(asked), program()], () => {})).toContain("<p>sae: yes or no?</p>");
+    expect(text([program(asked), program()], () => {})).toContain(questionLine("sae: yes or no?"));
   });
   it("falls back to '<side>: yes or no?' with no source card", () => {
-    expect(text([program(), ifBlock], () => {})).toContain("<p>sae: yes or no?</p>");
-    expect(text([], () => {})).toContain("<p>sae: yes or no?</p>");
+    expect(text([program(), ifBlock], () => {})).toContain(questionLine("sae: yes or no?"));
+    expect(text([], () => {})).toContain(questionLine("sae: yes or no?"));
   });
   it("falls back to '<side>: yes or no?' when the source card has no question", () => {
     expect(firstDeckCardQuestion("e1-lio-001")).toBeUndefined();
-    expect(text([program("e1-lio-001")], () => {})).toContain("<p>sae: yes or no?</p>");
+    expect(text([program("e1-lio-001")], () => {})).toContain(questionLine("sae: yes or no?"));
   });
   it("keeps the Yes and No buttons and their answers with a question shown", () => {
     const sent: AnswerValue[] = [];
@@ -160,7 +162,7 @@ describe("the yes/no prompt names the card that asks and its question", () => {
   it("shows the same text read-only, with no buttons", () => {
     const html = text([program(asked), ifBlock]);
     expect(html).not.toContain("<button");
-    expect(html).toContain(`<p>${expected}</p>`);
+    expect(html).toContain(questionLine(expected));
   });
 });
 
@@ -185,5 +187,44 @@ describe("decisionPrompts without an onAnswer", () => {
       expect(html).not.toContain("<button");
       for (const text of texts) expect(html).toContain(text);
     }
+  });
+});
+
+describe("each prompt is a group named by its question", () => {
+  const kinds: [Decision, string[]][] = [
+    [decision("yesNo", {}), []],
+    [decision("chooseCard", { from: "hand", includeNeutral: false }, "lio"), ["a"]],
+    [decision("playCardAs", play), ["a"]],
+    [decision("rivalEventOrder", {}, "lio"), []],
+  ];
+  const answerable = (d: Decision, hand: string[]) => {
+    const Prompt = decisionPrompts[d.kind];
+    return renderToString(
+      <Prompt decision={d} hand={hand} label={label} stack={[]} question={noQuestion} onAnswer={() => {}} />,
+    );
+  };
+  const opening = (id: string, side: Decision["side"]): Decision => ({
+    ...decision("chooseCard", { from: "hand", includeNeutral: false }, side),
+    id,
+  });
+  it("puts every prompt in a role=group section labelled by the question's element, id from decision.id", () => {
+    for (const [d, hand] of kinds) {
+      for (const html of [readOnly(d, hand), answerable(d, hand)]) {
+        expect(html).toMatch(
+          /^<section role="group" aria-labelledby="decision-d1-question"><p id="decision-d1-question">/,
+        );
+      }
+    }
+  });
+  it("gives two prompts with different decision ids different question ids", () => {
+    const lio = readOnly(opening("d3-lio", "lio"), []);
+    const sae = readOnly(opening("d3-sae", "sae"), []);
+    expect(lio).toContain('aria-labelledby="decision-d3-lio-question"><p id="decision-d3-lio-question">');
+    expect(sae).toContain('aria-labelledby="decision-d3-sae-question"><p id="decision-d3-sae-question">');
+  });
+  it("keeps the read-only choices a plain <ul> of <li>, never a group", () => {
+    const html = readOnly(decision("yesNo", {}), []);
+    expect(html).toContain("<ul><li>Yes</li><li>No</li></ul>");
+    expect(html).not.toMatch(/<ul [^>]*role=/);
   });
 });
