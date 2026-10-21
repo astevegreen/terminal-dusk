@@ -1,5 +1,6 @@
 import { createElement } from "react";
-import type { AnswerValue, Decision, DecisionOptions } from "@terminal-dusk/engine";
+import type { AnswerValue, Decision, DecisionOptions, Frame as StackFrame } from "@terminal-dusk/engine";
+import { firstDeckCardName, firstDeckCardQuestion } from "@terminal-dusk/host/first-deck";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { decisionPrompts } from "./decisionPrompts.tsx";
@@ -7,6 +8,7 @@ import type { PromptProps } from "./decisionPrompts.tsx";
 import { buttonsOf } from "./testMode/promptTree.ts";
 
 const label = (card: string): string => `Card ${card}`;
+const noQuestion = (): undefined => undefined;
 const play: DecisionOptions = {
   from: "hand",
   uses: { own: ["event", "points"], rival: ["points"], neutral: ["points"] },
@@ -21,14 +23,21 @@ const decision = (kind: Decision["kind"], options: DecisionOptions, side: Decisi
 /** The buttons of a prompt, and the answers sent when each is pressed in turn. */
 function pressAll(d: Decision, hand: string[]) {
   const sent: AnswerValue[] = [];
-  const props: PromptProps = { decision: d, hand, label, onAnswer: (v) => sent.push(v) };
+  const props: PromptProps = {
+    decision: d,
+    hand,
+    label,
+    stack: [],
+    question: noQuestion,
+    onAnswer: (v) => sent.push(v),
+  };
   const buttons = buttonsOf(createElement(decisionPrompts[d.kind], props));
   for (const b of buttons) b.click();
   return { texts: buttons.map((b) => b.text), sent };
 }
 const readOnly = (d: Decision, hand: string[]) => {
   const Prompt = decisionPrompts[d.kind];
-  return renderToString(<Prompt decision={d} hand={hand} label={label} />);
+  return renderToString(<Prompt decision={d} hand={hand} label={label} stack={[]} question={noQuestion} />);
 };
 
 describe("decisionPrompts with an onAnswer", () => {
@@ -74,9 +83,84 @@ describe("decisionPrompts with an onAnswer", () => {
   });
   it("makes every button at least 44 px tall", () => {
     const html = renderToString(
-      <decisionPrompts.yesNo decision={decision("yesNo", {})} hand={[]} label={label} onAnswer={() => {}} />,
+      <decisionPrompts.yesNo
+        decision={decision("yesNo", {})}
+        hand={[]}
+        label={label}
+        stack={[]}
+        question={noQuestion}
+        onAnswer={() => {}}
+      />,
     );
     expect(html.match(/min-height:44px/g)).toHaveLength(2);
+  });
+});
+
+describe("the yes/no prompt names the card that asks and its question", () => {
+  const program = (source?: string): StackFrame => ({
+    kind: "program",
+    steps: [],
+    next: 0,
+    vars: [],
+    ...(source ? { source } : {}),
+  });
+  const ifBlock: StackFrame = { kind: "if", steps: [], next: 0, vars: [] };
+  const asked = "e1-lio-002";
+  const expected = `sae, ${firstDeckCardName(asked)}: Honour the assurances?`;
+  const text = (stack: StackFrame[], onAnswer?: PromptProps["onAnswer"]) =>
+    renderToString(
+      <decisionPrompts.yesNo
+        decision={decision("yesNo", {})}
+        hand={[]}
+        label={firstDeckCardName}
+        stack={stack}
+        question={firstDeckCardQuestion}
+        {...(onAnswer ? { onAnswer } : {})}
+      />,
+    );
+
+  it("shows '<side>, <card name>: <question>' when the program frame's source card has a question", () => {
+    expect(firstDeckCardName(asked)).not.toBe(asked);
+    expect(text([program(), program(asked)], () => {})).toContain(`<p>${expected}</p>`);
+  });
+  it("still finds the program's source card when an if frame is above it", () => {
+    expect(text([program(asked), ifBlock, ifBlock], () => {})).toContain(`<p>${expected}</p>`);
+  });
+  it("uses the nearest program frame from the top, not a lower one", () => {
+    expect(text([program(asked), program()], () => {})).toContain("<p>sae: yes or no?</p>");
+  });
+  it("falls back to '<side>: yes or no?' with no source card", () => {
+    expect(text([program(), ifBlock], () => {})).toContain("<p>sae: yes or no?</p>");
+    expect(text([], () => {})).toContain("<p>sae: yes or no?</p>");
+  });
+  it("falls back to '<side>: yes or no?' when the source card has no question", () => {
+    expect(firstDeckCardQuestion("e1-lio-001")).toBeUndefined();
+    expect(text([program("e1-lio-001")], () => {})).toContain("<p>sae: yes or no?</p>");
+  });
+  it("keeps the Yes and No buttons and their answers with a question shown", () => {
+    const sent: AnswerValue[] = [];
+    const props: PromptProps = {
+      decision: decision("yesNo", {}),
+      hand: [],
+      label: firstDeckCardName,
+      stack: [program(asked)],
+      question: firstDeckCardQuestion,
+      onAnswer: (v) => sent.push(v),
+    };
+    const buttons = buttonsOf(createElement(decisionPrompts.yesNo, props));
+    for (const b of buttons) b.click();
+    expect({ texts: buttons.map((b) => b.text), sent }).toEqual({
+      texts: ["Yes", "No"],
+      sent: [
+        { kind: "yesNo", yes: true },
+        { kind: "yesNo", yes: false },
+      ],
+    });
+  });
+  it("shows the same text read-only, with no buttons", () => {
+    const html = text([program(asked), ifBlock]);
+    expect(html).not.toContain("<button");
+    expect(html).toContain(`<p>${expected}</p>`);
   });
 });
 

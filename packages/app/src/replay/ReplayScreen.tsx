@@ -5,6 +5,7 @@ import type { CardId, EraId, GameStatus, Side } from "@terminal-dusk/engine";
 import type { ReplayFrame } from "@terminal-dusk/host";
 import { useState } from "react";
 import { decisionPrompts } from "../decisionPrompts.tsx";
+import type { CardQuestion } from "../decisionPrompts.tsx";
 import { Contingency, Log, Region, Table } from "../game/regions.tsx";
 import type { Label } from "../game/regions.tsx";
 import { logLine } from "../testMode/session.ts";
@@ -14,6 +15,8 @@ import "./replayScreen.css";
 export type ReplayScreenProps = {
   recording: ReplayRecording;
   label: (card: CardId) => string;
+  /** A card's yes/no question, for the read-only prompts. Display data only. */
+  question: CardQuestion;
   onClose: () => void;
 };
 
@@ -77,12 +80,19 @@ function Hands({ frame, label }: Readonly<{ frame: ReplayFrame; label: Label }>)
   );
 }
 
-function OpenDecisions({ frame, label }: Readonly<{ frame: ReplayFrame; label: Label }>) {
+function OpenDecisions({
+  frame,
+  label,
+  question,
+}: Readonly<{ frame: ReplayFrame; label: Label; question: CardQuestion }>) {
+  const { pending, stack } = frame.view.public;
   return (
     <Region id="decision" title="Open decisions">
-      {frame.view.public.pending.map((decision) => {
+      {pending.map((decision) => {
         const Prompt = decisionPrompts[decision.kind];
-        return <Prompt key={decision.id} decision={decision} hand={[]} label={label} />;
+        return (
+          <Prompt key={decision.id} decision={decision} hand={[]} label={label} stack={stack} question={question} />
+        );
       })}
     </Region>
   );
@@ -92,6 +102,7 @@ function OpenDecisions({ frame, label }: Readonly<{ frame: ReplayFrame; label: L
 export function ReplayView({
   recording,
   label,
+  question,
   onClose,
   index,
   onGo,
@@ -117,7 +128,7 @@ export function ReplayView({
       <div className="replay-side">
         <Table pub={pub} label={label} />
         <Contingency pub={pub} />
-        <OpenDecisions frame={frame} label={label} />
+        <OpenDecisions frame={frame} label={label} question={question} />
         <Log log={log} />
       </div>
     </div>

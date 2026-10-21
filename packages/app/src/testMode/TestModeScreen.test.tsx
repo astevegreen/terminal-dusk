@@ -5,7 +5,7 @@ import { App } from "../App.tsx";
 import { decisionPrompts } from "../decisionPrompts.tsx";
 import { TestModeView } from "./TestModeScreen.tsx";
 import { buttonsOf } from "./promptTree.ts";
-import { cardName } from "./fixture.ts";
+import { cardName, cardQuestion } from "./fixture.ts";
 import { createTestSession } from "./session.ts";
 import type { TestSession } from "./session.ts";
 import type { AnswerValue } from "@terminal-dusk/engine";
@@ -27,6 +27,8 @@ async function answerOnce(session: TestSession, order: "first" | "last", accepte
       decision,
       hand,
       label: cardName,
+      stack: session.getSnapshot().frame?.view.public.stack ?? [],
+      question: cardQuestion,
       onAnswer: (value) => {
         pressed = value;
         void session.answer(value);
