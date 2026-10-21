@@ -6,7 +6,8 @@
   "effect": [
     {
       "op": "marker",
-      "label": "proxy war"
+      "label": "proxy war",
+      "lasting": true
     },
     {
       "op": "spendPoints",
@@ -30,7 +31,7 @@
   ],
   "text": {
     "name": "Syrian Intervention",
-    "rules": "Record \"proxy war\". SAE spends 2 points. At the end of this turn, SAE spends 1 point.",
+    "rules": "Record \"proxy war\" for the rest of the game. SAE spends 2 points. At the end of this turn, SAE spends 1 point.",
     "history": "Russia began air strikes in Syria on 30 September 2015 in support of the Assad government, its first major military operation outside the former Soviet Union since the Cold War.",
     "art": "art/e3-sae-008"
   }
