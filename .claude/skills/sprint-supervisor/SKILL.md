@@ -69,8 +69,10 @@ For a finished run, read the end of `get_run_log`: if it stopped on a usage limi
 Then archive the finished sessions: each one holds 150-500 MB on the owner's laptop until it is archived, and
 dozens of them exhausted it on 21 Oct. Archive, with `archive_session` and the run's session id, the newest run
 of each of the eight titles when it is finished (after reading its run log), and every finished run of the
-triggers named "Sprint supervisor …" except your own. An archived run counts as finished. Never archive a
-running or stuck session, or one outside these titles. If `archive_session` is not available, skip this.
+triggers named "Sprint supervisor …" except your own, once its `last_event_at` is over an hour old: a session
+that ended its turn on a background push or CI watch reads `idle` until that finishes, and archiving it would
+kill that work. An archived run counts as finished. Never archive a running or stuck session, or one outside
+these titles. If `archive_session` is not available, skip this.
 
 ## 4. Status
 For each lane: open `sprint-ready`, `in-progress`, `blocked` and `held` counts, and pull requests merged
