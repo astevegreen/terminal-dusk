@@ -3,6 +3,7 @@
 import type { CardDef, CardId, Ruleset, Side, Step as EffectStep } from "@terminal-dusk/engine";
 import { deepFreeze } from "./deepFreeze.ts";
 import { hasStep, LASTING_LABELS, lastingMarker } from "./markers.ts";
+import { nestedPlayedBy, playedByStep } from "./playedBy.ts";
 import { playerDraw } from "./playerDraws.ts";
 
 /** Most turns and plays per turn in a random game, and the non-neutral cards a hand then needs. */
@@ -22,15 +23,25 @@ export const FUZZ_CARDS: readonly CardId[] = Array.from(
 );
 const AFFILIATIONS: readonly CardDef["affiliation"][] = ["lio", "sae", "neutral"];
 /**
- * Card `i`'s event: its base event (baseEffectOf), then its lasting marker step (markerStepsOf), and for every
- * fifth card from c2 on, a modifier of the ops value too (#89); for every tenth from c4 on (never a modifier
- * card), a trigger (#90). Only steps are added after the base event, never a choice, so the decisions of the
- * games in fixedGames.ts keep their IDs.
+ * Card `i`'s event: its base event (baseEffectOf), then its lasting marker step (markerStepsOf), then its
+ * playedBy tests (playedByOf), and for every fifth card from c2 on, a modifier of the ops value too (#89); for
+ * every tenth from c4 on (never a modifier card), a trigger (#90). Only steps are added after the base event,
+ * never a choice, so the decisions of the games in fixedGames.ts keep their IDs.
  */
 function effectOf(i: number): EffectStep[] {
-  const base = [...baseEffectOf(i), ...markerStepsOf(i)];
+  const base = [...baseEffectOf(i), ...markerStepsOf(i), ...playedByOf(i)];
   if (i % 10 === 3) return [...base, triggerOf(Math.floor(i / 10), i)];
   return i % 5 === 1 ? [...base, modifierOf(Math.floor(i / 5))] : base;
+}
+
+/**
+ * Card `i`'s playedBy tests (#170), markers only: every seventh card from c5 on tests one side at the top level,
+ * and every seventh from c7 on also nests a test of the other side inside each branch; the side tested takes turns.
+ */
+function playedByOf(i: number): EffectStep[] {
+  const side: Side = Math.floor(i / 7) % 2 === 0 ? "lio" : "sae";
+  if (i % 7 === 4) return playedByStep(`c${i + 1}`, side, "top");
+  return i % 7 === 6 ? nestedPlayedBy(`c${i + 1}`, side) : [];
 }
 
 /**

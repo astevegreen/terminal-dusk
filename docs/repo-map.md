@@ -451,6 +451,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/order.test.ts`
 - `tests/fuzz/order.ts` - Compare function for sorting strings in UTF-16 code-unit order: the same order as a sort with no compare function, written out so the order is explicit. Exports: byCodeUnit.
 - `tests/fuzz/play.ts` - Plays one game for the fuzz suite, random or recorded, and checks every invariant along the way. Exports: baseEffectOf, FUZZ_CARDS, ruleset, DEFAULT_GAMES, MAX_ANSWERS, GameRecord, Chooser, Played, gameCount, playFuzzGame, playRecorded, randomGame, ….
+- `tests/fuzz/playedBy.test.ts` - The fuzz suite and the playedBy condition of R5a (#170): the fuzz cards test who played them, at the top of an effect, nested in another if and in both kinds o…
+- `tests/fuzz/playedBy.ts` - TEST-ONLY FIXTURES, never game content: the `playedBy` conditions (R5a) the fuzz cards test, and the fuzz check that each test took exactly one branch, the rig… Exports: PLAYED_BY, Where, Branch, How, PlayRecord, Taken, branchLabel, playedByStep, nestedPlayedBy, announcedTest, branchTaken, notePlay, ….
 - `tests/fuzz/playerDraws.ts` - Whose deck a neutral card's draws come from (docs/design/contingency-deck.md, "Whose deck"): a neutral event's "player" draw, and one in a reaction it set, use… Exports: PLAYER_DRAW, REACTION_DRAW, playerDraw, announcedDraw, notePlayer, checkPlayerDraws.
 - `tests/fuzz/random.ts` - The fuzz suite's own seeded generator, so every random game can be played again exactly. Exports: Rng, seededRng.
 - `tests/fuzz/reactions.test.ts` - Fuzz games on the test-only reaction cards (reactions.ts): triggers and modifiers that ask questions, make more modifiers and triggers, and draw contingencies…
