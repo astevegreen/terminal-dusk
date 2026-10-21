@@ -320,6 +320,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/apply.ts` - Takes one answer and returns the next state. Exports: apply.
 - `packages/engine/src/cardChecks.test.ts` - createGame's card checks: the ruleset's cards are well formed, and a setup uses only known cards, each once.
 - `packages/engine/src/cardChecks.ts` - Card checks for createGame: the ruleset's cards are well formed, and a setup uses only known cards, each once. Exports: rulesetError, setupCardsError, handSizeError.
+- `packages/engine/src/cardFlags.test.ts` - createGame's check of a card's flags (#199): only `removeAfterEvent: true`, the one flag so far.
 - `packages/engine/src/cardPlayer.test.ts` - Who picked or played a card (#117; docs/design/contingency-deck.md, "Whose deck"): the engine records it for every card's event, opening picks included, so a n…
 - `packages/engine/src/conditions.ts` - An `if` step's condition (stack.ts): a yes/no answer, a number test, `has` a lasting marker, or `playedBy` the side that picked or played the card. Exports: unbound, notANumber, testCondition.
 - `packages/engine/src/contingency.test.ts` - Contingency decks in the game state (#64, #131): the setup's checks, the shuffle, and who sees what.
@@ -364,9 +365,11 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/refill.property.test.ts` - Property test for refilling hands (docs/design/core-loop.md, "Refilling hands"): in random games of random sizes, with an era entering on turn 2 and the draw p…
 - `packages/engine/src/refill.test.ts` - Refilling hands (docs/design/core-loop.md, "Refilling hands"): at each turn's start both sides draw up to the hand size from one shared draw pile, after a new…
 - `packages/engine/src/refill.ts` - Refilling hands (docs/design/core-loop.md, "Refilling hands"). Exports: refillHands.
+- `packages/engine/src/removeAfterEvent.test.ts` - A removeAfterEvent card leaves the game when its event happens (#199; owner, 21 Oct): played for its event, picked as an opening card, or played by the rival f…
 - `packages/engine/src/revealHand.test.ts` - The revealHand step (#184): shows one side's hand to the other, kept in the peeking side's knowledge.
 - `packages/engine/src/rng.test.ts`
 - `packages/engine/src/rng.ts` - Seeded random numbers for the rules engine. Exports: RngState, seedRng, hashSeed, nextInt, shuffle.
+- `packages/engine/src/setupTypes.ts` - The setup's types: what createGame starts a game from. Exports: EraEntry, Setup.
 - `packages/engine/src/sha256.test.ts`
 - `packages/engine/src/sha256.ts` - The public fingerprint of a game's seed. Exports: seedHash.
 - `packages/engine/src/simultaneous.property.test.ts` - Property test: the order in which the two sides answer a simultaneous pair changes nothing, for a turn's opening card pick and for a program's yes/no pair.

@@ -18,6 +18,13 @@ describe("card schema types", () => {
     expectTypeOf<z.output<typeof cardSchema>>().toExtend<CardDef>();
   });
 
+  it("has the same flags as the engine, each taking the same values", () => {
+    type SchemaFlags = NonNullable<z.input<typeof cardSchema>["flags"]>;
+    type EngineFlags = NonNullable<CardDef["flags"]>;
+    expectTypeOf<keyof SchemaFlags>().toEqualTypeOf<keyof EngineFlags>();
+    expectTypeOf<SchemaFlags["removeAfterEvent"]>().toEqualTypeOf<EngineFlags["removeAfterEvent"]>();
+  });
+
   it("accepts every kind of engine step except a card choice", () => {
     // The same kinds of step, each with the same fields: a field the schema lacked would be refused as unknown.
     expectTypeOf<FieldsOf<z.input<typeof stepSchema>>>().toEqualTypeOf<FieldsOf<CardStep>>();
