@@ -18,6 +18,7 @@ import type {
 import { FUZZ_CARDS, MAX_ERA_CARDS, MAX_EXTRA, MAX_PILE, MAX_PLAYS, MAX_TURNS, ruleset } from "./cards.ts";
 import { attempt, checkStep, checkVerify, firstDifference, knowledgeOf } from "./checks.ts";
 import { deepFreeze } from "./deepFreeze.ts";
+import { checkTriggerFilters } from "./filterChecks.ts";
 import { checkPlayedBy, notePlay } from "./playedBy.ts";
 import type { PlayRecord } from "./playedBy.ts";
 import { checkPlayerDraws, notePlayer } from "./playerDraws.ts";
@@ -193,7 +194,8 @@ export function easyChooser(rules: Ruleset, side: Side, rng: Rng): Chooser {
  * 4 and 5 on the state from createGame and after every answer, then invariant 6 at the end. A game that
  * reached its end is also checked with verifyGame. Each step's announced draws from the player's deck must use
  * the deck of the side that last picked or played their card (playerDraws.ts), and each announced playedBy test
- * must take exactly one branch, the one matching that side (playedBy.ts).
+ * must take exactly one branch, the one matching that side (playedBy.ts). Each step's triggers fire only as their
+ * filters and once allow, from the state before it, its events and the state after it (filterChecks.ts).
  */
 export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed, choose: Chooser): Played {
   const record: GameRecord = { setup: deepFreeze(setup), seed, answers: [] };
@@ -212,9 +214,11 @@ export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed
       notePlay(plays, rules, answer);
       const before = state.public.markers;
       const knowledge = knowledgeOf(state);
+      const prior = state;
       ({ state, events } = answered(rules, state, answer));
       allEvents.push(...events);
       checkStep(rules, setup, state, events, seed, { before, allEvents, knowledge });
+      checkTriggerFilters(rules, prior, events, state);
       checkPlayerDraws(events, players);
       checkPlayedBy(events, plays);
     }
