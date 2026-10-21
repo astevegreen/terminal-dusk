@@ -38,4 +38,19 @@ describeCard("e2-sae-002", "Curveball", [
       points:sae:2
     `,
   },
+  {
+    it: "after Invasion of Iraq recorded coalition fractures, when LIO says yes and LIO draws 4, SAE spends 2",
+    before: ["e2-sae-001"],
+    yes: { lio: true },
+    draw: 4,
+    story: `
+      points:lio:2
+      draw:lio:4
+      intelligence discredited
+      points:sae:2
+      mod:lio:-1:min1
+      points:lio:1
+      points:sae:2
+    `,
+  },
 ]);

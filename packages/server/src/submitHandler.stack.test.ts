@@ -9,15 +9,9 @@ import { beforeAll, expect, it } from "vitest";
 import type { StackKeys } from "./migrations/localStack.ts";
 import { callFunction, whyFunctionUnavailable } from "./test/functions.ts";
 import { NOW } from "./test/match.ts";
-import { freshMatchId, makeUser, onLocalStack, putIn, storedRows, writeOf } from "./test/stack.ts";
+import { accessToken, freshMatchId, makeUser, onLocalStack, putIn, storedRows, writeOf } from "./test/stack.ts";
 import type { TestUser } from "./test/stack.ts";
 import { stackGame } from "./test/stackGame.ts";
-
-const accessToken = async (user: TestUser): Promise<string> => {
-  const { data } = await user.db.auth.getSession();
-  if (!data.session) throw new Error("the test user has no session");
-  return data.session.access_token;
-};
 
 await onLocalStack(
   "the submit Edge Function on the local Supabase stack",
