@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { matchRowFor } from "./matchRow.ts";
 import { rowsFor } from "./rows.ts";
 import { SupabaseStore } from "./supabaseStore.ts";
+import { shown, thrown } from "./test/errors.ts";
 import { leaksIn } from "./test/leaks.ts";
 import { created, MATCH } from "./test/match.ts";
 
@@ -37,19 +38,6 @@ const quoting: Answer = {
   error: { code: "22P02", message: `bad row ${JSON.stringify(start.secret)}`, details: FAKE_KEY },
 };
 
-/** Everything a thrown error shows: its message, its name and any fields it carries. */
-const shown = (e: unknown): string =>
-  e instanceof Error ? `${e.name} ${e.message} ${JSON.stringify(e)} ${String(e.cause ?? "")}` : String(e);
-
-async function thrown(call: () => Promise<unknown>): Promise<unknown> {
-  try {
-    await call();
-  } catch (e) {
-    return e;
-  }
-  throw new Error("expected the call to throw");
-}
-
 describe("SupabaseStore.load", () => {
   it("gives the record and secret from one row with its secret embedded", async () => {
     const row = { ...matchRowFor(start.record), match_secret: { secret: start.secret } };
@@ -68,7 +56,10 @@ describe("SupabaseStore.load", () => {
     expect(await store.load("no-such-match")).toBeNull();
   });
 
-  it.each([null, []])("throws when the match row has no secret row (%j)", async (embedded) => {
+  it.each([
+    ["null", null],
+    ["an empty list", []],
+  ])("throws when the match row has no secret row (embedded as %s)", async (_name, embedded) => {
     const row = { ...matchRowFor(start.record), match_secret: embedded };
     const store = new SupabaseStore(fakeClient({ data: row, error: null }).db);
     await expect(store.load(MATCH)).rejects.toThrow(/no secret row/);
