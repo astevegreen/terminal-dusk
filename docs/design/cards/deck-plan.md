@@ -121,6 +121,7 @@ is nothing to decide. Variables are `v` (an answer) and `d` (a draw); a second o
 | `mod both +1 (turn)`             | same with `"side": "both"`                                                                                        |
 | `on turnEnd { A }`               | `{ "op": "trigger", "hook": "turnEnd", "do": [A], "duration": { "kind": "turnEnd" } }`                            |
 | `on cardPlayed (turn) { A }`     | `{ "op": "trigger", "hook": "cardPlayed", "do": [A], "duration": { "kind": "turnEnd" } }`                         |
+| `once-only`                      | `"flags": { "removeAfterEvent": true }` (a card flag beside `effect`, not a step)                                 |
 
 Steps separated by `;` are listed in order in `effect`. Braces nest.
 
@@ -200,7 +201,7 @@ works without it.
 | 3    | W5      | A Condition on who played the card (so a rival-played hot card can bite differently)                                                                                                                                                     | the 11 hot cards; also the two Notion originals that wrote "if the player was X"                                                                                |
 | 4    | W8      | A step that discards from, or peeks at, a hand                                                                                                                                                                                           | 6 espionage cards (Ames, Hanssen, Cox, Montes, Ghost Stories, The Leaks)                                                                                        |
 | 5    | W2      | A trigger scoped to one side's plays, or that fires once                                                                                                                                                                                 | 3 cardPlayed cards (Dot-com, Golden Shield, The Leaks); they fire for both sides today and say so                                                               |
-| 6    | W6      | Remove-from-game / `flags` (schema removed them: "they arrive with the rules that use them")                                                                                                                                             | the 5 Ops 4 cards (once-only events)                                                                                                                            |
+| 6    | W6      | Remove-from-game / `flags`: built (R8a added `flags.removeAfterEvent`; R13 made the five Ops 4 cards once-only)                                                                                                                          | the 5 Ops 4 cards (once-only events)                                                                                                                            |
 | -    | W7      | Map, influence, tension track, scoring                                                                                                                                                                                                   | every card; a rules decision for the owner, not an engine request                                                                                               |
 
 ## Cut from Notion (rows left at "Idea")

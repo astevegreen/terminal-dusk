@@ -33,7 +33,7 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 
 - **Event:** Seven states join NATO and ten join the EU within five weeks.
 - **Design:** LIO 3 now and 1 at turn end; the permanent eastward shift (W1). Hot: an SAE holder wants the 4 Ops but hates the event.
-- **Playable:** `marker "eastward"; spend lio 3; on turnEnd { spend lio 1 }`
+- **Playable:** `marker "eastward"; spend lio 3; on turnEnd { spend lio 1 }; once-only`
 - **History:** Seven countries, including the three Baltic states, joined NATO on 29 March 2004, and ten countries joined the European Union on 1 May 2004.
 - **Theme:** alliances · **Notion:** create
 
@@ -107,7 +107,7 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 
 - **Event:** Beijing opens the Games while Russian tanks roll into Georgia.
 - **Design:** SAE 3 and +1 Ops this turn: confidence at its peak. Hot: LIO holders want the 4 Ops.
-- **Playable:** `marker "summer of 2008"; spend sae 3; mod sae +1 (turn)`
+- **Playable:** `marker "summer of 2008"; spend sae 3; mod sae +1 (turn); once-only`
 - **History:** The Beijing Olympics opened on 8 August 2008; the same week, Russian forces fought a five-day war with Georgia that ended in a ceasefire brokered by France.
 - **Theme:** gray-zone, proxy wars · **Notion:** update `3fceb012942f81b2a70ace2419b7112e`
 

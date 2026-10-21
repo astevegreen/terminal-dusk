@@ -28,8 +28,11 @@
   ],
   "text": {
     "name": "Desert Storm Coalition",
-    "rules": "Record \"coalition victory\". LIO spends 3 points. Until the end of this turn, points spent by SAE count 1 less, never below 1.",
+    "rules": "Record \"coalition victory\". LIO spends 3 points. Until the end of this turn, points spent by SAE count 1 less, never below 1. If this card's event happens, remove it from the game afterwards.",
     "history": "Operation Desert Storm began on 17 January 1991 and ended with a ceasefire on 28 February 1991; a coalition of some 34 nations under a UN mandate expelled Iraqi forces from Kuwait.",
     "art": "art/e1-lio-006"
+  },
+  "flags": {
+    "removeAfterEvent": true
   }
 }
