@@ -440,6 +440,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## tools
 
 - `tools/balance/README.md` - Balance tool
+- `tools/balance/config.mjs` - The run's match config: the first-deck TEST scenario, with the turns, plays per turn and era arrival turns the command line asked for.
+- `tools/balance/era-stats.test.mjs` - The "By era" numbers from hand-made game summaries: distinct cards used per game, their share of the era, and picks plus plays per game, including a card both…
+- `tools/balance/options.test.mjs` - The run options --turns, --plays and --era: parsing, refusals, the host's own refusals, the report title, and a small seeded run with fewer turns and two eras…
 - `tools/balance/play.mjs` - Plays one seeded Easy-vs-Easy game of the first deck through the match host, as a real match would run.
 - `tools/balance/report.mjs` - The balance report as text: the numbers from stats.mjs laid out as plain tables.
 - `tools/balance/run.mjs` - `node tools/balance/run.mjs [--games <n>] [--seed <base>] [--json]`: plays n seeded Easy-vs-Easy games of the first-deck TEST scenario and prints results by si…
