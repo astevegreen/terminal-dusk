@@ -513,6 +513,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `docs/design/eras.md` - Eras
 - `docs/design/map-and-points.md` - The map, influence, points and tension: owner decisions (W7)
 - `docs/design/sides.md` - Sides
+- `docs/proposals/card-count-gap.md` - The LIO/SAE card-count gap and the missing Era 3 LIO Ops 4 card: options
 - `docs/proposals/special-abilities.md` - Special abilities for LIO and SAE: options
 - `docs/proposals/w7/1-map.md` - Topic 1: the map (regions, how many countries, adjacency)
 - `docs/proposals/w7/2-influence.md` - Topic 2: influence (placing it, and controlling a country)
