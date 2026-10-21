@@ -27,6 +27,7 @@ async function answerOnce(session: TestSession, order: "first" | "last", accepte
     createElement(decisionPrompts[decision.kind], {
       decision,
       hand,
+      known: session.getSnapshot().frame?.view.mine?.knowledge ?? [],
       label: cardName,
       stack: session.getSnapshot().frame?.view.public.stack ?? [],
       question: cardQuestion,

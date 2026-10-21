@@ -7,7 +7,19 @@
 // does. A trigger set while they run was not pushed, so it waits for the hook's next time. A reaction can
 // neither play a card nor end a turn, so a trigger can never make its own hook happen again.
 import { copyJson } from "./copy.ts";
-import type { ActiveTrigger, Binding, CardId, Frame, GameEvent, GameState, Side, Step } from "./types.ts";
+import { hasMarker } from "./markers.ts";
+import type {
+  ActiveTrigger,
+  Binding,
+  CardId,
+  Frame,
+  GameEvent,
+  GameState,
+  HookId,
+  Side,
+  Step,
+  TriggerFilter,
+} from "./types.ts";
 
 type TriggerStep = Extract<Step, { op: "trigger" }>;
 
@@ -27,6 +39,8 @@ export function setTrigger(
 ): void {
   const expires = { kind: step.duration.kind, turn: state.public.turn };
   const trigger: ActiveTrigger = { source, hook: step.hook, do: copyJson(step.do), expires };
+  if (step.filter !== undefined) trigger.filter = copyJson(step.filter);
+  if (step.once === true) trigger.once = true;
   if (by.player !== undefined) trigger.player = by.player;
   if (by.worldFor !== undefined) trigger.worldFor = by.worldFor;
   state.public.triggers.push(trigger);
@@ -36,8 +50,10 @@ export function setTrigger(
 /**
  * Called as each program leaves the stack. When it is the program of the card a side is playing (its
  * event, its points, or a rival card's both, in the chosen order), the card has fully resolved: every
- * cardPlayed trigger but the card's own fires, with `card` and `player` bound. The card is still in
- * `inPlay`; it goes to the discard pile once they finish. Opening cards (no play made yet) never fire it.
+ * cardPlayed trigger but the card's own whose filter holds fires, with `card` and `player` bound. Every
+ * filter is tested before any reaction runs; one that fails leaves its trigger waiting, with no event. A
+ * `once` trigger that fires leaves the list now, before its reaction runs. The card is still in `inPlay`;
+ * it goes to the discard pile once they finish. Opening cards (no play made yet) never fire it.
  */
 export function afterProgram(state: GameState, finished: Frame, events: GameEvent[]): void {
   const pub = state.public;
@@ -46,7 +62,10 @@ export function afterProgram(state: GameState, finished: Frame, events: GameEven
   if (!isPlay || finished.source !== played || played === undefined) return;
   // LIO makes the plays with an even count before them, so the play just counted tells who made it.
   const player = (pub.playsMade - 1) % 2 === 0 ? "lio" : "sae";
-  const reacting = pub.triggers.filter((t) => t.hook === "cardPlayed" && t.source !== played);
+  const reacting = pub.triggers.filter(
+    (t) => t.hook === "cardPlayed" && t.source !== played && filterHolds(state, t, player),
+  );
+  pub.triggers = pub.triggers.filter((t) => t.once !== true || !reacting.includes(t));
   pushReactions(
     state,
     reacting,
@@ -59,15 +78,31 @@ export function afterProgram(state: GameState, finished: Frame, events: GameEven
 }
 
 /**
- * The turn's last play has finished: every turnEnd trigger leaves the list and fires, with `turn` bound.
- * Firing is how a turnEnd trigger ends. `turnEndFired` keeps the hook from firing twice while they run.
+ * The turn's last play has finished: every turnEnd trigger leaves the list. Each whose filter holds (or
+ * that has none) fires, with `turn` bound: firing is how a turnEnd trigger ends. The rest do not fire and
+ * emit triggerEnded instead, first, in the order they were set. Every filter is tested before any reaction
+ * runs. `turnEndFired` keeps the hook from firing twice while they run.
  */
 export function fireTurnEnd(state: GameState, events: GameEvent[]): void {
   const pub = state.public;
   pub.turnEndFired = true;
-  const firing = pub.triggers.filter((t) => t.hook === "turnEnd");
+  const waiting = pub.triggers.filter((t) => t.hook === "turnEnd");
   pub.triggers = pub.triggers.filter((t) => t.hook !== "turnEnd");
+  const firing = waiting.filter((t) => filterHolds(state, t, undefined));
+  for (const { source, hook } of waiting.filter((t) => !firing.includes(t))) {
+    events.push({ kind: "triggerEnded", visibility: "public", source, hook });
+  }
   pushReactions(state, firing, [{ name: "turn", value: pub.turn }], events);
+}
+
+/**
+ * Whether `trigger` may fire now: it has no filter, or its filter holds. `has` reads the lasting markers set
+ * so far; `playedBy` the side that made the play that fired the hook, `player` (none at turnEnd: false).
+ */
+function filterHolds(state: GameState, trigger: ActiveTrigger, player: Side | undefined): boolean {
+  const { filter } = trigger;
+  if (filter === undefined) return true;
+  return filter.op === "has" ? hasMarker(state, filter.marker) : filter.side === player;
 }
 
 /** Tells everyone each trigger fired, in set order, and pushes their programs with the first set on top. */
@@ -93,11 +128,37 @@ export function endTurnTriggers(state: GameState, events: GameEvent[]): void {
   for (const { source, hook } of ending) events.push({ kind: "triggerEnded", visibility: "public", source, hook });
 }
 
-/** Why a trigger step's values are unusable, or null: a hook and duration the engine knows, and a reaction. */
+/**
+ * Why a trigger step's values are unusable, or null: a hook and duration the engine knows, a reaction, and
+ * when given, a filter it can test at that hook and a `once` of true on a cardPlayed trigger.
+ */
 export function badTrigger(step: TriggerStep): string | null {
   if (step.hook !== "cardPlayed" && step.hook !== "turnEnd")
     return "sets a trigger for a hook the engine doesn't have.";
   if (!Array.isArray(step.do) || step.do.length === 0) return "sets a trigger with no steps to run.";
   if (step.duration?.kind !== "turnEnd") return "sets a trigger with a duration the engine doesn't have.";
-  return null;
+  if (step.filter !== undefined) {
+    const bad = badFilter(step.filter, step.hook);
+    if (bad !== null) return bad;
+  }
+  if (step.once === undefined) return null;
+  if (step.once !== true) return "sets a trigger whose once is not true (leave it out for one that fires each time).";
+  return step.hook === "cardPlayed" ? null : "sets a once trigger on a hook other than cardPlayed.";
+}
+
+/** Why a trigger's filter is unusable at `hook`, or null: a `has` naming a label, or (cardPlayed) a `playedBy` LIO or SAE. */
+function badFilter(filter: TriggerFilter, hook: HookId): string | null {
+  // Card data may hold anything here, so not even an object is taken for granted.
+  if (typeof filter !== "object" || filter === null)
+    return "sets a trigger whose filter is not a has or playedBy test.";
+  if (filter.op === "has") {
+    return typeof filter.marker === "string" && filter.marker.length > 0
+      ? null
+      : "sets a trigger whose has filter names an empty or non-text marker.";
+  }
+  if (filter.op !== "playedBy") return "sets a trigger whose filter is not a has or playedBy test.";
+  if (hook !== "cardPlayed") return "sets a turnEnd trigger filtered on playedBy, but no play fires that hook.";
+  return filter.side === "lio" || filter.side === "sae"
+    ? null
+    : 'sets a trigger filtered on playedBy a side that is not "lio" or "sae".';
 }

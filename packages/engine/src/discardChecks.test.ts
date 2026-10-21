@@ -1,4 +1,5 @@
-// createGame's checks of a card's discardFromHand steps (#186): LIO or SAE, and a whole count of 1 or more.
+// createGame's checks of a card's discardFromHand steps (#186): LIO or SAE, and a whole count of 1 or more;
+// and a chosenBy, if given, of "owner" or "player" (#192).
 import { describe, expect, it } from "vitest";
 import { createGame } from "./index.ts";
 import type { Step } from "./index.ts";
@@ -74,4 +75,28 @@ describe("createGame: discardFromHand steps name LIO or SAE and a whole count, 1
       for (const effect of nested(discard(side, count))) expect(resultOf(effect).ok).toBe(true);
     }
   });
+});
+
+describe("createGame: a discardFromHand's chosenBy is owner or player (#192)", () => {
+  const chosen = (chosenBy: unknown): Step =>
+    ({ op: "discardFromHand", side: "sae", count: 1, chosenBy }) as unknown as Step;
+
+  it.each(["owner", "player"])("accepts chosenBy %s, at any depth", (chosenBy) => {
+    for (const effect of nested(chosen(chosenBy))) expect(resultOf(effect).ok).toBe(true);
+  });
+
+  it.each(["random", "rival", "both", "lio", 1, null])(
+    "refuses chosenBy %s, at any depth, with a plain-English message naming the card",
+    (chosenBy) => {
+      for (const effect of nested(chosen(chosenBy))) {
+        expect(resultOf(effect)).toMatchObject({
+          ok: false,
+          error: {
+            code: "invalidRuleset",
+            message: `Card l1's effect has a discard chosen by someone other than "owner" or "player" (leave chosenBy out for a random discard).`,
+          },
+        });
+      }
+    },
+  );
 });

@@ -100,7 +100,7 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 
 - **Event:** The largest war in Europe since 1945 begins.
 - **Design:** SAE 3 and LIO -1 Ops this turn; LIO 1 at turn end as the West rallies. Hot: 4 Ops for LIO holders who can stomach the event.
-- **Playable:** `marker "full-scale war"; spend sae 3; mod lio -1 min 1 (turn); on turnEnd { spend lio 1 }`
+- **Playable:** `marker "full-scale war"; spend sae 3; mod lio -1 min 1 (turn); on turnEnd { spend lio 1 }; once-only`
 - **History:** Russia launched a full-scale invasion of Ukraine on 24 February 2022, twenty days after Russia and China declared a partnership with "no limits" in Beijing on 4 February 2022.
 - **Theme:** proxy wars, alliances · **Notion:** update `3fceb012942f8135ba48ebf191eafbef`
 
@@ -124,7 +124,7 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 
 - **Event:** Russian jets save a client and Russia returns to the Middle East.
 - **Design:** SAE 2 now and 1 at turn end; a "foothold" tag that Assad's fall removes (W1, W3).
-- **Playable:** `marker "proxy war"; spend sae 2; on turnEnd { spend sae 1 }`
+- **Playable:** `marker "proxy war" lasting; spend sae 2; on turnEnd { spend sae 1 }`
 - **History:** Russia began air strikes in Syria on 30 September 2015 in support of the Assad government, its first major military operation outside the former Soviet Union since the Cold War.
 - **Theme:** proxy wars · **Notion:** update `3fceb012942f8115abd1c8c2714da8f8`
 
@@ -289,7 +289,9 @@ of each file is written from the JSON.
 - **Future cards:** era string `future`, folder `cards/future/`, ids `ef-...` (the plan's choice). Roles only; their
   history notes describe a trend or a dated event, not a named person. Wired in `futureFiles.ts`.
 - **Ruleset:** the first-deck ruleset now holds 108 cards (Eras 1 to 3 and the future cards).
-- **Ops 4 cards** (Sanctions Wall, Full-Scale Invasion) have no once-only rule yet (wish W6), as in earlier eras.
+- **Ops 4 cards:** the five Ops 4 cards (Desert Storm Coalition, Handover of Hong Kong, Big Bang Enlargement 2004,
+  Olympic Summer 2008, Full-Scale Invasion) are now once-only (wish W6, R13): if a card's event happens, it is removed
+  from the game afterwards. Sanctions Wall, the other Ops 4 card first planned here, was removed.
 - **Turn-end spends under a "count more" bonus:** Arab Spring and the two neutral Ops swings follow question 35: a
   turn-end spend may happen while a "+1" for that side is still in force. Only Arab Spring has both a turn-end spend
   and a side modifier on different sides, so no spend of 1 is raised to 2 by this card's own modifiers.

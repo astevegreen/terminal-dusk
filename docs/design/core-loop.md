@@ -32,10 +32,11 @@ change it in Notion and promote again.
   refill at the start of turn 1 deals each side its first hand.
 - **When the draw pile runs out** while a side still needs cards, the discard pile is shuffled to become the new
   draw pile, and drawing goes on from it.
-- **Running out of both cannot happen.** At the start of a turn every card in the game is in a hand, the draw
-  pile or the discard pile: no card is in play then, and no card leaves the game yet. So if the first era has
-  at least twice the hand size in cards, both hands always fill. A scenario with fewer is refused. This must be
-  looked at again if cards that leave the game are added.
+- **Running out of both cannot happen.** At the start of a turn every card still in the game is in a hand, the
+  draw pile or the discard pile. Some cards are removed from the game once their event happens, including when
+  the rival plays one for its points and its event runs; the others stay. So a scenario must hold, in its first
+  era, at least twice the hand size in cards that stay in the game, and one with fewer is refused: then both
+  hands always fill.
 - **Who sees what.** Each side sees the cards it draws. The rival sees only how many cards were drawn, as it
   already sees how many cards each hand holds.
 
@@ -74,7 +75,8 @@ change it in Notion and promote again.
 - A refill draws LIO's cards first, then SAE's. The draw pile is shuffled with the game's seeded generator, so
   this order changes which cards each side gets but not the chances.
 - The engine refuses a scenario whose hand size is smaller than 1 + plays per turn (a side could not make all its
-  plays), or whose first era has fewer cards than twice the hand size (see "Refilling hands").
+  plays), or whose first era has fewer cards that stay in the game than twice the hand size (see "Refilling
+  hands").
 - The 16 Oct stopgap (a neutral card only for its action points, never an opening pick) is lifted by the
   neutral events rule above (owner, 18 Oct). Neutral cards in card data now carry events like other cards.
 - In card data, the side that answers a choice is LIO, SAE or both. There is no value meaning "whoever played

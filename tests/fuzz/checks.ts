@@ -135,13 +135,13 @@ export function enteredCards(setup: Setup, turn: number): CardId[] {
 }
 
 /**
- * Invariant 3: the cards in the draw pile, both hands, the discard pile and `inPlay` are exactly the cards
- * that have entered the game, each exactly once. Compared as sorted lists of IDs, so a card missing and
- * another card twice is caught even though the count is right.
+ * Invariant 3: the draw pile, both hands, the discard pile, `inPlay` and `removed` (R8a) hold exactly the cards that
+ * have entered the game, each once. Compared as sorted ID lists, so a card missing and another twice is caught.
  */
 export function checkCards(setup: Setup, state: GameState): void {
   const hands = [...state.private.lio.hand, ...state.private.sae.hand];
-  const found = [...state.secret.deck, ...hands, ...state.public.discard, ...state.public.inPlay].sort(byCodeUnit);
+  const { discard, inPlay, removed } = state.public;
+  const found = [...state.secret.deck, ...hands, ...discard, ...inPlay, ...removed].sort(byCodeUnit);
   const expected = enteredCards(setup, state.public.turn).sort(byCodeUnit);
   if (JSON.stringify(found) === JSON.stringify(expected)) return;
   const missing = expected.filter((card) => !found.includes(card));

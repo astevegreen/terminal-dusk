@@ -25,6 +25,7 @@ export type GameScreenProps = {
 function DecisionRegion({ frame, label, question, onAnswer, refusal }: Readonly<Omit<GameScreenProps, "log" | "era">>) {
   const stack = frame.view.public.stack;
   const hand = frame.view.mine?.hand ?? [];
+  const known = frame.view.mine?.knowledge ?? [];
   // The waiting decision is answerable; otherwise the open ones are shown read-only (a spectator's are always these).
   const waiting = frame.decision;
   const open = waiting ? [waiting] : frame.view.public.pending;
@@ -38,6 +39,7 @@ function DecisionRegion({ frame, label, question, onAnswer, refusal }: Readonly<
             key={decision.id}
             decision={decision}
             hand={hand}
+            known={known}
             label={label}
             stack={stack}
             question={question}
