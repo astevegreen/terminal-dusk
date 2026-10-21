@@ -10,6 +10,7 @@ import { baseEffectOf, playFuzzGame, ruleset } from "./play.ts";
 import type { Played } from "./play.ts";
 import { playedByStep } from "./playedBy.ts";
 import { playerDraw } from "./playerDraws.ts";
+import { revealTriggerOf } from "./reveals.ts";
 
 type TriggerStep = Extract<Step, { op: "trigger" }>;
 const UNTIL_TURN_END = { kind: "turnEnd" } as const;
@@ -95,9 +96,9 @@ function reactionOf(i: number): Step {
   }
 }
 
-/** Card `i`'s event: its existing fuzz effect, then its reaction step. */
+/** Card `i`'s event: its existing fuzz effect, then its reaction step, then its hand-reveal trigger, if any (#185). */
 function effectOf(i: number): Step[] {
-  return [...baseEffectOf(i), reactionOf(i)];
+  return [...baseEffectOf(i), reactionOf(i), ...revealTriggerOf(i)];
 }
 
 /**
