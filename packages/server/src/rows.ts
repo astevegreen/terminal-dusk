@@ -2,6 +2,7 @@
 // them. Field names are the SQL column names. Rows are built from the record and frames only, never the secret.
 import type { GameEvent, GameStatus, RulesetId, Seed, Viewer } from "@terminal-dusk/engine";
 import type { Frame, MatchRecord, PlayerId } from "@terminal-dusk/host";
+import { matchRowFor } from "./matchRow.ts";
 
 /** The three live viewers, in the order their rows are written. */
 export const VIEWERS: readonly Viewer[] = ["lio", "sae", "spectator"];
@@ -38,18 +39,7 @@ const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
  */
 export function rowsFor(commit: { record: MatchRecord; frames: Record<Viewer, Frame> }): CommitRows {
   const { record, frames } = commit;
-  const match: MatchRow = {
-    match_id: record.matchId,
-    lio_player: record.players.lio,
-    sae_player: record.players.sae,
-    ruleset: record.ruleset,
-    seed_hash: record.seedHash,
-    seed: record.seed ?? null,
-    seq: record.seq,
-    status: copy(record.status),
-    created_at: record.createdAt,
-    updated_at: record.updatedAt,
-  };
+  const match = matchRowFor(record);
   const views = VIEWERS.map((viewer): MatchViewRow => ({
     match_id: record.matchId,
     viewer,

@@ -110,3 +110,22 @@ describe("card schema: lasting markers and has conditions (#141)", () => {
     expect(issuesOf(lioWith([{ op: "marker", label: "" }]))).toEqual([]);
   });
 });
+
+describe("card schema: playedBy conditions (#169)", () => {
+  const ifOn = (cond: object) => ({ op: "if", cond, then: [], else: [] });
+
+  it.each(["lio", "sae"])("accepts playedBy %s, at any depth", (side) => {
+    for (const effect of placed(ifOn({ op: "playedBy", side }))) expect(issuesOf(lioWith(effect))).toEqual([]);
+  });
+
+  it.each([
+    ["a side of both", { op: "playedBy", side: "both" }],
+    ["a side of player", { op: "playedBy", side: "player" }],
+    ["a side of neutral", { op: "playedBy", side: "neutral" }],
+    ["a missing side", { op: "playedBy" }],
+    ["a var", { op: "playedBy", side: "lio", var: "agreed" }],
+    ["another extra key", { op: "playedBy", side: "lio", value: 1 }],
+  ])("refuses a playedBy with %s, at any depth", (_what, cond) => {
+    for (const effect of placed(ifOn(cond))) expect(issuesOf(lioWith(effect)).length).toBeGreaterThan(0);
+  });
+});

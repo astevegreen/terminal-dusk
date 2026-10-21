@@ -316,7 +316,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/cardChecks.test.ts` - createGame's card checks: the ruleset's cards are well formed, and a setup uses only known cards, each once.
 - `packages/engine/src/cardChecks.ts` - Card checks for createGame: the ruleset's cards are well formed, and a setup uses only known cards, each once. Exports: rulesetError, setupCardsError, handSizeError.
 - `packages/engine/src/cardPlayer.test.ts` - Who picked or played a card (#117; docs/design/contingency-deck.md, "Whose deck"): the engine records it for every card's event, opening picks included, so a n…
-- `packages/engine/src/conditions.ts` - An `if` step's condition (stack.ts): a yes/no answer, a number test, or `has` a lasting marker. Exports: unbound, notANumber, testCondition.
+- `packages/engine/src/conditions.ts` - An `if` step's condition (stack.ts): a yes/no answer, a number test, `has` a lasting marker, or `playedBy` the side that picked or played the card. Exports: unbound, notANumber, testCondition.
 - `packages/engine/src/contingency.test.ts` - Contingency decks in the game state (#64): the setup's checks, the shuffle, and who sees what.
 - `packages/engine/src/contingency.ts` - Contingency decks (docs/design/contingency-deck.md): each side's numbered cards, drawn instead of rolling a die. Exports: contingencyError, shuffleContingency, drawContingency.
 - `packages/engine/src/contingencyDraw.test.ts` - Drawing a contingency (#65, #130): the top card of a side's deck is the result, and a draw that leaves two cards shuffles the whole deck back together, straigh…
@@ -342,6 +342,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/omniscient.test.ts` - The omniscient viewer: everything except the secret compartment, for replays of finished games.
 - `packages/engine/src/play.property.test.ts` - Property test: in random games with rival and neutral plays, neutral cards drawing from the player's deck included, every card is always in exactly one place,…
 - `packages/engine/src/play.test.ts` - Playing a card for its event or its points, and the rival-card rules (#36).
+- `packages/engine/src/playedBy.property.test.ts` - Property test (#169): in random games where LIO, SAE and neutral cards hold `if playedBy` steps (some nested, some in a trigger's reaction, some after a choice…
+- `packages/engine/src/playedBy.test.ts` - The playedBy condition (#169): an if is true exactly when the side that picked or played the card, as recorded on the running program (#117), is the side it na…
 - `packages/engine/src/refill.property.test.ts` - Property test for refilling hands (docs/design/core-loop.md, "Refilling hands"): in random games of random sizes, with an era entering on turn 2 and the draw p…
 - `packages/engine/src/refill.test.ts` - Refilling hands (docs/design/core-loop.md, "Refilling hands"): at each turn's start both sides draw up to the hand size from one shared draw pile, after a new…
 - `packages/engine/src/refill.ts` - Refilling hands (docs/design/core-loop.md, "Refilling hands"). Exports: refillHands.
@@ -403,7 +405,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 - `packages/server/package.json`
 - `packages/server/src/index.test.ts`
-- `packages/server/src/index.ts` - Public entry point of the server package (docs/architecture.md, Decision 5). Exports: submit, ServerErrorCode, SubmitDeps, SubmitError, SubmitOutcome, SubmitRequest, MemoryStore, CommitResult, LoadedMatch, MatchStore, MatchWrite, rowsFor, ….
+- `packages/server/src/index.ts` - Public entry point of the server package (docs/architecture.md, Decision 5). Exports: submit, ServerErrorCode, SubmitDeps, SubmitError, SubmitOutcome, SubmitRequest, MemoryStore, SupabaseStore, CommitResult, LoadedMatch, MatchStore, MatchWrite, ….
 - `packages/server/src/invite.leaks.test.ts`
 - `packages/server/src/invite.refusals.test.ts`
 - `packages/server/src/invite.test.ts`
@@ -412,6 +414,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/inviteCode.ts` - The default invite code: 8 characters drawn with the platform's secure random source, so a code is hard to guess. Exports: INVITE_CODE_ALPHABET, INVITE_CODE_LENGTH, inviteCode.
 - `packages/server/src/inviteStore.test.ts`
 - `packages/server/src/inviteStore.ts` - The invite port behind private games (docs/architecture.md, Decision 5), and an in-memory store for tests. Exports: SideMode, Invite, StoredInvite, SaveResult, AcceptResult, InviteStore, MemoryInviteStore.
+- `packages/server/src/matchRow.test.ts`
+- `packages/server/src/matchRow.ts` - The mapping between a `match` row (rows.ts, the SQL column names) and the host's `MatchRecord`. Exports: matchRowFor, recordFromRow.
+- `packages/server/src/migrations/commitMatch.test.ts` - The commit_match migration (supabase/migrations/20261021000000_commit_match.sql) on the local Supabase stack.
 - `packages/server/src/migrations/localStack.ts` - Connects the migration test to the local Supabase stack (docs/sprint.md, lane "online": no hosted project). Exports: HOW_TO_START, StackKeys, stackKeys, client, whyUnavailable, freshId.
 - `packages/server/src/migrations/matchTables.test.ts` - The match tables migration (supabase/migrations/20261020000000_match_tables.sql) on the local Supabase stack.
 - `packages/server/src/read.leaks.test.ts`
@@ -425,20 +430,29 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/submit.storage.test.ts`
 - `packages/server/src/submit.test.ts`
 - `packages/server/src/submit.ts` - The server's single write path (docs/architecture.md, Decision 5): load the match, run the host, and save the result only if nobody moved the match on first. Exports: SubmitDeps, SubmitRequest, ServerErrorCode, SubmitError, SubmitOutcome, submit.
+- `packages/server/src/supabaseStore.games.stack.test.ts` - Whole games played through `submit` with a SupabaseStore on the local Supabase stack.
+- `packages/server/src/supabaseStore.guards.stack.test.ts` - SupabaseStore's guards on the local Supabase stack: the seq check in the commit_match SQL function, unknown matches, a missing secret row and database errors,…
+- `packages/server/src/supabaseStore.test.ts` - SupabaseStore against a stand-in client, so these run without the local stack.
+- `packages/server/src/supabaseStore.ts` - The Supabase side of the storage port (docs/architecture.md, Decision 5). Exports: StorageError, SupabaseStore.
+- `packages/server/src/test/errors.ts` - Test helpers for checking what a thrown storage error shows. Exports: shown, thrown.
 - `packages/server/src/test/games.ts` - Test helper: whole games played through `submit`, calling back after every step with what is stored. Exports: Strategy, STRATEGIES, Step, playGame.
 - `packages/server/src/test/invites.ts` - Test helpers for invites: an in-memory invite store over O1's MemoryStore, with repeatable codes, match ids, seeds and random sides, and submit deps that run t… Exports: HOST, JOINER, INVITE_NOW, sequence, InviteWorld, inviteWorld.
 - `packages/server/src/test/leaks.ts` - Test helper for leak checks, copying the idea of the host's test/leaks.ts. Exports: leaksIn, leaksFor.
 - `packages/server/src/test/match.ts` - Test helpers: a small ruleset and a match in an in-memory store, copying the idea of the host's tests. Exports: SEED, NOW, MATCH, ruleset, created, setup, bodyFor, nextSide.
+- `packages/server/src/test/stack.ts` - Test helpers for the SupabaseStore checks on the local Supabase stack (O3's localStack.ts finds it). Exports: onLocalStack, TestUser, makeUser, freshMatchId, newGame, writeOf, putIn, Stored, storedRows, cleanUp.
+- `packages/server/src/test/stackGame.ts` - The shared setup for the tests on the local Supabase stack: a service-role client and two fresh test users made before the tests, and every test match and user… Exports: StackGame, stackGame, answered, expectStoredAs.
+- `packages/server/src/test/stores.ts` - Test helpers that wrap any MatchStore, for the in-memory and the Supabase store alike. Exports: loadTogether, recording.
 - `packages/server/supabase/.gitignore` - Folders the Supabase CLI writes for the local stack.
 - `packages/server/supabase/config.toml` - Local Supabase stack for development and tests only (docs/sprint.md, lane "online").
 - `packages/server/supabase/migrations/20261020000000_match_tables.sql` - The match tables and who may read them (docs/architecture.md, Decision 5).
+- `packages/server/supabase/migrations/20261021000000_commit_match.sql` - The one write of a submit (docs/architecture.md, Decision 5): one transaction, guarded by `where seq = expectedSeq`.
 - `packages/server/tsconfig.json`
 
 ## tests
 
 - `tests/README.md` - Cross-package test suites
 - `tests/fuzz/cards.ts` - TEST-ONLY FIXTURES, never game content: the fuzz suite's cards, c1 to c85, and the sizes of a random game their number is worked out from. Exports: MAX_TURNS, MAX_PLAYS, MAX_EXTRA, MAX_PILE, MAX_ERA_CARDS, FUZZ_CARDS, baseEffectOf, ruleset.
-- `tests/fuzz/checks.ts` - The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite"). Exports: VIEWERS, Secrets, attempt, checkStep, checkLive, checkModifiers, checkTriggers, enteredCards, checkCards, isSubMultiset, checkContingency, contingencyLeaksIn, ….
+- `tests/fuzz/checks.ts` - The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite"). Exports: checkHasBranches, checkMarkers, VIEWERS, Secrets, attempt, History, NEW_GAME, checkStep, checkLive, checkModifiers, checkTriggers, enteredCards, ….
 - `tests/fuzz/contingency.test.ts` - Tests for the fuzz harness's Contingency deck checks (#64): the deck invariant and the structural leak check each catch a hand-corrupted state, and the random…
 - `tests/fuzz/deepFreeze.ts` - Freezes a value and everything inside it, so an engine call that changes its input throws. Exports: deepFreeze.
 - `tests/fuzz/easy.test.ts` - The Easy AI inside the fuzz suite (#91): every third game has it on one side, with every invariant checked.
@@ -447,6 +461,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/fixedGames.ts` - Fixed games the fuzz suite replays, with every check, on every run. Exports: FIXED_GAMES.
 - `tests/fuzz/harness.test.ts` - Tests for the fuzz harness itself: each check catches what it should, so a green fuzz run means something.
 - `tests/fuzz/lasting.test.ts` - The fuzz suite and the lasting effects, modifiers (#89) and triggers (#90): the fuzz cards make them, and the checks catch what they should.
+- `tests/fuzz/markerChecks.ts` - The fuzz checks for lasting markers and `has` conditions (R4a): a lasting marker is never lost, moved or duplicated, and every `has` reads the game so far. Exports: checkMarkers, checkHasBranches.
+- `tests/fuzz/markers.test.ts` - The fuzz suite and the lasting markers and `has` conditions of R4a (#142): the fuzz cards set and test them, the games take both branches, and the checks catch…
+- `tests/fuzz/markers.ts` - TEST-ONLY FIXTURES, never game content: the lasting markers (R4a) the fuzz cards set, and the `has` conditions that test them. Exports: LASTING_LABELS, HAS_BRANCH, REACTION_BRANCH, Branch, lastingMarker, branchLabel, hasStep, branchOf, isLasting.
 - `tests/fuzz/neutral.test.ts` - Neutral events in the fuzz games (#117): neutral cards draw from the deck of the side that picked or played them, in their events and in the reactions they set…
 - `tests/fuzz/order.test.ts`
 - `tests/fuzz/order.ts` - Compare function for sorting strings in UTF-16 code-unit order: the same order as a sort with no compare function, written out so the order is explicit. Exports: byCodeUnit.

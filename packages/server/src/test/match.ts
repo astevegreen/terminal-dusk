@@ -33,10 +33,10 @@ export const ruleset: Ruleset = {
   cards: [...LIO, ...SAE, "n1", "n2", ...DECK, ...LATE_ERA_CARDS].map(card),
 };
 
-/** A two-turn match, one play per turn, between alice (LIO) and bob (SAE), with one era entering on turn 2. */
-const makeConfig = (): MatchConfig => ({
-  matchId: MATCH,
-  players: { lio: "alice", sae: "bob" },
+/** A two-turn match, one play per turn, between the given players, with one era entering on turn 2. */
+const makeConfig = (matchId: string, players: MatchConfig["players"]): MatchConfig => ({
+  matchId,
+  players,
   setup: {
     hands: { lio: [...LIO, "n1"], sae: [...SAE, "n2"] },
     deck: [...DECK],
@@ -48,9 +48,9 @@ const makeConfig = (): MatchConfig => ({
   },
 });
 
-/** A match just made by hostCreate. */
-export function created(): HostResult {
-  const r = hostCreate(ruleset, makeConfig(), SEED, NOW);
+/** A match just made by hostCreate: by default "match-1" between alice and bob. */
+export function created(matchId = MATCH, players: MatchConfig["players"] = { lio: "alice", sae: "bob" }): HostResult {
+  const r = hostCreate(ruleset, makeConfig(matchId, players), SEED, NOW);
   if (!r.ok) throw new Error(`hostCreate failed: ${r.error.code}`);
   return r.value;
 }

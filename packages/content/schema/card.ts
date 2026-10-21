@@ -27,6 +27,8 @@ const condition = z.discriminatedUnion("op", [
   z.strictObject({ op: z.enum(["atLeast", "atMost", "equals"]), var: name, value: z.int() }),
   // True once some card has set a lasting marker with this label (the engine checks one can).
   z.strictObject({ op: z.literal("has"), marker: name }),
+  // True when the side that picked or played the card is `side`: LIO or SAE, never "both" or "player".
+  z.strictObject({ op: z.literal("playedBy"), side }),
 ]);
 
 /** A marker: a plain one says so in the game log; a lasting one (`lasting: true`) also stays, and needs a label. */
