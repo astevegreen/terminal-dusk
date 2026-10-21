@@ -24,9 +24,31 @@
       },
       "then": [
         {
-          "op": "spendPoints",
-          "side": "lio",
-          "amount": 2
+          "op": "drawContingency",
+          "side": "player",
+          "bind": "d"
+        },
+        {
+          "op": "if",
+          "cond": {
+            "op": "atLeast",
+            "var": "d",
+            "value": 3
+          },
+          "then": [
+            {
+              "op": "spendPoints",
+              "side": "lio",
+              "amount": 2
+            }
+          ],
+          "else": [
+            {
+              "op": "spendPoints",
+              "side": "lio",
+              "amount": 1
+            }
+          ]
         },
         {
           "op": "trigger",
@@ -54,7 +76,7 @@
   ],
   "text": {
     "name": "Sovereign Wealth Funds",
-    "rules": "Record \"petro-dollars\". LIO chooses: Let them buy in? If yes, LIO spends 2 points, then at the end of this turn, SAE spends 1 point; if no, LIO spends 1 point.",
+    "rules": "Record \"petro-dollars\". LIO chooses: Let them buy in? If yes, draw from the Contingency deck of the side that played this card, then if the result is 3 or more, LIO spends 2 points; otherwise, LIO spends 1 point; either way, at the end of this turn, SAE spends 1 point. If no, LIO spends 1 point.",
     "history": "As the credit crisis spread in late 2007, state funds bought stakes in Western banks, including Abu Dhabi's $7.5 billion investment in Citigroup in November 2007 and China Investment Corporation's purchase of a Morgan Stanley stake in December 2007.",
     "art": "art/e2-neu-008"
   }

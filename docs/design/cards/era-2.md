@@ -180,8 +180,8 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 ### e2-neu-001 · China Joins the WTO · neutral · Ops 3 · Split (LIO)
 
 - **Event:** The world's factory enters the trade club.
-- **Design:** Both prosper, SAE more (LIO 1, SAE 2); LIO may grant permanent normal trade (LIO 1 and SAE 1 more).
-- **Playable:** `marker "open trade"; spend lio 1; spend sae 2; ask lio "Grant permanent normal trade?" -> v; if yes v { spend lio 1; spend sae 1 }`
+- **Design:** Both prosper, SAE more (LIO 1, SAE 2); LIO may grant permanent normal trade. Granting it draws from the deck of the side that played the card (owner, 21 Oct, R9 option B): on 3 or more, LIO 1 and SAE 1 more; otherwise SAE 1 more only.
+- **Playable:** `marker "open trade"; spend lio 1; spend sae 2; ask lio "Grant permanent normal trade?" -> v; if yes v { draw player -> d; if d >= 3 { spend lio 1; spend sae 1 } else { spend sae 1 } }`
 - **History:** China became the 143rd member of the World Trade Organization on 11 December 2001.
 - **Theme:** supply chains, finance · **Notion:** update `3fceb012942f8194ae10d6d2f767788b`
 
@@ -196,9 +196,9 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 ### e2-neu-003 · SARS · neutral · Ops 1 · Split (both)
 
 - **Event:** A new virus spreads from Guangdong while officials stay quiet.
-- **Design:** Each side: report openly (that side 1) or hide it (+1 Ops now, the rival 1 at turn end when it leaks).
-- **Rules note:** if both hide it, each turn-end spend counts 2, because the spender's own +1 is still in force; the rules text says so (owner: keep it at 2, question 35).
-- **Playable:** `marker "outbreak"; ask both "Report cases openly?" -> v; if yes v[lio] { spend lio 1 } else { mod lio +1 (turn); on turnEnd { spend sae 1 } }; if yes v[sae] { spend sae 1 } else { mod sae +1 (turn); on turnEnd { spend lio 1 } }`
+- **Design:** Each side: report openly (that side 1) or hide it (+1 Ops now). Then one draw for each side that hid it, LIO's first, each from the deck of the side that played the card (owner, 21 Oct, R9 option B): on 3 or more it leaks, the rival 1 at turn end; otherwise it stays hidden, no leak point.
+- **Rules note:** if both hide it, each leak point that happens counts 2, because the spender's own +1 is still in force; the rules text says so (owner: keep it at 2, question 35).
+- **Playable:** `marker "outbreak"; ask both "Report cases openly?" -> v; if yes v[lio] { spend lio 1 } else { mod lio +1 (turn); draw player -> dLio; if dLio >= 3 { on turnEnd { spend sae 1 } } }; if yes v[sae] { spend sae 1 } else { mod sae +1 (turn); draw player -> dSae; if dSae >= 3 { on turnEnd { spend lio 1 } } }`
 - **History:** SARS emerged in Guangdong, China, in November 2002; by the time the WHO declared it contained on 5 July 2003, 8,098 cases and 774 deaths had been recorded.
 - **Theme:** pandemics · **Notion:** create
 
@@ -213,8 +213,8 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 ### e2-neu-005 · Oil at $147 · neutral · Ops 2 · Split (SAE)
 
 - **Event:** Crude breaks $100, then $147, then collapses.
-- **Design:** SAE (the producers) chooses: pump more (SAE 1, LIO 1) or ride the spike (SAE 2 but -1 Ops as the economy overheats).
-- **Playable:** `marker "oil spike"; ask sae "Open the taps?" -> v; if yes v { spend sae 1; spend lio 1 } else { spend sae 2; mod sae -1 min 1 (turn) }`
+- **Design:** SAE (the producers) chooses: pump more (SAE 1, LIO 1) or ride the spike. Riding it draws from the deck of the side that played the card (owner, 21 Oct, R9 option B): on 3 or more, SAE 2 but -1 Ops as the economy overheats; otherwise the price collapses: SAE -1 Ops only.
+- **Playable:** `marker "oil spike"; ask sae "Open the taps?" -> v; if yes v { spend sae 1; spend lio 1 } else { draw player -> d; if d >= 3 { spend sae 2; mod sae -1 min 1 (turn) } else { mod sae -1 min 1 (turn) } }`
 - **History:** Crude oil first traded above $100 a barrel on 2 January 2008 and peaked near $147 on 11 July 2008 before collapsing with the financial crisis.
 - **Theme:** energy · **Notion:** create
 
@@ -237,8 +237,8 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 ### e2-neu-008 · Sovereign Wealth Funds · neutral · Ops 2 · Split (LIO)
 
 - **Event:** Gulf and Chinese state funds buy into wobbling Western banks.
-- **Design:** LIO may take the money (LIO 2 now, SAE 1 at turn end as leverage) or refuse it (LIO 1).
-- **Playable:** `marker "petro-dollars"; ask lio "Let them buy in?" -> v; if yes v { spend lio 2; on turnEnd { spend sae 1 } } else { spend lio 1 }`
+- **Design:** LIO may take the money or refuse it (LIO 1). Taking it draws from the deck of the side that played the card (owner, 21 Oct, R9 option B): on 3 or more, LIO 2 now and SAE 1 at turn end as leverage; otherwise the stakes sour: LIO 1 now and SAE 1 at turn end.
+- **Playable:** `marker "petro-dollars"; ask lio "Let them buy in?" -> v; if yes v { draw player -> d; if d >= 3 { spend lio 2 } else { spend lio 1 }; on turnEnd { spend sae 1 } } else { spend lio 1 }`
 - **History:** As the credit crisis spread in late 2007, state funds bought stakes in Western banks, including Abu Dhabi's $7.5 billion investment in Citigroup in November 2007 and China Investment Corporation's purchase of a Morgan Stanley stake in December 2007.
 - **Theme:** sanctions and finance · **Notion:** create
 
