@@ -18,6 +18,8 @@ import type {
 import { FUZZ_CARDS, MAX_ERA_CARDS, MAX_EXTRA, MAX_PILE, MAX_PLAYS, MAX_TURNS, ruleset } from "./cards.ts";
 import { attempt, checkStep, checkVerify, firstDifference } from "./checks.ts";
 import { deepFreeze } from "./deepFreeze.ts";
+import { checkPlayedBy, notePlay } from "./playedBy.ts";
+import type { PlayRecord } from "./playedBy.ts";
 import { checkPlayerDraws, notePlayer } from "./playerDraws.ts";
 import { seededRng } from "./random.ts";
 import type { Rng } from "./random.ts";
@@ -190,11 +192,13 @@ export function easyChooser(rules: Ruleset, side: Side, rng: Rng): Chooser {
  * Plays a game from `setup` and `seed`, answering with `choose` until the game ends. Checks invariants 1, 3,
  * 4 and 5 on the state from createGame and after every answer, then invariant 6 at the end. A game that
  * reached its end is also checked with verifyGame. Each step's announced draws from the player's deck must use
- * the deck of the side that last picked or played their card (playerDraws.ts).
+ * the deck of the side that last picked or played their card (playerDraws.ts), and each announced playedBy test
+ * must take exactly one branch, the one matching that side (playedBy.ts).
  */
 export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed, choose: Chooser): Played {
   const record: GameRecord = { setup: deepFreeze(setup), seed, answers: [] };
   const players = new Map<CardId, Side>();
+  const plays = new Map<CardId, PlayRecord>();
   try {
     let { state, events } = started(rules, setup, seed);
     const allEvents = [...events];
@@ -205,11 +209,13 @@ export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed
       if (answer === null) break;
       record.answers.push(deepFreeze(answer));
       notePlayer(players, answer);
+      notePlay(plays, rules, answer);
       const before = state.public.markers;
       ({ state, events } = answered(rules, state, answer));
       allEvents.push(...events);
       checkStep(rules, setup, state, events, seed, { before, allEvents });
       checkPlayerDraws(events, players);
+      checkPlayedBy(events, plays);
     }
     checkReplay(rules, record, state);
     // A recorded game may stop early; verifyGame only accepts a game that reached its end.
