@@ -41,6 +41,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e/replay.e2e.ts`
 - `packages/app/e2e/testMode.e2e.ts`
 - `packages/app/e2e/vsAi.e2e.ts`
+- `packages/app/e2e/vsAiReplay.e2e.ts`
 - `packages/app/index.html`
 - `packages/app/package.json`
 - `packages/app/playwright.config.ts` - Playwright smoke tests (`pnpm test:e2e`), kept apart from Vitest: their files end in .e2e.ts. Exports: default.
