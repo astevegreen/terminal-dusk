@@ -51,7 +51,7 @@ export function dealGame(rules: Ruleset, name: string, seed: number, turns: numb
     playsPerTurn: 1,
     // The smallest hand size: the dealt hands never drop below it, so these games draw no cards.
     handSize: 2,
-    contingency: { lio: [1, 2, 3, 3, 5], sae: [2, 4, 4, 6] },
+    contingency: { lio: [1, 2, 3, 3, 5], sae: [2, 4, 4, 6], world: [1, 1, 7, 8] },
   };
   const made = createGame(rules, setup, `${name}-${seed}`);
   if (!made.ok) throw new Error(`createGame refused: ${made.error.code}`);

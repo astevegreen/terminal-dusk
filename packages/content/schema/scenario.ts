@@ -10,7 +10,7 @@ const name = z.string().min(1);
 /** A later era: its name, the turn it enters on, and the cards it shuffles into the draw pile. */
 const eraEntry = z.strictObject({ era: name, turn: z.number(), cards: z.array(name).min(1) });
 
-/** One side's Contingency deck: at least 3 cards, each a whole number, 1 or more. */
+/** One Contingency deck (a side's or the World deck): at least 3 cards, each a whole number, 1 or more. */
 const deck = z.array(z.int().min(1)).min(3);
 
 /** Checks the eras against the scenario's length: each turn in range and unused, each card listed once. */
@@ -65,7 +65,9 @@ export const scenarioSchema = z
     playsPerTurn: z.int().min(1),
     handSize: z.int().min(1),
     eras: z.array(eraEntry).exactOptional(),
-    contingency: z.strictObject({ lio: deck.exactOptional(), sae: deck.exactOptional() }).exactOptional(),
+    contingency: z
+      .strictObject({ lio: deck.exactOptional(), sae: deck.exactOptional(), world: deck.exactOptional() })
+      .exactOptional(),
   })
   .superRefine(checkEras)
   .superRefine(checkHandSize);

@@ -14,13 +14,21 @@ const withEras: Scenario = {
 };
 
 describe("scenarioSetup", () => {
-  it("gives both sides 1 to 6 when the scenario names no contingency", () => {
+  it("gives both sides and the World deck 1 to 6 when the scenario names no contingency", () => {
     expect(DEFAULT_CONTINGENCY).toEqual([1, 2, 3, 4, 5, 6]);
-    expect(scenarioSetup(base).contingency).toEqual({ lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6] });
+    expect(scenarioSetup(base).contingency).toEqual({
+      lio: [1, 2, 3, 4, 5, 6],
+      sae: [1, 2, 3, 4, 5, 6],
+      world: [1, 2, 3, 4, 5, 6],
+    });
   });
-  it("keeps a side's own list and defaults the other", () => {
+  it("keeps a side's own list and defaults the other and the World deck", () => {
     const got = scenarioSetup({ ...base, contingency: { lio: [2, 3, 3] } });
-    expect(got.contingency).toEqual({ lio: [2, 3, 3], sae: [1, 2, 3, 4, 5, 6] });
+    expect(got.contingency).toEqual({ lio: [2, 3, 3], sae: [1, 2, 3, 4, 5, 6], world: [1, 2, 3, 4, 5, 6] });
+  });
+  it("keeps the World deck's own list and defaults both sides", () => {
+    const got = scenarioSetup({ ...base, contingency: { world: [4, 4, 9] } });
+    expect(got.contingency).toEqual({ lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6], world: [4, 4, 9] });
   });
   it("copies turns, playsPerTurn and handSize", () => {
     expect(scenarioSetup(base)).toMatchObject({ turns: 3, playsPerTurn: 1, handSize: 2 });
@@ -33,10 +41,11 @@ describe("scenarioSetup", () => {
     expect(scenarioSetup(withEras).eras).toEqual(withEras.eras);
   });
   it("holds fresh arrays: changing the result never changes the scenario or the default", () => {
-    const scenario: Scenario = { ...withEras, contingency: { lio: [2, 3, 4], sae: [4, 5, 6] } };
+    const scenario: Scenario = { ...withEras, contingency: { lio: [2, 3, 4], sae: [4, 5, 6], world: [1, 1, 2] } };
     const before = JSON.parse(JSON.stringify(scenario)) as Scenario;
     const got = scenarioSetup(scenario);
-    const lists = [got.contingency.lio, got.contingency.sae, got.eras!, ...got.eras!.map((e) => e.cards)];
+    const { lio, sae, world } = got.contingency;
+    const lists = [lio, sae, world, got.eras!, ...got.eras!.map((e) => e.cards)];
     for (const list of lists) {
       (list as unknown[]).push("extra");
       (list as unknown[])[0] = "changed";
@@ -45,8 +54,10 @@ describe("scenarioSetup", () => {
     const defaults = scenarioSetup(base);
     defaults.contingency.lio.push(7);
     defaults.contingency.sae[0] = 9;
+    defaults.contingency.world.push(8);
     expect(DEFAULT_CONTINGENCY).toEqual([1, 2, 3, 4, 5, 6]);
     expect(scenarioSetup(base).contingency.lio).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(scenarioSetup(base).contingency.world).toEqual([1, 2, 3, 4, 5, 6]);
   });
   it("combined with hands and a draw pile from a test ruleset, createGame accepts it", () => {
     const card = (id: string, era: string, affiliation: CardDef["affiliation"] = "neutral"): CardDef => ({

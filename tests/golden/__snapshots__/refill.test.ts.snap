@@ -312,45 +312,7 @@ exports[`golden replay: refilling hands > deals, refills and reshuffles exactly 
       "discard": [
         "l4",
         "l5",
-      ],
-      "events": [],
-      "turn": 3,
-    },
-    {
-      "counts": {
-        "deck": 4,
-        "hands": {
-          "lio": 1,
-          "sae": 2,
-        },
-      },
-      "discard": [
-        "l4",
-        "l5",
-        "s3",
-      ],
-      "events": [
-        {
-          "amount": 1,
-          "kind": "pointsSpent",
-          "side": "lio",
-          "visibility": "public",
-        },
-      ],
-      "turn": 3,
-    },
-    {
-      "counts": {
-        "deck": 4,
-        "hands": {
-          "lio": 1,
-          "sae": 1,
-        },
-      },
-      "discard": [
-        "l4",
-        "l5",
-        "s3",
+        "l1",
       ],
       "events": [],
       "turn": 3,
@@ -366,7 +328,23 @@ exports[`golden replay: refilling hands > deals, refills and reshuffles exactly 
       "discard": [
         "l4",
         "l5",
-        "s3",
+        "l1",
+      ],
+      "events": [],
+      "turn": 3,
+    },
+    {
+      "counts": {
+        "deck": 4,
+        "hands": {
+          "lio": 1,
+          "sae": 1,
+        },
+      },
+      "discard": [
+        "l4",
+        "l5",
+        "l1",
         "l3",
       ],
       "events": [

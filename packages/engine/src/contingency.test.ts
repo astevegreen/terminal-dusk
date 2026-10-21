@@ -1,11 +1,13 @@
-// Contingency decks in the game state (#64): the setup's checks, the shuffle, and who sees what.
+// Contingency decks in the game state (#64, #131): the setup's checks, the shuffle, and who sees what.
 import { describe, expect, it } from "vitest";
 import { createGame, hiddenPart, reconstruct, seedHash, SIDES, viewFor } from "./index.ts";
 import type { GameState, Setup } from "./index.ts";
 import { seedRng, shuffle } from "./rng.ts";
 import { makeSetup, ruleset } from "./test/game.ts";
 
-const withDecks = (lio: unknown, sae: unknown): Setup => ({ ...makeSetup(), contingency: { lio, sae } }) as Setup;
+const ONE_TO_SIX = [1, 2, 3, 4, 5, 6];
+const withDecks = (lio: unknown, sae: unknown, world: unknown = ONE_TO_SIX): Setup =>
+  ({ ...makeSetup(), contingency: { lio, sae, world } }) as Setup;
 const build = (setup: Setup = makeSetup(), seed = "seed-1"): GameState => {
   const r = createGame(ruleset, { ...setup, seedHash: seedHash(seed) }, seed);
   if (!r.ok) throw new Error(`createGame failed: ${r.error.code}`);
@@ -27,8 +29,15 @@ describe("the setup's Contingency decks", () => {
     invalid({ ...makeSetup(), contingency: [1, 2] } as unknown as Setup);
   });
   it("a missing side's deck returns invalidSetup", () => {
-    invalid({ ...makeSetup(), contingency: { lio: [1, 2, 3] } } as unknown as Setup);
-    invalid({ ...makeSetup(), contingency: { sae: [1, 2, 3] } } as unknown as Setup);
+    invalid({ ...makeSetup(), contingency: { lio: [1, 2, 3], world: [1, 2, 3] } } as unknown as Setup);
+    invalid({ ...makeSetup(), contingency: { sae: [1, 2, 3], world: [1, 2, 3] } } as unknown as Setup);
+  });
+  it("the engine's Setup requires the World deck's cards: a missing World deck returns invalidSetup", () => {
+    invalid({ ...makeSetup(), contingency: { lio: [1, 2, 3], sae: [1, 2, 3] } } as unknown as Setup);
+  });
+  it("the World deck gets the same checks as a side deck: at least 3 whole numbers, each 1 or more", () => {
+    for (const bad of ["1,2,3", [], [1, 2], [1, 2, 0], [1, 2, 1.5], [1, 2, "3"]])
+      invalid(withDecks([1, 2, 3], [1, 2, 3], bad));
   });
   it("a side's deck that is not a list returns invalidSetup", () => {
     invalid(withDecks("1,2,3", [1, 2, 3]));
@@ -47,9 +56,10 @@ describe("the setup's Contingency decks", () => {
     }
   });
   it("accepts a 3-card deck and a deck that repeats a number", () => {
-    expect(build(withDecks([1, 2, 3], [2, 2, 5])).public.contingency).toEqual({
+    expect(build(withDecks([1, 2, 3], [2, 2, 5], [4, 4, 1])).public.contingency).toEqual({
       lio: { cards: [1, 2, 3], left: [1, 2, 3] },
       sae: { cards: [2, 2, 5], left: [2, 2, 5] },
+      world: { cards: [1, 4, 4], left: [1, 4, 4] },
     });
   });
 });
@@ -65,19 +75,25 @@ describe("the Contingency decks at the start of the game", () => {
     expect([...s.secret.contingency.lio].sort((a, b) => a - b)).toEqual([2, 2, 9, 10]);
     expect([...s.secret.contingency.sae].sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5, 6]);
   });
-  it("shuffles the draw pile first, then LIO's deck sorted, then SAE's deck sorted, all from one generator", () => {
-    const setup = withDecks([10, 2, 9, 2], [6, 5, 4, 3, 2, 1]);
+  it("shuffles the draw pile first, then LIO's deck sorted, then SAE's deck sorted, then the World deck sorted, all from one generator", () => {
+    const setup = withDecks([10, 2, 9, 2], [6, 5, 4, 3, 2, 1], [8, 3, 5]);
     const s = build(setup);
     const pile = shuffle(seedRng("seed-1"), setup.deck);
     const lio = shuffle(pile.state, [2, 2, 9, 10]);
     const sae = shuffle(lio.state, [1, 2, 3, 4, 5, 6]);
+    const world = shuffle(sae.state, [3, 5, 8]);
     expect(s.secret.deck).toEqual(pile.items);
-    expect(s.secret.contingency).toEqual({ lio: lio.items, sae: sae.items });
-    expect(s.secret.rng).toEqual(sae.state);
+    expect(s.secret.contingency).toEqual({ lio: lio.items, sae: sae.items, world: world.items });
+    expect(s.secret.rng).toEqual(world.state);
+  });
+  it("the World deck's numbers left are public and match its secret order, like the side decks", () => {
+    const s = build(withDecks([1, 2, 3], [1, 2, 3], [9, 7, 7, 1]));
+    expect(s.public.contingency.world).toEqual({ cards: [1, 7, 7, 9], left: [1, 7, 7, 9] });
+    expect([...s.secret.contingency.world].sort((a, b) => a - b)).toEqual([1, 7, 7, 9]);
   });
   it("an unsorted deck gives the same order as the same deck sorted, for the same seed", () => {
-    const unsorted = build(withDecks([10, 2, 9, 2], [6, 1, 5, 2, 4, 3]));
-    const sorted = build(withDecks([2, 2, 9, 10], [1, 2, 3, 4, 5, 6]));
+    const unsorted = build(withDecks([10, 2, 9, 2], [6, 1, 5, 2, 4, 3], [6, 1, 5, 2, 4, 3]));
+    const sorted = build(withDecks([2, 2, 9, 10], [1, 2, 3, 4, 5, 6], [1, 2, 3, 4, 5, 6]));
     expect(unsorted.secret.contingency).toEqual(sorted.secret.contingency);
   });
   it("the draw pile's order for a seed is the same as before the decks existed", () => {
@@ -111,7 +127,7 @@ describe("the Contingency decks at the start of the game", () => {
 });
 
 describe("who sees the Contingency decks", () => {
-  it("every view, for either side and a spectator, shows both decks' full contents and numbers left", () => {
+  it("every view, for either side and a spectator, shows all three decks' full contents and numbers left", () => {
     const s = build(withDecks([10, 2, 9, 2], [1, 2, 3]));
     for (const viewer of [...SIDES, "spectator"] as const) {
       expect(viewFor(s, viewer).public.contingency).toEqual(s.public.contingency);
@@ -123,6 +139,7 @@ describe("who sees the Contingency decks", () => {
       const view = viewFor(s, viewer);
       expect(Object.keys(view.public.contingency.lio).sort()).toEqual(["cards", "left"]);
       expect(Object.keys(view.public.contingency.sae).sort()).toEqual(["cards", "left"]);
+      expect(Object.keys(view.public.contingency.world).sort()).toEqual(["cards", "left"]);
       const { contingency, ...rest } = view.public;
       expect(contingency).toBeDefined();
       expect(JSON.stringify({ ...view, public: rest })).not.toContain("contingency");

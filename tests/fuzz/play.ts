@@ -101,6 +101,8 @@ export function randomGame(rng: Rng, game: number): { setup: Setup; seed: Seed }
   // Drawn last, so it leaves every other part of a game's setup as it was before hands refilled.
   const firstEra = Math.floor((lio.length + sae.length + deck.length) / 2);
   const handSize = Math.min(1 + playsPerTurn + rng.int(MAX_HAND_EXTRA + 1), firstEra);
+  // The World deck (#131) is drawn after everything else, so the rest of each game's setup stays as it was.
+  const world = randomDeck(rng);
   return {
     setup: {
       seedHash: seedHash(`fuzz-${game}`),
@@ -111,7 +113,7 @@ export function randomGame(rng: Rng, game: number): { setup: Setup; seed: Seed }
       handSize,
       ...(eras.length > 0 ? { eras } : {}),
       // The decks are drawn after the rest, so they leave every other part of a game's setup as it was before #64.
-      contingency,
+      contingency: { ...contingency, world },
     },
     seed: `fuzz-${game}`,
   };

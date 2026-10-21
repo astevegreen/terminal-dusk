@@ -52,7 +52,7 @@ export function checkPlayerDraws(events: readonly GameEvent[], players: Readonly
     const drawn = events[i + 1];
     if (drawn?.kind !== "contingencyDrawn") throw new Error(`card ${card}'s draw from the player's deck drew nothing`);
     const after = events[i + 2];
-    const sides = after?.kind === "contingencyDeckReshuffled" ? [drawn.side, after.side] : [drawn.side];
+    const sides = after?.kind === "contingencyDeckReshuffled" ? [drawn.deck, after.deck] : [drawn.deck];
     const player = players.get(card);
     if (sides.some((side) => side !== player)) {
       throw new Error(

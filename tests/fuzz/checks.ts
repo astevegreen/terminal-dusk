@@ -1,6 +1,7 @@
 // The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite").
 // Each check throws an Error saying what is wrong; play.ts adds the game's seed and answers to it.
 import {
+  DECKS,
   eventsFor,
   hiddenPart,
   legalAnswers,
@@ -14,6 +15,7 @@ import {
 import type {
   Answer,
   CardId,
+  DeckId,
   GameEvent,
   GameState,
   ModifierExpiry,
@@ -160,16 +162,19 @@ export function isSubMultiset(part: readonly number[], whole: readonly number[])
   });
 }
 
+/** A Contingency deck's name in a failure: "lio's Contingency deck", or "the World deck" (#131). */
+const deckName = (deck: DeckId): string => (deck === "world" ? "the World deck" : `${deck}'s Contingency deck`);
+
 /**
- * The Contingency decks (#64), for each side: the full contents are the setup's deck, sorted; the numbers
+ * The Contingency decks (#64), for each side and the World deck (#131): the full contents are the setup's deck, sorted; the numbers
  * left are the secret order, sorted, and a sub-multiset of the full contents; the deck holds at least 3
  * cards, so the engine never draws from fewer. The public lists are compared as they are, never re-sorted here, so a list in draw order is caught.
  */
 export function checkContingency(setup: Setup, state: GameState): void {
-  for (const side of SIDES) {
+  for (const side of DECKS) {
     const { cards, left } = state.public.contingency[side];
     const order = state.secret.contingency[side];
-    const deck = `${side}'s Contingency deck`;
+    const deck = deckName(side);
     if (!sameJson(cards, ascending(setup.contingency[side]))) {
       throw new Error(`${deck}: the full contents ${JSON.stringify(cards)} are not the setup's deck, sorted`);
     }
@@ -201,15 +206,15 @@ function contingencyFields(value: unknown, path: string): string[] {
 export function contingencyLeaksIn(view: PlayerView, state: GameState): string[] {
   const found: string[] = [];
   const { contingency, ...rest } = view.public;
-  for (const side of SIDES) {
+  for (const side of DECKS) {
     const keys = Object.keys(contingency[side]).sort(byCodeUnit);
-    if (!sameJson(keys, ["cards", "left"])) found.push(`${side}'s Contingency deck with the fields ${keys.join(", ")}`);
+    if (!sameJson(keys, ["cards", "left"])) found.push(`${deckName(side)} with the fields ${keys.join(", ")}`);
     if (contingency[side].left.length !== state.secret.contingency[side].length) {
-      found.push(`${side}'s Contingency deck with a count left that is not the secret order's`);
+      found.push(`${deckName(side)} with a count left that is not the secret order's`);
     }
   }
   const sides = Object.keys(contingency).sort(byCodeUnit);
-  if (!sameJson(sides, ["lio", "sae"])) found.push(`Contingency decks for ${sides.join(", ")}`);
+  if (!sameJson(sides, ["lio", "sae", "world"])) found.push(`Contingency decks for ${sides.join(", ")}`);
   for (const field of contingencyFields({ ...view, public: rest }, "view")) found.push(`the field ${field}`);
   return found;
 }

@@ -2,7 +2,7 @@
 // them, in their events and in the reactions they set, and the whose-deck check (playerDraws.ts) catches a
 // draw from the wrong deck.
 import { apply, createGame } from "@terminal-dusk/engine";
-import type { CardId, GameEvent, Ruleset, Side, Step } from "@terminal-dusk/engine";
+import type { CardId, DeckId, GameEvent, Ruleset, Side, Step } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { gameCount, playFuzzGame, ruleset } from "./play.ts";
 import type { GameRecord, Played } from "./play.ts";
@@ -19,8 +19,8 @@ const marked = (card: CardId, inReaction = false): GameEvent => ({
   visibility: "public",
   label: `${PLAYER_DRAW}${card}${inReaction ? ":reaction" : ""}`,
 });
-const drawn = (side: Side): GameEvent => ({ kind: "contingencyDrawn", visibility: "public", side, value: 3 });
-const reshuffled = (side: Side): GameEvent => ({ kind: "contingencyDeckReshuffled", visibility: "public", side });
+const drawn = (deck: DeckId): GameEvent => ({ kind: "contingencyDrawn", visibility: "public", deck, value: 3 });
+const reshuffled = (deck: DeckId): GameEvent => ({ kind: "contingencyDeckReshuffled", visibility: "public", deck });
 
 describe("the whose-deck check", () => {
   const players = new Map<CardId, Side>([["c3", "lio"]]);
@@ -31,6 +31,9 @@ describe("the whose-deck check", () => {
   it("fails a draw from the other side's deck", () => {
     expect(() => checkPlayerDraws([marked("c3"), drawn("sae")], players)).toThrow(/c3.*sae's deck.*lio picked/);
     expect(() => checkPlayerDraws([marked("c3", true), drawn("sae")], players)).toThrow(/c3/);
+  });
+  it("fails a neutral card's draw from the World deck, which only a rival's card draws from (#131)", () => {
+    expect(() => checkPlayerDraws([marked("c3"), drawn("world")], players)).toThrow(/c3.*world's deck.*lio picked/);
   });
   it("fails a reshuffle of the other side's deck after the right draw", () => {
     expect(() => checkPlayerDraws([marked("c3"), drawn("lio"), reshuffled("sae")], players)).toThrow(/c3/);

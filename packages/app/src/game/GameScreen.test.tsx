@@ -49,15 +49,20 @@ describe("GameScreen for a side", () => {
   it("shows the table, with the cards in play and the discard pile", () => {
     expectAll(out, ["In play: Test card 3", "Discard pile: 2 cards. Last 5, newest first: Test card 2, Test card 1"]);
   });
-  it("shows both Contingency decks with what is left and the full deck", () => {
+  it("shows all three Contingency decks, the World deck included, with what is left and the full deck", () => {
     expectAll(out, [
       "LIO: 6 left: 1, 2, 3, 4, 5, 6. Deck: 1, 2, 3, 4, 5, 6",
       "SAE: 6 left: 1, 2, 3, 4, 5, 6. Deck: 1, 2, 3, 4, 5, 6",
+      "World: 6 left: 1, 2, 3, 4, 5, 6. Deck: 1, 2, 3, 4, 5, 6",
     ]);
     const used = withPublic(lio, {
-      contingency: { ...lio.view.public.contingency, sae: { cards: [1, 2, 3], left: [2, 3] } },
+      contingency: {
+        ...lio.view.public.contingency,
+        sae: { cards: [1, 2, 3], left: [2, 3] },
+        world: { cards: [1, 2, 3, 4], left: [1, 4] },
+      },
     });
-    expect(html(used)).toContain("SAE: 2 left: 2, 3. Deck: 1, 2, 3");
+    expectAll(html(used), ["SAE: 2 left: 2, 3. Deck: 1, 2, 3", "World: 2 left: 1, 4. Deck: 1, 2, 3, 4"]);
   });
   it("shows the log newest first from an oldest-first prop", () => {
     expect(out.indexOf("<li>second</li>")).toBeGreaterThan(-1);
