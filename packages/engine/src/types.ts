@@ -23,6 +23,8 @@ export type {
 } from "./lastingTypes.ts";
 import type { CardsDiscarded, HandRevealed, HandRevealedHidden } from "./knowledgeTypes.ts";
 export type { CardsDiscarded, HandRevealed, HandRevealedHidden } from "./knowledgeTypes.ts";
+import type { EraEntry } from "./setupTypes.ts";
+export type { EraEntry, Setup } from "./setupTypes.ts";
 
 export type Side = "lio" | "sae";
 /** Both sides, in the one order the engine always loops in. */
@@ -37,8 +39,9 @@ export type RulesetId = string;
 export type Seed = string;
 
 /**
- * One card's rules (docs/architecture.md, section 4). `ops` is a whole number, 0 or more. The other
- * fields there (`flags`, `text`) arrive with the content schemas.
+ * One card's rules (docs/architecture.md, section 4). `ops` is a whole number, 0 or more. `flags`, if
+ * given: `removeAfterEvent` makes the card leave the game, for `removed`, once its event happens (turn.ts).
+ * The other field there (`text`) is the content schema's, and `scoring` arrives with scoring.
  */
 export type CardDef = {
   readonly id: CardId;
@@ -46,6 +49,7 @@ export type CardDef = {
   readonly ops: number;
   readonly affiliation: Side | "neutral";
   readonly effect: Step[];
+  readonly flags?: { readonly removeAfterEvent?: true };
 };
 
 /** Card definitions and limits. Passed into apply on every call; never copied into the state. */
@@ -283,12 +287,18 @@ export type PublicState = {
   playsMade: number;
   /**
    * Cards whose effects have not finished: the revealed opening cards, in resolution order, or the
-   * card being played. A card goes to the discard pile once everything it triggered has finished.
+   * card being played. A card goes to the discard pile, or `removed`, once everything it triggered has finished.
    */
   inPlay: CardId[];
-  /** Who picked or played each card in `inPlay`, in the same order; null for a card played for points only. */
+  /**
+   * Who picked or played each card in `inPlay`, in the same order, when its event runs (a rival's card played
+   * for its points included); null for a card played for points with no event. So it tells whether a
+   * removeAfterEvent card leaves the game.
+   */
   inPlayBy: (Side | null)[];
   discard: CardId[];
+  /** Cards that left the game for good, in the order they left: removeAfterEvent cards whose event happened. */
+  removed: CardId[];
   /** Open decisions, in SIDES order. */
   pending: Decision[];
   /** The resolution stack, bottom first. A paused program waits on the top frame's `choose`. */
@@ -313,11 +323,6 @@ export type UnrevealedPick = { group: string; decisionId: string; value: AnswerV
  */
 export type PrivateState = { hand: CardId[]; picks: UnrevealedPick[]; knowledge: CardId[] };
 /**
- * An era after the first: its cards, in the setup's order, and the turn at whose start they are
- * shuffled into the draw pile (eras.ts).
- */
-export type EraEntry = { era: EraId; turn: number; cards: CardId[] };
-/**
  * Visible to the host only. `eras`: the eras still to enter, in the setup's order. `contingency`: the
  * order of the cards left in each Contingency deck, top card first.
  */
@@ -332,22 +337,3 @@ export type GameState = {
 };
 
 export type { HiddenCounts, HiddenPart, OmniscientView, PlayerView, PublicMeta } from "./viewTypes.ts";
-
-export type Setup = {
-  seedHash: string;
-  hands: Record<Side, CardId[]>;
-  deck: CardId[];
-  /** How many turns the game lasts: a whole number, 1 or more. */
-  turns: number;
-  /** How many plays each side makes per turn, after the opening cards: a whole number, 1 or more. */
-  playsPerTurn: number;
-  /**
-   * How many cards each hand is refilled to at the start of each turn, from the draw pile: a whole number,
-   * at least 1 + playsPerTurn. The first era (hands and deck) must hold at least twice as many cards.
-   */
-  handSize: number;
-  /** The eras after the first, each entering on its own turn, from 2 to the last. None when left out. */
-  eras?: EraEntry[];
-  /** Each side's Contingency deck and the World deck: whole numbers, 1 or more, at least 3 cards, any order. */
-  contingency: Record<DeckId, number[]>;
-};

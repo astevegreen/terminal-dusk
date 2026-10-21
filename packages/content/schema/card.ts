@@ -183,7 +183,17 @@ function misplacedDraws(
   });
 }
 
-/** One card file. `flags` are not allowed yet: they arrive with the rules that use them. */
+/**
+ * A card's flags. The one flag so far: `removeAfterEvent: true`, the card leaves the game once its event
+ * happens. Left out for a card that stays; `scoring` arrives with scoring.
+ */
+const flags = z.strictObject({
+  removeAfterEvent: z
+    .literal(true, { error: "removeAfterEvent can only be true; leave it out for a card that stays." })
+    .exactOptional(),
+});
+
+/** One card file. */
 export const cardSchema = z
   .strictObject({
     id: name,
@@ -192,6 +202,7 @@ export const cardSchema = z
     affiliation: z.enum(["lio", "sae", "neutral"]),
     effect: block,
     text,
+    flags: flags.exactOptional(),
   })
   .check((ctx) => {
     for (const { path, message } of misplacedDraws(ctx.value.effect, ctx.value.affiliation, ["effect"])) {
