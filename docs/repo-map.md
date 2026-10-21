@@ -446,6 +446,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/submit.storage.test.ts`
 - `packages/server/src/submit.test.ts`
 - `packages/server/src/submit.ts` - The server's single write path (docs/architecture.md, Decision 5): load the match, run the host, and save the result only if nobody moved the match on first. Exports: SubmitDeps, SubmitRequest, ServerErrorCode, SubmitError, SubmitOutcome, submit.
+- `packages/server/src/supabaseInviteStore.test.ts` - SupabaseInviteStore against a stand-in client, so these run without the local stack.
+- `packages/server/src/supabaseInviteStore.ts` - The Supabase side of the invite port (docs/architecture.md, Decision 5). Exports: InviteRow, InviteStorageError, inviteRowFor, inviteFromRow, SupabaseInviteStore.
 - `packages/server/src/supabaseStore.games.stack.test.ts` - Whole games played through `submit` with a SupabaseStore on the local Supabase stack.
 - `packages/server/src/supabaseStore.guards.stack.test.ts` - SupabaseStore's guards on the local Supabase stack: the seq check in the commit_match SQL function, unknown matches, a missing secret row and database errors,…
 - `packages/server/src/supabaseStore.test.ts` - SupabaseStore against a stand-in client, so these run without the local stack.
@@ -462,6 +464,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/supabase/config.toml` - Local Supabase stack for development and tests only (docs/sprint.md, lane "online").
 - `packages/server/supabase/migrations/20261020000000_match_tables.sql` - The match tables and who may read them (docs/architecture.md, Decision 5).
 - `packages/server/supabase/migrations/20261021000000_commit_match.sql` - The one write of a submit (docs/architecture.md, Decision 5): one transaction, guarded by `where seq = expectedSeq`.
+- `packages/server/supabase/migrations/20261022000000_match_invite.sql` - Private game invites (docs/architecture.md, Decision 5).
 - `packages/server/tsconfig.json`
 
 ## tests
