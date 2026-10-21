@@ -1,59 +1,37 @@
 // Whole games played through `submit` with a SupabaseStore on the local Supabase stack. After every step,
 // `load` gives back what was committed and the readable rows are exactly O2's rows for that step.
 // Without a running local stack, one test says so and how to start it.
-import type { SupabaseClient } from "@supabase/supabase-js";
 import type { MatchRecord } from "@terminal-dusk/host";
-import { afterAll, beforeAll, expect, it } from "vitest";
-import { client } from "./migrations/localStack.ts";
+import { expect, it } from "vitest";
 import { rowsFor } from "./rows.ts";
 import type { MatchEventRow } from "./rows.ts";
 import type { MatchWrite } from "./store.ts";
 import { submit } from "./submit.ts";
 import { SupabaseStore } from "./supabaseStore.ts";
 import { bodyFor, nextSide, NOW, ruleset, SEED } from "./test/match.ts";
-import { cleanUp, makeUser, newGame, onLocalStack, putIn, storedRows, writeOf } from "./test/stack.ts";
-import type { TestUser } from "./test/stack.ts";
+import { onLocalStack, writeOf } from "./test/stack.ts";
+import { expectStoredAs, stackGame } from "./test/stackGame.ts";
 import { recording } from "./test/stores.ts";
 
 const STEP_TIMEOUT = 120_000;
 
 await onLocalStack("SupabaseStore on the local Supabase stack: whole games", (keys) => {
-  let service: SupabaseClient;
-  const users: TestUser[] = [];
-  const matchIds: string[] = [];
+  const game = stackGame(keys);
 
-  beforeAll(async () => {
-    service = client(keys.url, keys.serviceKey);
-    users.push(await makeUser(keys, service, "lio"), await makeUser(keys, service, "sae"));
-  }, 60_000);
-
-  afterAll(async () => {
-    await cleanUp(service, matchIds, users);
-  }, 60_000);
-
-  /** Checks one step: `load` gives back the committed record and secret, and the rows are O2's rows. */
+  /** Checks one step is stored exactly, then adds its events to `events`, the events stored so far. */
   async function expectStored(write: MatchWrite, events: MatchEventRow[]): Promise<void> {
-    const matchId = write.record.matchId;
-    expect(await new SupabaseStore(service).load(matchId)).toEqual({ record: write.record, secret: write.secret });
-    const rows = rowsFor(write);
-    events.push(...rows.events);
-    const stored = await storedRows(service, matchId);
-    expect(stored.match).toEqual([rows.match]);
-    expect(stored.views).toEqual(rows.views);
-    expect(stored.events).toEqual(events);
-    expect(stored.secret).toHaveLength(1);
+    await expectStoredAs(game.service, write, events);
+    events.push(...rowsFor(write).events);
   }
 
   /** Puts in a new game, then plays it through `submit`; LIO resigns once `resignAfter` answers are made. */
   async function play(resignAfter?: number): Promise<{ record: MatchRecord; steps: number }> {
-    const start = newGame({ lio: users[0]!.id, sae: users[1]!.id });
+    const start = await game.stored();
     const matchId = start.record.matchId;
-    matchIds.push(matchId);
-    await putIn(service, writeOf(start));
     const events: MatchEventRow[] = [];
     await expectStored(writeOf(start), events);
 
-    const { store, saved } = recording(new SupabaseStore(service));
+    const { store, saved } = recording(new SupabaseStore(game.service));
     const deps = { store, ruleset: (id: string) => (id === ruleset.id ? ruleset : undefined) };
     let now = NOW;
     for (let answers = 0; ; answers++) {

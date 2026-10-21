@@ -440,6 +440,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/test/leaks.ts` - Test helper for leak checks, copying the idea of the host's test/leaks.ts. Exports: leaksIn, leaksFor.
 - `packages/server/src/test/match.ts` - Test helpers: a small ruleset and a match in an in-memory store, copying the idea of the host's tests. Exports: SEED, NOW, MATCH, ruleset, created, setup, bodyFor, nextSide.
 - `packages/server/src/test/stack.ts` - Test helpers for the SupabaseStore checks on the local Supabase stack (O3's localStack.ts finds it). Exports: onLocalStack, TestUser, makeUser, freshMatchId, newGame, writeOf, putIn, Stored, storedRows, cleanUp.
+- `packages/server/src/test/stackGame.ts` - The shared setup for the tests on the local Supabase stack: a service-role client and two fresh test users made before the tests, and every test match and user… Exports: StackGame, stackGame, answered, expectStoredAs.
 - `packages/server/src/test/stores.ts` - Test helpers that wrap any MatchStore, for the in-memory and the Supabase store alike. Exports: loadTogether, recording.
 - `packages/server/supabase/.gitignore` - Folders the Supabase CLI writes for the local stack.
 - `packages/server/supabase/config.toml` - Local Supabase stack for development and tests only (docs/sprint.md, lane "online").
