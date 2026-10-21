@@ -5,7 +5,9 @@ import type { CardDef, CardId, Condition, EngineError, Ruleset, Setup, Side, Ste
 
 /**
  * Why the ruleset's card list is unusable, or null: it must be a list, each `id` once, each `ops` a
- * whole number from 0, and no card's effect may hold a card choice (only a turn opens with one).
+ * whole number from 0, and no card's effect may hold a card choice (only a turn opens with one): a `choose`
+ * in an effect asks yes/no only. The one other way an effect asks a side to pick cards is a discardFromHand
+ * with `chosenBy`, and only to discard them.
  */
 export function rulesetError(ruleset: Ruleset): EngineError | null {
   if (!Array.isArray(ruleset?.cards)) return invalidRuleset("The ruleset needs a list of cards.");
@@ -110,7 +112,8 @@ function innerSteps(step: Step): readonly Step[] {
  * Why `step` itself (not the steps inside it) is malformed, or null: a number test's `value` and an
  * addToNumber's `amount` must be whole numbers, and an `amount` may not be 0. A modifier must use a hook,
  * side, add, min and duration the engine knows (badModifier); a trigger a hook and duration, and a
- * reaction of at least one step (badTrigger). A discardFromHand names LIO or SAE and a whole `count`, 1 or more.
+ * reaction of at least one step (badTrigger). A discardFromHand names LIO or SAE and a whole `count`, 1 or more,
+ * and a `chosenBy`, if any, of "owner" or "player".
  */
 function badStep(step: Step): string | null {
   switch (step.op) {
@@ -131,9 +134,11 @@ function badStep(step: Step): string | null {
     case "discardFromHand":
       if (step.side !== "lio" && step.side !== "sae")
         return 'discards from the hand of a side that is not "lio" or "sae".';
-      return Number.isInteger(step.count) && step.count >= 1
+      if (!Number.isInteger(step.count) || step.count < 1)
+        return "discards a number of cards that is not a whole number, 1 or more.";
+      return step.chosenBy === undefined || step.chosenBy === "owner" || step.chosenBy === "player"
         ? null
-        : "discards a number of cards that is not a whole number, 1 or more.";
+        : 'has a discard chosen by someone other than "owner" or "player" (leave chosenBy out for a random discard).';
     default:
       return null;
   }

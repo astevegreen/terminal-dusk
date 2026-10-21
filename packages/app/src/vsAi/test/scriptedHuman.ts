@@ -22,6 +22,7 @@ export async function pressFirst(session: VsAiSession): Promise<void> {
     createElement(decisionPrompts[decision.kind], {
       decision,
       hand: frame.view.mine?.hand ?? [],
+      known: frame.view.mine?.knowledge ?? [],
       label: cardName,
       stack: frame.view.public.stack,
       question: cardQuestion,

@@ -154,9 +154,10 @@ export type EventKind = GameEvent["kind"];
 /**
  * `chooseCard`: both sides secretly pick their opening card for the turn. `playCardAs`: one side plays a
  * card from its hand for its event or its points. `rivalEventOrder`: having played a rival's card for
- * its points, that side says whether the card's event happens before or after the points.
+ * its points, that side says whether the card's event happens before or after the points. `discardCards`: a
+ * side picks the cards a discardFromHand step discards, from its own hand or the rival's (discardChoice.ts).
  */
-export type DecisionKind = "yesNo" | "chooseCard" | "playCardAs" | "rivalEventOrder";
+export type DecisionKind = "yesNo" | "chooseCard" | "playCardAs" | "rivalEventOrder" | "discardCards";
 /** What a played card is used for: its event, or its action points. */
 export type PlayUse = "event" | "points";
 /** The uses a play allows, by whose card it is: the player's own, the rival's, or neutral. */
@@ -164,9 +165,14 @@ export type PlayUses = { own: PlayUse[]; rival: PlayUse[]; neutral: PlayUse[] };
 /**
  * Declarative description of what is legal. Never lists hidden data such as card IDs from a hand. A
  * yes/no or a rivalEventOrder has none; the opening pick says "any card from your hand", neutral ones
- * too; a play says "a card from your hand" and the uses each kind of card allows.
+ * too; a play says "a card from your hand" and the uses each kind of card allows; a discard pick says whose
+ * hand, the picker's own or the rival's, and how many cards.
  */
-export type DecisionOptions = Record<string, never> | { from: "hand" } | { from: "hand"; uses: PlayUses };
+export type DecisionOptions =
+  | Record<string, never>
+  | { from: "hand" }
+  | { from: "hand"; uses: PlayUses }
+  | { from: "hand" | "rivalHand"; count: number };
 export type Decision = {
   /** Unique within the game; answers quote it. */
   id: string;
@@ -185,7 +191,8 @@ export type AnswerValue =
   | { kind: "yesNo"; yes: boolean }
   | { kind: "chooseCard"; card: CardId }
   | { kind: "playCardAs"; card: CardId; as: PlayUse }
-  | { kind: "rivalEventOrder"; event: "before" | "after" };
+  | { kind: "rivalEventOrder"; event: "before" | "after" }
+  | { kind: "discardCards"; cards: CardId[] };
 export type Answer =
   { decisionId: string; side: Side; value: AnswerValue } | { system: "timeout" | "resign" | "adjudicate"; side: Side };
 
@@ -214,7 +221,8 @@ export type Condition =
 /**
  * One step of an effect program (docs/architecture.md, section 4). More kinds arrive with later tasks.
  * A card choice is only ever both sides at once: the turn's opening pick (turn.ts). Card effects may
- * not hold one (cardChecks.ts). `spendPoints` is how a play for points spends them (turn.ts):
+ * not hold one (cardChecks.ts): a `choose` in an effect asks yes/no only, and the one other way an effect
+ * asks a side to pick cards is a `discardFromHand` with `chosenBy`, to discard them. `spendPoints` is how a play for points spends them (turn.ts):
  * TEMPORARY until the actions are designed, it only emits a pointsSpent event. `drawContingency`
  * draws from `side`'s Contingency deck (an LIO or SAE card may name either deck) and
  * binds the number to `bind`, if given. `side` "player" is the side that played the card: a neutral
@@ -227,7 +235,8 @@ export type Condition =
  * only when its `filter`, if given, holds then, and at most once with `once` (cardPlayed only).
  * A `marker` with `lasting: true` also keeps its label in `markers` (PublicState) until the game ends.
  * `revealHand` shows `side`'s whole hand to the other side, which keeps it in its knowledge (knowledge.ts).
- * `discardFromHand` makes `side` discard `count` (1 or more) cards from its hand, at random (discard.ts).
+ * `discardFromHand` makes `side` discard `count` (1 or more) cards from its hand, at random (discard.ts), or
+ * picked by `chosenBy`: the hand's "owner" or the card's "player", after seeing the hand (discardChoice.ts).
  */
 export type Step =
   | { op: "choose"; who: Side | "both"; decision: { kind: "yesNo" }; bind: VarName }
@@ -241,7 +250,7 @@ export type Step =
   | { op: "modifier"; mod: ModifierSpec; duration: Duration }
   | { op: "trigger"; hook: HookId; filter?: TriggerFilter; once?: true; do: Step[]; duration: Duration }
   | { op: "revealHand"; side: Side }
-  | { op: "discardFromHand"; side: Side; count: number };
+  | { op: "discardFromHand"; side: Side; count: number; chosenBy?: "owner" | "player" };
 
 export type Binding = { name: VarName; value: VarValue };
 /** The block a frame runs, the index of its next step, and the variables bound in it, in binding order. */
