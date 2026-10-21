@@ -22,13 +22,16 @@ const choose = z.strictObject({
   }),
   bind: name,
 });
+// True once some card has set a lasting marker with this label (the engine checks one can).
+const has = z.strictObject({ op: z.literal("has"), marker: name });
+// True when the side that picked or played the card is `side`: LIO or SAE, never "both" or "player".
+// In a trigger's filter, the side that made the play that fired the hook.
+const playedBy = z.strictObject({ op: z.literal("playedBy"), side });
 const condition = z.discriminatedUnion("op", [
   z.strictObject({ op: z.literal("yes"), var: name, side: side.exactOptional() }),
   z.strictObject({ op: z.enum(["atLeast", "atMost", "equals"]), var: name, value: z.int() }),
-  // True once some card has set a lasting marker with this label (the engine checks one can).
-  z.strictObject({ op: z.literal("has"), marker: name }),
-  // True when the side that picked or played the card is `side`: LIO or SAE, never "both" or "player".
-  z.strictObject({ op: z.literal("playedBy"), side }),
+  has,
+  playedBy,
 ]);
 
 /** A marker: a plain one says so in the game log; a lasting one (`lasting: true`) also stays, and needs a label. */
@@ -58,6 +61,29 @@ const modifierSpec = z.strictObject({
 /** How long a modifier or trigger lasts. The one duration so far: until the end of the turn it was made in. */
 const duration = z.strictObject({ kind: z.literal("turnEnd") });
 
+/**
+ * A reaction that runs each time `hook` happens until the duration ends: at least one step. Only when its
+ * `filter` (a has, or a playedBy) holds then, if given; at most once with `once: true`. No play fires the
+ * turnEnd hook, so a turnEnd trigger takes no playedBy filter, and it fires once already, so no `once`.
+ */
+const trigger = z
+  .strictObject({
+    op: z.literal("trigger"),
+    hook: z.enum(["cardPlayed", "turnEnd"]),
+    filter: z.discriminatedUnion("op", [has, playedBy]).exactOptional(),
+    once: z.literal(true).exactOptional(),
+    do: block.min(1, { error: "A trigger needs at least one step to run." }),
+    duration,
+  })
+  .refine((step) => step.hook !== "turnEnd" || step.filter?.op !== "playedBy", {
+    error: "A turnEnd trigger can't be filtered on playedBy: no play fires that hook.",
+    path: ["filter"],
+  })
+  .refine((step) => step.hook !== "turnEnd" || step.once === undefined, {
+    error: "A turnEnd trigger can't be once: it fires once already.",
+    path: ["once"],
+  });
+
 /** One step of a card's effect. Every kind of engine step but a card choice, at any depth. */
 export const stepSchema = z.discriminatedUnion("op", [
   choose,
@@ -77,13 +103,7 @@ export const stepSchema = z.discriminatedUnion("op", [
     amount: z.int().refine((n) => n !== 0, { error: "An addToNumber amount must not be 0." }),
   }),
   z.strictObject({ op: z.literal("modifier"), mod: modifierSpec, duration }),
-  // A reaction that runs each time `hook` happens until the duration ends: at least one step.
-  z.strictObject({
-    op: z.literal("trigger"),
-    hook: z.enum(["cardPlayed", "turnEnd"]),
-    do: block.min(1, { error: "A trigger needs at least one step to run." }),
-    duration,
-  }),
+  trigger,
   // Shows LIO's or SAE's whole hand to the other side, never "both" or "player".
   z.strictObject({ op: z.literal("revealHand"), side }),
   // LIO or SAE discards `count` cards from its hand, at random. The card must say how many: 1 or more.
