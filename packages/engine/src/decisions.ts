@@ -37,7 +37,7 @@ function optionsFor(kind: DecisionKind): DecisionOptions {
     case "rivalEventOrder":
       return {};
     case "chooseCard":
-      return { from: "hand", includeNeutral: true };
+      return { from: "hand" };
     case "playCardAs":
       return { from: "hand", uses: playUses() };
   }

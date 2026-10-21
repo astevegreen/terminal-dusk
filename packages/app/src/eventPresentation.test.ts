@@ -1,6 +1,7 @@
 import type { EventKind } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { eventPresentation } from "./eventPresentation.ts";
+import { byCodeUnit } from "./test/order.ts";
 
 describe("eventPresentation", () => {
   it("has an entry for every event kind", () => {
@@ -19,7 +20,7 @@ describe("eventPresentation", () => {
       "triggerFired",
       "triggerSet",
     ];
-    expect(Object.keys(eventPresentation).sort()).toEqual(kinds);
+    expect(Object.keys(eventPresentation).sort(byCodeUnit)).toEqual(kinds);
   });
   it("logs a drawn card for the side that drew it", () => {
     const line = eventPresentation.cardDrawn.log({

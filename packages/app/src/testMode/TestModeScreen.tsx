@@ -5,7 +5,7 @@ import { useState, useSyncExternalStore } from "react";
 import { GameScreen } from "../game/GameScreen.tsx";
 import { ReplayScreen } from "../replay/ReplayScreen.tsx";
 import type { ReplayRecording } from "../replay/recording.ts";
-import { cardName } from "./fixture.ts";
+import { cardName, cardQuestion } from "./fixture.ts";
 import { createTestSession } from "./session.ts";
 import type { Snapshot, TestSession } from "./session.ts";
 
@@ -21,7 +21,10 @@ export function TestModeView({ snapshot, session }: Readonly<{ snapshot: Snapsho
   const [seedText, setSeedText] = useState(snapshot.seed);
   const [watching, setWatching] = useState<ReplayRecording | null>(null);
   const { frame, viewer } = snapshot;
-  if (watching) return <ReplayScreen recording={watching} label={cardName} onClose={() => setWatching(null)} />;
+  if (watching)
+    return (
+      <ReplayScreen recording={watching} label={cardName} question={cardQuestion} onClose={() => setWatching(null)} />
+    );
   return (
     <main>
       <h1>Test mode</h1>
@@ -59,6 +62,7 @@ export function TestModeView({ snapshot, session }: Readonly<{ snapshot: Snapsho
           log={snapshot.log}
           era={snapshot.era}
           label={cardName}
+          question={cardQuestion}
           onAnswer={(value) => void session.answer(value)}
           refusal={snapshot.refusal}
         />
