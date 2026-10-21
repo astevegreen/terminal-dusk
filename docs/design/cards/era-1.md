@@ -35,7 +35,7 @@ starting deck: the turn 1 refill deals both hands from it, so it must hold at le
 
 - **Event:** A 34-nation coalition frees Kuwait in six weeks.
 - **Design:** LIO 3 and SAE -1 Ops this turn: the unipolar moment. Hot: an SAE holder wants 4 Ops but hands LIO the event.
-- **Playable:** `marker "coalition victory"; spend lio 3; mod sae -1 min 1 (turn)`
+- **Playable:** `marker "coalition victory"; spend lio 3; mod sae -1 min 1 (turn); once-only`
 - **History:** Operation Desert Storm began on 17 January 1991 and ended with a ceasefire on 28 February 1991; a coalition of some 34 nations under a UN mandate expelled Iraqi forces from Kuwait.
 - **Theme:** alliances, proxy wars · **Notion:** create
 
@@ -85,7 +85,7 @@ starting deck: the turn 1 refill deals both hands from it, so it must hold at le
 
 - **Event:** The Union flag comes down over a territory promised fifty years of autonomy.
 - **Design:** SAE 3; a "promise made" tag that the 2020 security law card closes (W1, W3). Hot: 4 Ops tempts LIO holders.
-- **Playable:** `marker "one country, two systems"; spend sae 3`
+- **Playable:** `marker "one country, two systems"; spend sae 3; once-only`
 - **History:** Britain returned Hong Kong to China on 1 July 1997; under the 1990 Basic Law the territory was promised a high degree of autonomy for fifty years, to 2047.
 - **Theme:** alliances, gray-zone · **Notion:** update `3fceb012942f8143974df5a9772fb204`
 

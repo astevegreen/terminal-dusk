@@ -1,4 +1,5 @@
 // e1-lio-006 Desert Storm Coalition: one test for each way its effect can play out.
+import { describeOnceOnly } from "../../src/test/cardEnds.ts";
 import { describeCard } from "../../src/test/describeCard.ts";
 
 describeCard("e1-lio-006", "Desert Storm Coalition", [
@@ -14,3 +15,5 @@ describeCard("e1-lio-006", "Desert Storm Coalition", [
     `,
   },
 ]);
+
+describeOnceOnly("e1-lio-006", "Desert Storm Coalition");
