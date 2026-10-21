@@ -443,6 +443,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/harness.test.ts` - Tests for the fuzz harness itself: each check catches what it should, so a green fuzz run means something.
 - `tests/fuzz/lasting.test.ts` - The fuzz suite and the lasting effects, modifiers (#89) and triggers (#90): the fuzz cards make them, and the checks catch what they should.
 - `tests/fuzz/markerChecks.ts` - The fuzz checks for lasting markers and `has` conditions (R4a): a lasting marker is never lost, moved or duplicated, and every `has` reads the game so far. Exports: checkMarkers, checkHasBranches.
+- `tests/fuzz/markers.test.ts` - The fuzz suite and the lasting markers and `has` conditions of R4a (#142): the fuzz cards set and test them, the games take both branches, and the checks catch…
 - `tests/fuzz/markers.ts` - TEST-ONLY FIXTURES, never game content: the lasting markers (R4a) the fuzz cards set, and the `has` conditions that test them. Exports: LASTING_LABELS, HAS_BRANCH, REACTION_BRANCH, Branch, lastingMarker, branchLabel, hasStep, branchOf, isLasting.
 - `tests/fuzz/neutral.test.ts` - Neutral events in the fuzz games (#117): neutral cards draw from the deck of the side that picked or played them, in their events and in the reactions they set…
 - `tests/fuzz/order.test.ts`
