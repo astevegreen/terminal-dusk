@@ -27,27 +27,29 @@ describe("the setup's Contingency decks", () => {
     invalid({ ...makeSetup(), contingency: [1, 2] } as unknown as Setup);
   });
   it("a missing side's deck returns invalidSetup", () => {
-    invalid({ ...makeSetup(), contingency: { lio: [1, 2] } } as unknown as Setup);
-    invalid({ ...makeSetup(), contingency: { sae: [1, 2] } } as unknown as Setup);
+    invalid({ ...makeSetup(), contingency: { lio: [1, 2, 3] } } as unknown as Setup);
+    invalid({ ...makeSetup(), contingency: { sae: [1, 2, 3] } } as unknown as Setup);
   });
   it("a side's deck that is not a list returns invalidSetup", () => {
-    invalid(withDecks("1,2,3", [1, 2]));
-    invalid(withDecks([1, 2], { 0: 1, 1: 2 }));
+    invalid(withDecks("1,2,3", [1, 2, 3]));
+    invalid(withDecks([1, 2, 3], { 0: 1, 1: 2, 2: 3 }));
   });
-  it("a deck of fewer than 2 cards returns invalidSetup", () => {
-    invalid(withDecks([], [1, 2]));
-    invalid(withDecks([1, 2], [3]));
+  it("a deck of fewer than 3 cards returns invalidSetup", () => {
+    invalid(withDecks([], [1, 2, 3]));
+    invalid(withDecks([1, 2, 3], [3]));
+    invalid(withDecks([1, 2], [1, 2, 3]));
+    invalid(withDecks([1, 2, 3], [4, 4]));
   });
   it("a card that is not a whole number of 1 or more returns invalidSetup", () => {
     for (const bad of [0, -1, 1.5, "2", null, Number.NaN]) {
-      invalid(withDecks([1, bad], [1, 2]));
-      invalid(withDecks([1, 2], [bad, 2]));
+      invalid(withDecks([1, 2, bad], [1, 2, 3]));
+      invalid(withDecks([1, 2, 3], [bad, 2, 3]));
     }
   });
-  it("accepts a 2-card deck and a deck that repeats a number", () => {
-    expect(build(withDecks([1, 2], [2, 2])).public.contingency).toEqual({
-      lio: { cards: [1, 2], left: [1, 2] },
-      sae: { cards: [2, 2], left: [2, 2] },
+  it("accepts a 3-card deck and a deck that repeats a number", () => {
+    expect(build(withDecks([1, 2, 3], [2, 2, 5])).public.contingency).toEqual({
+      lio: { cards: [1, 2, 3], left: [1, 2, 3] },
+      sae: { cards: [2, 2, 5], left: [2, 2, 5] },
     });
   });
 });
@@ -101,7 +103,7 @@ describe("the Contingency decks at the start of the game", () => {
     expect(orders.size).toBeGreaterThanOrEqual(2);
   });
   it("the state shares no list with the setup", () => {
-    const setup = withDecks([3, 1, 2], [2, 1]);
+    const setup = withDecks([3, 1, 2], [3, 2, 1]);
     const s = build(setup);
     (setup.contingency.lio as number[]).push(9);
     expect(s.public.contingency.lio.cards).toEqual([1, 2, 3]);

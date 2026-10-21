@@ -66,7 +66,7 @@ export function playCard(id: CardId, options: PlayOptions = {}): string[] {
     ],
   };
   const top = options.draw;
-  const deckOf = top === undefined ? [1, 2, 3, 4, 5, 6] : [top, top];
+  const deckOf = top === undefined ? [1, 2, 3, 4, 5, 6] : [top, top, top];
   const hands = {
     lio: [...FILLERS.lio.map((c) => c.id), ...(owner === "lio" ? [id] : [])],
     sae: [...FILLERS.sae.map((c) => c.id), ...(owner === "sae" ? [id] : [])],

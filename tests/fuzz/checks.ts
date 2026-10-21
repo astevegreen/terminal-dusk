@@ -147,8 +147,8 @@ export function isSubMultiset(part: readonly number[], whole: readonly number[])
 
 /**
  * The Contingency decks (#64), for each side: the full contents are the setup's deck, sorted; the numbers
- * left are the secret order, sorted, and a sub-multiset of the full contents; the deck holds at least 2
- * cards. The public lists are compared as they are, never re-sorted here, so a list in draw order is caught.
+ * left are the secret order, sorted, and a sub-multiset of the full contents; the deck holds at least 3
+ * cards, so the engine never draws from fewer. The public lists are compared as they are, never re-sorted here, so a list in draw order is caught.
  */
 export function checkContingency(setup: Setup, state: GameState): void {
   for (const side of SIDES) {
@@ -164,7 +164,7 @@ export function checkContingency(setup: Setup, state: GameState): void {
     if (!isSubMultiset(left, cards)) {
       throw new Error(`${deck}: the numbers left ${JSON.stringify(left)} are not all in ${JSON.stringify(cards)}`);
     }
-    if (order.length < 2) throw new Error(`${deck} holds ${order.length} cards; it must always hold 2 or more`);
+    if (order.length < 3) throw new Error(`${deck} holds ${order.length} cards; it must always hold 3 or more`);
   }
 }
 
