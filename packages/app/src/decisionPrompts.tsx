@@ -27,15 +27,21 @@ const USES: readonly PlayUse[] = ["event", "points"];
 
 type Choice = { text: string; value: AnswerValue };
 
-/** The choices as a list of button texts and the answers they send. */
+/**
+ * The choices as a list of button texts and the answers they send, in a group named by its question.
+ * The question's id comes from the decision's id (no useId: tests call prompts as plain functions), so two
+ * prompts on one screen get different ids.
+ */
 function Choices({
+  decision,
   question,
   choices,
   onAnswer,
-}: Readonly<{ question: string; choices: Choice[]; onAnswer?: PromptProps["onAnswer"] }>) {
+}: Readonly<{ decision: Decision; question: string; choices: Choice[]; onAnswer?: PromptProps["onAnswer"] }>) {
+  const questionId = `decision-${decision.id}-question`;
   return (
-    <section>
-      <p>{question}</p>
+    <section role="group" aria-labelledby={questionId}>
+      <p id={questionId}>{question}</p>
       {onAnswer ? (
         <div>
           {choices.map((choice) => (
@@ -75,13 +81,20 @@ function YesNoPrompt(props: Readonly<PromptProps>) {
     { text: "Yes", value: { kind: "yesNo", yes: true } },
     { text: "No", value: { kind: "yesNo", yes: false } },
   ];
-  return <Choices question={yesNoText(props)} choices={choices} onAnswer={props.onAnswer} />;
+  return <Choices decision={props.decision} question={yesNoText(props)} choices={choices} onAnswer={props.onAnswer} />;
 }
 
 /** The secret opening card pick: every card in the hand. */
 function ChooseCardPrompt({ decision, hand, label, onAnswer }: Readonly<PromptProps>) {
   const choices: Choice[] = hand.map((card) => ({ text: label(card), value: { kind: "chooseCard", card } }));
-  return <Choices question={`${decision.side}: pick an opening card`} choices={choices} onAnswer={onAnswer} />;
+  return (
+    <Choices
+      decision={decision}
+      question={`${decision.side}: pick an opening card`}
+      choices={choices}
+      onAnswer={onAnswer}
+    />
+  );
 }
 
 /** A play: every card in the hand, with every use that any kind of card is allowed. */
@@ -99,6 +112,7 @@ function PlayCardAsPrompt({ decision, hand, label, onAnswer }: Readonly<PromptPr
   );
   return (
     <Choices
+      decision={decision}
       question={`${decision.side}: play a card for its event or its points`}
       choices={choices}
       onAnswer={onAnswer}
@@ -113,6 +127,7 @@ function RivalEventOrderPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
   ];
   return (
     <Choices
+      decision={decision}
       question={`${decision.side}: the rival's event happens before or after your points?`}
       choices={choices}
       onAnswer={onAnswer}

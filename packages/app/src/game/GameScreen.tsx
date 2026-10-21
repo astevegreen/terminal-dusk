@@ -45,7 +45,7 @@ function DecisionRegion({ frame, label, question, onAnswer, refusal }: Readonly<
           />
         );
       })}
-      {typeof refusal === "string" && <output>{`Refused: ${refusal}`}</output>}
+      {typeof refusal === "string" && <output role="alert">{`Refused: ${refusal}`}</output>}
     </Region>
   );
 }
@@ -56,7 +56,8 @@ export function GameScreen({ frame, log, era, label, question, onAnswer, refusal
       <StatusBar frame={frame} era={era} />
       <MapArea />
       <Hand frame={frame} label={label} />
-      <div className="game-side">
+      {/* It scrolls, so the keyboard can reach it; a div with a role, as a section would pick up the boxed style. */}
+      <div className="game-side" role="region" aria-label="Game details" tabIndex={0}>
         <Opponent frame={frame} />
         <Table pub={frame.view.public} label={label} />
         <Contingency pub={frame.view.public} />

@@ -142,3 +142,38 @@ describe("a game that is over", () => {
     expect(html(over(null))).toContain("Game over: no winner, turns ran out");
   });
 });
+
+describe("screen-reader support", () => {
+  const out = html(frameFor("lio"), { log: ["first", "second"] });
+  it("puts only the state text in a polite live region (role=status)", () => {
+    expect(out).toContain('<span role="status">Your decision</span>');
+    expect(html({ ...frameFor("lio"), decision: null })).toContain(
+      '<span role="status">Waiting for the other side</span>',
+    );
+    expect(html(over("sae"))).toContain('<span role="status">Game over: sae, turns ran out</span>');
+    expect(out.match(/role="status"/g)).toHaveLength(1);
+    expect(out).toContain("<span>You play LIO</span>");
+  });
+  it("announces the refusal as an alert, keeping its <output> and its Refused: text", () => {
+    expect(html(frameFor("lio"), { refusal: "stale_seq" })).toContain(
+      '<output role="alert">Refused: stale_seq</output>',
+    );
+  });
+  it("gives the log section role=log and name Log, and keeps its <ol> a list, newest first", () => {
+    expect(out).toContain('<section aria-label="Log" data-testid="log" class="game-log" role="log">');
+    expect(out).toContain('<ol aria-label="Log entries" tabindex="0"><li>second</li><li>first</li></ol>');
+  });
+  it("lets the keyboard reach each scrolling element, each with a name", () => {
+    expect(out).toContain('<section aria-label="Your hand" data-testid="hand" class="game-hand" tabindex="0">');
+    expect(out).toContain('<ol aria-label="Log entries" tabindex="0">');
+    expect(out).toContain('<div class="game-side" role="region" aria-label="Game details" tabindex="0">');
+  });
+  it("gives a spectator's two open prompts different question ids", () => {
+    const spectator = html(frameFor("spectator"));
+    const ids = [...spectator.matchAll(/aria-labelledby="([^"]+)"><p id="([^"]+)"/g)];
+    expect(ids).toHaveLength(2);
+    for (const [, by, id] of ids) expect(by).toBe(id);
+    expect(ids[0]?.[1]).not.toBe(ids[1]?.[1]);
+    expect(spectator).not.toContain("<button");
+  });
+});
