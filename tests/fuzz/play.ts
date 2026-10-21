@@ -5,7 +5,6 @@ import { apply, createGame, legalAnswers, pendingFor, seedHash, SIDES, viewFor }
 import type {
   Answer,
   AnswerValue,
-  CardDef,
   CardId,
   Decision,
   EraEntry,
@@ -15,23 +14,17 @@ import type {
   Seed,
   Setup,
   Side,
-  Step as EffectStep,
 } from "@terminal-dusk/engine";
+import { FUZZ_CARDS, MAX_ERA_CARDS, MAX_EXTRA, MAX_PILE, MAX_PLAYS, MAX_TURNS, ruleset } from "./cards.ts";
 import { attempt, checkStep, checkVerify, firstDifference } from "./checks.ts";
 import { deepFreeze } from "./deepFreeze.ts";
+import { checkPlayerDraws, notePlayer } from "./playerDraws.ts";
 import { seededRng } from "./random.ts";
 import type { Rng } from "./random.ts";
 
-/** Most turns and plays per turn in a random game, and the non-neutral cards a hand then needs. */
-const MAX_TURNS = 4;
-const MAX_PLAYS = 2;
-const MOST_NEEDED = MAX_TURNS * (1 + MAX_PLAYS);
-/** Most cards of any affiliation a random hand gets beyond the ones it needs, and most in a draw pile. */
-const MAX_EXTRA = 8;
-const MAX_PILE = 30;
-/** Most eras after the first (one for each turn after the first), and most cards in one era. */
-const MAX_ERAS = MAX_TURNS - 1;
-const MAX_ERA_CARDS = 5;
+// The fuzz cards live in cards.ts; the tests import them from here, as before the split.
+export { baseEffectOf, FUZZ_CARDS, ruleset } from "./cards.ts";
+
 /** Most cards in a random Contingency deck (the fewest is 2), and the highest number on one. */
 const MAX_DECK = 8;
 const MAX_NUMBER = 12;
@@ -39,79 +32,6 @@ const MAX_NUMBER = 12;
 const MAX_HAND_EXTRA = 4;
 /** The default Contingency deck (docs/design/contingency-deck.md), which about one random deck in four is. */
 const DEFAULT_DECK: readonly number[] = [1, 2, 3, 4, 5, 6];
-/** Every card a random setup can use, c1 to c85. Affiliations go LIO, SAE, neutral, so 57 are non-neutral. */
-export const FUZZ_CARDS: readonly CardId[] = Array.from(
-  { length: 2 * (MOST_NEEDED + MAX_EXTRA) + MAX_PILE + MAX_ERAS * MAX_ERA_CARDS },
-  (_, i) => `c${i + 1}`,
-);
-const AFFILIATIONS: readonly CardDef["affiliation"][] = ["lio", "sae", "neutral"];
-/**
- * Card `i`'s event: its base event (baseEffectOf), and for every fifth card from c2 on, a modifier of the
- * ops value too (#89); for every tenth from c4 on (never a modifier card), a trigger (#90). Only steps are
- * added after the base event, never a choice, so the decisions of the games in fixedGames.ts keep their IDs.
- */
-function effectOf(i: number): EffectStep[] {
-  if (i % 10 === 3) return [...baseEffectOf(i), triggerOf(Math.floor(i / 10))];
-  return i % 5 === 1 ? [...baseEffectOf(i), modifierOf(Math.floor(i / 5))] : baseEffectOf(i);
-}
-
-/**
- * The `k`th trigger card's step, cardPlayed and turnEnd in turn, until the turn ends. Its reaction is only
- * a marker showing what the hook binds, so it never asks a new question.
- */
-function triggerOf(k: number): EffectStep {
-  const reaction: EffectStep[] =
-    k % 2 === 0
-      ? [{ op: "marker", label: "reacted", var: "card" }]
-      : [{ op: "marker", label: "turnEnded", var: "turn" }];
-  return { op: "trigger", hook: k % 2 === 0 ? "cardPlayed" : "turnEnd", do: reaction, duration: { kind: "turnEnd" } };
-}
-
-const ADDS: readonly number[] = [-2, -1, 1, 2];
-const MINS: readonly (number | undefined)[] = [0, 1, undefined];
-const MODIFIER_SIDES: readonly (Side | "both")[] = ["lio", "sae", "both"];
-/** The `k`th modifier card's step: its add, min and side spread by `k` over every value, until the turn ends. */
-function modifierOf(k: number): EffectStep {
-  const [add, min, side] = [ADDS[k % 4]!, MINS[k % 3], MODIFIER_SIDES[Math.floor(k / 3) % 3]!];
-  return {
-    op: "modifier",
-    mod: min === undefined ? { hook: "opsValue", side, add } : { hook: "opsValue", side, add, min },
-    duration: { kind: "turnEnd" },
-  };
-}
-
-/**
- * Card `i`'s base event. Every fourth asks LIO or SAE yes or no, so opening and played events pause for a
- * choice. The other LIO and SAE cards draw a contingency from their own side's deck, so games draw and
- * reshuffle (#65): two in three of them show the number through a variable, the rest draw without one.
- * Neutral cards draw nothing, as neutral events have no deck yet.
- */
-export function baseEffectOf(i: number): EffectStep[] {
-  if (i % 4 === 3) {
-    return [
-      { op: "choose", who: i % 8 === 3 ? "lio" : "sae", decision: { kind: "yesNo" }, bind: "a" },
-      { op: "marker", label: "asked", var: "a" },
-    ];
-  }
-  const side = AFFILIATIONS[i % 3]!;
-  if (side === "neutral") return [];
-  if (i % 4 === 2) return [{ op: "drawContingency", side }];
-  return [
-    { op: "drawContingency", side, bind: "n" },
-    { op: "marker", label: "drew", var: "n" },
-  ];
-}
-
-export const ruleset: Ruleset = deepFreeze({
-  id: "fuzz-ruleset",
-  cards: FUZZ_CARDS.map((id, i) => ({
-    id,
-    era: "fuzz",
-    ops: i % 5,
-    affiliation: AFFILIATIONS[i % 3]!,
-    effect: effectOf(i),
-  })),
-});
 const neutral = new Set(ruleset.cards.filter((card) => card.affiliation === "neutral").map((card) => card.id));
 /** Games played when FUZZ_GAMES is unset, as in `pnpm test`-style runs of this folder. */
 export const DEFAULT_GAMES = 100;
@@ -266,10 +186,12 @@ export function easyChooser(rules: Ruleset, side: Side, rng: Rng): Chooser {
 /**
  * Plays a game from `setup` and `seed`, answering with `choose` until the game ends. Checks invariants 1, 3,
  * 4 and 5 on the state from createGame and after every answer, then invariant 6 at the end. A game that
- * reached its end is also checked with verifyGame.
+ * reached its end is also checked with verifyGame. Each step's announced draws from the player's deck must use
+ * the deck of the side that last picked or played their card (playerDraws.ts).
  */
 export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed, choose: Chooser): Played {
   const record: GameRecord = { setup: deepFreeze(setup), seed, answers: [] };
+  const players = new Map<CardId, Side>();
   try {
     let { state, events } = started(rules, setup, seed);
     const allEvents = [...events];
@@ -279,9 +201,11 @@ export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed
       const answer = choose(state);
       if (answer === null) break;
       record.answers.push(deepFreeze(answer));
+      notePlayer(players, answer);
       ({ state, events } = answered(rules, state, answer));
       allEvents.push(...events);
       checkStep(rules, setup, state, events, seed);
+      checkPlayerDraws(events, players);
     }
     checkReplay(rules, record, state);
     // A recorded game may stop early; verifyGame only accepts a game that reached its end.
