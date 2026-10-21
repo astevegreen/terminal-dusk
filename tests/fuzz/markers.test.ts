@@ -17,7 +17,7 @@ const SETUP = {
   turns: 1,
   playsPerTurn: 1,
   handSize: 2,
-  contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6] },
+  contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6], world: [1, 2, 3, 4, 5, 6] },
 };
 
 /** Every step in `steps`, at any depth, with whether it sits inside a trigger's reaction. */
