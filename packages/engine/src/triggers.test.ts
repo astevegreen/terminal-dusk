@@ -73,7 +73,8 @@ describe("the cardPlayed hook", () => {
     const set = play(atPlay(rs), "lio", "l2", "event", rs);
     expect(story(set.events)).toEqual(["triggerSet:l2:cardPlayed"]);
     expect(set.state.public.triggers).toEqual([
-      { source: "l2", hook: "cardPlayed", do: REACTION, expires: { kind: "turnEnd", turn: 1 } },
+      // LIO played l2 for its event, so the trigger records LIO as its player (#117).
+      { source: "l2", hook: "cardPlayed", do: REACTION, expires: { kind: "turnEnd", turn: 1 }, player: "lio" },
     ]);
     const sae = play(set.state, "sae", "s2", "event", rs);
     expect(story(sae.events)).toEqual(["s2-event", "triggerFired:l2:cardPlayed", "card:s2", "player:sae"]);

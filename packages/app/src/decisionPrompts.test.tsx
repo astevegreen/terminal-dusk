@@ -42,7 +42,7 @@ describe("decisionPrompts with an onAnswer", () => {
     });
   });
   it("chooseCard has one button per card in the hand", () => {
-    const d = decision("chooseCard", { from: "hand", includeNeutral: false }, "lio");
+    const d = decision("chooseCard", { from: "hand" }, "lio");
     expect(pressAll(d, ["a", "b", "c"])).toEqual({
       texts: ["Card a", "Card b", "Card c"],
       sent: ["a", "b", "c"].map((card) => ({ kind: "chooseCard", card })),
@@ -84,11 +84,7 @@ describe("decisionPrompts without an onAnswer", () => {
   it("shows what is asked and lists the choices as text, with no buttons", () => {
     const cases: [Decision, string[], string[]][] = [
       [decision("yesNo", {}), [], ["sae: yes or no?", "Yes", "No"]],
-      [
-        decision("chooseCard", { from: "hand", includeNeutral: false }, "lio"),
-        ["a"],
-        ["lio: pick an opening card", "Card a"],
-      ],
+      [decision("chooseCard", { from: "hand" }, "lio"), ["a"], ["lio: pick an opening card", "Card a"]],
       [decision("playCardAs", play), ["a"], ["sae: play a card for its event or its points", "Card a: event"]],
       [
         decision("rivalEventOrder", {}, "lio"),

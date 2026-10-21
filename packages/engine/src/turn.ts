@@ -58,7 +58,8 @@ export function afterAnswer(
 
 /**
  * Both opening cards leave their hands for `inPlay`, in resolution order: more ops first, and on a
- * tie the card LIO picked, whichever side's card it is. Then the first card's event starts.
+ * tie the card LIO picked, whichever side's card it is. `inPlayBy` records who picked each, so the
+ * second card's event, which may start in a later call, still knows its picker. Then the first starts.
  */
 function revealOpening(
   ruleset: Ruleset,
@@ -71,7 +72,9 @@ function revealOpening(
   removeFromHand(state, "lio", lioPick);
   removeFromHand(state, "sae", saePick);
   const ops = (id: CardId) => cardOf(ruleset, id)?.ops ?? 0;
-  state.public.inPlay = ops(saePick) > ops(lioPick) ? [saePick, lioPick] : [lioPick, saePick];
+  const saeFirst = ops(saePick) > ops(lioPick);
+  state.public.inPlay = saeFirst ? [saePick, lioPick] : [lioPick, saePick];
+  state.public.inPlayBy = saeFirst ? ["sae", "lio"] : ["lio", "sae"];
   return startEvent(ruleset, state, events, budget);
 }
 
@@ -85,6 +88,7 @@ function settle(ruleset: Ruleset, state: GameState, events: GameEvent[], budget:
   const pub = state.public;
   while (pub.stack.length === 0 && pub.status.kind === "active") {
     const finished = pub.inPlay.shift();
+    pub.inPlayBy.shift();
     let error: EngineError | null = null;
     if (finished !== undefined) {
       pub.discard.push(finished);
@@ -122,16 +126,19 @@ function endTurn(state: GameState, events: GameEvent[], budget: Budget): EngineE
   return startTurn(state, events, budget);
 }
 
-/** Starts the event of the first card in play. Its choices go to whichever side the card names. */
+/**
+ * Starts the event of the first card in play, with the side that picked it as its `player`. Its choices
+ * go to whichever side the card names.
+ */
 function startEvent(ruleset: Ruleset, state: GameState, events: GameEvent[], budget: Budget): EngineError | null {
   const id = state.public.inPlay[0]!;
-  return runProgram(state, cardOf(ruleset, id)?.effect ?? [], events, budget, id);
+  return runProgram(state, cardOf(ruleset, id)?.effect ?? [], events, budget, id, state.public.inPlayBy[0]);
 }
 
 /**
  * `side` plays a card: it leaves the hand for `inPlay` at once. Your own card or a neutral card runs its
- * event or spends its points; a rival's card waits for its rivalEventOrder answer. A neutral card's event
- * records `side` for its draws from the player's deck.
+ * event or spends its points; a rival's card waits for its rivalEventOrder answer. An event records
+ * `side` as its player; a play for points with no event records none.
  */
 function play(
   ruleset: Ruleset,
@@ -143,6 +150,7 @@ function play(
 ): EngineError | null {
   removeFromHand(state, side, value.card);
   state.public.inPlay = [value.card];
+  state.public.inPlayBy = [side];
   state.public.playsMade += 1;
   const card = cardOf(ruleset, value.card);
   if (whoseCard(card, side) === "rival") {
@@ -150,13 +158,13 @@ function play(
     return null;
   }
   const steps = value.as === "event" ? (card?.effect ?? []) : [spendPoints(side, card?.ops ?? 0)];
-  const player = value.as === "event" && card?.affiliation === "neutral" ? side : undefined;
-  return runProgram(state, steps, events, budget, value.card, player);
+  return runProgram(state, steps, events, budget, value.card, value.as === "event" ? side : undefined);
 }
 
 /**
  * The rival's card in play, played by `side` for its points: its event runs before or after the points.
- * Each choice in the event goes to the side its `choose` step names, never to `side` as such.
+ * Each choice in the event goes to the side its `choose` step names, never to `side` as such. The event
+ * records `side` as its player.
  */
 function playRival(
   ruleset: Ruleset,
@@ -171,7 +179,8 @@ function playRival(
   const effect = card?.effect ?? [];
   // The printed ops: the modifiers in force when this step runs change them, its own event's included.
   const points = spendPoints(side, card?.ops ?? 0);
-  return runProgram(state, event === "before" ? [...effect, points] : [points, ...effect], events, budget, id);
+  const steps = event === "before" ? [...effect, points] : [points, ...effect];
+  return runProgram(state, steps, events, budget, id, side);
 }
 
 /** True while a rival's card is in play and its player has yet to say when its event happens. */
