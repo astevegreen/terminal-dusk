@@ -79,7 +79,13 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/testMode/sessionEra.test.ts` - The era in the test-mode session: kept per viewer next to the log, reset by restart.
 - `packages/app/src/transport/localMatch.test.ts`
 - `packages/app/src/transport/localMatch.ts` - A match run entirely in memory: it keeps the host's record and secret, and gives each viewer a transport. Exports: ArchiveWith, LocalMatch, createLocalMatch.
-- `packages/app/src/transport/matchTransport.ts` - What the screens talk to: one viewer's window onto a match. Exports: SubmitResult, MatchTransport.
+- `packages/app/src/transport/matchTransport.ts` - What the screens talk to: one viewer's window onto a match. Exports: ServerErrorCode, TransportError, SubmitResult, MatchTransport.
+- `packages/app/src/transport/remoteHttp.ts` - The online transport's HTTP side (docs/architecture.md, Decision 5): the client-readable rows it reads through Supabase's REST endpoints, and the submit functi… Exports: FetchReply, FetchLike, Endpoint, Seats, StepEvents, readSeats, readFrame, readEvents, PostReply, postSubmission.
+- `packages/app/src/transport/remoteMatch.submit.test.ts`
+- `packages/app/src/transport/remoteMatch.test.ts`
+- `packages/app/src/transport/remoteMatch.ts` - The online transport (docs/architecture.md, Decisions 3 and 5): one caller's window onto one match on Supabase. Exports: RemoteMatchOptions, createRemoteMatch.
+- `packages/app/src/transport/test/fakeSupabase.ts` - A fake Supabase for the remote transport's tests: one match run by the real host, served over a fake `fetch`. Exports: URL_BASE, ANON_KEY, FakeRequest, FakeSupabase, createFakeSupabase.
+- `packages/app/src/transport/test/remoteGame.ts` - The remote transport tests' match: a small game on the fake Supabase, fake timers, and helpers to subscribe, wait and find the next legal move. Exports: POLL_MS, ruleset, config, TOKENS, fakeTimers, settle, Rig, rig, watch, nextMove.
 - `packages/app/src/vsAi/VsAiScreen.test.tsx`
 - `packages/app/src/vsAi/VsAiScreen.tsx` - Playing against the Easy AI: a side picker, then the game screen for the human's side. Exports: PRACTICE_NOTE, VsAiGame, SidePicker, VsAiView, openSession, VsAiScreenProps, VsAiScreen.
 - `packages/app/src/vsAi/ai.worker.ts` - The AI's Web Worker: it only passes each message to the AI package's handler and posts the reply back.
