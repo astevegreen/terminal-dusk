@@ -12,6 +12,8 @@ describe("eventPresentation", () => {
       "contingencyDrawn",
       "drawPileReshuffled",
       "eraStarted",
+      "handRevealed",
+      "handRevealedHidden",
       "marker",
       "modifierEnded",
       "modifierStarted",
@@ -35,6 +37,25 @@ describe("eventPresentation", () => {
   it("logs a hidden draw without any card", () => {
     const line = eventPresentation.cardDrawnHidden.log({ kind: "cardDrawnHidden", visibility: "public", side: "sae" });
     expect(line).toBe("sae drew a card.");
+  });
+  it("logs a shown hand with its cards for the side that saw it", () => {
+    const line = eventPresentation.handRevealed.log({
+      kind: "handRevealed",
+      visibility: "lio",
+      side: "sae",
+      cards: ["s2", "n2"],
+      publicForm: { kind: "handRevealedHidden", visibility: "public", side: "sae", cards: 2 },
+    });
+    expect(line).toBe("sae's hand was shown to you: s2, n2.");
+  });
+  it("logs a shown hand to everyone else with how many cards, never which", () => {
+    const line = eventPresentation.handRevealedHidden.log({
+      kind: "handRevealedHidden",
+      visibility: "public",
+      side: "sae",
+      cards: 2,
+    });
+    expect(line).toBe("sae's hand of 2 cards was shown to the other side.");
   });
   it("logs a marker with its label, and its value when it has one", () => {
     expect(eventPresentation.marker.log({ kind: "marker", visibility: "public", label: "item", value: "a" })).toBe(

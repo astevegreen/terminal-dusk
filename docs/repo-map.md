@@ -282,7 +282,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/schema/card.test.ts`
 - `packages/content/schema/card.ts` - The card schema: what one card file in packages/content/cards/ must hold (docs/architecture.md, section 4). Exports: CardStep, stepSchema, cardSchema.
 - `packages/content/schema/card.types.test.ts` - Type-level checks, run by `tsc` (the typecheck script): the card schema and the engine's types can't drift apart.
-- `packages/content/schema/cardSteps.test.ts` - The card schema's lasting steps: modifiers (#89), triggers (#90) and lasting markers (#141), at any depth.
+- `packages/content/schema/cardSteps.test.ts` - The card schema's lasting steps: modifiers (#89), triggers (#90) and lasting markers (#141), at any depth; and revealHand steps (#184).
 - `packages/content/schema/index.test.ts`
 - `packages/content/schema/index.ts` - Content schemas, one per content folder of this package (cards/ is checked by schemas.cards, and so on). Exports: ContentIssue, ContentSchema, schemas.
 - `packages/content/schema/scenario.test.ts`
@@ -337,6 +337,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/hasCondition.test.ts` - The `has` condition (#141): an if is true exactly when a lasting marker with that label has been set.
 - `packages/engine/src/index.test.ts`
 - `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, createGame, legalAnswers, pendingFor, eventsFor, seedHash, DECKS, SIDES, verifyGame, hiddenPart, reconstruct, viewFor, ….
+- `packages/engine/src/knowledge.property.test.ts` - Property test (#184): in random games where cards show hands (revealHand), each side's knowledge always lists, each once, only cards still in the rival's hand,…
+- `packages/engine/src/knowledge.ts` - Knowledge: the rival's cards a side has been shown (docs/architecture.md, section 3), kept in that side's own private compartment while they stay in the rival'… Exports: revealHand, forgetCard.
+- `packages/engine/src/knowledgeTypes.ts` - The events of a revealHand step (knowledge.ts). Exports: HandRevealedHidden, HandRevealed.
 - `packages/engine/src/lastingTypes.ts` - The types of what a card leaves in force: hooks, durations, modifiers and triggers (modifiers.ts, triggers.ts). Exports: HookId, Duration, ModifierSpec, ModifierExpiry, ActiveModifier, ActiveTrigger.
 - `packages/engine/src/markers.test.ts` - Lasting markers (#141): a marker step with `lasting: true` keeps its label in state.public.markers until the game ends.
 - `packages/engine/src/markers.ts` - Lasting markers: named tags a card leaves in the public state until the game ends, which a later card's `has` condition tests. Exports: keepMarker, hasMarker.
@@ -352,6 +355,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/refill.property.test.ts` - Property test for refilling hands (docs/design/core-loop.md, "Refilling hands"): in random games of random sizes, with an era entering on turn 2 and the draw p…
 - `packages/engine/src/refill.test.ts` - Refilling hands (docs/design/core-loop.md, "Refilling hands"): at each turn's start both sides draw up to the hand size from one shared draw pile, after a new…
 - `packages/engine/src/refill.ts` - Refilling hands (docs/design/core-loop.md, "Refilling hands"). Exports: refillHands.
+- `packages/engine/src/revealHand.test.ts` - The revealHand step (#184): shows one side's hand to the other, kept in the peeking side's knowledge.
 - `packages/engine/src/rng.test.ts`
 - `packages/engine/src/rng.ts` - Seeded random numbers for the rules engine. Exports: RngState, seedRng, hashSeed, nextInt, shuffle.
 - `packages/engine/src/sha256.test.ts`
@@ -369,7 +373,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/turn.test.ts` - The turn structure (#35): secret opening cards, their events in order, then alternating plays.
 - `packages/engine/src/turn.ts` - The turn structure (docs/design/core-loop.md). Exports: startTurn, afterAnswer.
 - `packages/engine/src/types.test.ts`
-- `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: DECKS, ContingencyDeck, ContingencyDeckReshuffled, ContingencyDrawn, DeckId, ActiveModifier, ActiveTrigger, Duration, HookId, ModifierExpiry, ModifierSpec, Side, ….
+- `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: DECKS, ContingencyDeck, ContingencyDeckReshuffled, ContingencyDrawn, DeckId, ActiveModifier, ActiveTrigger, Duration, HookId, ModifierExpiry, ModifierSpec, HandRevealed, ….
 - `packages/engine/src/verifyGame.test.ts`
 - `packages/engine/src/verifyGame.ts` - Exports: verifyGame.
 - `packages/engine/src/viewTypes.ts` - What each viewer receives of the game state (views.ts). Exports: HiddenCounts, PublicMeta, PlayerView, OmniscientView, HiddenPart.

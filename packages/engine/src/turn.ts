@@ -8,6 +8,7 @@
 // before or after the points. A played card stays in `inPlay` until everything it triggered is done.
 import { newDecision, whoseCard } from "./decisions.ts";
 import { enterEra } from "./eras.ts";
+import { forgetCard } from "./knowledge.ts";
 import { refillHands } from "./refill.ts";
 import { endTurnModifiers } from "./modifiers.ts";
 import { runProgram, runStack } from "./stack.ts";
@@ -211,8 +212,10 @@ const waitsForOrder = (state: GameState): boolean => state.public.pending.some((
 
 const spendPoints = (side: Side, amount: number): Step => ({ op: "spendPoints", side, amount });
 
+/** `card` leaves `side`'s hand, and so the rival's knowledge (knowledge.ts). */
 function removeFromHand(state: GameState, side: Side, card: CardId): void {
   state.private[side].hand = state.private[side].hand.filter((id) => id !== card);
+  forgetCard(state, side, card);
 }
 
 const cardOf = (ruleset: Ruleset, id: CardId) => ruleset.cards.find((card) => card.id === id);
