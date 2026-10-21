@@ -111,6 +111,13 @@ export function baseEffectOf(i: number): EffectStep[] {
   ];
 }
 
+/**
+ * Whether card `i` leaves the game once its event happens (R8a; #205): every seventh card from c4 on, so c4
+ * (LIO), c11 (SAE), c18 (neutral) and so on. 7 is coprime to 3, so every affiliation has some; no card of the
+ * games in fixedGames.ts is flagged, so they replay unchanged.
+ */
+export const removesAfterEvent = (i: number): boolean => i % 7 === 3;
+
 export const ruleset: Ruleset = deepFreeze({
   id: "fuzz-ruleset",
   cards: FUZZ_CARDS.map((id, i) => ({
@@ -119,5 +126,6 @@ export const ruleset: Ruleset = deepFreeze({
     ops: i % 5,
     affiliation: AFFILIATIONS[i % 3]!,
     effect: effectOf(i),
+    ...(removesAfterEvent(i) ? { flags: { removeAfterEvent: true as const } } : {}),
   })),
 });

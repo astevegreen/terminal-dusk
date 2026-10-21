@@ -24,6 +24,8 @@ import type { PlayRecord } from "./playedBy.ts";
 import { checkPlayerDraws, notePlayer } from "./playerDraws.ts";
 import { seededRng } from "./random.ts";
 import type { Rng } from "./random.ts";
+import { handSizeFor, withStayingCards } from "./removed.ts";
+import { checkRefilled, checkRemoved } from "./removedChecks.ts";
 
 // The fuzz cards live in cards.ts; the tests import them from here, as before the split.
 export { baseEffectOf, FUZZ_CARDS, ruleset } from "./cards.ts";
@@ -81,9 +83,11 @@ export function playRecorded(name: string, record: GameRecord): Played {
  * of any affiliation, in random order; the draw pile gets 0-30. A game of two or more turns gets up to one
  * era for each later turn, of 1-5 cards each, on random turns (#37). Each turn opens with a secret pair
  * (#35); the random chooser then plays cards for their events or points, rival cards included (#36).
- * Each side gets its own random Contingency deck (#64). The hand size is 1 + playsPerTurn plus 0-4, but never more
- * than half the first era's cards (createGame's check), so the turn-start refill draws cards and can run the draw
- * pile out. The cards a hand needs are all dealt, so a hand always holds a card that can open the turn.
+ * Each side gets its own random Contingency deck (#64). The hand size is 1 + playsPerTurn plus 0-4, but never so
+ * large that a hand could not refill from the first era's cards that stay in the game (handSizeFor, R8a), so the
+ * turn-start refill draws cards and can run the draw pile out; a draw pile too small for even the smallest hand
+ * size gets unflagged cards added (withStayingCards). The cards a hand needs are all dealt, so a hand always holds
+ * a card that can open the turn.
  */
 export function randomGame(rng: Rng, game: number): { setup: Setup; seed: Seed } {
   const turns = 1 + rng.int(MAX_TURNS);
@@ -99,11 +103,12 @@ export function randomGame(rng: Rng, game: number): { setup: Setup; seed: Seed }
   const eras = randomEras(rng, turns, others.slice(pileEnd));
   const lio = shuffled(rng, [...sided.slice(0, needed), ...others.slice(0, lioExtra)]);
   const sae = shuffled(rng, [...sided.slice(needed, 2 * needed), ...others.slice(lioExtra, pileStart)]);
-  const deck = others.slice(pileStart, pileEnd);
+  const used = new Set([...lio, ...sae, ...others.slice(pileStart, pileEnd), ...eras.flatMap((e) => e.cards)]);
+  const deck = withStayingCards({ lio, sae, deck: others.slice(pileStart, pileEnd), turns, playsPerTurn }, used);
   const contingency = { lio: randomDeck(rng), sae: randomDeck(rng) };
-  // Drawn last, so it leaves every other part of a game's setup as it was before hands refilled.
-  const firstEra = Math.floor((lio.length + sae.length + deck.length) / 2);
-  const handSize = Math.min(1 + playsPerTurn + rng.int(MAX_HAND_EXTRA + 1), firstEra);
+  // Drawn last, so it leaves every other part of a game's setup as it was before hands refilled. Only as large as
+  // both hands can always refill to, from the cards that stay in the game (handSizeFor, R8a).
+  const handSize = handSizeFor(1 + playsPerTurn + rng.int(MAX_HAND_EXTRA + 1), { lio, sae, deck, turns, playsPerTurn });
   // The World deck (#131) is drawn after everything else, so the rest of each game's setup stays as it was.
   const world = randomDeck(rng);
   return {
@@ -195,7 +200,8 @@ export function easyChooser(rules: Ruleset, side: Side, rng: Rng): Chooser {
  * reached its end is also checked with verifyGame. Each step's announced draws from the player's deck must use
  * the deck of the side that last picked or played their card (playerDraws.ts), and each announced playedBy test
  * must take exactly one branch, the one matching that side (playedBy.ts). Each step's triggers fire only as their
- * filters and once allow, from the state before it, its events and the state after it (filterChecks.ts).
+ * filters and once allow, from the state before it, its events and the state after it (filterChecks.ts). Each
+ * step's removed pile and turn-start refill are checked against the state before it (removedChecks.ts).
  */
 export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed, choose: Chooser): Played {
   const record: GameRecord = { setup: deepFreeze(setup), seed, answers: [] };
@@ -219,6 +225,8 @@ export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed
       allEvents.push(...events);
       checkStep(rules, setup, state, events, seed, { before, allEvents, knowledge });
       checkTriggerFilters(rules, prior, events, state);
+      checkRemoved(rules, prior, answer, state);
+      checkRefilled(setup, prior, state);
       checkPlayerDraws(events, players);
       checkPlayedBy(events, plays);
     }
