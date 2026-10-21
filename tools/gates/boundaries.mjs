@@ -70,7 +70,9 @@ function importsOf(sf) {
       add(node, node.moduleSpecifier.text, Boolean(c && (c.isTypeOnly || (!c.name && named && allTypes(named)))), values);
     } else if (ts.isExportDeclaration(node) && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
       const named = node.exportClause && ts.isNamedExports(node.exportClause) ? node.exportClause.elements : null;
-      const values = node.isTypeOnly ? [] : named ? valueNames(named) : ["*"];
+      let values = ["*"];
+      if (node.isTypeOnly) values = [];
+      else if (named) values = valueNames(named);
       add(node, node.moduleSpecifier.text, node.isTypeOnly || Boolean(named && allTypes(named)), values);
     } else if (ts.isImportEqualsDeclaration(node) && ts.isExternalModuleReference(node.moduleReference)) {
       const e = node.moduleReference.expression;
@@ -184,9 +186,18 @@ function engineGlobalProblems(ws, files) {
     if (ts.isIdentifier(key) || ts.isStringLiteralLike(key)) return key.text;
     return ts.isComputedPropertyName(key) && ts.isStringLiteralLike(key.expression) ? key.expression.text : null;
   };
-  const boundProperty = (element) =>
-    ts.isBindingElement(element) ? keyText(element.propertyName ?? element.name)
-      : ts.isPropertyAssignment(element) || ts.isShorthandPropertyAssignment(element) ? keyText(element.name) : null;
+  const boundProperty = (element) => {
+    if (ts.isBindingElement(element)) return keyText(element.propertyName ?? element.name);
+    if (ts.isPropertyAssignment(element) || ts.isShorthandPropertyAssignment(element)) return keyText(element.name);
+    return null;
+  };
+  // The properties a destructuring takes and the value it takes them from, or null when `node` is none.
+  const destructuring = (node) => {
+    if (ts.isObjectBindingPattern(node) && node.parent.initializer) return { elements: node.elements, value: node.parent.initializer };
+    if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken && ts.isObjectLiteralExpression(node.left))
+      return { elements: node.left.properties, value: node.right };
+    return null;
+  };
   const problems = [];
 
   for (const file of files) {
@@ -211,11 +222,7 @@ function engineGlobalProblems(ws, files) {
         }
       }
       // `const { random } = Math` and `({ random } = Math)`: destructuring whose value is the forbidden object.
-      const pattern = ts.isObjectBindingPattern(node) && node.parent.initializer
-        ? { elements: node.elements, value: node.parent.initializer }
-        : ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken && ts.isObjectLiteralExpression(node.left)
-          ? { elements: node.left.properties, value: node.right }
-          : null;
+      const pattern = destructuring(node);
       if (pattern) {
         for (const [object, property, why] of ENGINE_FORBIDDEN_PROPERTIES) {
           if (!forbiddenObject(pattern.value, object)) continue;

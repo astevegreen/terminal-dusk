@@ -7,7 +7,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 
 function git(root, args) {
-  const r = spawnSync("git", args, { cwd: root, encoding: "utf8", windowsHide: true });
+  const r = spawnSync("git", args, { cwd: root, encoding: "utf8", windowsHide: true }); // NOSONAR (javascript:S4036)
   return r.status === 0 ? r.stdout.trim() : null;
 }
 const lines = (s) => (s ? s.split(/\r?\n/).filter(Boolean) : []);
