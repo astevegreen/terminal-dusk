@@ -3,6 +3,7 @@ import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { App } from "../App.tsx";
 import { decisionPrompts } from "../decisionPrompts.tsx";
+import { byCodeUnit } from "../test/order.ts";
 import { TestModeView } from "./TestModeScreen.tsx";
 import { buttonsOf } from "./promptTree.ts";
 import { cardName } from "./fixture.ts";
@@ -170,7 +171,7 @@ describe("a whole game through the prompts", () => {
       }
       if (!acted) throw new Error("nobody has a prompt");
     }
-    expect([...seen].sort()).toEqual(["chooseCard", "playCardAs", "rivalEventOrder", "yesNo"]);
+    expect([...seen].sort(byCodeUnit)).toEqual(["chooseCard", "playCardAs", "rivalEventOrder", "yesNo"]);
     // A card really was played for its event, and it ended up in the discard pile.
     const eventPlays = accepted.flatMap((a) => (a.kind === "playCardAs" && a.as === "event" ? [a.card] : []));
     expect(eventPlays.length).toBeGreaterThan(0);
@@ -210,7 +211,7 @@ describe("the replay after a whole game", () => {
     const recording = session.replay();
     expect(recording?.frames.length).toBeGreaterThan(2);
     expect(recording?.status.kind).toBe("over");
-    expect(Object.keys(recording!).sort()).toEqual(["frames", "matchId", "seedHash", "status"]);
+    expect(Object.keys(recording!).sort(byCodeUnit)).toEqual(["frames", "matchId", "seedHash", "status"]);
     // The typed seed is the screen's own input; nothing else in the snapshot or the recording holds it.
     const { seed, ...rest } = session.getSnapshot();
     expect(seed).toBe(SEED);

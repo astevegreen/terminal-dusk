@@ -60,6 +60,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/replay/recording.test.ts`
 - `packages/app/src/replay/recording.ts` - What the app is allowed to hold of a finished game: the frames and the final status, but never the archive's seed, setup or move log (CLAUDE.md, Never). Exports: ReplayRecording, toRecording.
 - `packages/app/src/replay/replayScreen.css`
+- `packages/app/src/test/order.test.ts`
+- `packages/app/src/test/order.ts` - Compare function for sorting strings in UTF-16 code-unit order: the same order as a sort with no compare function, written out so the order is explicit. Exports: byCodeUnit.
 - `packages/app/src/testMode/TestModeScreen.test.tsx`
 - `packages/app/src/testMode/TestModeScreen.tsx` - Test mode (docs/architecture.md, Decision 3): the Local transport with a switch to view the game as LIO, as SAE or as a spectator. Exports: TestModeView, TestModeScreen.
 - `packages/app/src/testMode/fixture.ts` - DEVELOPER FIXTURE for test mode. Exports: DEFAULT_SEED, cardName, fixtureRuleset, fixtureConfig.
@@ -380,6 +382,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
 - `packages/host/src/test/leaks.ts` - Test helpers for leak checks, copying the idea of tests/fuzz/checks.ts (hiddenFrom, leaksIn). Exports: hiddenFrom, leaksIn.
 - `packages/host/src/test/match.ts` - Test helpers: a small ruleset, a match config with an era still to enter, and a seed. Exports: SEED, NOW, LATE_ERA_CARDS, ruleset, makeConfig.
+- `packages/host/src/test/order.test.ts`
+- `packages/host/src/test/order.ts` - Compare function for sorting strings in UTF-16 code-unit order: the same order as a sort with no compare function, written out so the order is explicit. Exports: byCodeUnit.
 - `packages/host/src/test/play.ts` - Test helpers for playing a match through the host. Exports: started, submissionFor, nextSide, accept.
 - `packages/host/src/types.ts` - The match host's own types (docs/architecture.md, Decision 3). Exports: PlayerId, MatchConfig, MatchRecord, MatchSecret, Frame, Submission, HostEffect, HostResult, HostErrorCode, HostError, HostOutcome, ReplayFrame, ….
 - `packages/host/tsconfig.json`
