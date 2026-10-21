@@ -23,6 +23,18 @@ describe("Easy in the fuzz games", () => {
     }
   });
 
+  it("reaches the lasting markers of R4b's cards: as each side, at least one Easy game ends with markers set", () => {
+    for (const easy of SIDES) {
+      const marked = Array.from({ length: 20 }, (_, i) => {
+        const rng = seededRng(i + 1);
+        const { setup, seed } = randomGame(rng, i + 1);
+        const label = `Easy as ${easy}, game ${i + 1}`;
+        return playGame(ruleset, label, setup, seed, easyChooser(ruleset, easy, rng)).final;
+      }).filter((final) => final.public.status.kind === "over" && final.public.markers.length > 0);
+      expect(marked.length, `Easy as ${easy}`).toBeGreaterThan(0);
+    }
+  });
+
   it("does not always answer first in the simultaneous opening pick", () => {
     const firstSides = new Set<Side>();
     for (let game = 1; game <= 30; game++) {
