@@ -1,4 +1,5 @@
 // e3-sae-004 Full-Scale Invasion: one test for each way its effect can play out.
+import { describeOnceOnly } from "../../src/test/cardEnds.ts";
 import { describeCard } from "../../src/test/describeCard.ts";
 
 describeCard("e3-sae-004", "Full-Scale Invasion", [
@@ -17,3 +18,5 @@ describeCard("e3-sae-004", "Full-Scale Invasion", [
     `,
   },
 ]);
+
+describeOnceOnly("e3-sae-004", "Full-Scale Invasion");

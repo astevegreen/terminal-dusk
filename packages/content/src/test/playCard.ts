@@ -3,7 +3,7 @@
 // the first of its plays; every other play is a plain filler card of ops 2 played for points, so the story also
 // shows what the card leaves behind: modifiers, then triggers that fire after later plays and at the end of the turn.
 import { apply, createGame, seedHash } from "@terminal-dusk/engine";
-import type { Answer, CardDef, CardId, GameEvent, Ruleset, Side } from "@terminal-dusk/engine";
+import type { Answer, CardDef, CardId, GameEvent, GameState, Ruleset, Side } from "@terminal-dusk/engine";
 import { cardDef } from "../era1.ts";
 import { FIRST_DECK_CARDS } from "../firstDeckRules.ts";
 
@@ -50,11 +50,18 @@ export function story(events: readonly GameEvent[]): string[] {
   });
 }
 
-/** Plays first-deck card `id` (Era 1, 2, 3 or future) (the real file) in a one-turn game and returns the story from the moment the card is played. */
-export function playCard(id: CardId, options: PlayOptions = {}): string[] {
+/** A one-turn card-test game: the ruleset, the opening state, and the card's owner (LIO for a neutral card). */
+export type CardGame = { ruleset: Ruleset; state: GameState; owner: Side };
+
+/**
+ * Starts the one-turn game that plays first-deck card `id` (the real file): each side holds its four fillers, and
+ * `holder` (default: the card's owner; else its rival) also holds the card.
+ */
+export function startCardGame(id: CardId, options: PlayOptions = {}, holder: "owner" | "rival" = "owner"): CardGame {
   const card = FIRST_DECK_CARDS.find((c) => c.id === id);
   if (!card) throw new Error(`no first-deck card ${id}`);
   const owner: Side = card.affiliation === "sae" ? "sae" : "lio";
+  const holds: Side = holder === "owner" ? owner : owner === "lio" ? "sae" : "lio";
   const def = cardDef(card);
   const ruleset: Ruleset = {
     id: "card-test",
@@ -68,8 +75,8 @@ export function playCard(id: CardId, options: PlayOptions = {}): string[] {
   const top = options.draw;
   const deckOf = top === undefined ? [1, 2, 3, 4, 5, 6] : [top, top, top];
   const hands = {
-    lio: [...FILLERS.lio.map((c) => c.id), ...(owner === "lio" ? [id] : [])],
-    sae: [...FILLERS.sae.map((c) => c.id), ...(owner === "sae" ? [id] : [])],
+    lio: [...FILLERS.lio.map((c) => c.id), ...(holds === "lio" ? [id] : [])],
+    sae: [...FILLERS.sae.map((c) => c.id), ...(holds === "sae" ? [id] : [])],
   };
   const made = createGame(
     ruleset,
@@ -85,7 +92,14 @@ export function playCard(id: CardId, options: PlayOptions = {}): string[] {
     "card-test",
   );
   if (!made.ok) throw new Error(`createGame failed: ${made.error.code}`);
-  let state = made.value.state;
+  return { ruleset, state: made.value.state, owner };
+}
+
+/** Plays first-deck card `id` (Era 1, 2, 3 or future) (the real file) in a one-turn game and returns the story from the moment the card is played. */
+export function playCard(id: CardId, options: PlayOptions = {}): string[] {
+  const game = startCardGame(id, options);
+  const { ruleset, owner } = game;
+  let state = game.state;
   const events: GameEvent[] = [];
   const step = (answer: Answer) => {
     const r = apply(ruleset, state, answer);
