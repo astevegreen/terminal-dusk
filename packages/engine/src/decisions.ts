@@ -1,8 +1,9 @@
 // Pending decisions: building them, finding the one a side must answer, and listing its legal answers.
-import { SIDES } from "./types.ts";
+import { otherSide, SIDES } from "./types.ts";
 import type {
   AnswerValue,
   CardDef,
+  CardId,
   Decision,
   DecisionKind,
   DecisionOptions,
@@ -26,12 +27,15 @@ export function whoseCard(card: CardDef | undefined, side: Side): keyof PlayUses
   return card.affiliation === side ? "own" : "rival";
 }
 
+/** The kinds of decision whose options follow from the kind alone: all but a discard pick (newDiscardDecision). */
+type PlainKind = Exclude<DecisionKind, "discardCards">;
+
 /**
  * What a decision of `kind` allows, said without card IDs: a yes/no or a rivalEventOrder has no
  * options; the opening pick is any card in your hand, neutral ones too; a play is any card in your hand,
  * used as its kind of card allows.
  */
-function optionsFor(kind: DecisionKind): DecisionOptions {
+function optionsFor(kind: PlainKind): DecisionOptions {
   switch (kind) {
     case "yesNo":
     case "rivalEventOrder":
@@ -44,12 +48,20 @@ function optionsFor(kind: DecisionKind): DecisionOptions {
 }
 
 /** A new decision. Its ID comes from `seq`, which rises with every change, so IDs never repeat. */
-export function newDecision(seq: number, side: Side, kind: DecisionKind): Decision {
+export function newDecision(seq: number, side: Side, kind: PlainKind): Decision {
   return { id: `d${seq}`, side, kind, options: optionsFor(kind) };
 }
 
+/**
+ * A new discard pick: `side` picks `count` cards to discard from its own hand ("hand") or the rival's
+ * ("rivalHand"). Its ID comes from `seq`, as for newDecision. The options never list the cards.
+ */
+export function newDiscardDecision(seq: number, side: Side, from: "hand" | "rivalHand", count: number): Decision {
+  return { id: `d${seq}`, side, kind: "discardCards", options: { from, count } };
+}
+
 /** A new simultaneous group: one decision per side, in SIDES order, sharing the group `g<seq>`. */
-export function newGroup(seq: number, kind: DecisionKind): Decision[] {
+export function newGroup(seq: number, kind: PlainKind): Decision[] {
   return SIDES.map((side) => ({
     id: `d${seq}-${side}`,
     side,
@@ -88,7 +100,22 @@ export function legalAnswers(ruleset: Ruleset, state: GameState, side: Side): An
         uses[whoseCard(cardOf(ruleset, card), side)].map((as: PlayUse) => ({ kind: "playCardAs" as const, card, as })),
       );
     }
+    case "discardCards": {
+      const { options } = decision;
+      if (!("count" in options)) return [];
+      const hand = state.private[options.from === "hand" ? side : otherSide(side)].hand;
+      return setsOf(hand, options.count).map((cards) => ({ kind: "discardCards", cards }));
+    }
   }
+}
+
+/**
+ * Every set of `count` different cards from `cards`, each set in the list's order, the sets in order of
+ * position (the first card's place, then the second's, and so on).
+ */
+function setsOf(cards: readonly CardId[], count: number): CardId[][] {
+  if (count === 0) return [[]];
+  return cards.flatMap((card, i) => setsOf(cards.slice(i + 1), count - 1).map((rest) => [card, ...rest]));
 }
 
 const cardOf = (ruleset: Ruleset, id: string): CardDef | undefined => ruleset.cards.find((card) => card.id === id);

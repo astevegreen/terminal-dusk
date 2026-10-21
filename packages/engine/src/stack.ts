@@ -5,7 +5,7 @@ import { notANumber, testCondition, unbound } from "./conditions.ts";
 import { deckFor, drawContingency } from "./contingency.ts";
 import { copyJson } from "./copy.ts";
 import { newDecision, newGroup } from "./decisions.ts";
-import { discardFromHand } from "./discard.ts";
+import { resumeDiscard, runDiscard } from "./discardChoice.ts";
 import { revealHand } from "./knowledge.ts";
 import { keepMarker } from "./markers.ts";
 import { opsValue, startModifier } from "./modifiers.ts";
@@ -103,7 +103,8 @@ export type Closing = { who: Side; value: AnswerValue } | { who: "both"; values:
 
 /**
  * Resumes a paused program once its `choose` is closed: binds the answer (for a pair, both answers
- * keyed by side), then runs on. Edits `state`, a working copy, in place.
+ * keyed by side), then runs on. A discard pick resumes its discardFromHand step (discardChoice.ts).
+ * Edits `state`, a working copy, in place.
  */
 export function resumeStack(
   state: GameState,
@@ -111,6 +112,9 @@ export function resumeStack(
   events: GameEvent[],
   budget: Budget,
 ): EngineError | null {
+  if (closing.who !== "both" && closing.value.kind === "discardCards") {
+    return resumeDiscard(state, closing.value.cards, events) ?? runStack(state, events, budget);
+  }
   const frame = state.public.stack.at(-1);
   const step = frame?.steps[frame.next];
   const value = boundValue(closing);
@@ -202,9 +206,7 @@ function runStep(state: GameState, frame: Frame, step: Step, events: GameEvent[]
       frame.next += 1;
       return "ran";
     case "discardFromHand":
-      discardFromHand(state, step.side, step.count, events);
-      frame.next += 1;
-      return "ran";
+      return runDiscard(state, frame, step, events, programFrame(state.public.stack)?.player);
   }
 }
 
