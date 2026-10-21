@@ -6,7 +6,8 @@
   "effect": [
     {
       "op": "marker",
-      "label": "precedent set"
+      "label": "precedent set",
+      "lasting": true
     },
     {
       "op": "spendPoints",
@@ -21,7 +22,7 @@
   ],
   "text": {
     "name": "Kosovo Declares Independence",
-    "rules": "Record \"precedent set\". LIO spends 1 point. SAE spends 1 point.",
+    "rules": "Record \"precedent set\" for the rest of the game. LIO spends 1 point. SAE spends 1 point.",
     "history": "Kosovo declared independence from Serbia on 17 February 2008. The United States and most EU states recognised it; Serbia and Russia did not.",
     "art": "art/e2-neu-007"
   }

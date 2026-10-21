@@ -6,7 +6,7 @@ describeCard("e3-sae-008", "Syrian Intervention", [
     it: "plays out as its text says",
     story: `
       points:lio:2
-      proxy war
+      lasting:proxy war
       points:sae:2
       triggerSet:turnEnd
       points:lio:2
