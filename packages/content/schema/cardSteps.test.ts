@@ -1,5 +1,5 @@
 // The card schema's lasting steps: modifiers (#89), triggers (#90) and lasting markers (#141), at any depth;
-// revealHand steps (#184); and discardFromHand steps (#186).
+// revealHand steps (#184); and discardFromHand steps (#186), with who picks the cards (#192).
 import { describe, expect, it } from "vitest";
 import { issuesOf, lioCard, pathsOf, pickCard, yesNo } from "./test/cards.ts";
 
@@ -165,8 +165,32 @@ describe("card schema: discardFromHand steps (#186)", () => {
     ["a side of both", { op: "discardFromHand", side: "both", count: 1 }],
     ["a side of player", { op: "discardFromHand", side: "player", count: 1 }],
     ["a missing side", { op: "discardFromHand", count: 1 }],
-    ["an extra field", { op: "discardFromHand", side: "lio", count: 1, chosenBy: "owner" }],
+    ["an extra field", { op: "discardFromHand", side: "lio", count: 1, bind: "gone" }],
   ])("refuses a discardFromHand with %s, at any depth", (_what, step) => {
     for (const effect of placed(step)) expect(issuesOf(lioWith(effect)).length).toBeGreaterThan(0);
+  });
+});
+
+describe("card schema: discardFromHand chosenBy (#192)", () => {
+  const chosen = (chosenBy: unknown) => ({ op: "discardFromHand", side: "sae", count: 1, chosenBy });
+
+  it.each(["owner", "player"])("accepts chosenBy %s, at any depth", (chosenBy) => {
+    for (const effect of placed(chosen(chosenBy))) expect(issuesOf(lioWith(effect))).toEqual([]);
+  });
+
+  it.each(["random", "rival", "both", "lio"])("refuses chosenBy %s, at any depth", (chosenBy) => {
+    for (const effect of placed(chosen(chosenBy))) expect(issuesOf(lioWith(effect)).length).toBeGreaterThan(0);
+  });
+
+  it('refuses chosenBy "random" with a message saying to leave the field out', () => {
+    expect(issuesOf(lioWith([chosen("random")])).map((issue) => issue.message)).toEqual([
+      'A discard is chosen by "owner" or "player"; leave chosenBy out for a random discard.',
+    ]);
+  });
+
+  it("still refuses a choose step that picks a card, saying effects pick cards only to discard them", () => {
+    expect(issuesOf(lioWith([pickCard])).map((issue) => issue.message)).toEqual([
+      "A choose step may only ask yes/no; a card's effect picks cards only to discard them, with discardFromHand.",
+    ]);
   });
 });

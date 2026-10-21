@@ -3,7 +3,11 @@
 import type { Step } from "@terminal-dusk/engine";
 import * as z from "zod";
 
-/** A step a card's effect may hold: any engine step but a card choice, which only a turn's opening asks for. */
+/**
+ * A step a card's effect may hold: any engine step but a card choice, which only a turn's opening asks for. A
+ * `choose` in an effect asks yes/no only; the one other way an effect asks a side to pick cards is a
+ * `discardFromHand` with `chosenBy`, and only to discard them.
+ */
 export type CardStep = Exclude<Step, { decision: { kind: "chooseCard" } }>;
 
 const side = z.enum(["lio", "sae"]);
@@ -13,12 +17,18 @@ const wholeNumber = z.int().min(0);
 /** A list of steps. Lazy, because a step may hold lists of steps (stepSchema, below). */
 const block = z.array(z.lazy((): z.ZodType<CardStep, CardStep> => stepSchema));
 
-/** A yes/no question, to one side or both at once. Never a card choice: that is only a turn's opening. */
+/**
+ * A yes/no question, to one side or both at once. Never a card choice: that is only a turn's opening. An
+ * effect picks cards only to discard them, with a discardFromHand's `chosenBy`.
+ */
 const choose = z.strictObject({
   op: z.literal("choose"),
   who: z.enum(["lio", "sae", "both"]),
   decision: z.strictObject({
-    kind: z.literal("yesNo", { error: "A card's effect may only ask yes/no; only a turn's opening picks a card." }),
+    kind: z.literal("yesNo", {
+      error:
+        "A choose step may only ask yes/no; a card's effect picks cards only to discard them, with discardFromHand.",
+    }),
   }),
   bind: name,
 });
@@ -86,11 +96,17 @@ export const stepSchema = z.discriminatedUnion("op", [
   }),
   // Shows LIO's or SAE's whole hand to the other side, never "both" or "player".
   z.strictObject({ op: z.literal("revealHand"), side }),
-  // LIO or SAE discards `count` cards from its hand, at random. The card must say how many: 1 or more.
+  // LIO or SAE discards `count` cards from its hand. The card must say how many: 1 or more. They are picked
+  // at random, unless `chosenBy` says the hand's "owner" or the card's "player" picks them.
   z.strictObject({
     op: z.literal("discardFromHand"),
     side,
     count: z.int().min(1, { error: "A discardFromHand must discard at least 1 card." }),
+    chosenBy: z
+      .enum(["owner", "player"], {
+        error: 'A discard is chosen by "owner" or "player"; leave chosenBy out for a random discard.',
+      })
+      .exactOptional(),
   }),
 ]);
 
