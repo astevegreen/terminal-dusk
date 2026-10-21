@@ -389,6 +389,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/package.json`
 - `packages/server/src/index.test.ts`
 - `packages/server/src/index.ts` - Public entry point of the server package (docs/architecture.md, Decision 5).
+- `packages/server/supabase/config.toml` - Local Supabase stack for development and tests only (docs/sprint.md, lane "online").
+- `packages/server/supabase/migrations/20261020000000_match_tables.sql` - The match tables and who may read them (docs/architecture.md, Decision 5).
 - `packages/server/tsconfig.json`
 
 ## tests

@@ -1,0 +1,3 @@
+# Local Supabase stack for development and tests only (docs/sprint.md, lane "online").
+# There is no hosted project: no project ref, keys or secrets live here. Every other setting uses the CLI default.
+project_id = "terminal-dusk"
