@@ -511,6 +511,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `docs/design/contingency-deck.md` - Contingency deck
 - `docs/design/core-loop.md` - Core loop
 - `docs/design/eras.md` - Eras
+- `docs/design/map-and-points.md` - The map, influence, points and tension: owner decisions (W7)
 - `docs/design/sides.md` - Sides
 - `docs/proposals/special-abilities.md` - Special abilities for LIO and SAE: options
 - `docs/proposals/w7/1-map.md` - Topic 1: the map (regions, how many countries, adjacency)
