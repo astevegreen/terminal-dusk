@@ -1,7 +1,7 @@
 // Test helper: plays one real card through the real engine and tells what happened, in a short story.
-// The game has one turn with two plays each. The card's owner (LIO for a neutral card) plays it for its event as
-// the first of its plays; every other play is a plain filler card of ops 2 played for points, so the story also
-// shows what the card leaves behind: modifiers, then triggers that fire after later plays and at the end of the turn.
+// The game has one turn with two plays each. The card's owner (for a neutral card LIO, or playedBy) plays it for its
+// event as the first of its plays; every other play is a plain filler card of ops 2 played for points, so the story
+// also shows what the card leaves behind: modifiers, then triggers that fire after later plays and at the end of the turn.
 // A test can also play other real cards first (`before`), one per earlier turn of the same game, so the card under
 // test can read a lasting tag they recorded; their turns are left out of the story.
 import { apply, createGame, seedHash } from "@terminal-dusk/engine";
@@ -20,6 +20,13 @@ export type PlayOptions = {
   yes?: YesAnswers;
   /** The number on top of every Contingency deck, so the draw is known. Default: decks 1 to 6. */
   draw?: number;
+  /**
+   * The numbers drawn from every Contingency deck, in order: `[5, 2]` makes each deck's first draw 5 and its
+   * second 2. Any later draw comes from the numbers 1 to 6. Not together with `draw`.
+   */
+  draws?: readonly number[];
+  /** The side that plays a neutral card under test. Default: LIO. Only for neutral cards. */
+  playedBy?: Side;
   /**
    * Real cards played for their events before the card under test, in this order, one per earlier turn of the same
    * game: each by its owner (LIO for a neutral card), as that side's first play of its turn. A card id alone answers
@@ -73,29 +80,51 @@ const ownerOf = (id: CardId): Side => (firstDeckCard(id).affiliation === "sae" ?
 const earlier = (options: PlayOptions): EarlierCard[] =>
   (options.before ?? []).map((e) => (typeof e === "string" ? { card: e } : e));
 
+/** Each deck's cards in the setup, and (for `draws`) the order they are stacked in once the game is made. */
+function decksFor(options: PlayOptions): { cards: number[]; order?: number[] } {
+  const { draw, draws } = options;
+  if (draw !== undefined && draws !== undefined) throw new Error("give draw or draws, not both");
+  if (draws !== undefined) {
+    const order = [...draws, 1, 2, 3, 4, 5, 6];
+    return { cards: order, order };
+  }
+  return { cards: draw === undefined ? [1, 2, 3, 4, 5, 6] : [draw, draw, draw] };
+}
+
 /**
  * Starts the game that plays first-deck card `id` (the real file): each side holds its fillers, and `holder`
  * (default: the card's owner; else its rival) also holds the card; each `before` card is in its owner's hand.
  * The ruleset holds every first-deck card, so a card that reads a tag is always accepted. Returns the ruleset,
- * the opening state, and the card's owner (LIO for a neutral card).
+ * the opening state, and the side that plays the card (LIO for a neutral card, unless `playedBy` says SAE).
  */
 export function startCardGame(id: CardId, options: PlayOptions = {}, holder: "owner" | "rival" = "owner") {
-  const owner = ownerOf(id);
+  return startCardGameDef(cardDef(firstDeckCard(id)), options, holder);
+}
+
+/** Starts the game of startCardGame for card `def`, which need not be a real card file. */
+function startCardGameDef(def: CardDef, options: PlayOptions, holder: "owner" | "rival") {
+  const id = def.id;
+  if (options.playedBy !== undefined && def.affiliation !== "neutral") {
+    throw new Error(`playedBy is only for neutral cards; ${id} is ${def.affiliation}'s`);
+  }
+  const owner: Side = def.affiliation === "neutral" ? (options.playedBy ?? "lio") : def.affiliation;
   const holds: Side = holder === "owner" ? owner : owner === "lio" ? "sae" : "lio";
   const first = earlier(options);
   if (first.some((e) => e.card === id)) throw new Error(`${id} cannot be played before itself`);
   const fill = { lio: fillers("lio", first.length), sae: fillers("sae", first.length) };
+  const isRealCard = FIRST_DECK_CARDS.some((c) => c.id === id);
   const ruleset: Ruleset = {
     id: "card-test",
     cards: [
       ...fill.lio,
       ...fill.sae,
       ...FIRST_DECK_CARDS.map(cardDef),
+      ...(isRealCard ? [] : [def]),
       ...[1, 2].map((n) => ({ ...filler("lio", n), id: `deck-${n}`, affiliation: "neutral" as const })),
     ],
   };
-  const top = options.draw;
-  const deckOf = top === undefined ? [1, 2, 3, 4, 5, 6] : [top, top, top];
+  const decks = decksFor(options);
+  const deckOf = decks.cards;
   const handOf = (side: Side): CardId[] => [
     ...fill[side].map((c) => c.id),
     ...first.filter((e) => ownerOf(e.card) === side).map((e) => e.card),
@@ -115,7 +144,14 @@ export function startCardGame(id: CardId, options: PlayOptions = {}, holder: "ow
     "card-test",
   );
   if (!made.ok) throw new Error(`createGame failed: ${made.error.code}`);
-  return { ruleset, state: made.value.state, owner };
+  let state = made.value.state;
+  const order = decks.order;
+  if (order !== undefined) {
+    // createGame shuffles each deck; stack it in the order asked instead. Same cards, so the public view still fits.
+    const contingency = { lio: [...order], sae: [...order], world: [...order] };
+    state = { ...state, secret: { ...state.secret, contingency } };
+  }
+  return { ruleset, state, owner };
 }
 
 /**
@@ -123,8 +159,14 @@ export function startCardGame(id: CardId, options: PlayOptions = {}, holder: "ow
  * cards, and returns the story from the moment the last turn's opening picks are in.
  */
 export function playCard(id: CardId, options: PlayOptions = {}): string[] {
-  const game = startCardGame(id, options);
-  const { ruleset } = game;
+  return playCardDef(cardDef(firstDeckCard(id)), options);
+}
+
+/** Plays card `def` as playCard does. Exported for the helper's own tests, which need made-up cards. */
+export function playCardDef(def: CardDef, options: PlayOptions = {}): string[] {
+  const id = def.id;
+  const game = startCardGameDef(def, options, "owner");
+  const { ruleset, owner } = game;
   const first = earlier(options);
   let state = game.state;
   const events: GameEvent[] = [];
@@ -134,9 +176,12 @@ export function playCard(id: CardId, options: PlayOptions = {}): string[] {
     state = r.value.state;
     events.push(...r.value.events);
   };
-  /** This turn's event card: an earlier card in the earlier turns, the card under test in the last. */
+  /** This turn's event card and the side that plays it: an earlier card in the earlier turns, `def` in the last. */
   const last: EarlierCard = options.yes === undefined ? { card: id } : { card: id, yes: options.yes };
-  const turnCard = (): EarlierCard => first[state.public.turn - 1] ?? last;
+  const turnCard = (): EarlierCard & { by: Side } => {
+    const e = first[state.public.turn - 1];
+    return e === undefined ? { ...last, by: owner } : { ...e, by: ownerOf(e.card) };
+  };
   const nextFiller: Record<Side, number> = { lio: 1, sae: 1 };
   const takeFiller = (side: Side): CardId => `fill-${side}-${nextFiller[side]++}`;
   let played = false;
@@ -149,7 +194,7 @@ export function playCard(id: CardId, options: PlayOptions = {}): string[] {
       step({ decisionId: d.id, side: d.side, value: { kind: "chooseCard", card: takeFiller(d.side) } });
       if (d.side === "sae") events.length = 0; // Both opening picks are in; this turn's story starts here.
     } else if (d.kind === "playCardAs") {
-      if (d.side === ownerOf(now.card) && !played) {
+      if (d.side === now.by && !played) {
         played = true;
         step({ decisionId: d.id, side: d.side, value: { kind: "playCardAs", card: now.card, as: "event" } });
       } else {
