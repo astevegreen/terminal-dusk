@@ -10,11 +10,13 @@ Not yet built. Numbers marked "open" are for the owner to set. Scoring is not de
 ## Map (proposal topic 1)
 
 - **Six regions.** One map for the whole game, 1991 to 2025. It does not change between eras.
-- **Home box.** Russia and China are drawn on the map with their own borders, and both belong to the SAE home box.
-  The United States is the LIO home box. Countries next to a home box count as next to that side's influence.
+- **Home box.** Russia and China are both part of the SAE home box; the United States is the LIO home box. Home
+  boxes are not countries for placing or control. Countries next to a home box count as next to that side's
+  influence. Open: whether Russia's and China's borders are only artwork or also decide which countries touch
+  the SAE box.
 - **Hong Kong** is part of China.
 - **Taiwan** starts LIO-aligned.
-- **Crimea** starts as the history of 1991 says. It is expected to turn SAE in most games.
+- **Crimea** starts as the history of 1991 says (owner).
 - Country counts, region contents, adjacency lists, stabilities and battlegrounds: open (scenario data).
 
 ## Influence (proposal topic 2, option A)
@@ -30,19 +32,20 @@ Not yet built. Numbers marked "open" are for the owner to set. Scoring is not de
 
 What the reference rules mean for this game, as far as they reach:
 
-1. **A card played for its action points** gives its Ops number as points to spend on **one** action, all on that
-   one action. This is the existing "play for points" choice. Ops modifiers (`opsValue`) apply.
+1. **A card played for its action points** gives its Ops number as points to spend on the action menu. This is
+   the existing "play for points" choice. Open: whether all points go to one action or can be split. Ops modifiers (`opsValue`) apply.
 2. **The action menu** is the proposal's option M1: **place influence**, **coup**, **realign**.
    - **Place influence:** as in the Influence section.
    - **Coup:** choose a country where the rival has influence. The acting side draws one card from its
      Contingency deck (1 to 6; no dice). Result = draw + points spent - 2 x the country's stability. If the result is
      above 0, remove that much rival influence (stopping at 0) and, for what is left over, add the same amount of the
-     acting side's own influence. A coup in a battleground raises tension (see below). A coup does not need
-     adjacency.
+     acting side's own influence. A coup raises tension (see below). A coup does not need adjacency.
    - **Realign:** choose a country where the rival has influence. Each side draws one Contingency card. The acting
      side adds 1 for each adjacent country it controls and 1 if it has more influence in the target; the rival adds
      the same by the same tests. Higher total wins, and the difference removes that much of the loser's influence
-     (stopping at 0). A tie changes nothing. A realignment does not need adjacency.
+     (stopping at 0). A tie changes nothing. A realignment does not need adjacency. Open: what a realignment
+     costs and how many attempts a play buys (in the reference rules each point buys one attempt, which may go to
+     different countries), and whether a side whose home box touches the target also adds 1.
 3. **A fourth action** takes the place of the reference game's extra track action. **Open:** which action (the
    proposal names Sanctions, Cyber operation and Information campaign). Until the owner names it, the menu is
    place, coup, realign.
@@ -67,8 +70,9 @@ What the reference rules mean for this game, as far as they reach:
 ## Tension (proposal topic 4, option B)
 
 - One shared track from 0 to 6, starting at 2. A whole number that stops at its ends.
-- **Rises** by 1 for each coup in a battleground (coups elsewhere do not move it) and through card events.
-  **Falls** by 1 at each era's start as well as through events.
+- **Rises** by 1 for each coup and through card events (proposal option B, as written). **Falls** by 1 at each
+  era's start as well as through events. Open: whether only coups in battlegrounds raise it, as in the reference
+  rules.
 - **At 6** a crisis: the side that pushed it there loses score equal to a scenario number, the track drops back to
   3, and play goes on. **This needs a score track.** Open until scoring is decided.
 - Which cards raise or lower it, and whether the arms-control cards are redesigned to move it: open.
