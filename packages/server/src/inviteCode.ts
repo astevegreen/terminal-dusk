@@ -16,8 +16,8 @@ export function inviteCode(source: RandomSource = (globalThis as unknown as { cr
   let code = "";
   while (code.length < INVITE_CODE_LENGTH) {
     for (const byte of source.getRandomValues(new Uint8Array(INVITE_CODE_LENGTH))) {
-      if (byte < LIMIT && code.length < INVITE_CODE_LENGTH)
-        code += INVITE_CODE_ALPHABET[byte % INVITE_CODE_ALPHABET.length];
+      if (byte >= LIMIT || code.length === INVITE_CODE_LENGTH) continue;
+      code += INVITE_CODE_ALPHABET[byte % INVITE_CODE_ALPHABET.length];
     }
   }
   return code;

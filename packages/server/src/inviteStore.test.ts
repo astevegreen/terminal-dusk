@@ -11,8 +11,8 @@ const invite = (): Invite => ({ code: "ABCD2345", host: "host-hana", sides: { mo
 const writeFor = (matchId: string): MatchWrite => {
   const made = hostCreate(firstDeckRuleset, { ...firstDeckConfig(), matchId }, "seed-x", 6);
   if (!made.ok) throw new Error(made.error.code);
-  const { effects: _effects, ...write } = made.value;
-  return write;
+  const { record, secret, frames } = made.value;
+  return { record, secret, frames };
 };
 
 describe("MemoryInviteStore", () => {
