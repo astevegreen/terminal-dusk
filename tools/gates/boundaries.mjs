@@ -53,29 +53,36 @@ const scriptKind = (file) =>
 const lineOf = (sf, node) => sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1;
 
 // Every module a file refers to: static, re-export, require, dynamic import() and import("x") types.
+// `values` names the value exports taken from it ("*" for the whole module); type-only names are left out.
 function importsOf(sf) {
   const found = [];
-  const add = (node, spec, typeOnly) => found.push({ line: lineOf(sf, node), spec, typeOnly });
+  const add = (node, spec, typeOnly, values) => found.push({ line: lineOf(sf, node), spec, typeOnly, values });
   const allTypes = (elements) => elements.length > 0 && elements.every((e) => e.isTypeOnly);
+  const valueNames = (elements) => elements.filter((e) => !e.isTypeOnly).map((e) => (e.propertyName ?? e.name).text);
   const visit = (node) => {
     if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
       const c = node.importClause;
       const named = c?.namedBindings && ts.isNamedImports(c.namedBindings) ? c.namedBindings.elements : null;
-      add(node, node.moduleSpecifier.text, Boolean(c && (c.isTypeOnly || (!c.name && named && allTypes(named)))));
+      const values = !c || c.isTypeOnly ? [] : [
+        ...(c.name ? ["default"] : []),
+        ...(c.namedBindings && !named ? ["*"] : valueNames(named ?? [])),
+      ];
+      add(node, node.moduleSpecifier.text, Boolean(c && (c.isTypeOnly || (!c.name && named && allTypes(named)))), values);
     } else if (ts.isExportDeclaration(node) && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
       const named = node.exportClause && ts.isNamedExports(node.exportClause) ? node.exportClause.elements : null;
-      add(node, node.moduleSpecifier.text, node.isTypeOnly || Boolean(named && allTypes(named)));
+      const values = node.isTypeOnly ? [] : named ? valueNames(named) : ["*"];
+      add(node, node.moduleSpecifier.text, node.isTypeOnly || Boolean(named && allTypes(named)), values);
     } else if (ts.isImportEqualsDeclaration(node) && ts.isExternalModuleReference(node.moduleReference)) {
       const e = node.moduleReference.expression;
-      if (ts.isStringLiteral(e)) add(node, e.text, node.isTypeOnly);
+      if (ts.isStringLiteral(e)) add(node, e.text, node.isTypeOnly, node.isTypeOnly ? [] : ["*"]);
     } else if (ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument)) {
-      if (ts.isStringLiteral(node.argument.literal)) add(node, node.argument.literal.text, true);
+      if (ts.isStringLiteral(node.argument.literal)) add(node, node.argument.literal.text, true, []);
     } else if (ts.isCallExpression(node)) {
       const dynamic = node.expression.kind === ts.SyntaxKind.ImportKeyword;
       const required = ts.isIdentifier(node.expression) && node.expression.text === "require";
       if (dynamic || required) {
         const arg = node.arguments[0];
-        add(node, arg && ts.isStringLiteralLike(arg) ? arg.text : null, false);
+        add(node, arg && ts.isStringLiteralLike(arg) ? arg.text : null, false, ["*"]);
       }
     }
     ts.forEachChild(node, visit);
@@ -85,6 +92,17 @@ function importsOf(sf) {
 }
 
 const packageOf = (spec) => spec.split("/").slice(0, spec.startsWith("@") ? 2 : 1).join("/");
+
+// Whether a package.json's "exports" map lists `subpath` ("./schema"). Without a map only the package itself is open.
+function exportsSubpath(pkg, subpath) {
+  const map = pkg.exports;
+  if (!map || typeof map !== "object" || Array.isArray(map)) return false;
+  return Object.keys(map).some((key) => {
+    if (!key.startsWith("./")) return false;
+    const [before, after] = key.split("*");
+    return after === undefined ? key === subpath : subpath.startsWith(before) && subpath.endsWith(after);
+  });
+}
 
 function importProblem(ws, file, imp, byName) {
   const tooling = isToolingFile(posix(path.relative(ws.dir, file)));
@@ -106,8 +124,17 @@ function importProblem(ws, file, imp, byName) {
       return `${ws.rel} is not in the package table (docs/architecture.md, Guardrails), so it may import no workspace package.`;
     const allowed = MAY_IMPORT[ws.key][target.key];
     if (!allowed) return `${ws.rel} may not import ${target.rel} (docs/architecture.md, Guardrails, "May import").`;
+    const subpath = imp.spec.slice(target.name.length);
+    if (subpath && !exportsSubpath(target.pkg, `.${subpath}`))
+      return `"${imp.spec}" reaches past the entry point of ${target.rel}. Import "${target.name}", or a subpath its package.json "exports" lists.`;
     if (allowed === "types" && !imp.typeOnly && !tooling)
       return `${ws.rel} may import only types from ${target.rel} outside its tests. Use \`import type\`.`;
+    const refused = allowed.values && !tooling ? imp.values.filter((v) => !allowed.values.includes(v)) : [];
+    if (refused.length) {
+      const what = refused.map((v) => (v === "*" ? "the whole module" : `"${v}"`)).join(", ");
+      return `${ws.rel} may import from ${target.rel} only types and ${allowed.values.join(", ")} outside its tests, not ${what} ` +
+        `(docs/architecture.md, Guardrails, "May import"). Use \`import type\`, or list the helper in tools/gates/boundary-rules.mjs.`;
+    }
     return null;
   }
   if (ws.key !== "engine") return null;
@@ -146,6 +173,14 @@ function engineGlobalProblems(ws, files) {
     return !rel.startsWith("..") && !path.isAbsolute(rel);
   };
   const declaredByEngine = (sym) => Boolean(sym?.declarations?.some((d) => inEngine(d.getSourceFile())));
+  const forbiddenObject = (node, object) =>
+    ts.isIdentifier(node) && node.text === object && !declaredByEngine(checker.getSymbolAtLocation(node));
+  // The property a destructured binding takes: `random` in `{ random }`, `{ random: r }` and `{ ["random"]: r }`.
+  const boundProperty = (element) => {
+    const key = element.propertyName ?? element.name;
+    if (ts.isIdentifier(key) || ts.isStringLiteralLike(key)) return key.text;
+    return ts.isComputedPropertyName(key) && ts.isStringLiteralLike(key.expression) ? key.expression.text : null;
+  };
   const problems = [];
 
   for (const file of files) {
@@ -166,9 +201,15 @@ function engineGlobalProblems(ws, files) {
           ? node.name.text
           : ts.isStringLiteralLike(node.argumentExpression) ? node.argumentExpression.text : null;
         for (const [object, property, why] of ENGINE_FORBIDDEN_PROPERTIES) {
-          const obj = node.expression;
-          if (prop === property && ts.isIdentifier(obj) && obj.text === object && !declaredByEngine(checker.getSymbolAtLocation(obj)))
-            report(node, `${object}.${property}`, why);
+          if (prop === property && forbiddenObject(node.expression, object)) report(node, `${object}.${property}`, why);
+        }
+      }
+      // `const { random } = Math` and the like: a binding pattern whose value is the forbidden object.
+      if (ts.isObjectBindingPattern(node) && node.parent.initializer) {
+        for (const [object, property, why] of ENGINE_FORBIDDEN_PROPERTIES) {
+          if (!forbiddenObject(node.parent.initializer, object)) continue;
+          for (const element of node.elements)
+            if (boundProperty(element) === property) report(element, `${object}.${property}`, why);
         }
       }
       ts.forEachChild(node, visit);
