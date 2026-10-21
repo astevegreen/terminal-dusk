@@ -421,7 +421,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 - `packages/server/package.json`
 - `packages/server/src/index.test.ts`
-- `packages/server/src/index.ts` - Public entry point of the server package (docs/architecture.md, Decision 5). Exports: submit, ServerErrorCode, SubmitDeps, SubmitError, SubmitOutcome, SubmitRequest, CORS_HEADERS, handleSubmit, HandlerErrorCode, HttpReply, HttpRequest, SubmitHandlerDeps, ….
+- `packages/server/src/index.ts` - Public entry point of the server package (docs/architecture.md, Decision 5). Exports: submit, ServerErrorCode, SubmitDeps, SubmitError, SubmitOutcome, SubmitRequest, MemoryStore, SupabaseStore, CommitResult, LoadedMatch, MatchStore, MatchWrite, ….
 - `packages/server/src/invite.leaks.test.ts`
 - `packages/server/src/invite.refusals.test.ts`
 - `packages/server/src/invite.test.ts`
