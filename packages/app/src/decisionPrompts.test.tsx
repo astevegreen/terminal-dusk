@@ -21,11 +21,12 @@ const decision = (kind: Decision["kind"], options: DecisionOptions, side: Decisi
 });
 
 /** The buttons of a prompt, and the answers sent when each is pressed in turn. */
-function pressAll(d: Decision, hand: string[]) {
+function pressAll(d: Decision, hand: string[], known: string[] = []) {
   const sent: AnswerValue[] = [];
   const props: PromptProps = {
     decision: d,
     hand,
+    known,
     label,
     stack: [],
     question: noQuestion,
@@ -35,9 +36,11 @@ function pressAll(d: Decision, hand: string[]) {
   for (const b of buttons) b.click();
   return { texts: buttons.map((b) => b.text), sent };
 }
-const readOnly = (d: Decision, hand: string[]) => {
+const readOnly = (d: Decision, hand: string[], known: string[] = []) => {
   const Prompt = decisionPrompts[d.kind];
-  return renderToString(<Prompt decision={d} hand={hand} label={label} stack={[]} question={noQuestion} />);
+  return renderToString(
+    <Prompt decision={d} hand={hand} known={known} label={label} stack={[]} question={noQuestion} />,
+  );
 };
 
 describe("decisionPrompts with an onAnswer", () => {
@@ -86,6 +89,7 @@ describe("decisionPrompts with an onAnswer", () => {
       <decisionPrompts.yesNo
         decision={decision("yesNo", {})}
         hand={[]}
+        known={[]}
         label={label}
         stack={[]}
         question={noQuestion}
@@ -114,6 +118,7 @@ describe("the yes/no prompt names the card that asks and its question", () => {
       <decisionPrompts.yesNo
         decision={decision("yesNo", {})}
         hand={[]}
+        known={[]}
         label={firstDeckCardName}
         stack={stack}
         question={firstDeckCardQuestion}
@@ -144,6 +149,7 @@ describe("the yes/no prompt names the card that asks and its question", () => {
     const props: PromptProps = {
       decision: decision("yesNo", {}),
       hand: [],
+      known: [],
       label: firstDeckCardName,
       stack: [program(asked)],
       question: firstDeckCardQuestion,
@@ -163,6 +169,47 @@ describe("the yes/no prompt names the card that asks and its question", () => {
     const html = text([program(asked), ifBlock]);
     expect(html).not.toContain("<button");
     expect(html).toContain(questionLine(expected));
+  });
+});
+
+describe("the discardCards prompt (#192)", () => {
+  const fromHand = decision("discardCards", { from: "hand", count: 2 });
+  const fromRival = decision("discardCards", { from: "rivalHand", count: 2 }, "lio");
+  const pairs = [
+    ["a", "b"],
+    ["a", "c"],
+    ["b", "c"],
+  ];
+
+  it('"hand": one button per set of count cards from the hand, in order, labelled "Discard A, B"', () => {
+    expect(pressAll(fromHand, ["a", "b", "c"], ["x", "y"])).toEqual({
+      texts: ["Discard Card a, Card b", "Discard Card a, Card c", "Discard Card b, Card c"],
+      sent: pairs.map((cards) => ({ kind: "discardCards", cards })),
+    });
+  });
+
+  it('"rivalHand": the sets come from the cards the viewer knows, not its own hand', () => {
+    expect(pressAll(fromRival, ["x", "y"], ["a", "b", "c"])).toEqual({
+      texts: ["Discard Card a, Card b", "Discard Card a, Card c", "Discard Card b, Card c"],
+      sent: pairs.map((cards) => ({ kind: "discardCards", cards })),
+    });
+  });
+
+  it("renders both cases read-only with renderToString: the question and the choices as text, no buttons", () => {
+    const own = readOnly(fromHand, ["a", "b", "c"], ["x"]);
+    const rival = readOnly(fromRival, ["x"], ["a", "b", "c"]);
+    expect(own).toContain("sae: discard 2 cards from your hand");
+    expect(rival).toContain("lio: discard 2 cards from the rival&#x27;s hand");
+    for (const html of [own, rival]) {
+      expect(html).not.toContain("<button");
+      expect(html).toContain("<li>Discard Card a, Card b</li><li>Discard Card a, Card c</li>");
+      expect(html).not.toContain("Card x");
+    }
+  });
+
+  it("with one card to discard, offers each card on its own", () => {
+    const d = decision("discardCards", { from: "hand", count: 1 });
+    expect(pressAll(d, ["a", "b"]).texts).toEqual(["Discard Card a", "Discard Card b"]);
   });
 });
 
@@ -192,11 +239,12 @@ describe("each prompt is a group named by its question", () => {
     [decision("chooseCard", { from: "hand" }, "lio"), ["a"]],
     [decision("playCardAs", play), ["a"]],
     [decision("rivalEventOrder", {}, "lio"), []],
+    [decision("discardCards", { from: "hand", count: 1 }), ["a"]],
   ];
   const answerable = (d: Decision, hand: string[]) => {
     const Prompt = decisionPrompts[d.kind];
     return renderToString(
-      <Prompt decision={d} hand={hand} label={label} stack={[]} question={noQuestion} onAnswer={() => {}} />,
+      <Prompt decision={d} hand={hand} known={[]} label={label} stack={[]} question={noQuestion} onAnswer={() => {}} />,
     );
   };
   const opening = (id: string, side: Decision["side"]): Decision => ({

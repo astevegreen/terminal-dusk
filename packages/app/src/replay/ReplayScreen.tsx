@@ -91,7 +91,15 @@ function OpenDecisions({
       {pending.map((decision) => {
         const Prompt = decisionPrompts[decision.kind];
         return (
-          <Prompt key={decision.id} decision={decision} hand={[]} label={label} stack={stack} question={question} />
+          <Prompt
+            key={decision.id}
+            decision={decision}
+            hand={[]}
+            known={[]}
+            label={label}
+            stack={stack}
+            question={question}
+          />
         );
       })}
     </Region>
