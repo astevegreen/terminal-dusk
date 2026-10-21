@@ -516,8 +516,15 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `docs/design/contingency-deck.md` - Contingency deck
 - `docs/design/core-loop.md` - Core loop
 - `docs/design/eras.md` - Eras
+- `docs/design/map-and-points.md` - The map, influence, points and tension: owner decisions (W7)
 - `docs/design/sides.md` - Sides
 - `docs/proposals/special-abilities.md` - Special abilities for LIO and SAE: options
+- `docs/proposals/w7/1-map.md` - Topic 1: the map (regions, how many countries, adjacency)
+- `docs/proposals/w7/2-influence.md` - Topic 2: influence (placing it, and controlling a country)
+- `docs/proposals/w7/3-points-and-actions.md` - Topic 3: what points are spent on, and what a card's points award stands for
+- `docs/proposals/w7/4-tension.md` - Topic 4: the tension track
+- `docs/proposals/w7/5-scoring.md` - Topic 5: scoring (when it happens and how a game is won)
+- `docs/proposals/w7/README.md` - W7: the map, influence, points, the tension track and scoring
 - `docs/sprint.md` - Sprint: 20–22 October 2026
 - `docs/workflow.md` - Terminal Dusk — Claude Code Workflow
 
