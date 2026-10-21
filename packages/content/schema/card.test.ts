@@ -85,9 +85,9 @@ describe("card schema: rejected fields", () => {
 });
 
 describe("card schema: rejected unknown fields", () => {
-  it("rejects an unknown field at the top level, such as flags before their rules exist", () => {
-    const issues = issuesOf({ ...validCard(), flags: { scoring: true } });
-    expect(issues.map((issue) => [issue.path, issue.message])).toEqual([[[], expect.stringContaining("flags")]]);
+  it("rejects an unknown field at the top level", () => {
+    const issues = issuesOf({ ...validCard(), tags: ["cold"] });
+    expect(issues.map((issue) => [issue.path, issue.message])).toEqual([[[], expect.stringContaining("tags")]]);
   });
 
   it("rejects an unknown field in text", () => {
@@ -122,6 +122,33 @@ describe("card schema: rejected unknown fields", () => {
 
   it("rejects a step with an unknown op", () => {
     expect(pathsOf({ ...validCard(), effect: [{ op: "drawCard" }] })).toEqual([["effect", 0, "op"]]);
+  });
+});
+
+describe("card schema: flags", () => {
+  it("accepts flags: { removeAfterEvent: true }, and a card with no flags", () => {
+    expect(issuesOf({ ...validCard(), flags: { removeAfterEvent: true } })).toEqual([]);
+    expect("flags" in validCard()).toBe(false);
+  });
+
+  it("rejects any other key in flags, such as scoring before its rules exist, naming it", () => {
+    const issues = issuesOf({ ...validCard(), flags: { scoring: true } });
+    expect(issues.map((issue) => [issue.path, issue.message])).toEqual([
+      [["flags"], expect.stringContaining("scoring")],
+    ]);
+  });
+
+  it.each([
+    ["false", false],
+    ["a string", "yes"],
+    ["a number", 1],
+  ])("rejects removeAfterEvent that is %s, pointing at it", (_case, value) => {
+    expect(pathsOf({ ...validCard(), flags: { removeAfterEvent: value } })).toEqual([["flags", "removeAfterEvent"]]);
+  });
+
+  it("rejects flags that are not an object", () => {
+    expect(pathsOf({ ...validCard(), flags: true })).toEqual([["flags"]]);
+    expect(pathsOf({ ...validCard(), flags: ["removeAfterEvent"] })).toEqual([["flags"]]);
   });
 });
 

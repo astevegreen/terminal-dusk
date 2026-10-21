@@ -5,7 +5,7 @@ describeCard("e1-lio-001", "Maastricht Treaty", [
   {
     it: "plays out as its text says",
     story: `
-      union founded
+      lasting:union founded
       points:lio:1
       mod:lio:+1
       points:sae:2

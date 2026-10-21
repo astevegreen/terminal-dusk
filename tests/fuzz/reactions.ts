@@ -5,6 +5,7 @@
 // randomness in the cards). Nothing here is shipped; the real cards live in packages/content.
 import type { Ruleset, Side, Step } from "@terminal-dusk/engine";
 import { deepFreeze } from "./deepFreeze.ts";
+import { filteredTriggerOf } from "./filtered.ts";
 import { hasStep, LASTING_LABELS, lastingMarker } from "./markers.ts";
 import { baseEffectOf, playFuzzGame, ruleset } from "./play.ts";
 import type { Played } from "./play.ts";
@@ -96,9 +97,12 @@ function reactionOf(i: number): Step {
   }
 }
 
-/** Card `i`'s event: its existing fuzz effect, then its reaction step, then its hand-reveal trigger, if any (#185). */
+/**
+ * Card `i`'s event: its existing fuzz effect, then its reaction step, then its hand-reveal trigger, if any (#185),
+ * then its filtered or once trigger, if any (#190).
+ */
 function effectOf(i: number): Step[] {
-  return [...baseEffectOf(i), reactionOf(i), ...revealTriggerOf(i)];
+  return [...baseEffectOf(i), reactionOf(i), ...revealTriggerOf(i), ...filteredTriggerOf(i)];
 }
 
 /**

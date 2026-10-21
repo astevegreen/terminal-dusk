@@ -1,6 +1,6 @@
 // The types of what a card leaves in force: hooks, durations, modifiers and triggers (modifiers.ts,
 // triggers.ts). types.ts re-exports them, so index.ts exports the same names.
-import type { CardId, Side, Step } from "./types.ts";
+import type { CardId, Condition, Side, Step } from "./types.ts";
 
 /**
  * The named moments a trigger can react to. `cardPlayed`: a side's play has fully resolved, before the
@@ -22,12 +22,20 @@ export type ModifierExpiry = { kind: "turnEnd"; turn: number };
 /** A modifier in force: the card whose effect made it, the rule change, and when it ends. */
 export type ActiveModifier = { source: CardId; mod: ModifierSpec; expires: ModifierExpiry };
 /**
+ * What a trigger's `filter` may test when its hook happens: `has` a lasting marker, or (cardPlayed only)
+ * `playedBy`, the side that made the play that fired the hook. It reads no variable (triggers.ts).
+ */
+export type TriggerFilter = Extract<Condition, { op: "playedBy" | "has" }>;
+/**
  * A trigger waiting for its hook: the card that set it, the hook, its reaction, and when it ends (as a modifier).
- * `player` and `worldFor`, when its program had them, go with its reaction (Frame, in types.ts).
+ * `player` and `worldFor`, when its program had them, go with its reaction (Frame, in types.ts). `filter`
+ * and `once`, when its step had them, are copied from it.
  */
 export type ActiveTrigger = {
   source: CardId;
   hook: HookId;
+  filter?: TriggerFilter;
+  once?: true;
   do: Step[];
   expires: ModifierExpiry;
   player?: Side;

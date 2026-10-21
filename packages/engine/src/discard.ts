@@ -1,5 +1,6 @@
 // The discardFromHand step: a side discards cards from its hand, chosen at random with the game's seeded
-// generator (owner, 21 Oct 2026). The cards go to the discard pile without their events.
+// generator (owner, 21 Oct 2026). The cards go to the discard pile without their events. A side's own pick
+// (`chosenBy`) is run in discardChoice.ts, which uses discardChosen.
 import { forgetCard } from "./knowledge.ts";
 import { nextInt } from "./rng.ts";
 import type { CardId, GameEvent, GameState, Side } from "./types.ts";
@@ -12,7 +13,17 @@ import type { CardId, GameEvent, GameState, Side } from "./types.ts";
  */
 export function discardFromHand(state: GameState, side: Side, count: number, events: GameEvent[]): void {
   const hand = state.private[side].hand;
-  const chosen = new Set(hand.length <= count ? hand : pickAtRandom(state, hand, count));
+  discardChosen(state, side, hand.length <= count ? hand : pickAtRandom(state, hand, count), events);
+}
+
+/**
+ * `side` discards the cards of its hand that are in `chosen`: the cards left keep their order; the discarded
+ * ones go to the end of the discard pile in hand order, without their events, and leave the rival's
+ * knowledge. Emits cardsDiscarded, even for none.
+ */
+export function discardChosen(state: GameState, side: Side, picked: readonly CardId[], events: GameEvent[]): void {
+  const hand = state.private[side].hand;
+  const chosen = new Set(picked);
   const discarded = hand.filter((card) => chosen.has(card));
   state.private[side].hand = hand.filter((card) => !chosen.has(card));
   for (const card of discarded) forgetCard(state, side, card);

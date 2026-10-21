@@ -6,7 +6,7 @@ describeCard("e2-sae-001", "Invasion of Iraq", [
     it: "plays out as its text says",
     story: `
       points:lio:2
-      coalition fractures
+      lasting:coalition fractures
       points:sae:2
       mod:lio:-1:min1
       points:lio:1

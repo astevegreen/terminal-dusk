@@ -5,7 +5,9 @@ import type { CardDef, CardId, Condition, EngineError, Ruleset, Setup, Side, Ste
 
 /**
  * Why the ruleset's card list is unusable, or null: it must be a list, each `id` once, each `ops` a
- * whole number from 0, and no card's effect may hold a card choice (only a turn opens with one).
+ * whole number from 0, its `flags`, if any, well formed (badFlags), and no card's effect may hold a card choice (only a turn opens with one): a `choose`
+ * in an effect asks yes/no only. The one other way an effect asks a side to pick cards is a discardFromHand
+ * with `chosenBy`, and only to discard them.
  */
 export function rulesetError(ruleset: Ruleset): EngineError | null {
   if (!Array.isArray(ruleset?.cards)) return invalidRuleset("The ruleset needs a list of cards.");
@@ -17,6 +19,8 @@ export function rulesetError(ruleset: Ruleset): EngineError | null {
     if (!Number.isInteger(card?.ops) || card.ops < 0) {
       return invalidRuleset(`Card ${card?.id}'s ops must be a whole number, 0 or more.`);
     }
+    const flags = badFlags(card.flags);
+    if (flags !== null) return invalidRuleset(`Card ${card.id}'s flags ${flags}`);
     if (Array.isArray(card.effect)) {
       // Malformed steps first, so the walks below only ever meet lists of steps where steps hold them.
       const badStep = findBadStep(card.effect);
@@ -34,7 +38,7 @@ export function rulesetError(ruleset: Ruleset): EngineError | null {
 
 /**
  * Why a card's `has` can never be true, or null: it names a label that no card in the ruleset (itself
- * included, at any depth, triggers too) sets with a lasting marker.
+ * included, at any depth, triggers too) sets with a lasting marker. A trigger's has filter counts as a has.
  */
 function unsetMarkerError(cards: readonly CardDef[]): EngineError | null {
   const effects = cards.filter((card) => Array.isArray(card.effect));
@@ -55,7 +59,11 @@ function unsetMarkerError(cards: readonly CardDef[]): EngineError | null {
 /** Every step in `steps`, at any depth, each before the steps inside it. */
 const stepsIn = (steps: readonly Step[]): Step[] => steps.flatMap((step) => [step, ...stepsIn(innerSteps(step))]);
 const lastingLabel = (step: Step): string[] => (step.op === "marker" && step.lasting === true ? [step.label] : []);
-const hasLabel = (step: Step): string[] => (step.op === "if" && step.cond.op === "has" ? [step.cond.marker] : []);
+/** The label a step tests with `has`: an if's condition, or a trigger's filter. */
+const hasLabel = (step: Step): string[] => {
+  if (step.op === "if" && step.cond.op === "has") return [step.cond.marker];
+  return step.op === "trigger" && step.filter?.op === "has" ? [step.filter.marker] : [];
+};
 
 const SIDE_NAMES = { lio: "LIO", sae: "SAE" } as const;
 
@@ -106,7 +114,8 @@ function innerSteps(step: Step): readonly Step[] {
  * Why `step` itself (not the steps inside it) is malformed, or null: a number test's `value` and an
  * addToNumber's `amount` must be whole numbers, and an `amount` may not be 0. A modifier must use a hook,
  * side, add, min and duration the engine knows (badModifier); a trigger a hook and duration, and a
- * reaction of at least one step (badTrigger). A discardFromHand names LIO or SAE and a whole `count`, 1 or more.
+ * reaction of at least one step (badTrigger). A discardFromHand names LIO or SAE and a whole `count`, 1 or more,
+ * and a `chosenBy`, if any, of "owner" or "player".
  */
 function badStep(step: Step): string | null {
   switch (step.op) {
@@ -127,9 +136,11 @@ function badStep(step: Step): string | null {
     case "discardFromHand":
       if (step.side !== "lio" && step.side !== "sae")
         return 'discards from the hand of a side that is not "lio" or "sae".';
-      return Number.isInteger(step.count) && step.count >= 1
+      if (!Number.isInteger(step.count) || step.count < 1)
+        return "discards a number of cards that is not a whole number, 1 or more.";
+      return step.chosenBy === undefined || step.chosenBy === "owner" || step.chosenBy === "player"
         ? null
-        : "discards a number of cards that is not a whole number, 1 or more.";
+        : 'has a discard chosen by someone other than "owner" or "player" (leave chosenBy out for a random discard).';
     default:
       return null;
   }
@@ -149,6 +160,21 @@ function badCondition(cond: Condition): string | null {
       : "tests has with a marker label that is empty or not text.";
   }
   return cond.op === "yes" || Number.isInteger(cond.value) ? null : "tests a number against a value that is not whole.";
+}
+
+/**
+ * Why a card's `flags` are malformed, or null: left out, or an object whose one key so far, removeAfterEvent,
+ * is true (left out otherwise). The same as the card schema refuses; card data may hold anything here.
+ */
+function badFlags(flags: unknown): string | null {
+  if (flags === undefined) return null;
+  if (typeof flags !== "object" || flags === null || Array.isArray(flags)) return "are not an object.";
+  const unknown = Object.keys(flags).find((key) => key !== "removeAfterEvent");
+  if (unknown !== undefined) return `hold ${unknown}, a flag the engine doesn't have.`;
+  const { removeAfterEvent } = flags as { removeAfterEvent?: unknown };
+  return removeAfterEvent === undefined || removeAfterEvent === true
+    ? null
+    : "set removeAfterEvent to something other than true (leave it out for a card that stays).";
 }
 
 /** Why the first malformed step in `steps`, at any depth, is malformed (badStep), or null. */
@@ -203,20 +229,26 @@ const invalidSetup = (message: string): EngineError => ({ code: "invalidSetup", 
 /**
  * Why the hand size does not fit the setup, or null (docs/design/core-loop.md, "Refilling hands"). Each
  * turn a side needs one opening card and `playsPerTurn` plays, so the hand size is at least 1 + playsPerTurn.
- * And the first era (both hands and the draw pile) needs at least twice the hand size in cards: then both
- * hands fill on turn 1, and every refill after that can draw, because at a turn's start every card is in a
- * hand, the draw pile or the discard pile. Scenarios deal no hands; tests may, and a refill only tops up.
+ * And the first era (both hands and the draw pile) needs at least twice the hand size in cards that stay in
+ * the game: then both hands fill on turn 1, and every refill after that can draw, because at a turn's start
+ * every card still in the game is in a hand, the draw pile or the discard pile, and later eras only add cards.
+ * A card flagged removeAfterEvent is left out of the count: it may leave the game, for `removed`, once its
+ * event happens, and in the worst case every one of them has. Scenarios deal no hands; tests may, and a refill
+ * only tops up.
  */
-export function handSizeError(setup: Setup): EngineError | null {
+export function handSizeError(ruleset: Ruleset, setup: Setup): EngineError | null {
   const { handSize, playsPerTurn } = setup;
   if (handSize < 1 + playsPerTurn) {
     return invalidSetup(
       `The hand size is ${handSize}; an opening card and ${playsPerTurn} plays need ${1 + playsPerTurn}.`,
     );
   }
-  const firstEra = setup.hands.lio.length + setup.hands.sae.length + setup.deck.length;
-  if (firstEra < 2 * handSize) {
-    return invalidSetup(`The first era has ${firstEra} cards; two hands of ${handSize} need at least ${2 * handSize}.`);
+  const leaving = new Set(ruleset.cards.filter((card) => card.flags?.removeAfterEvent === true).map((c) => c.id));
+  const staying = [...setup.hands.lio, ...setup.hands.sae, ...setup.deck].filter((id) => !leaving.has(id)).length;
+  if (staying < 2 * handSize) {
+    return invalidSetup(
+      `The first era has ${staying} cards that stay in the game; two hands of ${handSize} need at least ${2 * handSize}.`,
+    );
   }
   return null;
 }
