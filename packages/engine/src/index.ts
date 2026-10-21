@@ -38,6 +38,7 @@ export type {
   GameEvent,
   GameState,
   GameStatus,
+  CardsDiscarded,
   HandRevealed,
   HandRevealedHidden,
   HiddenCounts,

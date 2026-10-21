@@ -5,6 +5,7 @@ import { notANumber, testCondition, unbound } from "./conditions.ts";
 import { deckFor, drawContingency } from "./contingency.ts";
 import { copyJson } from "./copy.ts";
 import { newDecision, newGroup } from "./decisions.ts";
+import { discardFromHand } from "./discard.ts";
 import { revealHand } from "./knowledge.ts";
 import { keepMarker } from "./markers.ts";
 import { opsValue, startModifier } from "./modifiers.ts";
@@ -198,6 +199,10 @@ function runStep(state: GameState, frame: Frame, step: Step, events: GameEvent[]
     }
     case "revealHand":
       revealHand(state, step.side, events);
+      frame.next += 1;
+      return "ran";
+    case "discardFromHand":
+      discardFromHand(state, step.side, step.count, events);
       frame.next += 1;
       return "ran";
   }

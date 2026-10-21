@@ -106,6 +106,12 @@ export const stepSchema = z.discriminatedUnion("op", [
   trigger,
   // Shows LIO's or SAE's whole hand to the other side, never "both" or "player".
   z.strictObject({ op: z.literal("revealHand"), side }),
+  // LIO or SAE discards `count` cards from its hand, at random. The card must say how many: 1 or more.
+  z.strictObject({
+    op: z.literal("discardFromHand"),
+    side,
+    count: z.int().min(1, { error: "A discardFromHand must discard at least 1 card." }),
+  }),
 ]);
 
 /** What a platform changes about a card's text: its wording or art, never its rules. At least one of them. */
