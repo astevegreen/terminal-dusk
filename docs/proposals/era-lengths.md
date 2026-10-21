@@ -164,8 +164,8 @@ BF2: node tools/balance/run.mjs --games 200 --seed x4b --turns 10 --plays 2 --er
   turns, so one Era 3 turn covers about 2.5 times the years of an Era 2 turn (by hand, 5.7 / 2.3).
 - LIO/SAE gap: Era 3's gap (4 cards) is short-lived and its cards are few in hands, so it shows least in this
   option; Era 1's gap (5 cards) lasts a third of the game, and Era 1 cards stay in play after Era 2 enters (by
-  hand: B1 uses 36 cards per game, 12 in turns 1-3, and 20.7 of its uses are Era 1 cards, so about 8.7 Era 1
-  uses come after turn 3).
+  hand: B1 uses 36 cards per game, 12 in turns 1-3, and 20.7 of those uses are Era 1 cards (the tool's "uses per
+  game", which at 1 play equals "used"), so about 8.7 Era 1 uses come after turn 3).
 - Once scoring exists: equal-length eras make any per-era scoring evenly spaced, which would favour this option;
   without scoring that merit is not visible.
 
@@ -219,7 +219,7 @@ CF2: node tools/balance/run.mjs --games 200 --seed x4b --turns 7 --plays 2 --era
 - Years to turns: uneven. One Era 3 turn covers 8.5 years, more than all of Era 2 (7 years).
 - LIO/SAE gap: every era is short, so each era's gap lasts only 2 turns; but since the game rarely gets past Era 1
   cards, Era 1's gap (5 cards) shows most (by hand: C1 uses 24 cards per game, and 16.17 of those uses are Era 1
-  cards, about two thirds).
+  cards, the tool's "uses per game", which at 1 play equals "used"; about two thirds).
 - Once scoring exists: a short game may suit a mobile session well, but with 2 turns per era any per-era scoring
   comes very often; its merit depends on how much a scoring card weighs.
 
@@ -275,7 +275,8 @@ In every option the future cards, entering on the last turn, are barely used (at
 1. Which option, or another split, should be taken further: turns that follow the years (A), equal turns per era
    (B), or a short game (C)?
 2. How many plays per turn should the numbers assume? In every option the share of Era 2 and Era 3
-   cards used grows by between three quarters and double from 1 to 2 plays.
+   cards used grows from 1 to 2 plays (by hand, from the tables above): Era 2 by about three quarters to double
+   (1.74 to 1.95 times), Era 3 by about double or a little more (1.97 to 2.26 times).
 3. Should a free player's first-era game use Era 1's base-game length, or be its own scenario with more turns
    (for example 5, runs F5-1 to F5-3)?
 4. Should the 2025-2027 scenario add a turn after 2025 (as all three options show here), or put the future cards
