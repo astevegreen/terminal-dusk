@@ -173,14 +173,20 @@ function engineGlobalProblems(ws, files) {
     return !rel.startsWith("..") && !path.isAbsolute(rel);
   };
   const declaredByEngine = (sym) => Boolean(sym?.declarations?.some((d) => inEngine(d.getSourceFile())));
-  const forbiddenObject = (node, object) =>
-    ts.isIdentifier(node) && node.text === object && !declaredByEngine(checker.getSymbolAtLocation(node));
-  // The property a destructured binding takes: `random` in `{ random }`, `{ random: r }` and `{ ["random"]: r }`.
-  const boundProperty = (element) => {
-    const key = element.propertyName ?? element.name;
+  // `Math`, also inside brackets, a cast or a `!`: `(Math)`, `Math as X`, `<X>Math`, `Math satisfies X`.
+  const forbiddenObject = (node, object) => {
+    while (node && (ts.isParenthesizedExpression(node) || ts.isAsExpression(node) || ts.isTypeAssertionExpression(node) ||
+      ts.isSatisfiesExpression(node) || ts.isNonNullExpression(node))) node = node.expression;
+    return Boolean(node) && ts.isIdentifier(node) && node.text === object && !declaredByEngine(checker.getSymbolAtLocation(node));
+  };
+  // The property a destructuring takes: `random` in `{ random }`, `{ random: r }` and `{ ["random"]: r }`.
+  const keyText = (key) => {
     if (ts.isIdentifier(key) || ts.isStringLiteralLike(key)) return key.text;
     return ts.isComputedPropertyName(key) && ts.isStringLiteralLike(key.expression) ? key.expression.text : null;
   };
+  const boundProperty = (element) =>
+    ts.isBindingElement(element) ? keyText(element.propertyName ?? element.name)
+      : ts.isPropertyAssignment(element) || ts.isShorthandPropertyAssignment(element) ? keyText(element.name) : null;
   const problems = [];
 
   for (const file of files) {
@@ -204,11 +210,16 @@ function engineGlobalProblems(ws, files) {
           if (prop === property && forbiddenObject(node.expression, object)) report(node, `${object}.${property}`, why);
         }
       }
-      // `const { random } = Math` and the like: a binding pattern whose value is the forbidden object.
-      if (ts.isObjectBindingPattern(node) && node.parent.initializer) {
+      // `const { random } = Math` and `({ random } = Math)`: destructuring whose value is the forbidden object.
+      const pattern = ts.isObjectBindingPattern(node) && node.parent.initializer
+        ? { elements: node.elements, value: node.parent.initializer }
+        : ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken && ts.isObjectLiteralExpression(node.left)
+          ? { elements: node.left.properties, value: node.right }
+          : null;
+      if (pattern) {
         for (const [object, property, why] of ENGINE_FORBIDDEN_PROPERTIES) {
-          if (!forbiddenObject(node.parent.initializer, object)) continue;
-          for (const element of node.elements)
+          if (!forbiddenObject(pattern.value, object)) continue;
+          for (const element of pattern.elements)
             if (boundProperty(element) === property) report(element, `${object}.${property}`, why);
         }
       }

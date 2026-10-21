@@ -84,10 +84,15 @@ test("engine code may not pull Math.random out by destructuring", () => {
       "const { random: r } = Math;",
       'const { ["random"]: q } = Math;',
       "export const x = random() + r() + q();",
+      "let s, t;",
+      "({ random: s } = Math);",
+      "({ t } = Math as { t: () => number });",
+      "const { random: u } = (Math);",
+      "export const z = (Math).random() + s() + t() + u();",
     ].join("\n"),
     "packages/engine/src/a.test.ts": "const { random } = Math;\nexport const y = random();\n",
   });
-  assert.deepEqual(where(list), ["packages/engine/src/a.ts:1", "packages/engine/src/a.ts:2", "packages/engine/src/a.ts:3"]);
+  assert.deepEqual(where(list).map((w) => Number(w.split(":")[1])), [1, 2, 3, 6, 8, 9]);
   for (const p of list) assert.match(p.message, /^Math\.random: all randomness comes from the PRNG/);
 });
 
