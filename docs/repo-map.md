@@ -459,6 +459,12 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/submit.storage.test.ts`
 - `packages/server/src/submit.test.ts`
 - `packages/server/src/submit.ts` - The server's single write path (docs/architecture.md, Decision 5): load the match, run the host, and save the result only if nobody moved the match on first. Exports: SubmitDeps, SubmitRequest, ServerErrorCode, SubmitError, SubmitOutcome, submit.
+- `packages/server/src/submitEdge.test.ts`
+- `packages/server/src/submitEdge.ts` - The glue between the runtime's fetch-style requests and `handleSubmit`, and the Supabase sign-in check. Exports: FetchRequest, MakeResponse, fetchHandler, supabaseAuthenticate.
+- `packages/server/src/submitHandler.leaks.test.ts`
+- `packages/server/src/submitHandler.stack.test.ts` - The submit Edge Function served by the local Supabase stack: a signed-in LIO player's legal answer is saved, and a stranger or a signed-out call is refused wit…
+- `packages/server/src/submitHandler.test.ts`
+- `packages/server/src/submitHandler.ts` - The HTTP side of the submit Edge Function (docs/architecture.md, Decision 5), as plain data in and out so it runs under vitest: it signs the caller in, checks… Exports: HttpRequest, HttpReply, SubmitHandlerDeps, HandlerErrorCode, CORS_HEADERS, handleSubmit.
 - `packages/server/src/supabaseInviteStore.games.stack.test.ts` - Private games through the Supabase stores on the local Supabase stack: for each side mode, createInvite, previewInvite and joinInvite create a match whose rows…
 - `packages/server/src/supabaseInviteStore.guards.stack.test.ts` - SupabaseInviteStore's guards on the local Supabase stack: two joins of one code at once, a clash on save, an unknown code, and database errors, which throw wit…
 - `packages/server/src/supabaseInviteStore.test.ts` - SupabaseInviteStore against a stand-in client, so these run without the local stack.
@@ -468,7 +474,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/supabaseStore.test.ts` - SupabaseStore against a stand-in client, so these run without the local stack.
 - `packages/server/src/supabaseStore.ts` - The Supabase side of the storage port (docs/architecture.md, Decision 5). Exports: StorageError, SupabaseStore.
 - `packages/server/src/test/errors.ts` - Test helpers for checking what a thrown storage error shows. Exports: shown, thrown.
+- `packages/server/src/test/functions.ts` - Test helpers for calling an Edge Function served by the local Supabase stack (`supabase functions serve`). Exports: SERVE_HINT, callFunction, whyFunctionUnavailable.
 - `packages/server/src/test/games.ts` - Test helper: whole games played through `submit`, calling back after every step with what is stored. Exports: Strategy, STRATEGIES, Step, playGame.
+- `packages/server/src/test/handler.ts` - Test helpers for the submit handler: a match in an in-memory store, fake sign-in by token, a store that counts its calls, and a logger that keeps every line. Exports: TOKENS, counting, HandlerWorld, handlerWorld, post, json.
 - `packages/server/src/test/inviteStack.ts` - The shared setup for the invite tests on the local Supabase stack: a service-role client and three fresh test users (a host and two joiners) made before the te… Exports: STACK_SEED, InviteStack, expectedStart, inviteStack.
 - `packages/server/src/test/invites.ts` - Test helpers for invites: an in-memory invite store over O1's MemoryStore, with repeatable codes, match ids, seeds and random sides, and submit deps that run t… Exports: HOST, JOINER, INVITE_NOW, sequence, InviteWorld, inviteWorld.
 - `packages/server/src/test/leaks.ts` - Test helper for leak checks, copying the idea of the host's test/leaks.ts. Exports: leaksIn, leaksFor.
@@ -478,6 +486,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/test/stores.ts` - Test helpers that wrap any MatchStore, for the in-memory and the Supabase store alike. Exports: loadTogether, recording.
 - `packages/server/supabase/.gitignore` - Folders the Supabase CLI writes for the local stack.
 - `packages/server/supabase/config.toml` - Local Supabase stack for development and tests only (docs/sprint.md, lane "online").
+- `packages/server/supabase/functions/submit/deno.json`
+- `packages/server/supabase/functions/submit/index.ts` - The `submit` Edge Function (docs/architecture.md, Decision 5): the one place a client sends an answer or a resignation.
 - `packages/server/supabase/migrations/20261020000000_match_tables.sql` - The match tables and who may read them (docs/architecture.md, Decision 5).
 - `packages/server/supabase/migrations/20261021000000_commit_match.sql` - The one write of a submit (docs/architecture.md, Decision 5): one transaction, guarded by `where seq = expectedSeq`.
 - `packages/server/supabase/migrations/20261022000000_match_invite.sql` - Private game invites (docs/architecture.md, Decision 5).

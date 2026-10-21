@@ -14,12 +14,12 @@ describeCard("e2-lio-011", "Cedar Revolution", [
     `,
   },
   {
-    it: "when SAE says yes and LIO draws 3",
+    it: "when SAE says yes and SAE draws 3",
     yes: { sae: true },
     draw: 3,
     story: `
       troops out
-      draw:lio:3
+      draw:sae:3
       points:lio:2
       points:sae:2
       points:lio:2
@@ -27,12 +27,12 @@ describeCard("e2-lio-011", "Cedar Revolution", [
     `,
   },
   {
-    it: "when SAE says yes and LIO draws 4",
+    it: "when SAE says yes and SAE draws 4",
     yes: { sae: true },
     draw: 4,
     story: `
       troops out
-      draw:lio:4
+      draw:sae:4
       points:sae:2
       points:sae:2
       points:lio:2

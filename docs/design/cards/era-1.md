@@ -25,9 +25,9 @@ starting deck: the turn 1 refill deals both hands from it, so it must hold at le
 ### e1-lio-004 · NATO Enlargement 1999 · LIO · Ops 3 · Split/Gamble (SAE)
 
 - **Event:** Poland, Hungary and the Czech Republic join the alliance.
-- **Design:** LIO 2; SAE may protest loudly: usually it only confirms the newcomers' choice (SAE pays 2 to LIO's draw) but sometimes it rattles the alliance (LIO loses tempo). A lasting "enlargement" tag (W1).
-- **Playable:** `marker "enlargement"; spend lio 2; ask sae "Protest the enlargement?" -> v; if yes v { draw lio -> d; if d <= 3 { spend sae 2 } else { spend lio 1 } } else { spend lio 1 }`
-  (SAE's "yes" is a gamble: on a low draw SAE scores 2, on a high draw LIO scores 1 more.)
+- **Design:** LIO 2; SAE may protest loudly: usually it only confirms the newcomers' choice (a gamble on SAE's own draw) but sometimes it rattles the alliance (LIO loses tempo). A lasting "enlargement" tag (W1).
+- **Playable:** `marker "enlargement"; spend lio 2; ask sae "Protest the enlargement?" -> v; if yes v { draw sae -> d; if d >= 4 { spend sae 2 } else { spend lio 1 } } else { spend lio 1 }`
+  (SAE's "yes" is a gamble on SAE's own deck: on a high draw SAE scores 2, on a low draw LIO scores 1 more.)
 - **History:** Poland, Hungary and the Czech Republic became NATO members on 12 March 1999 at a ceremony in Independence, Missouri, the first enlargement since the Cold War.
 - **Theme:** alliances · **Notion:** update `3fceb012942f81528f67f03656d2a2e8` (was "Visegrád NATO Enlargement"; Slovakia joined only in 2004)
 
@@ -156,8 +156,8 @@ starting deck: the turn 1 refill deals both hands from it, so it must hold at le
 ### e1-sae-011 · Pristina Airport Dash · SAE · Ops 1 · Split/Gamble (LIO)
 
 - **Event:** Russian paratroopers seize Kosovo's airport hours before NATO arrives.
-- **Design:** SAE 1; LIO may confront them: a gamble between a backdown (SAE 2) and a face-off that LIO wins (LIO 2); or let it pass.
-- **Playable:** `marker "airport seized"; spend sae 1; ask lio "Confront them?" -> v; if yes v { draw sae -> d; if d >= 4 { spend sae 2 } else { spend lio 2 } } else { marker "stand-off avoided" }`
+- **Design:** SAE 1; LIO may confront them: a gamble on LIO's own draw between a backdown (SAE 2) and a face-off that LIO wins (LIO 2, on a high draw); or let it pass.
+- **Playable:** `marker "airport seized"; spend sae 1; ask lio "Confront them?" -> v; if yes v { draw lio -> d; if d >= 4 { spend lio 2 } else { spend sae 2 } } else { marker "stand-off avoided" }`
 - **History:** On 12 June 1999 around 200 Russian paratroopers drove from Bosnia to occupy Pristina airport in Kosovo ahead of NATO forces; NATO's commander refused an order to block them and the stand-off was resolved by negotiation.
 - **Theme:** gray-zone · **Notion:** create
 

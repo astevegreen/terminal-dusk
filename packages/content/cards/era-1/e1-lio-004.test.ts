@@ -3,28 +3,28 @@ import { describeCard } from "../../src/test/describeCard.ts";
 
 describeCard("e1-lio-004", "NATO Enlargement 1999", [
   {
-    it: "when SAE says yes and LIO draws 3",
+    it: "when SAE says yes and SAE draws 3",
     yes: { sae: true },
     draw: 3,
     story: `
       enlargement
       points:lio:2
-      draw:lio:3
-      points:sae:2
+      draw:sae:3
+      points:lio:1
       points:sae:2
       points:lio:2
       points:sae:2
     `,
   },
   {
-    it: "when SAE says yes and LIO draws 4",
+    it: "when SAE says yes and SAE draws 4",
     yes: { sae: true },
     draw: 4,
     story: `
       enlargement
       points:lio:2
-      draw:lio:4
-      points:lio:1
+      draw:sae:4
+      points:sae:2
       points:sae:2
       points:lio:2
       points:sae:2
