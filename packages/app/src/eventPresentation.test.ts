@@ -8,6 +8,7 @@ describe("eventPresentation", () => {
     const kinds: EventKind[] = [
       "cardDrawn",
       "cardDrawnHidden",
+      "cardsDiscarded",
       "contingencyDeckReshuffled",
       "contingencyDrawn",
       "drawPileReshuffled",
@@ -56,6 +57,24 @@ describe("eventPresentation", () => {
       cards: 2,
     });
     expect(line).toBe("sae's hand of 2 cards was shown to the other side.");
+  });
+  it("logs a discard with its cards in hand order", () => {
+    const line = eventPresentation.cardsDiscarded.log({
+      kind: "cardsDiscarded",
+      visibility: "public",
+      side: "lio",
+      cards: ["l2", "n1"],
+    });
+    expect(line).toBe("lio discarded l2, n1.");
+  });
+  it("logs a discard from an empty hand as no cards", () => {
+    const line = eventPresentation.cardsDiscarded.log({
+      kind: "cardsDiscarded",
+      visibility: "public",
+      side: "sae",
+      cards: [],
+    });
+    expect(line).toBe("sae discarded no cards.");
   });
   it("logs a marker with its label, and its value when it has one", () => {
     expect(eventPresentation.marker.log({ kind: "marker", visibility: "public", label: "item", value: "a" })).toBe(

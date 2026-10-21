@@ -5,8 +5,8 @@ export { DECKS } from "./contingencyTypes.ts";
 export type { ContingencyDeck, ContingencyDeckReshuffled, ContingencyDrawn, DeckId } from "./contingencyTypes.ts";
 import type { ActiveModifier, ActiveTrigger, Duration, HookId, ModifierExpiry, ModifierSpec } from "./lastingTypes.ts";
 export type { ActiveModifier, ActiveTrigger, Duration, HookId, ModifierExpiry, ModifierSpec } from "./lastingTypes.ts";
-import type { HandRevealed, HandRevealedHidden } from "./knowledgeTypes.ts";
-export type { HandRevealed, HandRevealedHidden } from "./knowledgeTypes.ts";
+import type { CardsDiscarded, HandRevealed, HandRevealedHidden } from "./knowledgeTypes.ts";
+export type { CardsDiscarded, HandRevealed, HandRevealedHidden } from "./knowledgeTypes.ts";
 
 export type Side = "lio" | "sae";
 /** Both sides, in the one order the engine always loops in. */
@@ -125,7 +125,8 @@ export type PublicEvent =
   | ModifierStarted
   | ModifierEnded
   | TriggerEvent
-  | HandRevealedHidden;
+  | HandRevealedHidden
+  | CardsDiscarded;
 /**
  * What happened, for animation, the game log, sounds and the tutorial. An event visible to one side
  * may carry a `publicForm`: the public event everyone else gets instead (see eventsFor).
@@ -208,6 +209,7 @@ export type Condition =
  * `trigger` leaves a reaction, `do`, that runs each time `hook` happens until `duration` ends (triggers.ts).
  * A `marker` with `lasting: true` also keeps its label in `markers` (PublicState) until the game ends.
  * `revealHand` shows `side`'s whole hand to the other side, which keeps it in its knowledge (knowledge.ts).
+ * `discardFromHand` makes `side` discard `count` (1 or more) cards from its hand, at random (discard.ts).
  */
 export type Step =
   | { op: "choose"; who: Side | "both"; decision: { kind: "yesNo" }; bind: VarName }
@@ -220,7 +222,8 @@ export type Step =
   | { op: "addToNumber"; var: VarName; amount: number }
   | { op: "modifier"; mod: ModifierSpec; duration: Duration }
   | { op: "trigger"; hook: HookId; do: Step[]; duration: Duration }
-  | { op: "revealHand"; side: Side };
+  | { op: "revealHand"; side: Side }
+  | { op: "discardFromHand"; side: Side; count: number };
 
 export type Binding = { name: VarName; value: VarValue };
 /** The block a frame runs, the index of its next step, and the variables bound in it, in binding order. */
