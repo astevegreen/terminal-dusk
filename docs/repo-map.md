@@ -447,7 +447,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 - `tests/README.md` - Cross-package test suites
 - `tests/fuzz/cards.ts` - TEST-ONLY FIXTURES, never game content: the fuzz suite's cards, c1 to c85, and the sizes of a random game their number is worked out from. Exports: MAX_TURNS, MAX_PLAYS, MAX_EXTRA, MAX_PILE, MAX_ERA_CARDS, FUZZ_CARDS, baseEffectOf, ruleset.
-- `tests/fuzz/checks.ts` - The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite"). Exports: checkHasBranches, checkMarkers, VIEWERS, Secrets, attempt, History, NEW_GAME, checkStep, checkLive, checkModifiers, checkTriggers, enteredCards, ….
+- `tests/fuzz/checks.ts` - The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite"). Exports: checkHasBranches, checkMarkers, checkKnowledge, knowledgeOf, VIEWERS, Secrets, attempt, History, NEW_GAME, checkStep, checkLive, checkModifiers, ….
 - `tests/fuzz/contingency.test.ts` - Tests for the fuzz harness's Contingency deck checks (#64): the deck invariant and the structural leak check each catch a hand-corrupted state, and the random…
 - `tests/fuzz/deepFreeze.ts` - Freezes a value and everything inside it, so an engine call that changes its input throws. Exports: deepFreeze.
 - `tests/fuzz/easy.test.ts` - The Easy AI inside the fuzz suite (#91): every third game has it on one side, with every invariant checked.
@@ -455,6 +455,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/eras.test.ts` - Tests for the fuzz harness's era checks (#37): invariant 3 catches a card out of place, waiting era cards count as hidden, and the random games really change e…
 - `tests/fuzz/fixedGames.ts` - Fixed games the fuzz suite replays, with every check, on every run. Exports: FIXED_GAMES.
 - `tests/fuzz/harness.test.ts` - Tests for the fuzz harness itself: each check catches what it should, so a green fuzz run means something.
+- `tests/fuzz/knowledge.test.ts` - The fuzz checks for shown hands (#185): hiddenFrom lets a side see the rival cards it was shown, and only those; checkKnowledge catches knowledge that does not…
+- `tests/fuzz/knowledgeChecks.ts` - The fuzz check for knowledge and shown hands (R6a, #185): what each side knows of the rival's hand always matches the real hand, and a shown hand reaches only… Exports: KnowledgeBefore, knowledgeOf, checkKnowledge.
 - `tests/fuzz/lasting.test.ts` - The fuzz suite and the lasting effects, modifiers (#89) and triggers (#90): the fuzz cards make them, and the checks catch what they should.
 - `tests/fuzz/markerChecks.ts` - The fuzz checks for lasting markers and `has` conditions (R4a): a lasting marker is never lost, moved or duplicated, and every `has` reads the game so far. Exports: checkMarkers, checkHasBranches.
 - `tests/fuzz/markers.test.ts` - The fuzz suite and the lasting markers and `has` conditions of R4a (#142): the fuzz cards set and test them, the games take both branches, and the checks catch…
@@ -470,6 +472,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/reactions.test.ts` - Fuzz games on the test-only reaction cards (reactions.ts): triggers and modifiers that ask questions, make more modifiers and triggers, and draw contingencies…
 - `tests/fuzz/reactions.ts` - TEST-ONLY FIXTURES, never game content: a second fuzz ruleset whose cards make triggers (#90) and modifiers (#89) that ask questions, make more modifiers and t… Exports: reactionModifierCards, reactionsRuleset, playReactionGame.
 - `tests/fuzz/refill.test.ts` - The random fuzz games really refill hands (docs/design/core-loop.md, "Refilling hands"), so the card checks in checks.ts run on drawn cards and on a draw pile…
+- `tests/fuzz/reveals.test.ts` - The fuzz suite and the revealHand step of R6a (#185): the fuzz cards show hands at the top level, inside an if and in both kinds of reaction, and the fuzz game…
+- `tests/fuzz/reveals.ts` - TEST-ONLY FIXTURES, never game content: the `revealHand` steps (R6a) the fuzz cards run. Exports: REVEAL, RevealWhere, revealStep, revealOf, revealTriggerOf, announcedReveal.
 - `tests/golden/__snapshots__/refill.test.ts.snap`
 - `tests/golden/refill.test.ts` - Golden replay of refilling hands (docs/design/core-loop.md, "Refilling hands").
 - `tests/tsconfig.json` - Type-checks the cross-package suites in tests/; tools/gates/suites.mjs runs it before the suites themselves.

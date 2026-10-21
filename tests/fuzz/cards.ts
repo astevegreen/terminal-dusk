@@ -5,6 +5,7 @@ import { deepFreeze } from "./deepFreeze.ts";
 import { hasStep, LASTING_LABELS, lastingMarker } from "./markers.ts";
 import { nestedPlayedBy, playedByStep } from "./playedBy.ts";
 import { playerDraw } from "./playerDraws.ts";
+import { revealOf } from "./reveals.ts";
 
 /** Most turns and plays per turn in a random game, and the non-neutral cards a hand then needs. */
 export const MAX_TURNS = 4;
@@ -24,12 +25,12 @@ export const FUZZ_CARDS: readonly CardId[] = Array.from(
 const AFFILIATIONS: readonly CardDef["affiliation"][] = ["lio", "sae", "neutral"];
 /**
  * Card `i`'s event: its base event (baseEffectOf), then its lasting marker step (markerStepsOf), then its
- * playedBy tests (playedByOf), and for every fifth card from c2 on, a modifier of the ops value too (#89); for
+ * playedBy tests (playedByOf), then its hand reveals (revealOf, #185), and for every fifth card from c2 on, a modifier of the ops value too (#89); for
  * every tenth from c4 on (never a modifier card), a trigger (#90). Only steps are added after the base event,
  * never a choice, so the decisions of the games in fixedGames.ts keep their IDs.
  */
 function effectOf(i: number): EffectStep[] {
-  const base = [...baseEffectOf(i), ...markerStepsOf(i), ...playedByOf(i)];
+  const base = [...baseEffectOf(i), ...markerStepsOf(i), ...playedByOf(i), ...revealOf(i)];
   if (i % 10 === 3) return [...base, triggerOf(Math.floor(i / 10), i)];
   return i % 5 === 1 ? [...base, modifierOf(Math.floor(i / 5))] : base;
 }

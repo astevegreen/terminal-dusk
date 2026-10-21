@@ -26,10 +26,13 @@ import type {
   Viewer,
 } from "@terminal-dusk/engine";
 import { deepFreeze } from "./deepFreeze.ts";
+import { checkKnowledge } from "./knowledgeChecks.ts";
+import type { KnowledgeBefore } from "./knowledgeChecks.ts";
 import { checkHasBranches, checkMarkers } from "./markerChecks.ts";
 import { byCodeUnit } from "./order.ts";
 
 export { checkHasBranches, checkMarkers } from "./markerChecks.ts";
+export { checkKnowledge, knowledgeOf } from "./knowledgeChecks.ts";
 
 export const VIEWERS: readonly Viewer[] = ["lio", "sae", "spectator"];
 
@@ -46,16 +49,16 @@ export function attempt<T>(call: string, run: () => T): T {
 }
 
 /**
- * The game so far, for the lasting marker checks: the lasting markers before the step (null for the state
- * createGame made) and every event of the game in order, the step's own included.
+ * The game so far: the lasting markers before the step (null for the state createGame made), every event of the
+ * game in order, the step's own included, and each side's knowledge before the step (null for a new game).
  */
-export type History = { before: readonly string[] | null; allEvents: readonly GameEvent[] };
+export type History = { before: readonly string[] | null; allEvents: readonly GameEvent[]; knowledge: KnowledgeBefore };
 /** The history of the state createGame made, with no events. */
-export const NEW_GAME: History = { before: null, allEvents: [] };
+export const NEW_GAME: History = { before: null, allEvents: [], knowledge: null };
 
 /**
- * All the checks for one step: invariants 1, 3, 4 and 5, the Contingency decks, and the lasting markers and
- * `has` branches (markerChecks.ts). `events` are the ones that step produced.
+ * All the checks for one step: invariants 1, 3, 4 and 5, the Contingency decks, the lasting markers and `has`
+ * branches (markerChecks.ts), and knowledge and shown hands (knowledgeChecks.ts). `events` are the step's own.
  */
 export function checkStep(
   ruleset: Ruleset,
@@ -75,6 +78,7 @@ export function checkStep(
   checkRebuilds(state);
   checkMarkers(state, events, history.before);
   checkHasBranches(history.allEvents);
+  checkKnowledge(state, events, history.knowledge);
 }
 
 /** Invariant 1: while the game is active, some side has a pending decision with at least one legal answer. */
@@ -219,9 +223,15 @@ export function contingencyLeaksIn(view: PlayerView, state: GameState): string[]
   return found;
 }
 
-/** The card IDs `viewer` may not see: the draw pile, the eras still to enter, and every hand but the viewer's own. */
+/**
+ * The card IDs `viewer` may not see: the draw pile, the eras still to enter, and every hand but the viewer's own,
+ * less the rival's cards in the viewer's own knowledge, which it was shown (#185).
+ */
 export function hiddenFrom(state: GameState, viewer: Viewer): CardId[] {
-  const hands = SIDES.filter((side) => side !== viewer).flatMap((side) => state.private[side].hand);
+  const known = viewer === "spectator" ? [] : state.private[viewer].knowledge;
+  const hands = SIDES.filter((side) => side !== viewer)
+    .flatMap((side) => state.private[side].hand)
+    .filter((card) => !known.includes(card));
   const waiting = state.secret.eras.flatMap((entry) => entry.cards);
   return [...state.secret.deck, ...waiting, ...hands];
 }
