@@ -414,6 +414,13 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 ## tools
 
+- `tools/balance/README.md` - Balance tool
+- `tools/balance/play.mjs` - Plays one seeded Easy-vs-Easy game of the first deck through the match host, as a real match would run.
+- `tools/balance/report.mjs` - The balance report as text: the numbers from stats.mjs laid out as plain tables.
+- `tools/balance/run.mjs` - `node tools/balance/run.mjs [--games <n>] [--seed <base>] [--json]`: plays n seeded Easy-vs-Easy games of the first-deck TEST scenario and prints results by si…
+- `tools/balance/run.test.mjs` - Real balance runs: a few first-deck games through the match host, and the command line around them.
+- `tools/balance/stats.mjs` - The balance report's numbers, worked out from finished games only.
+- `tools/balance/stats.test.mjs` - The report numbers from hand-made game summaries, so wins and win shares can be checked before any victory rule exists.
 - `tools/eslint-formatter.mjs` - ESLint output as one `file:line:col message (rule)` line per problem, with repository-relative paths, so the gate (which keeps lines that point at a place in t…
 - `tools/gates/boundaries.mjs` - `pnpm boundaries`: enforces hard rules 1 and 2 of CLAUDE.md and the package table in docs/architecture.md.
 - `tools/gates/boundaries.test.mjs`
