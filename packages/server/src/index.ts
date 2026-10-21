@@ -7,3 +7,16 @@ export { rowsFor, VIEWERS } from "./rows.ts";
 export type { CommitRows, MatchEventRow, MatchRow, MatchViewRow } from "./rows.ts";
 export { canRead, readMatch } from "./read.ts";
 export type { Caller, MatchRead, ReadStore, StoredRows } from "./read.ts";
+export { createInvite, joinInvite, previewInvite, sideModeOf, CODE_TRIES } from "./invite.ts";
+export type {
+  CreateInviteRequest,
+  InviteDeps,
+  InviteError,
+  InviteErrorCode,
+  InviteOutcome,
+  JoinedInvite,
+  JoinInviteRequest,
+} from "./invite.ts";
+export { inviteCode, INVITE_CODE_ALPHABET, INVITE_CODE_LENGTH } from "./inviteCode.ts";
+export { MemoryInviteStore } from "./inviteStore.ts";
+export type { AcceptResult, Invite, InviteStore, SaveResult, SideMode, StoredInvite } from "./inviteStore.ts";

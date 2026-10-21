@@ -11,9 +11,10 @@ const emptySide = () => ({ picks: 0, event: 0, points: 0, gamesPlayedIn: 0, wins
 
 /**
  * The report for `summaries`. `cards` lists card ids to report even if nobody touched them; every card in a log
- * is reported too, in the order first met. `nameOf(id)` gives a card's name.
+ * is reported too, in the order first met. `nameOf(id)` gives a card's name. `eras` (optional, see eraNumbers)
+ * adds the "By era" numbers under `byEra`; without it the report has no such key.
  */
-export function balanceStats(summaries, { cards = [], nameOf = (id) => id } = {}) {
+export function balanceStats(summaries, { cards = [], nameOf = (id) => id, eras } = {}) {
   const sides = Object.fromEntries(SIDES.map((s) => [s, { wins: 0, losses: 0, draws: 0, reasons: {} }]));
   const perCard = new Map(cards.map((id) => [id, { lio: emptySide(), sae: emptySide() }]));
   const cardFor = (id) => {
@@ -58,7 +59,44 @@ export function balanceStats(summaries, { cards = [], nameOf = (id) => id } = {}
       name: nameOf(id),
       ...Object.fromEntries(SIDES.map((s) => [s, sideNumbers(bySide[s])])),
     })),
+    ...(eras === undefined ? {} : { byEra: eraNumbers(summaries, eras) }),
   };
+}
+
+/**
+ * The "By era" numbers. `eras` lists each era as { era, cards }, where `cards` is its card ids (from the ruleset's
+ * `card.era`) or null when the run leaves it out. Per era: its number of cards, the average per game of distinct
+ * cards of that era picked or played by either side (a card both sides used in one game counts once), that as a
+ * share of the era's cards, and the average picks plus plays per game of its cards.
+ */
+function eraNumbers(summaries, eras) {
+  const games = summaries.length;
+  const average = (n, places) => (games === 0 ? 0 : round(n / games, places));
+  return eras.map(({ era, cards }) => {
+    if (cards === null) return { era, leftOut: true };
+    const ofEra = new Set(cards);
+    let distinct = 0;
+    let uses = 0;
+    for (const game of summaries) {
+      const used = new Set();
+      for (const { value } of game.log) {
+        if (value?.kind !== "chooseCard" && value?.kind !== "playCardAs") continue;
+        if (!ofEra.has(value.card)) continue;
+        uses += 1;
+        used.add(value.card);
+      }
+      distinct += used.size;
+    }
+    const shareUsed = ofEra.size === 0 ? null : round(games === 0 ? 0 : distinct / games / ofEra.size, 3);
+    return {
+      era,
+      leftOut: false,
+      cards: ofEra.size,
+      averageCardsUsed: average(distinct, 2),
+      shareUsed,
+      averageUses: average(uses, 2),
+    };
+  });
 }
 
 function sideNumbers({ picks, event, points, gamesPlayedIn, wins }) {

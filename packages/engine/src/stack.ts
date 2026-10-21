@@ -1,9 +1,11 @@
 // The resolution stack: runs program steps until one needs a player's choice, records that as the
 // pending decision (or, for both sides at once, a simultaneous pair) and stops. The answer resumes
 // exactly where it stopped. A step budget per call (createGame or apply) stops runaway programs.
+import { notANumber, testCondition, unbound } from "./conditions.ts";
 import { deckFor, drawContingency } from "./contingency.ts";
 import { copyJson } from "./copy.ts";
 import { newDecision, newGroup } from "./decisions.ts";
+import { keepMarker } from "./markers.ts";
 import { opsValue, startModifier } from "./modifiers.ts";
 import { halfAnswered } from "./simultaneous.ts";
 import type { Revealed } from "./simultaneous.ts";
@@ -12,12 +14,12 @@ import type {
   AnswerValue,
   Binding,
   CardId,
-  Condition,
   EngineError,
   EngineErrorCode,
   Frame,
   GameEvent,
   GameState,
+  MarkerEvent,
   Result,
   Ruleset,
   Side,
@@ -160,9 +162,9 @@ function runStep(state: GameState, frame: Frame, step: Step, events: GameEvent[]
           : [newDecision(state.meta.seq, step.who, step.decision.kind)];
       return "paused";
     case "marker":
-      return runMarker(state.public.stack, frame, step, events);
+      return runMarker(state, frame, step, events);
     case "if":
-      return runIf(state.public.stack, frame, step);
+      return runIf(state, frame, step);
     case "forEach":
       return runForEach(state.public.stack, frame, step);
     case "spendPoints": {
@@ -196,24 +198,30 @@ function runStep(state: GameState, frame: Frame, step: Step, events: GameEvent[]
   }
 }
 
-/** Emits a public marker event, with the named variable's value if the step names one. */
-function runMarker(stack: Frame[], frame: Frame, step: StepOf<"marker">, events: GameEvent[]): StepOutcome {
-  if (step.var === undefined) {
-    events.push({ kind: "marker", visibility: "public", label: step.label });
-  } else {
-    const value = lookup(stack, step.var);
+/**
+ * Emits a public marker event, with the named variable's value if the step names one. A lasting marker's
+ * event says so, and its label (only the label) is kept in `markers`.
+ */
+function runMarker(state: GameState, frame: Frame, step: StepOf<"marker">, events: GameEvent[]): StepOutcome {
+  const event: MarkerEvent = { kind: "marker", visibility: "public", label: step.label };
+  if (step.var !== undefined) {
+    const value = lookup(state.public.stack, step.var);
     if (value === undefined) return unbound(step.var);
-    events.push({ kind: "marker", visibility: "public", label: step.label, value });
+    event.value = value;
   }
+  if (step.lasting === true) {
+    event.lasting = true;
+    keepMarker(state, step.label);
+  }
+  events.push(event);
   frame.next += 1;
   return "ran";
 }
 
-/** Pushes the branch the yes/no variable picks, unless that branch is empty. */
-function runIf(stack: Frame[], frame: Frame, step: StepOf<"if">): StepOutcome {
-  const value = lookup(stack, step.cond.var);
-  if (value === undefined) return unbound(step.cond.var);
-  const yes = step.cond.op === "yes" ? readYes(value, step.cond) : readNumberTest(value, step.cond);
+/** Pushes the branch the condition picks, unless that branch is empty. */
+function runIf(state: GameState, frame: Frame, step: StepOf<"if">): StepOutcome {
+  const stack = state.public.stack;
+  const yes = testCondition(state, step.cond, (name) => lookup(stack, name));
   if (typeof yes !== "boolean") return yes;
   frame.next += 1;
   const branch = yes ? step.then : (step.else ?? []);
@@ -231,17 +239,6 @@ function runAddToNumber(stack: Frame[], frame: Frame, step: StepOf<"addToNumber"
   return "ran";
 }
 
-/** The result of an atLeast, atMost or equals test on a number. */
-function readNumberTest(value: VarValue, cond: Exclude<Condition, { op: "yes" }>): boolean | EngineError {
-  if (typeof value !== "number") return notANumber(cond.var, cond.op);
-  if (cond.op === "atLeast") return value >= cond.value;
-  if (cond.op === "atMost") return value <= cond.value;
-  return value === cond.value;
-}
-
-const notANumber = (name: VarName, user: string): EngineError =>
-  problem("invalidProgram", `"${name}" does not hold a number, so ${user} cannot use it.`);
-
 /** Pushes a loop frame with the first item bound, unless the list is empty. */
 function runForEach(stack: Frame[], frame: Frame, step: StepOf<"forEach">): StepOutcome {
   frame.next += 1;
@@ -257,24 +254,6 @@ function runForEach(stack: Frame[], frame: Frame, step: StepOf<"forEach">): Step
     index: 0,
   });
   return "ran";
-}
-
-/**
- * The yes/no a condition tests: a one-side answer as it is, or the named side's half of a both-sides
- * answer. A condition naming a side for a one-side answer, or none for a both-sides one, is an error.
- */
-function readYes(value: VarValue, cond: Extract<Condition, { op: "yes" }>): boolean | EngineError {
-  const notYesNo = problem("invalidProgram", `"${cond.var}" is not a yes/no answer, so if cannot test it.`);
-  if (typeof value === "boolean") {
-    return cond.side === undefined
-      ? value
-      : problem("invalidProgram", `"${cond.var}" holds one answer; the if must not name a side.`);
-  }
-  if (typeof value !== "object") return notYesNo;
-  if (typeof value.lio !== "boolean" || typeof value.sae !== "boolean") return notYesNo;
-  return cond.side === undefined
-    ? problem("invalidProgram", `"${cond.var}" holds both sides' answers; the if must name a side.`)
-    : value[cond.side];
 }
 
 /**
@@ -336,5 +315,3 @@ function bind(frame: Frame, name: VarName, value: VarValue): void {
   if (found) found.value = value;
   else frame.vars.push({ name, value });
 }
-
-const unbound = (name: VarName): EngineError => problem("invalidProgram", `No variable "${name}" is bound here.`);

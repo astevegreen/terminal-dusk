@@ -35,3 +35,40 @@ Each game runs through the match host exactly as a real match would: each player
 
 Every pick and play counts, so a card played twice in one game counts twice (but that game counts once in
 **games**).
+
+- **By era**: one row per era (era-1, era-2, era-3, future). Which era a card belongs to comes from the card itself
+  (its `era`), not from its id.
+  - **cards**: how many cards that era has in this run's games;
+  - **used per game**: on average, how many different cards of that era were picked or played in one game by
+    either side. A card both sides used in the same game counts once, so this never exceeds **cards**;
+  - **share used**: that number out of the era's cards (0.250 means a quarter of them, on average);
+  - **uses per game**: on average, all picks plus plays of that era's cards in one game.
+  - An era the run leaves out shows "left out" and no numbers.
+
+Averages are rounded to 2 decimal places and shares to 3. These numbers come from Easy AI games of a TEST
+scenario with no victory rule, so they show how the cards flow through a game, not whether the design is good.
+
+## Other turn counts, plays per turn and era arrival turns
+
+These options change only this run's games. No scenario file, card, or game rule changes, and the hand size stays
+the scenario's 8.
+
+```
+node tools/balance/run.mjs --turns 6                         # 6 turns instead of 4
+node tools/balance/run.mjs --plays 2                         # 2 plays per turn instead of 1
+node tools/balance/run.mjs --era era-2@3 --era era-3@5 --turns 6   # era-2 cards enter on turn 3, era-3 on turn 5
+node tools/balance/run.mjs --turns 2 --era era-3@off --era future@off  # 2 turns, era-3 and future left out
+```
+
+- `--turns <n>` and `--plays <n>` take a whole number, 1 or more.
+- `--era <era id>@<turn>` sets the turn on which that era's cards join the draw pile; `--era <era id>@off` leaves
+  that era's cards out of the game. Use it once per era. Eras you do not name keep the TEST scenario's turns
+  (era-2 on turn 2, era-3 on turn 3, future on turn 4), so a run with fewer turns must also move or leave out the
+  later eras. era-1 cannot be moved: its cards are always in from turn 1.
+- A badly written value, an era named twice, era-1, or an era id the first deck does not have is refused with the
+  usage line, and no game is played.
+- The game itself refuses some combinations: an era entering on turn 1 or after the last turn, or two eras on the
+  same turn. The tool does not check these itself; it stops and prints the host's error code (`invalidSetup`).
+
+The report's first line states the turns, plays per turn and each era's arrival turn (or "left out") that the run
+used; `--json` has the same numbers under `setup`.

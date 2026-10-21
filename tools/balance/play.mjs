@@ -14,11 +14,14 @@ const NOW = 0;
 /** The match seed of game `i` (numbered from 0) in a run with base seed `base`. */
 export const matchSeed = (base, i) => `${base}-${i}`;
 
-/** Game `i` of a run: its summary (final status, answer count and answer log). Throws on any refusal. */
-export function playBalanceGame(base, i) {
+/**
+ * Game `i` of a run: its summary (final status, answer count and answer log). Throws on any refusal. `config` is
+ * the run's match config (see config.mjs); by default the first-deck TEST scenario as it is.
+ */
+export function playBalanceGame(base, i, config = firstDeckConfig()) {
   const seed = matchSeed(base, i);
   const fail = (why) => new Error(`Game ${i} (match seed "${seed}"): ${why}`);
-  const created = hostCreate(firstDeckRuleset, { ...firstDeckConfig(), matchId: seed }, seed, NOW);
+  const created = hostCreate(firstDeckRuleset, { ...config, matchId: seed }, seed, NOW);
   if (!created.ok) throw fail(`the host refused to start it: ${describe(created.error)}`);
   let { record, secret, frames } = created.value;
   const players = {
