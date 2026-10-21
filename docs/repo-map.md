@@ -395,6 +395,14 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/package.json`
 - `packages/server/src/index.test.ts`
 - `packages/server/src/index.ts` - Public entry point of the server package (docs/architecture.md, Decision 5). Exports: submit, ServerErrorCode, SubmitDeps, SubmitError, SubmitOutcome, SubmitRequest, MemoryStore, CommitResult, LoadedMatch, MatchStore, MatchWrite, rowsFor, ….
+- `packages/server/src/invite.leaks.test.ts`
+- `packages/server/src/invite.refusals.test.ts`
+- `packages/server/src/invite.test.ts`
+- `packages/server/src/invite.ts` - Private games (docs/architecture.md, Decision 5): a host creates an invite and shares its code, anyone with the code can see how the sides will be assigned, an… Exports: InviteDeps, InviteErrorCode, InviteError, InviteOutcome, CreateInviteRequest, JoinInviteRequest, JoinedInvite, CODE_TRIES, createInvite, previewInvite, joinInvite, sideModeOf.
+- `packages/server/src/inviteCode.test.ts`
+- `packages/server/src/inviteCode.ts` - The default invite code: 8 characters drawn with the platform's secure random source, so a code is hard to guess. Exports: INVITE_CODE_ALPHABET, INVITE_CODE_LENGTH, inviteCode.
+- `packages/server/src/inviteStore.test.ts`
+- `packages/server/src/inviteStore.ts` - The invite port behind private games (docs/architecture.md, Decision 5), and an in-memory store for tests. Exports: SideMode, Invite, StoredInvite, SaveResult, AcceptResult, InviteStore, MemoryInviteStore.
 - `packages/server/src/read.leaks.test.ts`
 - `packages/server/src/read.test.ts`
 - `packages/server/src/read.ts` - Who may read which row (docs/architecture.md, Decision 5, "Who can read it"), and the read itself. Exports: Caller, StoredRows, ReadStore, MatchRead, canRead, readMatch.
@@ -407,6 +415,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/submit.test.ts`
 - `packages/server/src/submit.ts` - The server's single write path (docs/architecture.md, Decision 5): load the match, run the host, and save the result only if nobody moved the match on first. Exports: SubmitDeps, SubmitRequest, ServerErrorCode, SubmitError, SubmitOutcome, submit.
 - `packages/server/src/test/games.ts` - Test helper: whole games played through `submit`, calling back after every step with what is stored. Exports: Strategy, STRATEGIES, Step, playGame.
+- `packages/server/src/test/invites.ts` - Test helpers for invites: an in-memory invite store over O1's MemoryStore, with repeatable codes, match ids, seeds and random sides, and submit deps that run t… Exports: HOST, JOINER, INVITE_NOW, sequence, InviteWorld, inviteWorld.
 - `packages/server/src/test/leaks.ts` - Test helper for leak checks, copying the idea of the host's test/leaks.ts. Exports: leaksIn, leaksFor.
 - `packages/server/src/test/match.ts` - Test helpers: a small ruleset and a match in an in-memory store, copying the idea of the host's tests. Exports: SEED, NOW, MATCH, ruleset, created, setup, bodyFor, nextSide.
 - `packages/server/tsconfig.json`
