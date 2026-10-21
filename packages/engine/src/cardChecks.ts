@@ -97,6 +97,7 @@ function innerSteps(step: Step): readonly Step[] {
     case "addToNumber":
     case "modifier":
     case "revealHand":
+    case "discardFromHand":
       return [];
   }
 }
@@ -105,7 +106,7 @@ function innerSteps(step: Step): readonly Step[] {
  * Why `step` itself (not the steps inside it) is malformed, or null: a number test's `value` and an
  * addToNumber's `amount` must be whole numbers, and an `amount` may not be 0. A modifier must use a hook,
  * side, add, min and duration the engine knows (badModifier); a trigger a hook and duration, and a
- * reaction of at least one step (badTrigger).
+ * reaction of at least one step (badTrigger). A discardFromHand names LIO or SAE and a whole `count`, 1 or more.
  */
 function badStep(step: Step): string | null {
   switch (step.op) {
@@ -123,6 +124,12 @@ function badStep(step: Step): string | null {
       return badModifier(step.mod, step.duration);
     case "trigger":
       return badTrigger(step);
+    case "discardFromHand":
+      if (step.side !== "lio" && step.side !== "sae")
+        return 'discards from the hand of a side that is not "lio" or "sae".';
+      return Number.isInteger(step.count) && step.count >= 1
+        ? null
+        : "discards a number of cards that is not a whole number, 1 or more.";
     default:
       return null;
   }
