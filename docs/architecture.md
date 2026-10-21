@@ -97,8 +97,8 @@ type Decision = {
 };
 type Answer =
   | { decisionId: string; side: Side; value: AnswerValue }
-  | { system: 'timeout' | 'resign' | 'adjudicate'; side: Side };
-```
+  | { system: 'timeout'; side: Side | 'both' }   // 'both': a simultaneous pick missed by both sides; a draw
+  | { system: 'resign' | 'adjudicate'; side: Side };```
 
 - The **ruleset** (card definitions, and limits such as the step budget) is passed into `apply` and `legalAnswers` on every call. It is never copied into the state, which holds only its ID (`meta.ruleset`), so saves, frames and AI simulations stay small. A ruleset whose ID is not the state's is refused: `apply` returns a typed error and `legalAnswers` returns no answers (owner, 17 Oct).
 - State is plain JSON data: no classes, Maps, Dates or functions. It can be saved, sent, hashed and copied with structuredClone.
