@@ -1,5 +1,5 @@
 // Test helper: plays one real card through the real engine and tells what happened, in a short story.
-// The game has one turn with two plays each. The card's owner (LIO for a neutral card) plays it for its event as
+// The game has one turn with two plays each. The card's owner (for a neutral card LIO, or playedBy) plays it for its event as
 // the first of its plays; every other play is a plain filler card of ops 2 played for points, so the story also
 // shows what the card leaves behind: modifiers, then triggers that fire after later plays and at the end of the turn.
 import { apply, createGame, seedHash } from "@terminal-dusk/engine";
@@ -12,6 +12,13 @@ export type PlayOptions = {
   yes?: Partial<Record<Side, boolean>>;
   /** The number on top of every Contingency deck, so the draw is known. Default: decks 1 to 6. */
   draw?: number;
+  /**
+   * The numbers drawn from every Contingency deck, in order: `[5, 2]` makes each deck's first draw 5 and its
+   * second 2. Any later draw comes from the numbers 1 to 6. Not together with `draw`.
+   */
+  draws?: readonly number[];
+  /** The side that plays a neutral card. Default: LIO. Only for neutral cards. */
+  playedBy?: Side;
 };
 
 const filler = (affiliation: Side, n: number): CardDef => ({
@@ -54,8 +61,27 @@ export function story(events: readonly GameEvent[]): string[] {
 export function playCard(id: CardId, options: PlayOptions = {}): string[] {
   const card = FIRST_DECK_CARDS.find((c) => c.id === id);
   if (!card) throw new Error(`no first-deck card ${id}`);
-  const owner: Side = card.affiliation === "sae" ? "sae" : "lio";
-  const def = cardDef(card);
+  return playCardDef(cardDef(card), options);
+}
+
+/** Each deck's cards in the setup, and (for `draws`) the order they are stacked in once the game is made. */
+function decksFor(options: PlayOptions): { cards: number[]; order?: number[] } {
+  const { draw, draws } = options;
+  if (draw !== undefined && draws !== undefined) throw new Error("give draw or draws, not both");
+  if (draws !== undefined) {
+    const order = [...draws, 1, 2, 3, 4, 5, 6];
+    return { cards: order, order };
+  }
+  return { cards: draw === undefined ? [1, 2, 3, 4, 5, 6] : [draw, draw, draw] };
+}
+
+/** Plays card `def` as playCard does. Exported for the helper's own tests, which need made-up cards. */
+export function playCardDef(def: CardDef, options: PlayOptions = {}): string[] {
+  const id = def.id;
+  if (options.playedBy !== undefined && def.affiliation !== "neutral") {
+    throw new Error(`playedBy is only for neutral cards; ${id} is ${def.affiliation}'s`);
+  }
+  const owner: Side = def.affiliation === "neutral" ? (options.playedBy ?? "lio") : def.affiliation;
   const ruleset: Ruleset = {
     id: "card-test",
     cards: [
@@ -65,8 +91,8 @@ export function playCard(id: CardId, options: PlayOptions = {}): string[] {
       ...[1, 2].map((n) => ({ ...filler("lio", n), id: `deck-${n}`, affiliation: "neutral" as const })),
     ],
   };
-  const top = options.draw;
-  const deckOf = top === undefined ? [1, 2, 3, 4, 5, 6] : [top, top, top];
+  const decks = decksFor(options);
+  const deckOf = decks.cards;
   const hands = {
     lio: [...FILLERS.lio.map((c) => c.id), ...(owner === "lio" ? [id] : [])],
     sae: [...FILLERS.sae.map((c) => c.id), ...(owner === "sae" ? [id] : [])],
@@ -86,6 +112,12 @@ export function playCard(id: CardId, options: PlayOptions = {}): string[] {
   );
   if (!made.ok) throw new Error(`createGame failed: ${made.error.code}`);
   let state = made.value.state;
+  const order = decks.order;
+  if (order !== undefined) {
+    // createGame shuffles each deck; stack it in the order asked instead. Same cards, so the public view still fits.
+    const contingency = { lio: [...order], sae: [...order], world: [...order] };
+    state = { ...state, secret: { ...state.secret, contingency } };
+  }
   const events: GameEvent[] = [];
   const step = (answer: Answer) => {
     const r = apply(ruleset, state, answer);
