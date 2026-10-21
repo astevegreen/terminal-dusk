@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { apply, legalAnswers, pendingFor } from "./index.ts";
+import type { Step } from "./index.ts";
 import { startProgram } from "./stack.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
 import {
@@ -191,6 +192,19 @@ describe("resolution stack and the turn structure", () => {
   it("an if on a forEach item (not a yes/no answer) returns invalidProgram", () => {
     const steps = [forEach(["a"], "x", [ifYes("x", [marker("m")])])];
     expect(startProgram(ruleset, startAtPlay(), steps)).toMatchObject({ ok: false, error: { code: "invalidProgram" } });
+  });
+  it("a playedBy in a program no card started (no recorded player) returns invalidProgram, saying it needs that side", () => {
+    const s = deepFreeze(startAtPlay());
+    const steps = [forEach(["a"], "x", [{ op: "if", cond: { op: "playedBy", side: "lio" }, then: [marker("m")] }])];
+    expect(startProgram(ruleset, s, steps)).toMatchObject({
+      ok: false,
+      error: { code: "invalidProgram", message: expect.stringContaining("the side that played the card") },
+    });
+  });
+  it("a playedBy reads no variable: one named var is ignored, and the recorded player decides", () => {
+    const steps = [{ op: "if", cond: { op: "playedBy", side: "sae", var: "nope" }, then: [marker("m")] }];
+    const r = startProgram(ruleset, startAtPlay(), steps as unknown as Step[], "n2", "sae");
+    expect(r.ok && markers(r.value.events)).toEqual(["m"]);
   });
   it("variables bound inside a block are not visible after it ends", () => {
     const steps = [forEach(["a"], "x", []), marker("m", "x")];

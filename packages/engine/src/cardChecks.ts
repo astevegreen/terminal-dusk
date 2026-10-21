@@ -127,8 +127,14 @@ function badStep(step: Step): string | null {
   }
 }
 
-/** Why an if's condition is malformed, or null: a number test's value is whole, a `has` names a label. */
+/**
+ * Why an if's condition is malformed, or null: a number test's value is whole, a `has` names a label, a
+ * `playedBy` names LIO or SAE. Values only: unknown keys are the card schema's job.
+ */
 function badCondition(cond: Condition): string | null {
+  if (cond.op === "playedBy") {
+    return cond.side === "lio" || cond.side === "sae" ? null : 'tests playedBy with a side that is not "lio" or "sae".';
+  }
   if (cond.op === "has") {
     return typeof cond.marker === "string" && cond.marker.length > 0
       ? null

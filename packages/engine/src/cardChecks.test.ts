@@ -301,3 +301,28 @@ describe("createGame: lasting markers and has conditions", () => {
     expect(resultOf([has("x")], [trigger({ do: undefined })])).toMatchObject(refused("Card s1"));
   });
 });
+
+describe("createGame: playedBy conditions name LIO or SAE", () => {
+  const playedBy = (side: unknown): Step => ({ op: "if", cond: { op: "playedBy", side }, then: [] }) as unknown as Step;
+  const resultOf = (effect: Step[]) =>
+    createGame(withCards([...ruleset.cards.slice(1), testCard("l1", 1, "lio", effect)]), makeSetup(), "seed-1");
+
+  it.each([
+    ["missing", undefined],
+    ["both", "both"],
+    ["player", "player"],
+    ["neutral", "neutral"],
+  ])("rejects a playedBy whose side is %s, at any depth, naming the card", (_what, side) => {
+    for (const effect of nested(playedBy(side))) {
+      expect(resultOf(effect)).toMatchObject({
+        ok: false,
+        error: { code: "invalidRuleset", message: expect.stringContaining("Card l1's effect tests playedBy") },
+      });
+    }
+  });
+  it("accepts a playedBy naming lio or sae, at any depth", () => {
+    for (const side of ["lio", "sae"]) {
+      for (const effect of nested(playedBy(side))) expect(resultOf(effect).ok).toBe(true);
+    }
+  });
+});
