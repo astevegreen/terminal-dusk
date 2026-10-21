@@ -59,6 +59,7 @@ export function createGame(
       handSize: setup.handSize,
       playsMade: 0,
       inPlay: [],
+      inPlayBy: [],
       discard: [],
       pending: [],
       stack: [],

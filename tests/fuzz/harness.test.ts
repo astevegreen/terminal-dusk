@@ -14,6 +14,7 @@ import {
   leaksIn,
 } from "./checks.ts";
 import { FIXED_GAMES } from "./fixedGames.ts";
+import { byCodeUnit } from "./order.ts";
 import { checkReplay, gameCount, playFuzzGame, playRecorded, randomGame, ruleset } from "./play.ts";
 import type { GameRecord } from "./play.ts";
 import { seededRng } from "./random.ts";
@@ -82,7 +83,7 @@ describe("the suite's own seeded generator", () => {
   it("picks every whole number below n, and nothing else", () => {
     const rng = seededRng(1);
     const seen = new Set(Array.from({ length: 300 }, () => rng.int(3)));
-    expect([...seen].sort()).toEqual([0, 1, 2]);
+    expect([...seen].sort((a, b) => a - b)).toEqual([0, 1, 2]);
   });
 });
 
@@ -152,7 +153,7 @@ describe("random games", () => {
         }
       }
     }
-    expect([...seen].sort()).toEqual([
+    expect([...seen].sort(byCodeUnit)).toEqual([
       "contingencyDeckReshuffled lio",
       "contingencyDeckReshuffled sae",
       "contingencyDrawn lio",
@@ -169,7 +170,12 @@ describe("random games", () => {
         if (answer.value.kind === "rivalEventOrder") uses.add(`rival event ${answer.value.event}`);
       }
     }
-    expect([...uses].sort()).toEqual(["play for event", "play for points", "rival event after", "rival event before"]);
+    expect([...uses].sort(byCodeUnit)).toEqual([
+      "play for event",
+      "play for points",
+      "rival event after",
+      "rival event before",
+    ]);
   });
 
   it("every state from createGame and apply is deep-frozen, and so is the ruleset", () => {
@@ -202,9 +208,9 @@ describe("invariant 1: someone can always answer", () => {
 describe("invariant 4: no view gives away the seed, the generator state or a hidden card", () => {
   it("hides the draw pile and the other side's hand from a side, and both hands from a spectator", () => {
     const s = started();
-    expect(hiddenFrom(s, "lio").sort()).toEqual([...DECK, "c2", "c5"].sort());
-    expect(hiddenFrom(s, "sae").sort()).toEqual([...DECK, "c1", "c4"].sort());
-    expect(hiddenFrom(s, "spectator").sort()).toEqual([...DECK, "c1", "c4", "c2", "c5"].sort());
+    expect(hiddenFrom(s, "lio").sort(byCodeUnit)).toEqual([...DECK, "c2", "c5"].sort(byCodeUnit));
+    expect(hiddenFrom(s, "sae").sort(byCodeUnit)).toEqual([...DECK, "c1", "c4"].sort(byCodeUnit));
+    expect(hiddenFrom(s, "spectator").sort(byCodeUnit)).toEqual([...DECK, "c1", "c4", "c2", "c5"].sort(byCodeUnit));
   });
 
   it("looks for each hidden card ID as a whole quoted string, so c1 is not set off by c10", () => {

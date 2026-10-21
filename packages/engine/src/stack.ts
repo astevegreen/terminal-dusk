@@ -72,7 +72,7 @@ export function startProgram(
 
 /**
  * Pushes `steps` as a new program and runs it until it pauses or ends. `source` is the card whose effect
- * or play it runs, if any, and `player` the side that played it, given for a neutral card's event: the
+ * or play it runs, if any, and `player` the side that picked or played it, given for a card's event: the
  * frame records both. Edits `state`, a working copy.
  */
 export function runProgram(

@@ -51,7 +51,7 @@ describe("public.pending", () => {
   it("holds the open decisions; a new game has the opening card pair, one decision per side", () => {
     const s = startGame();
     const group = expect.any(String);
-    const options = { from: "hand", includeNeutral: true };
+    const options = { from: "hand" };
     expect(s.public.pending).toEqual([
       { id: expect.any(String), side: "lio", kind: "chooseCard", options, simultaneousGroup: group },
       { id: expect.any(String), side: "sae", kind: "chooseCard", options, simultaneousGroup: group },

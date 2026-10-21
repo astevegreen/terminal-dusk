@@ -86,12 +86,12 @@ describe("the drawContingency step", () => {
 
   it("apply never changes deep-frozen inputs when a played event draws and reshuffles", () => {
     const rs = deepFreeze(withCards(sideCard("l9", 2, [draws("lio", "n"), marker("drew", "n")])));
-    const s = deepFreeze(atLioPlay(rs, { lio: ["l9"] }, { lio: [3, 7], sae: [1, 2] }));
+    const s = deepFreeze(atLioPlay(rs, { lio: ["l9"] }, { lio: [3, 5, 7], sae: [1, 2, 3] }));
     const before = JSON.stringify(s);
     const r = apply(rs, s, deepFreeze(playAnswer(s, "lio", "l9", "event")));
     if (!r.ok) throw new Error(`answer rejected: ${r.error.code}`);
     expect(drawnEvents(r.value.events).map((e) => e.kind)).toEqual(["contingencyDrawn", "contingencyDeckReshuffled"]);
-    expect(r.value.state.public.contingency.lio).toEqual({ cards: [3, 7], left: [3, 7] });
+    expect(r.value.state.public.contingency.lio).toEqual({ cards: [3, 5, 7], left: [3, 5, 7] });
     expect(JSON.stringify(s)).toBe(before);
   });
 });
@@ -114,13 +114,13 @@ describe("drawing from the rival's deck (owner, 19 Oct)", () => {
 
   it("the card it uses up counts toward the rival deck's reshuffle like any draw", () => {
     const rs = withCards(sideCard("l9", 2, [draws("sae")]));
-    const s = atLioPlay(rs, { lio: ["l9"] }, { lio: [1, 2, 3, 4, 5, 6], sae: [3, 7] });
+    const s = atLioPlay(rs, { lio: ["l9"] }, { lio: [1, 2, 3, 4, 5, 6], sae: [3, 5, 7] });
     const r = applied(s, playAnswer(s, "lio", "l9", "event"), rs);
     expect(drawnEvents(r.events)).toEqual([
       { kind: "contingencyDrawn", visibility: "public", side: "sae", value: s.secret.contingency.sae[0] },
       { kind: "contingencyDeckReshuffled", visibility: "public", side: "sae" },
     ]);
-    expect(r.state.public.contingency.sae).toEqual({ cards: [3, 7], left: [3, 7] });
+    expect(r.state.public.contingency.sae).toEqual({ cards: [3, 5, 7], left: [3, 5, 7] });
   });
 
   it("the card names the deck, not who played it: SAE's card played by LIO for points draws LIO's deck", () => {

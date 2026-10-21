@@ -13,8 +13,8 @@ type TriggerStep = Extract<Step, { op: "trigger" }>;
 
 /**
  * Runs a `trigger` step for the card `source`: the trigger joins the end of the list, to end with the
- * current turn, and everyone is told. `player`, the side that played a neutral card, goes with it, so the
- * reaction's "player" draws use that side's deck. Edits `state`, a working copy.
+ * current turn, and everyone is told. `player`, the side that picked or played the card, goes with it, so the
+ * reaction's "player" draws (a neutral card's) use that side's deck. Edits `state`, a working copy.
  */
 export function setTrigger(
   state: GameState,
