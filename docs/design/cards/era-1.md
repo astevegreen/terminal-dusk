@@ -10,7 +10,7 @@ starting deck: the turn 1 refill deals both hands from it, so it must hold at le
 
 - **Event:** Twelve states found the European Union and promise a single currency.
 - **Design:** LIO 1 and +1 Ops this turn; a lasting "union" tag that Euro Cash and Big Bang build on (W1, W3).
-- **Playable:** `marker "union founded"; spend lio 1; mod lio +1 (turn)`
+- **Playable:** `marker "union founded" lasting; spend lio 1; mod lio +1 (turn)`
 - **History:** The Treaty on European Union was signed at Maastricht on 7 February 1992 and entered into force on 1 November 1993, creating the European Union and the path to a single currency.
 - **Theme:** alliances · **Notion:** update `3fceb012942f811086dde641d138fee3`
 
@@ -18,7 +18,7 @@ starting deck: the turn 1 refill deals both hands from it, so it must hold at le
 
 - **Event:** Ukraine gives up the world's third-largest nuclear arsenal for security assurances.
 - **Design:** LIO 2; SAE chooses to honour the assurances (SAE 1, a "promise kept" tag) or treat them as paper (LIO 1 more now; a "hollow assurance" tag Crimea would cash in, W3).
-- **Playable:** `marker "assurances given"; spend lio 2; ask sae "Honour the assurances?" -> v; if yes v { marker "promise kept"; spend sae 1 } else { marker "hollow assurance"; spend lio 1 }`
+- **Playable:** `marker "assurances given"; spend lio 2; ask sae "Honour the assurances?" -> v; if yes v { marker "promise kept"; spend sae 1 } else { marker "hollow assurance" lasting; spend lio 1 }`
 - **History:** On 5 December 1994 Ukraine, Kazakhstan and Belarus received security assurances from the United States, the United Kingdom and Russia in the Budapest Memorandum, in return for giving up Soviet nuclear weapons left on their territory. US Nunn-Lugar funding paid for much of the dismantling.
 - **Theme:** alliances, arms · **Notion:** update `3fceb012942f817a8e02cd42a2327bba`
 
@@ -77,7 +77,7 @@ starting deck: the turn 1 refill deals both hands from it, so it must hold at le
 
 - **Event:** Eighteen US soldiers die in one night and the appetite for intervention dies with them.
 - **Design:** SAE 1 now and 1 at turn end; an "intervention fatigue" tag that the Rwanda card would read (W3).
-- **Playable:** `marker "intervention fatigue"; spend sae 1; on turnEnd { spend sae 1 }`
+- **Playable:** `marker "intervention fatigue" lasting; spend sae 1; on turnEnd { spend sae 1 }`
 - **History:** On 3-4 October 1993 a US raid in Mogadishu, Somalia turned into a day-long battle in which 18 US soldiers were killed; US forces withdrew from Somalia by March 1994.
 - **Theme:** proxy wars · **Notion:** update `3fceb012942f812a8826d4661acad5d6` (was "Black Hawk Down", a film title)
 
@@ -85,7 +85,7 @@ starting deck: the turn 1 refill deals both hands from it, so it must hold at le
 
 - **Event:** The Union flag comes down over a territory promised fifty years of autonomy.
 - **Design:** SAE 3; a "promise made" tag that the 2020 security law card closes (W1, W3). Hot: 4 Ops tempts LIO holders.
-- **Playable:** `marker "one country, two systems"; spend sae 3; once-only`
+- **Playable:** `marker "one country, two systems" lasting; spend sae 3; once-only`
 - **History:** Britain returned Hong Kong to China on 1 July 1997; under the 1990 Basic Law the territory was promised a high degree of autonomy for fifty years, to 2047.
 - **Theme:** alliances, gray-zone · **Notion:** update `3fceb012942f8143974df5a9772fb204`
 
@@ -185,8 +185,8 @@ question 1), so they use choices instead. Redesigns that use draws are a follow-
 ### e1-neu-001 · Rwandan Genocide · neutral · Ops 2 · Swing (both)
 
 - **Event:** Radio calls for murder for a hundred days and the world looks away.
-- **Design:** Both sides -1 Ops this turn: nobody comes out of this with credit. Would read the "intervention fatigue" tag (W3).
-- **Playable:** `marker "the world looks away"; mod both -1 min 1 (turn)`
+- **Design:** Both sides -1 Ops this turn: nobody comes out of this with credit. Reads the "intervention fatigue" tag (W3): if it is recorded, LIO -2 Ops and SAE -1 Ops this turn instead, so the fatigue lands on the side that stayed out (owner, 21 Oct).
+- **Playable:** `marker "the world looks away"; if has "intervention fatigue" { mod lio -2 min 1 (turn); mod sae -1 min 1 (turn) } else { mod both -1 min 1 (turn) }`
 - **History:** Between April and July 1994 an estimated 500,000 to 800,000 people, mostly Tutsi, were killed in Rwanda; the radio station RTLM, broadcasting from July 1993, incited the killings.
 - **Theme:** information, proxy wars · **Notion:** update `3fceb012942f814cbb1af8b0cbd59a9e` (RTLM row folded in)
 

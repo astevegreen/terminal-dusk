@@ -124,7 +124,7 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 
 - **Event:** Russian jets save a client and Russia returns to the Middle East.
 - **Design:** SAE 2 now and 1 at turn end; a "foothold" tag that Assad's fall removes (W1, W3).
-- **Playable:** `marker "proxy war"; spend sae 2; on turnEnd { spend sae 1 }`
+- **Playable:** `marker "proxy war" lasting; spend sae 2; on turnEnd { spend sae 1 }`
 - **History:** Russia began air strikes in Syria on 30 September 2015 in support of the Assad government, its first major military operation outside the former Soviet Union since the Cold War.
 - **Theme:** proxy wars · **Notion:** update `3fceb012942f8115abd1c8c2714da8f8`
 

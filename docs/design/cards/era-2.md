@@ -91,7 +91,7 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 
 - **Event:** The coalition splits over a war sold on weapons that were not there.
 - **Design:** SAE 2 and LIO -1 Ops this turn; a lasting "credibility" tag that Curveball and Abu Ghraib deepen (W1, W3).
-- **Playable:** `marker "coalition fractures"; spend sae 2; mod lio -1 min 1 (turn)`
+- **Playable:** `marker "coalition fractures" lasting; spend sae 2; mod lio -1 min 1 (turn)`
 - **History:** A US-led coalition invaded Iraq on 20 March 2003 and took Baghdad on 9 April 2003. The stated justification, Iraqi weapons of mass destruction, was not borne out.
 - **Theme:** proxy wars, alliances · **Notion:** update `3fceb012942f8154b177c1f3c802bbf5`
 
@@ -222,7 +222,7 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 
 - **Event:** A secret Iranian enrichment site is exposed.
 - **Design:** SAE 1 now (a new client); LIO 1 at turn end (inspections and sanctions begin). Sets the Iran tag Stuxnet and the Iran deal build on (W3).
-- **Playable:** `marker "programme revealed"; spend sae 1; on turnEnd { spend lio 1 }`
+- **Playable:** `marker "programme revealed" lasting; spend sae 1; on turnEnd { spend lio 1 }`
 - **History:** An Iranian opposition group publicised a secret uranium-enrichment site at Natanz in August 2002; Iran acknowledged the facility to the IAEA in February 2003.
 - **Theme:** arms, proxy · **Notion:** create
 
@@ -230,7 +230,7 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 
 - **Event:** A precedent both sides will quote back at each other.
 - **Design:** Each side 1; the "precedent" tag is cited by Crimea (W3).
-- **Playable:** `marker "precedent set"; spend lio 1; spend sae 1`
+- **Playable:** `marker "precedent set" lasting; spend lio 1; spend sae 1`
 - **History:** Kosovo declared independence from Serbia on 17 February 2008. The United States and most EU states recognised it; Serbia and Russia did not.
 - **Theme:** alliances, gray-zone · **Notion:** create
 
