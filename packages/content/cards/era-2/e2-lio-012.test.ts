@@ -15,4 +15,18 @@ describeCard("e2-lio-012", "Euro Cash", [
       points:lio:1
     `,
   },
+  {
+    it: "after Maastricht Treaty recorded union founded, LIO spends 2 now",
+    before: ["e1-lio-001"],
+    story: `
+      single currency
+      points:lio:2
+      triggerSet:turnEnd
+      points:sae:2
+      points:lio:2
+      points:sae:2
+      triggerFired:turnEnd
+      points:lio:1
+    `,
+  },
 ]);
