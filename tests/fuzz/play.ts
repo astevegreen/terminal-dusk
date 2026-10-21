@@ -32,7 +32,8 @@ const MAX_PILE = 30;
 /** Most eras after the first (one for each turn after the first), and most cards in one era. */
 const MAX_ERAS = MAX_TURNS - 1;
 const MAX_ERA_CARDS = 5;
-/** Most cards in a random Contingency deck (the fewest is 2), and the highest number on one. */
+/** Fewest and most cards in a random Contingency deck, and the highest number on one. */
+const MIN_DECK = 3;
 const MAX_DECK = 8;
 const MAX_NUMBER = 12;
 /** Most cards a random hand size has beyond the smallest, 1 + plays per turn. */
@@ -211,12 +212,12 @@ function randomEras(rng: Rng, turns: number, pool: readonly CardId[]): EraEntry[
 }
 
 /**
- * A Contingency deck: the default 1 to 6 about one time in four, otherwise 2-8 cards numbered 1 to 12, in
+ * A Contingency deck: the default 1 to 6 about one time in four, otherwise 3-8 cards numbered 1 to 12, in
  * random order, so lengths vary and repeats and two-digit numbers turn up.
  */
 function randomDeck(rng: Rng): number[] {
   if (rng.int(4) === 0) return shuffled(rng, DEFAULT_DECK);
-  return Array.from({ length: 2 + rng.int(MAX_DECK - 1) }, () => 1 + rng.int(MAX_NUMBER));
+  return Array.from({ length: MIN_DECK + rng.int(MAX_DECK - MIN_DECK + 1) }, () => 1 + rng.int(MAX_NUMBER));
 }
 
 /**
