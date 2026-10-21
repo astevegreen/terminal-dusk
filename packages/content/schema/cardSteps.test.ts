@@ -1,5 +1,5 @@
 // The card schema's lasting steps: modifiers (#89), triggers (#90) and lasting markers (#141), at any depth;
-// and revealHand steps (#184).
+// revealHand steps (#184); and discardFromHand steps (#186).
 import { describe, expect, it } from "vitest";
 import { issuesOf, lioCard, pathsOf, pickCard, yesNo } from "./test/cards.ts";
 
@@ -143,6 +143,30 @@ describe("card schema: revealHand steps (#184)", () => {
     ["a missing side", { op: "revealHand" }],
     ["an extra field", { op: "revealHand", side: "lio", bind: "shown" }],
   ])("refuses a revealHand with %s, at any depth", (_what, step) => {
+    for (const effect of placed(step)) expect(issuesOf(lioWith(effect)).length).toBeGreaterThan(0);
+  });
+});
+
+describe("card schema: discardFromHand steps (#186)", () => {
+  it.each([
+    ["lio", 1],
+    ["sae", 3],
+  ])("accepts a discardFromHand of %s, %i card(s), at any depth", (side, count) => {
+    for (const effect of placed({ op: "discardFromHand", side, count })) {
+      expect(issuesOf(lioWith(effect))).toEqual([]);
+    }
+  });
+
+  it.each([
+    ["a missing count", { op: "discardFromHand", side: "lio" }],
+    ["a count of 0", { op: "discardFromHand", side: "lio", count: 0 }],
+    ["a count of -1", { op: "discardFromHand", side: "lio", count: -1 }],
+    ["a count of 1.5", { op: "discardFromHand", side: "lio", count: 1.5 }],
+    ["a side of both", { op: "discardFromHand", side: "both", count: 1 }],
+    ["a side of player", { op: "discardFromHand", side: "player", count: 1 }],
+    ["a missing side", { op: "discardFromHand", count: 1 }],
+    ["an extra field", { op: "discardFromHand", side: "lio", count: 1, chosenBy: "owner" }],
+  ])("refuses a discardFromHand with %s, at any depth", (_what, step) => {
     for (const effect of placed(step)) expect(issuesOf(lioWith(effect)).length).toBeGreaterThan(0);
   });
 });
