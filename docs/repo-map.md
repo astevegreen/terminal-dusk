@@ -496,6 +496,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `docs/design/core-loop.md` - Core loop
 - `docs/design/eras.md` - Eras
 - `docs/design/sides.md` - Sides
+- `docs/proposals/special-abilities.md` - Special abilities for LIO and SAE: options
 - `docs/sprint.md` - Sprint: 20–22 October 2026
 - `docs/workflow.md` - Terminal Dusk — Claude Code Workflow
 
