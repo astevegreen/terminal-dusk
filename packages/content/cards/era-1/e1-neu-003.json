@@ -24,21 +24,50 @@
       },
       "then": [
         {
-          "op": "spendPoints",
-          "side": "sae",
-          "amount": 2
+          "op": "drawContingency",
+          "side": "player",
+          "bind": "d"
         },
         {
-          "op": "modifier",
-          "mod": {
-            "hook": "opsValue",
-            "side": "sae",
-            "add": -1,
-            "min": 1
+          "op": "if",
+          "cond": {
+            "op": "atLeast",
+            "var": "d",
+            "value": 3
           },
-          "duration": {
-            "kind": "turnEnd"
-          }
+          "then": [
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 2
+            },
+            {
+              "op": "modifier",
+              "mod": {
+                "hook": "opsValue",
+                "side": "sae",
+                "add": -1,
+                "min": 1
+              },
+              "duration": {
+                "kind": "turnEnd"
+              }
+            }
+          ],
+          "else": [
+            {
+              "op": "modifier",
+              "mod": {
+                "hook": "opsValue",
+                "side": "sae",
+                "add": -1,
+                "min": 1
+              },
+              "duration": {
+                "kind": "turnEnd"
+              }
+            }
+          ]
         }
       ],
       "else": [
@@ -52,7 +81,7 @@
   ],
   "text": {
     "name": "Ruble Default",
-    "rules": "Record \"default\". SAE chooses: Default? If yes, SAE spends 2 points, then until the end of this turn, points spent by SAE count 1 less, never below 1; if no, LIO spends 1 point.",
+    "rules": "Record \"default\". SAE chooses: Default? If yes, (draw from the Contingency deck of the side that played this card, then if the result is 3 or more, SAE spends 2 points, then until the end of this turn, points spent by SAE count 1 less, never below 1; otherwise, until the end of this turn, points spent by SAE count 1 less, never below 1); if no, LIO spends 1 point.",
     "history": "On 17 August 1998 Russia devalued the ruble and defaulted on its domestic debt; the shock led to the $3.6 billion rescue of the hedge fund Long-Term Capital Management in September 1998.",
     "art": "art/e1-neu-003"
   }

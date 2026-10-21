@@ -5,7 +5,7 @@ describeCard("e2-neu-006", "Natanz Revealed", [
   {
     it: "plays out as its text says",
     story: `
-      programme revealed
+      lasting:programme revealed
       points:sae:1
       triggerSet:turnEnd
       points:sae:2

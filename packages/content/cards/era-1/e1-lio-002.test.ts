@@ -21,7 +21,7 @@ describeCard("e1-lio-002", "Budapest Memorandum", [
     story: `
       assurances given
       points:lio:2
-      hollow assurance
+      lasting:hollow assurance
       points:lio:1
       points:sae:2
       points:lio:2

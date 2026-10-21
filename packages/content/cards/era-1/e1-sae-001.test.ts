@@ -6,7 +6,7 @@ describeCard("e1-sae-001", "Battle of Mogadishu", [
     it: "plays out as its text says",
     story: `
       points:lio:2
-      intervention fatigue
+      lasting:intervention fatigue
       points:sae:1
       triggerSet:turnEnd
       points:lio:2

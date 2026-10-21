@@ -64,8 +64,8 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 ### e2-lio-011 · Cedar Revolution · LIO · Ops 2 · Split/Gamble (SAE)
 
 - **Event:** A million Lebanese march and Syrian troops leave after 29 years.
-- **Design:** SAE may back the old order: a gamble that pays SAE 2 or hands LIO 2; or it steps back and LIO takes 1.
-- **Playable:** `marker "troops out"; ask sae "Back the old order?" -> v; if yes v { draw lio -> d; if d >= 4 { spend sae 2 } else { spend lio 2 } } else { spend lio 1 }`
+- **Design:** SAE may back the old order: a gamble on SAE's own draw that pays SAE 2 (on a high draw) or hands LIO 2; or it steps back and LIO takes 1.
+- **Playable:** `marker "troops out"; ask sae "Back the old order?" -> v; if yes v { draw sae -> d; if d >= 4 { spend sae 2 } else { spend lio 2 } } else { spend lio 1 }`
 - **History:** Mass protests in Lebanon after the assassination of former prime minister Rafik Hariri on 14 February 2005 led to the withdrawal of Syrian troops by the end of April 2005.
 - **Theme:** populism and elections, proxy wars · **Notion:** create
 
@@ -91,15 +91,15 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 
 - **Event:** The coalition splits over a war sold on weapons that were not there.
 - **Design:** SAE 2 and LIO -1 Ops this turn; a lasting "credibility" tag that Curveball and Abu Ghraib deepen (W1, W3).
-- **Playable:** `marker "coalition fractures"; spend sae 2; mod lio -1 min 1 (turn)`
+- **Playable:** `marker "coalition fractures" lasting; spend sae 2; mod lio -1 min 1 (turn)`
 - **History:** A US-led coalition invaded Iraq on 20 March 2003 and took Baghdad on 9 April 2003. The stated justification, Iraqi weapons of mass destruction, was not borne out.
 - **Theme:** proxy wars, alliances · **Notion:** update `3fceb012942f8154b177c1f3c802bbf5`
 
 ### e2-sae-002 · Curveball · SAE · Ops 2 · Split/Gamble (LIO)
 
 - **Event:** A single defector's story about mobile weapons labs goes to the UN.
-- **Design:** LIO may act on the single source: usually it is discredited (SAE 1, LIO -1 Ops), sometimes it holds (LIO 2); or LIO waits for corroboration and takes 1.
-- **Playable:** `ask lio "Act on the single source?" -> v; if yes v { draw sae -> d; if d >= 3 { marker "intelligence discredited"; spend sae 1; mod lio -1 min 1 (turn) } else { spend lio 2 } } else { spend lio 1 }`
+- **Design:** LIO may act on the single source, a gamble on LIO's own draw: usually it is discredited (SAE 1, LIO -1 Ops), sometimes it holds (LIO 2, on a high draw); or LIO waits for corroboration and takes 1.
+- **Playable:** `ask lio "Act on the single source?" -> v; if yes v { draw lio -> d; if d >= 5 { spend lio 2 } else { marker "intelligence discredited"; spend sae 1; mod lio -1 min 1 (turn) } } else { spend lio 1 }`
 - **History:** Claims that Iraq had mobile biological-weapons laboratories, presented to the UN Security Council on 5 February 2003, rested largely on an informant code-named Curveball whose account was later found to be fabricated.
 - **Theme:** information warfare · **Notion:** update `3fceb012942f81769467daeda3b33918`
 
@@ -222,7 +222,7 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 
 - **Event:** A secret Iranian enrichment site is exposed.
 - **Design:** SAE 1 now (a new client); LIO 1 at turn end (inspections and sanctions begin). Sets the Iran tag Stuxnet and the Iran deal build on (W3).
-- **Playable:** `marker "programme revealed"; spend sae 1; on turnEnd { spend lio 1 }`
+- **Playable:** `marker "programme revealed" lasting; spend sae 1; on turnEnd { spend lio 1 }`
 - **History:** An Iranian opposition group publicised a secret uranium-enrichment site at Natanz in August 2002; Iran acknowledged the facility to the IAEA in February 2003.
 - **Theme:** arms, proxy · **Notion:** create
 
@@ -230,7 +230,7 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 
 - **Event:** A precedent both sides will quote back at each other.
 - **Design:** Each side 1; the "precedent" tag is cited by Crimea (W3).
-- **Playable:** `marker "precedent set"; spend lio 1; spend sae 1`
+- **Playable:** `marker "precedent set" lasting; spend lio 1; spend sae 1`
 - **History:** Kosovo declared independence from Serbia on 17 February 2008. The United States and most EU states recognised it; Serbia and Russia did not.
 - **Theme:** alliances, gray-zone · **Notion:** create
 

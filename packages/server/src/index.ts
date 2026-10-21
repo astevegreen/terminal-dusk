@@ -20,4 +20,5 @@ export type {
 } from "./invite.ts";
 export { inviteCode, INVITE_CODE_ALPHABET, INVITE_CODE_LENGTH } from "./inviteCode.ts";
 export { MemoryInviteStore } from "./inviteStore.ts";
+export { SupabaseInviteStore } from "./supabaseInviteStore.ts";
 export type { AcceptResult, Invite, InviteStore, SaveResult, SideMode, StoredInvite } from "./inviteStore.ts";

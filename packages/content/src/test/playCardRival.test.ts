@@ -2,7 +2,7 @@
 // and for a discard. Made-up cards only: no real card is played here.
 import type { CardDef } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
-import { playTestCard } from "./playCard.ts";
+import { playCardDef } from "./playCard.ts";
 
 const saysWhoPlayed = (rival: "lio" | "sae"): CardDef["effect"][number] => ({
   op: "if",
@@ -25,12 +25,12 @@ const SMALL: CardDef = { id: "test-small", era: "era-1", ops: 1, affiliation: "s
 
 describe("playCard: who plays the card under test", () => {
   it("by default, its own side plays it for its event", () => {
-    expect(playTestCard(SMALL)).toEqual(["points:lio:2", "byOwner", "points:lio:2", "points:sae:2"]);
+    expect(playCardDef(SMALL)).toEqual(["points:lio:2", "byOwner", "points:lio:2", "points:sae:2"]);
   });
 
   it("rival points: the rival plays it for its points, its event happens, and the story starts there", () => {
     // LIO plays SAE's ops 1 card: the event first, then LIO's points; then the fillers' plays.
-    expect(playTestCard(SMALL, { rival: "points" })).toEqual([
+    expect(playCardDef(SMALL, { rival: "points" })).toEqual([
       "byRival",
       "points:lio:1",
       "points:sae:2",
@@ -41,7 +41,7 @@ describe("playCard: who plays the card under test", () => {
 
   it("rival opening: the rival picks it as its opening card, its event happens, and the story starts there", () => {
     // LIO picks SAE's card as its opening card: its event runs once both picks are in, then the four plays.
-    expect(playTestCard(SMALL, { rival: "opening" })).toEqual([
+    expect(playCardDef(SMALL, { rival: "opening" })).toEqual([
       "byRival",
       "points:lio:2",
       "points:sae:2",
@@ -51,9 +51,18 @@ describe("playCard: who plays the card under test", () => {
   });
 });
 
+describe("playCard: the rival's use together with earlier cards", () => {
+  it("rival points and rival opening still tell the last turn's story after a `before` card", () => {
+    // e1-neu-006's modifier ends with its own turn, so the last turn's story is the same as with no earlier card.
+    for (const rival of ["points", "opening"] as const) {
+      expect(playCardDef(SMALL, { rival, before: ["e1-neu-006"] })).toEqual(playCardDef(SMALL, { rival }));
+    }
+  });
+});
+
 describe("playCard: story lines for a shown hand and a discard", () => {
   it("reveal:<side> and discard:<side>:<count>, for each way the card is played", () => {
-    expect(playTestCard(SPY)).toEqual([
+    expect(playCardDef(SPY)).toEqual([
       "byOwner",
       "reveal:sae",
       "discard:sae:1",
@@ -61,7 +70,7 @@ describe("playCard: story lines for a shown hand and a discard", () => {
       "points:lio:2",
       "points:sae:2",
     ]);
-    expect(playTestCard(SPY, { rival: "points" })).toEqual([
+    expect(playCardDef(SPY, { rival: "points" })).toEqual([
       "byRival",
       "reveal:sae",
       "discard:sae:1",
@@ -69,7 +78,7 @@ describe("playCard: story lines for a shown hand and a discard", () => {
       "points:lio:2",
       "points:sae:2",
     ]);
-    expect(playTestCard(SPY, { rival: "opening" })).toEqual([
+    expect(playCardDef(SPY, { rival: "opening" })).toEqual([
       "byRival",
       "reveal:sae",
       "discard:sae:1",
@@ -82,7 +91,7 @@ describe("playCard: story lines for a shown hand and a discard", () => {
 
   it("no story line names a card from a hand", () => {
     for (const rival of [undefined, "points", "opening"] as const) {
-      const lines = playTestCard(SPY, rival === undefined ? {} : { rival }).join(" ");
+      const lines = playCardDef(SPY, rival === undefined ? {} : { rival }).join(" ");
       expect(lines).not.toMatch(/fill-|test-|deck-/);
     }
   });

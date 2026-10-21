@@ -10,7 +10,7 @@ starting deck: the turn 1 refill deals both hands from it, so it must hold at le
 
 - **Event:** Twelve states found the European Union and promise a single currency.
 - **Design:** LIO 1 and +1 Ops this turn; a lasting "union" tag that Euro Cash and Big Bang build on (W1, W3).
-- **Playable:** `marker "union founded"; spend lio 1; mod lio +1 (turn)`
+- **Playable:** `marker "union founded" lasting; spend lio 1; mod lio +1 (turn)`
 - **History:** The Treaty on European Union was signed at Maastricht on 7 February 1992 and entered into force on 1 November 1993, creating the European Union and the path to a single currency.
 - **Theme:** alliances · **Notion:** update `3fceb012942f811086dde641d138fee3`
 
@@ -18,16 +18,16 @@ starting deck: the turn 1 refill deals both hands from it, so it must hold at le
 
 - **Event:** Ukraine gives up the world's third-largest nuclear arsenal for security assurances.
 - **Design:** LIO 2; SAE chooses to honour the assurances (SAE 1, a "promise kept" tag) or treat them as paper (LIO 1 more now; a "hollow assurance" tag Crimea would cash in, W3).
-- **Playable:** `marker "assurances given"; spend lio 2; ask sae "Honour the assurances?" -> v; if yes v { marker "promise kept"; spend sae 1 } else { marker "hollow assurance"; spend lio 1 }`
+- **Playable:** `marker "assurances given"; spend lio 2; ask sae "Honour the assurances?" -> v; if yes v { marker "promise kept"; spend sae 1 } else { marker "hollow assurance" lasting; spend lio 1 }`
 - **History:** On 5 December 1994 Ukraine, Kazakhstan and Belarus received security assurances from the United States, the United Kingdom and Russia in the Budapest Memorandum, in return for giving up Soviet nuclear weapons left on their territory. US Nunn-Lugar funding paid for much of the dismantling.
 - **Theme:** alliances, arms · **Notion:** update `3fceb012942f817a8e02cd42a2327bba`
 
 ### e1-lio-004 · NATO Enlargement 1999 · LIO · Ops 3 · Split/Gamble (SAE)
 
 - **Event:** Poland, Hungary and the Czech Republic join the alliance.
-- **Design:** LIO 2; SAE may protest loudly: usually it only confirms the newcomers' choice (SAE pays 2 to LIO's draw) but sometimes it rattles the alliance (LIO loses tempo). A lasting "enlargement" tag (W1).
-- **Playable:** `marker "enlargement"; spend lio 2; ask sae "Protest the enlargement?" -> v; if yes v { draw lio -> d; if d <= 3 { spend sae 2 } else { spend lio 1 } } else { spend lio 1 }`
-  (SAE's "yes" is a gamble: on a low draw SAE scores 2, on a high draw LIO scores 1 more.)
+- **Design:** LIO 2; SAE may protest loudly: usually it only confirms the newcomers' choice (a gamble on SAE's own draw) but sometimes it rattles the alliance (LIO loses tempo). A lasting "enlargement" tag (W1).
+- **Playable:** `marker "enlargement"; spend lio 2; ask sae "Protest the enlargement?" -> v; if yes v { draw sae -> d; if d >= 4 { spend sae 2 } else { spend lio 1 } } else { spend lio 1 }`
+  (SAE's "yes" is a gamble on SAE's own deck: on a high draw SAE scores 2, on a low draw LIO scores 1 more.)
 - **History:** Poland, Hungary and the Czech Republic became NATO members on 12 March 1999 at a ceremony in Independence, Missouri, the first enlargement since the Cold War.
 - **Theme:** alliances · **Notion:** update `3fceb012942f81528f67f03656d2a2e8` (was "Visegrád NATO Enlargement"; Slovakia joined only in 2004)
 
@@ -77,7 +77,7 @@ starting deck: the turn 1 refill deals both hands from it, so it must hold at le
 
 - **Event:** Eighteen US soldiers die in one night and the appetite for intervention dies with them.
 - **Design:** SAE 1 now and 1 at turn end; an "intervention fatigue" tag that the Rwanda card would read (W3).
-- **Playable:** `marker "intervention fatigue"; spend sae 1; on turnEnd { spend sae 1 }`
+- **Playable:** `marker "intervention fatigue" lasting; spend sae 1; on turnEnd { spend sae 1 }`
 - **History:** On 3-4 October 1993 a US raid in Mogadishu, Somalia turned into a day-long battle in which 18 US soldiers were killed; US forces withdrew from Somalia by March 1994.
 - **Theme:** proxy wars · **Notion:** update `3fceb012942f812a8826d4661acad5d6` (was "Black Hawk Down", a film title)
 
@@ -85,7 +85,7 @@ starting deck: the turn 1 refill deals both hands from it, so it must hold at le
 
 - **Event:** The Union flag comes down over a territory promised fifty years of autonomy.
 - **Design:** SAE 3; a "promise made" tag that the 2020 security law card closes (W1, W3). Hot: 4 Ops tempts LIO holders.
-- **Playable:** `marker "one country, two systems"; spend sae 3; once-only`
+- **Playable:** `marker "one country, two systems" lasting; spend sae 3; once-only`
 - **History:** Britain returned Hong Kong to China on 1 July 1997; under the 1990 Basic Law the territory was promised a high degree of autonomy for fifty years, to 2047.
 - **Theme:** alliances, gray-zone · **Notion:** update `3fceb012942f8143974df5a9772fb204`
 
@@ -156,8 +156,8 @@ starting deck: the turn 1 refill deals both hands from it, so it must hold at le
 ### e1-sae-011 · Pristina Airport Dash · SAE · Ops 1 · Split/Gamble (LIO)
 
 - **Event:** Russian paratroopers seize Kosovo's airport hours before NATO arrives.
-- **Design:** SAE 1; LIO may confront them: a gamble between a backdown (SAE 2) and a face-off that LIO wins (LIO 2); or let it pass.
-- **Playable:** `marker "airport seized"; spend sae 1; ask lio "Confront them?" -> v; if yes v { draw sae -> d; if d >= 4 { spend sae 2 } else { spend lio 2 } } else { marker "stand-off avoided" }`
+- **Design:** SAE 1; LIO may confront them: a gamble on LIO's own draw between a backdown (SAE 2) and a face-off that LIO wins (LIO 2, on a high draw); or let it pass.
+- **Playable:** `marker "airport seized"; spend sae 1; ask lio "Confront them?" -> v; if yes v { draw lio -> d; if d >= 4 { spend lio 2 } else { spend sae 2 } } else { marker "stand-off avoided" }`
 - **History:** On 12 June 1999 around 200 Russian paratroopers drove from Bosnia to occupy Pristina airport in Kosovo ahead of NATO forces; NATO's commander refused an order to block them and the stand-off was resolved by negotiation.
 - **Theme:** gray-zone · **Notion:** create
 
@@ -185,24 +185,24 @@ question 1), so they use choices instead. Redesigns that use draws are a follow-
 ### e1-neu-001 · Rwandan Genocide · neutral · Ops 2 · Swing (both)
 
 - **Event:** Radio calls for murder for a hundred days and the world looks away.
-- **Design:** Both sides -1 Ops this turn: nobody comes out of this with credit. Would read the "intervention fatigue" tag (W3).
-- **Playable:** `marker "the world looks away"; mod both -1 min 1 (turn)`
+- **Design:** Both sides -1 Ops this turn: nobody comes out of this with credit. Reads the "intervention fatigue" tag (W3): if it is recorded, LIO -2 Ops and SAE -1 Ops this turn instead, so the fatigue lands on the side that stayed out (owner, 21 Oct).
+- **Playable:** `marker "the world looks away"; if has "intervention fatigue" { mod lio -2 min 1 (turn); mod sae -1 min 1 (turn) } else { mod both -1 min 1 (turn) }`
 - **History:** Between April and July 1994 an estimated 500,000 to 800,000 people, mostly Tutsi, were killed in Rwanda; the radio station RTLM, broadcasting from July 1993, incited the killings.
 - **Theme:** information, proxy wars · **Notion:** update `3fceb012942f814cbb1af8b0cbd59a9e` (RTLM row folded in)
 
 ### e1-neu-002 · Asian Financial Crisis · neutral · Ops 3 · Split (both)
 
 - **Event:** The Thai baht falls and the "miracle" economies follow.
-- **Design:** Each side chooses whether to bail out its partners: a bailout scores 2 but costs 1 Ops this turn; standing aside scores nothing. Contagion means a side that stands aside while the other pays loses 1 at turn end.
-- **Playable:** `marker "contagion"; ask both "Bail out your partners?" -> v; if yes v[lio] { spend lio 2; mod lio -1 min 1 (turn) } else { on turnEnd { spend sae 1 } }; if yes v[sae] { spend sae 2; mod sae -1 min 1 (turn) } else { on turnEnd { spend lio 1 } }`
+- **Design:** Each side chooses whether to bail out its partners: a bailout scores 2 but costs 1 Ops this turn; standing aside scores nothing. Then one draw from the deck of the side that played the card (owner, 21 Oct, R9 option B). On 3 or more, contagion spreads: each side that stood aside gives the rival 1 at turn end. Otherwise it is contained: no turn-end points.
+- **Playable:** `marker "contagion"; ask both "Bail out your partners?" -> v; draw player -> d; if yes v[lio] { spend lio 2; mod lio -1 min 1 (turn) } else { if d >= 3 { on turnEnd { spend sae 1 } } }; if yes v[sae] { spend sae 2; mod sae -1 min 1 (turn) } else { if d >= 3 { on turnEnd { spend lio 1 } } }`
 - **History:** Thailand floated the baht on 2 July 1997 and the crisis spread to Indonesia, South Korea and beyond; IMF-led rescue packages for the three countries together exceeded $100 billion.
 - **Theme:** finance · **Notion:** update `3fceb012942f81b481a1cfad9e3915ae`
 
 ### e1-neu-003 · Ruble Default · neutral · Ops 2 · Split (SAE)
 
 - **Event:** Russia defaults on its own debt and a Wall Street fund nearly takes the system down.
-- **Design:** SAE decides: default (SAE 2 but -1 Ops this turn, the state resets) or keep paying (LIO 1 as the lenders are made whole).
-- **Playable:** `marker "default"; ask sae "Default?" -> v; if yes v { spend sae 2; mod sae -1 min 1 (turn) } else { spend lio 1 }`
+- **Design:** SAE decides: default or keep paying (LIO 1 as the lenders are made whole). A default draws from the deck of the side that played the card (owner, 21 Oct, R9 option B): on 3 or more, SAE 2 but -1 Ops this turn, the state resets; otherwise the reset fails: SAE -1 Ops only.
+- **Playable:** `marker "default"; ask sae "Default?" -> v; if yes v { draw player -> d; if d >= 3 { spend sae 2; mod sae -1 min 1 (turn) } else { mod sae -1 min 1 (turn) } } else { spend lio 1 }`
 - **History:** On 17 August 1998 Russia devalued the ruble and defaulted on its domestic debt; the shock led to the $3.6 billion rescue of the hedge fund Long-Term Capital Management in September 1998.
 - **Theme:** finance · **Notion:** update `3fceb012942f81788030deb4c013ea60`
 
@@ -233,8 +233,8 @@ question 1), so they use choices instead. Redesigns that use draws are a follow-
 ### e1-neu-008 · Kyoto Protocol · neutral · Ops 2 · Split (both)
 
 - **Event:** Rich countries promise to cut emissions; the biggest one never ratifies.
-- **Design:** Each side: commit (that side 1, but -1 Ops this turn as the costs bite) or stay out (nothing).
-- **Playable:** `marker "targets set"; ask both "Commit to the targets?" -> v; if yes v[lio] { spend lio 1; mod lio -1 min 1 (turn) }; if yes v[sae] { spend sae 1; mod sae -1 min 1 (turn) }`
+- **Design:** Each side: commit or stay out (nothing). Then one draw from the deck of the side that played the card (owner, 21 Oct, R9 option B). On 3 or more, the commitments hold: each side that committed scores 1, but -1 Ops this turn as the costs bite. Otherwise ratification stalls: each side that committed takes -1 Ops but scores nothing.
+- **Playable:** `marker "targets set"; ask both "Commit to the targets?" -> v; draw player -> d; if yes v[lio] { if d >= 3 { spend lio 1 }; mod lio -1 min 1 (turn) }; if yes v[sae] { if d >= 3 { spend sae 1 }; mod sae -1 min 1 (turn) }`
 - **History:** The Kyoto Protocol was adopted on 11 December 1997 and entered into force on 16 February 2005; the United States signed it in 1998 but never ratified it.
 - **Theme:** climate · **Notion:** create
 
