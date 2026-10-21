@@ -1,16 +1,16 @@
 // Easy on cards with lasting markers and `has` conditions (R4, issue #171).
-import { legalAnswers, reconstruct, SIDES, viewFor } from "@terminal-dusk/engine";
-import type { Answer, GameEvent } from "@terminal-dusk/engine";
+import { reconstruct, SIDES, viewFor } from "@terminal-dusk/engine";
+import type { GameEvent } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { easyAnswer } from "./easy.ts";
 import { guessHidden } from "./guess.ts";
 import { seededRandom } from "./random.ts";
-import { applyMarkerAnswer, MARKER_LABELS, markerRuleset, newMarkerGame } from "./test/markerGames.ts";
+import { MARKER_LABELS, markerRuleset, newMarkerGame } from "./test/markerGames.ts";
+import { playEasy } from "./test/playEasy.ts";
 import type { TestState } from "./test/testGames.ts";
 import { EASY_WEIGHTS } from "./weights/easy.ts";
 
 const GAMES = 50;
-const MOST_ANSWERS = 500;
 
 type Played = {
   /** Every game's last state. */
@@ -26,30 +26,21 @@ type Played = {
 /** Whether `state` waits on a yes/no; in markerRuleset only the `then` branch of an `if has` asks one. */
 const pausedOnYesNo = (state: TestState): boolean => state.public.pending.some((d) => d.kind === "yesNo");
 
-/** Plays one game with Easy on both sides, checking every answer is legal for the real state. */
-function playEasy(seed: number, into: Played): void {
-  const random = seededRandom(seed);
-  let state = newMarkerGame(seed);
+/** Plays one game with Easy on both sides (playEasy checks every answer), recording what the tests need. */
+function playMarkerGame(seed: number, into: Played): void {
   const setIn = new Map<string, number>();
-  for (let n = 0; state.public.status.kind === "active"; n++) {
-    if (n > MOST_ANSWERS) throw new Error(`game ${seed} did not end`);
-    const waiting = SIDES.filter((side) => state.public.pending.some((d) => d.side === side));
-    const side = waiting[Math.floor(random() * waiting.length)]!;
-    const value = easyAnswer(markerRuleset, viewFor(state, side), side, EASY_WEIGHTS, random);
-    expect(value).not.toBeNull();
-    expect(legalAnswers(markerRuleset, state, side)).toContainEqual(value);
-    const decision = state.public.pending.find((d) => d.side === side)!;
-    const turn = state.public.turn;
-    const applied = applyMarkerAnswer(state, { decisionId: decision.id, side, value: value! } satisfies Answer);
-    state = applied.state;
-    into.events.push(...applied.events);
-    for (const label of state.public.markers) if (!setIn.has(label)) setIn.set(label, turn);
-    if (state.public.markers.length === 0) continue;
-    into.marked.push(state);
-    const latest = Math.max(...state.public.markers.map((label) => setIn.get(label)!));
-    if (pausedOnYesNo(state) && state.public.turn > latest) into.pausedLater.push(state);
-  }
-  into.finals.push(state);
+  const final = playEasy(markerRuleset, newMarkerGame(seed), EASY_WEIGHTS, seededRandom(seed), {
+    name: `game ${seed}`,
+    applied: (before, state, events) => {
+      into.events.push(...events);
+      for (const label of state.public.markers) if (!setIn.has(label)) setIn.set(label, before.public.turn);
+      if (state.public.markers.length === 0) return;
+      into.marked.push(state);
+      const latest = Math.max(...state.public.markers.map((label) => setIn.get(label)!));
+      if (pausedOnYesNo(state) && state.public.turn > latest) into.pausedLater.push(state);
+    },
+  });
+  into.finals.push(final);
 }
 
 let cached: Played | null = null;
@@ -57,7 +48,7 @@ let cached: Played | null = null;
 function played(): Played {
   if (cached !== null) return cached;
   const into: Played = { finals: [], events: [], marked: [], pausedLater: [] };
-  for (let seed = 1; seed <= GAMES; seed++) playEasy(seed, into);
+  for (let seed = 1; seed <= GAMES; seed++) playMarkerGame(seed, into);
   cached = into;
   return into;
 }

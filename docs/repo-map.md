@@ -30,8 +30,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/ai/src/player.test.ts`
 - `packages/ai/src/player.ts` - A ready-made Easy player and the plain-data protocol a worker uses to run it (Decision 8). Exports: createEasyPlayer, AiRequest, AiResponse, createAiWorkerHandler.
 - `packages/ai/src/random.ts` - The AI's own noise, kept apart from the game's randomness (which stays in the engine's PRNG). Exports: seededRandom.
-- `packages/ai/src/test/markerGames.ts` - Test helpers for lasting markers and `has` conditions (R4): a small ruleset whose cards set two lasting labels, and cards whose yes/no question exists only whi… Exports: MARKER_LABELS, markerRuleset, newMarkerGame, applyMarkerAnswer.
-- `packages/ai/src/test/testGames.ts` - Test helpers: a small ruleset and seeded games, so the AI tests can make real views with the engine. Exports: TestState, ruleset, newGame, applyAnswer.
+- `packages/ai/src/test/markerGames.ts` - Test helpers for lasting markers and `has` conditions (R4): a small ruleset whose cards set two lasting labels, and cards whose yes/no question exists only whi… Exports: MARKER_LABELS, markerRuleset, newMarkerGame.
+- `packages/ai/src/test/playEasy.ts` - Test helper: plays a whole game with Easy on both sides, checking every answer against the real state. Exports: EasyOptions, playEasy.
+- `packages/ai/src/test/testGames.ts` - Test helpers: a small ruleset and seeded games, so the AI tests can make real views with the engine. Exports: TestState, ninetyCards, ruleset, dealGame, newGame, applyTo, applyAnswer.
 - `packages/ai/src/types.ts` - Shared types of the AI package. Exports: Weights.
 - `packages/ai/src/weights/easy.ts` - The Easy tier's weights, as plain data (docs/architecture.md, Decision 8). Exports: EASY_WEIGHTS.
 - `packages/ai/tsconfig.json`
