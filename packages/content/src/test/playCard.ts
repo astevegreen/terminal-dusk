@@ -57,11 +57,15 @@ export function story(events: readonly GameEvent[]): string[] {
   });
 }
 
-/** Plays first-deck card `id` (Era 1, 2, 3 or future) (the real file) in a one-turn game and returns the story from the moment the card is played. */
-export function playCard(id: CardId, options: PlayOptions = {}): string[] {
+/**
+ * Starts the one-turn game that plays first-deck card `id` (the real file): each side holds its four fillers, and
+ * `holder` (default: the card's owner; else its rival) also holds the card. Returns the ruleset, the opening
+ * state, and the card's owner (LIO for a neutral card).
+ */
+export function startCardGame(id: CardId, options: PlayOptions = {}, holder: "owner" | "rival" = "owner") {
   const card = FIRST_DECK_CARDS.find((c) => c.id === id);
   if (!card) throw new Error(`no first-deck card ${id}`);
-  return playCardDef(cardDef(card), options);
+  return startCardGameDef(cardDef(card), options, holder);
 }
 
 /** Each deck's cards in the setup, and (for `draws`) the order they are stacked in once the game is made. */
@@ -75,13 +79,14 @@ function decksFor(options: PlayOptions): { cards: number[]; order?: number[] } {
   return { cards: draw === undefined ? [1, 2, 3, 4, 5, 6] : [draw, draw, draw] };
 }
 
-/** Plays card `def` as playCard does. Exported for the helper's own tests, which need made-up cards. */
-export function playCardDef(def: CardDef, options: PlayOptions = {}): string[] {
+/** Starts the game of startCardGame for card `def`, which need not be a real card file. */
+function startCardGameDef(def: CardDef, options: PlayOptions, holder: "owner" | "rival") {
   const id = def.id;
   if (options.playedBy !== undefined && def.affiliation !== "neutral") {
     throw new Error(`playedBy is only for neutral cards; ${id} is ${def.affiliation}'s`);
   }
   const owner: Side = def.affiliation === "neutral" ? (options.playedBy ?? "lio") : def.affiliation;
+  const holds: Side = holder === "owner" ? owner : owner === "lio" ? "sae" : "lio";
   const ruleset: Ruleset = {
     id: "card-test",
     cards: [
@@ -94,8 +99,8 @@ export function playCardDef(def: CardDef, options: PlayOptions = {}): string[] {
   const decks = decksFor(options);
   const deckOf = decks.cards;
   const hands = {
-    lio: [...FILLERS.lio.map((c) => c.id), ...(owner === "lio" ? [id] : [])],
-    sae: [...FILLERS.sae.map((c) => c.id), ...(owner === "sae" ? [id] : [])],
+    lio: [...FILLERS.lio.map((c) => c.id), ...(holds === "lio" ? [id] : [])],
+    sae: [...FILLERS.sae.map((c) => c.id), ...(holds === "sae" ? [id] : [])],
   };
   const made = createGame(
     ruleset,
@@ -118,6 +123,22 @@ export function playCardDef(def: CardDef, options: PlayOptions = {}): string[] {
     const contingency = { lio: [...order], sae: [...order], world: [...order] };
     state = { ...state, secret: { ...state.secret, contingency } };
   }
+  return { ruleset, state, owner };
+}
+
+/** Plays first-deck card `id` (Era 1, 2, 3 or future) (the real file) in a one-turn game and returns the story from the moment the card is played. */
+export function playCard(id: CardId, options: PlayOptions = {}): string[] {
+  const card = FIRST_DECK_CARDS.find((c) => c.id === id);
+  if (!card) throw new Error(`no first-deck card ${id}`);
+  return playCardDef(cardDef(card), options);
+}
+
+/** Plays card `def` as playCard does. Exported for the helper's own tests, which need made-up cards. */
+export function playCardDef(def: CardDef, options: PlayOptions = {}): string[] {
+  const id = def.id;
+  const game = startCardGameDef(def, options, "owner");
+  const { ruleset, owner } = game;
+  let state = game.state;
   const events: GameEvent[] = [];
   const step = (answer: Answer) => {
     const r = apply(ruleset, state, answer);

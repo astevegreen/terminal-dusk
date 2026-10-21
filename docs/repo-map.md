@@ -305,12 +305,14 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/src/futureFiles.ts` - The optional future cards (2025 to 2027), one JSON file each in cards/future/. Exports: FUTURE_CARDS.
 - `packages/content/src/index.test.ts`
 - `packages/content/src/index.ts` - Public entry point of the content package: the bundle of cards, map, scenarios and tutorial. Exports: DEFAULT_CONTINGENCY, scenarioSetup, ScenarioSetup.
+- `packages/content/src/onceOnly.test.ts` - The five Ops 4 cards are once-only events (deck-plan.md, wish W6; #204): flagged removeAfterEvent, with the template sentence closing their rules text.
 - `packages/content/src/scenario.test.ts`
 - `packages/content/src/scenario.ts` - Turns a scenario file into the parts of the engine's Setup it decides. Exports: DEFAULT_CONTINGENCY, ScenarioSetup, scenarioSetup.
+- `packages/content/src/test/cardEnds.ts` - Test helper: where a real card ends up once a one-turn game is over, by the way it was used. Exports: CardUse, placeOf, whereCardEnds, describeOnceOnly.
 - `packages/content/src/test/describeCard.ts` - Test helper for the card test files: each file lists its card's cases as data, and this turns every case into one test that plays the real card (playCard) and… Exports: CardCase, storyLines, bothSidesAsked, describeCard.
 - `packages/content/src/test/eraChecks.ts` - Test helpers shared by the era tests (era1.test.ts, era2.test.ts, era3.test.ts): the checks every era makes of its own cards, and the TEST-scenario game with t… Exports: byText, byNumber, REMOVED_CARDS, ADDED_CARDS, eraDeckChecks, opsSpread, startEraOneGame.
 - `packages/content/src/test/playCard.test.ts` - The card test helper's own options: which side plays a neutral card, and the numbers drawn in order.
-- `packages/content/src/test/playCard.ts` - Test helper: plays one real card through the real engine and tells what happened, in a short story. Exports: PlayOptions, story, playCard, playCardDef.
+- `packages/content/src/test/playCard.ts` - Test helper: plays one real card through the real engine and tells what happened, in a short story. Exports: PlayOptions, story, startCardGame, playCard, playCardDef.
 - `packages/content/tsconfig.json`
 
 ## packages/engine - Pure rules engine: game state, decisions, events and views. Imports nothing outside itself.
@@ -476,7 +478,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## tests
 
 - `tests/README.md` - Cross-package test suites
-- `tests/fuzz/cards.ts` - TEST-ONLY FIXTURES, never game content: the fuzz suite's cards, c1 to c85, and the sizes of a random game their number is worked out from. Exports: MAX_TURNS, MAX_PLAYS, MAX_EXTRA, MAX_PILE, MAX_ERA_CARDS, FUZZ_CARDS, baseEffectOf, ruleset.
+- `tests/fuzz/cards.ts` - TEST-ONLY FIXTURES, never game content: the fuzz suite's cards, c1 to c85, and the sizes of a random game their number is worked out from. Exports: MAX_TURNS, MAX_PLAYS, MAX_EXTRA, MAX_PILE, MAX_ERA_CARDS, FUZZ_CARDS, baseEffectOf, removesAfterEvent, ruleset.
 - `tests/fuzz/checks.ts` - The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite"). Exports: checkHasBranches, checkMarkers, checkKnowledge, knowledgeOf, VIEWERS, Secrets, attempt, History, NEW_GAME, checkStep, checkLive, checkModifiers, ….
 - `tests/fuzz/contingency.test.ts` - Tests for the fuzz harness's Contingency deck checks (#64): the deck invariant and the structural leak check each catch a hand-corrupted state, and the random…
 - `tests/fuzz/deepFreeze.ts` - Freezes a value and everything inside it, so an engine call that changes its input throws. Exports: deepFreeze.
@@ -506,6 +508,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/reactions.test.ts` - Fuzz games on the test-only reaction cards (reactions.ts): triggers and modifiers that ask questions, make more modifiers and triggers, and draw contingencies…
 - `tests/fuzz/reactions.ts` - TEST-ONLY FIXTURES, never game content: a second fuzz ruleset whose cards make triggers (#90) and modifiers (#89) that ask questions, make more modifiers and t… Exports: reactionModifierCards, reactionsRuleset, playReactionGame.
 - `tests/fuzz/refill.test.ts` - The random fuzz games really refill hands (docs/design/core-loop.md, "Refilling hands"), so the card checks in checks.ts run on drawn cards and on a draw pile…
+- `tests/fuzz/removed.test.ts` - The fuzz suite and R8a's once-only cards (#205): some fuzz cards are flagged removeAfterEvent, the card count includes the removed pile, the removed pile and t…
+- `tests/fuzz/removed.ts` - TEST-ONLY FIXTURES: the fuzz cards flagged removeAfterEvent (R8a; #205), how a random setup keeps enough cards that stay in the game, and how the tests sort ea… Exports: flaggedIn, LEAVING, FirstEra, refillFits, withStayingCards, handSizeFor, Use, noteUse, Left, flaggedLeft.
+- `tests/fuzz/removedChecks.ts` - The fuzz checks of the removed pile (R8a; #205) and of the turn-start refill, each comparing the state after a step with the state before it. Exports: checkRemoved, checkRefilled.
 - `tests/fuzz/reveals.test.ts` - The fuzz suite and the revealHand step of R6a (#185): the fuzz cards show hands at the top level, inside an if and in both kinds of reaction, and the fuzz game…
 - `tests/fuzz/reveals.ts` - TEST-ONLY FIXTURES, never game content: the `revealHand` steps (R6a) the fuzz cards run. Exports: REVEAL, RevealWhere, revealStep, revealOf, revealTriggerOf, announcedReveal.
 - `tests/golden/__snapshots__/refill.test.ts.snap`

@@ -30,8 +30,11 @@
   ],
   "text": {
     "name": "Big Bang Enlargement 2004",
-    "rules": "Record \"eastward\". LIO spends 3 points. At the end of this turn, LIO spends 1 point.",
+    "rules": "Record \"eastward\". LIO spends 3 points. At the end of this turn, LIO spends 1 point. If this card's event happens, remove it from the game afterwards.",
     "history": "Seven countries, including the three Baltic states, joined NATO on 29 March 2004, and ten countries joined the European Union on 1 May 2004.",
     "art": "art/e2-lio-007"
+  },
+  "flags": {
+    "removeAfterEvent": true
   }
 }
