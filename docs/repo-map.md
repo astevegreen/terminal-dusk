@@ -316,7 +316,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/cardChecks.test.ts` - createGame's card checks: the ruleset's cards are well formed, and a setup uses only known cards, each once.
 - `packages/engine/src/cardChecks.ts` - Card checks for createGame: the ruleset's cards are well formed, and a setup uses only known cards, each once. Exports: rulesetError, setupCardsError, handSizeError.
 - `packages/engine/src/cardPlayer.test.ts` - Who picked or played a card (#117; docs/design/contingency-deck.md, "Whose deck"): the engine records it for every card's event, opening picks included, so a n…
-- `packages/engine/src/conditions.ts` - An `if` step's condition (stack.ts): a yes/no answer, a number test, or `has` a lasting marker. Exports: unbound, notANumber, testCondition.
+- `packages/engine/src/conditions.ts` - An `if` step's condition (stack.ts): a yes/no answer, a number test, `has` a lasting marker, or `playedBy` the side that picked or played the card. Exports: unbound, notANumber, testCondition.
 - `packages/engine/src/contingency.test.ts` - Contingency decks in the game state (#64, #131): the setup's checks, the shuffle, and who sees what.
 - `packages/engine/src/contingency.ts` - Contingency decks (docs/design/contingency-deck.md): each side's numbered cards and the shared World deck, drawn instead of rolling a die. Exports: contingencyError, shuffleContingency, deckFor, drawContingency.
 - `packages/engine/src/contingencyDraw.test.ts` - Drawing a contingency (#65, #130): the top card of a side's deck is the result, and a draw that leaves two cards shuffles the whole deck back together, straigh…
@@ -344,6 +344,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/omniscient.test.ts` - The omniscient viewer: everything except the secret compartment, for replays of finished games.
 - `packages/engine/src/play.property.test.ts` - Property test: in random games with rival and neutral plays, neutral cards drawing from the player's deck included, every card is always in exactly one place,…
 - `packages/engine/src/play.test.ts` - Playing a card for its event or its points, and the rival-card rules (#36).
+- `packages/engine/src/playedBy.property.test.ts` - Property test (#169): in random games where LIO, SAE and neutral cards hold `if playedBy` steps (some nested, some in a trigger's reaction, some after a choice…
+- `packages/engine/src/playedBy.test.ts` - The playedBy condition (#169): an if is true exactly when the side that picked or played the card, as recorded on the running program (#117), is the side it na…
 - `packages/engine/src/refill.property.test.ts` - Property test for refilling hands (docs/design/core-loop.md, "Refilling hands"): in random games of random sizes, with an era entering on turn 2 and the draw p…
 - `packages/engine/src/refill.test.ts` - Refilling hands (docs/design/core-loop.md, "Refilling hands"): at each turn's start both sides draw up to the hand size from one shared draw pile, after a new…
 - `packages/engine/src/refill.ts` - Refilling hands (docs/design/core-loop.md, "Refilling hands"). Exports: refillHands.
@@ -436,7 +438,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 - `tests/README.md` - Cross-package test suites
 - `tests/fuzz/cards.ts` - TEST-ONLY FIXTURES, never game content: the fuzz suite's cards, c1 to c85, and the sizes of a random game their number is worked out from. Exports: MAX_TURNS, MAX_PLAYS, MAX_EXTRA, MAX_PILE, MAX_ERA_CARDS, FUZZ_CARDS, baseEffectOf, ruleset.
-- `tests/fuzz/checks.ts` - The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite"). Exports: VIEWERS, Secrets, attempt, checkStep, checkLive, checkModifiers, checkTriggers, enteredCards, checkCards, isSubMultiset, checkContingency, contingencyLeaksIn, ….
+- `tests/fuzz/checks.ts` - The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite"). Exports: checkHasBranches, checkMarkers, VIEWERS, Secrets, attempt, History, NEW_GAME, checkStep, checkLive, checkModifiers, checkTriggers, enteredCards, ….
 - `tests/fuzz/contingency.test.ts` - Tests for the fuzz harness's Contingency deck checks (#64): the deck invariant and the structural leak check each catch a hand-corrupted state, and the random…
 - `tests/fuzz/deepFreeze.ts` - Freezes a value and everything inside it, so an engine call that changes its input throws. Exports: deepFreeze.
 - `tests/fuzz/easy.test.ts` - The Easy AI inside the fuzz suite (#91): every third game has it on one side, with every invariant checked.
@@ -445,6 +447,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/fixedGames.ts` - Fixed games the fuzz suite replays, with every check, on every run. Exports: FIXED_GAMES.
 - `tests/fuzz/harness.test.ts` - Tests for the fuzz harness itself: each check catches what it should, so a green fuzz run means something.
 - `tests/fuzz/lasting.test.ts` - The fuzz suite and the lasting effects, modifiers (#89) and triggers (#90): the fuzz cards make them, and the checks catch what they should.
+- `tests/fuzz/markerChecks.ts` - The fuzz checks for lasting markers and `has` conditions (R4a): a lasting marker is never lost, moved or duplicated, and every `has` reads the game so far. Exports: checkMarkers, checkHasBranches.
+- `tests/fuzz/markers.test.ts` - The fuzz suite and the lasting markers and `has` conditions of R4a (#142): the fuzz cards set and test them, the games take both branches, and the checks catch…
+- `tests/fuzz/markers.ts` - TEST-ONLY FIXTURES, never game content: the lasting markers (R4a) the fuzz cards set, and the `has` conditions that test them. Exports: LASTING_LABELS, HAS_BRANCH, REACTION_BRANCH, Branch, lastingMarker, branchLabel, hasStep, branchOf, isLasting.
 - `tests/fuzz/neutral.test.ts` - Neutral events in the fuzz games (#117): neutral cards draw from the deck of the side that picked or played them, in their events and in the reactions they set…
 - `tests/fuzz/order.test.ts`
 - `tests/fuzz/order.ts` - Compare function for sorting strings in UTF-16 code-unit order: the same order as a sort with no compare function, written out so the order is explicit. Exports: byCodeUnit.

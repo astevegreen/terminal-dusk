@@ -12,6 +12,7 @@ import {
   checkVerify,
   hiddenFrom,
   leaksIn,
+  NEW_GAME,
 } from "./checks.ts";
 import { FIXED_GAMES } from "./fixedGames.ts";
 import { byCodeUnit } from "./order.ts";
@@ -248,7 +249,7 @@ describe("the seed fingerprint: every view shows the true hash of the seed", () 
   it("is part of the checks on every step of a played game", () => {
     const s = started();
     const forged = { ...s, meta: { ...s.meta, seedHash: seedHash("another-seed") } };
-    expect(() => checkStep(ruleset, harnessSetup, forged, [], SEED)).toThrow(/not the hash of the seed/);
+    expect(() => checkStep(ruleset, harnessSetup, forged, [], SEED, NEW_GAME)).toThrow(/not the hash of the seed/);
   });
 });
 

@@ -182,12 +182,14 @@ export type VarValue = boolean | BothAnswers | BothCards | string | number;
  * True when the yes/no variable `var` holds yes. For a variable holding both sides' answers, `side`
  * names whose answer to read; for one side's answer it is left out. `atLeast`, `atMost` and `equals`
  * test the number bound to `var` (a contingency draw) against the whole number `value`. `has` is true
- * when a lasting marker labelled `marker` has been set in this game, by any card (markers.ts).
+ * when a lasting marker labelled `marker` has been set in this game, by any card (markers.ts). `playedBy`
+ * is true when the running program's recorded `player` (Frame) is `side`; it reads no variable.
  */
 export type Condition =
   | { op: "yes"; var: VarName; side?: Side }
   | { op: "atLeast" | "atMost" | "equals"; var: VarName; value: number }
-  | { op: "has"; marker: string };
+  | { op: "has"; marker: string }
+  | { op: "playedBy"; side: Side };
 /**
  * One step of an effect program (docs/architecture.md, section 4). More kinds arrive with later tasks.
  * A card choice is only ever both sides at once: the turn's opening pick (turn.ts). Card effects may

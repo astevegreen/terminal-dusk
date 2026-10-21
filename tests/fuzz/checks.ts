@@ -26,7 +26,10 @@ import type {
   Viewer,
 } from "@terminal-dusk/engine";
 import { deepFreeze } from "./deepFreeze.ts";
+import { checkHasBranches, checkMarkers } from "./markerChecks.ts";
 import { byCodeUnit } from "./order.ts";
+
+export { checkHasBranches, checkMarkers } from "./markerChecks.ts";
 
 export const VIEWERS: readonly Viewer[] = ["lio", "sae", "spectator"];
 
@@ -43,8 +46,16 @@ export function attempt<T>(call: string, run: () => T): T {
 }
 
 /**
- * All the checks for one step: invariants 1, 3, 4 and 5, and the Contingency decks. `events` are the ones
- * that step produced.
+ * The game so far, for the lasting marker checks: the lasting markers before the step (null for the state
+ * createGame made) and every event of the game in order, the step's own included.
+ */
+export type History = { before: readonly string[] | null; allEvents: readonly GameEvent[] };
+/** The history of the state createGame made, with no events. */
+export const NEW_GAME: History = { before: null, allEvents: [] };
+
+/**
+ * All the checks for one step: invariants 1, 3, 4 and 5, the Contingency decks, and the lasting markers and
+ * `has` branches (markerChecks.ts). `events` are the ones that step produced.
  */
 export function checkStep(
   ruleset: Ruleset,
@@ -52,6 +63,7 @@ export function checkStep(
   state: GameState,
   events: readonly GameEvent[],
   seed: Seed,
+  history: History,
 ): void {
   checkLive(ruleset, state);
   checkModifiers(state);
@@ -61,6 +73,8 @@ export function checkStep(
   checkNoLeaks(state, events, seed);
   checkSeedHash(state, seed);
   checkRebuilds(state);
+  checkMarkers(state, events, history.before);
+  checkHasBranches(history.allEvents);
 }
 
 /** Invariant 1: while the game is active, some side has a pending decision with at least one legal answer. */

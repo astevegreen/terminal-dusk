@@ -221,7 +221,7 @@ function runMarker(state: GameState, frame: Frame, step: StepOf<"marker">, event
 /** Pushes the branch the condition picks, unless that branch is empty. */
 function runIf(state: GameState, frame: Frame, step: StepOf<"if">): StepOutcome {
   const stack = state.public.stack;
-  const yes = testCondition(state, step.cond, (name) => lookup(stack, name));
+  const yes = testCondition(state, step.cond, (name) => lookup(stack, name), programFrame(stack)?.player);
   if (typeof yes !== "boolean") return yes;
   frame.next += 1;
   const branch = yes ? step.then : (step.else ?? []);

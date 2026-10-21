@@ -198,16 +198,17 @@ export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed
   try {
     let { state, events } = started(rules, setup, seed);
     const allEvents = [...events];
-    checkStep(rules, setup, state, events, seed);
+    checkStep(rules, setup, state, events, seed, { before: null, allEvents });
     while (state.public.status.kind === "active") {
       if (record.answers.length >= MAX_ANSWERS) throw new Error(`the game is still going after ${MAX_ANSWERS} answers`);
       const answer = choose(state);
       if (answer === null) break;
       record.answers.push(deepFreeze(answer));
       notePlayer(players, answer);
+      const before = state.public.markers;
       ({ state, events } = answered(rules, state, answer));
       allEvents.push(...events);
-      checkStep(rules, setup, state, events, seed);
+      checkStep(rules, setup, state, events, seed, { before, allEvents });
       checkPlayerDraws(events, players);
     }
     checkReplay(rules, record, state);
