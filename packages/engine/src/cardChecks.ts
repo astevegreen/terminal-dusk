@@ -34,7 +34,7 @@ export function rulesetError(ruleset: Ruleset): EngineError | null {
 
 /**
  * Why a card's `has` can never be true, or null: it names a label that no card in the ruleset (itself
- * included, at any depth, triggers too) sets with a lasting marker.
+ * included, at any depth, triggers too) sets with a lasting marker. A trigger's has filter counts as a has.
  */
 function unsetMarkerError(cards: readonly CardDef[]): EngineError | null {
   const effects = cards.filter((card) => Array.isArray(card.effect));
@@ -55,7 +55,11 @@ function unsetMarkerError(cards: readonly CardDef[]): EngineError | null {
 /** Every step in `steps`, at any depth, each before the steps inside it. */
 const stepsIn = (steps: readonly Step[]): Step[] => steps.flatMap((step) => [step, ...stepsIn(innerSteps(step))]);
 const lastingLabel = (step: Step): string[] => (step.op === "marker" && step.lasting === true ? [step.label] : []);
-const hasLabel = (step: Step): string[] => (step.op === "if" && step.cond.op === "has" ? [step.cond.marker] : []);
+/** The label a step tests with `has`: an if's condition, or a trigger's filter. */
+const hasLabel = (step: Step): string[] => {
+  if (step.op === "if" && step.cond.op === "has") return [step.cond.marker];
+  return step.op === "trigger" && step.filter?.op === "has" ? [step.filter.marker] : [];
+};
 
 const SIDE_NAMES = { lio: "LIO", sae: "SAE" } as const;
 

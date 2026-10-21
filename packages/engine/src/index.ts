@@ -68,6 +68,7 @@ export type {
   TriggerEnded,
   TriggerEvent,
   TriggerFired,
+  TriggerFilter,
   TriggerSet,
   UnrevealedPick,
   VarName,

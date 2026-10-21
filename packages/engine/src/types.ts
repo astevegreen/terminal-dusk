@@ -3,8 +3,24 @@ import type { ContingencyDeck, ContingencyDeckReshuffled, ContingencyDrawn, Deck
 import type { RngState } from "./rng.ts";
 export { DECKS } from "./contingencyTypes.ts";
 export type { ContingencyDeck, ContingencyDeckReshuffled, ContingencyDrawn, DeckId } from "./contingencyTypes.ts";
-import type { ActiveModifier, ActiveTrigger, Duration, HookId, ModifierExpiry, ModifierSpec } from "./lastingTypes.ts";
-export type { ActiveModifier, ActiveTrigger, Duration, HookId, ModifierExpiry, ModifierSpec } from "./lastingTypes.ts";
+import type {
+  ActiveModifier,
+  ActiveTrigger,
+  Duration,
+  HookId,
+  ModifierExpiry,
+  ModifierSpec,
+  TriggerFilter,
+} from "./lastingTypes.ts";
+export type {
+  ActiveModifier,
+  ActiveTrigger,
+  Duration,
+  HookId,
+  ModifierExpiry,
+  ModifierSpec,
+  TriggerFilter,
+} from "./lastingTypes.ts";
 
 export type Side = "lio" | "sae";
 /** Both sides, in the one order the engine always loops in. */
@@ -104,7 +120,8 @@ export type ModifierEnded = { kind: "modifierEnded"; visibility: "public"; sourc
 /**
  * A trigger's life, each told to everyone with the card that set it and its hook: `triggerSet` when a
  * `trigger` step runs, `triggerFired` each time its hook runs its reaction, `triggerEnded` when it
- * expires at the end of its turn. A turnEnd trigger ends by firing, so it is never `triggerEnded`.
+ * expires at the end of its turn. A turnEnd trigger, and a `once` trigger, ends by firing, without
+ * `triggerEnded`; a turnEnd trigger whose filter fails at its hook does not fire and is `triggerEnded` then.
  */
 type TriggerEventOf<K extends string> = { kind: K; visibility: "public"; source: CardId; hook: HookId };
 export type TriggerSet = TriggerEventOf<"triggerSet">;
@@ -202,7 +219,8 @@ export type Condition =
  * `addToNumber` adds the non-zero whole `amount` (negative subtracts) to the number bound to `var`.
  * `modifier` makes a rule change, `mod`, that lasts for `duration`; its source is the card whose effect runs it.
  * A `spendPoints` `amount` is the printed ops: the opsValue modifiers in force change it when the step runs.
- * `trigger` leaves a reaction, `do`, that runs each time `hook` happens until `duration` ends (triggers.ts).
+ * `trigger` leaves a reaction, `do`, that runs each time `hook` happens until `duration` ends (triggers.ts):
+ * only when its `filter`, if given, holds then, and at most once with `once` (cardPlayed only).
  * A `marker` with `lasting: true` also keeps its label in `markers` (PublicState) until the game ends.
  */
 export type Step =
@@ -215,7 +233,7 @@ export type Step =
   | { op: "drawContingency"; side: Side | "player"; bind?: VarName }
   | { op: "addToNumber"; var: VarName; amount: number }
   | { op: "modifier"; mod: ModifierSpec; duration: Duration }
-  | { op: "trigger"; hook: HookId; do: Step[]; duration: Duration };
+  | { op: "trigger"; hook: HookId; filter?: TriggerFilter; once?: true; do: Step[]; duration: Duration };
 
 export type Binding = { name: VarName; value: VarValue };
 /** The block a frame runs, the index of its next step, and the variables bound in it, in binding order. */

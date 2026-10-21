@@ -337,7 +337,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/hasCondition.test.ts` - The `has` condition (#141): an if is true exactly when a lasting marker with that label has been set.
 - `packages/engine/src/index.test.ts`
 - `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, createGame, legalAnswers, pendingFor, eventsFor, seedHash, DECKS, SIDES, verifyGame, hiddenPart, reconstruct, viewFor, ….
-- `packages/engine/src/lastingTypes.ts` - The types of what a card leaves in force: hooks, durations, modifiers and triggers (modifiers.ts, triggers.ts). Exports: HookId, Duration, ModifierSpec, ModifierExpiry, ActiveModifier, ActiveTrigger.
+- `packages/engine/src/lastingTypes.ts` - The types of what a card leaves in force: hooks, durations, modifiers and triggers (modifiers.ts, triggers.ts). Exports: HookId, Duration, ModifierSpec, ModifierExpiry, ActiveModifier, TriggerFilter, ActiveTrigger.
 - `packages/engine/src/markers.test.ts` - Lasting markers (#141): a marker step with `lasting: true` keeps its label in state.public.markers until the game ends.
 - `packages/engine/src/markers.ts` - Lasting markers: named tags a card leaves in the public state until the game ends, which a later card's `has` condition tests. Exports: keepMarker, hasMarker.
 - `packages/engine/src/modifiers.test.ts` - Modifiers (#89): rule changes in public state, the opsValue hook, and their end at the turn's end.
@@ -364,12 +364,14 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/stepBudget.test.ts`
 - `packages/engine/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
 - `packages/engine/src/test/game.ts` - Test helpers: a started game, answers for it, and small programs for the stack. Exports: testCard, rulesetWith, ruleset, sideCard, withCards, makeSetup, setupPlus, startGame, startAtPlay, cardAnswer, playAnswer, orderAnswer, ….
+- `packages/engine/src/triggerFilter.test.ts` - A trigger's filter and once (#189): a trigger that reacts only to one side's plays, or only while a lasting marker is set, and a trigger that fires at most onc…
+- `packages/engine/src/triggerFilterChecks.test.ts` - createGame's checks of a trigger's filter and once (#189): badTrigger, and the ruleset check that a has names a marker some card sets, which reads a trigger's…
 - `packages/engine/src/triggers.test.ts` - Triggers (#90): reactions a card leaves behind, fired at the cardPlayed and turnEnd hooks.
 - `packages/engine/src/triggers.ts` - Triggers (docs/architecture.md, section 4): reactions a card leaves behind, kept in public state and run only at fixed hook points. Exports: setTrigger, afterProgram, fireTurnEnd, endTurnTriggers, badTrigger.
 - `packages/engine/src/turn.test.ts` - The turn structure (#35): secret opening cards, their events in order, then alternating plays.
 - `packages/engine/src/turn.ts` - The turn structure (docs/design/core-loop.md). Exports: startTurn, afterAnswer.
 - `packages/engine/src/types.test.ts`
-- `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: DECKS, ContingencyDeck, ContingencyDeckReshuffled, ContingencyDrawn, DeckId, ActiveModifier, ActiveTrigger, Duration, HookId, ModifierExpiry, ModifierSpec, Side, ….
+- `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: DECKS, ContingencyDeck, ContingencyDeckReshuffled, ContingencyDrawn, DeckId, ActiveModifier, ActiveTrigger, Duration, HookId, ModifierExpiry, ModifierSpec, TriggerFilter, ….
 - `packages/engine/src/verifyGame.test.ts`
 - `packages/engine/src/verifyGame.ts` - Exports: verifyGame.
 - `packages/engine/src/viewTypes.ts` - What each viewer receives of the game state (views.ts). Exports: HiddenCounts, PublicMeta, PlayerView, OmniscientView, HiddenPart.

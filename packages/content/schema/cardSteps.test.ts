@@ -71,6 +71,28 @@ describe("card schema: trigger steps", () => {
     for (const effect of placed(step)) expect(issuesOf(lioWith(effect)).length).toBeGreaterThan(0);
   });
 
+  it("accepts a filtered trigger, a once trigger, and both together, at any depth (#189)", () => {
+    const steps = [
+      trigger({ hook: "cardPlayed", filter: { op: "playedBy", side: "sae" } }),
+      trigger({ hook: "cardPlayed", filter: { op: "has", marker: "x" } }),
+      trigger({ filter: { op: "has", marker: "x" } }),
+      trigger({ hook: "cardPlayed", once: true }),
+      trigger({ hook: "cardPlayed", once: true, filter: { op: "playedBy", side: "lio" } }),
+    ];
+    for (const step of steps) for (const effect of placed(step)) expect(issuesOf(lioWith(effect))).toEqual([]);
+  });
+
+  it.each([
+    ["a filter of yes", trigger({ hook: "cardPlayed", filter: { op: "yes", var: "agreed" } })],
+    ["a filter of atLeast", trigger({ hook: "cardPlayed", filter: { op: "atLeast", var: "n", value: 1 } })],
+    ["playedBy on a turnEnd trigger", trigger({ filter: { op: "playedBy", side: "lio" } })],
+    ["once: false", trigger({ hook: "cardPlayed", once: false })],
+    ["once on a turnEnd trigger", trigger({ once: true })],
+    ["an extra field in the filter", trigger({ hook: "cardPlayed", filter: { op: "has", marker: "x", side: "lio" } })],
+  ])("refuses a trigger with %s, at any depth (#189)", (_what, step) => {
+    for (const effect of placed(step)) expect(issuesOf(lioWith(effect)).length).toBeGreaterThan(0);
+  });
+
   it("accepts a contingency draw from the rival's deck inside a trigger (owner, 19 Oct)", () => {
     const effect = [trigger({}, [{ op: "drawContingency", side: "sae" }])];
     expect(pathsOf(lioWith(effect))).toEqual([]);
