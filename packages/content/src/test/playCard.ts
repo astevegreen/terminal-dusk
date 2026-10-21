@@ -135,7 +135,8 @@ export function playCard(id: CardId, options: PlayOptions = {}): string[] {
     events.push(...r.value.events);
   };
   /** This turn's event card: an earlier card in the earlier turns, the card under test in the last. */
-  const turnCard = (): EarlierCard => first[state.public.turn - 1] ?? { card: id, yes: options.yes };
+  const last: EarlierCard = options.yes === undefined ? { card: id } : { card: id, yes: options.yes };
+  const turnCard = (): EarlierCard => first[state.public.turn - 1] ?? last;
   const nextFiller: Record<Side, number> = { lio: 1, sae: 1 };
   const takeFiller = (side: Side): CardId => `fill-${side}-${nextFiller[side]++}`;
   let played = false;
