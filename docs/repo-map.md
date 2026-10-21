@@ -312,9 +312,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/cardChecks.test.ts` - createGame's card checks: the ruleset's cards are well formed, and a setup uses only known cards, each once.
 - `packages/engine/src/cardChecks.ts` - Card checks for createGame: the ruleset's cards are well formed, and a setup uses only known cards, each once. Exports: rulesetError, setupCardsError, handSizeError.
 - `packages/engine/src/cardPlayer.test.ts` - Who picked or played a card (#117; docs/design/contingency-deck.md, "Whose deck"): the engine records it for every card's event, opening picks included, so a n…
-- `packages/engine/src/contingency.test.ts` - Contingency decks in the game state (#64): the setup's checks, the shuffle, and who sees what.
-- `packages/engine/src/contingency.ts` - Contingency decks (docs/design/contingency-deck.md): each side's numbered cards, drawn instead of rolling a die. Exports: contingencyError, shuffleContingency, drawContingency.
+- `packages/engine/src/contingency.test.ts` - Contingency decks in the game state (#64, #131): the setup's checks, the shuffle, and who sees what.
+- `packages/engine/src/contingency.ts` - Contingency decks (docs/design/contingency-deck.md): each side's numbered cards and the shared World deck, drawn instead of rolling a die. Exports: contingencyError, shuffleContingency, deckFor, drawContingency.
 - `packages/engine/src/contingencyDraw.test.ts` - Drawing a contingency (#65, #130): the top card of a side's deck is the result, and a draw that leaves two cards shuffles the whole deck back together, straigh…
+- `packages/engine/src/contingencyTypes.ts` - The Contingency decks' types (docs/design/contingency-deck.md): LIO's, SAE's and the shared World deck. Exports: DeckId, DECKS, ContingencyDeck, ContingencyDrawn, ContingencyDeckReshuffled.
 - `packages/engine/src/copy.ts` - State is plain JSON, so a JSON round trip is a complete copy that shares nothing with the original. Exports: copyJson.
 - `packages/engine/src/createGame.test.ts`
 - `packages/engine/src/createGame.ts` - Exports: createGame.
@@ -326,7 +327,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/events.test.ts`
 - `packages/engine/src/events.ts` - Filtering events by who may see them. Exports: eventsFor.
 - `packages/engine/src/index.test.ts`
-- `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, createGame, legalAnswers, pendingFor, eventsFor, seedHash, SIDES, verifyGame, hiddenPart, reconstruct, viewFor, ActiveModifier, ….
+- `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, createGame, legalAnswers, pendingFor, eventsFor, seedHash, DECKS, SIDES, verifyGame, hiddenPart, reconstruct, viewFor, ….
+- `packages/engine/src/lastingTypes.ts` - The types of what a card leaves in force: hooks, durations, modifiers and triggers (modifiers.ts, triggers.ts). Exports: HookId, Duration, ModifierSpec, ModifierExpiry, ActiveModifier, ActiveTrigger.
 - `packages/engine/src/modifiers.test.ts` - Modifiers (#89): rule changes in public state, the opsValue hook, and their end at the turn's end.
 - `packages/engine/src/modifiers.ts` - Modifiers (docs/architecture.md, section 4): rule changes with a duration, kept in public state and consulted only at fixed hook points. Exports: opsValue, startModifier, endTurnModifiers, badModifier.
 - `packages/engine/src/neutralDraw.test.ts` - A neutral card's draw (decision 17, docs/design/contingency-deck.md): "side": "player" draws from the deck of the side that played the card, whichever side ans…
@@ -354,12 +356,13 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/turn.test.ts` - The turn structure (#35): secret opening cards, their events in order, then alternating plays.
 - `packages/engine/src/turn.ts` - The turn structure (docs/design/core-loop.md). Exports: startTurn, afterAnswer.
 - `packages/engine/src/types.test.ts`
-- `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: Side, SIDES, otherSide, CardId, EraId, RulesetId, Seed, CardDef, Ruleset, EngineErrorCode, EngineError, Result, ….
+- `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: DECKS, ContingencyDeck, ContingencyDeckReshuffled, ContingencyDrawn, DeckId, ActiveModifier, ActiveTrigger, Duration, HookId, ModifierExpiry, ModifierSpec, Side, ….
 - `packages/engine/src/verifyGame.test.ts`
 - `packages/engine/src/verifyGame.ts` - Exports: verifyGame.
 - `packages/engine/src/views.property.test.ts` - Property test: over random games with random hands and draw piles, and random programs on the resolution stack (some with simultaneous pairs), views rebuild th…
 - `packages/engine/src/views.test.ts`
 - `packages/engine/src/views.ts` - Views: the part of the state one viewer may see, the part they cannot, and rebuilding the whole. Exports: viewFor, hiddenPart, reconstruct.
+- `packages/engine/src/worldDeck.test.ts` - The World deck (#131; docs/design/contingency-deck.md, "The World deck"): when a side picks or plays the rival's card, every draw its event (or a reaction it s…
 - `packages/engine/tsconfig.json` - The engine sees only the JavaScript language itself: no DOM and no Node types, so timers, fetch, document and the like fail the type check (hard rule 1).
 
 ## packages/host - MatchHost: runs a match around the engine (players, clock, move log, frames) without doing I/O.

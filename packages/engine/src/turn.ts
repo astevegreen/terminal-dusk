@@ -13,6 +13,7 @@ import { endTurnModifiers } from "./modifiers.ts";
 import { runProgram, runStack } from "./stack.ts";
 import type { Budget, Closing } from "./stack.ts";
 import { endTurnTriggers, fireTurnEnd } from "./triggers.ts";
+import { otherSide } from "./types.ts";
 import type { AnswerValue, CardId, EngineError, GameEvent, GameState, Ruleset, Side, Step } from "./types.ts";
 
 /** The program each turn opens with: both sides secretly pick a card ("the both sides choose step"). */
@@ -132,14 +133,26 @@ function endTurn(state: GameState, events: GameEvent[], budget: Budget): EngineE
  */
 function startEvent(ruleset: Ruleset, state: GameState, events: GameEvent[], budget: Budget): EngineError | null {
   const id = state.public.inPlay[0]!;
-  return runProgram(
-    state,
-    cardOf(ruleset, id)?.effect ?? [],
-    events,
-    budget,
-    id,
-    state.public.inPlayBy[0] ?? undefined,
-  );
+  const player = state.public.inPlayBy[0] ?? undefined;
+  return runCard(ruleset, state, cardOf(ruleset, id)?.effect ?? [], id, player, { events, budget });
+}
+
+/**
+ * Runs `steps` for card `id`, picked or played by `player`. When `player` plays the rival's card, the
+ * program records the card's owner as `worldFor`, so its draws from that deck use the World deck.
+ */
+function runCard(
+  ruleset: Ruleset,
+  state: GameState,
+  steps: Step[],
+  id: CardId,
+  player: Side | undefined,
+  run: { events: GameEvent[]; budget: Budget },
+): EngineError | null {
+  const card = cardOf(ruleset, id);
+  const rival = player !== undefined && whoseCard(card, player) === "rival";
+  const worldFor = rival ? otherSide(player) : undefined;
+  return runProgram(state, steps, run.events, run.budget, id, player, worldFor);
 }
 
 /**
@@ -168,7 +181,7 @@ function play(
     return null;
   }
   const steps = value.as === "event" ? (card?.effect ?? []) : [spendPoints(side, card?.ops ?? 0)];
-  return runProgram(state, steps, events, budget, value.card, player ?? undefined);
+  return runCard(ruleset, state, steps, value.card, player ?? undefined, { events, budget });
 }
 
 /**
@@ -190,7 +203,7 @@ function playRival(
   // The printed ops: the modifiers in force when this step runs change them, its own event's included.
   const points = spendPoints(side, card?.ops ?? 0);
   const steps = event === "before" ? [...effect, points] : [points, ...effect];
-  return runProgram(state, steps, events, budget, id, side);
+  return runCard(ruleset, state, steps, id, side, { events, budget });
 }
 
 /** True while a rival's card is in play and its player has yet to say when its event happens. */
