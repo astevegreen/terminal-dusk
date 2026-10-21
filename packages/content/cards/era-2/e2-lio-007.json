@@ -18,9 +18,25 @@
       "hook": "turnEnd",
       "do": [
         {
-          "op": "spendPoints",
-          "side": "lio",
-          "amount": 1
+          "op": "if",
+          "cond": {
+            "op": "has",
+            "marker": "union founded"
+          },
+          "then": [
+            {
+              "op": "spendPoints",
+              "side": "lio",
+              "amount": 2
+            }
+          ],
+          "else": [
+            {
+              "op": "spendPoints",
+              "side": "lio",
+              "amount": 1
+            }
+          ]
         }
       ],
       "duration": {
@@ -30,7 +46,7 @@
   ],
   "text": {
     "name": "Big Bang Enlargement 2004",
-    "rules": "Record \"eastward\". LIO spends 3 points. At the end of this turn, LIO spends 1 point. If this card's event happens, remove it from the game afterwards.",
+    "rules": "Record \"eastward\". LIO spends 3 points. At the end of this turn, if \"union founded\" has been recorded this game, LIO spends 2 points; otherwise, LIO spends 1 point. If this card's event happens, remove it from the game afterwards.",
     "history": "Seven countries, including the three Baltic states, joined NATO on 29 March 2004, and ten countries joined the European Union on 1 May 2004.",
     "art": "art/e2-lio-007"
   },

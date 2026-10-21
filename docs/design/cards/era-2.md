@@ -32,8 +32,8 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 ### e2-lio-007 · Big Bang Enlargement 2004 · LIO · Ops 4 · Hot
 
 - **Event:** Seven states join NATO and ten join the EU within five weeks.
-- **Design:** LIO 3 now and 1 at turn end; the permanent eastward shift (W1). Hot: an SAE holder wants the 4 Ops but hates the event.
-- **Playable:** `marker "eastward"; spend lio 3; on turnEnd { spend lio 1 }; once-only`
+- **Design:** LIO 3 now and 1 at turn end (2 if "union founded" has been recorded); the eastward shift. Hot: an SAE holder wants the 4 Ops but hates the event.
+- **Playable:** `marker "eastward"; spend lio 3; on turnEnd { if has "union founded" { spend lio 2 } else { spend lio 1 } }; once-only`
 - **History:** Seven countries, including the three Baltic states, joined NATO on 29 March 2004, and ten countries joined the European Union on 1 May 2004.
 - **Theme:** alliances · **Notion:** create
 
@@ -72,8 +72,8 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 ### e2-lio-012 · Euro Cash · LIO · Ops 1 · Hold
 
 - **Event:** Twelve countries swap their notes and coins for the euro overnight.
-- **Design:** LIO 1 now and 1 at turn end; a lasting "single currency" tag (W1).
-- **Playable:** `marker "single currency"; spend lio 1; on turnEnd { spend lio 1 }`
+- **Design:** LIO 1 now (2 if "union founded" has been recorded) and 1 at turn end; a "single currency" tag.
+- **Playable:** `marker "single currency"; if has "union founded" { spend lio 2 } else { spend lio 1 }; on turnEnd { spend lio 1 }`
 - **History:** Euro notes and coins entered circulation on 1 January 2002 in twelve EU countries with around 300 million people.
 - **Theme:** sanctions and finance · **Notion:** create
 
@@ -98,8 +98,8 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 ### e2-sae-002 · Curveball · SAE · Ops 2 · Split/Gamble (LIO)
 
 - **Event:** A single defector's story about mobile weapons labs goes to the UN.
-- **Design:** LIO may act on the single source, a gamble on LIO's own draw: usually it is discredited (SAE 1, LIO -1 Ops), sometimes it holds (LIO 2, on a high draw); or LIO waits for corroboration and takes 1.
-- **Playable:** `ask lio "Act on the single source?" -> v; if yes v { draw lio -> d; if d >= 5 { spend lio 2 } else { marker "intelligence discredited"; spend sae 1; mod lio -1 min 1 (turn) } } else { spend lio 1 }`
+- **Design:** LIO may act on the single source, a gamble on LIO's own draw: usually it is discredited (SAE 1, or 2 if "coalition fractures" has been recorded, and LIO -1 Ops), sometimes it holds (LIO 2, on a high draw); or LIO waits for corroboration and takes 1.
+- **Playable:** `ask lio "Act on the single source?" -> v; if yes v { draw lio -> d; if d >= 5 { spend lio 2 } else { marker "intelligence discredited"; if has "coalition fractures" { spend sae 2 } else { spend sae 1 }; mod lio -1 min 1 (turn) } } else { spend lio 1 }`
 - **History:** Claims that Iraq had mobile biological-weapons laboratories, presented to the UN Security Council on 5 February 2003, rested largely on an informant code-named Curveball whose account was later found to be fabricated.
 - **Theme:** information warfare · **Notion:** update `3fceb012942f81769467daeda3b33918`
 
@@ -162,8 +162,8 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 ### e2-sae-012 · Abu Ghraib · SAE · Ops 2 · Swing
 
 - **Event:** Photographs from an Iraqi prison undercut the liberator's story.
-- **Design:** SAE 1 and LIO -1 Ops this turn; deepens the Iraq credibility tag (W3).
-- **Playable:** `marker "credibility hit"; spend sae 1; mod lio -1 min 1 (turn)`
+- **Design:** SAE 1 (2 if "coalition fractures" has been recorded) and LIO -1 Ops this turn; reads the Iraq "coalition fractures" tag.
+- **Playable:** `marker "credibility hit"; if has "coalition fractures" { spend sae 2 } else { spend sae 1 }; mod lio -1 min 1 (turn)`
 - **History:** Photographs of US soldiers abusing detainees at Iraq's Abu Ghraib prison were broadcast on 28 April 2004, damaging the standing of the United States.
 - **Theme:** information warfare · **Notion:** create
 
