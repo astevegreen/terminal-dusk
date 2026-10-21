@@ -68,6 +68,7 @@ export function createGame(
       modifiers: [],
       triggers: [],
       turnEndFired: false,
+      markers: [],
     },
     private: {
       lio: { hand: [...setup.hands.lio], picks: [] },

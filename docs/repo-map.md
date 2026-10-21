@@ -38,9 +38,11 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 - `packages/app/.gitignore`
 - `packages/app/e2e/game.e2e.ts`
+- `packages/app/e2e/keyboard.e2e.ts`
 - `packages/app/e2e/replay.e2e.ts`
 - `packages/app/e2e/testMode.e2e.ts`
 - `packages/app/e2e/vsAi.e2e.ts`
+- `packages/app/e2e/vsAiReplay.e2e.ts`
 - `packages/app/index.html`
 - `packages/app/package.json`
 - `packages/app/playwright.config.ts` - Playwright smoke tests (`pnpm test:e2e`), kept apart from Vitest: their files end in .e2e.ts. Exports: default.
@@ -52,6 +54,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/eventPresentation.ts` - How each EventKind is presented. Exports: EventPresentation, eventPresentation.
 - `packages/app/src/game/GameScreen.test.tsx`
 - `packages/app/src/game/GameScreen.tsx` - The game screen: one whole game drawn from one frame, laid out for a phone held sideways (844x390). Exports: GameScreenProps, GameScreen.
+- `packages/app/src/game/decisionFocus.test.tsx`
+- `packages/app/src/game/decisionFocus.tsx` - Keyboard play: when a new decision waits for the player, focus moves to its first choice button. Exports: shouldFocusDecision, FocusRoot, FIRST_CHOICE, applyDecisionFocus, FocusingGameScreen.
 - `packages/app/src/game/gameScreen.css`
 - `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, Hand, Opponent, Table, Contingency, Log.
 - `packages/app/src/main.tsx` - Browser entry point: mounts the app into the #root element of index.html.
@@ -275,7 +279,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/schema/card.test.ts`
 - `packages/content/schema/card.ts` - The card schema: what one card file in packages/content/cards/ must hold (docs/architecture.md, section 4). Exports: CardStep, stepSchema, cardSchema.
 - `packages/content/schema/card.types.test.ts` - Type-level checks, run by `tsc` (the typecheck script): the card schema and the engine's types can't drift apart.
-- `packages/content/schema/cardSteps.test.ts` - The card schema's lasting steps: modifiers (#89) and triggers (#90), at any depth of a card's effect.
+- `packages/content/schema/cardSteps.test.ts` - The card schema's lasting steps: modifiers (#89), triggers (#90) and lasting markers (#141), at any depth.
 - `packages/content/schema/index.test.ts`
 - `packages/content/schema/index.ts` - Content schemas, one per content folder of this package (cards/ is checked by schemas.cards, and so on). Exports: ContentIssue, ContentSchema, schemas.
 - `packages/content/schema/scenario.test.ts`
@@ -312,6 +316,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/cardChecks.test.ts` - createGame's card checks: the ruleset's cards are well formed, and a setup uses only known cards, each once.
 - `packages/engine/src/cardChecks.ts` - Card checks for createGame: the ruleset's cards are well formed, and a setup uses only known cards, each once. Exports: rulesetError, setupCardsError, handSizeError.
 - `packages/engine/src/cardPlayer.test.ts` - Who picked or played a card (#117; docs/design/contingency-deck.md, "Whose deck"): the engine records it for every card's event, opening picks included, so a n…
+- `packages/engine/src/conditions.ts` - An `if` step's condition (stack.ts): a yes/no answer, a number test, `has` a lasting marker, or `playedBy` the side that picked or played the card. Exports: unbound, notANumber, testCondition.
 - `packages/engine/src/contingency.test.ts` - Contingency decks in the game state (#64): the setup's checks, the shuffle, and who sees what.
 - `packages/engine/src/contingency.ts` - Contingency decks (docs/design/contingency-deck.md): each side's numbered cards, drawn instead of rolling a die. Exports: contingencyError, shuffleContingency, drawContingency.
 - `packages/engine/src/contingencyDraw.test.ts` - Drawing a contingency (#65, #130): the top card of a side's deck is the result, and a draw that leaves two cards shuffles the whole deck back together, straigh…
@@ -325,8 +330,11 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/eras.ts` - Eras after the first (docs/design/eras.md, "When a new era starts"). Exports: erasError, enterEra.
 - `packages/engine/src/events.test.ts`
 - `packages/engine/src/events.ts` - Filtering events by who may see them. Exports: eventsFor.
+- `packages/engine/src/hasCondition.test.ts` - The `has` condition (#141): an if is true exactly when a lasting marker with that label has been set.
 - `packages/engine/src/index.test.ts`
 - `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, createGame, legalAnswers, pendingFor, eventsFor, seedHash, SIDES, verifyGame, hiddenPart, reconstruct, viewFor, ActiveModifier, ….
+- `packages/engine/src/markers.test.ts` - Lasting markers (#141): a marker step with `lasting: true` keeps its label in state.public.markers until the game ends.
+- `packages/engine/src/markers.ts` - Lasting markers: named tags a card leaves in the public state until the game ends, which a later card's `has` condition tests. Exports: keepMarker, hasMarker.
 - `packages/engine/src/modifiers.test.ts` - Modifiers (#89): rule changes in public state, the opsValue hook, and their end at the turn's end.
 - `packages/engine/src/modifiers.ts` - Modifiers (docs/architecture.md, section 4): rule changes with a duration, kept in public state and consulted only at fixed hook points. Exports: opsValue, startModifier, endTurnModifiers, badModifier.
 - `packages/engine/src/neutralDraw.test.ts` - A neutral card's draw (decision 17, docs/design/contingency-deck.md): "side": "player" draws from the deck of the side that played the card, whichever side ans…
@@ -334,6 +342,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/omniscient.test.ts` - The omniscient viewer: everything except the secret compartment, for replays of finished games.
 - `packages/engine/src/play.property.test.ts` - Property test: in random games with rival and neutral plays, neutral cards drawing from the player's deck included, every card is always in exactly one place,…
 - `packages/engine/src/play.test.ts` - Playing a card for its event or its points, and the rival-card rules (#36).
+- `packages/engine/src/playedBy.property.test.ts` - Property test (#169): in random games where LIO, SAE and neutral cards hold `if playedBy` steps (some nested, some in a trigger's reaction, some after a choice…
+- `packages/engine/src/playedBy.test.ts` - The playedBy condition (#169): an if is true exactly when the side that picked or played the card, as recorded on the running program (#117), is the side it na…
 - `packages/engine/src/refill.property.test.ts` - Property test for refilling hands (docs/design/core-loop.md, "Refilling hands"): in random games of random sizes, with an era entering on turn 2 and the draw p…
 - `packages/engine/src/refill.test.ts` - Refilling hands (docs/design/core-loop.md, "Refilling hands"): at each turn's start both sides draw up to the hand size from one shared draw pile, after a new…
 - `packages/engine/src/refill.ts` - Refilling hands (docs/design/core-loop.md, "Refilling hands"). Exports: refillHands.
@@ -357,6 +367,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: Side, SIDES, otherSide, CardId, EraId, RulesetId, Seed, CardDef, Ruleset, EngineErrorCode, EngineError, Result, ….
 - `packages/engine/src/verifyGame.test.ts`
 - `packages/engine/src/verifyGame.ts` - Exports: verifyGame.
+- `packages/engine/src/viewTypes.ts` - What each viewer receives of the game state (views.ts). Exports: HiddenCounts, PublicMeta, PlayerView, OmniscientView, HiddenPart.
 - `packages/engine/src/views.property.test.ts` - Property test: over random games with random hands and draw piles, and random programs on the resolution stack (some with simultaneous pairs), views rebuild th…
 - `packages/engine/src/views.test.ts`
 - `packages/engine/src/views.ts` - Views: the part of the state one viewer may see, the part they cannot, and rebuilding the whole. Exports: viewFor, hiddenPart, reconstruct.
@@ -395,6 +406,14 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/package.json`
 - `packages/server/src/index.test.ts`
 - `packages/server/src/index.ts` - Public entry point of the server package (docs/architecture.md, Decision 5). Exports: submit, ServerErrorCode, SubmitDeps, SubmitError, SubmitOutcome, SubmitRequest, MemoryStore, SupabaseStore, CommitResult, LoadedMatch, MatchStore, MatchWrite, ….
+- `packages/server/src/invite.leaks.test.ts`
+- `packages/server/src/invite.refusals.test.ts`
+- `packages/server/src/invite.test.ts`
+- `packages/server/src/invite.ts` - Private games (docs/architecture.md, Decision 5): a host creates an invite and shares its code, anyone with the code can see how the sides will be assigned, an… Exports: InviteDeps, InviteErrorCode, InviteError, InviteOutcome, CreateInviteRequest, JoinInviteRequest, JoinedInvite, CODE_TRIES, createInvite, previewInvite, joinInvite, sideModeOf.
+- `packages/server/src/inviteCode.test.ts`
+- `packages/server/src/inviteCode.ts` - The default invite code: 8 characters drawn with the platform's secure random source, so a code is hard to guess. Exports: INVITE_CODE_ALPHABET, INVITE_CODE_LENGTH, inviteCode.
+- `packages/server/src/inviteStore.test.ts`
+- `packages/server/src/inviteStore.ts` - The invite port behind private games (docs/architecture.md, Decision 5), and an in-memory store for tests. Exports: SideMode, Invite, StoredInvite, SaveResult, AcceptResult, InviteStore, MemoryInviteStore.
 - `packages/server/src/matchRow.test.ts`
 - `packages/server/src/matchRow.ts` - The mapping between a `match` row (rows.ts, the SQL column names) and the host's `MatchRecord`. Exports: matchRowFor, recordFromRow.
 - `packages/server/src/migrations/commitMatch.test.ts` - The commit_match migration (supabase/migrations/20261021000000_commit_match.sql) on the local Supabase stack.
@@ -417,6 +436,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/supabaseStore.ts` - The Supabase side of the storage port (docs/architecture.md, Decision 5). Exports: StorageError, SupabaseStore.
 - `packages/server/src/test/errors.ts` - Test helpers for checking what a thrown storage error shows. Exports: shown, thrown.
 - `packages/server/src/test/games.ts` - Test helper: whole games played through `submit`, calling back after every step with what is stored. Exports: Strategy, STRATEGIES, Step, playGame.
+- `packages/server/src/test/invites.ts` - Test helpers for invites: an in-memory invite store over O1's MemoryStore, with repeatable codes, match ids, seeds and random sides, and submit deps that run t… Exports: HOST, JOINER, INVITE_NOW, sequence, InviteWorld, inviteWorld.
 - `packages/server/src/test/leaks.ts` - Test helper for leak checks, copying the idea of the host's test/leaks.ts. Exports: leaksIn, leaksFor.
 - `packages/server/src/test/match.ts` - Test helpers: a small ruleset and a match in an in-memory store, copying the idea of the host's tests. Exports: SEED, NOW, MATCH, ruleset, created, setup, bodyFor, nextSide.
 - `packages/server/src/test/stack.ts` - Test helpers for the SupabaseStore checks on the local Supabase stack (O3's localStack.ts finds it). Exports: onLocalStack, TestUser, makeUser, freshMatchId, newGame, writeOf, putIn, Stored, storedRows, cleanUp.
@@ -431,7 +451,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 - `tests/README.md` - Cross-package test suites
 - `tests/fuzz/cards.ts` - TEST-ONLY FIXTURES, never game content: the fuzz suite's cards, c1 to c85, and the sizes of a random game their number is worked out from. Exports: MAX_TURNS, MAX_PLAYS, MAX_EXTRA, MAX_PILE, MAX_ERA_CARDS, FUZZ_CARDS, baseEffectOf, ruleset.
-- `tests/fuzz/checks.ts` - The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite"). Exports: VIEWERS, Secrets, attempt, checkStep, checkLive, checkModifiers, checkTriggers, enteredCards, checkCards, isSubMultiset, checkContingency, contingencyLeaksIn, ….
+- `tests/fuzz/checks.ts` - The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite"). Exports: checkHasBranches, checkMarkers, VIEWERS, Secrets, attempt, History, NEW_GAME, checkStep, checkLive, checkModifiers, checkTriggers, enteredCards, ….
 - `tests/fuzz/contingency.test.ts` - Tests for the fuzz harness's Contingency deck checks (#64): the deck invariant and the structural leak check each catch a hand-corrupted state, and the random…
 - `tests/fuzz/deepFreeze.ts` - Freezes a value and everything inside it, so an engine call that changes its input throws. Exports: deepFreeze.
 - `tests/fuzz/easy.test.ts` - The Easy AI inside the fuzz suite (#91): every third game has it on one side, with every invariant checked.
@@ -440,6 +460,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/fixedGames.ts` - Fixed games the fuzz suite replays, with every check, on every run. Exports: FIXED_GAMES.
 - `tests/fuzz/harness.test.ts` - Tests for the fuzz harness itself: each check catches what it should, so a green fuzz run means something.
 - `tests/fuzz/lasting.test.ts` - The fuzz suite and the lasting effects, modifiers (#89) and triggers (#90): the fuzz cards make them, and the checks catch what they should.
+- `tests/fuzz/markerChecks.ts` - The fuzz checks for lasting markers and `has` conditions (R4a): a lasting marker is never lost, moved or duplicated, and every `has` reads the game so far. Exports: checkMarkers, checkHasBranches.
+- `tests/fuzz/markers.test.ts` - The fuzz suite and the lasting markers and `has` conditions of R4a (#142): the fuzz cards set and test them, the games take both branches, and the checks catch…
+- `tests/fuzz/markers.ts` - TEST-ONLY FIXTURES, never game content: the lasting markers (R4a) the fuzz cards set, and the `has` conditions that test them. Exports: LASTING_LABELS, HAS_BRANCH, REACTION_BRANCH, Branch, lastingMarker, branchLabel, hasStep, branchOf, isLasting.
 - `tests/fuzz/neutral.test.ts` - Neutral events in the fuzz games (#117): neutral cards draw from the deck of the side that picked or played them, in their events and in the reactions they set…
 - `tests/fuzz/order.test.ts`
 - `tests/fuzz/order.ts` - Compare function for sorting strings in UTF-16 code-unit order: the same order as a sort with no compare function, written out so the order is explicit. Exports: byCodeUnit.
@@ -456,9 +479,12 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## tools
 
 - `tools/balance/README.md` - Balance tool
+- `tools/balance/config.mjs` - The run's match config: the first-deck TEST scenario, with the turns, plays per turn and era arrival turns the command line asked for.
+- `tools/balance/era-stats.test.mjs` - The "By era" numbers from hand-made game summaries: distinct cards used per game, their share of the era, and picks plus plays per game, including a card both…
+- `tools/balance/options.test.mjs` - The run options --turns, --plays and --era: parsing, refusals, the host's own refusals, the report title, and a small seeded run with fewer turns and two eras…
 - `tools/balance/play.mjs` - Plays one seeded Easy-vs-Easy game of the first deck through the match host, as a real match would run.
 - `tools/balance/report.mjs` - The balance report as text: the numbers from stats.mjs laid out as plain tables.
-- `tools/balance/run.mjs` - `node tools/balance/run.mjs [--games <n>] [--seed <base>] [--json]`: plays n seeded Easy-vs-Easy games of the first-deck TEST scenario and prints results by si…
+- `tools/balance/run.mjs` - `node tools/balance/run.mjs [--games <n>] [--seed <base>] [--turns <n>] [--plays <n>] [--era <id>@<turn|off>] [--json]`: plays n seeded Easy-vs-Easy games of t…
 - `tools/balance/run.test.mjs` - Real balance runs: a few first-deck games through the match host, and the command line around them.
 - `tools/balance/stats.mjs` - The balance report's numbers, worked out from finished games only.
 - `tools/balance/stats.test.mjs` - The report numbers from hand-made game summaries, so wins and win shares can be checked before any victory rule exists.

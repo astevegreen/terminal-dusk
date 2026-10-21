@@ -248,3 +248,81 @@ describe("createGame: a card's trigger steps hold values the engine knows", () =
     for (const step of steps) for (const effect of nested(step)) expect(outcomeOf(effect)).toBe("ok");
   });
 });
+
+describe("createGame: lasting markers and has conditions", () => {
+  const sets = (label: string): Step => ({ op: "marker", label, lasting: true });
+  const has = (marker: unknown): Step => ({ op: "if", cond: { op: "has", marker }, then: [] }) as Step;
+  /** The createGame result with LIO's l1 given the effect `l1` and SAE's s1 the effect `s1`. */
+  const resultOf = (l1: Step[], s1: Step[] = []) => {
+    const others = ruleset.cards.filter((c) => c.id !== "l1" && c.id !== "s1");
+    const cards = [...others, testCard("l1", 1, "lio", l1), testCard("s1", 1, "sae", s1)];
+    return createGame(withCards(cards), makeSetup(), "seed-1");
+  };
+  const refused = (message: string) => ({
+    ok: false,
+    error: { code: "invalidRuleset", message: expect.stringContaining(message) },
+  });
+
+  it("accepts lasting: true and a has that some card sets, each at any depth, triggers included", () => {
+    for (const effect of nested(sets("x"))) expect(resultOf(effect, [has("x")]).ok).toBe(true);
+    for (const effect of nested(has("x"))) expect(resultOf(effect, [sets("x")]).ok).toBe(true);
+  });
+  it("accepts a has whose label the same card sets", () => {
+    expect(resultOf([sets("x"), has("x")]).ok).toBe(true);
+  });
+  it.each([
+    ["false", false],
+    ["a string", "yes"],
+    ["1", 1],
+  ])("rejects a marker whose lasting is %s, at any depth, naming the card", (_what, value) => {
+    const step = { op: "marker", label: "x", lasting: value } as unknown as Step;
+    for (const effect of nested(step)) expect(resultOf(effect)).toMatchObject(refused("Card l1"));
+  });
+  it("rejects a lasting marker with an empty label, at any depth, naming the card", () => {
+    for (const effect of nested(sets(""))) expect(resultOf(effect)).toMatchObject(refused("Card l1"));
+  });
+  it.each([
+    ["empty", ""],
+    ["not a string", 7],
+    ["missing", undefined],
+  ])("rejects a has whose marker is %s, at any depth, naming the card", (_what, marker) => {
+    for (const effect of nested(has(marker))) expect(resultOf(effect, [sets("x")])).toMatchObject(refused("Card l1"));
+  });
+  it("rejects a has whose label no card sets with a lasting marker, at any depth, naming the card and the label", () => {
+    for (const effect of nested(has("x"))) {
+      expect(resultOf(effect)).toMatchObject(refused(`Card l1's effect tests has "x"`));
+    }
+  });
+  it("a plain marker with that label does not count as setting it", () => {
+    expect(resultOf([has("x")], [{ op: "marker", label: "x" }])).toMatchObject(refused(`has "x"`));
+  });
+  it("a malformed card listed after a card that uses has is reported by its own check, and the walk never throws", () => {
+    // A trigger with no `do` would make a walk of every card's steps throw.
+    expect(resultOf([has("x")], [trigger({ do: undefined })])).toMatchObject(refused("Card s1"));
+  });
+});
+
+describe("createGame: playedBy conditions name LIO or SAE", () => {
+  const playedBy = (side: unknown): Step => ({ op: "if", cond: { op: "playedBy", side }, then: [] }) as unknown as Step;
+  const resultOf = (effect: Step[]) =>
+    createGame(withCards([...ruleset.cards.slice(1), testCard("l1", 1, "lio", effect)]), makeSetup(), "seed-1");
+
+  it.each([
+    ["missing", undefined],
+    ["both", "both"],
+    ["player", "player"],
+    ["neutral", "neutral"],
+  ])("rejects a playedBy whose side is %s, at any depth, naming the card", (_what, side) => {
+    for (const effect of nested(playedBy(side))) {
+      expect(resultOf(effect)).toMatchObject({
+        ok: false,
+        error: { code: "invalidRuleset", message: expect.stringContaining("Card l1's effect tests playedBy") },
+      });
+    }
+  });
+  it("accepts a playedBy naming lio or sae, at any depth", () => {
+    for (const side of ["lio", "sae"]) {
+      for (const effect of nested(playedBy(side))) expect(resultOf(effect).ok).toBe(true);
+    }
+  });
+});

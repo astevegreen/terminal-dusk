@@ -2,6 +2,7 @@
 // their number is worked out from. Each card's effect is picked by its index (no randomness in the cards).
 import type { CardDef, CardId, Ruleset, Side, Step as EffectStep } from "@terminal-dusk/engine";
 import { deepFreeze } from "./deepFreeze.ts";
+import { hasStep, LASTING_LABELS, lastingMarker } from "./markers.ts";
 import { playerDraw } from "./playerDraws.ts";
 
 /** Most turns and plays per turn in a random game, and the non-neutral cards a hand then needs. */
@@ -21,13 +22,25 @@ export const FUZZ_CARDS: readonly CardId[] = Array.from(
 );
 const AFFILIATIONS: readonly CardDef["affiliation"][] = ["lio", "sae", "neutral"];
 /**
- * Card `i`'s event: its base event (baseEffectOf), and for every fifth card from c2 on, a modifier of the
- * ops value too (#89); for every tenth from c4 on (never a modifier card), a trigger (#90). Only steps are
- * added after the base event, never a choice, so the decisions of the games in fixedGames.ts keep their IDs.
+ * Card `i`'s event: its base event (baseEffectOf), then its lasting marker step (markerStepsOf), and for every
+ * fifth card from c2 on, a modifier of the ops value too (#89); for every tenth from c4 on (never a modifier
+ * card), a trigger (#90). Only steps are added after the base event, never a choice, so the decisions of the
+ * games in fixedGames.ts keep their IDs.
  */
 function effectOf(i: number): EffectStep[] {
-  if (i % 10 === 3) return [...baseEffectOf(i), triggerOf(Math.floor(i / 10), i)];
-  return i % 5 === 1 ? [...baseEffectOf(i), modifierOf(Math.floor(i / 5))] : baseEffectOf(i);
+  const base = [...baseEffectOf(i), ...markerStepsOf(i)];
+  if (i % 10 === 3) return [...base, triggerOf(Math.floor(i / 10), i)];
+  return i % 5 === 1 ? [...base, modifierOf(Math.floor(i / 5))] : base;
+}
+
+/**
+ * Card `i`'s lasting marker step (#142): every sixth card from c6 on sets a lasting marker, and every sixth
+ * from c3 on tests one with `has`, the labels taking turns, so both are set and tested on several cards.
+ */
+function markerStepsOf(i: number): EffectStep[] {
+  const label = LASTING_LABELS[Math.floor(i / 6) % LASTING_LABELS.length]!;
+  if (i % 6 === 5) return [lastingMarker(label)];
+  return i % 6 === 2 ? [hasStep(label, false)] : [];
 }
 
 /**

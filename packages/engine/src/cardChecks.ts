@@ -1,7 +1,7 @@
 // Card checks for createGame: the ruleset's cards are well formed, and a setup uses only known cards, each once.
 import { badModifier } from "./modifiers.ts";
 import { badTrigger } from "./triggers.ts";
-import type { CardId, EngineError, Ruleset, Setup, Side, Step } from "./types.ts";
+import type { CardDef, CardId, Condition, EngineError, Ruleset, Setup, Side, Step } from "./types.ts";
 
 /**
  * Why the ruleset's card list is unusable, or null: it must be a list, each `id` once, each `ops` a
@@ -28,8 +28,34 @@ export function rulesetError(ruleset: Ruleset): EngineError | null {
       if (misplaced !== null) return invalidRuleset(misplacedDrawMessage(card.id, card.affiliation, misplaced));
     }
   }
+  // Across cards, so only once every card has passed the checks above and every walk meets well-formed steps.
+  return unsetMarkerError(ruleset.cards);
+}
+
+/**
+ * Why a card's `has` can never be true, or null: it names a label that no card in the ruleset (itself
+ * included, at any depth, triggers too) sets with a lasting marker.
+ */
+function unsetMarkerError(cards: readonly CardDef[]): EngineError | null {
+  const effects = cards.filter((card) => Array.isArray(card.effect));
+  const lasting = new Set(effects.flatMap((card) => stepsIn(card.effect)).flatMap(lastingLabel));
+  for (const card of effects) {
+    const unset = stepsIn(card.effect)
+      .flatMap(hasLabel)
+      .find((label) => !lasting.has(label));
+    if (unset !== undefined) {
+      return invalidRuleset(
+        `Card ${card.id}'s effect tests has "${unset}", but no card sets a lasting marker "${unset}".`,
+      );
+    }
+  }
   return null;
 }
+
+/** Every step in `steps`, at any depth, each before the steps inside it. */
+const stepsIn = (steps: readonly Step[]): Step[] => steps.flatMap((step) => [step, ...stepsIn(innerSteps(step))]);
+const lastingLabel = (step: Step): string[] => (step.op === "marker" && step.lasting === true ? [step.label] : []);
+const hasLabel = (step: Step): string[] => (step.op === "if" && step.cond.op === "has" ? [step.cond.marker] : []);
 
 const SIDE_NAMES = { lio: "LIO", sae: "SAE" } as const;
 
@@ -87,9 +113,11 @@ function badStep(step: Step): string | null {
         ? null
         : "adds an amount that is not a non-zero whole number.";
     case "if":
-      return step.cond.op === "yes" || Number.isInteger(step.cond.value)
-        ? null
-        : "tests a number against a value that is not whole.";
+      return badCondition(step.cond);
+    case "marker":
+      if (step.lasting === undefined) return null;
+      if (step.lasting !== true) return "has a marker whose lasting is not true (leave it out for a plain marker).";
+      return typeof step.label === "string" && step.label.length > 0 ? null : "sets a lasting marker with no label.";
     case "modifier":
       return badModifier(step.mod, step.duration);
     case "trigger":
@@ -97,6 +125,22 @@ function badStep(step: Step): string | null {
     default:
       return null;
   }
+}
+
+/**
+ * Why an if's condition is malformed, or null: a number test's value is whole, a `has` names a label, a
+ * `playedBy` names LIO or SAE. Values only: unknown keys are the card schema's job.
+ */
+function badCondition(cond: Condition): string | null {
+  if (cond.op === "playedBy") {
+    return cond.side === "lio" || cond.side === "sae" ? null : 'tests playedBy with a side that is not "lio" or "sae".';
+  }
+  if (cond.op === "has") {
+    return typeof cond.marker === "string" && cond.marker.length > 0
+      ? null
+      : "tests has with a marker label that is empty or not text.";
+  }
+  return cond.op === "yes" || Number.isInteger(cond.value) ? null : "tests a number against a value that is not whole.";
 }
 
 /** Why the first malformed step in `steps`, at any depth, is malformed (badStep), or null. */
