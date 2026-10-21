@@ -16,6 +16,10 @@ describe("scenario schema types", () => {
     expectTypeOf<NonNullable<NonNullable<Scenario["contingency"]>["lio"]>>().toEqualTypeOf<
       Setup["contingency"]["lio"]
     >();
+    expectTypeOf<NonNullable<NonNullable<Scenario["contingency"]>["world"]>>().toEqualTypeOf<
+      Setup["contingency"]["world"]
+    >();
+    expectTypeOf<keyof NonNullable<Scenario["contingency"]>>().toEqualTypeOf<keyof Setup["contingency"]>();
   });
 
   it("makes scenarioSetup return exactly those Setup fields", () => {

@@ -3,7 +3,7 @@
 import type { Setup } from "@terminal-dusk/engine";
 import type { Scenario } from "../schema/scenario.ts";
 
-/** The Contingency deck a side gets when the scenario names none: six cards numbered 1 to 6. */
+/** The Contingency deck a side, or the World deck, gets when the scenario names none: six cards numbered 1 to 6. */
 export const DEFAULT_CONTINGENCY: readonly number[] = Object.freeze([1, 2, 3, 4, 5, 6]);
 
 /** The scenario's own parts of a Setup. The caller adds the seed hash, the hands (empty) and the draw pile. */
@@ -18,6 +18,7 @@ export function scenarioSetup(scenario: Scenario): ScenarioSetup {
     contingency: {
       lio: [...(scenario.contingency?.lio ?? DEFAULT_CONTINGENCY)],
       sae: [...(scenario.contingency?.sae ?? DEFAULT_CONTINGENCY)],
+      world: [...(scenario.contingency?.world ?? DEFAULT_CONTINGENCY)],
     },
   };
   if (scenario.eras !== undefined) {
