@@ -1,6 +1,10 @@
 // Public entry point of the server package (docs/architecture.md, Decision 5).
 export { submit } from "./submit.ts";
 export type { ServerErrorCode, SubmitDeps, SubmitError, SubmitOutcome, SubmitRequest } from "./submit.ts";
+export { CORS_HEADERS, handleSubmit } from "./submitHandler.ts";
+export type { HandlerErrorCode, HttpReply, HttpRequest, SubmitHandlerDeps } from "./submitHandler.ts";
+export { fetchHandler, supabaseAuthenticate } from "./submitEdge.ts";
+export type { FetchRequest, MakeResponse } from "./submitEdge.ts";
 export { MemoryStore } from "./store.ts";
 export { SupabaseStore } from "./supabaseStore.ts";
 export type { CommitResult, LoadedMatch, MatchStore, MatchWrite } from "./store.ts";
