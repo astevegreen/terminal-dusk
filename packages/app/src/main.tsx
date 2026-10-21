@@ -2,7 +2,13 @@
 // here and passed down, so nothing below needs the browser's clock or random numbers.
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { FIRST_DECK_NOTE, firstDeckCardName, firstDeckConfig, firstDeckRuleset } from "@terminal-dusk/host/first-deck";
+import {
+  FIRST_DECK_NOTE,
+  firstDeckCardName,
+  firstDeckCardQuestion,
+  firstDeckConfig,
+  firstDeckRuleset,
+} from "@terminal-dusk/host/first-deck";
 import { createLocalMatch } from "./transport/localMatch.ts";
 import { App } from "./App.tsx";
 import type { VsAiGame } from "./vsAi/VsAiScreen.tsx";
@@ -12,6 +18,7 @@ const firstDeckGame: VsAiGame = {
   ruleset: firstDeckRuleset,
   makeMatch: (seed, clock) => createLocalMatch(firstDeckRuleset, firstDeckConfig(), seed, clock),
   cardName: firstDeckCardName,
+  cardQuestion: firstDeckCardQuestion,
   note: FIRST_DECK_NOTE,
 };
 

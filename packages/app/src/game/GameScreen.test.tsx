@@ -2,7 +2,7 @@ import type { Side } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { cardName } from "../testMode/fixture.ts";
+import { cardName, cardQuestion } from "../testMode/fixture.ts";
 import { buttonsOf } from "../testMode/promptTree.ts";
 import { createTestSession } from "../testMode/session.ts";
 import { GameScreen } from "./GameScreen.tsx";
@@ -24,6 +24,7 @@ const props = (frame: Frame, extra: Partial<GameScreenProps> = {}): GameScreenPr
   log: [],
   era: null,
   label: cardName,
+  question: cardQuestion,
   ...extra,
 });
 const html = (frame: Frame, extra: Partial<GameScreenProps> = {}): string =>
@@ -116,6 +117,16 @@ describe("the decision region", () => {
     expect(buttons.length).toBeGreaterThan(0);
     buttons[0]?.click();
     expect(answers).toHaveLength(1);
+  });
+  it("gives the yes/no prompt the frame's stack, so it names the asking card and its question", () => {
+    const yesNo = { id: "d9", side: "sae" as const, kind: "yesNo" as const, options: {} };
+    const asking = withPublic(frameFor("spectator"), {
+      pending: [yesNo],
+      stack: [{ kind: "program", source: "t2", steps: [], next: 0, vars: [] }],
+    });
+    const question = (card: string) => (card === "t2" ? "Hold the line?" : undefined);
+    expect(html(asking, { question })).toContain("sae, Test card 2: Hold the line?");
+    expect(html(asking)).toContain("sae: yes or no?");
   });
   it("shows the refusal code when refusal is set, and nothing when it is not", () => {
     expect(html(frameFor("lio"), { refusal: "stale_seq" })).toContain("Refused: stale_seq");
