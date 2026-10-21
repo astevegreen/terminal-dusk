@@ -18,7 +18,8 @@ hooks:
           timeout: 10
 ---
 You keep the sprint in `docs/sprint.md` running. You never edit files, open pull requests, merge,
-or make design decisions. You only start sessions and report on them, with the `RemoteTrigger` tool (load it with ToolSearch). Finish in a few minutes.
+or make design decisions. You only start, archive and report on sessions, with the `RemoteTrigger` tool and
+`archive_session` (load both with ToolSearch). Finish in a few minutes.
 
 `$ARGUMENTS` is `dry-run`: do every check and print what you would start, but create, update and
 comment nothing.
@@ -42,8 +43,8 @@ Lanes: `rules`, `app`, `online`, `research`. For each lane there are two session
 Run `RemoteTrigger` `list`. For each of the eight titles, take the newest trigger with that exact name and
 run `list_runs` on it. Its newest run is the session:
 - **Running** (`worker_status` is not `idle`, and `last_event_at` is within 3 hours): leave it.
-- **Stuck** (running, but no event in 3 hours, or waiting for input or permission for 45 minutes): you cannot
-  archive it, so start nothing for that title; name it in step 5 with its `url` so the owner can archive it.
+- **Stuck** (running, but no event in 3 hours, or waiting for input or permission for 45 minutes): do not
+  archive it, and start nothing for that title; name it in step 5 with its `url` so the owner can archive it.
 - **Missing, or finished** (`worker_status` `idle`, or no run yet after its `run_once_at` plus 15 minutes means
   it never started: report that too): start one if it has work (below).
   First `update` every enabled trigger with that name that has no run to `{"enabled": false}`, so a late
@@ -65,12 +66,18 @@ and match the start of the title yourself; GitHub search matches whole words, so
 
 For a finished run, read the end of `get_run_log`: if it stopped on a usage limit, start nothing new this hour.
 
+Then archive the finished sessions: each one holds 150-500 MB on the owner's laptop until it is archived, and
+dozens of them exhausted it on 21 Oct. Archive, with `archive_session` and the run's session id, the newest run
+of each of the eight titles when it is finished (after reading its run log), and every finished run of the
+triggers named "Sprint supervisor …" except your own. An archived run counts as finished. Never archive a
+running or stuck session, or one outside these titles. If `archive_session` is not available, skip this.
+
 ## 4. Status
 For each lane: open `sprint-ready`, `in-progress`, `blocked` and `held` counts, and pull requests merged
 since the window opened (`gh pr list --state merged --label lane:<lane> --search "merged:>=2026-10-21T00:00:00Z"`).
 
 ## 5. Report
 Comment on issue #2 only on the first run of the window, every sixth hour (UTC hour 00, 06, 12, 18), or
-when a session is stuck or never started, or something in step 2 needed attention. Under 15 lines:
+when a session is stuck or never started, an archive failed, or something in step 2 needed attention. Under 15 lines:
 the time, one line per lane (counts, sessions started), and anything the owner must act on,
 such as code-owned pull requests waiting for approval (`gh pr list --search "review:required"`).
