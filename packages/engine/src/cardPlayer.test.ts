@@ -1,7 +1,7 @@
 // Who picked or played a card (#117; docs/design/contingency-deck.md, "Whose deck"): the engine records it for
 // every card's event, opening picks included, so a neutral event's "player" draws, and those of the triggers it
-// sets, come from the deck of the side that picked or played it. Each draw here is five draws from a deck of
-// six, so the fifth also reshuffles that deck: both events must name the picker, and the other deck stays as it was.
+// sets, come from the deck of the side that picked or played it. Each draw here is four draws from a deck of
+// six, so the fourth also reshuffles that deck: both events must name the picker, and the other deck stays as it was.
 import { describe, expect, it } from "vitest";
 import { legalAnswers, viewFor } from "./index.ts";
 import type { GameEvent, GameState, Ruleset, Side, Step } from "./index.ts";
@@ -20,11 +20,11 @@ import {
   withCards,
 } from "./test/game.ts";
 
-/** Five draws: the fifth leaves one card, so the deck is reshuffled. */
+/** Four draws: the fourth leaves two cards, so the deck is reshuffled (#130). */
 const drawsFrom = (side: Side | "player"): Step =>
-  forEach(["1", "2", "3", "4", "5"], "i", [{ op: "drawContingency", side }]);
+  forEach(["1", "2", "3", "4"], "i", [{ op: "drawContingency", side }]);
 const DRAW_PLAYER = drawsFrom("player");
-const ONE_DECK = ["drawn", "drawn", "drawn", "drawn", "drawn", "reshuffled"];
+const ONE_DECK = ["drawn", "drawn", "drawn", "drawn", "reshuffled"];
 const turnEnd = (steps: Step[]): Step => ({ op: "trigger", hook: "turnEnd", do: steps, duration: { kind: "turnEnd" } });
 
 /** The side each contingencyDrawn and contingencyDeckReshuffled names, in order, as "drawn:lio" and so on. */

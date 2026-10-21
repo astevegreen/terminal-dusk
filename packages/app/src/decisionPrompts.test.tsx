@@ -189,7 +189,7 @@ describe("decisionPrompts without an onAnswer", () => {
 describe("each prompt is a group named by its question", () => {
   const kinds: [Decision, string[]][] = [
     [decision("yesNo", {}), []],
-    [decision("chooseCard", { from: "hand", includeNeutral: false }, "lio"), ["a"]],
+    [decision("chooseCard", { from: "hand" }, "lio"), ["a"]],
     [decision("playCardAs", play), ["a"]],
     [decision("rivalEventOrder", {}, "lio"), []],
   ];
@@ -200,7 +200,7 @@ describe("each prompt is a group named by its question", () => {
     );
   };
   const opening = (id: string, side: Decision["side"]): Decision => ({
-    ...decision("chooseCard", { from: "hand", includeNeutral: false }, side),
+    ...decision("chooseCard", { from: "hand" }, side),
     id,
   });
   it("puts every prompt in a role=group section labelled by the question's element, id from decision.id", () => {
