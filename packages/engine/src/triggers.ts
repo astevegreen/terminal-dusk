@@ -148,13 +148,15 @@ export function badTrigger(step: TriggerStep): string | null {
 
 /** Why a trigger's filter is unusable at `hook`, or null: a `has` naming a label, or (cardPlayed) a `playedBy` LIO or SAE. */
 function badFilter(filter: TriggerFilter, hook: HookId): string | null {
-  const { op } = (filter ?? {}) as { op?: unknown };
-  if (op === "has") {
+  // Card data may hold anything here, so not even an object is taken for granted.
+  if (typeof filter !== "object" || filter === null)
+    return "sets a trigger whose filter is not a has or playedBy test.";
+  if (filter.op === "has") {
     return typeof filter.marker === "string" && filter.marker.length > 0
       ? null
       : "sets a trigger whose has filter names an empty or non-text marker.";
   }
-  if (op !== "playedBy") return "sets a trigger whose filter is not a has or playedBy test.";
+  if (filter.op !== "playedBy") return "sets a trigger whose filter is not a has or playedBy test.";
   if (hook !== "cardPlayed") return "sets a turnEnd trigger filtered on playedBy, but no play fires that hook.";
   return filter.side === "lio" || filter.side === "sae"
     ? null
