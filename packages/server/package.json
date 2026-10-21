@@ -13,11 +13,13 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@terminal-dusk/engine": "workspace:*",
+    "@supabase/supabase-js": "^2.117.3",
     "@terminal-dusk/content": "workspace:*",
+    "@terminal-dusk/engine": "workspace:*",
     "@terminal-dusk/host": "workspace:*"
   },
   "devDependencies": {
+    "supabase": "^2.120.0",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }
