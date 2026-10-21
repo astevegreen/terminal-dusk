@@ -1,6 +1,6 @@
 // How each EventKind is presented. A new kind without an entry here fails the type check (hard rule 9).
 import { SIDES } from "@terminal-dusk/engine";
-import type { EventKind, GameEvent, HookId, ModifierSpec, VarValue } from "@terminal-dusk/engine";
+import type { DeckId, EventKind, GameEvent, HookId, ModifierSpec, VarValue } from "@terminal-dusk/engine";
 
 /** Placeholder entries until the first UI task: one game-log line per event. */
 export type EventPresentation = {
@@ -17,6 +17,9 @@ const HOOK_TEXT: Record<HookId, string> = {
 const shown = (value: VarValue): string =>
   typeof value === "object" ? SIDES.map((side) => `${side} ${value[side] ? "yes" : "no"}`).join(", ") : String(value);
 
+/** A Contingency deck in words: "the lio Contingency deck", or "the World deck". */
+const deckText = (deck: DeckId): string => (deck === "world" ? "the World deck" : `the ${deck} Contingency deck`);
+
 export const eventPresentation: EventPresentation = {
   cardDrawn: { log: (event) => `${event.side} drew ${event.card}.` },
   cardDrawnHidden: { log: (event) => `${event.side} drew a card.` },
@@ -29,9 +32,10 @@ export const eventPresentation: EventPresentation = {
     log: (event) => `The draw pile ran out: ${event.cards} discarded cards were shuffled into a new one.`,
   },
   eraStarted: { log: (event) => `Era ${event.era} started: ${event.cardsAdded} cards shuffled into the draw pile.` },
-  contingencyDrawn: { log: (event) => `${event.side} drew a contingency: ${event.value}.` },
+  contingencyDrawn: { log: (event) => `A contingency was drawn from ${deckText(event.deck)}: ${event.value}.` },
   contingencyDeckReshuffled: {
-    log: (event) => `${event.side}'s Contingency deck was shuffled back together.`,
+    log: (event) =>
+      `${event.deck === "world" ? "The World deck" : `${event.deck}'s Contingency deck`} was shuffled back together.`,
   },
   modifierStarted: { log: (event) => `${event.source}: ${modifierText(event.mod)}, until the end of the turn.` },
   modifierEnded: { log: (event) => `${event.source}'s change ended: ${modifierText(event.mod)}.` },

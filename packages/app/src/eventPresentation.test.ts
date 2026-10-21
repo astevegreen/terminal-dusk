@@ -68,22 +68,39 @@ describe("eventPresentation", () => {
     });
     expect(line).toBe("Era era2 started: 4 cards shuffled into the draw pile.");
   });
-  it("logs a contingency draw with the side and the number drawn", () => {
+  it("logs a contingency draw with the deck it came from and the number drawn", () => {
     const line = eventPresentation.contingencyDrawn.log({
       kind: "contingencyDrawn",
       visibility: "public",
-      side: "lio",
+      deck: "lio",
       value: 4,
     });
-    expect(line).toBe("lio drew a contingency: 4.");
+    expect(line).toBe("A contingency was drawn from the lio Contingency deck: 4.");
   });
-  it("logs a reshuffle with the side whose deck was shuffled back together", () => {
+  it("logs a World deck draw as coming from the World deck", () => {
+    const line = eventPresentation.contingencyDrawn.log({
+      kind: "contingencyDrawn",
+      visibility: "public",
+      deck: "world",
+      value: 2,
+    });
+    expect(line).toBe("A contingency was drawn from the World deck: 2.");
+  });
+  it("logs a reshuffle with the deck that was shuffled back together", () => {
     const line = eventPresentation.contingencyDeckReshuffled.log({
       kind: "contingencyDeckReshuffled",
       visibility: "public",
-      side: "sae",
+      deck: "sae",
     });
     expect(line).toBe("sae's Contingency deck was shuffled back together.");
+  });
+  it("logs a World deck reshuffle", () => {
+    const line = eventPresentation.contingencyDeckReshuffled.log({
+      kind: "contingencyDeckReshuffled",
+      visibility: "public",
+      deck: "world",
+    });
+    expect(line).toBe("The World deck was shuffled back together.");
   });
   it("logs a marker holding a drawn number as that number", () => {
     expect(eventPresentation.marker.log({ kind: "marker", visibility: "public", label: "drew", value: 5 })).toBe(
