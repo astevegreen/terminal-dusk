@@ -176,16 +176,16 @@ question 1), so they use choices instead. Redesigns that use draws are a follow-
 ### e3-neu-001 · Arab Spring · neutral · Ops 2 · Split (both)
 
 - **Event:** A protest in a Tunisian town topples four governments.
-- **Design:** Each side chooses whether to back the protesters: backing them scores 1 but costs 1 Ops this turn; standing by scores nothing. If exactly one side backs them, the other scores 1 at turn end as the old order regroups (nested ifs).
-- **Playable:** `marker "the square"; ask both "Back the protesters?" -> v; if yes v[lio] { spend lio 1; mod lio -1 min 1 (turn); if yes v[sae] { spend sae 1; mod sae -1 min 1 (turn) } else { on turnEnd { spend sae 1 } } } else { if yes v[sae] { spend sae 1; mod sae -1 min 1 (turn); on turnEnd { spend lio 1 } } }`
+- **Design:** Each side chooses whether to back the protesters; standing by scores nothing. Then one draw for each side that backs them, LIO's first, each from the deck of the side that played the card (owner, 21 Oct, R9 option B): on 3 or more, that side scores 1 but -1 Ops this turn; otherwise the uprising stalls: that side -1 Ops this turn only. If exactly one side backs them, the other scores 1 at turn end as the old order regroups, whatever the draws give (nested ifs).
+- **Playable:** `marker "the square"; ask both "Back the protesters?" -> v; if yes v[lio] { draw player -> dLio; if dLio >= 3 { spend lio 1; mod lio -1 min 1 (turn) } else { mod lio -1 min 1 (turn) }; if yes v[sae] { draw player -> dSae; if dSae >= 3 { spend sae 1; mod sae -1 min 1 (turn) } else { mod sae -1 min 1 (turn) } } else { on turnEnd { spend sae 1 } } } else { if yes v[sae] { draw player -> dSae; if dSae >= 3 { spend sae 1; mod sae -1 min 1 (turn) } else { mod sae -1 min 1 (turn) }; on turnEnd { spend lio 1 } } }`
 - **History:** Protests that began in Sidi Bouzid, Tunisia in December 2010 spread across the Arab world; Tunisia's president fled on 14 January 2011, Egypt's resigned on 11 February 2011, and Libya's was killed in October 2011.
 - **Theme:** populism, information · **Notion:** update `3fceb012942f816ca3d2cbd72a486695`
 
 ### e3-neu-002 · COVID-19 · neutral · Ops 3 · Split (both)
 
 - **Event:** A virus closes the world.
-- **Design:** Each side chooses: close the borders (that side 1 and -1 Ops this turn) or keep them open (that side 2 but the rival 1 as the outbreak spreads). Big Ops because the whole world stopped.
-- **Playable:** `marker "pandemic"; ask both "Close the borders?" -> v; if yes v[lio] { spend lio 1; mod lio -1 min 1 (turn) } else { spend lio 2; spend sae 1 }; if yes v[sae] { spend sae 1; mod sae -1 min 1 (turn) } else { spend sae 2; spend lio 1 }`
+- **Design:** Each side chooses: close the borders (that side 1 and -1 Ops this turn) or keep them open. Keeping them open makes a draw for that side, LIO's first, each from the deck of the side that played the card (owner, 21 Oct, R9 option B): on 3 or more, that side 2 but the rival 1 as the outbreak spreads; otherwise the outbreak hits home: the rival 1 only. Big Ops because the whole world stopped.
+- **Playable:** `marker "pandemic"; ask both "Close the borders?" -> v; if yes v[lio] { spend lio 1; mod lio -1 min 1 (turn) } else { draw player -> dLio; if dLio >= 3 { spend lio 2; spend sae 1 } else { spend sae 1 } }; if yes v[sae] { spend sae 1; mod sae -1 min 1 (turn) } else { draw player -> dSae; if dSae >= 3 { spend sae 2; spend lio 1 } else { spend lio 1 } }`
 - **History:** The World Health Organization declared COVID-19 a pandemic on 11 March 2020, when about 118,000 cases had been reported in 114 countries; millions of deaths followed worldwide.
 - **Theme:** pandemics · **Notion:** update `3fceb012942f8110aa71d0baf95b9275`
 
@@ -208,24 +208,24 @@ question 1), so they use choices instead. Redesigns that use draws are a follow-
 ### e3-neu-005 · Populist Wave · neutral · Ops 2 · Split (SAE)
 
 - **Event:** From the Brexit vote and Italy's populist coalition to the storming of the Capitol and of Brasília's seat of power, voters upend the establishment.
-- **Design:** SAE may amplify the turmoil online (SAE 1 and LIO -1 Ops this turn) or stand back (LIO 1 as institutions hold). The card judges no voter; see Owner questions.
-- **Playable:** `marker "ballot shock"; ask sae "Amplify it online?" -> v; if yes v { spend sae 1; mod lio -1 min 1 (turn) } else { spend lio 1 }`
+- **Design:** SAE may amplify the turmoil online or stand back (LIO 1 as institutions hold). Amplifying draws from the deck of the side that played the card (owner, 21 Oct, R9 option B): on 3 or more, SAE 1 and LIO -1 Ops this turn; otherwise the campaign is exposed: LIO 1. The card judges no voter; see Owner questions.
+- **Playable:** `marker "ballot shock"; ask sae "Amplify it online?" -> v; if yes v { draw player -> d; if d >= 3 { spend sae 1; mod lio -1 min 1 (turn) } else { spend lio 1 } } else { spend lio 1 }`
 - **History:** The United Kingdom voted to leave the European Union on 23 June 2016 by 51.9 per cent to 48.1, and on 1 June 2018 a coalition of the Five Star Movement and the League took office in Italy. On 6 January 2021 a crowd stormed the US Capitol during the certification of the presidential election; on 8 January 2023 supporters of Brazil's defeated former president stormed the country's Congress, Supreme Court and presidential palace.
 - **Theme:** populism and elections · **Notion:** update `3fceb012942f81b79b47c9c908c0c373` (was "Brexit", SAE; Jan 6 and 2000 election rows folded in; Italy 2018 and Brasília 2023 added by the owner, Owner question 15)
 
-### e3-neu-007 · AI Compute Race · neutral · Ops 2 · Split (LIO)
+### e3-neu-007 · AI Compute Race · neutral · Ops 2 · Gamble
 
 - **Event:** A chatbot reaches 100 million users; a cheap rival model wipes $600 billion off the leader.
-- **Design:** LIO leads (LIO 1); it may tighten the compute controls (LIO 1 more, but SAE 1 as the rival learns to do more with less) or let the market run (SAE 1).
-- **Playable:** `marker "compute race"; spend lio 1; ask lio "Tighten compute controls?" -> v; if yes v { spend lio 1; spend sae 1 } else { spend sae 1 }`
+- **Design:** LIO 1, SAE 1, then a draw from the deck of the side that played the card: on 4 or more, the controls bite: LIO 1 more; otherwise nothing more. The choice was removed (owner, 21 Oct, R9 option B).
+- **Playable:** `marker "compute race"; spend lio 1; spend sae 1; draw player -> d; if d >= 4 { spend lio 1 }`
 - **History:** ChatGPT launched on 30 November 2022 and was estimated to have reached 100 million monthly users by January 2023; on 27 January 2025, after the Chinese company DeepSeek released a low-cost model, Nvidia's shares fell about 17 per cent, losing nearly $600 billion in value.
 - **Theme:** AI and technology · **Notion:** update `3fceb012942f819ea8cbc7011590fa3d`
 
 ### e3-neu-008 · Tariff Shock · neutral · Ops 2 · Split (SAE)
 
 - **Event:** The U.S. President declares "Liberation Day" and taxes imports from everywhere.
-- **Design:** LIO -1 Ops this turn; SAE may retaliate (SAE 1 but -1 Ops too) or hold fire and court the rest of the world (SAE 1 at turn end). Roles only: names no person.
-- **Playable:** `marker "tariff wall"; mod lio -1 min 1 (turn); ask sae "Retaliate?" -> v; if yes v { spend sae 1; mod sae -1 min 1 (turn) } else { on turnEnd { spend sae 1 } }`
+- **Design:** First a draw from the deck of the side that played the card (owner, 21 Oct, R9 option B): on 3 or more, LIO -1 Ops this turn; otherwise the tariffs are paused: no LIO penalty. Then SAE may retaliate (SAE 1 but -1 Ops too) or hold fire and court the rest of the world (SAE 1 at turn end). Roles only: names no person.
+- **Playable:** `marker "tariff wall"; draw player -> d; if d >= 3 { mod lio -1 min 1 (turn) }; ask sae "Retaliate?" -> v; if yes v { spend sae 1; mod sae -1 min 1 (turn) } else { on turnEnd { spend sae 1 } }`
 - **History:** On 2 April 2025 the U.S. President announced a 10 per cent tariff on imports from almost all countries, effective 5 April, with higher rates for many trading partners announced for 9 April; the rates changed repeatedly in the following months.
 - **Theme:** supply chains, finance · **Notion:** update `3fceb012942f816887d1e8e9b0bc1aee` (TPP and "Return of Trump" rows folded in)
 
