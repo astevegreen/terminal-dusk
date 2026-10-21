@@ -9,8 +9,8 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 ### e3-lio-001 · Stuxnet · LIO · Ops 2 · Gamble
 
 - **Event:** A worm wrecks Iranian centrifuges; nobody admits writing it.
-- **Design:** The sabotage works (LIO 2) or the weapon escapes and everyone learns from it (SAE 1, a "cyberweapon loose" tag W3).
-- **Playable:** `draw lio -> d; if d >= 3 { marker "centrifuges spin apart"; spend lio 2 } else { marker "cyberweapon loose"; spend sae 1 }`
+- **Design:** The sabotage works (LIO 2) or the weapon escapes and everyone learns from it (SAE 1, a "cyberweapon loose" tag W3). Reads the "programme revealed" tag (Natanz Revealed, W3): if it is recorded, the sabotage works on 2 or more instead of 3 or more, as the target is known (owner, 21 Oct).
+- **Playable:** `draw lio -> d; if has "programme revealed" { if d >= 2 { marker "centrifuges spin apart"; spend lio 2 } else { marker "cyberweapon loose"; spend sae 1 } } else { if d >= 3 { marker "centrifuges spin apart"; spend lio 2 } else { marker "cyberweapon loose"; spend sae 1 } }`
 - **History:** The Stuxnet worm, discovered in June 2010, damaged uranium-enrichment centrifuges at Iran's Natanz plant; no government has officially acknowledged creating it.
 - **Theme:** cyber · **Notion:** update `3fceb012942f8102880ce90256a71ff3`
 
@@ -65,8 +65,8 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 ### e3-lio-013 · Fall of the Assad Regime · LIO · Ops 2 · Swing
 
 - **Event:** Damascus falls in eleven days and Russia's Mediterranean bases hang by a thread.
-- **Design:** LIO 2 and SAE -1 Ops this turn: a client lost.
-- **Playable:** `marker "foothold lost"; spend lio 2; mod sae -1 min 1 (turn)`
+- **Design:** LIO 2 and SAE -1 Ops this turn: a client lost. Reads the "proxy war" tag (Syrian Intervention, W3): if it is recorded, LIO 3 instead of 2, as SAE had a client to lose. The card only reads the tag; it does not remove it (owner, 21 Oct).
+- **Playable:** `marker "foothold lost"; if has "proxy war" { spend lio 3 } else { spend lio 2 }; mod sae -1 min 1 (turn)`
 - **History:** Syrian rebel forces took Damascus on 8 December 2024 and President Bashar al-Assad fled to Russia, ending more than fifty years of his family's rule; the future of Russia's air and naval bases in Syria became uncertain.
 - **Theme:** proxy wars · **Notion:** update `3fceb012942f81af9c28e803d68d0ffa`
 
@@ -91,8 +91,8 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 ### e3-sae-003 · Annexation of Crimea · SAE · Ops 3 · Hold
 
 - **Event:** Unmarked soldiers, a two-week referendum and a redrawn border.
-- **Design:** SAE 3; LIO 1 at turn end as sanctions begin. Would cash in the "hollow assurance" and "precedent" tags (W3).
-- **Playable:** `marker "borders redrawn"; spend sae 3; on turnEnd { spend lio 1 }`
+- **Design:** SAE 3; LIO 1 at turn end as sanctions begin. Reads the "hollow assurance" (Budapest Memorandum) and "precedent set" (Kosovo Declares Independence) tags (W3): if either or both is recorded, SAE 4 instead of 3, once (owner, 21 Oct).
+- **Playable:** `marker "borders redrawn"; if has "hollow assurance" { spend sae 4 } else { if has "precedent set" { spend sae 4 } else { spend sae 3 } }; on turnEnd { spend lio 1 }`
 - **History:** Russian forces took control of Crimea in late February 2014; after a referendum on 16 March 2014 Russia annexed the peninsula on 18 March, and the UN General Assembly declared the referendum invalid on 27 March 2014.
 - **Theme:** gray-zone, proxy wars · **Notion:** update `3fceb012942f8126818be1c71b7818e1`
 
@@ -124,7 +124,7 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 
 - **Event:** Russian jets save a client and Russia returns to the Middle East.
 - **Design:** SAE 2 now and 1 at turn end; a "foothold" tag that Assad's fall removes (W1, W3).
-- **Playable:** `marker "proxy war"; spend sae 2; on turnEnd { spend sae 1 }`
+- **Playable:** `marker "proxy war" lasting; spend sae 2; on turnEnd { spend sae 1 }`
 - **History:** Russia began air strikes in Syria on 30 September 2015 in support of the Assad government, its first major military operation outside the former Soviet Union since the Cold War.
 - **Theme:** proxy wars · **Notion:** update `3fceb012942f8115abd1c8c2714da8f8`
 
@@ -147,8 +147,8 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 ### e3-sae-011 · Hong Kong Security Law · SAE · Ops 2 · Split (LIO)
 
 - **Event:** The 50-year promise ends after 23.
-- **Design:** SAE 2; LIO may sanction (LIO 1 now, SAE 1 at turn end as it shrugs them off) or not.
-- **Playable:** `marker "promise ended"; spend sae 2; ask lio "Impose sanctions?" -> v; if yes v { spend lio 1; on turnEnd { spend sae 1 } } else { marker "no sanctions" }`
+- **Design:** SAE 2; LIO may sanction (LIO 1 now, SAE 1 at turn end as it shrugs them off) or not. Reads the "one country, two systems" tag (Handover of Hong Kong, W3): if it is recorded, SAE 3 instead of 2. The card only reads the tag; it does not close it (owner, 21 Oct).
+- **Playable:** `marker "promise ended"; if has "one country, two systems" { spend sae 3 } else { spend sae 2 }; ask lio "Impose sanctions?" -> v; if yes v { spend lio 1; on turnEnd { spend sae 1 } } else { marker "no sanctions" }`
 - **History:** China's national security law for Hong Kong was passed and took effect on 30 June 2020, criminalising secession, subversion, terrorism and collusion with foreign forces.
 - **Theme:** gray-zone · **Notion:** create
 
@@ -200,8 +200,8 @@ question 1), so they use choices instead. Redesigns that use draws are a follow-
 ### e3-neu-004 · Migration Crises · neutral · Ops 1 · Hold
 
 - **Event:** A million people cross the Mediterranean in one year, and millions more leave Venezuela.
-- **Design:** LIO -1 Ops this turn under the strain; LIO 1 at turn end as the arrivals are absorbed. Would read a "proxy war" tag (W3).
-- **Playable:** `marker "a million arrivals"; mod lio -1 min 1 (turn); on turnEnd { spend lio 1 }`
+- **Design:** LIO -1 Ops this turn under the strain; LIO 1 at turn end as the arrivals are absorbed. Reads the "proxy war" tag (Syrian Intervention, W3): if it is recorded, no LIO 1 at turn end, as the arrivals are not absorbed in time (owner, 21 Oct).
+- **Playable:** `marker "a million arrivals"; mod lio -1 min 1 (turn); if has "proxy war" { } else { on turnEnd { spend lio 1 } }`
 - **History:** In 2015 just over one million refugees and migrants reached Europe by sea, more than 800,000 of them via Greece, and about half of them from Syria; at least 3,700 died or went missing at sea. By 2024 more than 7 million people had left Venezuela since its economic collapse began in 2014, most of them for other Latin American countries.
 - **Theme:** migration · **Notion:** update `3fceb012942f815a99d4d82893c377f3` (side changed from SAE to neutral; renamed from "Migration Crisis 2015" and Venezuela added by the owner, Owner question 21)
 

@@ -57,6 +57,6 @@ describe("playCard: the numbers drawn", () => {
   });
 
   it("keeps the draw option working", () => {
-    expect(playCard("e1-lio-004", { yes: { sae: true }, draw: 4 })).toContain("draw:lio:4");
+    expect(playCard("e1-lio-004", { yes: { sae: true }, draw: 4 })).toContain("draw:sae:4");
   });
 });

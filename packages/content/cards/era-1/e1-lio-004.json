@@ -30,15 +30,15 @@
       "then": [
         {
           "op": "drawContingency",
-          "side": "lio",
+          "side": "sae",
           "bind": "d"
         },
         {
           "op": "if",
           "cond": {
-            "op": "atMost",
+            "op": "atLeast",
             "var": "d",
-            "value": 3
+            "value": 4
           },
           "then": [
             {
@@ -67,7 +67,7 @@
   ],
   "text": {
     "name": "NATO Enlargement 1999",
-    "rules": "Record \"enlargement\". LIO spends 2 points. SAE chooses: Protest the enlargement? If yes, (draw from LIO's Contingency deck, then if the result is 3 or less, SAE spends 2 points; otherwise, LIO spends 1 point); if no, LIO spends 1 point.",
+    "rules": "Record \"enlargement\". LIO spends 2 points. SAE chooses: Protest the enlargement? If yes, (draw from SAE's Contingency deck, then if the result is 4 or more, SAE spends 2 points; otherwise, LIO spends 1 point); if no, LIO spends 1 point.",
     "history": "Poland, Hungary and the Czech Republic became NATO members on 12 March 1999 at a ceremony in Independence, Missouri, the first enlargement since the Cold War.",
     "art": "art/e1-lio-004"
   }

@@ -13,24 +13,24 @@ describeCard("e2-sae-002", "Curveball", [
     `,
   },
   {
-    it: "when LIO says yes and SAE draws 2",
+    it: "when LIO says yes and LIO draws 5",
     yes: { lio: true },
-    draw: 2,
+    draw: 5,
     story: `
       points:lio:2
-      draw:sae:2
+      draw:lio:5
       points:lio:2
       points:lio:2
       points:sae:2
     `,
   },
   {
-    it: "when LIO says yes and SAE draws 3",
+    it: "when LIO says yes and LIO draws 4",
     yes: { lio: true },
-    draw: 3,
+    draw: 4,
     story: `
       points:lio:2
-      draw:sae:3
+      draw:lio:4
       intelligence discredited
       points:sae:1
       mod:lio:-1:min1

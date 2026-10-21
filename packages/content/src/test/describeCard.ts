@@ -32,12 +32,18 @@ const said = (yes: boolean): string => (yes ? "yes" : "no");
 /**
  * The four cases of a card that asks both LIO and SAE yes or no: one story per pair of answers, keyed LIO first
  * (`yesNo` is "LIO says yes, SAE says no"). Each case is named "when LIO says yes and SAE says no" and so on, in
- * the order the keys are written.
+ * the order the keys are written. With `draw`, every case uses that number on top of each Contingency deck, and
+ * its name ends "and the draw is <draw>".
  */
-export function bothSidesAsked(stories: Readonly<Record<keyof typeof BOTH_ANSWERS, string>>): CardCase[] {
+export function bothSidesAsked(
+  stories: Readonly<Record<keyof typeof BOTH_ANSWERS, string>>,
+  draw?: number,
+): CardCase[] {
   return Object.entries(stories).map(([key, story]) => {
     const yes = BOTH_ANSWERS[key as keyof typeof BOTH_ANSWERS];
-    return { it: `when LIO says ${said(yes.lio)} and SAE says ${said(yes.sae)}`, yes: { ...yes }, story };
+    const it = `when LIO says ${said(yes.lio)} and SAE says ${said(yes.sae)}`;
+    if (draw === undefined) return { it, yes: { ...yes }, story };
+    return { it: `${it} and the draw is ${draw}`, yes: { ...yes }, draw, story };
   });
 }
 
