@@ -11,11 +11,17 @@ import { created } from "./match.ts";
 
 /**
  * Runs `define` with the stack's keys when the local stack answers. Otherwise one test says why the
- * checks did not run and how to start the stack, the way O3's migration test does.
+ * checks did not run and how to start the stack, the way O3's migration test does. `probe`, when given, is a
+ * further check once the stack answers (an Edge Function being served, say): why it can't be used, or null.
  */
-export async function onLocalStack(title: string, define: (keys: StackKeys) => void): Promise<void> {
+export async function onLocalStack(
+  title: string,
+  define: (keys: StackKeys) => void,
+  probe?: (keys: StackKeys) => Promise<string | null>,
+): Promise<void> {
   const keys = stackKeys();
-  const unavailable = await whyUnavailable(keys);
+  let unavailable = await whyUnavailable(keys);
+  if (unavailable === null && keys !== null && probe) unavailable = await probe(keys);
   if (unavailable === null && keys !== null) {
     describe(title, () => define(keys));
     return;
