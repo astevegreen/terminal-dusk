@@ -1,40 +1,47 @@
 // Test helpers: a small ruleset and seeded games, so the AI tests can make real views with the engine.
 import { apply, createGame, seedHash } from "@terminal-dusk/engine";
 import { seededRandom } from "../random.ts";
-import type { Answer, CardDef, Ruleset, Setup } from "@terminal-dusk/engine";
+import type { Answer, CardDef, GameEvent, Ruleset, Setup, Step } from "@terminal-dusk/engine";
 
 /** The full game record the engine makes, named by what createGame returns. */
 export type TestState = Extract<ReturnType<typeof createGame>, { ok: true }>["value"]["state"];
 
 const AFFILIATIONS: readonly CardDef["affiliation"][] = ["lio", "sae", "neutral"];
 
-/** Ninety cards: ops 0-4, affiliations in turn, and every fourth asks LIO a yes/no question. */
-export const ruleset: Ruleset = {
-  id: "ai-test",
-  cards: Array.from({ length: 90 }, (_, i) => ({
-    id: `c${i + 1}`,
-    era: "test",
-    ops: i % 5,
-    affiliation: AFFILIATIONS[i % 3]!,
-    effect:
-      i % 4 === 3
-        ? [{ op: "choose" as const, who: "lio" as const, decision: { kind: "yesNo" as const }, bind: "a" }]
-        : [],
-  })),
-};
+/** Ninety cards with ids `<prefix>1` to `<prefix>90`: ops 0-4, affiliations in turn, and card i's effect. */
+export function ninetyCards(id: string, prefix: string, effectOf: (i: number) => Step[]): Ruleset {
+  return {
+    id,
+    cards: Array.from({ length: 90 }, (_, i) => ({
+      id: `${prefix}${i + 1}`,
+      era: "test",
+      ops: i % 5,
+      affiliation: AFFILIATIONS[i % 3]!,
+      effect: effectOf(i),
+    })),
+  };
+}
 
-/** A game from `seed`: each side holds 2 x turns non-neutral cards and 2 neutral ones, with 10 in the pile. */
-export function newGame(seed: number, turns = 2): TestState {
+/** Ninety cards: ops 0-4, affiliations in turn, and every fourth asks LIO a yes/no question. */
+export const ruleset: Ruleset = ninetyCards("ai-test", "c", (i) =>
+  i % 4 === 3 ? [{ op: "choose", who: "lio", decision: { kind: "yesNo" }, bind: "a" }] : [],
+);
+
+/**
+ * A game of `rules` from `seed`, named `<name>-<seed>`: each side holds 2 x turns non-neutral cards and 2
+ * neutral ones, with 10 in the pile.
+ */
+export function dealGame(rules: Ruleset, name: string, seed: number, turns: number): TestState {
   const random = seededRandom(seed);
-  const ids = ruleset.cards.map((card) => card.id);
+  const ids = rules.cards.map((card) => card.id);
   for (let i = ids.length - 1; i > 0; i--) {
     const j = Math.floor(random() * (i + 1));
     [ids[i], ids[j]] = [ids[j]!, ids[i]!];
   }
-  const sided = ids.filter((id) => ruleset.cards.find((c) => c.id === id)!.affiliation !== "neutral");
+  const sided = ids.filter((id) => rules.cards.find((c) => c.id === id)!.affiliation !== "neutral");
   const rest = ids.filter((id) => !sided.slice(0, 4 * turns).includes(id));
   const setup: Setup = {
-    seedHash: seedHash(`ai-${seed}`),
+    seedHash: seedHash(`${name}-${seed}`),
     hands: {
       lio: [...sided.slice(0, 2 * turns), rest[0]!, rest[1]!],
       sae: [...sided.slice(2 * turns, 4 * turns), rest[2]!, rest[3]!],
@@ -44,16 +51,26 @@ export function newGame(seed: number, turns = 2): TestState {
     playsPerTurn: 1,
     // The smallest hand size: the dealt hands never drop below it, so these games draw no cards.
     handSize: 2,
-    contingency: { lio: [1, 2, 3, 3, 5], sae: [2, 4, 4, 6] },
+    contingency: { lio: [1, 2, 3, 3, 5], sae: [2, 4, 4, 6], world: [1, 1, 7, 8] },
   };
-  const made = createGame(ruleset, setup, `ai-${seed}`);
+  const made = createGame(rules, setup, `${name}-${seed}`);
   if (!made.ok) throw new Error(`createGame refused: ${made.error.code}`);
   return made.value.state;
 }
 
-/** Applies `answer`, failing the test if the engine refuses it. */
-export function applyAnswer(state: TestState, answer: Answer): TestState {
-  const r = apply(ruleset, state, answer);
+/** A game of `ruleset` from `seed`, dealt by dealGame. */
+export function newGame(seed: number, turns = 2): TestState {
+  return dealGame(ruleset, "ai", seed, turns);
+}
+
+/** Applies `answer` to a game of `rules`, failing the test if the engine refuses it; returns its events too. */
+export function applyTo(rules: Ruleset, state: TestState, answer: Answer): { state: TestState; events: GameEvent[] } {
+  const r = apply(rules, state, answer);
   if (!r.ok) throw new Error(`apply refused ${JSON.stringify(answer)}: ${r.error.code}`);
-  return r.value.state;
+  return r.value;
+}
+
+/** Applies `answer` to a game of `ruleset`, failing the test if the engine refuses it. */
+export function applyAnswer(state: TestState, answer: Answer): TestState {
+  return applyTo(ruleset, state, answer).state;
 }

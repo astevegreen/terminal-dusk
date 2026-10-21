@@ -4,7 +4,7 @@ export { createGame } from "./createGame.ts";
 export { legalAnswers, pendingFor } from "./decisions.ts";
 export { eventsFor } from "./events.ts";
 export { seedHash } from "./sha256.ts";
-export { SIDES } from "./types.ts";
+export { DECKS, SIDES } from "./types.ts";
 export { verifyGame } from "./verifyGame.ts";
 export { hiddenPart, reconstruct, viewFor } from "./views.ts";
 export type {
@@ -25,6 +25,7 @@ export type {
   Decision,
   DecisionKind,
   DecisionOptions,
+  DeckId,
   DrawPileReshuffled,
   Duration,
   EngineError,
@@ -37,6 +38,9 @@ export type {
   GameEvent,
   GameState,
   GameStatus,
+  CardsDiscarded,
+  HandRevealed,
+  HandRevealedHidden,
   HiddenCounts,
   HiddenPart,
   HookId,

@@ -94,7 +94,7 @@ const setup = (turns: number, playsPerTurn: number): Setup => {
     playsPerTurn,
     // The smallest hand size: each hand holds a card for every play, so no card is drawn.
     handSize: 1 + playsPerTurn,
-    contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6] },
+    contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6], world: [1, 2, 3, 4, 5, 6] },
   };
 };
 /** Plays every card for its event, in hand order: the first legal answer, preferring an event play. */

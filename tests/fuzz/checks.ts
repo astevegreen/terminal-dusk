@@ -1,6 +1,7 @@
 // The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite").
 // Each check throws an Error saying what is wrong; play.ts adds the game's seed and answers to it.
 import {
+  DECKS,
   eventsFor,
   hiddenPart,
   legalAnswers,
@@ -14,6 +15,7 @@ import {
 import type {
   Answer,
   CardId,
+  DeckId,
   GameEvent,
   GameState,
   ModifierExpiry,
@@ -24,10 +26,13 @@ import type {
   Viewer,
 } from "@terminal-dusk/engine";
 import { deepFreeze } from "./deepFreeze.ts";
+import { checkKnowledge } from "./knowledgeChecks.ts";
+import type { KnowledgeBefore } from "./knowledgeChecks.ts";
 import { checkHasBranches, checkMarkers } from "./markerChecks.ts";
 import { byCodeUnit } from "./order.ts";
 
 export { checkHasBranches, checkMarkers } from "./markerChecks.ts";
+export { checkKnowledge, knowledgeOf } from "./knowledgeChecks.ts";
 
 export const VIEWERS: readonly Viewer[] = ["lio", "sae", "spectator"];
 
@@ -44,16 +49,16 @@ export function attempt<T>(call: string, run: () => T): T {
 }
 
 /**
- * The game so far, for the lasting marker checks: the lasting markers before the step (null for the state
- * createGame made) and every event of the game in order, the step's own included.
+ * The game so far: the lasting markers before the step (null for the state createGame made), every event of the
+ * game in order, the step's own included, and each side's knowledge before the step (null for a new game).
  */
-export type History = { before: readonly string[] | null; allEvents: readonly GameEvent[] };
+export type History = { before: readonly string[] | null; allEvents: readonly GameEvent[]; knowledge: KnowledgeBefore };
 /** The history of the state createGame made, with no events. */
-export const NEW_GAME: History = { before: null, allEvents: [] };
+export const NEW_GAME: History = { before: null, allEvents: [], knowledge: null };
 
 /**
- * All the checks for one step: invariants 1, 3, 4 and 5, the Contingency decks, and the lasting markers and
- * `has` branches (markerChecks.ts). `events` are the ones that step produced.
+ * All the checks for one step: invariants 1, 3, 4 and 5, the Contingency decks, the lasting markers and `has`
+ * branches (markerChecks.ts), and knowledge and shown hands (knowledgeChecks.ts). `events` are the step's own.
  */
 export function checkStep(
   ruleset: Ruleset,
@@ -73,6 +78,7 @@ export function checkStep(
   checkRebuilds(state);
   checkMarkers(state, events, history.before);
   checkHasBranches(history.allEvents);
+  checkKnowledge(state, events, history.knowledge);
 }
 
 /** Invariant 1: while the game is active, some side has a pending decision with at least one legal answer. */
@@ -160,16 +166,19 @@ export function isSubMultiset(part: readonly number[], whole: readonly number[])
   });
 }
 
+/** A Contingency deck's name in a failure: "lio's Contingency deck", or "the World deck" (#131). */
+const deckName = (deck: DeckId): string => (deck === "world" ? "the World deck" : `${deck}'s Contingency deck`);
+
 /**
- * The Contingency decks (#64), for each side: the full contents are the setup's deck, sorted; the numbers
+ * The Contingency decks (#64), for each side and the World deck (#131): the full contents are the setup's deck, sorted; the numbers
  * left are the secret order, sorted, and a sub-multiset of the full contents; the deck holds at least 3
  * cards, so the engine never draws from fewer. The public lists are compared as they are, never re-sorted here, so a list in draw order is caught.
  */
 export function checkContingency(setup: Setup, state: GameState): void {
-  for (const side of SIDES) {
+  for (const side of DECKS) {
     const { cards, left } = state.public.contingency[side];
     const order = state.secret.contingency[side];
-    const deck = `${side}'s Contingency deck`;
+    const deck = deckName(side);
     if (!sameJson(cards, ascending(setup.contingency[side]))) {
       throw new Error(`${deck}: the full contents ${JSON.stringify(cards)} are not the setup's deck, sorted`);
     }
@@ -201,22 +210,28 @@ function contingencyFields(value: unknown, path: string): string[] {
 export function contingencyLeaksIn(view: PlayerView, state: GameState): string[] {
   const found: string[] = [];
   const { contingency, ...rest } = view.public;
-  for (const side of SIDES) {
+  for (const side of DECKS) {
     const keys = Object.keys(contingency[side]).sort(byCodeUnit);
-    if (!sameJson(keys, ["cards", "left"])) found.push(`${side}'s Contingency deck with the fields ${keys.join(", ")}`);
+    if (!sameJson(keys, ["cards", "left"])) found.push(`${deckName(side)} with the fields ${keys.join(", ")}`);
     if (contingency[side].left.length !== state.secret.contingency[side].length) {
-      found.push(`${side}'s Contingency deck with a count left that is not the secret order's`);
+      found.push(`${deckName(side)} with a count left that is not the secret order's`);
     }
   }
   const sides = Object.keys(contingency).sort(byCodeUnit);
-  if (!sameJson(sides, ["lio", "sae"])) found.push(`Contingency decks for ${sides.join(", ")}`);
+  if (!sameJson(sides, ["lio", "sae", "world"])) found.push(`Contingency decks for ${sides.join(", ")}`);
   for (const field of contingencyFields({ ...view, public: rest }, "view")) found.push(`the field ${field}`);
   return found;
 }
 
-/** The card IDs `viewer` may not see: the draw pile, the eras still to enter, and every hand but the viewer's own. */
+/**
+ * The card IDs `viewer` may not see: the draw pile, the eras still to enter, and every hand but the viewer's own,
+ * less the rival's cards in the viewer's own knowledge, which it was shown (#185).
+ */
 export function hiddenFrom(state: GameState, viewer: Viewer): CardId[] {
-  const hands = SIDES.filter((side) => side !== viewer).flatMap((side) => state.private[side].hand);
+  const known = viewer === "spectator" ? [] : state.private[viewer].knowledge;
+  const hands = SIDES.filter((side) => side !== viewer)
+    .flatMap((side) => state.private[side].hand)
+    .filter((card) => !known.includes(card));
   const waiting = state.secret.eras.flatMap((entry) => entry.cards);
   return [...state.secret.deck, ...waiting, ...hands];
 }

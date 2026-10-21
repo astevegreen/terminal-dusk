@@ -42,6 +42,6 @@ export const makeConfig = (): MatchConfig => ({
     // The smallest hand size: the dealt hands never drop below it, so these matches draw no cards.
     handSize: 2,
     eras: [{ era: "late", turn: 2, cards: [...LATE_ERA_CARDS] }],
-    contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6] },
+    contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6], world: [1, 2, 3, 4, 5, 6] },
   },
 });

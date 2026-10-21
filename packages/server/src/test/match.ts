@@ -44,7 +44,7 @@ const makeConfig = (matchId: string, players: MatchConfig["players"]): MatchConf
     playsPerTurn: 1,
     handSize: 2,
     eras: [{ era: "late", turn: 2, cards: [...LATE_ERA_CARDS] }],
-    contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6] },
+    contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6], world: [1, 2, 3, 4, 5, 6] },
   },
 });
 

@@ -16,8 +16,10 @@ import type {
   Side,
 } from "@terminal-dusk/engine";
 import { FUZZ_CARDS, MAX_ERA_CARDS, MAX_EXTRA, MAX_PILE, MAX_PLAYS, MAX_TURNS, ruleset } from "./cards.ts";
-import { attempt, checkStep, checkVerify, firstDifference } from "./checks.ts";
+import { attempt, checkStep, checkVerify, firstDifference, knowledgeOf } from "./checks.ts";
 import { deepFreeze } from "./deepFreeze.ts";
+import { checkPlayedBy, notePlay } from "./playedBy.ts";
+import type { PlayRecord } from "./playedBy.ts";
 import { checkPlayerDraws, notePlayer } from "./playerDraws.ts";
 import { seededRng } from "./random.ts";
 import type { Rng } from "./random.ts";
@@ -101,6 +103,8 @@ export function randomGame(rng: Rng, game: number): { setup: Setup; seed: Seed }
   // Drawn last, so it leaves every other part of a game's setup as it was before hands refilled.
   const firstEra = Math.floor((lio.length + sae.length + deck.length) / 2);
   const handSize = Math.min(1 + playsPerTurn + rng.int(MAX_HAND_EXTRA + 1), firstEra);
+  // The World deck (#131) is drawn after everything else, so the rest of each game's setup stays as it was.
+  const world = randomDeck(rng);
   return {
     setup: {
       seedHash: seedHash(`fuzz-${game}`),
@@ -111,7 +115,7 @@ export function randomGame(rng: Rng, game: number): { setup: Setup; seed: Seed }
       handSize,
       ...(eras.length > 0 ? { eras } : {}),
       // The decks are drawn after the rest, so they leave every other part of a game's setup as it was before #64.
-      contingency,
+      contingency: { ...contingency, world },
     },
     seed: `fuzz-${game}`,
   };
@@ -188,26 +192,31 @@ export function easyChooser(rules: Ruleset, side: Side, rng: Rng): Chooser {
  * Plays a game from `setup` and `seed`, answering with `choose` until the game ends. Checks invariants 1, 3,
  * 4 and 5 on the state from createGame and after every answer, then invariant 6 at the end. A game that
  * reached its end is also checked with verifyGame. Each step's announced draws from the player's deck must use
- * the deck of the side that last picked or played their card (playerDraws.ts).
+ * the deck of the side that last picked or played their card (playerDraws.ts), and each announced playedBy test
+ * must take exactly one branch, the one matching that side (playedBy.ts).
  */
 export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed, choose: Chooser): Played {
   const record: GameRecord = { setup: deepFreeze(setup), seed, answers: [] };
   const players = new Map<CardId, Side>();
+  const plays = new Map<CardId, PlayRecord>();
   try {
     let { state, events } = started(rules, setup, seed);
     const allEvents = [...events];
-    checkStep(rules, setup, state, events, seed, { before: null, allEvents });
+    checkStep(rules, setup, state, events, seed, { before: null, allEvents, knowledge: null });
     while (state.public.status.kind === "active") {
       if (record.answers.length >= MAX_ANSWERS) throw new Error(`the game is still going after ${MAX_ANSWERS} answers`);
       const answer = choose(state);
       if (answer === null) break;
       record.answers.push(deepFreeze(answer));
       notePlayer(players, answer);
+      notePlay(plays, rules, answer);
       const before = state.public.markers;
+      const knowledge = knowledgeOf(state);
       ({ state, events } = answered(rules, state, answer));
       allEvents.push(...events);
-      checkStep(rules, setup, state, events, seed, { before, allEvents });
+      checkStep(rules, setup, state, events, seed, { before, allEvents, knowledge });
       checkPlayerDraws(events, players);
+      checkPlayedBy(events, plays);
     }
     checkReplay(rules, record, state);
     // A recorded game may stop early; verifyGame only accepts a game that reached its end.

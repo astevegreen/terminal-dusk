@@ -109,7 +109,7 @@ describe("a lasting marker stays until the game ends", () => {
     playsPerTurn: 1,
     handSize: 2,
     eras: [{ era: "era2", turn: 2, cards: ["e1"] }],
-    contingency: { lio: [1, 2, 3], sae: [1, 2, 3] },
+    contingency: { lio: [1, 2, 3], sae: [1, 2, 3], world: [1, 2, 3] },
   };
 
   it("is kept through turn ends, a new era, refills and both reshuffles, to the last turn and after the game is over", () => {

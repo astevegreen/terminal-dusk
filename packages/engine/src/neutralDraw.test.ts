@@ -38,7 +38,7 @@ describe("a draw from the player's deck", () => {
     const other = player === "lio" ? "sae" : "lio";
     const r = runFor(player, [drawPlayer, marker("drew", "n")], s);
     expect(drawn(r.events)).toEqual([
-      { kind: "contingencyDrawn", visibility: "public", side: player, value: s.secret.contingency[player][0] },
+      { kind: "contingencyDrawn", visibility: "public", deck: player, value: s.secret.contingency[player][0] },
     ]);
     expect(markers(r.events)).toEqual([`drew:${s.secret.contingency[player][0]}`]);
     expect(r.state.secret.contingency[other]).toEqual(s.secret.contingency[other]);
@@ -49,7 +49,7 @@ describe("a draw from the player's deck", () => {
     const paused = runFor("lio", [choose("go", "sae"), ifYes("go", [drawPlayer])], s);
     const r = applied(paused.state, yesNoAnswer(paused.state, true, "sae"));
     expect(drawn(r.events)).toEqual([
-      { kind: "contingencyDrawn", visibility: "public", side: "lio", value: s.secret.contingency.lio[0] },
+      { kind: "contingencyDrawn", visibility: "public", deck: "lio", value: s.secret.contingency.lio[0] },
     ]);
     expect(r.state.secret.contingency.sae).toEqual(s.secret.contingency.sae);
   });
@@ -57,7 +57,7 @@ describe("a draw from the player's deck", () => {
   it("inside a forEach, reads who played the card from its program", () => {
     const s = startAtPlay();
     const r = runFor("sae", [forEach(["a", "b"], "x", [drawPlayer])], s);
-    expect(drawn(r.events).map((e) => e.kind === "contingencyDrawn" && e.side)).toEqual(["sae", "sae"]);
+    expect(drawn(r.events).map((e) => e.kind === "contingencyDrawn" && e.deck)).toEqual(["sae", "sae"]);
   });
 
   it("returns invalidProgram when nothing says who played the card", () => {
@@ -73,7 +73,7 @@ describe("a draw from the player's deck", () => {
     expect(set.state.public.triggers).toMatchObject([{ source: "n1", player: "lio" }]);
     const events = playOutTurn(set.state);
     expect(drawn(events)).toEqual([
-      { kind: "contingencyDrawn", visibility: "public", side: "lio", value: s.secret.contingency.lio[0] },
+      { kind: "contingencyDrawn", visibility: "public", deck: "lio", value: s.secret.contingency.lio[0] },
     ]);
   });
 });

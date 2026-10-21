@@ -60,6 +60,6 @@ export const fixtureConfig: MatchConfig = {
     playsPerTurn: 2,
     // The smallest hand size: the dealt hands never drop below it, so this game draws no cards.
     handSize: 3,
-    contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6] },
+    contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6], world: [1, 2, 3, 4, 5, 6] },
   },
 };

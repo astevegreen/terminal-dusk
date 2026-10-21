@@ -10,7 +10,7 @@ import { FIRST_DECK_CARDS } from "../firstDeckRules.ts";
 export type PlayOptions = {
   /** What each side answers when its yes/no question comes up. A missing answer fails the test. */
   yes?: Partial<Record<Side, boolean>>;
-  /** The number on top of the Contingency deck of both sides, so the draw is known. Default: decks 1 to 6. */
+  /** The number on top of every Contingency deck, so the draw is known. Default: decks 1 to 6. */
   draw?: number;
 };
 
@@ -38,7 +38,7 @@ export function story(events: readonly GameEvent[]): string[] {
       case "pointsSpent":
         return [`points:${e.side}:${e.amount}`];
       case "contingencyDrawn":
-        return [`draw:${e.side}:${e.value}`];
+        return [`draw:${e.deck}:${e.value}`];
       case "modifierStarted":
         return [modText(e.mod)];
       case "triggerSet":
@@ -80,7 +80,7 @@ export function playCard(id: CardId, options: PlayOptions = {}): string[] {
       turns: 1,
       playsPerTurn: 2,
       handSize: 3,
-      contingency: { lio: deckOf, sae: deckOf },
+      contingency: { lio: deckOf, sae: deckOf, world: deckOf },
     },
     "card-test",
   );

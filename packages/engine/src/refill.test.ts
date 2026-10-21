@@ -29,7 +29,7 @@ const setup = (over: Partial<Setup> = {}): Setup => ({
   turns: 2,
   playsPerTurn: 1,
   handSize: 3,
-  contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6] },
+  contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6], world: [1, 2, 3, 4, 5, 6] },
   ...over,
 });
 
