@@ -1,7 +1,7 @@
 // Test helper: where a real card ends up once a one-turn game is over, by the way it was used. It proves a
 // once-only card (flags.removeAfterEvent) leaves the game whenever its event happens, and is discarded otherwise.
 import { apply } from "@terminal-dusk/engine";
-import type { Answer, CardId, GameState, Side } from "@terminal-dusk/engine";
+import type { Answer, CardId, Side } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { startCardGame } from "./playCard.ts";
 
@@ -11,13 +11,14 @@ import { startCardGame } from "./playCard.ts";
  */
 export type CardUse = "event" | "points" | "rivalPoints" | "opening";
 
-/** Where a card is: "removed", "discard", "inPlay", "hand", "deck", or "nowhere". */
-export function placeOf(state: GameState, card: CardId): string {
+/** The public piles a finished card can be in. */
+type PublicPiles = { public: { removed: readonly CardId[]; discard: readonly CardId[]; inPlay: readonly CardId[] } };
+
+/** Where a card is, from the public piles only: "removed", "discard", "inPlay", or "elsewhere". */
+export function placeOf(state: PublicPiles, card: CardId): string {
   if (state.public.removed.includes(card)) return "removed";
   if (state.public.discard.includes(card)) return "discard";
-  if (state.public.inPlay.includes(card)) return "inPlay";
-  if (state.private.lio.hand.includes(card) || state.private.sae.hand.includes(card)) return "hand";
-  return state.secret.deck.includes(card) ? "deck" : "nowhere";
+  return state.public.inPlay.includes(card) ? "inPlay" : "elsewhere";
 }
 
 const rivalOf = (side: Side): Side => (side === "lio" ? "sae" : "lio");

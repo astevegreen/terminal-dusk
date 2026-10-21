@@ -311,7 +311,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/src/test/cardEnds.ts` - Test helper: where a real card ends up once a one-turn game is over, by the way it was used. Exports: CardUse, placeOf, whereCardEnds, describeOnceOnly.
 - `packages/content/src/test/describeCard.ts` - Test helper for the card test files: each file lists its card's cases as data, and this turns every case into one test that plays the real card (playCard) and… Exports: CardCase, storyLines, bothSidesAsked, describeCard.
 - `packages/content/src/test/eraChecks.ts` - Test helpers shared by the era tests (era1.test.ts, era2.test.ts, era3.test.ts): the checks every era makes of its own cards, and the TEST-scenario game with t… Exports: byText, byNumber, REMOVED_CARDS, ADDED_CARDS, eraDeckChecks, opsSpread, startEraOneGame.
-- `packages/content/src/test/playCard.ts` - Test helper: plays one real card through the real engine and tells what happened, in a short story. Exports: PlayOptions, story, CardGame, startCardGame, playCard.
+- `packages/content/src/test/playCard.ts` - Test helper: plays one real card through the real engine and tells what happened, in a short story. Exports: PlayOptions, story, startCardGame, playCard.
 - `packages/content/tsconfig.json`
 
 ## packages/engine - Pure rules engine: game state, decisions, events and views. Imports nothing outside itself.

@@ -3,7 +3,7 @@
 // the first of its plays; every other play is a plain filler card of ops 2 played for points, so the story also
 // shows what the card leaves behind: modifiers, then triggers that fire after later plays and at the end of the turn.
 import { apply, createGame, seedHash } from "@terminal-dusk/engine";
-import type { Answer, CardDef, CardId, GameEvent, GameState, Ruleset, Side } from "@terminal-dusk/engine";
+import type { Answer, CardDef, CardId, GameEvent, Ruleset, Side } from "@terminal-dusk/engine";
 import { cardDef } from "../era1.ts";
 import { FIRST_DECK_CARDS } from "../firstDeckRules.ts";
 
@@ -50,14 +50,12 @@ export function story(events: readonly GameEvent[]): string[] {
   });
 }
 
-/** A one-turn card-test game: the ruleset, the opening state, and the card's owner (LIO for a neutral card). */
-export type CardGame = { ruleset: Ruleset; state: GameState; owner: Side };
-
 /**
  * Starts the one-turn game that plays first-deck card `id` (the real file): each side holds its four fillers, and
- * `holder` (default: the card's owner; else its rival) also holds the card.
+ * `holder` (default: the card's owner; else its rival) also holds the card. Returns the ruleset, the opening
+ * state, and the card's owner (LIO for a neutral card).
  */
-export function startCardGame(id: CardId, options: PlayOptions = {}, holder: "owner" | "rival" = "owner"): CardGame {
+export function startCardGame(id: CardId, options: PlayOptions = {}, holder: "owner" | "rival" = "owner") {
   const card = FIRST_DECK_CARDS.find((c) => c.id === id);
   if (!card) throw new Error(`no first-deck card ${id}`);
   const owner: Side = card.affiliation === "sae" ? "sae" : "lio";
