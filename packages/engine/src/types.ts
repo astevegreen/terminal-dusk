@@ -264,8 +264,8 @@ export type PublicState = {
    * card being played. A card goes to the discard pile once everything it triggered has finished.
    */
   inPlay: CardId[];
-  /** Who picked or played each card in `inPlay`, in the same order. */
-  inPlayBy: Side[];
+  /** Who picked or played each card in `inPlay`, in the same order; null for a card played for points only. */
+  inPlayBy: (Side | null)[];
   discard: CardId[];
   /** Open decisions, in SIDES order. */
   pending: Decision[];

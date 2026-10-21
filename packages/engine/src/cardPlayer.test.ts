@@ -167,3 +167,27 @@ describe("an LIO card picked or played by SAE records SAE, and still draws from 
     untouched(s, turn.state, "sae");
   });
 });
+
+describe("a card played for its points with no event records nothing", () => {
+  // LIO's n1 sets a cardPlayed trigger that pauses on a choose, so SAE's card is still in play when read.
+  const pauseOnPlay: Step = {
+    op: "trigger",
+    hook: "cardPlayed",
+    do: [choose("go", "lio")],
+    duration: { kind: "turnEnd" },
+  };
+  const rs = withCards(card("n1", 1, [pauseOnPlay]), card("n2", 1, []));
+
+  it.each([
+    ["SAE's own card for its points", "s2", "points", null],
+    ["a neutral card for its points", "n2", "points", null],
+    ["a neutral card for its event", "n2", "event", "sae"],
+  ] as const)("SAE plays %s", (_case, played, as, recorded) => {
+    const s = startGame(2, 1, rs);
+    const atPlay = openWith(s, "l1", "s1", rs).state;
+    const lioPlayed = applied(atPlay, playAnswer(atPlay, "lio", "n1", "event"), rs).state;
+    const paused = applied(lioPlayed, playAnswer(lioPlayed, "sae", played, as), rs).state;
+    expect(paused.public.inPlay).toEqual([played]);
+    expect(paused.public.inPlayBy).toEqual([recorded]);
+  });
+});

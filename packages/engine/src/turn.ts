@@ -132,13 +132,21 @@ function endTurn(state: GameState, events: GameEvent[], budget: Budget): EngineE
  */
 function startEvent(ruleset: Ruleset, state: GameState, events: GameEvent[], budget: Budget): EngineError | null {
   const id = state.public.inPlay[0]!;
-  return runProgram(state, cardOf(ruleset, id)?.effect ?? [], events, budget, id, state.public.inPlayBy[0]);
+  return runProgram(
+    state,
+    cardOf(ruleset, id)?.effect ?? [],
+    events,
+    budget,
+    id,
+    state.public.inPlayBy[0] ?? undefined,
+  );
 }
 
 /**
  * `side` plays a card: it leaves the hand for `inPlay` at once. Your own card or a neutral card runs its
  * event or spends its points; a rival's card waits for its rivalEventOrder answer. An event records
- * `side` as its player; a play for points with no event records none.
+ * `side` as its player (a rival's card always has its event); a play for points with no event records
+ * nothing (null in `inPlayBy`).
  */
 function play(
   ruleset: Ruleset,
@@ -149,16 +157,18 @@ function play(
   budget: Budget,
 ): EngineError | null {
   removeFromHand(state, side, value.card);
-  state.public.inPlay = [value.card];
-  state.public.inPlayBy = [side];
-  state.public.playsMade += 1;
   const card = cardOf(ruleset, value.card);
-  if (whoseCard(card, side) === "rival") {
+  const rival = whoseCard(card, side) === "rival";
+  const player = rival || value.as === "event" ? side : null;
+  state.public.inPlay = [value.card];
+  state.public.inPlayBy = [player];
+  state.public.playsMade += 1;
+  if (rival) {
     state.public.pending = [newDecision(state.meta.seq, side, "rivalEventOrder")];
     return null;
   }
   const steps = value.as === "event" ? (card?.effect ?? []) : [spendPoints(side, card?.ops ?? 0)];
-  return runProgram(state, steps, events, budget, value.card, value.as === "event" ? side : undefined);
+  return runProgram(state, steps, events, budget, value.card, player ?? undefined);
 }
 
 /**
