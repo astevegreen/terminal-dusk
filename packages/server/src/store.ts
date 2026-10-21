@@ -2,6 +2,8 @@
 // The secret is passed through unopened: server code never looks inside the game state.
 import type { Viewer } from "@terminal-dusk/engine";
 import type { Frame, MatchRecord, MatchSecret } from "@terminal-dusk/host";
+import type { ReadStore, StoredRows } from "./read.ts";
+import { rowsFor } from "./rows.ts";
 
 /** What `load` gives: the readable record and the server-only secret. */
 export type LoadedMatch = { record: MatchRecord; secret: MatchSecret };
@@ -22,13 +24,19 @@ export interface MatchStore {
 
 const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
-/** A `MatchStore` held in memory. It keeps copies, so callers cannot change what is stored by accident. */
-export class MemoryStore implements MatchStore {
+/**
+ * A `MatchStore` held in memory. It keeps copies, so callers cannot change what is stored by accident.
+ * Alongside each match it keeps the readable rows (rows.ts): every write replaces the `match` row and
+ * the three `match_view` rows, and adds three `match_event` rows.
+ */
+export class MemoryStore implements MatchStore, ReadStore {
   readonly #matches = new Map<string, MatchWrite>();
+  readonly #rows = new Map<string, StoredRows>();
 
-  /** Puts in a match just made by `hostCreate` (seq 0). Creating matches through the port is a later task. */
+  /** Puts in a match just made by `hostCreate` (seq 0), with its seq 0 rows. Creating through the port is a later task. */
   insert(matchId: string, write: MatchWrite): void {
     this.#matches.set(matchId, copy(write));
+    this.#rows.set(matchId, rowsFor(write));
   }
 
   /** A copy of everything stored for the match, frames included, or `null`. For tests. */
@@ -44,8 +52,17 @@ export class MemoryStore implements MatchStore {
 
   async commit(matchId: string, expectedSeq: number, write: MatchWrite): Promise<CommitResult> {
     const found = this.#matches.get(matchId);
-    if (!found || found.record.seq !== expectedSeq) return "conflict";
+    const rows = this.#rows.get(matchId);
+    if (!found || !rows || found.record.seq !== expectedSeq) return "conflict";
+    const next = rowsFor(write);
     this.#matches.set(matchId, copy(write));
+    this.#rows.set(matchId, { match: next.match, views: next.views, events: [...rows.events, ...next.events] });
     return "saved";
+  }
+
+  /** A copy of the match's readable rows, or `null`. It holds nothing from the secret. */
+  async rows(matchId: string): Promise<StoredRows | null> {
+    const found = this.#rows.get(matchId);
+    return found ? copy(found) : null;
   }
 }
