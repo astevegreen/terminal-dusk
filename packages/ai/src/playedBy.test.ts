@@ -40,6 +40,8 @@ function playPlayedByGame(seed: number, into: Played): void {
     name: `game ${seed}`,
     applied: (before, _after, events, answer) => {
       into.pending.push(before);
+      // playEasy only sends answers that carry a value.
+      if (!("value" in answer)) throw new Error("an answer with no value");
       const play = playOf(answer.value);
       if (play !== null) plays.set(play.card, { by: answer.side, how: play.how });
       if (answer.value.kind === "yesNo") into.yesNoBy.add(answer.side);
