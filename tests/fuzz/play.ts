@@ -16,7 +16,7 @@ import type {
   Side,
 } from "@terminal-dusk/engine";
 import { FUZZ_CARDS, MAX_ERA_CARDS, MAX_EXTRA, MAX_PILE, MAX_PLAYS, MAX_TURNS, ruleset } from "./cards.ts";
-import { attempt, checkStep, checkVerify, firstDifference } from "./checks.ts";
+import { attempt, checkStep, checkVerify, firstDifference, knowledgeOf } from "./checks.ts";
 import { deepFreeze } from "./deepFreeze.ts";
 import { checkPlayedBy, notePlay } from "./playedBy.ts";
 import type { PlayRecord } from "./playedBy.ts";
@@ -202,7 +202,7 @@ export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed
   try {
     let { state, events } = started(rules, setup, seed);
     const allEvents = [...events];
-    checkStep(rules, setup, state, events, seed, { before: null, allEvents });
+    checkStep(rules, setup, state, events, seed, { before: null, allEvents, knowledge: null });
     while (state.public.status.kind === "active") {
       if (record.answers.length >= MAX_ANSWERS) throw new Error(`the game is still going after ${MAX_ANSWERS} answers`);
       const answer = choose(state);
@@ -211,9 +211,10 @@ export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed
       notePlayer(players, answer);
       notePlay(plays, rules, answer);
       const before = state.public.markers;
+      const knowledge = knowledgeOf(state);
       ({ state, events } = answered(rules, state, answer));
       allEvents.push(...events);
-      checkStep(rules, setup, state, events, seed, { before, allEvents });
+      checkStep(rules, setup, state, events, seed, { before, allEvents, knowledge });
       checkPlayerDraws(events, players);
       checkPlayedBy(events, plays);
     }

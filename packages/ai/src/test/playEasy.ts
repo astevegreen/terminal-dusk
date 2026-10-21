@@ -15,8 +15,8 @@ export type EasyOptions = {
   name?: string;
   /** Called with the milliseconds each answer took. */
   timed?: (ms: number) => void;
-  /** Called after each answer with the state it answered, the state after it and the events it made. */
-  applied?: (before: TestState, after: TestState, events: GameEvent[]) => void;
+  /** Called after each answer with the state it answered, the state after it, the events it made and the answer. */
+  applied?: (before: TestState, after: TestState, events: GameEvent[], answer: Answer) => void;
 };
 
 /**
@@ -42,8 +42,9 @@ export function playEasy(
     expect(value).not.toBeNull();
     expect(legalAnswers(rules, before, side)).toContainEqual(value);
     const decision = before.public.pending.find((d) => d.side === side)!;
-    const after = applyTo(rules, before, { decisionId: decision.id, side, value: value! } satisfies Answer);
-    options.applied?.(before, after.state, after.events);
+    const answer: Answer = { decisionId: decision.id, side, value: value! };
+    const after = applyTo(rules, before, answer);
+    options.applied?.(before, after.state, after.events, answer);
     state = after.state;
   }
   return state;

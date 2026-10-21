@@ -4,6 +4,7 @@ import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { tempRepo, writeFiles } from "../hooks/test-helpers.mjs";
+import { selectStages } from "./gate.mjs";
 
 // A throwaway repository with a copy of the gate and two tool tests that always fail: one outside
 // tools/hooks/ and one at the top of tools/. If the "tool tests" stage runs, the gate fails and names both.
@@ -78,4 +79,59 @@ test("with no skipped tests the skipped tests stage passes silently", () => {
   const r = gate(repo);
   assert.equal(r.status, 0, r.stdout + r.stderr);
   assert.equal(r.stdout, "");
+});
+
+// A workspace laid out like the real one: each package.json names its workspace dependencies, and the
+// root has the fuzz and golden scripts. The dependency graph is the one the packages have today.
+const manifest = (name, dependencies = {}, devDependencies = {}) =>
+  JSON.stringify({ name: `@terminal-dusk/${name}`, dependencies, devDependencies });
+const ws = (...names) => Object.fromEntries(names.map((n) => [`@terminal-dusk/${n}`, "workspace:*"]));
+const workspaceRoot = () =>
+  tempRepo({
+    "package.json": JSON.stringify({ scripts: { "fuzz:quick": "x", "golden:check": "x", boundaries: "x" } }),
+    "pnpm-workspace.yaml": "packages:\n  - packages/*\n",
+    "packages/engine/package.json": manifest("engine"),
+    "packages/content/package.json": manifest("content", ws("engine")),
+    "packages/host/package.json": manifest("host", ws("engine", "content")),
+    "packages/ai/package.json": manifest("ai", ws("engine", "content")),
+    "packages/app/package.json": manifest("app", { ...ws("ai", "engine", "host"), react: "^19.0.0" }),
+    "packages/server/package.json": manifest("server", ws("engine", "content", "host")),
+    "packages/docs/package.json": manifest("docs"),
+  });
+const command = (stages, name) => stages.find(([stage]) => stage === name)?.[1] ?? null;
+const filtered = (stages) => [...(command(stages, "type check") ?? "").matchAll(/--filter "\.\/([^"]+)"/g)].map((m) => m[1]);
+
+test("a change to the engine also checks every package that depends on it", () => {
+  const stages = selectStages(workspaceRoot(), ["packages/engine/src/rng.ts"]);
+  const expected = ["packages/ai", "packages/app", "packages/content", "packages/engine", "packages/host", "packages/server"];
+  assert.deepEqual(filtered(stages).sort(), expected);
+  for (const stage of ["lint", "unit and card tests"])
+    assert.equal(command(stages, stage)?.replace(/ \w+$/, ""), command(stages, "type check").replace(/ \w+$/, ""), stage);
+});
+
+test("a change to host also checks app and server, but not the packages host depends on", () => {
+  const stages = selectStages(workspaceRoot(), ["packages/host/src/match.ts"]);
+  assert.deepEqual(filtered(stages).sort(), ["packages/app", "packages/host", "packages/server"]);
+});
+
+test("a dependency listed only in devDependencies counts too", () => {
+  const root = workspaceRoot();
+  writeFiles(root, { "packages/docs/package.json": manifest("docs", {}, ws("app")) });
+  assert.deepEqual(filtered(selectStages(root, ["packages/app/src/App.tsx"])).sort(), ["packages/app", "packages/docs"]);
+});
+
+test("a package nothing depends on checks only itself", () => {
+  assert.deepEqual(filtered(selectStages(workspaceRoot(), ["packages/server/src/submit.ts"])), ["packages/server"]);
+});
+
+test("a change under tests/ alone runs the quick fuzz and the golden replays", () => {
+  const stages = selectStages(workspaceRoot(), ["tests/fuzz/cards.test.ts"]);
+  assert.equal(command(stages, "quick fuzz"), "pnpm run fuzz:quick");
+  assert.equal(command(stages, "golden replays"), "pnpm run golden:check");
+});
+
+test("a docs-only change runs no fuzz", () => {
+  const stages = selectStages(workspaceRoot(), ["docs/notes.md"]);
+  assert.equal(command(stages, "quick fuzz"), null);
+  assert.equal(command(stages, "type check"), null);
 });

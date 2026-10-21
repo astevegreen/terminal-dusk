@@ -77,6 +77,37 @@ test("engine code may not use Date, Math.random, timers, the DOM or the network"
   assert.match(list[4].message, /^setTimeout: the engine has no timers/);
 });
 
+test("engine code may not pull Math.random out by destructuring", () => {
+  const list = problems({
+    "packages/engine/src/a.ts": [
+      "const { random } = Math;",
+      "const { random: r } = Math;",
+      'const { ["random"]: q } = Math;',
+      "export const x = random() + r() + q();",
+      "let s, t;",
+      "({ random: s } = Math);",
+      "({ t } = Math as { t: () => number });",
+      "const { random: u } = (Math);",
+      "export const z = (Math).random() + s() + t() + u();",
+    ].join("\n"),
+    "packages/engine/src/a.test.ts": "const { random } = Math;\nexport const y = random();\n",
+  });
+  assert.deepEqual(where(list).map((w) => Number(w.split(":")[1])), [1, 2, 3, 6, 8, 9]);
+  for (const p of list) assert.match(p.message, /^Math\.random: all randomness comes from the PRNG/);
+});
+
+test("destructuring other Math functions, or random from an engine object, is allowed", () => {
+  const list = problems({
+    "packages/engine/src/a.ts": [
+      "const { floor, max } = Math;",
+      "const rng = { random: () => 1 };",
+      "const { random } = rng;",
+      "export const x = floor(max(1, random()));",
+    ].join("\n"),
+  });
+  assert.deepEqual(list, []);
+});
+
 test("names that only look like forbidden globals are allowed in the engine", () => {
   const list = problems({
     "packages/engine/src/date.ts": "export const Date = 1;\n",
@@ -152,6 +183,45 @@ test("each package imports only the workspace packages the table allows", () => 
     "shells/steam/src/main.ts:2",
   ]);
   assert.match(list[3].message, /packages\/extra is not in the package table/);
+});
+
+test("an import may not reach past another package's entry point", () => {
+  const list = problems({
+    "packages/content/package.json": JSON.stringify({ name: "@terminal-dusk/content", exports: { ".": "./src/index.ts", "./schema": "./schema/index.ts" } }),
+    "packages/host/src/a.ts": [
+      'import { nextInt } from "@terminal-dusk/engine/src/rng.ts";',
+      'import { Card } from "@terminal-dusk/content/schema";',
+      'import { cards } from "@terminal-dusk/content";',
+      'import type { Raw } from "@terminal-dusk/content/src/raw.ts";',
+      'export * from "@terminal-dusk/content/src/index.ts";',
+      "export const x = [nextInt, Card, cards];",
+    ].join("\n"),
+  });
+  assert.deepEqual(where(list), ["packages/host/src/a.ts:1", "packages/host/src/a.ts:4", "packages/host/src/a.ts:5"]);
+  assert.match(list[0].message, /"@terminal-dusk\/engine\/src\/rng\.ts" reaches past the entry point of packages\/engine/);
+});
+
+test("app may import types and the listed helpers from the engine, but no other values", () => {
+  const list = problems({
+    "packages/app/src/a.ts": [
+      'import { SIDES, seedHash, type Side } from "@terminal-dusk/engine";',
+      'import type { Frame } from "@terminal-dusk/engine";',
+      'import { apply } from "@terminal-dusk/engine";',
+      'import { SIDES as S, legalAnswers } from "@terminal-dusk/engine";',
+      'import * as E from "@terminal-dusk/engine";',
+      'export { apply as run } from "@terminal-dusk/engine";',
+      'export const e = await import("@terminal-dusk/engine");',
+      "export const x = [SIDES, seedHash, apply, S, legalAnswers, E];",
+      "export type Y = Side | Frame;",
+    ].join("\n"),
+    "packages/app/src/a.test.ts": 'import { apply } from "@terminal-dusk/engine";\nexport const t = apply;\n',
+  });
+  assert.deepEqual(where(list).map((w) => Number(w.split(":")[1])), [3, 4, 5, 6, 7]);
+  assert.match(list[0].message, /^packages\/app may import from packages\/engine only types and DECKS, SIDES, seedHash outside its tests, not "apply"/);
+  assert.match(list[0].message, /docs\/architecture\.md, Guardrails, "May import"/);
+  assert.match(list[2].message, /not the whole module/);
+  assert.match(list[1].message, /"legalAnswers"/);
+  assert.doesNotMatch(list[1].message, /"SIDES"/);
 });
 
 test("dynamic imports, require, re-exports and computed paths are checked too", () => {

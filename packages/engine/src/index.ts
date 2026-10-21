@@ -38,6 +38,8 @@ export type {
   GameEvent,
   GameState,
   GameStatus,
+  HandRevealed,
+  HandRevealedHidden,
   HiddenCounts,
   HiddenPart,
   HookId,

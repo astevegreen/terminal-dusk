@@ -31,6 +31,7 @@ describe("guessHidden", () => {
         expect(guess.opponent.hand).toHaveLength(view.counts.hands[other]);
         expect(guess.secret.deck).toHaveLength(view.counts.deck);
         expect(guess.opponent.picks).toEqual([]);
+        expect(guess.opponent.knowledge).toEqual([]);
         expect(guess.secret.eras).toEqual([]);
       }
     }

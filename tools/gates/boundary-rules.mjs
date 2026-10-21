@@ -2,15 +2,20 @@
 // eslint.config.js repeats the engine part so mistakes show up as soon as a file is edited.
 // Changing anything here changes hard rules 1-2 of CLAUDE.md or the package table in docs/architecture.md.
 
+// The engine's public helpers: the only engine values app code may import ("`engine` types and public
+// helpers" in the package table). Add a name here to allow it.
+export const APP_ENGINE_VALUES = ["DECKS", "SIDES", "seedHash"];
+
 // Which workspace packages each package may import (docs/architecture.md, Guardrails, "May import").
 // "all" allows any import. "types" allows only type imports (`import type ...`) in code; test files may
 // import values too, because every card's test plays the card with the real engine.
+// { values: [...] } allows every type plus the listed values, again with test files free to import any.
 export const MAY_IMPORT = {
   engine: {},
   content: { engine: "types" },
   host: { engine: "all", content: "all" },
   ai: { engine: "all", content: "all" },
-  app: { engine: "all", host: "all", ai: "all" },
+  app: { engine: { values: APP_ENGINE_VALUES }, host: "all", ai: "all" },
   server: { engine: "all", content: "all", host: "all" },
   shells: { app: "all" },
 };

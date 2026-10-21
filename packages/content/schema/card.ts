@@ -104,6 +104,8 @@ export const stepSchema = z.discriminatedUnion("op", [
   }),
   z.strictObject({ op: z.literal("modifier"), mod: modifierSpec, duration }),
   trigger,
+  // Shows LIO's or SAE's whole hand to the other side, never "both" or "player".
+  z.strictObject({ op: z.literal("revealHand"), side }),
 ]);
 
 /** What a platform changes about a card's text: its wording or art, never its rules. At least one of them. */
