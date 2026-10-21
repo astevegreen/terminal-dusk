@@ -42,6 +42,8 @@ export const eventPresentation: EventPresentation = {
   triggerSet: { log: (event) => `${event.source} set a reaction ${HOOK_TEXT[event.hook]}.` },
   triggerFired: { log: (event) => `${event.source}'s reaction ran (${HOOK_TEXT[event.hook]}).` },
   triggerEnded: { log: (event) => `${event.source}'s reaction ended (${HOOK_TEXT[event.hook]}).` },
+  handRevealed: { log: (event) => `${event.side}'s hand was shown to you: ${event.cards.join(", ") || "no cards"}.` },
+  handRevealedHidden: { log: (event) => `${event.side}'s hand of ${event.cards} cards was shown to the other side.` },
 };
 
 /** A modifier in words, such as "ops values for both sides -1, minimum 1". */

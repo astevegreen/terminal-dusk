@@ -96,6 +96,7 @@ function innerSteps(step: Step): readonly Step[] {
     case "drawContingency":
     case "addToNumber":
     case "modifier":
+    case "revealHand":
       return [];
   }
 }

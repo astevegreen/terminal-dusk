@@ -71,8 +71,8 @@ export function createGame(
       markers: [],
     },
     private: {
-      lio: { hand: [...setup.hands.lio], picks: [] },
-      sae: { hand: [...setup.hands.sae], picks: [] },
+      lio: { hand: [...setup.hands.lio], picks: [], knowledge: [] },
+      sae: { hand: [...setup.hands.sae], picks: [], knowledge: [] },
     },
     secret: {
       rng: decks.rng,

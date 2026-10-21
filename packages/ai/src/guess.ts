@@ -45,7 +45,8 @@ export function guessHidden(ruleset: Ruleset, view: PlayerView, side: Side, rand
   const [lio, sae, world] = DECKS.map((d) => shuffle(view.public.contingency[d].left, random));
   return {
     viewer: side,
-    opponent: { hand: unseen.slice(0, handSize), picks: [] },
+    // The AI cannot see what the rival was shown, so its guessed knowledge is empty.
+    opponent: { hand: unseen.slice(0, handSize), picks: [], knowledge: [] },
     secret: {
       rng: PLACEHOLDER_RNG,
       deck: unseen.slice(handSize, handSize + deckSize),

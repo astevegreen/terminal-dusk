@@ -5,6 +5,8 @@ export { DECKS } from "./contingencyTypes.ts";
 export type { ContingencyDeck, ContingencyDeckReshuffled, ContingencyDrawn, DeckId } from "./contingencyTypes.ts";
 import type { ActiveModifier, ActiveTrigger, Duration, HookId, ModifierExpiry, ModifierSpec } from "./lastingTypes.ts";
 export type { ActiveModifier, ActiveTrigger, Duration, HookId, ModifierExpiry, ModifierSpec } from "./lastingTypes.ts";
+import type { HandRevealed, HandRevealedHidden } from "./knowledgeTypes.ts";
+export type { HandRevealed, HandRevealedHidden } from "./knowledgeTypes.ts";
 
 export type Side = "lio" | "sae";
 /** Both sides, in the one order the engine always loops in. */
@@ -122,12 +124,13 @@ export type PublicEvent =
   | ContingencyDeckReshuffled
   | ModifierStarted
   | ModifierEnded
-  | TriggerEvent;
+  | TriggerEvent
+  | HandRevealedHidden;
 /**
  * What happened, for animation, the game log, sounds and the tutorial. An event visible to one side
  * may carry a `publicForm`: the public event everyone else gets instead (see eventsFor).
  */
-export type GameEvent = CardDrawn | PublicEvent;
+export type GameEvent = CardDrawn | HandRevealed | PublicEvent;
 export type EventKind = GameEvent["kind"];
 
 /**
@@ -204,6 +207,7 @@ export type Condition =
  * A `spendPoints` `amount` is the printed ops: the opsValue modifiers in force change it when the step runs.
  * `trigger` leaves a reaction, `do`, that runs each time `hook` happens until `duration` ends (triggers.ts).
  * A `marker` with `lasting: true` also keeps its label in `markers` (PublicState) until the game ends.
+ * `revealHand` shows `side`'s whole hand to the other side, which keeps it in its knowledge (knowledge.ts).
  */
 export type Step =
   | { op: "choose"; who: Side | "both"; decision: { kind: "yesNo" }; bind: VarName }
@@ -215,7 +219,8 @@ export type Step =
   | { op: "drawContingency"; side: Side | "player"; bind?: VarName }
   | { op: "addToNumber"; var: VarName; amount: number }
   | { op: "modifier"; mod: ModifierSpec; duration: Duration }
-  | { op: "trigger"; hook: HookId; do: Step[]; duration: Duration };
+  | { op: "trigger"; hook: HookId; do: Step[]; duration: Duration }
+  | { op: "revealHand"; side: Side };
 
 export type Binding = { name: VarName; value: VarValue };
 /** The block a frame runs, the index of its next step, and the variables bound in it, in binding order. */
@@ -272,8 +277,11 @@ export type PublicState = {
 };
 /** A side's answer to its decision in a simultaneous group, kept secret until the other side's is in. */
 export type UnrevealedPick = { group: string; decisionId: string; value: AnswerValue };
-/** Visible to one side only: its hand, and its own unrevealed picks. */
-export type PrivateState = { hand: CardId[]; picks: UnrevealedPick[] };
+/**
+ * Visible to one side only: its hand, its own unrevealed picks, and its knowledge: the rival's cards it has
+ * been shown that are still in the rival's hand, in the order first shown, each once (knowledge.ts).
+ */
+export type PrivateState = { hand: CardId[]; picks: UnrevealedPick[]; knowledge: CardId[] };
 /**
  * An era after the first: its cards, in the setup's order, and the turn at whose start they are
  * shuffled into the draw pile (eras.ts).
