@@ -2,7 +2,7 @@
 // Web Worker (createWorkerAi) unless a test passes another opponent. Seeds and the clock come from main.tsx.
 import type { CardId, Ruleset, Side } from "@terminal-dusk/engine";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import { GameScreen } from "../game/GameScreen.tsx";
+import { FocusingGameScreen } from "../game/decisionFocus.tsx";
 import { ReplayScreen } from "../replay/ReplayScreen.tsx";
 import type { ReplayRecording } from "../replay/recording.ts";
 import type { CardQuestion } from "../decisionPrompts.tsx";
@@ -69,7 +69,7 @@ export function VsAiView({
       <p>{note}</p>
       {snapshot.aiRefusal && <p role="alert">{`AI refused: ${snapshot.aiRefusal}`}</p>}
       {frame ? (
-        <GameScreen
+        <FocusingGameScreen
           frame={frame}
           log={snapshot.log}
           era={snapshot.era}
