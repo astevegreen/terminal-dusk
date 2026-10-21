@@ -59,6 +59,7 @@ export function createGame(
       handSize: setup.handSize,
       playsMade: 0,
       inPlay: [],
+      inPlayBy: [],
       discard: [],
       pending: [],
       stack: [],
@@ -67,6 +68,7 @@ export function createGame(
       modifiers: [],
       triggers: [],
       turnEndFired: false,
+      markers: [],
     },
     private: {
       lio: { hand: [...setup.hands.lio], picks: [] },

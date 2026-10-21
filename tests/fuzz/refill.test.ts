@@ -4,6 +4,7 @@ import { apply, createGame, seedHash } from "@terminal-dusk/engine";
 import type { GameEvent, GameState, Setup } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { checkNoLeaks, reshuffledCards } from "./checks.ts";
+import { byCodeUnit } from "./order.ts";
 import { playFuzzGame, randomGame, ruleset } from "./play.ts";
 import { seededRng } from "./random.ts";
 
@@ -70,7 +71,7 @@ const lioDraws: GameEvent = {
 
 describe("invariant 4 with a reshuffle: the cards shuffled back were face up until then", () => {
   it("finds the reshuffled cards: the draw pile now plus the cards drawn after the reshuffle, none without one", () => {
-    expect(reshuffledCards(afterReshuffle(), [reshuffle, lioDraws]).sort()).toEqual(["c7", "c8", "c9"]);
+    expect(reshuffledCards(afterReshuffle(), [reshuffle, lioDraws]).sort(byCodeUnit)).toEqual(["c7", "c8", "c9"]);
     expect(reshuffledCards(afterReshuffle(), [lioDraws])).toEqual([]);
   });
   it("passes events before the reshuffle that name the cards it shuffled, even the one LIO then drew", () => {

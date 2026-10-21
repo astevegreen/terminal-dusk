@@ -10,8 +10,8 @@ const name = z.string().min(1);
 /** A later era: its name, the turn it enters on, and the cards it shuffles into the draw pile. */
 const eraEntry = z.strictObject({ era: name, turn: z.number(), cards: z.array(name).min(1) });
 
-/** One side's Contingency deck: at least 2 cards, each a whole number, 1 or more. */
-const deck = z.array(z.int().min(1)).min(2);
+/** One side's Contingency deck: at least 3 cards, each a whole number, 1 or more. */
+const deck = z.array(z.int().min(1)).min(3);
 
 /** Checks the eras against the scenario's length: each turn in range and unused, each card listed once. */
 function checkEras(

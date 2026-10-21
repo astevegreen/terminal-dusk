@@ -1,6 +1,6 @@
 import { renderToString } from "react-dom/server";
 import { beforeAll, describe, expect, it } from "vitest";
-import { cardName } from "../testMode/fixture.ts";
+import { cardName, cardQuestion } from "../testMode/fixture.ts";
 import { buttonsOf } from "../testMode/promptTree.ts";
 import { logLine } from "../testMode/session.ts";
 import { createVsAiSession } from "../vsAi/session.ts";
@@ -23,7 +23,14 @@ beforeAll(async () => {
 });
 
 const view = (index: number, onGo: (i: number) => void = () => {}, onClose: () => void = () => {}) => (
-  <ReplayView recording={recording} label={cardName} onClose={onClose} index={index} onGo={onGo} />
+  <ReplayView
+    recording={recording}
+    label={cardName}
+    question={cardQuestion}
+    onClose={onClose}
+    index={index}
+    onGo={onGo}
+  />
 );
 const html = (index: number): string => renderToString(view(index));
 const disabled = (out: string, name: string): boolean =>
@@ -118,7 +125,14 @@ describe("the replay viewer on a finished fixture game", () => {
     };
     const at = (index: number): string =>
       renderToString(
-        <ReplayView recording={withEras} label={cardName} onClose={() => {}} index={index} onGo={() => {}} />,
+        <ReplayView
+          recording={withEras}
+          label={cardName}
+          question={cardQuestion}
+          onClose={() => {}}
+          index={index}
+          onGo={() => {}}
+        />,
       );
     for (const i of [0, 1]) expect(at(i)).toContain("Era not shown yet");
     for (const i of [2, 3]) expect(at(i)).toContain("Era: early");

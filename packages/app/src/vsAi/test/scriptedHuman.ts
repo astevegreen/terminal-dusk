@@ -2,7 +2,7 @@
 // vs-AI session to the end with them.
 import { createElement } from "react";
 import { decisionPrompts } from "../../decisionPrompts.tsx";
-import { cardName } from "../../testMode/fixture.ts";
+import { cardName, cardQuestion } from "../../testMode/fixture.ts";
 import { buttonsOf } from "../../testMode/promptTree.ts";
 import type { VsAiSession } from "../session.ts";
 import type { StandIn } from "./standInAi.ts";
@@ -23,6 +23,8 @@ export async function pressFirst(session: VsAiSession): Promise<void> {
       decision,
       hand: frame.view.mine?.hand ?? [],
       label: cardName,
+      stack: frame.view.public.stack,
+      question: cardQuestion,
       onAnswer: (value) => void session.answer(value),
     }),
   );

@@ -60,10 +60,10 @@ const MOST_NEEDED = MAX_TURNS * (1 + MAX_PLAYS);
 const PREFIXES = ["l", "s", "n"];
 
 /**
- * A Contingency deck as a setup gives it: 2-8 cards from 1 to 20, in any order, repeats allowed. The
+ * A Contingency deck as a setup gives it: 3-8 cards from 1 to 20, in any order, repeats allowed. The
  * numbers stay far below 2^16, so the leak check below never mistakes one for a generator word.
  */
-const deckArb = fc.array(fc.integer({ min: 1, max: 20 }), { minLength: 2, maxLength: 8 });
+const deckArb = fc.array(fc.integer({ min: 1, max: 20 }), { minLength: 3, maxLength: 8 });
 
 /**
  * Card IDs are unique, quoted tokens ("l12z", "s40z", "n7z"), so a leak check cannot match part of
@@ -210,7 +210,7 @@ describe("views over random games", () => {
             const open = s.public.contingency[side];
             expect(open.cards).toEqual(ascending(game.setup.contingency[side]));
             expect(open.left).toEqual(ascending(s.secret.contingency[side]));
-            expect(s.secret.contingency[side].length).toBeGreaterThanOrEqual(2);
+            expect(s.secret.contingency[side].length).toBeGreaterThanOrEqual(3);
             for (const viewer of [...SIDES, "spectator"] as const) {
               const seen = viewFor(s, viewer).public.contingency[side];
               expect(seen).toEqual(open);

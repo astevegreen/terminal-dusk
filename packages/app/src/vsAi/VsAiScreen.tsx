@@ -2,10 +2,11 @@
 // Web Worker (createWorkerAi) unless a test passes another opponent. Seeds and the clock come from main.tsx.
 import type { CardId, Ruleset, Side } from "@terminal-dusk/engine";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import { GameScreen } from "../game/GameScreen.tsx";
+import { FocusingGameScreen } from "../game/decisionFocus.tsx";
 import { ReplayScreen } from "../replay/ReplayScreen.tsx";
 import type { ReplayRecording } from "../replay/recording.ts";
-import { cardName } from "../testMode/fixture.ts";
+import type { CardQuestion } from "../decisionPrompts.tsx";
+import { cardName, cardQuestion } from "../testMode/fixture.ts";
 import type { MakeAi } from "./aiOpponent.ts";
 import { createVsAiSession } from "./session.ts";
 import type { VsAiOptions } from "./session.ts";
@@ -20,6 +21,8 @@ export type VsAiGame = {
   ruleset: Ruleset;
   makeMatch: NonNullable<VsAiOptions["makeMatch"]>;
   cardName: (id: CardId) => string;
+  /** A card's yes/no question, shown in its prompt (undefined: the plain "yes or no?" text). */
+  cardQuestion: CardQuestion;
   note: string;
 };
 
@@ -48,26 +51,30 @@ export function VsAiView({
   onNewGame,
   note = PRACTICE_NOTE,
   label = cardName,
+  question = cardQuestion,
 }: Readonly<{
   snapshot: VsAiSnapshot;
   session: VsAiSession;
   onNewGame: () => void;
   note?: string | undefined;
   label?: ((id: CardId) => string) | undefined;
+  question?: CardQuestion | undefined;
 }>) {
   const [watching, setWatching] = useState<ReplayRecording | null>(null);
   const { frame } = snapshot;
-  if (watching) return <ReplayScreen recording={watching} label={label} onClose={() => setWatching(null)} />;
+  if (watching)
+    return <ReplayScreen recording={watching} label={label} question={question} onClose={() => setWatching(null)} />;
   return (
     <main>
       <p>{note}</p>
       {snapshot.aiRefusal && <p role="alert">{`AI refused: ${snapshot.aiRefusal}`}</p>}
       {frame ? (
-        <GameScreen
+        <FocusingGameScreen
           frame={frame}
           log={snapshot.log}
           era={snapshot.era}
           label={label}
+          question={question}
           onAnswer={(value) => void session.answer(value)}
           refusal={snapshot.refusal}
         />
@@ -105,7 +112,14 @@ function Game({
 }: Readonly<{ session: VsAiSession; onNewGame: () => void; game?: VsAiGame | undefined }>) {
   const snapshot = useSyncExternalStore(session.subscribe, session.getSnapshot, session.getSnapshot);
   return (
-    <VsAiView snapshot={snapshot} session={session} onNewGame={onNewGame} note={game?.note} label={game?.cardName} />
+    <VsAiView
+      snapshot={snapshot}
+      session={session}
+      onNewGame={onNewGame}
+      note={game?.note}
+      label={game?.cardName}
+      question={game?.cardQuestion}
+    />
   );
 }
 

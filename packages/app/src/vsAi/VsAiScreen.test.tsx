@@ -1,6 +1,7 @@
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { App } from "../App.tsx";
+import { byCodeUnit } from "../test/order.ts";
 import { createVsAiSession } from "./session.ts";
 import type { VsAiSession } from "./session.ts";
 import { flush, playOut } from "./test/scriptedHuman.ts";
@@ -41,6 +42,10 @@ describe("the game screen against the AI", () => {
     expect(out).toContain("lio: pick an opening card");
     expect(out).toContain("<button");
     expect(out).not.toContain("New game");
+  });
+  it("draws the game screen inside the wrapper that moves focus to each new decision", () => {
+    const { session } = start({ hold: true });
+    expect(view(session)).toContain('<div><div class="game">');
   });
   it("shows Game over and a New game button at the end", async () => {
     const { session, standIn } = start();
@@ -96,9 +101,20 @@ describe("the replay after a game against the AI", () => {
     expect(view(session)).toContain("Watch replay</button>");
     const recording = session.replay();
     expect(recording?.frames.length).toBeGreaterThan(2);
-    expect(Object.keys(recording!).sort()).toEqual(["frames", "matchId", "seedHash", "status"]);
+    expect(Object.keys(recording!).sort(byCodeUnit)).toEqual(["frames", "matchId", "seedHash", "status"]);
     expect(JSON.stringify(session.getSnapshot())).not.toContain(GAME_SEED);
     expect(JSON.stringify(recording)).not.toContain(GAME_SEED);
+  });
+  it("comes after the log in tab order, then New game, with no positive tabIndex", async () => {
+    const { session, standIn } = start();
+    await playOut(session, standIn);
+    const out = view(session);
+    const marks = ['<ol aria-label="Log entries"', "Watch replay</button>", "New game</button>"].map((t) =>
+      out.indexOf(t),
+    );
+    for (const mark of marks) expect(mark).toBeGreaterThan(-1);
+    expect([...marks].sort((a, b) => a - b)).toEqual(marks);
+    expect(out).not.toMatch(/tabindex="[1-9]/);
   });
   it("stays not ready when the game is stopped part-way", () => {
     const { session } = start({ hold: true });

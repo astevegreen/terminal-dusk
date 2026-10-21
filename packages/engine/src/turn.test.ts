@@ -25,7 +25,7 @@ const cardsOf = (rs: Ruleset, state: GameState, side: Side): string[] =>
 describe("the opening pick", () => {
   it("each turn opens with a simultaneous chooseCard pair whose options say any card in your hand, neutral ones too", () => {
     const s = startGame();
-    const options = { from: "hand", includeNeutral: true };
+    const options = { from: "hand" };
     expect(s.public.pending).toEqual([
       { id: "d0-lio", side: "lio", kind: "chooseCard", options, simultaneousGroup: "g0" },
       { id: "d0-sae", side: "sae", kind: "chooseCard", options, simultaneousGroup: "g0" },

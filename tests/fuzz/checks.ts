@@ -24,6 +24,7 @@ import type {
   Viewer,
 } from "@terminal-dusk/engine";
 import { deepFreeze } from "./deepFreeze.ts";
+import { byCodeUnit } from "./order.ts";
 
 export const VIEWERS: readonly Viewer[] = ["lio", "sae", "spectator"];
 
@@ -120,8 +121,8 @@ export function enteredCards(setup: Setup, turn: number): CardId[] {
  */
 export function checkCards(setup: Setup, state: GameState): void {
   const hands = [...state.private.lio.hand, ...state.private.sae.hand];
-  const found = [...state.secret.deck, ...hands, ...state.public.discard, ...state.public.inPlay].sort();
-  const expected = enteredCards(setup, state.public.turn).sort();
+  const found = [...state.secret.deck, ...hands, ...state.public.discard, ...state.public.inPlay].sort(byCodeUnit);
+  const expected = enteredCards(setup, state.public.turn).sort(byCodeUnit);
   if (JSON.stringify(found) === JSON.stringify(expected)) return;
   const missing = expected.filter((card) => !found.includes(card));
   const extra = found.filter((card, i) => !expected.includes(card) || found.indexOf(card) !== i);
@@ -147,8 +148,8 @@ export function isSubMultiset(part: readonly number[], whole: readonly number[])
 
 /**
  * The Contingency decks (#64), for each side: the full contents are the setup's deck, sorted; the numbers
- * left are the secret order, sorted, and a sub-multiset of the full contents; the deck holds at least 2
- * cards. The public lists are compared as they are, never re-sorted here, so a list in draw order is caught.
+ * left are the secret order, sorted, and a sub-multiset of the full contents; the deck holds at least 3
+ * cards, so the engine never draws from fewer. The public lists are compared as they are, never re-sorted here, so a list in draw order is caught.
  */
 export function checkContingency(setup: Setup, state: GameState): void {
   for (const side of SIDES) {
@@ -164,7 +165,7 @@ export function checkContingency(setup: Setup, state: GameState): void {
     if (!isSubMultiset(left, cards)) {
       throw new Error(`${deck}: the numbers left ${JSON.stringify(left)} are not all in ${JSON.stringify(cards)}`);
     }
-    if (order.length < 2) throw new Error(`${deck} holds ${order.length} cards; it must always hold 2 or more`);
+    if (order.length < 3) throw new Error(`${deck} holds ${order.length} cards; it must always hold 3 or more`);
   }
 }
 
@@ -187,13 +188,13 @@ export function contingencyLeaksIn(view: PlayerView, state: GameState): string[]
   const found: string[] = [];
   const { contingency, ...rest } = view.public;
   for (const side of SIDES) {
-    const keys = Object.keys(contingency[side]).sort();
+    const keys = Object.keys(contingency[side]).sort(byCodeUnit);
     if (!sameJson(keys, ["cards", "left"])) found.push(`${side}'s Contingency deck with the fields ${keys.join(", ")}`);
     if (contingency[side].left.length !== state.secret.contingency[side].length) {
       found.push(`${side}'s Contingency deck with a count left that is not the secret order's`);
     }
   }
-  const sides = Object.keys(contingency).sort();
+  const sides = Object.keys(contingency).sort(byCodeUnit);
   if (!sameJson(sides, ["lio", "sae"])) found.push(`Contingency decks for ${sides.join(", ")}`);
   for (const field of contingencyFields({ ...view, public: rest }, "view")) found.push(`the field ${field}`);
   return found;
