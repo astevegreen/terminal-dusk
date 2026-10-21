@@ -4,8 +4,10 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 export const HOW_TO_START =
   "Start the local Supabase stack (Docker must be running): in packages/server run " +
-  "`pnpm exec supabase start`, then `pnpm exec supabase db reset` to apply the migrations to an empty database, " +
-  'then `eval "$(pnpm exec supabase status -o env)"` and run the tests again.';
+  '`pnpm exec supabase start`, then `eval "$(pnpm exec supabase status -o env)"`, then `pnpm test:migrations`, ' +
+  "which empties the local database, applies every migration (`supabase db reset`) and runs these checks.";
+// Why the test itself doesn't apply the migration: that needs a direct Postgres connection or a child process,
+// both Node APIs this package's tsconfig doesn't have (no Node types). The test:migrations script does it instead.
 
 type Env = Record<string, string | undefined>;
 // The server's tsconfig has no Node types, so process is read through globalThis.

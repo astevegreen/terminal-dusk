@@ -1,6 +1,6 @@
 // The match tables migration (supabase/migrations/20261020000000_match_tables.sql) on the local Supabase stack.
-// `supabase db reset` applies the migrations to an empty database; these checks then prove who may read and
-// write each table. Test users and rows are made with the local service role, fresh each run, and removed after.
+// `pnpm test:migrations` runs `supabase db reset` (all migrations on an empty database), then these checks
+// prove who may read and write each table. Test users and rows are made with the local service role, fresh each run, and removed after.
 // Without a running local stack the checks can't run, so one test says so and how to start it.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
