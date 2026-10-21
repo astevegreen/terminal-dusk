@@ -50,12 +50,17 @@ What the reference rules mean for this game, as far as they reach:
    played for points still runs its event, before or after, at the player's choice; a neutral card played for
    points has no event.
 
-### What this does not settle (owner to decide)
+### Event points (proposal topic 3, Part 1, option A; owner, 20 Oct: "A")
 
-- **Event points.** A design line such as "LIO 2" is an event award. The reference rules have no matching
-  mechanic: its card events score victory points or change the board directly, and only Ops buy actions. So
-  proposal Part 1 (what "LIO 2" stands for: actions, a score track, or each side's standing) is **not** settled by
-  "same rules". Owner questions 7, 19, 28, 44, 45 and 46 still wait on it.
+- A design line such as "LIO 2" (the `spendPoints` step) means: that side **spends 2 points on the action menu**
+  (place, coup, realign), as if it had played an Ops 2 card for points. "Both get 1" means each side spends 1
+  point, in turn. The side answers a pending Decision; the points are not stored anywhere.
+- Owner questions 7, 19, 28, 44, 45 and 46 are no longer waiting on this topic. Their answers still need checking
+  against real placements, and the rules text of every card is reworded in one pass (question 7).
+- Open: how a turn-end payment ("pay again at turn end") is split when it is 1 point (placing only, or any action).
+
+### Still to confirm
+
 - **The coup formula** above is the reference formula restated; confirm it is what you want, since proposal
   question 5 called the formula only an example.
 
@@ -74,7 +79,7 @@ Not decided. The owner will consider it further. Depends on the event-points que
 
 ## Owner's remaining questions
 
-1. What does an event's "LIO 2" stand for (proposal topic 3, Part 1)?
-2. Which fourth action replaces the extra track action?
-3. Scoring, as above.
-4. Country and region content for the six-region map.
+1. Which fourth action replaces the extra track action?
+2. Scoring, as above (tension's crisis penalty needs a score track).
+3. Country and region content for the six-region map.
+4. Whether the coup and realign formulas above are what you want.
