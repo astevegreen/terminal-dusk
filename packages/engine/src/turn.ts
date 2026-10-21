@@ -5,7 +5,8 @@
 //
 // A play uses a card for its event or its points (decisions.ts lists the uses each card allows). A
 // rival's card is played for its points, and its event still happens: the player first says whether
-// before or after the points. A played card stays in `inPlay` until everything it triggered is done.
+// before or after the points. A played card stays in `inPlay` until everything it triggered is done, then
+// goes to the discard pile, or out of the game if it is flagged removeAfterEvent and its event ran (putAway).
 import { newDecision, whoseCard } from "./decisions.ts";
 import { enterEra } from "./eras.ts";
 import { forgetCard } from "./knowledge.ts";
@@ -82,7 +83,7 @@ function revealOpening(
 
 /**
  * Runs the game on while nothing waits on the stack. The first card in play has finished its event (and
- * any reactions to it), so it goes to the discard pile and the next card's event starts. With no card in
+ * any reactions to it), so it leaves play (putAway) and the next card's event starts. With no card in
  * play, the next side plays. Once both have made all their plays, the turnEnd hook fires; when its
  * reactions have finished, the turn ends.
  */
@@ -90,10 +91,10 @@ function settle(ruleset: Ruleset, state: GameState, events: GameEvent[], budget:
   const pub = state.public;
   while (pub.stack.length === 0 && pub.status.kind === "active") {
     const finished = pub.inPlay.shift();
-    pub.inPlayBy.shift();
+    const player = pub.inPlayBy.shift();
     let error: EngineError | null = null;
     if (finished !== undefined) {
-      pub.discard.push(finished);
+      putAway(ruleset, state, finished, player ?? null);
       if (pub.inPlay.length > 0) error = startEvent(ruleset, state, events, budget);
     } else if (pub.playsMade < 2 * pub.playsPerTurn) {
       pub.pending = [newDecision(state.meta.seq, pub.playsMade % 2 === 0 ? "lio" : "sae", "playCardAs")];
@@ -107,6 +108,17 @@ function settle(ruleset: Ruleset, state: GameState, events: GameEvent[], budget:
     if (error) return error;
   }
   return null;
+}
+
+/**
+ * Where a finished card goes. A card flagged removeAfterEvent whose event ran leaves the game for `removed`
+ * (owner, 21 Oct): played for its event, an opening pick, or a rival's card played for its points, whose event
+ * still runs. `player`, from `inPlayBy`, is null only for a play for points with no event (play, below); such
+ * a play, and every unflagged card, goes to the discard pile.
+ */
+function putAway(ruleset: Ruleset, state: GameState, card: CardId, player: Side | null): void {
+  const leaves = player !== null && cardOf(ruleset, card)?.flags?.removeAfterEvent === true;
+  (leaves ? state.public.removed : state.public.discard).push(card);
 }
 
 /**

@@ -133,6 +133,7 @@ Rules-text templates (the rules text says exactly what the JSON does; one senten
 - `ask lio "Q?"`: _LIO chooses: Q If yes, ... If no, ..._ / `ask both`: _Each side chooses: Q LIO, yes: ...; no: ... SAE, yes: ...; no: ..._
 - `mod lio +1 (turn)`: _LIO's plays for points are worth 1 more until the end of the turn._ / `-1 min 1`: _... 1 less, never below 1, ..._
 - `on turnEnd`: _At the end of this turn, ..._ / `on cardPlayed (turn)`: _After every card played this turn, by either side, ..._
+- `flags.removeAfterEvent`: _If this card's event happens, remove it from the game afterwards._
 
 Facts every builder must know (engine, not design):
 
