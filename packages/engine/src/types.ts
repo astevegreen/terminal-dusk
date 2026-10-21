@@ -72,8 +72,11 @@ export type CardDrawn = {
   card: CardId;
   publicForm: CardDrawnHidden;
 };
-/** A `marker` step ran: its label, and the value of the variable it names, if any. */
-export type MarkerEvent = { kind: "marker"; visibility: "public"; label: string; value?: VarValue };
+/**
+ * A `marker` step ran: its label, and the value of the variable it names, if any. `lasting` is there
+ * only for a lasting marker, whose label is kept in `markers` (PublicState) until the game ends.
+ */
+export type MarkerEvent = { kind: "marker"; visibility: "public"; label: string; value?: VarValue; lasting?: true };
 /**
  * A `spendPoints` step ran: `side`, who played the card (even when it is the rival's card), spent
  * `amount` action points, the card's ops. TEMPORARY until the actions are designed: nothing else happens.
@@ -177,10 +180,13 @@ export type VarValue = boolean | BothAnswers | BothCards | string | number;
 /**
  * True when the yes/no variable `var` holds yes. For a variable holding both sides' answers, `side`
  * names whose answer to read; for one side's answer it is left out. `atLeast`, `atMost` and `equals`
- * test the number bound to `var` (a contingency draw) against the whole number `value`.
+ * test the number bound to `var` (a contingency draw) against the whole number `value`. `has` is true
+ * when a lasting marker labelled `marker` has been set in this game, by any card (markers.ts).
  */
 export type Condition =
-  { op: "yes"; var: VarName; side?: Side } | { op: "atLeast" | "atMost" | "equals"; var: VarName; value: number };
+  | { op: "yes"; var: VarName; side?: Side }
+  | { op: "atLeast" | "atMost" | "equals"; var: VarName; value: number }
+  | { op: "has"; marker: string };
 /**
  * One step of an effect program (docs/architecture.md, section 4). More kinds arrive with later tasks.
  * A card choice is only ever both sides at once: the turn's opening pick (turn.ts). Card effects may
@@ -193,13 +199,14 @@ export type Condition =
  * `modifier` makes a rule change, `mod`, that lasts for `duration`; its source is the card whose effect runs it.
  * A `spendPoints` `amount` is the printed ops: the opsValue modifiers in force change it when the step runs.
  * `trigger` leaves a reaction, `do`, that runs each time `hook` happens until `duration` ends (triggers.ts).
+ * A `marker` with `lasting: true` also keeps its label in `markers` (PublicState) until the game ends.
  */
 export type Step =
   | { op: "choose"; who: Side | "both"; decision: { kind: "yesNo" }; bind: VarName }
   | { op: "choose"; who: "both"; decision: { kind: "chooseCard" }; bind: VarName }
   | { op: "if"; cond: Condition; then: Step[]; else?: Step[] }
   | { op: "forEach"; over: string[]; bind: VarName; do: Step[] }
-  | { op: "marker"; label: string; var?: VarName }
+  | { op: "marker"; label: string; var?: VarName; lasting?: true }
   | { op: "spendPoints"; side: Side; amount: number }
   | { op: "drawContingency"; side: Side | "player"; bind?: VarName }
   | { op: "addToNumber"; var: VarName; amount: number }
@@ -280,6 +287,8 @@ export type PublicState = {
   triggers: ActiveTrigger[];
   /** False at every turn start; true once this turn's turnEnd hook has fired, while its reactions finish. */
   turnEndFired: boolean;
+  /** The lasting markers' labels, in the order first set, each once. Never removed (markers.ts). */
+  markers: string[];
 };
 /**
  * One Contingency deck's public side: `cards` is its full contents, sorted ascending, and never changes
@@ -309,25 +318,7 @@ export type GameState = {
   meta: MetaState;
 };
 
-/** Sizes of everything a viewer cannot see. A hand the viewer cannot see is only ever a number. */
-export type HiddenCounts = { deck: number; hands: Record<Side, number> };
-/** Every meta field is public: `seedHash` is the published hash, never the seed. */
-export type PublicMeta = MetaState;
-/** What one viewer receives. `mine` is the viewer's own private compartment, or null for a spectator. */
-export type PlayerView = { public: PublicState; mine: PrivateState | null; counts: HiddenCounts; meta: PublicMeta };
-/**
- * What a replay's omniscient viewer receives: the public compartment, both sides' private compartments,
- * the counts and the meta. Never the secret compartment: a finished game's seed and move log recompute it.
- * It has no `mine`, so it can never stand in for a live frame's PlayerView.
- */
-export type OmniscientView = {
-  public: PublicState;
-  sides: Record<Side, PrivateState>;
-  counts: HiddenCounts;
-  meta: PublicMeta;
-};
-/** What `viewer` cannot see: the opponent's private compartment and the secret compartment. */
-export type HiddenPart = { viewer: Side; opponent: PrivateState; secret: SecretState };
+export type { HiddenCounts, HiddenPart, OmniscientView, PlayerView, PublicMeta } from "./viewTypes.ts";
 
 export type Setup = {
   seedHash: string;

@@ -1,4 +1,4 @@
-// The card schema's lasting steps: modifiers (#89) and triggers (#90), at any depth of a card's effect.
+// The card schema's lasting steps: modifiers (#89), triggers (#90) and lasting markers (#141), at any depth.
 import { describe, expect, it } from "vitest";
 import { issuesOf, lioCard, pathsOf, pickCard, yesNo } from "./test/cards.ts";
 
@@ -79,5 +79,34 @@ describe("card schema: trigger steps", () => {
   it("refuses a neutral card's contingency draw inside a trigger, at its path", () => {
     const effect = [trigger({}, [{ op: "drawContingency", side: "sae" }])];
     expect(pathsOf({ ...lioCard(), affiliation: "neutral", effect })).toEqual([["effect", 0, "do", 0, "side"]]);
+  });
+});
+
+describe("card schema: lasting markers and has conditions (#141)", () => {
+  const has = (marker: unknown) => ({ op: "if", cond: { op: "has", marker }, then: [], else: [] });
+
+  it("accepts lasting: true on a marker, with or without a var, and a has condition, at any depth", () => {
+    const steps = [
+      { op: "marker", label: "x", lasting: true },
+      { op: "marker", label: "x", var: "agreed", lasting: true },
+      has("x"),
+    ];
+    for (const step of steps) for (const effect of placed(step)) expect(issuesOf(lioWith(effect))).toEqual([]);
+  });
+
+  it.each([
+    ["lasting: false", { op: "marker", label: "x", lasting: false }],
+    ["a lasting that is a string", { op: "marker", label: "x", lasting: "yes" }],
+    ["a lasting that is a number", { op: "marker", label: "x", lasting: 1 }],
+    ["a lasting marker with an empty label", { op: "marker", label: "", lasting: true }],
+    ["a has with an empty marker", has("")],
+    ["a has whose marker is not a string", has(7)],
+    ["a has with no marker", { op: "if", cond: { op: "has" }, then: [] }],
+  ])("refuses %s, at any depth", (_what, step) => {
+    for (const effect of placed(step)) expect(issuesOf(lioWith(effect)).length).toBeGreaterThan(0);
+  });
+
+  it("still accepts a plain marker with an empty label, as before", () => {
+    expect(issuesOf(lioWith([{ op: "marker", label: "" }]))).toEqual([]);
   });
 });
