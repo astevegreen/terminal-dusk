@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import * as entry from "./index.ts";
 
 describe("@terminal-dusk/server entry point", () => {
-  it("loads and exports nothing yet, because no server code has been written", () => {
-    expect(Object.keys(entry)).toEqual([]);
+  it("exports the submit handler and the in-memory store, and nothing else at run time (the port is a type)", () => {
+    expect(Object.keys(entry).sort()).toEqual(["MemoryStore", "submit"]);
   });
 });
