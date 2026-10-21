@@ -438,6 +438,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## packages/server - Supabase functions and SQL: the single submit write path, scheduled jobs and migrations.
 
 - `packages/server/package.json`
+- `packages/server/src/edge.ts` - The glue every Edge Function shares: turning the runtime's fetch-style requests into the plain-data requests the handlers take and back, and the Supabase sign-… Exports: FetchRequest, MakeResponse, serveFetch, supabaseAuthenticate.
+- `packages/server/src/http.ts` - The plain-data HTTP pieces the Edge Function handlers share (docs/architecture.md, Decision 5): the request and reply shapes, the CORS headers, signing a calle… Exports: HttpRequest, HttpReply, Authenticate, CORS_HEADERS, preflight, signedIn, jsonObject, reply, refusal, isPlainObject.
 - `packages/server/src/index.test.ts`
 - `packages/server/src/index.ts` - Public entry point of the server package (docs/architecture.md, Decision 5). Exports: submit, ServerErrorCode, SubmitDeps, SubmitError, SubmitOutcome, SubmitRequest, MemoryStore, SupabaseStore, CommitResult, LoadedMatch, MatchStore, MatchWrite, ….
 - `packages/server/src/invite.leaks.test.ts`
@@ -466,11 +468,11 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/submit.test.ts`
 - `packages/server/src/submit.ts` - The server's single write path (docs/architecture.md, Decision 5): load the match, run the host, and save the result only if nobody moved the match on first. Exports: SubmitDeps, SubmitRequest, ServerErrorCode, SubmitError, SubmitOutcome, submit.
 - `packages/server/src/submitEdge.test.ts`
-- `packages/server/src/submitEdge.ts` - The glue between the runtime's fetch-style requests and `handleSubmit`, and the Supabase sign-in check. Exports: FetchRequest, MakeResponse, fetchHandler, supabaseAuthenticate.
+- `packages/server/src/submitEdge.ts` - The glue between the runtime's fetch-style requests and `handleSubmit`. Exports: supabaseAuthenticate, FetchRequest, MakeResponse, fetchHandler.
 - `packages/server/src/submitHandler.leaks.test.ts`
 - `packages/server/src/submitHandler.stack.test.ts` - The submit Edge Function served by the local Supabase stack: a signed-in LIO player's legal answer is saved, and a stranger or a signed-out call is refused wit…
 - `packages/server/src/submitHandler.test.ts`
-- `packages/server/src/submitHandler.ts` - The HTTP side of the submit Edge Function (docs/architecture.md, Decision 5), as plain data in and out so it runs under vitest: it signs the caller in, checks… Exports: HttpRequest, HttpReply, SubmitHandlerDeps, HandlerErrorCode, CORS_HEADERS, handleSubmit.
+- `packages/server/src/submitHandler.ts` - The HTTP side of the submit Edge Function (docs/architecture.md, Decision 5), as plain data in and out so it runs under vitest: it signs the caller in, checks… Exports: CORS_HEADERS, HttpReply, HttpRequest, SubmitHandlerDeps, HandlerErrorCode, handleSubmit.
 - `packages/server/src/supabaseInviteStore.games.stack.test.ts` - Private games through the Supabase stores on the local Supabase stack: for each side mode, createInvite, previewInvite and joinInvite create a match whose rows…
 - `packages/server/src/supabaseInviteStore.guards.stack.test.ts` - SupabaseInviteStore's guards on the local Supabase stack: two joins of one code at once, a clash on save, an unknown code, and database errors, which throw wit…
 - `packages/server/src/supabaseInviteStore.test.ts` - SupabaseInviteStore against a stand-in client, so these run without the local stack.
