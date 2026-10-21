@@ -24,6 +24,7 @@ import type {
   Viewer,
 } from "@terminal-dusk/engine";
 import { deepFreeze } from "./deepFreeze.ts";
+import { byCodeUnit } from "./order.ts";
 
 export const VIEWERS: readonly Viewer[] = ["lio", "sae", "spectator"];
 
@@ -120,8 +121,8 @@ export function enteredCards(setup: Setup, turn: number): CardId[] {
  */
 export function checkCards(setup: Setup, state: GameState): void {
   const hands = [...state.private.lio.hand, ...state.private.sae.hand];
-  const found = [...state.secret.deck, ...hands, ...state.public.discard, ...state.public.inPlay].sort();
-  const expected = enteredCards(setup, state.public.turn).sort();
+  const found = [...state.secret.deck, ...hands, ...state.public.discard, ...state.public.inPlay].sort(byCodeUnit);
+  const expected = enteredCards(setup, state.public.turn).sort(byCodeUnit);
   if (JSON.stringify(found) === JSON.stringify(expected)) return;
   const missing = expected.filter((card) => !found.includes(card));
   const extra = found.filter((card, i) => !expected.includes(card) || found.indexOf(card) !== i);
@@ -187,13 +188,13 @@ export function contingencyLeaksIn(view: PlayerView, state: GameState): string[]
   const found: string[] = [];
   const { contingency, ...rest } = view.public;
   for (const side of SIDES) {
-    const keys = Object.keys(contingency[side]).sort();
+    const keys = Object.keys(contingency[side]).sort(byCodeUnit);
     if (!sameJson(keys, ["cards", "left"])) found.push(`${side}'s Contingency deck with the fields ${keys.join(", ")}`);
     if (contingency[side].left.length !== state.secret.contingency[side].length) {
       found.push(`${side}'s Contingency deck with a count left that is not the secret order's`);
     }
   }
-  const sides = Object.keys(contingency).sort();
+  const sides = Object.keys(contingency).sort(byCodeUnit);
   if (!sameJson(sides, ["lio", "sae"])) found.push(`Contingency decks for ${sides.join(", ")}`);
   for (const field of contingencyFields({ ...view, public: rest }, "view")) found.push(`the field ${field}`);
   return found;
