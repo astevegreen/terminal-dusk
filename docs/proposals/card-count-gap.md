@@ -59,7 +59,8 @@ Arithmetic done by hand from the counts above (simple proportions; they ignore d
 - From the 28 Era 1 cards, an 8-card hand holds on average about 3.7 SAE cards and 2.3 LIO cards. So LIO holds
   about 3.7 rival cards and SAE about 2.3.
 - From all 85 cards of Eras 1-3, an 8-card hand holds on average about 3.4 SAE cards and 2.4 LIO cards.
-- With the plan's 13 / 13 / 7 in Era 1 (33 cards), each side would hold about 3.2 rival cards.
+- At full parity on today's Era 1 counts (13 LIO, 13 SAE and today's 7 neutral cards: 33 cards), each side would
+  hold about 3.2 rival cards. The plan's 13 / 13 / 8 per era (deck-plan.md; 34 cards) would give about 3.1.
 
 ### What the balance tool saw
 
@@ -123,7 +124,8 @@ candidates sit next to Annexation of Crimea and Full-Scale Invasion.
 Trade-offs:
 
 - **Rival-card dilemma.** Closes it directly: at full parity each side holds about the same number of rival cards
-  (about 3.2 each from an Era 1 pile of 13 / 13 / 7). LIO's events happen as often as SAE's.
+  (about 3.2 each from a parity Era 1 pile of 13 / 13 / 7, keeping today's 7 neutral cards). LIO's events happen
+  as often as SAE's.
 - **Theme and history.** Era 1 is short of LIO cards although the 1990s are often told as the West's decade; new
   LIO cards could fit that well. The risk is padding with events below the owner's bar, the very reason 13 LIO
   cards were removed.
