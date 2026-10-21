@@ -279,7 +279,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/schema/card.test.ts`
 - `packages/content/schema/card.ts` - The card schema: what one card file in packages/content/cards/ must hold (docs/architecture.md, section 4). Exports: CardStep, stepSchema, cardSchema.
 - `packages/content/schema/card.types.test.ts` - Type-level checks, run by `tsc` (the typecheck script): the card schema and the engine's types can't drift apart.
-- `packages/content/schema/cardSteps.test.ts` - The card schema's lasting steps: modifiers (#89) and triggers (#90), at any depth of a card's effect.
+- `packages/content/schema/cardSteps.test.ts` - The card schema's lasting steps: modifiers (#89), triggers (#90) and lasting markers (#141), at any depth.
 - `packages/content/schema/index.test.ts`
 - `packages/content/schema/index.ts` - Content schemas, one per content folder of this package (cards/ is checked by schemas.cards, and so on). Exports: ContentIssue, ContentSchema, schemas.
 - `packages/content/schema/scenario.test.ts`
@@ -316,6 +316,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/cardChecks.test.ts` - createGame's card checks: the ruleset's cards are well formed, and a setup uses only known cards, each once.
 - `packages/engine/src/cardChecks.ts` - Card checks for createGame: the ruleset's cards are well formed, and a setup uses only known cards, each once. Exports: rulesetError, setupCardsError, handSizeError.
 - `packages/engine/src/cardPlayer.test.ts` - Who picked or played a card (#117; docs/design/contingency-deck.md, "Whose deck"): the engine records it for every card's event, opening picks included, so a n…
+- `packages/engine/src/conditions.ts` - An `if` step's condition (stack.ts): a yes/no answer, a number test, or `has` a lasting marker. Exports: unbound, notANumber, testCondition.
 - `packages/engine/src/contingency.test.ts` - Contingency decks in the game state (#64): the setup's checks, the shuffle, and who sees what.
 - `packages/engine/src/contingency.ts` - Contingency decks (docs/design/contingency-deck.md): each side's numbered cards, drawn instead of rolling a die. Exports: contingencyError, shuffleContingency, drawContingency.
 - `packages/engine/src/contingencyDraw.test.ts` - Drawing a contingency (#65, #130): the top card of a side's deck is the result, and a draw that leaves two cards shuffles the whole deck back together, straigh…
@@ -329,8 +330,11 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/eras.ts` - Eras after the first (docs/design/eras.md, "When a new era starts"). Exports: erasError, enterEra.
 - `packages/engine/src/events.test.ts`
 - `packages/engine/src/events.ts` - Filtering events by who may see them. Exports: eventsFor.
+- `packages/engine/src/hasCondition.test.ts` - The `has` condition (#141): an if is true exactly when a lasting marker with that label has been set.
 - `packages/engine/src/index.test.ts`
 - `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, createGame, legalAnswers, pendingFor, eventsFor, seedHash, SIDES, verifyGame, hiddenPart, reconstruct, viewFor, ActiveModifier, ….
+- `packages/engine/src/markers.test.ts` - Lasting markers (#141): a marker step with `lasting: true` keeps its label in state.public.markers until the game ends.
+- `packages/engine/src/markers.ts` - Lasting markers: named tags a card leaves in the public state until the game ends, which a later card's `has` condition tests. Exports: keepMarker, hasMarker.
 - `packages/engine/src/modifiers.test.ts` - Modifiers (#89): rule changes in public state, the opsValue hook, and their end at the turn's end.
 - `packages/engine/src/modifiers.ts` - Modifiers (docs/architecture.md, section 4): rule changes with a duration, kept in public state and consulted only at fixed hook points. Exports: opsValue, startModifier, endTurnModifiers, badModifier.
 - `packages/engine/src/neutralDraw.test.ts` - A neutral card's draw (decision 17, docs/design/contingency-deck.md): "side": "player" draws from the deck of the side that played the card, whichever side ans…
@@ -361,6 +365,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: Side, SIDES, otherSide, CardId, EraId, RulesetId, Seed, CardDef, Ruleset, EngineErrorCode, EngineError, Result, ….
 - `packages/engine/src/verifyGame.test.ts`
 - `packages/engine/src/verifyGame.ts` - Exports: verifyGame.
+- `packages/engine/src/viewTypes.ts` - What each viewer receives of the game state (views.ts). Exports: HiddenCounts, PublicMeta, PlayerView, OmniscientView, HiddenPart.
 - `packages/engine/src/views.property.test.ts` - Property test: over random games with random hands and draw piles, and random programs on the resolution stack (some with simultaneous pairs), views rebuild th…
 - `packages/engine/src/views.test.ts`
 - `packages/engine/src/views.ts` - Views: the part of the state one viewer may see, the part they cannot, and rebuilding the whole. Exports: viewFor, hiddenPart, reconstruct.

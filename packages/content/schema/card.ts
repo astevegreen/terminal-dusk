@@ -25,7 +25,22 @@ const choose = z.strictObject({
 const condition = z.discriminatedUnion("op", [
   z.strictObject({ op: z.literal("yes"), var: name, side: side.exactOptional() }),
   z.strictObject({ op: z.enum(["atLeast", "atMost", "equals"]), var: name, value: z.int() }),
+  // True once some card has set a lasting marker with this label (the engine checks one can).
+  z.strictObject({ op: z.literal("has"), marker: name }),
 ]);
+
+/** A marker: a plain one says so in the game log; a lasting one (`lasting: true`) also stays, and needs a label. */
+const marker = z
+  .strictObject({
+    op: z.literal("marker"),
+    label: z.string(),
+    var: name.exactOptional(),
+    lasting: z.literal(true).exactOptional(),
+  })
+  .refine((step) => step.lasting !== true || step.label.length > 0, {
+    error: "A lasting marker needs a label.",
+    path: ["label"],
+  });
 
 /**
  * A rule change a `modifier` step makes. The one hook so far is a card's ops value: for cards whose points
@@ -46,7 +61,7 @@ export const stepSchema = z.discriminatedUnion("op", [
   choose,
   z.strictObject({ op: z.literal("if"), cond: condition, then: block, else: block.exactOptional() }),
   z.strictObject({ op: z.literal("forEach"), over: z.array(z.string()), bind: name, do: block }),
-  z.strictObject({ op: z.literal("marker"), label: z.string(), var: name.exactOptional() }),
+  marker,
   z.strictObject({ op: z.literal("spendPoints"), side, amount: wholeNumber }),
   // "player" is the side that played the card: only a neutral card's draws name it (misplacedDraws, below).
   z.strictObject({
