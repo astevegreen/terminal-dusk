@@ -38,6 +38,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 - `packages/app/.gitignore`
 - `packages/app/e2e/game.e2e.ts`
+- `packages/app/e2e/keyboard.e2e.ts`
 - `packages/app/e2e/replay.e2e.ts`
 - `packages/app/e2e/testMode.e2e.ts`
 - `packages/app/e2e/vsAi.e2e.ts`
@@ -52,6 +53,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/eventPresentation.ts` - How each EventKind is presented. Exports: EventPresentation, eventPresentation.
 - `packages/app/src/game/GameScreen.test.tsx`
 - `packages/app/src/game/GameScreen.tsx` - The game screen: one whole game drawn from one frame, laid out for a phone held sideways (844x390). Exports: GameScreenProps, GameScreen.
+- `packages/app/src/game/decisionFocus.test.tsx`
+- `packages/app/src/game/decisionFocus.tsx` - Keyboard play: when a new decision waits for the player, focus moves to its first choice button. Exports: shouldFocusDecision, FocusRoot, FIRST_CHOICE, applyDecisionFocus, FocusingGameScreen.
 - `packages/app/src/game/gameScreen.css`
 - `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, Hand, Opponent, Table, Contingency, Log.
 - `packages/app/src/main.tsx` - Browser entry point: mounts the app into the #root element of index.html.
