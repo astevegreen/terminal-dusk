@@ -2,16 +2,17 @@
 // with the service role key: clients can neither read `match_secret` nor run `commit_match`.
 // The secret is passed through unopened, and no error it throws carries a row, the secret, a seed or a key.
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { MatchSecret } from "@terminal-dusk/host";
-import { recordFromRow } from "./matchRow.ts";
+import type { MatchRecord, MatchSecret } from "@terminal-dusk/host";
+import type { DeadlineStore } from "./deadlineStore.ts";
+import { matchRowFor, recordFromRow } from "./matchRow.ts";
 import type { MatchRow } from "./rows.ts";
 import { rowsFor } from "./rows.ts";
 import type { CommitResult, LoadedMatch, MatchStore, MatchWrite } from "./store.ts";
 
 /** The `match` columns, then the match's `match_secret` row embedded in the same query. */
 const LOAD_COLUMNS =
-  "match_id, lio_player, sae_player, ruleset, seed_hash, seed, seq, status, created_at, updated_at, " +
-  "match_secret(secret)";
+  "match_id, lio_player, sae_player, ruleset, seed_hash, seed, seq, status, created_at, updated_at, clock, " +
+  "next_deadline, match_secret(secret)";
 
 type SecretRow = { secret: MatchSecret };
 type LoadedRow = MatchRow & { match_secret: SecretRow | SecretRow[] | null };
@@ -21,8 +22,9 @@ type LoadedRow = MatchRow & { match_secret: SecretRow | SecretRow[] | null };
  * can be logged: never the database's own message or details, which may quote a row.
  */
 export class StorageError extends Error {
-  constructor(step: "load" | "commit", matchId: string, reason: string) {
-    super(`Storage ${step} failed for match ${matchId}: ${reason}.`);
+  /** `matchId` is null for a step about no one match (`due`). */
+  constructor(step: "load" | "commit" | "due" | "saveClock", matchId: string | null, reason: string) {
+    super(`Storage ${step} failed${matchId === null ? "" : ` for match ${matchId}`}: ${reason}.`);
     this.name = "StorageError";
   }
 }
@@ -30,8 +32,11 @@ export class StorageError extends Error {
 const reasonOf = (error: { code?: string } | null | undefined): string =>
   error?.code ? `database error ${error.code}` : "the database did not answer";
 
-/** A `MatchStore` over the `match`, `match_secret`, `match_view` and `match_event` tables. */
-export class SupabaseStore implements MatchStore {
+/**
+ * A `MatchStore` over the `match`, `match_secret`, `match_view` and `match_event` tables, and the deadline
+ * sweep's `DeadlineStore` over the `match` table's `clock` and `next_deadline` columns.
+ */
+export class SupabaseStore implements MatchStore, DeadlineStore {
   readonly #db: SupabaseClient;
 
   /** `db` must be made with the service role key. */
@@ -76,5 +81,46 @@ export class SupabaseStore implements MatchStore {
     if (error) throw new StorageError("commit", matchId, reasonOf(error));
     if (data === "saved" || data === "conflict") return data;
     throw new StorageError("commit", matchId, "the database gave an unexpected answer");
+  }
+
+  /** Active matches whose `next_deadline` is at or before `now`, by that deadline, then by match id. */
+  async due(now: number): Promise<string[]> {
+    let answer;
+    try {
+      answer = await this.#db
+        .from("match")
+        .select("match_id")
+        .lte("next_deadline", now)
+        .eq("status->>kind", "active")
+        .order("next_deadline", { ascending: true })
+        .order("match_id", { ascending: true });
+    } catch {
+      throw new StorageError("due", null, "the database did not answer");
+    }
+    const { data, error } = answer;
+    if (error) throw new StorageError("due", null, reasonOf(error));
+    return (data as { match_id: string }[]).map((row) => row.match_id);
+  }
+
+  /**
+   * One update of the match row's `clock`, `next_deadline` and `updated_at`, where the seq is still
+   * `expectedSeq`. It writes no view or event row: an extension keeps its seq, so new event rows would clash.
+   */
+  async saveClock(matchId: string, expectedSeq: number, record: MatchRecord): Promise<CommitResult> {
+    const row = matchRowFor(record);
+    let answer;
+    try {
+      answer = await this.#db
+        .from("match")
+        .update({ clock: row.clock, next_deadline: row.next_deadline, updated_at: row.updated_at })
+        .eq("match_id", matchId)
+        .eq("seq", expectedSeq)
+        .select("match_id");
+    } catch {
+      throw new StorageError("saveClock", matchId, "the database did not answer");
+    }
+    const { data, error } = answer;
+    if (error) throw new StorageError("saveClock", matchId, reasonOf(error));
+    return Array.isArray(data) && data.length > 0 ? "saved" : "conflict";
   }
 }
