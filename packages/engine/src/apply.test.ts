@@ -195,7 +195,8 @@ describe("apply: both sides time out on a simultaneous pick", () => {
       public: {
         ...s.public,
         pending: s.public.pending.map((d, i) => {
-          const { simultaneousGroup: _dropped, ...rest } = d;
+          const rest = { ...d };
+          delete rest.simultaneousGroup;
           const g = group(i);
           return g === undefined ? rest : { ...rest, simultaneousGroup: g };
         }),
