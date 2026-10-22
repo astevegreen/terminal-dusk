@@ -34,7 +34,7 @@ export const ruleset: Ruleset = {
 };
 
 /** A two-turn match, one play per turn, between the given players, with one era entering on turn 2. */
-const makeConfig = (matchId: string, players: MatchConfig["players"]): MatchConfig => ({
+export const makeConfig = (matchId: string, players: MatchConfig["players"]): MatchConfig => ({
   matchId,
   players,
   setup: {

@@ -2,6 +2,9 @@
 // The secret is passed through unopened: server code never looks inside the game state.
 import type { Viewer } from "@terminal-dusk/engine";
 import type { Frame, MatchRecord, MatchSecret } from "@terminal-dusk/host";
+import type { DeadlineStore } from "./deadlineStore.ts";
+import { dueIds } from "./deadlineStore.ts";
+import { matchRowFor } from "./matchRow.ts";
 import type { ReadStore, StoredRows } from "./read.ts";
 import { rowsFor } from "./rows.ts";
 
@@ -27,9 +30,10 @@ const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 /**
  * A `MatchStore` held in memory. It keeps copies, so callers cannot change what is stored by accident.
  * Alongside each match it keeps the readable rows (rows.ts): every write replaces the `match` row and
- * the three `match_view` rows, and adds three `match_event` rows.
+ * the three `match_view` rows, and adds three `match_event` rows. `saveClock` replaces only the record
+ * and the `match` row.
  */
-export class MemoryStore implements MatchStore, ReadStore {
+export class MemoryStore implements MatchStore, ReadStore, DeadlineStore {
   readonly #matches = new Map<string, MatchWrite>();
   readonly #rows = new Map<string, StoredRows>();
 
@@ -57,6 +61,22 @@ export class MemoryStore implements MatchStore, ReadStore {
     const next = rowsFor(write);
     this.#matches.set(matchId, copy(write));
     this.#rows.set(matchId, { match: next.match, views: next.views, events: [...rows.events, ...next.events] });
+    return "saved";
+  }
+
+  async due(now: number): Promise<string[]> {
+    return dueIds(
+      [...this.#matches].map(([id, write]) => [id, write.record] as const),
+      now,
+    );
+  }
+
+  async saveClock(matchId: string, expectedSeq: number, record: MatchRecord): Promise<CommitResult> {
+    const found = this.#matches.get(matchId);
+    const rows = this.#rows.get(matchId);
+    if (!found || !rows || found.record.seq !== expectedSeq) return "conflict";
+    this.#matches.set(matchId, { ...found, record: copy(record) });
+    this.#rows.set(matchId, { ...rows, match: matchRowFor(record) });
     return "saved";
   }
 
