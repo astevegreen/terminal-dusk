@@ -1,6 +1,6 @@
 // The online transport's HTTP side (docs/architecture.md, Decision 5): the client-readable rows it reads
-// through Supabase's REST endpoints, and the submit function it posts to. Plain `fetch`, injected, so
-// tests need no network; nothing here holds a URL, key or token of its own.
+// through Supabase's REST endpoints, and the submit and seen functions it posts to. Plain `fetch`, injected,
+// so tests need no network; nothing here holds a URL, key or token of its own.
 import type { GameEvent, Viewer } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 
@@ -90,15 +90,18 @@ export async function readEvents(
 /** The submit function's reply: accepted, refused with the server's code, or no usable reply at all. */
 export type PostReply = { ok: true } | { ok: false; code: string; message?: string } | { ok: false; network: true };
 
+const post = (e: Endpoint, token: string, fn: string, body: unknown): Promise<FetchReply> =>
+  e.fetch(`${e.url}/functions/v1/${fn}`, {
+    method: "POST",
+    headers: { ...headers(e.anonKey, token), "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
 /** POSTs one submission to the submit function. It never throws. */
 export async function postSubmission(e: Endpoint, token: string, submission: unknown): Promise<PostReply> {
   let body: unknown;
   try {
-    const reply = await e.fetch(`${e.url}/functions/v1/submit`, {
-      method: "POST",
-      headers: { ...headers(e.anonKey, token), "Content-Type": "application/json" },
-      body: JSON.stringify({ matchId: e.matchId, submission }),
-    });
+    const reply = await post(e, token, "submit", { matchId: e.matchId, submission });
     body = await reply.json();
   } catch {
     return { ok: false, network: true };
@@ -109,4 +112,16 @@ export async function postSubmission(e: Endpoint, token: string, submission: unk
     return typeof message === "string" ? { ok: false, code, message } : { ok: false, code };
   }
   return { ok: false, network: true };
+}
+
+/**
+ * Tells the seen function the caller has seen the turn at `seq` (O8e). Its reply is never read (a 204 has no
+ * body) and every status is ignored. It never throws or rejects.
+ */
+export async function postSeen(e: Endpoint, token: string, seq: number): Promise<void> {
+  try {
+    await post(e, token, "seen", { matchId: e.matchId, seq });
+  } catch {
+    // A failed call changes nothing: the player may get an email for this turn.
+  }
 }

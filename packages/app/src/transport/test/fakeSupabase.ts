@@ -1,6 +1,7 @@
 // A fake Supabase for the remote transport's tests: one match run by the real host, served over a fake
 // `fetch`. Reads follow the O2 read rule (the spectator rows for anyone, a side's rows only for its player);
-// the submit function answers like O4b. Every request is recorded so tests can check what was asked.
+// the submit function answers like O4b and the seen function like O8e. Every request is recorded so tests can
+// check what was asked.
 import type { Ruleset, Seed, Viewer } from "@terminal-dusk/engine";
 import { hostCreate, hostSubmit } from "@terminal-dusk/host";
 import type { HostResult, MatchConfig, Submission } from "@terminal-dusk/host";
@@ -28,6 +29,12 @@ const reply = (status: number, body: unknown): FetchReply => ({
   status,
   json: () => Promise.resolve(copy(body)),
 });
+/** An empty 204, like the seen function's: reading it as JSON fails, as it does for a real empty reply. */
+const noContent = (): FetchReply => ({
+  ok: true,
+  status: 204,
+  json: () => Promise.reject(new SyntaxError("Unexpected end of JSON input")),
+});
 
 export type FakeSupabase = {
   fetch: FetchLike;
@@ -37,6 +44,11 @@ export type FakeSupabase = {
   commit(submission: Submission): void;
   /** Makes the next request fail: thrown like a network error, or answered with this error status. */
   failNext(mode: "throw" | number): void;
+  /**
+   * Makes every seen request fail from now on, while other requests keep working: thrown like a network error,
+   * never answered, or answered with this error status. null makes seen answer again.
+   */
+  failSeen(mode: "throw" | "never" | number | null): void;
   /** Holds every reply until the returned function is called. */
   hold(): () => void;
   /** Called with each request just before it is answered. */
@@ -55,6 +67,7 @@ export function createFakeSupabase(
   let now = 1_000;
   const eventRows: EventRow[] = [];
   const failures: ("throw" | number)[] = [];
+  let seenFailure: "throw" | "never" | number | null = null;
   let gate: Promise<void> | null = null;
 
   const record = (h: HostResult): void => {
@@ -156,6 +169,18 @@ export function createFakeSupabase(
     return reply(200, { ok: true, seq: outcome.value.record.seq });
   };
 
+  /** The seen function: a signed-in caller's `{ matchId, seq }` gets an empty 204. It changes nothing here. */
+  const serveSeen = (request: FakeRequest): FetchReply => {
+    if (request.method !== "POST") return reply(405, { message: "post only" });
+    if (typeof caller(request.headers) !== "string") return reply(401, { message: "sign in" });
+    const body = request.body as { matchId?: unknown; seq?: unknown };
+    if (typeof body.seq !== "number" || !Number.isInteger(body.seq) || body.seq < 0) {
+      return reply(400, { message: "bad seq" });
+    }
+    if (body.matchId !== config.matchId) return reply(404, { message: "no match" });
+    return noContent();
+  };
+
   const fake: FakeSupabase = {
     requests: [],
     onRequest: null,
@@ -166,6 +191,9 @@ export function createFakeSupabase(
     },
     failNext(mode) {
       failures.push(mode);
+    },
+    failSeen(mode) {
+      seenFailure = mode;
     },
     hold() {
       let release = (): void => undefined;
@@ -188,6 +216,11 @@ export function createFakeSupabase(
       };
       fake.requests.push(request);
       if (gate !== null) await gate;
+      if (request.path === "/functions/v1/seen" && seenFailure !== null) {
+        if (seenFailure === "never") return new Promise<FetchReply>(() => undefined);
+        if (seenFailure === "throw") throw new TypeError("fake network failure");
+        return reply(seenFailure, { message: "fake error status" });
+      }
       const failure = failures.shift();
       if (failure === "throw") throw new TypeError("fake network failure");
       if (failure !== undefined) return reply(failure, { message: "fake error status" });
@@ -195,6 +228,7 @@ export function createFakeSupabase(
       if (url.slice(0, URL_BASE.length) !== URL_BASE) return reply(404, { message: "wrong host" });
       if (request.headers.apikey !== ANON_KEY) return reply(401, { message: "no apikey" });
       if (request.path === "/functions/v1/submit") return serveSubmit(request);
+      if (request.path === "/functions/v1/seen") return serveSeen(request);
       const table = /^\/rest\/v1\/([a-z_]+)$/.exec(request.path)?.[1];
       return table === undefined ? reply(404, { message: "no route" }) : serveRest(request, table);
     },

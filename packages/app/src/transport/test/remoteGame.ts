@@ -4,6 +4,7 @@ import { legalAnswers, pendingFor, SIDES } from "@terminal-dusk/engine";
 import type { AnswerValue, CardDef, CardId, Ruleset, Side } from "@terminal-dusk/engine";
 import type { Frame, HostResult, MatchConfig, Submission } from "@terminal-dusk/host";
 import type { MatchTransport } from "../matchTransport.ts";
+import type { FetchLike } from "../remoteHttp.ts";
 import { createRemoteMatch } from "../remoteMatch.ts";
 import { ANON_KEY, createFakeSupabase, URL_BASE } from "./fakeSupabase.ts";
 import type { FakeSupabase } from "./fakeSupabase.ts";
@@ -72,14 +73,17 @@ export const settle = (): Promise<void> => new Promise((resolve) => setTimeout(r
 export type Rig = {
   fake: FakeSupabase;
   timers: ReturnType<typeof fakeTimers>;
-  transportAs: (p: string | null) => MatchTransport;
+  transportAs: (p: string | null, fetch?: FetchLike) => MatchTransport;
 };
 
-/** A fresh match on a fresh fake server, and a maker of transports for a player (null: signed out). */
+/**
+ * A fresh match on a fresh fake server, and a maker of transports for a player (null: signed out). A test may
+ * pass its own fetch, usually one that wraps the fake's.
+ */
 export function rig(): Rig {
   const fake = createFakeSupabase(ruleset, config, "remote-seed-1", TOKENS);
   const timers = fakeTimers();
-  const transportAs = (player: string | null): MatchTransport =>
+  const transportAs = (player: string | null, fetch: FetchLike = fake.fetch): MatchTransport =>
     createRemoteMatch({
       url: URL_BASE,
       anonKey: ANON_KEY,
@@ -87,7 +91,7 @@ export function rig(): Rig {
       playerId: player,
       accessToken: () => Promise.resolve(player === null ? null : (TOKEN_OF[player] ?? null)),
       pollMs: POLL_MS,
-      fetch: fake.fetch,
+      fetch,
       setTimer: timers.setTimer,
       clearTimer: timers.clearTimer,
     });
