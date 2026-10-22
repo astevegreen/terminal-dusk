@@ -280,7 +280,7 @@ Supabase Pro hosts accounts, data and exactly one write path for games: the `sub
 
 - **Deadlines**: for every match past its deadline, apply that match's deadline rule (see Product calls). Ranked matches always use loss on time: submit a Timeout system action.
 - **Matchmaking**: pair compatible tickets, widening the rating band the longer a ticket waits. Tickets persist, so players can close the app and get notified when a game starts.
-- **Notifications**: skip push if the player was active in the last 60 seconds. Email only if the turn is still unseen after about 20 minutes, plus one warning near the deadline.
+- **Notifications**: one alert when it becomes a player's turn. Skip push if the player was active in the last 60 seconds. Email only if the turn is still unseen after about 20 minutes. No separate warning near the deadline.
 - **Finalize** (when a game ends): update Glicko-2 ratings and results by side, write the replay archive to storage, then delete the bulky rows.
 
 **Accounts and purchases**
