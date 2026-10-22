@@ -4,7 +4,7 @@
 // An answer to a paused program resumes the resolution stack (stack.ts). Once the stack is empty, the
 // turn structure moves the game on (turn.ts).
 import { copyJson } from "./copy.ts";
-import { legalAnswers } from "./decisions.ts";
+import { legalAnswers, pendingFor } from "./decisions.ts";
 import { recordPick } from "./simultaneous.ts";
 import { newBudget, resumeStack } from "./stack.ts";
 import type { Closing } from "./stack.ts";
@@ -65,15 +65,20 @@ export function apply(ruleset: Ruleset, state: GameState, answer: Answer): Appli
   return error ? { ok: false, error } : { ok: true, value: { state: next, events } };
 }
 
+// Resign and timeout both end the game at once: the other side wins, and nothing is left open.
+// A timeout is the host's deadline job saying `side` was late, so `side` must be the one being waited for.
 function applySystem(state: GameState, answer: Extract<Answer, { system: string }>): Applied {
-  if (answer.system !== "resign") {
-    return fail("notSupported", `The ${String(answer.system)} answer is not supported yet.`);
-  }
+  let reason: string;
+  if (answer.system === "resign") reason = "resigned";
+  else if (answer.system === "timeout") {
+    if (!pendingFor(state, answer.side)) return fail("wrongSide", "The game is not waiting for that side.");
+    reason = "timeout";
+  } else return fail("notSupported", `The ${String(answer.system)} answer is not supported yet.`);
   const next = copyJson(state);
   next.meta.seq += 1;
   next.public.pending = [];
   next.public.stack = [];
   for (const side of SIDES) next.private[side].picks = [];
-  next.public.status = { kind: "over", winner: otherSide(answer.side), reason: "resigned" };
+  next.public.status = { kind: "over", winner: otherSide(answer.side), reason };
   return { ok: true, value: { state: next, events: [] } };
 }

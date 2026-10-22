@@ -329,6 +329,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/package.json`
 - `packages/engine/src/apply.property.test.ts` - Property test: random streams of good and bad answers keep the engine's invariants, and every answer gets exactly the outcome the rules call for (accepted, or…
 - `packages/engine/src/apply.test.ts`
+- `packages/engine/src/apply.timeout.test.ts` - A timeout ends the game as a loss on time for the side that was late (architecture Decision 1, "System actions").
 - `packages/engine/src/apply.ts` - Takes one answer and returns the next state. Exports: apply.
 - `packages/engine/src/cardChecks.test.ts` - createGame's card checks: the ruleset's cards are well formed, and a setup uses only known cards, each once.
 - `packages/engine/src/cardChecks.ts` - Card checks for createGame: the ruleset's cards are well formed, and a setup uses only known cards, each once. Exports: rulesetError, setupCardsError, handSizeError.
@@ -416,6 +417,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/src/firstDeck.ts` - The first deck as a game the app can start: the ruleset, a match config, and card names. Exports: FIRST_DECK_NOTE, firstDeckRuleset, firstDeckCardName, firstDeckCardQuestion, firstDeckConfig.
 - `packages/host/src/firstDeckQuestion.test.ts`
 - `packages/host/src/frames.ts` - Shared by the host's entry points: building the three frames, and copying plain JSON. Exports: framesFor, copyJson.
+- `packages/host/src/hostAccept.ts` - The shared second half of every host call that moves a game: run the answer through the engine, then build the new record, secret, frames and effects. Exports: acceptAnswer, badTime.
 - `packages/host/src/hostArchive.test.ts`
 - `packages/host/src/hostArchive.ts` - The replay archive: a finished game re-run step by step, one omniscient frame per step (architecture.md, section 3). Exports: hostArchive.
 - `packages/host/src/hostCreate.leaks.test.ts`
@@ -426,8 +428,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/src/hostSubmit.leaks.test.ts`
 - `packages/host/src/hostSubmit.test.ts`
 - `packages/host/src/hostSubmit.ts` - Taking an answer: the host's own checks, then the engine, then the new record, secret, frames and effects. Exports: hostSubmit.
+- `packages/host/src/hostTimeout.test.ts`
+- `packages/host/src/hostTimeout.ts` - A missed deadline: the server's deadline job (never a player) tells the host that `side` was late. Exports: hostTimeout.
 - `packages/host/src/index.test.ts`
-- `packages/host/src/index.ts` - Public entry point of MatchHost (docs/architecture.md, Decision 3). Exports: hostCreate, hostSubmit, hostArchive, Frame, HostEffect, HostError, HostErrorCode, HostOutcome, HostResult, MatchConfig, MatchRecord, MatchSecret, ….
+- `packages/host/src/index.ts` - Public entry point of MatchHost (docs/architecture.md, Decision 3). Exports: hostCreate, hostSubmit, hostTimeout, hostArchive, Frame, HostEffect, HostError, HostErrorCode, HostOutcome, HostResult, MatchConfig, MatchRecord, ….
 - `packages/host/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
 - `packages/host/src/test/leaks.ts` - Test helpers for leak checks, copying the idea of tests/fuzz/checks.ts (hiddenFrom, leaksIn). Exports: hiddenFrom, leaksIn.
 - `packages/host/src/test/match.ts` - Test helpers: a small ruleset, a match config with an era still to enter, and a seed. Exports: SEED, NOW, LATE_ERA_CARDS, ruleset, makeConfig.
@@ -475,6 +479,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/submit.leaks.test.ts`
 - `packages/server/src/submit.storage.test.ts`
 - `packages/server/src/submit.test.ts`
+- `packages/server/src/submit.timeout.test.ts` - A player can never end a game by sending a timeout: only the server's deadline job may (hostTimeout).
 - `packages/server/src/submit.ts` - The server's single write path (docs/architecture.md, Decision 5): load the match, run the host, and save the result only if nobody moved the match on first. Exports: SubmitDeps, SubmitRequest, ServerErrorCode, SubmitError, SubmitOutcome, submit.
 - `packages/server/src/submitEdge.test.ts`
 - `packages/server/src/submitEdge.ts` - The glue between the runtime's fetch-style requests and `handleSubmit`. Exports: supabaseAuthenticate, FetchRequest, MakeResponse, fetchHandler.
