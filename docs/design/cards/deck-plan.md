@@ -18,14 +18,15 @@ every card here is also a Notion row with Status "Draft".
 | ---------------------------- | ------ | ------ | ------- | ------------------------------------ |
 | Era 1 (1991-2001)            | 8      | 13     | 7       | 28                                   |
 | Era 2 (2001-2008)            | 10     | 11     | 8       | 29                                   |
-| Era 3 (2008-2025)            | 8      | 12     | 7       | 27                                   |
+| Era 3 (2008-2025)            | 8      | 12     | 8       | 28                                   |
 | Future (2025-2027, optional) | 2      | 2      | 2       | 6                                    |
-| **All**                      | **28** | **38** | **24**  | **90** (84 without the future cards) |
+| **All**                      | **28** | **38** | **25**  | **91** (85 without the future cards) |
 
 The plan had 13 / 13 / 8 per era (108 cards). The owner then removed 18 cards whose Notion rows they had trashed,
 because the events were not well known or significant enough (Owner question 8). Their ids stay unused, so the
 other cards keep their ids. The reasoning below is the plan's, kept for the record; the LIO side is now short in
-Era 1 and Era 3, which the TEST scenario's smaller game absorbs (see "Counts and hand size").
+Era 1 and Era 3, which the TEST scenario's smaller game absorbs (see "Counts and hand size"). The owner chose to
+narrow that gap with new LIO cards (Owner question 51).
 
 Why 13 / 13 / 8 per era (the plan):
 
@@ -69,9 +70,9 @@ After the owner removed 18 cards, the built spread (cards of Ops 1 / 2 / 3 / 4) 
 | ----- | ------- | ------- | ------- |
 | Era 1 | 2/4/1/1 | 3/6/3/1 | 2/4/1/0 |
 | Era 2 | 3/5/1/1 | 3/5/2/1 | 3/4/1/0 |
-| Era 3 | 2/5/1/0 | 3/5/3/1 | 2/4/1/0 |
+| Era 3 | 2/5/1/0 | 3/5/3/1 | 2/5/1/0 |
 
-Era 3 LIO has no Ops 4 card now (Sanctions Wall was removed). Whether to rebalance is an open point for the owner.
+Era 3 LIO has no Ops 4 card now (Sanctions Wall was removed). The owner chose to add a new one (Owner question 51).
 
 ## Counts and hand size
 
@@ -316,6 +317,7 @@ answer follows the question as **Answered**.
 17. **Ops 4 cards.** Five exist (one per side per era, except Era 3 LIO, whose Ops 4 card was removed). Is 4 the
     cap you want? No card has Ops 0.
     **Answered:** keep the cap at 4; the missing Era 3 LIO Ops 4 card is a balance question for later.
+    **Decided** (owner, 21 Oct, #176): design a new Era 3 LIO Ops 4 card (question 51).
 18. **Future cards.** Six roles-only 2025-2027 cards are designed (era-3.md). Build them in stage 4 or not?
     **Answered:** keep them; they were built in stage 4 and stay in the deck.
 19. **Flavour-only choices.** Partnership for Peace and Ghost Stories have a dominant answer. Keep or sharpen?
@@ -435,3 +437,16 @@ answer follows the question as **Answered**.
     has no line for this case; please confirm the wording. **Answered:** keep "either side".
 50. **Future cards' plan lines.** The six future cards use a combined "Design/Playable:" line in era-3.md rather than
     separate lines. Their JSON matches it; noted so a tool that reads "Playable:" lines does not miss them.
+51. **The LIO/SAE card-count gap and the Era 3 LIO Ops 4 card.** The removals (question 8) left LIO with 26 cards
+    in Eras 1-3 against SAE's 36, and Era 3 with no LIO Ops 4 card (question 17). The options are in
+    docs/proposals/card-count-gap.md (X5, #176).
+    **Decided** (owner, 21 Oct):
+    - Add new LIO cards (option C1) to narrow the gap, not necessarily close it: only events that meet the owner's
+      "well known and significant enough" bar (question 8), however many that turns out to be. Approved cards keep
+      their side and Ops.
+    - Add a new Era 3 LIO Ops 4 card (option F1). It counts toward the new LIO cards.
+    - Each new card's design line (era, Ops, effect, rules text, history) is drafted for the owner's approval first,
+      from the candidate events in the proposal, and built only once approved, as for question 14. For the Ops 4
+      card, the draft offers two or three events and the owner picks one.
+    - The removed and cut cards are not offered again (proposal, "Candidates that are not offered").
+      Still open: which events, and each card's design, until the owner approves the drafts.
