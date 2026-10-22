@@ -11,6 +11,7 @@ import c_e2_lio_010 from "../cards/era-2/e2-lio-010.json" with { type: "json" };
 import c_e2_lio_011 from "../cards/era-2/e2-lio-011.json" with { type: "json" };
 import c_e2_lio_012 from "../cards/era-2/e2-lio-012.json" with { type: "json" };
 import c_e2_lio_013 from "../cards/era-2/e2-lio-013.json" with { type: "json" };
+import c_e2_lio_014 from "../cards/era-2/e2-lio-014.json" with { type: "json" };
 import c_e2_sae_001 from "../cards/era-2/e2-sae-001.json" with { type: "json" };
 import c_e2_sae_002 from "../cards/era-2/e2-sae-002.json" with { type: "json" };
 import c_e2_sae_003 from "../cards/era-2/e2-sae-003.json" with { type: "json" };
@@ -31,7 +32,7 @@ import c_e2_neu_006 from "../cards/era-2/e2-neu-006.json" with { type: "json" };
 import c_e2_neu_007 from "../cards/era-2/e2-neu-007.json" with { type: "json" };
 import c_e2_neu_008 from "../cards/era-2/e2-neu-008.json" with { type: "json" };
 
-/** All 29 Era 2 cards: 10 LIO, 11 SAE and 8 neutral, in file order. */
+/** All 30 Era 2 cards: 11 LIO, 11 SAE and 8 neutral, in file order. */
 export const ERA_2_CARDS = [
   c_e2_lio_002,
   c_e2_lio_004,
@@ -43,6 +44,7 @@ export const ERA_2_CARDS = [
   c_e2_lio_011,
   c_e2_lio_012,
   c_e2_lio_013,
+  c_e2_lio_014,
   c_e2_sae_001,
   c_e2_sae_002,
   c_e2_sae_003,

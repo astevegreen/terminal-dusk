@@ -1,9 +1,9 @@
 # Era 2 cards: 2001 to 2008 (9/11 to the crash)
 
 Part of the [deck plan](deck-plan.md). Notation, rules-text templates and the wish-list codes (W1-W8) are
-defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8; the owner removed the rest as not well known or significant enough, and their numbers stay unused). Era string in JSON: `"era-2"`.
+defined there. Every card: LIO 11, SAE 11, neutral 8 (the plan had 13, 13 and 8; the owner removed the rest as not well known or significant enough, and their numbers stay unused; the owner then added Fall of the Taliban, Owner question 52). Era string in JSON: `"era-2"`.
 
-## LIO (10)
+## LIO (11)
 
 ### e2-lio-002 · Article 5 Invoked · LIO · Ops 1 · Opener
 
@@ -84,6 +84,14 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 - **Playable:** `marker "new partner"; spend lio 2; ask sae "Court India too?" -> v; if yes v { spend sae 1; mod sae -1 min 1 (turn) } else { spend lio 1 }`
 - **History:** The United States and India announced a civil nuclear cooperation initiative on 18 July 2005; the Nuclear Suppliers Group granted India a waiver on 6 September 2008 and the bilateral "123 Agreement" was signed on 10 October 2008.
 - **Theme:** alliances · **Notion:** create
+
+### e2-lio-014 · Fall of the Taliban · LIO · Ops 3 · Gamble
+
+- **Event:** Special forces on horseback and allied air power drive the Taliban from Kabul in under six weeks.
+- **Design:** LIO 2; then a draw from LIO's deck: on 3 or more, a new government takes hold (LIO 1 more); otherwise the Taliban regroup across the border and the long war begins (SAE 1). Neptune Spear (e3-lio-002) carries the hunt for al-Qaeda's leader, so this card's gamble is about the new government, not the leaders. Added by the owner (Owner question 52; drafted in [new-lio-cards.md](../../proposals/new-lio-cards.md)).
+- **Playable:** `marker "Kabul taken"; spend lio 2; draw lio -> d; if d >= 3 { marker "new government"; spend lio 1 } else { marker "insurgency regroups"; spend sae 1 }`
+- **History:** US and British air strikes on Afghanistan began on 7 October 2001. Backed by US special forces and air power, the Northern Alliance took Kabul on 13 November, and the Taliban gave up Kandahar, their last stronghold, in early December 2001.
+- **Theme:** proxy wars, alliances · **Notion:** create
 
 ## SAE (11)
 
@@ -244,7 +252,7 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 
 ## Stage 3 build notes
 
-All 29 cards are built as `packages/content/cards/era-2/<id>.json`, each with a test that plays it in the real engine
+All 30 cards are built as `packages/content/cards/era-2/<id>.json`, each with a test that plays it in the real engine
 and checks every branch. The JSON follows the "Playable" line of each card one-for-one; no card was built weaker than
 planned. The rules text of each file is written from the JSON.
 

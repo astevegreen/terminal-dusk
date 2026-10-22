@@ -1,0 +1,61 @@
+{
+  "id": "e3-lio-014",
+  "era": "era-3",
+  "ops": 4,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "the capital holds"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 2
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "playedBy",
+        "side": "lio"
+      },
+      "then": [
+        {
+          "op": "modifier",
+          "mod": {
+            "hook": "opsValue",
+            "side": "sae",
+            "add": -1,
+            "min": 1
+          },
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ]
+    },
+    {
+      "op": "trigger",
+      "hook": "turnEnd",
+      "do": [
+        {
+          "op": "spendPoints",
+          "side": "lio",
+          "amount": 1
+        }
+      ],
+      "duration": {
+        "kind": "turnEnd"
+      }
+    }
+  ],
+  "text": {
+    "name": "Defence of Kyiv",
+    "rules": "Record \"the capital holds\". LIO spends 2 points. If LIO played this card, until the end of this turn, points spent by SAE count 1 less, never below 1. At the end of this turn, LIO spends 1 point. If this card's event happens, remove it from the game afterwards.",
+    "history": "Russian forces advancing from the north in the first days of the invasion of 24 February 2022 were stopped short of Kyiv, where a military convoy about 60 kilometres long stalled; by early April 2022 Russia had withdrawn from the whole Kyiv region.",
+    "art": "art/e3-lio-014"
+  },
+  "flags": {
+    "removeAfterEvent": true
+  }
+}

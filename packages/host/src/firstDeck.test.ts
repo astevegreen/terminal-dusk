@@ -13,10 +13,10 @@ function started(seed: string) {
 }
 
 describe("the first deck as a game", () => {
-  it("starts with empty hands and all 28 Era 1 cards, each once, in the draw pile", () => {
+  it("starts with empty hands and all 29 Era 1 cards, each once, in the draw pile", () => {
     const { hands, deck } = firstDeckConfig().setup;
     expect(hands).toEqual({ lio: [], sae: [] });
-    expect(new Set(deck).size).toBe(28);
+    expect(new Set(deck).size).toBe(29);
     // Only Era 1 starts in the draw pile; later eras wait in the scenario's eras and join it on their turns.
     expect([...deck].sort(byText)).toEqual(
       firstDeckRuleset.cards
@@ -28,13 +28,13 @@ describe("the first deck as a game", () => {
   it("uses the scenario's hand size of 8", () => {
     expect(firstDeckConfig().setup.handSize).toBe(8);
   });
-  it("deals each side 8 Era 1 cards on turn 1, leaving the other 12 in the draw pile", () => {
+  it("deals each side 8 Era 1 cards on turn 1, leaving the other 13 in the draw pile", () => {
     const state = started("a");
     for (const side of SIDES) {
       expect(state.private[side].hand).toHaveLength(8);
       expect(state.private[side].hand.every((id) => id.startsWith("e1-"))).toBe(true);
     }
-    expect(state.secret.deck).toHaveLength(12);
+    expect(state.secret.deck).toHaveLength(13);
   });
   it("deals the same hands for the same seed and different hands for another", () => {
     const hands = (seed: string) => SIDES.map((side) => started(seed).private[side].hand);
@@ -57,19 +57,19 @@ describe("the first deck as a game", () => {
     for (const side of SIDES) expect(state.private[side].hand).toHaveLength(8);
     expect(state.secret.deck.some((id) => id.startsWith("e2-"))).toBe(true);
   });
-  it("lets Era 2 enter on turn 2 with all 29 of its cards, none of them in the starting draw pile", () => {
+  it("lets Era 2 enter on turn 2 with all 30 of its cards, none of them in the starting draw pile", () => {
     const { eras, deck } = firstDeckConfig().setup;
     const era2 = eras?.find((e) => e.era === "era-2");
     expect(era2).toMatchObject({ era: "era-2", turn: 2 });
-    expect(era2?.cards).toHaveLength(29);
+    expect(era2?.cards).toHaveLength(30);
     expect(era2?.cards.every((id) => id.startsWith("e2-"))).toBe(true);
     for (const id of era2?.cards ?? []) expect(deck).not.toContain(id);
   });
-  it("lets Era 3 enter on turn 3 with its 28 cards and the future cards on turn 4 with their 6, none in the first pile", () => {
+  it("lets Era 3 enter on turn 3 with its 31 cards and the future cards on turn 4 with their 6, none in the first pile", () => {
     const { eras, deck } = firstDeckConfig().setup;
     expect(eras?.map((e) => [e.era, e.turn, e.cards.length])).toEqual([
-      ["era-2", 2, 29],
-      ["era-3", 3, 28],
+      ["era-2", 2, 30],
+      ["era-3", 3, 31],
       ["future", 4, 6],
     ]);
     expect(eras?.find((e) => e.era === "era-3")?.cards.every((id) => id.startsWith("e3-"))).toBe(true);

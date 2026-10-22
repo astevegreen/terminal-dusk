@@ -1,0 +1,37 @@
+{
+  "id": "e3-lio-016",
+  "era": "era-3",
+  "ops": 2,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "caliphate falls"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 2
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "has",
+        "marker": "proxy war"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Fall of the Caliphate",
+    "rules": "Record \"caliphate falls\". LIO spends 2 points. If \"proxy war\" has been recorded this game, SAE spends 1 point.",
+    "history": "The Islamic State group took Mosul in June 2014 and declared a caliphate. A US-led coalition formed that September backed the forces that retook Mosul in July 2017 and Raqqa in October 2017; its last territory, Baghuz in Syria, fell on 23 March 2019.",
+    "art": "art/e3-lio-016"
+  }
+}

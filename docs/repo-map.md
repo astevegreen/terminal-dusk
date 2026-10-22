@@ -119,6 +119,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/cards/era-1/e1-lio-012.test.ts` - e1-lio-012 Partnership for Peace: one test for each way its effect can play out.
 - `packages/content/cards/era-1/e1-lio-013.json`
 - `packages/content/cards/era-1/e1-lio-013.test.ts` - e1-lio-013 Oslo Accords: one test for each way its effect can play out.
+- `packages/content/cards/era-1/e1-lio-014.json`
+- `packages/content/cards/era-1/e1-lio-014.test.ts` - e1-lio-014 End of the Soviet Union: one test for each way its effect can play out.
 - `packages/content/cards/era-1/e1-neu-001.json`
 - `packages/content/cards/era-1/e1-neu-001.test.ts` - e1-neu-001 Rwandan Genocide: one test for each way its effect can play out.
 - `packages/content/cards/era-1/e1-neu-002.json`
@@ -179,6 +181,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/cards/era-2/e2-lio-012.test.ts` - e2-lio-012 Euro Cash: one test for each way its effect can play out.
 - `packages/content/cards/era-2/e2-lio-013.json`
 - `packages/content/cards/era-2/e2-lio-013.test.ts` - e2-lio-013 India-US Nuclear Deal: one test for each way its effect can play out.
+- `packages/content/cards/era-2/e2-lio-014.json`
+- `packages/content/cards/era-2/e2-lio-014.test.ts` - e2-lio-014 Fall of the Taliban: one test for each way its effect can play out.
 - `packages/content/cards/era-2/e2-neu-001.json`
 - `packages/content/cards/era-2/e2-neu-001.test.ts` - e2-neu-001 China Joins the WTO: one test for each way its effect can play out.
 - `packages/content/cards/era-2/e2-neu-002.json`
@@ -233,6 +237,12 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/cards/era-3/e3-lio-011.test.ts` - e3-lio-011 Private Constellation: one test for each way its effect can play out.
 - `packages/content/cards/era-3/e3-lio-013.json`
 - `packages/content/cards/era-3/e3-lio-013.test.ts` - e3-lio-013 Fall of the Assad Regime: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-lio-014.json`
+- `packages/content/cards/era-3/e3-lio-014.test.ts` - e3-lio-014 Defence of Kyiv: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-lio-015.json`
+- `packages/content/cards/era-3/e3-lio-015.test.ts` - e3-lio-015 Revolution of Dignity: one test for each way its effect can play out.
+- `packages/content/cards/era-3/e3-lio-016.json`
+- `packages/content/cards/era-3/e3-lio-016.test.ts` - e3-lio-016 Fall of the Caliphate: one test for each way its effect can play out.
 - `packages/content/cards/era-3/e3-neu-001.json`
 - `packages/content/cards/era-3/e3-neu-001.test.ts` - e3-neu-001 Arab Spring: one test for each way its effect can play out.
 - `packages/content/cards/era-3/e3-neu-002.json`
@@ -312,7 +322,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/src/index.test.ts`
 - `packages/content/src/index.ts` - Public entry point of the content package: the bundle of cards, map, scenarios and tutorial. Exports: DEFAULT_CONTINGENCY, scenarioSetup, ScenarioSetup.
 - `packages/content/src/lastingTags.test.ts` - The lasting tags of the first deck (#202, owner 21 Oct): exactly the eight tags a later card reads are recorded for the rest of the game; every other marker st…
-- `packages/content/src/onceOnly.test.ts` - The five Ops 4 cards are once-only events (deck-plan.md, wish W6; #204): flagged removeAfterEvent, with the template sentence closing their rules text.
+- `packages/content/src/onceOnly.test.ts` - The six Ops 4 cards are once-only events (deck-plan.md, wish W6; #204; Defence of Kyiv, Owner question 52): flagged removeAfterEvent, with the template sentenc…
 - `packages/content/src/playCardBefore.test.ts` - The card test helper's `before` option (#202): real cards played for their events in earlier turns of the same game, so a card under test can read a lasting ta…
 - `packages/content/src/scenario.test.ts`
 - `packages/content/src/scenario.ts` - Turns a scenario file into the parts of the engine's Setup it decides. Exports: DEFAULT_CONTINGENCY, ScenarioSetup, scenarioSetup.

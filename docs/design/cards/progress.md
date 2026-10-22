@@ -24,3 +24,8 @@
   is rebuilt from the discards when it runs out. The 6 own + 2 rival + 3 neutral deal and the stopgap are gone: all 28
   Era 1 cards start in the draw pile and the turn 1 refill deals the first hands, so the later eras' cards are now
   drawn and played. Owner questions 5 and 27 done; 34 and 41 resolved.
+- Owner addition (21 Oct, Owner questions 51 and 52): five LIO cards drafted in docs/proposals/new-lio-cards.md and
+  approved: End of the Soviet Union (e1-lio-014, Ops 3), Fall of the Taliban (e2-lio-014, Ops 3), Defence of Kyiv
+  (e3-lio-014, Era 3's LIO Ops 4 card, once-only), Revolution of Dignity (e3-lio-015, Ops 2) and Fall of the
+  Caliphate (e3-lio-016, Ops 2), each built with a test and listed in the TEST scenario. The deck is now 96 cards
+  (Era 1: 9 LIO, 13 SAE, 7 neutral; Era 2: 11, 11, 8; Era 3: 11, 12, 8; plus the 6 future cards).

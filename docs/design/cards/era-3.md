@@ -1,10 +1,10 @@
 # Era 3 cards: 2008 to 2025 (the crash to today)
 
 Part of the [deck plan](deck-plan.md). Notation, rules-text templates and the wish-list codes (W1-W8) are
-defined there. Every card: LIO 8, SAE 12, neutral 8 (the plan had 13, 13 and 8; the owner removed the rest as not well known or significant enough, and their numbers stay unused; the owner then added October 7 and Gaza, Owner question 14), plus six optional roles-only "future" cards at the
+defined there. Every card: LIO 11, SAE 12, neutral 8 (the plan had 13, 13 and 8; the owner removed the rest as not well known or significant enough, and their numbers stay unused; the owner then added October 7 and Gaza, Owner question 14, and three LIO cards, Owner question 52), plus six optional roles-only "future" cards at the
 end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 on name roles, not people.
 
-## LIO (8)
+## LIO (11)
 
 ### e3-lio-001 · Stuxnet · LIO · Ops 2 · Gamble
 
@@ -69,6 +69,30 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 - **Playable:** `marker "foothold lost"; if has "proxy war" { spend lio 3 } else { spend lio 2 }; mod sae -1 min 1 (turn)`
 - **History:** Syrian rebel forces took Damascus on 8 December 2024 and President Bashar al-Assad fled to Russia, ending more than fifty years of his family's rule; the future of Russia's air and naval bases in Syria became uncertain.
 - **Theme:** proxy wars · **Notion:** update `3fceb012942f81af9c28e803d68d0ffa`
+
+### e3-lio-014 · Defence of Kyiv · LIO · Ops 4 · Hot
+
+- **Event:** The armoured columns stall outside the capital, and the invaders pull back from the north.
+- **Design:** LIO 2 now and 1 at turn end, and SAE -1 Ops this turn: the quick war fails. Hot: an SAE holder wants the 4 Ops but hands LIO the event. If SAE plays it: no SAE -1 Ops (LIO 2 and 1 at turn end). The mirror of Full-Scale Invasion (SAE 3, LIO -1 Ops, LIO 1 at turn end). Added by the owner as Era 3's LIO Ops 4 card (Owner questions 51 and 52; drafted in [new-lio-cards.md](../../proposals/new-lio-cards.md)).
+- **Playable:** `marker "the capital holds"; spend lio 2; if played lio { mod sae -1 min 1 (turn) }; on turnEnd { spend lio 1 }; once-only`
+- **History:** Russian forces advancing from the north in the first days of the invasion of 24 February 2022 were stopped short of Kyiv, where a military convoy about 60 kilometres long stalled; by early April 2022 Russia had withdrawn from the whole Kyiv region.
+- **Theme:** proxy wars, alliances · **Notion:** create
+
+### e3-lio-015 · Revolution of Dignity · LIO · Ops 2 · Split/Gamble (SAE)
+
+- **Event:** Months of protest on Kyiv's Maidan end with the president fleeing to Russia.
+- **Design:** LIO 2: Ukraine turns west. SAE may stir unrest in the east, a gamble on SAE's own deck: on 4 or more, SAE 1 as the east breaks away; otherwise LIO 1 as the country unites against it. Annexation of Crimea (e3-sae-003) is SAE's answer and stays unchanged. Added by the owner (Owner question 52; drafted in [new-lio-cards.md](../../proposals/new-lio-cards.md)).
+- **Playable:** `marker "turned west"; spend lio 2; ask sae "Stir unrest in the east?" -> v; if yes v { draw sae -> d; if d >= 4 { spend sae 1 } else { spend lio 1 } }`
+- **History:** Protests began on Kyiv's Maidan square on 21 November 2013, after Ukraine's government dropped plans to sign an association agreement with the European Union. After more than 100 people were killed in February 2014, the president fled to Russia and parliament removed him on 22 February; Ukraine signed the agreement that year.
+- **Theme:** populism, alliances · **Notion:** create
+
+### e3-lio-016 · Fall of the Caliphate · LIO · Ops 2 · Plain
+
+- **Event:** The last village of the self-declared caliphate falls, nearly five years after it took Mosul.
+- **Design:** LIO 2. Both sides fought the caliphate, so the card reads the lasting "proxy war" tag (Syrian Intervention, W3): if it is recorded, SAE 1 as Moscow claims a share of the victory. Added by the owner (Owner question 52; drafted in [new-lio-cards.md](../../proposals/new-lio-cards.md)).
+- **Playable:** `marker "caliphate falls"; spend lio 2; if has "proxy war" { spend sae 1 }`
+- **History:** The Islamic State group took Mosul in June 2014 and declared a caliphate. A US-led coalition formed that September backed the forces that retook Mosul in July 2017 and Raqqa in October 2017; its last territory, Baghuz in Syria, fell on 23 March 2019.
+- **Theme:** proxy wars, alliances · **Notion:** create
 
 ## SAE (12)
 
@@ -274,7 +298,7 @@ describe the trend, not a dated event. Ops: 2, 1 per side; neutral 2, 1.
 
 ## Stage 4 build notes
 
-All 28 Era 3 cards are built as `packages/content/cards/era-3/<id>.json` and the 6 future cards as
+All 31 Era 3 cards are built as `packages/content/cards/era-3/<id>.json` and the 6 future cards as
 `packages/content/cards/future/<id>.json`, each with a test that plays it in the real engine and checks every branch.
 The JSON follows the "Playable" line of each card one-for-one; no card was built weaker than planned. The rules text
 of each file is written from the JSON.
@@ -292,6 +316,8 @@ of each file is written from the JSON.
 - **Ops 4 cards:** the five Ops 4 cards (Desert Storm Coalition, Handover of Hong Kong, Big Bang Enlargement 2004,
   Olympic Summer 2008, Full-Scale Invasion) are now once-only (wish W6, R13): if a card's event happens, it is removed
   from the game afterwards. Sanctions Wall, the other Ops 4 card first planned here, was removed.
+  **Since added (Owner questions 51 and 52):** Defence of Kyiv is Era 3's LIO Ops 4 card and once-only too, so there
+  are now six; Revolution of Dignity and Fall of the Caliphate join it as Ops 2 cards, built with tests like the rest.
 - **Turn-end spends under a "count more" bonus:** Arab Spring and the two neutral Ops swings follow question 35: a
   turn-end spend may happen while a "+1" for that side is still in force. Only Arab Spring has both a turn-end spend
   and a side modifier on different sides, so no spend of 1 is raised to 2 by this card's own modifiers.

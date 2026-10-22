@@ -6,17 +6,17 @@ import { FIRST_DECK_SCENARIO } from "./firstDeckScenario.ts";
 import { byText, eraDeckChecks, opsSpread, startEraOneGame } from "./test/eraChecks.ts";
 
 describe("the Era 2 deck", () => {
-  eraDeckChecks(ERA_2_CARDS, "era-2", [10, 11, 8]);
-  it("follows the Ops spread of the plan less the removed cards: Ops 1/2/3/4 LIO 3/5/1/1, SAE 3/5/2/1, neutral 3/4/1/0", () => {
+  eraDeckChecks(ERA_2_CARDS, "era-2", [11, 11, 8]);
+  it("follows the Ops spread of the plan less the removed cards, plus Fall of the Taliban: Ops 1/2/3/4 LIO 3/5/2/1, SAE 3/5/2/1, neutral 3/4/1/0", () => {
     expect(opsSpread(ERA_2_CARDS)).toEqual([
-      [3, 5, 1, 1],
+      [3, 5, 2, 1],
       [3, 5, 2, 1],
       [3, 4, 1, 0],
     ]);
   });
   it("shares no card id with Era 1, and the first-deck ruleset holds both eras", () => {
     const ids = new Set([...ERA_1_CARDS, ...ERA_2_CARDS].map((c) => c.id));
-    expect(ids.size).toBe(57);
+    expect(ids.size).toBe(59);
     const inRuleset = new Set(FIRST_DECK_RULESET.cards.map((c) => c.id));
     for (const id of ids) expect(inRuleset.has(id)).toBe(true);
   });

@@ -9,6 +9,9 @@ import c_e3_lio_009 from "../cards/era-3/e3-lio-009.json" with { type: "json" };
 import c_e3_lio_010 from "../cards/era-3/e3-lio-010.json" with { type: "json" };
 import c_e3_lio_011 from "../cards/era-3/e3-lio-011.json" with { type: "json" };
 import c_e3_lio_013 from "../cards/era-3/e3-lio-013.json" with { type: "json" };
+import c_e3_lio_014 from "../cards/era-3/e3-lio-014.json" with { type: "json" };
+import c_e3_lio_015 from "../cards/era-3/e3-lio-015.json" with { type: "json" };
+import c_e3_lio_016 from "../cards/era-3/e3-lio-016.json" with { type: "json" };
 import c_e3_sae_001 from "../cards/era-3/e3-sae-001.json" with { type: "json" };
 import c_e3_sae_002 from "../cards/era-3/e3-sae-002.json" with { type: "json" };
 import c_e3_sae_003 from "../cards/era-3/e3-sae-003.json" with { type: "json" };
@@ -30,7 +33,7 @@ import c_e3_neu_007 from "../cards/era-3/e3-neu-007.json" with { type: "json" };
 import c_e3_neu_008 from "../cards/era-3/e3-neu-008.json" with { type: "json" };
 import c_e3_neu_009 from "../cards/era-3/e3-neu-009.json" with { type: "json" };
 
-/** All 28 Era 3 cards: 8 LIO, 12 SAE and 8 neutral, in file order. */
+/** All 31 Era 3 cards: 11 LIO, 12 SAE and 8 neutral, in file order. */
 export const ERA_3_CARDS = [
   c_e3_lio_001,
   c_e3_lio_002,
@@ -40,6 +43,9 @@ export const ERA_3_CARDS = [
   c_e3_lio_010,
   c_e3_lio_011,
   c_e3_lio_013,
+  c_e3_lio_014,
+  c_e3_lio_015,
+  c_e3_lio_016,
   c_e3_sae_001,
   c_e3_sae_002,
   c_e3_sae_003,

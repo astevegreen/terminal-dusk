@@ -9,6 +9,7 @@ import c_e1_lio_010 from "../cards/era-1/e1-lio-010.json" with { type: "json" };
 import c_e1_lio_011 from "../cards/era-1/e1-lio-011.json" with { type: "json" };
 import c_e1_lio_012 from "../cards/era-1/e1-lio-012.json" with { type: "json" };
 import c_e1_lio_013 from "../cards/era-1/e1-lio-013.json" with { type: "json" };
+import c_e1_lio_014 from "../cards/era-1/e1-lio-014.json" with { type: "json" };
 import c_e1_sae_001 from "../cards/era-1/e1-sae-001.json" with { type: "json" };
 import c_e1_sae_002 from "../cards/era-1/e1-sae-002.json" with { type: "json" };
 import c_e1_sae_003 from "../cards/era-1/e1-sae-003.json" with { type: "json" };
@@ -33,7 +34,7 @@ import c_e1_neu_008 from "../cards/era-1/e1-neu-008.json" with { type: "json" };
 /** One Era 1 card file, as the card schema reads it. */
 export type Card = ReturnType<typeof cardSchema.parse>;
 
-/** All 28 Era 1 cards: 8 LIO, 13 SAE and 7 neutral, in file order. */
+/** All 29 Era 1 cards: 9 LIO, 13 SAE and 7 neutral, in file order. */
 export const ERA_1_CARDS: readonly Card[] = [
   c_e1_lio_001,
   c_e1_lio_002,
@@ -43,6 +44,7 @@ export const ERA_1_CARDS: readonly Card[] = [
   c_e1_lio_011,
   c_e1_lio_012,
   c_e1_lio_013,
+  c_e1_lio_014,
   c_e1_sae_001,
   c_e1_sae_002,
   c_e1_sae_003,

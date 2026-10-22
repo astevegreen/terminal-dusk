@@ -1,0 +1,73 @@
+{
+  "id": "e1-lio-014",
+  "era": "era-1",
+  "ops": 3,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "red flag lowered"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 2
+    },
+    {
+      "op": "choose",
+      "who": "sae",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        },
+        {
+          "op": "modifier",
+          "mod": {
+            "hook": "opsValue",
+            "side": "sae",
+            "add": -1,
+            "min": 1
+          },
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ],
+      "else": [
+        {
+          "op": "trigger",
+          "hook": "turnEnd",
+          "do": [
+            {
+              "op": "spendPoints",
+              "side": "lio",
+              "amount": 1
+            }
+          ],
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "End of the Soviet Union",
+    "rules": "Record \"red flag lowered\". LIO spends 2 points. SAE chooses: Hold the new states in a commonwealth? If yes, SAE spends 1 point, then until the end of this turn, points spent by SAE count 1 less, never below 1; if no, at the end of this turn, LIO spends 1 point.",
+    "history": "The Soviet Union recognised the independence of Estonia, Latvia and Lithuania on 6 September 1991. On 8 December the leaders of Russia, Ukraine and Belarus agreed to dissolve the Union and found the Commonwealth of Independent States; the Soviet president resigned on 25 December 1991 and the Union ended the next day.",
+    "art": "art/e1-lio-014"
+  }
+}
