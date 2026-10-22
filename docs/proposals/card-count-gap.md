@@ -9,7 +9,8 @@ It decides nothing, and nothing here is a rule until the owner picks an option a
 docs/design/.
 
 **Decided** (owner, 21 Oct): options C1 and F1, narrowing the gap rather than closing it, with every new card's
-design drafted for the owner's approval first. Recorded in deck-plan.md, Owner question 51.
+design drafted for the owner's approval first. Recorded in deck-plan.md, Owner question 51. The drafts are in
+[new-lio-cards.md](new-lio-cards.md) (Owner question 52).
 
 ## The gap in numbers
 

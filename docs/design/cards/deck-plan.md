@@ -450,3 +450,9 @@ answer follows the question as **Answered**.
       card, the draft offers two or three events and the owner picks one.
     - The removed and cut cards are not offered again (proposal, "Candidates that are not offered").
       Still open: which events, and each card's design, until the owner approves the drafts.
+52. **The new LIO card drafts.** For question 51, docs/proposals/new-lio-cards.md drafts the Era 3 LIO Ops 4 card
+    as three events to pick from (Defence of Kyiv, Revolution of Dignity, Fall of the Caliphate), Ops 2 versions
+    of the two not picked, End of the Soviet Union (Era 1, Ops 3) and Fall of the Taliban (Era 2, Ops 3), with one
+    line on why each other candidate is left out. Each is a yes/no question (the proposal's "Questions for the
+    owner"). If all are approved, LIO has 31 cards in Eras 1-3 against SAE's 36. Nothing is built until approved.
+    Still open: all seven of the proposal's questions.
