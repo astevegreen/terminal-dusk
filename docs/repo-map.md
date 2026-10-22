@@ -708,7 +708,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `docs/design/contingency-deck.md` - Contingency deck
 - `docs/design/core-loop.md` - Core loop
 - `docs/design/eras.md` - Eras
-- `docs/design/map-and-points.md` - The map, influence, points and tension: owner decisions (W7)
+- `docs/design/map-and-points.md` - The map, influence, points and escalation: owner decisions (W7)
 - `docs/design/sides.md` - Sides
 - `docs/proposals/card-count-gap.md` - The LIO/SAE card-count gap and the missing Era 3 LIO Ops 4 card: options
 - `docs/proposals/era-lengths.md` - Era lengths and turns per era: options

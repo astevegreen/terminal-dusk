@@ -30,7 +30,7 @@ decks. From now on this file is the source of truth; change it in Notion and pro
 - Modifiers and thresholds treat the number exactly like a die result. For example, "+1 to the result" adds 1
   to the number drawn.
 - **Whose deck:**
-  - an action a side takes (a coup, for example) draws from that side's deck;
+  - an action a side takes (an intervention, for example) draws from that side's deck;
   - when both sides draw at once (the Notion page gives a realignment as an example), each side draws one card
     from its own deck. In a realignment this includes the defender (owner, 19 Oct; see "Realignments" below);
   - an event draws from the deck of the side the event belongs to, unless its text names the rival's deck
@@ -41,6 +41,8 @@ decks. From now on this file is the source of truth; change it in Notion and pro
     that picked it). This holds for every draw in the event, whichever side answers its choices. Example:
     LIO plays a neutral card whose event says "SAE chooses, then draw a contingency"; the draw comes from
     LIO's deck (owner, 18 Oct, decision 17 option c).
+  - a crisis draw (Escalation reaching 6, docs/design/map-and-points.md) comes from the own deck of the side
+    that caused the crisis, even when a rival's card caused it; it never comes from the World deck (owner, 22 Oct).
   - **Drawing from the rival's deck** (owner, 19 Oct, answering Owner question 2 of the first-deck plan,
     PR #121). Any LIO or SAE card's event may draw from the rival's deck instead of
     its own, when its text names that deck. One card may draw from both decks, for example "each side
