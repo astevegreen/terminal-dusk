@@ -459,6 +459,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## packages/server - Supabase functions and SQL: the single submit write path, scheduled jobs and migrations.
 
 - `packages/server/package.json`
+- `packages/server/src/deadlineStore.test.ts`
+- `packages/server/src/deadlineStore.ts` - The storage port behind the deadline sweep (docs/architecture.md, Decision 5, "Scheduled jobs"). Exports: DeadlineStore, earliestDeadline, dueIds.
 - `packages/server/src/edge.ts` - The glue every Edge Function shares: turning the runtime's fetch-style requests into the plain-data requests the handlers take and back, and the Supabase sign-… Exports: FetchRequest, MakeResponse, serveFetch, supabaseAuthenticate.
 - `packages/server/src/http.ts` - The plain-data HTTP pieces the Edge Function handlers share (docs/architecture.md, Decision 5): the request and reply shapes, the CORS headers, signing a calle… Exports: HttpRequest, HttpReply, Authenticate, CORS_HEADERS, preflight, signedIn, jsonObject, reply, refusal, isPlainObject.
 - `packages/server/src/index.test.ts`
@@ -510,6 +512,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/supabaseStore.guards.stack.test.ts` - SupabaseStore's guards on the local Supabase stack: the seq check in the commit_match SQL function, unknown matches, a missing secret row and database errors,…
 - `packages/server/src/supabaseStore.test.ts` - SupabaseStore against a stand-in client, so these run without the local stack.
 - `packages/server/src/supabaseStore.ts` - The Supabase side of the storage port (docs/architecture.md, Decision 5). Exports: StorageError, SupabaseStore.
+- `packages/server/src/sweepDeadlines.storage.test.ts`
+- `packages/server/src/sweepDeadlines.test.ts`
+- `packages/server/src/sweepDeadlines.ts` - The deadline sweep (docs/architecture.md, Decision 5, "Scheduled jobs", Deadlines): for every match past a deadline, apply its deadline rule through the host a… Exports: SweepResult, sweepDeadlines.
+- `packages/server/src/test/deadlines.ts` - Test helpers for the deadline sweep: matches with deadlines in an in-memory store. Exports: DAY, rulesetFor, insertMatch, insertSaeLate.
 - `packages/server/src/test/errors.ts` - Test helpers for checking what a thrown storage error shows. Exports: shown, thrown.
 - `packages/server/src/test/functions.ts` - Test helpers for calling an Edge Function served by the local Supabase stack (`supabase functions serve`). Exports: SERVE_HINT, callFunction, whyFunctionUnavailable.
 - `packages/server/src/test/games.ts` - Test helper: whole games played through `submit`, calling back after every step with what is stored. Exports: Strategy, STRATEGIES, Step, playGame.
@@ -518,7 +524,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/test/inviteStack.ts` - The shared setup for the invite tests on the local Supabase stack: a service-role client and three fresh test users (a host and two joiners) made before the te… Exports: STACK_SEED, InviteStack, expectedStart, inviteStack.
 - `packages/server/src/test/invites.ts` - Test helpers for invites: an in-memory invite store over O1's MemoryStore, with repeatable codes, match ids, seeds and random sides, and submit deps that run t… Exports: HOST, JOINER, INVITE_NOW, sequence, InviteWorld, inviteWorld.
 - `packages/server/src/test/leaks.ts` - Test helper for leak checks, copying the idea of the host's test/leaks.ts. Exports: leaksIn, leaksFor.
-- `packages/server/src/test/match.ts` - Test helpers: a small ruleset and a match in an in-memory store, copying the idea of the host's tests. Exports: SEED, NOW, MATCH, ruleset, created, setup, bodyFor, nextSide.
+- `packages/server/src/test/match.ts` - Test helpers: a small ruleset and a match in an in-memory store, copying the idea of the host's tests. Exports: SEED, NOW, MATCH, ruleset, makeConfig, created, setup, bodyFor, nextSide.
 - `packages/server/src/test/stack.ts` - Test helpers for the SupabaseStore checks on the local Supabase stack (O3's localStack.ts finds it). Exports: onLocalStack, TestUser, makeUser, accessToken, freshMatchId, newGame, writeOf, putIn, Stored, storedRows, cleanUp.
 - `packages/server/src/test/stackGame.ts` - The shared setup for the tests on the local Supabase stack: a service-role client and two fresh test users made before the tests, and every test match and user… Exports: StackGame, stackGame, answered, expectStoredAs.
 - `packages/server/src/test/stores.ts` - Test helpers that wrap any MatchStore, for the in-memory and the Supabase store alike. Exports: loadTogether, recording.

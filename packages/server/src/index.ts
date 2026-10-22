@@ -4,6 +4,9 @@ export type { ServerErrorCode, SubmitDeps, SubmitError, SubmitOutcome, SubmitReq
 export { MemoryStore } from "./store.ts";
 export { SupabaseStore } from "./supabaseStore.ts";
 export type { CommitResult, LoadedMatch, MatchStore, MatchWrite } from "./store.ts";
+export type { DeadlineStore } from "./deadlineStore.ts";
+export { sweepDeadlines } from "./sweepDeadlines.ts";
+export type { SweepResult } from "./sweepDeadlines.ts";
 export { rowsFor, VIEWERS } from "./rows.ts";
 export type { CommitRows, MatchEventRow, MatchRow, MatchViewRow } from "./rows.ts";
 export { canRead, readMatch } from "./read.ts";

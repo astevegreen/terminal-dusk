@@ -4,7 +4,10 @@ import { readMatch } from "./read.ts";
 import type { Caller } from "./read.ts";
 import { playGame, STRATEGIES } from "./test/games.ts";
 import { leaksFor } from "./test/leaks.ts";
-import { created, MATCH } from "./test/match.ts";
+import { created, MATCH, NOW } from "./test/match.ts";
+import { MemoryStore } from "./store.ts";
+import { sweepDeadlines } from "./sweepDeadlines.ts";
+import { DAY, insertSaeLate, rulesetFor } from "./test/deadlines.ts";
 
 /** Each caller, and the viewer whose hidden cards it may see: alice plays LIO, bob plays SAE. */
 const CALLERS: { caller: Caller; viewer: Side | "spectator" }[] = [
@@ -70,4 +73,20 @@ describe("readMatch: no caller can read anything hidden from it", () => {
       expect(steps).toBeGreaterThan(1);
     });
   }
+
+  it("a match timed out by the deadline sweep: no caller's view or event rows hold anything hidden from it", async () => {
+    const store = new MemoryStore();
+    await insertSaeLate(store, MATCH, "lossOnTime", NOW);
+    const before = (await store.load(MATCH))!.secret;
+    expect(await sweepDeadlines(store, rulesetFor, NOW + DAY)).toEqual([{ matchId: MATCH, status: "timedOut" }]);
+    const after = (await store.load(MATCH))!.secret;
+    for (const { caller, viewer } of CALLERS) {
+      const read = (await readMatch(store, MATCH, caller, -1))!;
+      expect(read.match.status).toMatchObject({ kind: "over", reason: "timeout" });
+      const rows = JSON.stringify({ views: read.views, events: read.events });
+      for (const secret of [before, after]) expect(leaksFor(rows, secret, viewer), String(caller)).toEqual([]);
+      const matchLeaks = leaksFor(JSON.stringify(read.match), after, viewer);
+      expect(matchLeaks, String(caller)).toEqual(["the seed"]);
+    }
+  });
 });
