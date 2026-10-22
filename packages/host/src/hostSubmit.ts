@@ -2,12 +2,15 @@
 import { SIDES } from "@terminal-dusk/engine";
 import type { Answer, AnswerValue, Ruleset } from "@terminal-dusk/engine";
 import { copyJson } from "./frames.ts";
+import { hasGrace, isLate } from "./clock.ts";
 import { acceptAnswer, badTime } from "./hostAccept.ts";
 import type { HostError, HostOutcome, MatchRecord, MatchSecret, Submission } from "./types.ts";
 
 /**
- * Takes one player's answer or resignation. The host checks, in order: notPlayer, invalidTime, staleSeq;
- * only then does the engine see the answer (so a game-ending move sent twice gives staleSeq, not gameOver).
+ * Takes one player's answer or resignation. The host checks, in order: notPlayer, invalidTime, staleSeq,
+ * the answer's shape, then pastDeadline (an answer at or after the side's deadline with no grace left;
+ * with grace left it is taken and uses the extension; a resignation is always taken). Only then does the
+ * engine see the answer (so a game-ending move sent twice gives staleSeq, not gameOver).
  * A player can never send a timeout: only hostTimeout makes one.
  * A refusal returns an error and changes nothing. It never throws, and never changes its inputs.
  */
@@ -31,10 +34,15 @@ export function hostSubmit(
   if (!resigning && (typeof loose.decisionId !== "string" || !isObject(loose.value))) {
     return refuse("illegalAnswer", "The answer must name a decision and carry a value.");
   }
+  // A late answer uses the side's grace extension if it has one left; otherwise it is too late.
+  const overdue = !resigning && record.clock !== undefined && isLate(record.clock, side, now);
+  if (overdue && record.clock && !hasGrace(record.clock, side)) {
+    return refuse("pastDeadline", "The deadline for that answer has passed.");
+  }
   const answer: Answer = resigning
     ? { system: "resign", side }
     : { decisionId: loose.decisionId as string, side, value: copyJson(loose.value as AnswerValue) };
-  return acceptAnswer(ruleset, record, secret, answer, now);
+  return acceptAnswer(ruleset, record, secret, answer, now, overdue ? side : null);
 }
 
 const isObject = (v: unknown): boolean => typeof v === "object" && v !== null && !Array.isArray(v);

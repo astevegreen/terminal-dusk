@@ -413,6 +413,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## packages/host - MatchHost: runs a match around the engine (players, clock, move log, frames) without doing I/O.
 
 - `packages/host/package.json`
+- `packages/host/src/clock.test.ts`
+- `packages/host/src/clock.ts` - A match's clock: who must answer by when, and who has had their grace extension (architecture Decision 5, "Deadlines"). Exports: validDeadline, lengthOf, startClock, nextClock, deadlineEffects, isLate, hasGrace, validClock.
 - `packages/host/src/firstDeck.test.ts`
 - `packages/host/src/firstDeck.ts` - The first deck as a game the app can start: the ruleset, a match config, and card names. Exports: FIRST_DECK_NOTE, firstDeckRuleset, firstDeckCardName, firstDeckCardQuestion, firstDeckConfig.
 - `packages/host/src/firstDeckQuestion.test.ts`
@@ -423,6 +425,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/src/hostCreate.leaks.test.ts`
 - `packages/host/src/hostCreate.test.ts`
 - `packages/host/src/hostCreate.ts` - Starting a match: checks the config, creates the game with the engine, and splits the result into what everyone may read (the record), what only the host may r… Exports: hostCreate.
+- `packages/host/src/hostDeadline.test.ts`
+- `packages/host/src/hostDeadline.ts` - A passed deadline: the server's deadline job (never a player) asks the host to apply the match's deadline rule (architecture Decision 5, "Deadlines", and the p… Exports: hostDeadline.
 - `packages/host/src/hostFinish.test.ts`
 - `packages/host/src/hostFinish.ts` - The end of a game: check it again from its seed and move log, then reveal the seed. Exports: canonical, checkFinished.
 - `packages/host/src/hostSubmit.leaks.test.ts`
@@ -431,14 +435,15 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/src/hostTimeout.test.ts`
 - `packages/host/src/hostTimeout.ts` - A missed deadline: the server's deadline job (never a player) tells the host that `side` was late. Exports: hostTimeout.
 - `packages/host/src/index.test.ts`
-- `packages/host/src/index.ts` - Public entry point of MatchHost (docs/architecture.md, Decision 3). Exports: hostCreate, hostSubmit, hostTimeout, hostArchive, Frame, HostEffect, HostError, HostErrorCode, HostOutcome, HostResult, MatchConfig, MatchRecord, ….
+- `packages/host/src/index.ts` - Public entry point of MatchHost (docs/architecture.md, Decision 3). Exports: hostCreate, hostSubmit, hostTimeout, hostDeadline, hostArchive, DeadlineRule, Frame, HostEffect, HostError, HostErrorCode, HostOutcome, HostResult, ….
+- `packages/host/src/test/clock.ts` - Test helpers for matches with deadlines. Exports: DAY, startedWith, lioToPlay, clockOf, withClock, swept.
 - `packages/host/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
 - `packages/host/src/test/leaks.ts` - Test helpers for leak checks, copying the idea of tests/fuzz/checks.ts (hiddenFrom, leaksIn). Exports: hiddenFrom, leaksIn.
 - `packages/host/src/test/match.ts` - Test helpers: a small ruleset, a match config with an era still to enter, and a seed. Exports: SEED, NOW, LATE_ERA_CARDS, ruleset, makeConfig.
 - `packages/host/src/test/order.test.ts`
 - `packages/host/src/test/order.ts` - Compare function for sorting strings in UTF-16 code-unit order: the same order as a sort with no compare function, written out so the order is explicit. Exports: byCodeUnit.
 - `packages/host/src/test/play.ts` - Test helpers for playing a match through the host. Exports: started, submissionFor, nextSide, accept.
-- `packages/host/src/types.ts` - The match host's own types (docs/architecture.md, Decision 3). Exports: PlayerId, MatchConfig, MatchRecord, MatchSecret, Frame, Submission, HostEffect, HostResult, HostErrorCode, HostError, HostOutcome, ReplayFrame, ….
+- `packages/host/src/types.ts` - The match host's own types (docs/architecture.md, Decision 3). Exports: PlayerId, DeadlineRule, MatchDeadline, MatchConfig, MatchClock, MatchRecord, MatchSecret, Frame, Submission, HostEffect, HostResult, HostErrorCode, ….
 - `packages/host/tsconfig.json`
 
 ## packages/server - Supabase functions and SQL: the single submit write path, scheduled jobs and migrations.

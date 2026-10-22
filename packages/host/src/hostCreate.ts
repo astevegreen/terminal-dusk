@@ -2,8 +2,9 @@
 // what everyone may read (the record), what only the host may read (the secret) and one frame per viewer.
 import { createGame, pendingFor, seedHash, SIDES } from "@terminal-dusk/engine";
 import type { Ruleset, Seed, Setup } from "@terminal-dusk/engine";
+import { deadlineEffects, startClock, validDeadline } from "./clock.ts";
 import { copyJson, framesFor } from "./frames.ts";
-import type { HostEffect, HostError, HostOutcome, MatchConfig } from "./types.ts";
+import type { HostEffect, HostError, HostOutcome, MatchConfig, MatchRecord } from "./types.ts";
 
 /**
  * Starts a match. The ruleset comes first, as in the engine's apply, and only its id is stored. `now`
@@ -18,24 +19,27 @@ export function hostCreate(ruleset: Ruleset, config: MatchConfig, seed: Seed, no
   if (!created.ok) return { ok: false, error: created.error };
   const { state, events } = created.value;
   const players = { lio: config.players.lio, sae: config.players.sae };
+  const record: MatchRecord = {
+    matchId: config.matchId,
+    players,
+    ruleset: state.meta.ruleset,
+    seedHash: state.meta.seedHash,
+    seq: state.meta.seq,
+    status: copyJson(state.public.status),
+    createdAt: now,
+    updatedAt: now,
+    ...(config.deadline === undefined ? {} : { clock: startClock(config.deadline, state, now) }),
+  };
+  const effects = SIDES.filter((side) => pendingFor(state, side) !== null).map((side): HostEffect => ({
+    notify: players[side],
+  }));
   return {
     ok: true,
     value: {
-      record: {
-        matchId: config.matchId,
-        players,
-        ruleset: state.meta.ruleset,
-        seedHash: state.meta.seedHash,
-        seq: state.meta.seq,
-        status: copyJson(state.public.status),
-        createdAt: now,
-        updatedAt: now,
-      },
+      record,
       secret: { seed, setup, state, log: [] },
       frames: framesFor(config.matchId, state, events),
-      effects: SIDES.filter((side) => pendingFor(state, side) !== null).map((side): HostEffect => ({
-        notify: players[side],
-      })),
+      effects: [...effects, ...deadlineEffects(record)],
     },
   };
 }
@@ -50,6 +54,9 @@ function configError(config: MatchConfig): HostError | null {
     if (typeof player !== "string" || player.length === 0) return invalidConfig(`The ${side} side needs a player id.`);
   }
   if (config.players.lio === config.players.sae) return invalidConfig("One player cannot play both sides.");
+  if (config.deadline !== undefined && !validDeadline(config.deadline)) {
+    return invalidConfig("A deadline needs the rule lossOnTime or graceThenLoss, and 1, 3 or 7 days.");
+  }
   return null;
 }
 
