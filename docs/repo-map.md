@@ -417,6 +417,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/src/firstDeck.ts` - The first deck as a game the app can start: the ruleset, a match config, and card names. Exports: FIRST_DECK_NOTE, firstDeckRuleset, firstDeckCardName, firstDeckCardQuestion, firstDeckConfig.
 - `packages/host/src/firstDeckQuestion.test.ts`
 - `packages/host/src/frames.ts` - Shared by the host's entry points: building the three frames, and copying plain JSON. Exports: framesFor, copyJson.
+- `packages/host/src/hostAccept.ts` - The shared second half of every host call that moves a game: run the answer through the engine, then build the new record, secret, frames and effects. Exports: acceptAnswer, badTime.
 - `packages/host/src/hostArchive.test.ts`
 - `packages/host/src/hostArchive.ts` - The replay archive: a finished game re-run step by step, one omniscient frame per step (architecture.md, section 3). Exports: hostArchive.
 - `packages/host/src/hostCreate.leaks.test.ts`
@@ -427,8 +428,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/src/hostSubmit.leaks.test.ts`
 - `packages/host/src/hostSubmit.test.ts`
 - `packages/host/src/hostSubmit.ts` - Taking an answer: the host's own checks, then the engine, then the new record, secret, frames and effects. Exports: hostSubmit.
+- `packages/host/src/hostTimeout.test.ts`
+- `packages/host/src/hostTimeout.ts` - A missed deadline: the server's deadline job (never a player) tells the host that `side` was late. Exports: hostTimeout.
 - `packages/host/src/index.test.ts`
-- `packages/host/src/index.ts` - Public entry point of MatchHost (docs/architecture.md, Decision 3). Exports: hostCreate, hostSubmit, hostArchive, Frame, HostEffect, HostError, HostErrorCode, HostOutcome, HostResult, MatchConfig, MatchRecord, MatchSecret, ….
+- `packages/host/src/index.ts` - Public entry point of MatchHost (docs/architecture.md, Decision 3). Exports: hostCreate, hostSubmit, hostTimeout, hostArchive, Frame, HostEffect, HostError, HostErrorCode, HostOutcome, HostResult, MatchConfig, MatchRecord, ….
 - `packages/host/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
 - `packages/host/src/test/leaks.ts` - Test helpers for leak checks, copying the idea of tests/fuzz/checks.ts (hiddenFrom, leaksIn). Exports: hiddenFrom, leaksIn.
 - `packages/host/src/test/match.ts` - Test helpers: a small ruleset, a match config with an era still to enter, and a seed. Exports: SEED, NOW, LATE_ERA_CARDS, ruleset, makeConfig.
