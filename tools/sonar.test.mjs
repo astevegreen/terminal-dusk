@@ -98,6 +98,13 @@ test("with no findings it says so", () => {
   assert.match(r.out, /Quality Gate passed\n.*\n\nNo findings\.$/);
 });
 
+test("stray brackets before a count neither swallow it nor slow the read down", () => {
+  const stray = "[".repeat(20000);
+  const run = sonarRun({ output: { title: "Quality Gate passed", summary: `${stray}[1 New issue](https://x)` } });
+  const r = report("246", fakeGh({ runs: [run], findings: [finding("a.ts", "Fix this.")] }));
+  assert.equal(r.out.split("\n")[1], "1 New issue");
+});
+
 test("when SonarCloud ran more than once on the commit, the newest run counts", () => {
   const old = sonarRun({ id: 5, output: { title: "Quality Gate failed", summary: "" } });
   const r = report("246", fakeGh({ runs: [old, sonarRun({ id: 9 })] }));

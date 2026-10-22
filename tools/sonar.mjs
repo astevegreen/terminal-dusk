@@ -15,8 +15,9 @@ function runGh(args) {
 }
 
 // The check summary's counts are the text of its markdown links, less the "see details" link.
+// Link text holds no "[" either, so a run of stray brackets can't make the match retry from each one.
 function counts(summary) {
-  return [...String(summary ?? "").matchAll(/\[([^\]]+)\]\(/g)]
+  return [...String(summary ?? "").matchAll(/\[([^[\]]+)\]\(/g)]
     .map((m) => m[1].trim())
     .filter((t) => t && !/^See analysis details/i.test(t));
 }
