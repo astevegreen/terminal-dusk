@@ -479,6 +479,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/submit.leaks.test.ts`
 - `packages/server/src/submit.storage.test.ts`
 - `packages/server/src/submit.test.ts`
+- `packages/server/src/submit.timeout.test.ts` - A player can never end a game by sending a timeout: only the server's deadline job may (hostTimeout).
 - `packages/server/src/submit.ts` - The server's single write path (docs/architecture.md, Decision 5): load the match, run the host, and save the result only if nobody moved the match on first. Exports: SubmitDeps, SubmitRequest, ServerErrorCode, SubmitError, SubmitOutcome, submit.
 - `packages/server/src/submitEdge.test.ts`
 - `packages/server/src/submitEdge.ts` - The glue between the runtime's fetch-style requests and `handleSubmit`. Exports: supabaseAuthenticate, FetchRequest, MakeResponse, fetchHandler.
