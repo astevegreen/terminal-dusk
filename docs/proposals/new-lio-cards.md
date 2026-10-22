@@ -69,7 +69,7 @@ Each option is a full design line. The two events not picked can still become or
 
 ### Option C: e3-lio-014 · Fall of the Caliphate · LIO · Ops 4 · Hot, Tempo
 
-- **Event:** The last village of the self-declared caliphate falls, five years after it took Mosul.
+- **Event:** The last village of the self-declared caliphate falls, nearly five years after it took Mosul.
 - **Design:** LIO 3 and +1 Ops this turn as the coalition's forces are freed for other work. Both sides fought the
   caliphate, so the card reads the lasting "proxy war" tag (Syrian Intervention, W3): if it is recorded, SAE 1 as
   Moscow claims a share of the victory. If SAE plays it: no LIO +1 Ops.
