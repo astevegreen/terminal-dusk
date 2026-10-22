@@ -27,6 +27,13 @@ cards it lists are not offered.
 
 Questions 2-4 cover the two events not picked in question 1; the third does not apply.
 
+**Decided** (owner, 21 Oct: "I approve your recommendations for Q1-7"): Defence of Kyiv is the Era 3 LIO Ops 4
+card (e3-lio-014); Revolution of Dignity (e3-lio-015) and Fall of the Caliphate (e3-lio-016) are Era 3 Ops 2
+cards; End of the Soviet Union (e1-lio-014) and Fall of the Taliban (e2-lio-014) are added; the other candidates
+stay out. Question 4 does not apply. Each card is built as drafted below and recorded in deck-plan.md, Owner
+question 52. **Built:** the five design lines are now in era-1.md, era-2.md and era-3.md, which are the rule from
+here on.
+
 ## Era 3 LIO Ops 4 card: pick one
 
 Each option is a full design line. The two events not picked can still become ordinary cards (questions 2-4).

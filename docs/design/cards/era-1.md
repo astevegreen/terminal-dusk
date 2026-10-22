@@ -1,10 +1,10 @@
 # Era 1 cards: 1991 to 2001 (the Cold War's end to 9/11)
 
 Part of the [deck plan](deck-plan.md). Notation, rules-text templates and the wish-list codes (W1-W8) are
-defined there. Every card: LIO 8, SAE 13, neutral 7 (the plan had 13, 13 and 8; the owner removed the rest as not well known or significant enough, and their numbers stay unused). Era string in JSON: `"era-1"`. Era 1 is the
+defined there. Every card: LIO 9, SAE 13, neutral 7 (the plan had 13, 13 and 8; the owner removed the rest as not well known or significant enough, and their numbers stay unused; the owner then added End of the Soviet Union, Owner question 52). Era string in JSON: `"era-1"`. Era 1 is the
 starting deck: the turn 1 refill deals both hands from it, so it must hold at least 2 x the hand size (16 cards).
 
-## LIO (8)
+## LIO (9)
 
 ### e1-lio-001 · Maastricht Treaty · LIO · Ops 2 · Tempo
 
@@ -70,6 +70,14 @@ starting deck: the turn 1 refill deals both hands from it, so it must hold at le
 - **Playable:** `marker "handshake"; spend lio 1; ask sae "Back the spoilers?" -> v; if yes v { spend sae 1; on turnEnd { spend lio 1 } } else { spend lio 1 }`
 - **History:** Israel and the Palestine Liberation Organization signed the Oslo Declaration of Principles at the White House on 13 September 1993, setting out a framework for Palestinian self-government.
 - **Theme:** proxy wars, alliances · **Notion:** create
+
+### e1-lio-014 · End of the Soviet Union · LIO · Ops 3 · Split (SAE)
+
+- **Event:** The red flag comes down over the Kremlin on Christmas night, and fifteen states take its place.
+- **Design:** LIO 2: the rival superpower is gone. SAE chooses: hold the new states together in a commonwealth (SAE 1, but SAE -1 Ops this turn as Moscow props them up) or let them go (LIO 1 at turn end as they look west). The Baltic recognition is folded in here rather than drafted as its own card. Added by the owner (Owner question 52; drafted in [new-lio-cards.md](../../proposals/new-lio-cards.md)).
+- **Playable:** `marker "red flag lowered"; spend lio 2; ask sae "Hold the new states in a commonwealth?" -> v; if yes v { spend sae 1; mod sae -1 min 1 (turn) } else { on turnEnd { spend lio 1 } }`
+- **History:** The Soviet Union recognised the independence of Estonia, Latvia and Lithuania on 6 September 1991. On 8 December the leaders of Russia, Ukraine and Belarus agreed to dissolve the Union and found the Commonwealth of Independent States; the Soviet president resigned on 25 December 1991 and the Union ended the next day.
+- **Theme:** alliances · **Notion:** create
 
 ## SAE (13)
 
@@ -240,7 +248,7 @@ question 1), so they use choices instead. Redesigns that use draws are a follow-
 
 ## Stage 2 build notes
 
-All 28 cards are built as `packages/content/cards/era-1/<id>.json`, each with a test that plays it in the real engine
+All 29 cards are built as `packages/content/cards/era-1/<id>.json`, each with a test that plays it in the real engine
 and checks every branch. The rules text of each file is written from the JSON and says what it does today.
 
 - **Neutral cards (all 7): the event is built but cannot run in a game yet.** The engine still lets a neutral card

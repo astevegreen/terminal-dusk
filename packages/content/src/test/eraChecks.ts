@@ -40,6 +40,12 @@ export const REMOVED_CARDS: readonly string[] = [
 /** Cards the owner added after the plan was numbered; each takes the next free number of its side. */
 export const ADDED_CARDS: readonly string[] = [
   "e3-neu-009", // October 7 and Gaza (deck-plan.md, Owner question 14)
+  // The owner added five LIO cards (deck-plan.md, Owner question 52):
+  "e1-lio-014", // End of the Soviet Union
+  "e2-lio-014", // Fall of the Taliban
+  "e3-lio-014", // Defence of Kyiv
+  "e3-lio-015", // Revolution of Dignity
+  "e3-lio-016", // Fall of the Caliphate
 ];
 
 /**

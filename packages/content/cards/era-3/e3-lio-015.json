@@ -1,0 +1,67 @@
+{
+  "id": "e3-lio-015",
+  "era": "era-3",
+  "ops": 2,
+  "affiliation": "lio",
+  "effect": [
+    {
+      "op": "marker",
+      "label": "turned west"
+    },
+    {
+      "op": "spendPoints",
+      "side": "lio",
+      "amount": 2
+    },
+    {
+      "op": "choose",
+      "who": "sae",
+      "decision": {
+        "kind": "yesNo"
+      },
+      "bind": "v"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "yes",
+        "var": "v"
+      },
+      "then": [
+        {
+          "op": "drawContingency",
+          "side": "sae",
+          "bind": "d"
+        },
+        {
+          "op": "if",
+          "cond": {
+            "op": "atLeast",
+            "var": "d",
+            "value": 4
+          },
+          "then": [
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 1
+            }
+          ],
+          "else": [
+            {
+              "op": "spendPoints",
+              "side": "lio",
+              "amount": 1
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "text": {
+    "name": "Revolution of Dignity",
+    "rules": "Record \"turned west\". LIO spends 2 points. SAE chooses: Stir unrest in the east? If yes, draw from SAE's Contingency deck, then if the result is 4 or more, SAE spends 1 point; otherwise, LIO spends 1 point.",
+    "history": "Protests began on Kyiv's Maidan square on 21 November 2013, after Ukraine's government dropped plans to sign an association agreement with the European Union. After more than 100 people were killed in February 2014, the president fled to Russia and parliament removed him on 22 February; Ukraine signed the agreement that year.",
+    "art": "art/e3-lio-015"
+  }
+}

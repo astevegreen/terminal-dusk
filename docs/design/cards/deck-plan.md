@@ -6,9 +6,9 @@ every card here is also a Notion row with Status "Draft".
 
 ## Index
 
-- [era-1.md](era-1.md): 28 cards, 1991 to 9/11
-- [era-2.md](era-2.md): 29 cards, 9/11 to the 2008 crash
-- [era-3.md](era-3.md): 28 cards, 2008 to 2025, plus 6 optional roles-only "future" cards (2025-2027)
+- [era-1.md](era-1.md): 29 cards, 1991 to 9/11
+- [era-2.md](era-2.md): 30 cards, 9/11 to the 2008 crash
+- [era-3.md](era-3.md): 31 cards, 2008 to 2025, plus 6 optional roles-only "future" cards (2025-2027)
 - [name-swap.md](name-swap.md): every real name in card text and a neutral replacement
 - [progress.md](progress.md): stage tracker
 
@@ -16,17 +16,18 @@ every card here is also a Notion row with Status "Draft".
 
 | Era                          | LIO    | SAE    | Neutral | Total                                |
 | ---------------------------- | ------ | ------ | ------- | ------------------------------------ |
-| Era 1 (1991-2001)            | 8      | 13     | 7       | 28                                   |
-| Era 2 (2001-2008)            | 10     | 11     | 8       | 29                                   |
-| Era 3 (2008-2025)            | 8      | 12     | 8       | 28                                   |
+| Era 1 (1991-2001)            | 9      | 13     | 7       | 29                                   |
+| Era 2 (2001-2008)            | 11     | 11     | 8       | 30                                   |
+| Era 3 (2008-2025)            | 11     | 12     | 8       | 31                                   |
 | Future (2025-2027, optional) | 2      | 2      | 2       | 6                                    |
-| **All**                      | **28** | **38** | **25**  | **91** (85 without the future cards) |
+| **All**                      | **33** | **38** | **25**  | **96** (90 without the future cards) |
 
 The plan had 13 / 13 / 8 per era (108 cards). The owner then removed 18 cards whose Notion rows they had trashed,
 because the events were not well known or significant enough (Owner question 8). Their ids stay unused, so the
 other cards keep their ids. The reasoning below is the plan's, kept for the record; the LIO side is now short in
 Era 1 and Era 3, which the TEST scenario's smaller game absorbs (see "Counts and hand size"). The owner chose to
-narrow that gap with new LIO cards (Owner question 51).
+narrow that gap with new LIO cards (Owner question 51) and added five: one each in Eras 1 and 2 and three in Era 3
+(Owner question 52), so the gap is now 5 cards in Eras 1-3, down from 10.
 
 Why 13 / 13 / 8 per era (the plan):
 
@@ -64,15 +65,17 @@ Justification:
   (Asian crisis, China in the WTO, COVID-19) that both sides want to shape.
 - Same spread in all eras so the TEST scenario's balance does not drift when a new era enters the pile.
 
-After the owner removed 18 cards, the built spread (cards of Ops 1 / 2 / 3 / 4) is:
+After the owner removed 18 cards and added five LIO cards (Owner question 52), the built spread (cards of Ops 1 / 2
+/ 3 / 4) is:
 
 | Era   | LIO     | SAE     | Neutral |
 | ----- | ------- | ------- | ------- |
-| Era 1 | 2/4/1/1 | 3/6/3/1 | 2/4/1/0 |
-| Era 2 | 3/5/1/1 | 3/5/2/1 | 3/4/1/0 |
-| Era 3 | 2/5/1/0 | 3/5/3/1 | 2/5/1/0 |
+| Era 1 | 2/4/2/1 | 3/6/3/1 | 2/4/1/0 |
+| Era 2 | 3/5/2/1 | 3/5/2/1 | 3/4/1/0 |
+| Era 3 | 2/7/1/1 | 3/5/3/1 | 2/5/1/0 |
 
-Era 3 LIO has no Ops 4 card now (Sanctions Wall was removed). The owner chose to add a new one (Owner question 51).
+Era 3 LIO lost its Ops 4 card when Sanctions Wall was removed. The owner chose to add a new one (Owner question 51):
+Defence of Kyiv (Owner question 52).
 
 ## Counts and hand size
 
@@ -90,8 +93,8 @@ TEST scenario "first-deck-test" (ALL VALUES ARE PLACEHOLDERS)
 ```
 
 Before the refill rule, the stopgap needed 4 x (1 + 1) = 8 non-neutral cards per side at the start; the notes
-below are kept for the record. Now the 28 Era 1 cards are shuffled into the draw pile and the turn 1 refill deals
-8 to each side from it (16 of 28), so a game needs at least 2 x 8 cards when it starts, which createGame checks.
+below are kept for the record. Now the 29 Era 1 cards are shuffled into the draw pile and the turn 1 refill deals
+8 to each side from it (16 of 29), so a game needs at least 2 x 8 cards when it starts, which createGame checks.
 
 - Strict reading (cards at the start, Era 1 only): 8 LIO and 13 SAE. Met exactly on the LIO side, no spare. The
   practice game deals each side 6 of its own cards, 2 of the rival's and 3 neutral ones; the 6 Era 1 cards left
@@ -365,7 +368,7 @@ answer follows the question as **Answered**.
     the strict stopgap (question 5) stay until then.
     **Done:** the engine refills both hands at every turn start, after a new era's cards enter and before the
     opening picks, LIO first; the turn 1 refill deals the first hands. Hand size is the scenario's `handSize`
-    (8 in `first-deck-test`). The practice game no longer deals: all 28 Era 1 cards start in the draw pile.
+    (8 in `first-deck-test`). The practice game no longer deals: all Era 1 cards (29 now) start in the draw pile.
 28. **Ops swings affect all points spent.** The engine's modifier changes every point spent, not only points from
     "play for points". The plan's wording was changed to "points spent by <side> count N more". OK, or should the
     engine tell the two apart?
@@ -402,7 +405,7 @@ answer follows the question as **Answered**.
     on turn 4 (the last of the placeholder 4) in their own `eras` entry and live in `cards/future/` with ids `ef-...`.
     Say where they should really go, or whether they should be built at all (question 18). **Answered:** keep them (question 18); the arrival turn is set with the turn count (question 30).
 39. **Era 3 enters on turn 3.** A placeholder like Era 2's turn 2 (question 37). **Answered:** set with the turn count (question 30).
-40. **Ruleset size.** The first-deck ruleset now holds 91 cards, future cards included (90 until the owner added October 7 and Gaza, question 14). An owner who drops the optional
+40. **Ruleset size.** The first-deck ruleset now holds 96 cards, future cards included (90 until the owner added October 7 and Gaza, question 14; 91 until the five LIO cards of question 52). An owner who drops the optional
     cards removes `futureFiles.ts`, its `eras` entry and one line in `firstDeckRules.ts`; nothing else depends on them.
 41. **Era 3 cards still dormant in the AI game.** Same cause as question 34: hands never refill, so no Era 3 or future
     card is ever played in the practice game. They are built, tested and loaded. **Answered by question 27:** fixed when hand refills are built.
@@ -455,4 +458,9 @@ answer follows the question as **Answered**.
     of the two not picked, End of the Soviet Union (Era 1, Ops 3) and Fall of the Taliban (Era 2, Ops 3), with one
     line on why each other candidate is left out. Each is a yes/no question (the proposal's "Questions for the
     owner"). If all are approved, LIO has 31 cards in Eras 1-3 against SAE's 36. Nothing is built until approved.
-    Still open: all seven of the proposal's questions.
+    **Answered** (owner, 21 Oct: "I approve your recommendations for Q1-7"): Defence of Kyiv is the Era 3 LIO Ops 4
+    card (e3-lio-014); Revolution of Dignity (e3-lio-015) and Fall of the Caliphate (e3-lio-016) join Era 3 at
+    Ops 2; End of the Soviet Union (e1-lio-014) and Fall of the Taliban (e2-lio-014) join Eras 1 and 2 at Ops 3; the
+    other ten candidates stay out. Each is built as drafted.
+    **Done:** all five are built with tests and listed in the TEST scenario; Defence of Kyiv is once-only, like the
+    other Ops 4 cards.
