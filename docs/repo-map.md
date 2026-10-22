@@ -494,6 +494,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/migrations/localStack.ts` - Connects the migration test to the local Supabase stack (docs/sprint.md, lane "online": no hosted project). Exports: HOW_TO_START, StackKeys, stackKeys, client, whyUnavailable, freshId.
 - `packages/server/src/migrations/matchInvite.test.ts` - The match_invite migration (supabase/migrations/20261022000000_match_invite.sql) on the local Supabase stack.
 - `packages/server/src/migrations/matchTables.test.ts` - The match tables migration (supabase/migrations/20261020000000_match_tables.sql) on the local Supabase stack.
+- `packages/server/src/migrations/sqlRaw.d.ts` - A migration file read as text by Vitest's `?raw` import, for checks the client API cannot make.
 - `packages/server/src/read.leaks.test.ts`
 - `packages/server/src/read.test.ts`
 - `packages/server/src/read.ts` - Who may read which row (docs/architecture.md, Decision 5, "Who can read it"), and the read itself. Exports: Caller, StoredRows, ReadStore, MatchRead, canRead, readMatch.
@@ -518,6 +519,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/supabaseInviteStore.guards.stack.test.ts` - SupabaseInviteStore's guards on the local Supabase stack: two joins of one code at once, a clash on save, an unknown code, and database errors, which throw wit…
 - `packages/server/src/supabaseInviteStore.test.ts` - SupabaseInviteStore against a stand-in client, so these run without the local stack.
 - `packages/server/src/supabaseInviteStore.ts` - The Supabase side of the invite port (docs/architecture.md, Decision 5). Exports: InviteRow, InviteStorageError, inviteRowFor, inviteFromRow, SupabaseInviteStore.
+- `packages/server/src/supabaseStore.deadlines.stack.test.ts` - SupabaseStore's clock on the local Supabase stack: load gives back the clock, `due` finds the due matches through the next_deadline column, and `saveClock` upd…
+- `packages/server/src/supabaseStore.deadlines.test.ts` - SupabaseStore's DeadlineStore side (due, saveClock) and the clock on load, against a stand-in client, so these run without the local stack.
 - `packages/server/src/supabaseStore.games.stack.test.ts` - Whole games played through `submit` with a SupabaseStore on the local Supabase stack.
 - `packages/server/src/supabaseStore.guards.stack.test.ts` - SupabaseStore's guards on the local Supabase stack: the seq check in the commit_match SQL function, unknown matches, a missing secret row and database errors,…
 - `packages/server/src/supabaseStore.test.ts` - SupabaseStore against a stand-in client, so these run without the local stack.
@@ -525,7 +528,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/sweepDeadlines.storage.test.ts`
 - `packages/server/src/sweepDeadlines.test.ts`
 - `packages/server/src/sweepDeadlines.ts` - The deadline sweep (docs/architecture.md, Decision 5, "Scheduled jobs", Deadlines): for every match past a deadline, apply its deadline rule through the host a… Exports: SweepResult, sweepDeadlines.
-- `packages/server/src/test/deadlines.ts` - Test helpers for the deadline sweep: matches with deadlines in an in-memory store. Exports: DAY, rulesetFor, insertMatch, insertSaeLate.
+- `packages/server/src/test/deadlines.ts` - Test helpers for the deadline sweep: matches with deadlines in an in-memory store. Exports: DAY, rulesetFor, createdWithClock, insertMatch, insertSaeLate.
 - `packages/server/src/test/errors.ts` - Test helpers for checking what a thrown storage error shows. Exports: shown, thrown.
 - `packages/server/src/test/functions.ts` - Test helpers for calling an Edge Function served by the local Supabase stack (`supabase functions serve`). Exports: SERVE_HINT, callFunction, whyFunctionUnavailable.
 - `packages/server/src/test/games.ts` - Test helper: whole games played through `submit`, calling back after every step with what is stored. Exports: Strategy, STRATEGIES, Step, playGame.
@@ -547,6 +550,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/supabase/migrations/20261020000000_match_tables.sql` - The match tables and who may read them (docs/architecture.md, Decision 5).
 - `packages/server/supabase/migrations/20261021000000_commit_match.sql` - The one write of a submit (docs/architecture.md, Decision 5): one transaction, guarded by `where seq = expectedSeq`.
 - `packages/server/supabase/migrations/20261022000000_match_invite.sql` - Private game invites (docs/architecture.md, Decision 5).
+- `packages/server/supabase/migrations/20261023000000_match_clock.sql` - A match's deadline clock (docs/architecture.md, Decision 5, "Deadlines" and "Scheduled jobs").
 - `packages/server/tsconfig.json`
 
 ## tests

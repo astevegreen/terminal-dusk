@@ -1,5 +1,5 @@
 // The storage port behind the deadline sweep (docs/architecture.md, Decision 5, "Scheduled jobs").
-// MemoryStore implements it now; the Supabase store gets it in a later task.
+// MemoryStore and SupabaseStore implement it.
 import type { MatchRecord } from "@terminal-dusk/host";
 import type { CommitResult } from "./store.ts";
 

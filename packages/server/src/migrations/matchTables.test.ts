@@ -4,6 +4,7 @@
 // Without a running local stack the checks can't run, so one test says so and how to start it.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import CLOCK_MIGRATION from "../../supabase/migrations/20261023000000_match_clock.sql?raw";
 import { HOW_TO_START, client, freshId, stackKeys, whyUnavailable, type StackKeys } from "./localStack.ts";
 
 type Row = Record<string, unknown>;
@@ -23,6 +24,8 @@ const COLUMNS: Record<Table, string[]> = {
     "status",
     "created_at",
     "updated_at",
+    "clock",
+    "next_deadline",
   ],
   match_secret: ["match_id", "secret"],
   match_view: ["match_id", "viewer", "seq", "frame"],
@@ -39,6 +42,27 @@ const WHO: Who[] = ["lio", "sae", "other", "signedOut"];
 // A realistic time in milliseconds (November 2023): far past what a 32-bit integer column can hold.
 const NOW = 1_700_000_000_000;
 const PERMISSION_DENIED = "42501";
+const DAY = 86_400_000;
+// A deadline clock as the host writes it (packages/host/src/types.ts, MatchClock).
+const CLOCK = {
+  rule: "graceThenLoss",
+  days: 1,
+  deadlines: { lio: NOW + DAY, sae: null },
+  graceUsed: { lio: false, sae: true },
+};
+
+// The index can't be listed through the client API (it reads only the public tables), so its migration's text is
+// checked here; `pnpm test:migrations` applying every migration to an empty database proves the text runs.
+describe("the clock migration (supabase/migrations/20261023000000_match_clock.sql)", () => {
+  it("adds an index on match.next_deadline for the deadline sweep", () => {
+    expect(CLOCK_MIGRATION).toMatch(/create index \w+ on public\.match \(next_deadline\b/);
+  });
+
+  it("does not grant clients any write on match", () => {
+    expect(CLOCK_MIGRATION).not.toMatch(/\bgrant\b(?!\s+execute)/i);
+    expect(CLOCK_MIGRATION).not.toMatch(/create policy/i);
+  });
+});
 
 const keys = stackKeys();
 const unavailable = await whyUnavailable(keys);
@@ -86,6 +110,9 @@ function defineChecks(keys: StackKeys) {
       status: { kind: "active" },
       created_at: NOW,
       updated_at: NOW + 1,
+      // Match one has a clock; match two has none.
+      clock: id === one ? CLOCK : null,
+      next_deadline: id === one ? NOW + DAY : null,
     };
   };
   // The viewers whose frames and events this client may read in one match.
@@ -143,6 +170,12 @@ function defineChecks(keys: StackKeys) {
         [NOW, NOW + 1],
         [NOW, NOW + 1],
       ]);
+    });
+
+    it("match keeps the clock as written and the next deadline as a whole-number millisecond time, or null for both", () => {
+      const byId = new Map(before.match.map((r) => [r.match_id, r]));
+      expect(byId.get(one)).toMatchObject({ clock: CLOCK, next_deadline: NOW + DAY });
+      expect(byId.get(two)).toMatchObject({ clock: null, next_deadline: null });
     });
 
     it.each(["match_view", "match_event"] as const)(
@@ -209,6 +242,15 @@ function defineChecks(keys: StackKeys) {
       ]);
       const after = await readAll(service, table);
       expect(after.data).toEqual(before[table]);
+    });
+
+    it("is refused an update of the clock and next_deadline columns, and the match rows stay unchanged", async () => {
+      const updated = await clients[who]
+        .from("match")
+        .update({ clock: null, next_deadline: NOW + 2 * DAY })
+        .in("match_id", [one, two]);
+      expect(updated.error?.code).toBe(PERMISSION_DENIED);
+      expect((await readAll(service, "match")).data).toEqual(before.match);
     });
   });
 }
