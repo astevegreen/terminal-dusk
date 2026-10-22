@@ -1,31 +1,12 @@
 import { legalAnswers, SIDES, viewFor } from "@terminal-dusk/engine";
-import type { Answer, AnswerValue } from "@terminal-dusk/engine";
+import type { AnswerValue } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { easyAnswer } from "./easy.ts";
+import { playEasy } from "./test/playEasy.ts";
 import { applyAnswer, newGame, ruleset } from "./test/testGames.ts";
 import { seededRandom } from "./random.ts";
-import type { TestState } from "./test/testGames.ts";
 import type { Weights } from "./types.ts";
 import { EASY_WEIGHTS } from "./weights/easy.ts";
-
-const MOST_ANSWERS = 500;
-
-/** Plays a whole game with Easy on both sides, checking every answer against the real state. */
-function playEasy(state: TestState, weights: Weights, random: () => number, each?: (ms: number) => void): TestState {
-  for (let n = 0; state.public.status.kind === "active"; n++) {
-    if (n > MOST_ANSWERS) throw new Error("the game did not end");
-    const waiting = SIDES.filter((side) => state.public.pending.some((d) => d.side === side));
-    const side = waiting[Math.floor(random() * waiting.length)]!;
-    const started = Date.now();
-    const value = easyAnswer(ruleset, viewFor(state, side), side, weights, random);
-    each?.(Date.now() - started);
-    expect(value).not.toBeNull();
-    expect(legalAnswers(ruleset, state, side)).toContainEqual(value);
-    const decision = state.public.pending.find((d) => d.side === side)!;
-    state = applyAnswer(state, { decisionId: decision.id, side, value: value! } satisfies Answer);
-  }
-  return state;
-}
 
 describe("the Easy tier", () => {
   it("has positive ops and noise weights, as data", () => {
@@ -35,7 +16,7 @@ describe("the Easy tier", () => {
 
   it("plays 100 seeded games on both sides with only legal answers, and every game ends", () => {
     for (let seed = 1; seed <= 100; seed++) {
-      const final = playEasy(newGame(seed), EASY_WEIGHTS, seededRandom(seed));
+      const final = playEasy(ruleset, newGame(seed), EASY_WEIGHTS, seededRandom(seed));
       expect(final.public.status.kind).toBe("over");
     }
   });
@@ -105,7 +86,9 @@ describe("the Easy tier", () => {
 
   it("answers every decision of a 10-turn game in under 200 ms", () => {
     const slowest: number[] = [];
-    const final = playEasy(newGame(11, 10), EASY_WEIGHTS, seededRandom(11), (ms) => slowest.push(ms));
+    const final = playEasy(ruleset, newGame(11, 10), EASY_WEIGHTS, seededRandom(11), {
+      timed: (ms) => slowest.push(ms),
+    });
     expect(final.public.status.kind).toBe("over");
     expect(slowest.length).toBeGreaterThan(20);
     expect(Math.max(...slowest)).toBeLessThan(200);

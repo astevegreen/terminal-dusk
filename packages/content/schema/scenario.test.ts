@@ -14,7 +14,7 @@ const paths = (data: unknown): unknown[][] => {
 
 describe("scenario schema", () => {
   it("accepts a full valid scenario", () => {
-    const full = { ...base, eras, contingency: { lio: [1, 2, 3], sae: [4, 4, 5] } };
+    const full = { ...base, eras, contingency: { lio: [1, 2, 3], sae: [4, 4, 5], world: [2, 7, 7] } };
     expect(scenarioSchema.safeParse(full).success).toBe(true);
   });
   it("accepts a scenario with no eras and no contingency", () => {
@@ -25,6 +25,15 @@ describe("scenario schema", () => {
   });
   it("accepts a contingency naming only one side", () => {
     expect(scenarioSchema.safeParse({ ...base, contingency: { sae: [1, 2, 3] } }).success).toBe(true);
+  });
+  it("accepts a contingency naming only the World deck", () => {
+    expect(scenarioSchema.safeParse({ ...base, contingency: { world: [1, 2, 3] } }).success).toBe(true);
+  });
+  it("gives the World deck the same checks as a side deck: at least 3 whole numbers, 1 or more", () => {
+    expect(paths({ ...base, contingency: { world: [1, 2] } })).toEqual([["contingency", "world"]]);
+    expect(paths({ ...base, contingency: { world: [1, 0, 3] } })).toEqual([["contingency", "world", 1]]);
+    expect(paths({ ...base, contingency: { world: [1, 2, 2.5] } })).toEqual([["contingency", "world", 2]]);
+    expect(paths({ ...base, contingency: { world: undefined } })).toEqual([["contingency", "world"]]);
   });
   it("refuses other fields", () => {
     expect(paths({ ...base, map: "x" })).toEqual([[]]);

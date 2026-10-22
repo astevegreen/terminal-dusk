@@ -118,7 +118,8 @@ Candidate events (names only):
   trilateral summit of the US, Japan and South Korea (2023).
 
 Possible overlaps to check: Taiwan's 1996 election falls inside the Taiwan Strait Crisis card (SAE); the Soviet
-collapse is the backdrop of the whole era and may read better as a scenario start than a card; Era 3 Ukraine
+collapse is the backdrop of the whole era and may read better as a scenario start than a card; Nunn-Lugar already appears
+in the history note of Budapest Memorandum (e1-lio-002, LIO), which covers the same dismantling; Era 3 Ukraine
 candidates sit next to Annexation of Crimea and Full-Scale Invasion.
 
 Trade-offs:

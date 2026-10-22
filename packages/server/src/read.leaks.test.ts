@@ -15,11 +15,17 @@ const CALLERS: { caller: Caller; viewer: Side | "spectator" }[] = [
 ];
 
 describe("leaksFor: the read model's leak check", () => {
-  it("finds the seed, the generator state, the Contingency order and the other side's hand, but not your own", () => {
+  it("finds the seed, the generator state, the Contingency orders and the other side's hand, but not your own", () => {
     const { secret } = created();
     const text = JSON.stringify(secret);
     expect(leaksFor(text, secret, "lio")).toEqual(
-      expect.arrayContaining(["the seed", "the generator state", "lio's Contingency order", 'card "s1"']),
+      expect.arrayContaining([
+        "the seed",
+        "the generator state",
+        "lio's Contingency order",
+        "the World deck's order",
+        'card "s1"',
+      ]),
     );
     expect(leaksFor(text, secret, "lio")).not.toContain('card "l1"');
     expect(leaksFor(text, secret, "spectator")).toEqual(expect.arrayContaining(['card "l1"', 'card "s1"']));

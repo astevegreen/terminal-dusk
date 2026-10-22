@@ -25,21 +25,50 @@
       },
       "then": [
         {
-          "op": "spendPoints",
-          "side": "lio",
-          "amount": 1
+          "op": "drawContingency",
+          "side": "player",
+          "bind": "dLio"
         },
         {
-          "op": "modifier",
-          "mod": {
-            "hook": "opsValue",
-            "side": "lio",
-            "add": -1,
-            "min": 1
+          "op": "if",
+          "cond": {
+            "op": "atLeast",
+            "var": "dLio",
+            "value": 3
           },
-          "duration": {
-            "kind": "turnEnd"
-          }
+          "then": [
+            {
+              "op": "spendPoints",
+              "side": "lio",
+              "amount": 1
+            },
+            {
+              "op": "modifier",
+              "mod": {
+                "hook": "opsValue",
+                "side": "lio",
+                "add": -1,
+                "min": 1
+              },
+              "duration": {
+                "kind": "turnEnd"
+              }
+            }
+          ],
+          "else": [
+            {
+              "op": "modifier",
+              "mod": {
+                "hook": "opsValue",
+                "side": "lio",
+                "add": -1,
+                "min": 1
+              },
+              "duration": {
+                "kind": "turnEnd"
+              }
+            }
+          ]
         },
         {
           "op": "if",
@@ -50,21 +79,50 @@
           },
           "then": [
             {
-              "op": "spendPoints",
-              "side": "sae",
-              "amount": 1
+              "op": "drawContingency",
+              "side": "player",
+              "bind": "dSae"
             },
             {
-              "op": "modifier",
-              "mod": {
-                "hook": "opsValue",
-                "side": "sae",
-                "add": -1,
-                "min": 1
+              "op": "if",
+              "cond": {
+                "op": "atLeast",
+                "var": "dSae",
+                "value": 3
               },
-              "duration": {
-                "kind": "turnEnd"
-              }
+              "then": [
+                {
+                  "op": "spendPoints",
+                  "side": "sae",
+                  "amount": 1
+                },
+                {
+                  "op": "modifier",
+                  "mod": {
+                    "hook": "opsValue",
+                    "side": "sae",
+                    "add": -1,
+                    "min": 1
+                  },
+                  "duration": {
+                    "kind": "turnEnd"
+                  }
+                }
+              ],
+              "else": [
+                {
+                  "op": "modifier",
+                  "mod": {
+                    "hook": "opsValue",
+                    "side": "sae",
+                    "add": -1,
+                    "min": 1
+                  },
+                  "duration": {
+                    "kind": "turnEnd"
+                  }
+                }
+              ]
             }
           ],
           "else": [
@@ -95,21 +153,50 @@
           },
           "then": [
             {
-              "op": "spendPoints",
-              "side": "sae",
-              "amount": 1
+              "op": "drawContingency",
+              "side": "player",
+              "bind": "dSae"
             },
             {
-              "op": "modifier",
-              "mod": {
-                "hook": "opsValue",
-                "side": "sae",
-                "add": -1,
-                "min": 1
+              "op": "if",
+              "cond": {
+                "op": "atLeast",
+                "var": "dSae",
+                "value": 3
               },
-              "duration": {
-                "kind": "turnEnd"
-              }
+              "then": [
+                {
+                  "op": "spendPoints",
+                  "side": "sae",
+                  "amount": 1
+                },
+                {
+                  "op": "modifier",
+                  "mod": {
+                    "hook": "opsValue",
+                    "side": "sae",
+                    "add": -1,
+                    "min": 1
+                  },
+                  "duration": {
+                    "kind": "turnEnd"
+                  }
+                }
+              ],
+              "else": [
+                {
+                  "op": "modifier",
+                  "mod": {
+                    "hook": "opsValue",
+                    "side": "sae",
+                    "add": -1,
+                    "min": 1
+                  },
+                  "duration": {
+                    "kind": "turnEnd"
+                  }
+                }
+              ]
             },
             {
               "op": "trigger",
@@ -132,7 +219,7 @@
   ],
   "text": {
     "name": "Arab Spring",
-    "rules": "Record \"the square\". Each side chooses: Back the protesters? If LIO says yes, LIO spends 1 point, then until the end of this turn, points spent by LIO count 1 less, never below 1, then (if SAE says yes, SAE spends 1 point, then until the end of this turn, points spent by SAE count 1 less, never below 1; otherwise, at the end of this turn, SAE spends 1 point); otherwise, (if SAE says yes, SAE spends 1 point, then until the end of this turn, points spent by SAE count 1 less, never below 1, then at the end of this turn, LIO spends 1 point).",
+    "rules": "Record \"the square\". Each side chooses: Back the protesters? If LIO says yes, (draw from the Contingency deck of the side that played this card, then if the result is 3 or more, LIO spends 1 point, then until the end of this turn, points spent by LIO count 1 less, never below 1; otherwise, until the end of this turn, points spent by LIO count 1 less, never below 1), then (if SAE says yes, (draw from the Contingency deck of the side that played this card, then if the result is 3 or more, SAE spends 1 point, then until the end of this turn, points spent by SAE count 1 less, never below 1; otherwise, until the end of this turn, points spent by SAE count 1 less, never below 1); otherwise, at the end of this turn, SAE spends 1 point); otherwise, (if SAE says yes, (draw from the Contingency deck of the side that played this card, then if the result is 3 or more, SAE spends 1 point, then until the end of this turn, points spent by SAE count 1 less, never below 1; otherwise, until the end of this turn, points spent by SAE count 1 less, never below 1), then at the end of this turn, LIO spends 1 point).",
     "history": "Protests that began in Sidi Bouzid, Tunisia in December 2010 spread across the Arab world; Tunisia's president fled on 14 January 2011, Egypt's resigned on 11 February 2011, and Libya's was killed in October 2011.",
     "art": "art/e3-neu-001"
   }

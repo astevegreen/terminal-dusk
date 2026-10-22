@@ -30,7 +30,7 @@
       "then": [
         {
           "op": "drawContingency",
-          "side": "sae",
+          "side": "lio",
           "bind": "d"
         },
         {
@@ -43,14 +43,14 @@
           "then": [
             {
               "op": "spendPoints",
-              "side": "sae",
+              "side": "lio",
               "amount": 2
             }
           ],
           "else": [
             {
               "op": "spendPoints",
-              "side": "lio",
+              "side": "sae",
               "amount": 2
             }
           ]
@@ -66,7 +66,7 @@
   ],
   "text": {
     "name": "Pristina Airport Dash",
-    "rules": "Record \"airport seized\". SAE spends 1 point. LIO chooses: Confront them? If yes, (draw from SAE's Contingency deck, then if the result is 4 or more, SAE spends 2 points; otherwise, LIO spends 2 points); if no, record \"stand-off avoided\".",
+    "rules": "Record \"airport seized\". SAE spends 1 point. LIO chooses: Confront them? If yes, (draw from LIO's Contingency deck, then if the result is 4 or more, LIO spends 2 points; otherwise, SAE spends 2 points); if no, record \"stand-off avoided\".",
     "history": "On 12 June 1999 around 200 Russian paratroopers drove from Bosnia to occupy Pristina airport in Kosovo ahead of NATO forces; NATO's commander refused an order to block them and the stand-off was resolved by negotiation.",
     "art": "art/e1-sae-011"
   }

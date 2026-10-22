@@ -17,6 +17,11 @@
       "bind": "v"
     },
     {
+      "op": "drawContingency",
+      "side": "player",
+      "bind": "d"
+    },
+    {
       "op": "if",
       "cond": {
         "op": "yes",
@@ -25,9 +30,19 @@
       },
       "then": [
         {
-          "op": "spendPoints",
-          "side": "lio",
-          "amount": 1
+          "op": "if",
+          "cond": {
+            "op": "atLeast",
+            "var": "d",
+            "value": 3
+          },
+          "then": [
+            {
+              "op": "spendPoints",
+              "side": "lio",
+              "amount": 1
+            }
+          ]
         },
         {
           "op": "modifier",
@@ -52,9 +67,19 @@
       },
       "then": [
         {
-          "op": "spendPoints",
-          "side": "sae",
-          "amount": 1
+          "op": "if",
+          "cond": {
+            "op": "atLeast",
+            "var": "d",
+            "value": 3
+          },
+          "then": [
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 1
+            }
+          ]
         },
         {
           "op": "modifier",
@@ -73,7 +98,7 @@
   ],
   "text": {
     "name": "Kyoto Protocol",
-    "rules": "Record \"targets set\". Each side chooses: Commit to the targets? If LIO says yes, LIO spends 1 point, then until the end of this turn, points spent by LIO count 1 less, never below 1. If SAE says yes, SAE spends 1 point, then until the end of this turn, points spent by SAE count 1 less, never below 1.",
+    "rules": "Record \"targets set\". Each side chooses: Commit to the targets? Then draw from the Contingency deck of the side that played this card. If LIO says yes, (if the result is 3 or more, LIO spends 1 point), then until the end of this turn, points spent by LIO count 1 less, never below 1. If SAE says yes, (if the result is 3 or more, SAE spends 1 point), then until the end of this turn, points spent by SAE count 1 less, never below 1.",
     "history": "The Kyoto Protocol was adopted on 11 December 1997 and entered into force on 16 February 2005; the United States signed it in 1998 but never ratified it.",
     "art": "art/e1-neu-008"
   }

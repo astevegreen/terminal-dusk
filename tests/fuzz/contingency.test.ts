@@ -2,15 +2,19 @@
 // check each catch a hand-corrupted state, and the random games use varied decks. The random games draw
 // and reshuffle (#65, harness.test.ts), but never break these checks; the corrupted states below prove
 // each part works.
-import { createGame, seedHash, viewFor } from "@terminal-dusk/engine";
-import type { GameEvent, GameState, PlayerView, Setup, Side } from "@terminal-dusk/engine";
+import { apply, createGame, seedHash, viewFor } from "@terminal-dusk/engine";
+import type { DeckId, GameEvent, GameState, PlayerView, Setup } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { checkContingency, checkNoLeaks, contingencyLeaksIn, isSubMultiset } from "./checks.ts";
-import { randomGame, ruleset } from "./play.ts";
+import { byCodeUnit } from "./order.ts";
+import { playFuzzGame, randomGame, ruleset } from "./play.ts";
 import { seededRng } from "./random.ts";
 
 const SEED = "contingency-seed";
-/** One turn of one play each. LIO's Contingency deck is 1 to 6; SAE's is [6, 2, 4, 2], so it reads [2, 2, 4, 6]. */
+/**
+ * One turn of one play each. LIO's Contingency deck is 1 to 6; SAE's is [6, 2, 4, 2], so it reads [2, 2, 4, 6];
+ * the World deck is [9, 3, 3], so it reads [3, 3, 9].
+ */
 const SETUP: Setup = {
   seedHash: seedHash(SEED),
   hands: { lio: ["c1", "c4"], sae: ["c2", "c5"] },
@@ -18,7 +22,7 @@ const SETUP: Setup = {
   turns: 1,
   playsPerTurn: 1,
   handSize: 2,
-  contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [6, 2, 4, 2] },
+  contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [6, 2, 4, 2], world: [9, 3, 3] },
 };
 
 function started(): GameState {
@@ -27,10 +31,10 @@ function started(): GameState {
   return r.value.state;
 }
 
-/** `state` with `side`'s public Contingency deck and secret order replaced, where given. */
+/** `state` with one Contingency deck's public lists and secret order replaced, where given. */
 function withDeck(
   state: GameState,
-  side: Side,
+  side: DeckId,
   change: { cards?: number[]; left?: number[]; order?: number[] },
 ): GameState {
   const open = state.public.contingency[side];
@@ -74,6 +78,13 @@ describe("the Contingency decks: full contents, numbers left and the secret orde
     );
   });
 
+  it("checks the World deck too: its full contents, and numbers left that agree with its secret order", () => {
+    const contents = withDeck(started(), "world", { cards: [3, 9, 9] });
+    expect(() => checkContingency(SETUP, contents)).toThrow(/the World deck: the full contents .* not the setup's/);
+    const left = withDeck(started(), "world", { left: [3, 9] });
+    expect(() => checkContingency(SETUP, left)).toThrow(/the World deck: the numbers left .* secret order/);
+  });
+
   it("fails a deck holding 1 card, or none", () => {
     const one = withDeck(started(), "lio", { left: [3], order: [3] });
     expect(() => checkContingency(SETUP, one)).toThrow(/lio's Contingency deck holds 1 cards/);
@@ -107,6 +118,17 @@ describe("invariant 4 for the Contingency decks: no view or event shows the orde
     ]);
   });
 
+  it("fails a view whose World deck count left is not the secret order's, or has an extra field", () => {
+    const s = started();
+    const view = viewFor(s, "lio");
+    const world = { cards: [3, 3, 9], left: [3] };
+    const short = { ...view, public: { ...view.public, contingency: { ...view.public.contingency, world } } };
+    expect(contingencyLeaksIn(short, s)).toEqual(["the World deck with a count left that is not the secret order's"]);
+    const leaky = { ...view.public.contingency.world, order: s.secret.contingency.world };
+    const extra = { ...view, public: { ...view.public, contingency: { ...view.public.contingency, world: leaky } } };
+    expect(contingencyLeaksIn(extra, s)).toEqual(["the World deck with the fields cards, left, order"]);
+  });
+
   it("fails a view with a contingency field anywhere else", () => {
     const s = started();
     const view = viewFor(s, "lio");
@@ -129,9 +151,38 @@ describe("invariant 4 for the Contingency decks: no view or event shows the orde
 });
 
 describe("the random games' Contingency decks", () => {
+  // Moved here from harness.test.ts when the World deck joined it (#131), to keep that file under 350 lines.
+  it("the random games draw contingencies and reshuffle a deck, for each side and the World deck, so the deck checks run on real draws", () => {
+    const seen = new Set<string>();
+    for (let game = 1; game <= 20; game++) {
+      const { record } = playFuzzGame(game);
+      const first = createGame(ruleset, record.setup, record.seed);
+      if (!first.ok) throw new Error(`createGame failed: ${first.error.code}`);
+      let state = first.value.state;
+      for (const answer of record.answers) {
+        const next = apply(ruleset, state, answer);
+        if (!next.ok) throw new Error(`apply failed: ${next.error.code}`);
+        state = next.value.state;
+        for (const e of next.value.events) {
+          if (e.kind === "contingencyDrawn" || e.kind === "contingencyDeckReshuffled") seen.add(`${e.kind} ${e.deck}`);
+        }
+      }
+    }
+    expect([...seen].sort(byCodeUnit)).toEqual([
+      "contingencyDeckReshuffled lio",
+      "contingencyDeckReshuffled sae",
+      "contingencyDeckReshuffled world",
+      "contingencyDrawn lio",
+      "contingencyDrawn sae",
+      "contingencyDrawn world",
+    ]);
+  });
+
   it("lengths vary, and repeats, two-digit numbers and the default 1 to 6 all turn up", () => {
     const setups = Array.from({ length: 200 }, (_, i) => randomGame(seededRng(i + 1), i + 1).setup);
-    const decks = setups.flatMap((setup) => [setup.contingency.lio, setup.contingency.sae]);
+    const decks = setups.flatMap((setup) => [setup.contingency.lio, setup.contingency.sae, setup.contingency.world]);
+    const worlds = setups.map((setup) => setup.contingency.world);
+    expect(new Set(worlds.map((d) => d.join())).size).toBeGreaterThan(3);
     expect(new Set(decks.map((d) => d.length)).size).toBeGreaterThan(3);
     expect(decks.some((d) => new Set(d).size < d.length)).toBe(true);
     expect(decks.some((d) => d.some((n) => n >= 10))).toBe(true);

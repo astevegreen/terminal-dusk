@@ -5,9 +5,13 @@
 // randomness in the cards). Nothing here is shipped; the real cards live in packages/content.
 import type { Ruleset, Side, Step } from "@terminal-dusk/engine";
 import { deepFreeze } from "./deepFreeze.ts";
+import { filteredTriggerOf } from "./filtered.ts";
+import { hasStep, LASTING_LABELS, lastingMarker } from "./markers.ts";
 import { baseEffectOf, playFuzzGame, ruleset } from "./play.ts";
 import type { Played } from "./play.ts";
+import { playedByStep } from "./playedBy.ts";
 import { playerDraw } from "./playerDraws.ts";
+import { revealTriggerOf } from "./reveals.ts";
 
 type TriggerStep = Extract<Step, { op: "trigger" }>;
 const UNTIL_TURN_END = { kind: "turnEnd" } as const;
@@ -38,16 +42,23 @@ function opsModifier(k: number): Step {
   };
 }
 
-/** Kinds of reaction fixture, picked by card index modulo this many; kinds 8 to 10 keep only the base effect. */
+/** Kinds of reaction fixture, picked by card index modulo this many. */
 const KINDS = 11; // coprime to 3, so every kind turns up with every affiliation
 
 /**
- * Card `i`'s reaction step, or null for the cards that keep only their existing fuzz effect. `k` counts the
- * cards of the same kind, so the modifiers spread over every add, min and side. Questions go to the side
- * picked by `k`; a contingency draw is from the card's own side's deck, or for a neutral card from the deck
- * of the side that picked or played it.
+ * The lasting label the `k`th card of a marker kind sets or tests (#142), the labels taking turns; and its
+ * trigger's hook, cardPlayed for two cards, then turnEnd for two, so each label is set and tested on both.
  */
-function reactionOf(i: number): Step | null {
+const markerLabel = (k: number): string => LASTING_LABELS[k % LASTING_LABELS.length]!;
+const markerHook = (k: number): TriggerStep["hook"] => (Math.floor(k / 2) % 2 === 0 ? "cardPlayed" : "turnEnd");
+
+/**
+ * Card `i`'s reaction step. `k` counts the cards of the same kind, so the modifiers spread over every add,
+ * min and side. Questions go to the side picked by `k`; a contingency draw is from the card's own side's
+ * deck, or for a neutral card from the deck of the side that picked or played it. The last kind's reaction
+ * tests who played the card (playedBy, #170), cardPlayed and turnEnd in turn, and holds only markers.
+ */
+function reactionOf(i: number): Step {
   const [kind, k] = [i % KINDS, Math.floor(i / KINDS)];
   const side: Side = k % 2 === 0 ? "lio" : "sae";
   const own: Side = i % 3 === 0 ? "lio" : "sae"; // affiliations go lio, sae, neutral (play.ts)
@@ -75,15 +86,23 @@ function reactionOf(i: number): Step | null {
     }
     case 7:
       return opsModifier(k + 1);
-    default:
-      return null;
+    case 8:
+      return trigger(markerHook(k), [lastingMarker(markerLabel(k))]);
+    case 9:
+      return trigger(markerHook(k), [hasStep(markerLabel(k), true)]);
+    default: {
+      const hook = k % 2 === 0 ? "cardPlayed" : "turnEnd";
+      return trigger(hook, playedByStep(`c${i + 1}`, Math.floor(k / 2) % 2 === 0 ? "lio" : "sae", hook));
+    }
   }
 }
 
-/** Card `i`'s event: its existing fuzz effect, then its reaction step, if it has one. */
+/**
+ * Card `i`'s event: its existing fuzz effect, then its reaction step, then its hand-reveal trigger, if any (#185),
+ * then its filtered or once trigger, if any (#190).
+ */
 function effectOf(i: number): Step[] {
-  const reaction = reactionOf(i);
-  return reaction === null ? baseEffectOf(i) : [...baseEffectOf(i), reaction];
+  return [...baseEffectOf(i), reactionOf(i), ...revealTriggerOf(i), ...filteredTriggerOf(i)];
 }
 
 /**

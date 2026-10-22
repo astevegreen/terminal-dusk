@@ -11,6 +11,8 @@ export type PromptProps = {
   decision: Decision;
   /** The viewer's hand, card ids from its frame (empty for a spectator). */
   hand: CardId[];
+  /** The rival's cards the viewer has been shown: its knowledge, from its frame (empty for a spectator or a replay). */
+  known: CardId[];
   /** A card's display name. Display data only. */
   label: (card: CardId) => string;
   /** The public resolution stack from the frame, bottom first: it shows which card's effect is asking. */
@@ -135,9 +137,40 @@ function RivalEventOrderPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
   );
 }
 
+/** Every set of `count` cards from `cards`, each in the list's order, the sets in order of position. */
+function setsOf(cards: readonly CardId[], count: number): CardId[][] {
+  if (count <= 0) return [[]];
+  return cards.flatMap((card, i) => setsOf(cards.slice(i + 1), count - 1).map((rest) => [card, ...rest]));
+}
+
+/**
+ * A discard pick: one choice per set of `count` cards, from the viewer's hand ("hand") or the rival's cards it
+ * has been shown ("rivalHand"), labelled with the card names.
+ */
+function DiscardCardsPrompt({ decision, hand, known, label, onAnswer }: Readonly<PromptProps>) {
+  const options = decision.options;
+  const from = "from" in options ? options.from : "hand";
+  const count = "count" in options ? options.count : 0;
+  const cards = from === "rivalHand" ? known : hand;
+  const choices: Choice[] = setsOf(cards, count).map((set) => ({
+    text: `Discard ${set.map(label).join(", ")}`,
+    value: { kind: "discardCards", cards: set },
+  }));
+  const whose = from === "rivalHand" ? "the rival's hand" : "your hand";
+  return (
+    <Choices
+      decision={decision}
+      question={`${decision.side}: discard ${count} card${count === 1 ? "" : "s"} from ${whose}`}
+      choices={choices}
+      onAnswer={onAnswer}
+    />
+  );
+}
+
 export const decisionPrompts: Record<DecisionKind, PromptComponent> = {
   yesNo: YesNoPrompt,
   chooseCard: ChooseCardPrompt,
   playCardAs: PlayCardAsPrompt,
   rivalEventOrder: RivalEventOrderPrompt,
+  discardCards: DiscardCardsPrompt,
 };

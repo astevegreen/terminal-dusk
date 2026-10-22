@@ -2,7 +2,10 @@
 // their number is worked out from. Each card's effect is picked by its index (no randomness in the cards).
 import type { CardDef, CardId, Ruleset, Side, Step as EffectStep } from "@terminal-dusk/engine";
 import { deepFreeze } from "./deepFreeze.ts";
+import { hasStep, LASTING_LABELS, lastingMarker } from "./markers.ts";
+import { nestedPlayedBy, playedByStep } from "./playedBy.ts";
 import { playerDraw } from "./playerDraws.ts";
+import { revealOf } from "./reveals.ts";
 
 /** Most turns and plays per turn in a random game, and the non-neutral cards a hand then needs. */
 export const MAX_TURNS = 4;
@@ -21,13 +24,35 @@ export const FUZZ_CARDS: readonly CardId[] = Array.from(
 );
 const AFFILIATIONS: readonly CardDef["affiliation"][] = ["lio", "sae", "neutral"];
 /**
- * Card `i`'s event: its base event (baseEffectOf), and for every fifth card from c2 on, a modifier of the
- * ops value too (#89); for every tenth from c4 on (never a modifier card), a trigger (#90). Only steps are
- * added after the base event, never a choice, so the decisions of the games in fixedGames.ts keep their IDs.
+ * Card `i`'s event: its base event (baseEffectOf), then its lasting marker step (markerStepsOf), then its
+ * playedBy tests (playedByOf), then its hand reveals (revealOf, #185), and for every fifth card from c2 on, a modifier of the ops value too (#89); for
+ * every tenth from c4 on (never a modifier card), a trigger (#90). Only steps are added after the base event,
+ * never a choice, so the decisions of the games in fixedGames.ts keep their IDs.
  */
 function effectOf(i: number): EffectStep[] {
-  if (i % 10 === 3) return [...baseEffectOf(i), triggerOf(Math.floor(i / 10), i)];
-  return i % 5 === 1 ? [...baseEffectOf(i), modifierOf(Math.floor(i / 5))] : baseEffectOf(i);
+  const base = [...baseEffectOf(i), ...markerStepsOf(i), ...playedByOf(i), ...revealOf(i)];
+  if (i % 10 === 3) return [...base, triggerOf(Math.floor(i / 10), i)];
+  return i % 5 === 1 ? [...base, modifierOf(Math.floor(i / 5))] : base;
+}
+
+/**
+ * Card `i`'s playedBy tests (#170), markers only: every seventh card from c5 on tests one side at the top level,
+ * and every seventh from c7 on also nests a test of the other side inside each branch; the side tested takes turns.
+ */
+function playedByOf(i: number): EffectStep[] {
+  const side: Side = Math.floor(i / 7) % 2 === 0 ? "lio" : "sae";
+  if (i % 7 === 4) return playedByStep(`c${i + 1}`, side, "top");
+  return i % 7 === 6 ? nestedPlayedBy(`c${i + 1}`, side) : [];
+}
+
+/**
+ * Card `i`'s lasting marker step (#142): every sixth card from c6 on sets a lasting marker, and every sixth
+ * from c3 on tests one with `has`, the labels taking turns, so both are set and tested on several cards.
+ */
+function markerStepsOf(i: number): EffectStep[] {
+  const label = LASTING_LABELS[Math.floor(i / 6) % LASTING_LABELS.length]!;
+  if (i % 6 === 5) return [lastingMarker(label)];
+  return i % 6 === 2 ? [hasStep(label, false)] : [];
 }
 
 /**
@@ -86,6 +111,13 @@ export function baseEffectOf(i: number): EffectStep[] {
   ];
 }
 
+/**
+ * Whether card `i` leaves the game once its event happens (R8a; #205): every seventh card from c4 on, so c4
+ * (LIO), c11 (SAE), c18 (neutral) and so on. 7 is coprime to 3, so every affiliation has some; no card of the
+ * games in fixedGames.ts is flagged, so they replay unchanged.
+ */
+export const removesAfterEvent = (i: number): boolean => i % 7 === 3;
+
 export const ruleset: Ruleset = deepFreeze({
   id: "fuzz-ruleset",
   cards: FUZZ_CARDS.map((id, i) => ({
@@ -94,5 +126,6 @@ export const ruleset: Ruleset = deepFreeze({
     ops: i % 5,
     affiliation: AFFILIATIONS[i % 3]!,
     effect: effectOf(i),
+    ...(removesAfterEvent(i) ? { flags: { removeAfterEvent: true as const } } : {}),
   })),
 });

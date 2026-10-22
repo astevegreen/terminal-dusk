@@ -45,7 +45,7 @@ export function createGame(
   }
   const badDecks = contingencyError(setup);
   if (badDecks) return { ok: false, error: badDecks };
-  const badCards = erasError(setup) ?? setupCardsError(ruleset, setup) ?? handSizeError(setup);
+  const badCards = erasError(setup) ?? setupCardsError(ruleset, setup) ?? handSizeError(ruleset, setup);
   if (badCards) return { ok: false, error: badCards };
   // The hands keep the setup's order; the turn 1 refill fills them from the draw pile. One generator shuffles the
   // draw pile, then LIO's Contingency deck, then SAE's; this order never changes, so a seed always gives the same game.
@@ -61,6 +61,7 @@ export function createGame(
       inPlay: [],
       inPlayBy: [],
       discard: [],
+      removed: [],
       pending: [],
       stack: [],
       status: { kind: "active" },
@@ -68,10 +69,11 @@ export function createGame(
       modifiers: [],
       triggers: [],
       turnEndFired: false,
+      markers: [],
     },
     private: {
-      lio: { hand: [...setup.hands.lio], picks: [] },
-      sae: { hand: [...setup.hands.sae], picks: [] },
+      lio: { hand: [...setup.hands.lio], picks: [], knowledge: [] },
+      sae: { hand: [...setup.hands.sae], picks: [], knowledge: [] },
     },
     secret: {
       rng: decks.rng,

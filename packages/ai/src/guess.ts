@@ -1,6 +1,6 @@
 // Guessing the cards a side cannot see, so the AI can rebuild a full state with `reconstruct`.
 // Reads only the view and the ruleset; the randomness is passed in.
-import { SIDES } from "@terminal-dusk/engine";
+import { DECKS } from "@terminal-dusk/engine";
 import type { CardId, HiddenPart, PlayerView, Ruleset, SecretState, Side } from "@terminal-dusk/engine";
 
 /** Any fixed generator state: the AI never draws from the real one, and a guess only has to be well formed. */
@@ -28,7 +28,8 @@ function seenCards(view: PlayerView): Set<CardId> {
 /**
  * A hidden part consistent with `view`: the other side's hand and the draw pile are dealt at random from
  * the cards `side` cannot see, in the sizes the view's counts give. The opponent's picks and the future
- * eras are left empty; each Contingency deck's order is a random order of the numbers still in it.
+ * eras are left empty; each Contingency deck's order (the World deck's too) is a random order of the
+ * numbers still in it.
  */
 export function guessHidden(ruleset: Ruleset, view: PlayerView, side: Side, random: () => number): HiddenPart {
   const seen = seenCards(view);
@@ -41,15 +42,16 @@ export function guessHidden(ruleset: Ruleset, view: PlayerView, side: Side, rand
   if (unseen.length < handSize + deckSize) {
     throw new Error(`guessHidden: ${unseen.length} unseen cards cannot fill ${handSize + deckSize} hidden places`);
   }
-  const [lio, sae] = SIDES.map((s) => shuffle(view.public.contingency[s].left, random));
+  const [lio, sae, world] = DECKS.map((d) => shuffle(view.public.contingency[d].left, random));
   return {
     viewer: side,
-    opponent: { hand: unseen.slice(0, handSize), picks: [] },
+    // The AI cannot see what the rival was shown, so its guessed knowledge is empty.
+    opponent: { hand: unseen.slice(0, handSize), picks: [], knowledge: [] },
     secret: {
       rng: PLACEHOLDER_RNG,
       deck: unseen.slice(handSize, handSize + deckSize),
       eras: [],
-      contingency: { lio: lio!, sae: sae! },
+      contingency: { lio: lio!, sae: sae!, world: world! },
     },
   };
 }

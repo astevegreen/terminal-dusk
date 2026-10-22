@@ -5,14 +5,17 @@
 //
 // A play uses a card for its event or its points (decisions.ts lists the uses each card allows). A
 // rival's card is played for its points, and its event still happens: the player first says whether
-// before or after the points. A played card stays in `inPlay` until everything it triggered is done.
+// before or after the points. A played card stays in `inPlay` until everything it triggered is done, then
+// goes to the discard pile, or out of the game if it is flagged removeAfterEvent and its event ran (putAway).
 import { newDecision, whoseCard } from "./decisions.ts";
 import { enterEra } from "./eras.ts";
+import { forgetCard } from "./knowledge.ts";
 import { refillHands } from "./refill.ts";
 import { endTurnModifiers } from "./modifiers.ts";
 import { runProgram, runStack } from "./stack.ts";
 import type { Budget, Closing } from "./stack.ts";
 import { endTurnTriggers, fireTurnEnd } from "./triggers.ts";
+import { otherSide } from "./types.ts";
 import type { AnswerValue, CardId, EngineError, GameEvent, GameState, Ruleset, Side, Step } from "./types.ts";
 
 /** The program each turn opens with: both sides secretly pick a card ("the both sides choose step"). */
@@ -80,7 +83,7 @@ function revealOpening(
 
 /**
  * Runs the game on while nothing waits on the stack. The first card in play has finished its event (and
- * any reactions to it), so it goes to the discard pile and the next card's event starts. With no card in
+ * any reactions to it), so it leaves play (putAway) and the next card's event starts. With no card in
  * play, the next side plays. Once both have made all their plays, the turnEnd hook fires; when its
  * reactions have finished, the turn ends.
  */
@@ -88,10 +91,10 @@ function settle(ruleset: Ruleset, state: GameState, events: GameEvent[], budget:
   const pub = state.public;
   while (pub.stack.length === 0 && pub.status.kind === "active") {
     const finished = pub.inPlay.shift();
-    pub.inPlayBy.shift();
+    const player = pub.inPlayBy.shift();
     let error: EngineError | null = null;
     if (finished !== undefined) {
-      pub.discard.push(finished);
+      putAway(ruleset, state, finished, player ?? null);
       if (pub.inPlay.length > 0) error = startEvent(ruleset, state, events, budget);
     } else if (pub.playsMade < 2 * pub.playsPerTurn) {
       pub.pending = [newDecision(state.meta.seq, pub.playsMade % 2 === 0 ? "lio" : "sae", "playCardAs")];
@@ -105,6 +108,17 @@ function settle(ruleset: Ruleset, state: GameState, events: GameEvent[], budget:
     if (error) return error;
   }
   return null;
+}
+
+/**
+ * Where a finished card goes. A card flagged removeAfterEvent whose event ran leaves the game for `removed`
+ * (owner, 21 Oct): played for its event, an opening pick, or a rival's card played for its points, whose event
+ * still runs. `player`, from `inPlayBy`, is null only for a play for points with no event (play, below); such
+ * a play, and every unflagged card, goes to the discard pile.
+ */
+function putAway(ruleset: Ruleset, state: GameState, card: CardId, player: Side | null): void {
+  const leaves = player !== null && cardOf(ruleset, card)?.flags?.removeAfterEvent === true;
+  (leaves ? state.public.removed : state.public.discard).push(card);
 }
 
 /**
@@ -132,14 +146,26 @@ function endTurn(state: GameState, events: GameEvent[], budget: Budget): EngineE
  */
 function startEvent(ruleset: Ruleset, state: GameState, events: GameEvent[], budget: Budget): EngineError | null {
   const id = state.public.inPlay[0]!;
-  return runProgram(
-    state,
-    cardOf(ruleset, id)?.effect ?? [],
-    events,
-    budget,
-    id,
-    state.public.inPlayBy[0] ?? undefined,
-  );
+  const player = state.public.inPlayBy[0] ?? undefined;
+  return runCard(ruleset, state, cardOf(ruleset, id)?.effect ?? [], id, player, { events, budget });
+}
+
+/**
+ * Runs `steps` for card `id`, picked or played by `player`. When `player` plays the rival's card, the
+ * program records the card's owner as `worldFor`, so its draws from that deck use the World deck.
+ */
+function runCard(
+  ruleset: Ruleset,
+  state: GameState,
+  steps: Step[],
+  id: CardId,
+  player: Side | undefined,
+  run: { events: GameEvent[]; budget: Budget },
+): EngineError | null {
+  const card = cardOf(ruleset, id);
+  const rival = player !== undefined && whoseCard(card, player) === "rival";
+  const worldFor = rival ? otherSide(player) : undefined;
+  return runProgram(state, steps, run.events, run.budget, id, player, worldFor);
 }
 
 /**
@@ -168,7 +194,7 @@ function play(
     return null;
   }
   const steps = value.as === "event" ? (card?.effect ?? []) : [spendPoints(side, card?.ops ?? 0)];
-  return runProgram(state, steps, events, budget, value.card, player ?? undefined);
+  return runCard(ruleset, state, steps, value.card, player ?? undefined, { events, budget });
 }
 
 /**
@@ -190,7 +216,7 @@ function playRival(
   // The printed ops: the modifiers in force when this step runs change them, its own event's included.
   const points = spendPoints(side, card?.ops ?? 0);
   const steps = event === "before" ? [...effect, points] : [points, ...effect];
-  return runProgram(state, steps, events, budget, id, side);
+  return runCard(ruleset, state, steps, id, side, { events, budget });
 }
 
 /** True while a rival's card is in play and its player has yet to say when its event happens. */
@@ -198,8 +224,10 @@ const waitsForOrder = (state: GameState): boolean => state.public.pending.some((
 
 const spendPoints = (side: Side, amount: number): Step => ({ op: "spendPoints", side, amount });
 
+/** `card` leaves `side`'s hand, and so the rival's knowledge (knowledge.ts). */
 function removeFromHand(state: GameState, side: Side, card: CardId): void {
   state.private[side].hand = state.private[side].hand.filter((id) => id !== card);
+  forgetCard(state, side, card);
 }
 
 const cardOf = (ruleset: Ruleset, id: CardId) => ruleset.cards.find((card) => card.id === id);

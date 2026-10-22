@@ -3,7 +3,11 @@
 import type { Step } from "@terminal-dusk/engine";
 import * as z from "zod";
 
-/** A step a card's effect may hold: any engine step but a card choice, which only a turn's opening asks for. */
+/**
+ * A step a card's effect may hold: any engine step but a card choice, which only a turn's opening asks for. A
+ * `choose` in an effect asks yes/no only; the one other way an effect asks a side to pick cards is a
+ * `discardFromHand` with `chosenBy`, and only to discard them.
+ */
 export type CardStep = Exclude<Step, { decision: { kind: "chooseCard" } }>;
 
 const side = z.enum(["lio", "sae"]);
@@ -13,19 +17,45 @@ const wholeNumber = z.int().min(0);
 /** A list of steps. Lazy, because a step may hold lists of steps (stepSchema, below). */
 const block = z.array(z.lazy((): z.ZodType<CardStep, CardStep> => stepSchema));
 
-/** A yes/no question, to one side or both at once. Never a card choice: that is only a turn's opening. */
+/**
+ * A yes/no question, to one side or both at once. Never a card choice: that is only a turn's opening. An
+ * effect picks cards only to discard them, with a discardFromHand's `chosenBy`.
+ */
 const choose = z.strictObject({
   op: z.literal("choose"),
   who: z.enum(["lio", "sae", "both"]),
   decision: z.strictObject({
-    kind: z.literal("yesNo", { error: "A card's effect may only ask yes/no; only a turn's opening picks a card." }),
+    kind: z.literal("yesNo", {
+      error:
+        "A choose step may only ask yes/no; a card's effect picks cards only to discard them, with discardFromHand.",
+    }),
   }),
   bind: name,
 });
+// True once some card has set a lasting marker with this label (the engine checks one can).
+const has = z.strictObject({ op: z.literal("has"), marker: name });
+// True when the side that picked or played the card is `side`: LIO or SAE, never "both" or "player".
+// In a trigger's filter, the side that made the play that fired the hook.
+const playedBy = z.strictObject({ op: z.literal("playedBy"), side });
 const condition = z.discriminatedUnion("op", [
   z.strictObject({ op: z.literal("yes"), var: name, side: side.exactOptional() }),
   z.strictObject({ op: z.enum(["atLeast", "atMost", "equals"]), var: name, value: z.int() }),
+  has,
+  playedBy,
 ]);
+
+/** A marker: a plain one says so in the game log; a lasting one (`lasting: true`) also stays, and needs a label. */
+const marker = z
+  .strictObject({
+    op: z.literal("marker"),
+    label: z.string(),
+    var: name.exactOptional(),
+    lasting: z.literal(true).exactOptional(),
+  })
+  .refine((step) => step.lasting !== true || step.label.length > 0, {
+    error: "A lasting marker needs a label.",
+    path: ["label"],
+  });
 
 /**
  * A rule change a `modifier` step makes. The one hook so far is a card's ops value: for cards whose points
@@ -41,12 +71,35 @@ const modifierSpec = z.strictObject({
 /** How long a modifier or trigger lasts. The one duration so far: until the end of the turn it was made in. */
 const duration = z.strictObject({ kind: z.literal("turnEnd") });
 
+/**
+ * A reaction that runs each time `hook` happens until the duration ends: at least one step. Only when its
+ * `filter` (a has, or a playedBy) holds then, if given; at most once with `once: true`. No play fires the
+ * turnEnd hook, so a turnEnd trigger takes no playedBy filter, and it fires once already, so no `once`.
+ */
+const trigger = z
+  .strictObject({
+    op: z.literal("trigger"),
+    hook: z.enum(["cardPlayed", "turnEnd"]),
+    filter: z.discriminatedUnion("op", [has, playedBy]).exactOptional(),
+    once: z.literal(true).exactOptional(),
+    do: block.min(1, { error: "A trigger needs at least one step to run." }),
+    duration,
+  })
+  .refine((step) => step.hook !== "turnEnd" || step.filter?.op !== "playedBy", {
+    error: "A turnEnd trigger can't be filtered on playedBy: no play fires that hook.",
+    path: ["filter"],
+  })
+  .refine((step) => step.hook !== "turnEnd" || step.once === undefined, {
+    error: "A turnEnd trigger can't be once: it fires once already.",
+    path: ["once"],
+  });
+
 /** One step of a card's effect. Every kind of engine step but a card choice, at any depth. */
 export const stepSchema = z.discriminatedUnion("op", [
   choose,
   z.strictObject({ op: z.literal("if"), cond: condition, then: block, else: block.exactOptional() }),
   z.strictObject({ op: z.literal("forEach"), over: z.array(z.string()), bind: name, do: block }),
-  z.strictObject({ op: z.literal("marker"), label: z.string(), var: name.exactOptional() }),
+  marker,
   z.strictObject({ op: z.literal("spendPoints"), side, amount: wholeNumber }),
   // "player" is the side that played the card: only a neutral card's draws name it (misplacedDraws, below).
   z.strictObject({
@@ -60,12 +113,20 @@ export const stepSchema = z.discriminatedUnion("op", [
     amount: z.int().refine((n) => n !== 0, { error: "An addToNumber amount must not be 0." }),
   }),
   z.strictObject({ op: z.literal("modifier"), mod: modifierSpec, duration }),
-  // A reaction that runs each time `hook` happens until the duration ends: at least one step.
+  trigger,
+  // Shows LIO's or SAE's whole hand to the other side, never "both" or "player".
+  z.strictObject({ op: z.literal("revealHand"), side }),
+  // LIO or SAE discards `count` cards from its hand. The card must say how many: 1 or more. They are picked
+  // at random, unless `chosenBy` says the hand's "owner" or the card's "player" picks them.
   z.strictObject({
-    op: z.literal("trigger"),
-    hook: z.enum(["cardPlayed", "turnEnd"]),
-    do: block.min(1, { error: "A trigger needs at least one step to run." }),
-    duration,
+    op: z.literal("discardFromHand"),
+    side,
+    count: z.int().min(1, { error: "A discardFromHand must discard at least 1 card." }),
+    chosenBy: z
+      .enum(["owner", "player"], {
+        error: 'A discard is chosen by "owner" or "player"; leave chosenBy out for a random discard.',
+      })
+      .exactOptional(),
   }),
 ]);
 
@@ -122,7 +183,17 @@ function misplacedDraws(
   });
 }
 
-/** One card file. `flags` are not allowed yet: they arrive with the rules that use them. */
+/**
+ * A card's flags. The one flag so far: `removeAfterEvent: true`, the card leaves the game once its event
+ * happens. Left out for a card that stays; `scoring` arrives with scoring.
+ */
+const flags = z.strictObject({
+  removeAfterEvent: z
+    .literal(true, { error: "removeAfterEvent can only be true; leave it out for a card that stays." })
+    .exactOptional(),
+});
+
+/** One card file. */
 export const cardSchema = z
   .strictObject({
     id: name,
@@ -131,6 +202,7 @@ export const cardSchema = z
     affiliation: z.enum(["lio", "sae", "neutral"]),
     effect: block,
     text,
+    flags: flags.exactOptional(),
   })
   .check((ctx) => {
     for (const { path, message } of misplacedDraws(ctx.value.effect, ctx.value.affiliation, ["effect"])) {

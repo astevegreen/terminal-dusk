@@ -1,4 +1,4 @@
-import { legalAnswers, reconstruct, SIDES, viewFor } from "@terminal-dusk/engine";
+import { DECKS, legalAnswers, reconstruct, SIDES, viewFor } from "@terminal-dusk/engine";
 
 import { describe, expect, it } from "vitest";
 import { guessHidden } from "./guess.ts";
@@ -31,6 +31,7 @@ describe("guessHidden", () => {
         expect(guess.opponent.hand).toHaveLength(view.counts.hands[other]);
         expect(guess.secret.deck).toHaveLength(view.counts.deck);
         expect(guess.opponent.picks).toEqual([]);
+        expect(guess.opponent.knowledge).toEqual([]);
         expect(guess.secret.eras).toEqual([]);
       }
     }
@@ -49,12 +50,12 @@ describe("guessHidden", () => {
     }
   });
 
-  it("orders each Contingency deck as a permutation of the numbers still left in it", () => {
+  it("orders each Contingency deck, the World deck included, as a permutation of the numbers still left in it", () => {
     for (const state of earlyStates(3)) {
       for (const side of SIDES) {
         const view = viewFor(state, side);
         const guess = guessHidden(ruleset, view, side, seededRandom(4));
-        for (const deck of SIDES) {
+        for (const deck of DECKS) {
           expect(sorted(guess.secret.contingency[deck])).toEqual(view.public.contingency[deck].left);
         }
       }

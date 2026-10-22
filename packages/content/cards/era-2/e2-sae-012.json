@@ -9,9 +9,25 @@
       "label": "credibility hit"
     },
     {
-      "op": "spendPoints",
-      "side": "sae",
-      "amount": 1
+      "op": "if",
+      "cond": {
+        "op": "has",
+        "marker": "coalition fractures"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 2
+        }
+      ],
+      "else": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 1
+        }
+      ]
     },
     {
       "op": "modifier",
@@ -28,7 +44,7 @@
   ],
   "text": {
     "name": "Abu Ghraib",
-    "rules": "Record \"credibility hit\". SAE spends 1 point. Until the end of this turn, points spent by LIO count 1 less, never below 1.",
+    "rules": "Record \"credibility hit\". If \"coalition fractures\" has been recorded this game, SAE spends 2 points; otherwise, SAE spends 1 point. Until the end of this turn, points spent by LIO count 1 less, never below 1.",
     "history": "Photographs of US soldiers abusing detainees at Iraq's Abu Ghraib prison were broadcast on 28 April 2004, damaging the standing of the United States.",
     "art": "art/e2-sae-012"
   }

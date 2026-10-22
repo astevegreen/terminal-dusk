@@ -1,7 +1,7 @@
 // The small regions of the game screen. Each one only shows fields of the frame it is given; none works
 // anything out from the cards (.claude/rules/app.md).
-import { SIDES } from "@terminal-dusk/engine";
-import type { CardId, EraId, PublicState, Side } from "@terminal-dusk/engine";
+import { DECKS, SIDES } from "@terminal-dusk/engine";
+import type { CardId, DeckId, EraId, PublicState, Side } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import type { ReactNode } from "react";
 
@@ -103,15 +103,18 @@ export function Table({ pub, label }: Readonly<{ pub: PublicState; label: Label 
   );
 }
 
+/** A Contingency deck's name on screen: "LIO", "SAE" or "World". */
+const deckName = (id: DeckId): string => (id === "world" ? "World" : upper(id));
+
 export function Contingency({ pub }: Readonly<{ pub: PublicState }>) {
   return (
     <Region id="contingency" title="Contingency decks">
-      {SIDES.map((s) => {
-        const deck = pub.contingency[s];
+      {DECKS.map((id) => {
+        const deck = pub.contingency[id];
         return (
           <p
-            key={s}
-          >{`${upper(s)}: ${deck.left.length} left: ${deck.left.join(", ")}. Deck: ${deck.cards.join(", ")}`}</p>
+            key={id}
+          >{`${deckName(id)}: ${deck.left.length} left: ${deck.left.join(", ")}. Deck: ${deck.cards.join(", ")}`}</p>
         );
       })}
     </Region>

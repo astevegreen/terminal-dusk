@@ -12,6 +12,7 @@ import {
   checkVerify,
   hiddenFrom,
   leaksIn,
+  NEW_GAME,
 } from "./checks.ts";
 import { FIXED_GAMES } from "./fixedGames.ts";
 import { byCodeUnit } from "./order.ts";
@@ -29,7 +30,7 @@ const harnessSetup: Setup = {
   turns: 1,
   playsPerTurn: 1,
   handSize: 2,
-  contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6] },
+  contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6], world: [1, 2, 3, 4, 5, 6] },
 };
 
 /**
@@ -137,28 +138,6 @@ describe("random games", () => {
     expect(pausedEvents).toBeGreaterThan(5);
     const plays = Array.from({ length: 50 }, (_, i) => randomGame(seededRng(i + 1), i + 1).setup.playsPerTurn);
     expect(new Set(plays)).toEqual(new Set([1, 2]));
-  });
-
-  it("the random games draw contingencies and reshuffle a deck, for each side, so the deck checks run on real draws", () => {
-    const seen = new Set<string>();
-    for (let game = 1; game <= 20; game++) {
-      const { record } = playFuzzGame(game);
-      let state = started(record.setup, record.seed);
-      for (const answer of record.answers) {
-        const next = apply(ruleset, state, answer);
-        if (!next.ok) throw new Error(`apply failed: ${next.error.code}`);
-        state = next.value.state;
-        for (const e of next.value.events) {
-          if (e.kind === "contingencyDrawn" || e.kind === "contingencyDeckReshuffled") seen.add(`${e.kind} ${e.side}`);
-        }
-      }
-    }
-    expect([...seen].sort(byCodeUnit)).toEqual([
-      "contingencyDeckReshuffled lio",
-      "contingencyDeckReshuffled sae",
-      "contingencyDrawn lio",
-      "contingencyDrawn sae",
-    ]);
   });
 
   it("the random games play cards for their events and their points, and play rival cards with the event before and after", () => {
@@ -270,7 +249,7 @@ describe("the seed fingerprint: every view shows the true hash of the seed", () 
   it("is part of the checks on every step of a played game", () => {
     const s = started();
     const forged = { ...s, meta: { ...s.meta, seedHash: seedHash("another-seed") } };
-    expect(() => checkStep(ruleset, harnessSetup, forged, [], SEED)).toThrow(/not the hash of the seed/);
+    expect(() => checkStep(ruleset, harnessSetup, forged, [], SEED, NEW_GAME)).toThrow(/not the hash of the seed/);
   });
 });
 

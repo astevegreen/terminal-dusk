@@ -6,7 +6,8 @@
   "effect": [
     {
       "op": "marker",
-      "label": "coalition fractures"
+      "label": "coalition fractures",
+      "lasting": true
     },
     {
       "op": "spendPoints",
@@ -28,7 +29,7 @@
   ],
   "text": {
     "name": "Invasion of Iraq",
-    "rules": "Record \"coalition fractures\". SAE spends 2 points. Until the end of this turn, points spent by LIO count 1 less, never below 1.",
+    "rules": "Record \"coalition fractures\" for the rest of the game. SAE spends 2 points. Until the end of this turn, points spent by LIO count 1 less, never below 1.",
     "history": "A US-led coalition invaded Iraq on 20 March 2003 and took Baghdad on 9 April 2003. The stated justification, Iraqi weapons of mass destruction, was not borne out.",
     "art": "art/e2-sae-001"
   }

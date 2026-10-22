@@ -1,0 +1,3 @@
+# Folders the Supabase CLI writes for the local stack. Machine-specific; never committed.
+.temp
+.branches

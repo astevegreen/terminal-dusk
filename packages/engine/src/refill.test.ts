@@ -29,7 +29,7 @@ const setup = (over: Partial<Setup> = {}): Setup => ({
   turns: 2,
   playsPerTurn: 1,
   handSize: 3,
-  contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6] },
+  contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6], world: [1, 2, 3, 4, 5, 6] },
   ...over,
 });
 
@@ -204,5 +204,35 @@ describe("createGame checks the hand size", () => {
   it("does not count a later era's cards toward the first era's", () => {
     const era: EraEntry = { era: "era2", turn: 2, cards: [...ERA] };
     expect(codeFor(setup({ deck: PILE.slice(0, 5), eras: [era] }))).toBe("invalidSetup");
+  });
+});
+
+describe("createGame counts only the first era's cards that stay in the game", () => {
+  /** rs with the cards `ids` flagged removeAfterEvent. */
+  const flagging = (ids: readonly CardId[]) => ({
+    ...rs,
+    cards: rs.cards.map((c) => (ids.includes(c.id) ? { ...c, flags: { removeAfterEvent: true as const } } : c)),
+  });
+
+  it("refuses a setup that passes with no flagged cards once enough of its first-era cards are flagged", () => {
+    const six = setup({ deck: PILE.slice(0, 6) });
+    expect(codeFor(six)).toBe("ok");
+    const r = createGame(flagging(["l1"]), six, "seed-1");
+    expect(r.ok ? "ok" : r.error).toEqual({
+      code: "invalidSetup",
+      message: "The first era has 5 cards that stay in the game; two hands of 3 need at least 6.",
+    });
+  });
+
+  it("accepts a setup exactly at the limit: twice the hand size in cards that stay, plus flagged ones", () => {
+    const r = createGame(flagging(["l1", "s1"]), setup({ deck: PILE.slice(0, 8) }), "seed-1");
+    expect(r.ok).toBe(true);
+  });
+
+  it("counts flagged cards in dealt hands as leaving too", () => {
+    const dealt = setup({ hands: { lio: ["l1"], sae: [] }, deck: PILE.slice(1, 6) });
+    expect(codeFor(dealt)).toBe("ok");
+    const r = createGame(flagging(["l1"]), dealt, "seed-1");
+    expect(r.ok ? "ok" : r.error.code).toBe("invalidSetup");
   });
 });

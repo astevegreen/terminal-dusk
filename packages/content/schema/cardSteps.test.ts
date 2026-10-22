@@ -1,4 +1,5 @@
-// The card schema's lasting steps: modifiers (#89) and triggers (#90), at any depth of a card's effect.
+// The card schema's lasting steps: modifiers (#89), triggers (#90) and lasting markers (#141), at any depth;
+// revealHand steps (#184); and discardFromHand steps (#186), with who picks the cards (#192).
 import { describe, expect, it } from "vitest";
 import { issuesOf, lioCard, pathsOf, pickCard, yesNo } from "./test/cards.ts";
 
@@ -71,6 +72,28 @@ describe("card schema: trigger steps", () => {
     for (const effect of placed(step)) expect(issuesOf(lioWith(effect)).length).toBeGreaterThan(0);
   });
 
+  it("accepts a filtered trigger, a once trigger, and both together, at any depth (#189)", () => {
+    const steps = [
+      trigger({ hook: "cardPlayed", filter: { op: "playedBy", side: "sae" } }),
+      trigger({ hook: "cardPlayed", filter: { op: "has", marker: "x" } }),
+      trigger({ filter: { op: "has", marker: "x" } }),
+      trigger({ hook: "cardPlayed", once: true }),
+      trigger({ hook: "cardPlayed", once: true, filter: { op: "playedBy", side: "lio" } }),
+    ];
+    for (const step of steps) for (const effect of placed(step)) expect(issuesOf(lioWith(effect))).toEqual([]);
+  });
+
+  it.each([
+    ["a filter of yes", trigger({ hook: "cardPlayed", filter: { op: "yes", var: "agreed" } })],
+    ["a filter of atLeast", trigger({ hook: "cardPlayed", filter: { op: "atLeast", var: "n", value: 1 } })],
+    ["playedBy on a turnEnd trigger", trigger({ filter: { op: "playedBy", side: "lio" } })],
+    ["once: false", trigger({ hook: "cardPlayed", once: false })],
+    ["once on a turnEnd trigger", trigger({ once: true })],
+    ["an extra field in the filter", trigger({ hook: "cardPlayed", filter: { op: "has", marker: "x", side: "lio" } })],
+  ])("refuses a trigger with %s, at any depth (#189)", (_what, step) => {
+    for (const effect of placed(step)) expect(issuesOf(lioWith(effect)).length).toBeGreaterThan(0);
+  });
+
   it("accepts a contingency draw from the rival's deck inside a trigger (owner, 19 Oct)", () => {
     const effect = [trigger({}, [{ op: "drawContingency", side: "sae" }])];
     expect(pathsOf(lioWith(effect))).toEqual([]);
@@ -79,5 +102,117 @@ describe("card schema: trigger steps", () => {
   it("refuses a neutral card's contingency draw inside a trigger, at its path", () => {
     const effect = [trigger({}, [{ op: "drawContingency", side: "sae" }])];
     expect(pathsOf({ ...lioCard(), affiliation: "neutral", effect })).toEqual([["effect", 0, "do", 0, "side"]]);
+  });
+});
+
+describe("card schema: lasting markers and has conditions (#141)", () => {
+  const has = (marker: unknown) => ({ op: "if", cond: { op: "has", marker }, then: [], else: [] });
+
+  it("accepts lasting: true on a marker, with or without a var, and a has condition, at any depth", () => {
+    const steps = [
+      { op: "marker", label: "x", lasting: true },
+      { op: "marker", label: "x", var: "agreed", lasting: true },
+      has("x"),
+    ];
+    for (const step of steps) for (const effect of placed(step)) expect(issuesOf(lioWith(effect))).toEqual([]);
+  });
+
+  it.each([
+    ["lasting: false", { op: "marker", label: "x", lasting: false }],
+    ["a lasting that is a string", { op: "marker", label: "x", lasting: "yes" }],
+    ["a lasting that is a number", { op: "marker", label: "x", lasting: 1 }],
+    ["a lasting marker with an empty label", { op: "marker", label: "", lasting: true }],
+    ["a has with an empty marker", has("")],
+    ["a has whose marker is not a string", has(7)],
+    ["a has with no marker", { op: "if", cond: { op: "has" }, then: [] }],
+  ])("refuses %s, at any depth", (_what, step) => {
+    for (const effect of placed(step)) expect(issuesOf(lioWith(effect)).length).toBeGreaterThan(0);
+  });
+
+  it("still accepts a plain marker with an empty label, as before", () => {
+    expect(issuesOf(lioWith([{ op: "marker", label: "" }]))).toEqual([]);
+  });
+});
+
+describe("card schema: playedBy conditions (#169)", () => {
+  const ifOn = (cond: object) => ({ op: "if", cond, then: [], else: [] });
+
+  it.each(["lio", "sae"])("accepts playedBy %s, at any depth", (side) => {
+    for (const effect of placed(ifOn({ op: "playedBy", side }))) expect(issuesOf(lioWith(effect))).toEqual([]);
+  });
+
+  it.each([
+    ["a side of both", { op: "playedBy", side: "both" }],
+    ["a side of player", { op: "playedBy", side: "player" }],
+    ["a side of neutral", { op: "playedBy", side: "neutral" }],
+    ["a missing side", { op: "playedBy" }],
+    ["a var", { op: "playedBy", side: "lio", var: "agreed" }],
+    ["another extra key", { op: "playedBy", side: "lio", value: 1 }],
+  ])("refuses a playedBy with %s, at any depth", (_what, cond) => {
+    for (const effect of placed(ifOn(cond))) expect(issuesOf(lioWith(effect)).length).toBeGreaterThan(0);
+  });
+});
+
+describe("card schema: revealHand steps (#184)", () => {
+  it.each(["lio", "sae"])("accepts a revealHand of %s, at any depth", (side) => {
+    for (const effect of placed({ op: "revealHand", side })) expect(issuesOf(lioWith(effect))).toEqual([]);
+  });
+
+  it.each([
+    ["a side of both", { op: "revealHand", side: "both" }],
+    ["a side of player", { op: "revealHand", side: "player" }],
+    ["a side of neutral", { op: "revealHand", side: "neutral" }],
+    ["a missing side", { op: "revealHand" }],
+    ["an extra field", { op: "revealHand", side: "lio", bind: "shown" }],
+  ])("refuses a revealHand with %s, at any depth", (_what, step) => {
+    for (const effect of placed(step)) expect(issuesOf(lioWith(effect)).length).toBeGreaterThan(0);
+  });
+});
+
+describe("card schema: discardFromHand steps (#186)", () => {
+  it.each([
+    ["lio", 1],
+    ["sae", 3],
+  ])("accepts a discardFromHand of %s, %i card(s), at any depth", (side, count) => {
+    for (const effect of placed({ op: "discardFromHand", side, count })) {
+      expect(issuesOf(lioWith(effect))).toEqual([]);
+    }
+  });
+
+  it.each([
+    ["a missing count", { op: "discardFromHand", side: "lio" }],
+    ["a count of 0", { op: "discardFromHand", side: "lio", count: 0 }],
+    ["a count of -1", { op: "discardFromHand", side: "lio", count: -1 }],
+    ["a count of 1.5", { op: "discardFromHand", side: "lio", count: 1.5 }],
+    ["a side of both", { op: "discardFromHand", side: "both", count: 1 }],
+    ["a side of player", { op: "discardFromHand", side: "player", count: 1 }],
+    ["a missing side", { op: "discardFromHand", count: 1 }],
+    ["an extra field", { op: "discardFromHand", side: "lio", count: 1, bind: "gone" }],
+  ])("refuses a discardFromHand with %s, at any depth", (_what, step) => {
+    for (const effect of placed(step)) expect(issuesOf(lioWith(effect)).length).toBeGreaterThan(0);
+  });
+});
+
+describe("card schema: discardFromHand chosenBy (#192)", () => {
+  const chosen = (chosenBy: unknown) => ({ op: "discardFromHand", side: "sae", count: 1, chosenBy });
+
+  it.each(["owner", "player"])("accepts chosenBy %s, at any depth", (chosenBy) => {
+    for (const effect of placed(chosen(chosenBy))) expect(issuesOf(lioWith(effect))).toEqual([]);
+  });
+
+  it.each(["random", "rival", "both", "lio"])("refuses chosenBy %s, at any depth", (chosenBy) => {
+    for (const effect of placed(chosen(chosenBy))) expect(issuesOf(lioWith(effect)).length).toBeGreaterThan(0);
+  });
+
+  it('refuses chosenBy "random" with a message saying to leave the field out', () => {
+    expect(issuesOf(lioWith([chosen("random")])).map((issue) => issue.message)).toEqual([
+      'A discard is chosen by "owner" or "player"; leave chosenBy out for a random discard.',
+    ]);
+  });
+
+  it("still refuses a choose step that picks a card, saying effects pick cards only to discard them", () => {
+    expect(issuesOf(lioWith([pickCard])).map((issue) => issue.message)).toEqual([
+      "A choose step may only ask yes/no; a card's effect picks cards only to discard them, with discardFromHand.",
+    ]);
   });
 });

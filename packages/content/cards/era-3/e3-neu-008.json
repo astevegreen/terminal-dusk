@@ -9,16 +9,31 @@
       "label": "tariff wall"
     },
     {
-      "op": "modifier",
-      "mod": {
-        "hook": "opsValue",
-        "side": "lio",
-        "add": -1,
-        "min": 1
+      "op": "drawContingency",
+      "side": "player",
+      "bind": "d"
+    },
+    {
+      "op": "if",
+      "cond": {
+        "op": "atLeast",
+        "var": "d",
+        "value": 3
       },
-      "duration": {
-        "kind": "turnEnd"
-      }
+      "then": [
+        {
+          "op": "modifier",
+          "mod": {
+            "hook": "opsValue",
+            "side": "lio",
+            "add": -1,
+            "min": 1
+          },
+          "duration": {
+            "kind": "turnEnd"
+          }
+        }
+      ]
     },
     {
       "op": "choose",
@@ -73,7 +88,7 @@
   ],
   "text": {
     "name": "Tariff Shock",
-    "rules": "Record \"tariff wall\". Until the end of this turn, points spent by LIO count 1 less, never below 1. SAE chooses: Retaliate? If yes, SAE spends 1 point, then until the end of this turn, points spent by SAE count 1 less, never below 1; if no, at the end of this turn, SAE spends 1 point.",
+    "rules": "Record \"tariff wall\". Draw from the Contingency deck of the side that played this card. If the result is 3 or more, until the end of this turn, points spent by LIO count 1 less, never below 1. SAE chooses: Retaliate? If yes, SAE spends 1 point, then until the end of this turn, points spent by SAE count 1 less, never below 1; if no, at the end of this turn, SAE spends 1 point.",
     "history": "On 2 April 2025 the U.S. President announced a 10 per cent tariff on imports from almost all countries, effective 5 April, with higher rates for many trading partners announced for 9 April; the rates changed repeatedly in the following months.",
     "art": "art/e3-neu-008"
   }

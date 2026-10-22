@@ -21,7 +21,7 @@
       "then": [
         {
           "op": "drawContingency",
-          "side": "sae",
+          "side": "lio",
           "bind": "d"
         },
         {
@@ -29,17 +29,40 @@
           "cond": {
             "op": "atLeast",
             "var": "d",
-            "value": 3
+            "value": 5
           },
           "then": [
+            {
+              "op": "spendPoints",
+              "side": "lio",
+              "amount": 2
+            }
+          ],
+          "else": [
             {
               "op": "marker",
               "label": "intelligence discredited"
             },
             {
-              "op": "spendPoints",
-              "side": "sae",
-              "amount": 1
+              "op": "if",
+              "cond": {
+                "op": "has",
+                "marker": "coalition fractures"
+              },
+              "then": [
+                {
+                  "op": "spendPoints",
+                  "side": "sae",
+                  "amount": 2
+                }
+              ],
+              "else": [
+                {
+                  "op": "spendPoints",
+                  "side": "sae",
+                  "amount": 1
+                }
+              ]
             },
             {
               "op": "modifier",
@@ -52,13 +75,6 @@
               "duration": {
                 "kind": "turnEnd"
               }
-            }
-          ],
-          "else": [
-            {
-              "op": "spendPoints",
-              "side": "lio",
-              "amount": 2
             }
           ]
         }
@@ -74,7 +90,7 @@
   ],
   "text": {
     "name": "Curveball",
-    "rules": "LIO chooses: Act on the single source? If yes, (draw from SAE's Contingency deck, then if the result is 3 or more, record \"intelligence discredited\", then SAE spends 1 point, then until the end of this turn, points spent by LIO count 1 less, never below 1; otherwise, LIO spends 2 points); if no, LIO spends 1 point.",
+    "rules": "LIO chooses: Act on the single source? If yes, (draw from LIO's Contingency deck, then if the result is 5 or more, LIO spends 2 points; otherwise, record \"intelligence discredited\", then if \"coalition fractures\" has been recorded this game, SAE spends 2 points; otherwise, SAE spends 1 point; then until the end of this turn, points spent by LIO count 1 less, never below 1); if no, LIO spends 1 point.",
     "history": "Claims that Iraq had mobile biological-weapons laboratories, presented to the UN Security Council on 5 February 2003, rested largely on an informant code-named Curveball whose account was later found to be fabricated.",
     "art": "art/e2-sae-002"
   }
