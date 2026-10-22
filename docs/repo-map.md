@@ -321,6 +321,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/src/test/eraChecks.ts` - Test helpers shared by the era tests (era1.test.ts, era2.test.ts, era3.test.ts): the checks every era makes of its own cards, and the TEST-scenario game with t… Exports: byText, byNumber, REMOVED_CARDS, ADDED_CARDS, eraDeckChecks, opsSpread, startEraOneGame.
 - `packages/content/src/test/playCard.test.ts` - The card test helper's own options: which side plays a neutral card, and the numbers drawn in order.
 - `packages/content/src/test/playCard.ts` - Test helper: plays one real card through the real engine and tells what happened, in a short story. Exports: YesAnswers, EarlierCard, PlayOptions, story, startCardGame, playCard, playCardDef.
+- `packages/content/src/test/playCardRival.test.ts` - The card test helper's ways for the rival to play the card under test, and its story lines for a hand shown and for a discard.
 - `packages/content/tsconfig.json`
 
 ## packages/engine - Pure rules engine: game state, decisions, events and views. Imports nothing outside itself.
