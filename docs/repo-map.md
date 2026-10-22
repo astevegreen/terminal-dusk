@@ -329,6 +329,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/package.json`
 - `packages/engine/src/apply.property.test.ts` - Property test: random streams of good and bad answers keep the engine's invariants, and every answer gets exactly the outcome the rules call for (accepted, or…
 - `packages/engine/src/apply.test.ts`
+- `packages/engine/src/apply.timeout.test.ts` - A timeout ends the game as a loss on time for the side that was late (architecture Decision 1, "System actions").
 - `packages/engine/src/apply.ts` - Takes one answer and returns the next state. Exports: apply.
 - `packages/engine/src/cardChecks.test.ts` - createGame's card checks: the ruleset's cards are well formed, and a setup uses only known cards, each once.
 - `packages/engine/src/cardChecks.ts` - Card checks for createGame: the ruleset's cards are well formed, and a setup uses only known cards, each once. Exports: rulesetError, setupCardsError, handSizeError.

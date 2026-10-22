@@ -50,9 +50,9 @@ describe("apply: rejected answers", () => {
     apply(ruleset, s, { decisionId: "nope", side: "lio", value: { kind: "playCardAs", card: "l2", as: "event" } });
     expect(JSON.stringify(s)).toBe(before);
   });
-  it("timeout and adjudicate return notSupported", () => {
-    for (const system of ["timeout", "adjudicate"] as const) {
-      expect(code(apply(ruleset, s, { system, side: "lio" }))).toBe("notSupported");
+  it("adjudicate returns notSupported", () => {
+    for (const side of ["lio", "sae"] as const) {
+      expect(code(apply(ruleset, s, { system: "adjudicate", side }))).toBe("notSupported");
     }
   });
   it("malformed answers return an error instead of throwing", () => {

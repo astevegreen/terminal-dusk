@@ -92,7 +92,11 @@ const canon = (v: unknown): string =>
 function expectedOutcome(rs: Ruleset, s: GameState, a: Answer): "ok" | EngineErrorCode {
   if (rs.id !== s.meta.ruleset) return "rulesetMismatch";
   if (s.public.status.kind === "over") return "gameOver";
-  if ("system" in a) return a.system === "resign" ? "ok" : "notSupported";
+  if ("system" in a) {
+    if (a.system === "resign") return "ok";
+    if (a.system === "timeout") return s.public.pending.some((d) => d.side === a.side) ? "ok" : "wrongSide";
+    return "notSupported";
+  }
   const open = s.public.pending.find((d) => d.id === a.decisionId);
   if (!open) {
     return s.private[a.side].picks.some((p) => p.decisionId === a.decisionId) ? "alreadyAnswered" : "unknownDecision";
@@ -116,8 +120,12 @@ function step(s: GameState, m: Move): GameState {
   if (!r.ok) throw new Error(`expected ok, got ${r.error.code}`);
   const next = r.value.state;
   if ("system" in answer) {
-    expect(next.public.status).toEqual({ kind: "over", winner: otherSide(answer.side), reason: "resigned" });
+    const reason = answer.system === "timeout" ? "timeout" : "resigned";
+    expect(next.public.status).toEqual({ kind: "over", winner: otherSide(answer.side), reason });
     expect(next.public.pending).toEqual([]);
+    expect(next.public.stack).toEqual([]);
+    for (const side of SIDES) expect(next.private[side].picks).toEqual([]);
+    expect(r.value.events).toEqual([]);
   }
   expect(next.meta.seq).toBe(s.meta.seq + 1);
   expect(JSON.parse(JSON.stringify(next))).toEqual(next);
