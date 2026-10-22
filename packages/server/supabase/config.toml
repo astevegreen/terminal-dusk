@@ -1,3 +1,18 @@
 # Local Supabase stack for development and tests only (docs/sprint.md, lane "online").
 # There is no hosted project: no project ref, keys or secrets live here. Every other setting uses the CLI default.
 project_id = "terminal-dusk"
+
+# Sign-in uses a 6-digit email code, not a magic link (docs/architecture.md, Decision 5).
+[auth.email]
+otp_length = 6
+
+# Auth hands every sign-in email to the auth-email function, which checks the hook's signature and sends the code
+# through the mail port. The secret is read from the environment (src/migrations/localStack.ts, HOW_TO_START).
+[auth.hook.send_email]
+enabled = true
+uri = "http://host.docker.internal:54321/functions/v1/auth-email"
+secrets = "env(SEND_EMAIL_HOOK_SECRET)"
+
+# Auth calls the hook with a webhook signature, not a user token; the signature check in the function guards it.
+[functions.auth-email]
+verify_jwt = false
