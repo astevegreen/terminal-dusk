@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { apply } from "./apply.ts";
-import type { Answer } from "./index.ts";
+import type { Answer, GameState } from "./index.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
 import {
   accepted,
@@ -151,5 +151,78 @@ describe("apply: resign", () => {
       error: { code: "gameOver" },
     });
     expect(over.public.status).toMatchObject({ winner: "sae" });
+  });
+});
+
+describe("apply: both sides time out on a simultaneous pick", () => {
+  const both: Answer = { system: "timeout", side: "both" };
+  const refusedUnchanged = (s: GameState, expected: string): void => {
+    const before = JSON.stringify(s);
+    expect(code(apply(ruleset, s, both))).toBe(expected);
+    expect(JSON.stringify(s)).toBe(before);
+  };
+
+  it("neither side has picked: the game ends in a draw on time, cleared as a one-side timeout is", () => {
+    const s = startGame();
+    expect(s.public.pending.map((d) => d.side)).toEqual(["lio", "sae"]);
+    const r = apply(ruleset, s, both);
+    if (!r.ok) throw new Error(`expected ok, got ${r.error.code}`);
+    const next = r.value.state;
+    expect(next.public.status).toEqual({ kind: "over", winner: null, reason: "timeout" });
+    expect(next.meta.seq).toBe(s.meta.seq + 1);
+    expect(next.public.pending).toEqual([]);
+    expect(next.public.stack).toEqual([]);
+    expect(next.private.lio.picks).toEqual([]);
+    expect(next.private.sae.picks).toEqual([]);
+    expect(r.value.events).toEqual([]);
+    const oneSide = accepted(s, { system: "timeout", side: "lio" });
+    expect({ ...next.public, status: null }).toEqual({ ...oneSide.public, status: null });
+    expect(next.private).toEqual(oneSide.private);
+    expect(next.meta).toEqual(oneSide.meta);
+  });
+  it("one side has already picked: refused with wrongSide and the state is unchanged", () => {
+    refusedUnchanged(accepted(startGame(), cardAnswer(startGame(), "lio")), "wrongSide");
+  });
+  it("a game waiting on one side only: refused with wrongSide and the state is unchanged", () => {
+    const s = startAtPlay();
+    expect(s.public.pending).toHaveLength(1);
+    refusedUnchanged(s, "wrongSide");
+  });
+  it("two pending decisions that are not one simultaneous pick: refused with wrongSide and the state is unchanged", () => {
+    const s = startGame();
+    const regrouped = (group: (i: number) => string | undefined): GameState => ({
+      ...s,
+      public: {
+        ...s.public,
+        pending: s.public.pending.map((d, i) => {
+          const { simultaneousGroup: _dropped, ...rest } = d;
+          const g = group(i);
+          return g === undefined ? rest : { ...rest, simultaneousGroup: g };
+        }),
+      },
+    });
+    refusedUnchanged(
+      regrouped(() => undefined),
+      "wrongSide",
+    );
+    refusedUnchanged(
+      regrouped((i) => `group-${i}`),
+      "wrongSide",
+    );
+  });
+  it("a finished game: refused with gameOver and the state is unchanged", () => {
+    const over = playAnswers(startAtPlay(1), 2);
+    expect(over.public.status.kind).toBe("over");
+    refusedUnchanged(over, "gameOver");
+  });
+  it("resign and adjudicate still name one side only", () => {
+    for (const system of ["resign", "adjudicate"] as const) {
+      const a = { system, side: "both" } as unknown as Answer;
+      expect(code(apply(ruleset, startGame(), a))).toBe("unknownDecision");
+    }
+  });
+  it("never changes deep-frozen inputs", () => {
+    const r = apply(deepFreeze({ ...ruleset }), deepFreeze(startGame()), deepFreeze({ ...both }));
+    expect(r.ok).toBe(true);
   });
 });

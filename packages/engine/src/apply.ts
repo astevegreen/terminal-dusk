@@ -10,7 +10,7 @@ import { newBudget, resumeStack } from "./stack.ts";
 import type { Closing } from "./stack.ts";
 import { afterAnswer } from "./turn.ts";
 import { otherSide, SIDES } from "./types.ts";
-import type { Answer, EngineErrorCode, GameEvent, GameState, Result, Ruleset } from "./types.ts";
+import type { Answer, EngineErrorCode, GameEvent, GameState, Result, Ruleset, Side } from "./types.ts";
 
 type Applied = Result<{ state: GameState; events: GameEvent[] }>;
 
@@ -29,11 +29,10 @@ export function apply(ruleset: Ruleset, state: GameState, answer: Answer): Appli
     return fail("rulesetMismatch", "That ruleset is not the one this game started with.");
   }
   if (state.public.status.kind === "over") return fail("gameOver", "The game is already over.");
-  if (typeof answer !== "object" || answer === null || !SIDES.includes(answer.side)) {
+  if (typeof answer !== "object" || answer === null || !namesSide(answer)) {
     return fail("unknownDecision", "The answer does not name a side.");
   }
   if ("system" in answer) return applySystem(state, answer);
-
   const decision = state.public.pending.find((d) => d.id === answer.decisionId);
   if (!decision) {
     return state.private[answer.side].picks.some((p) => p.decisionId === answer.decisionId)
@@ -65,13 +64,19 @@ export function apply(ruleset: Ruleset, state: GameState, answer: Answer): Appli
   return error ? { ok: false, error } : { ok: true, value: { state: next, events } };
 }
 
+/** True when the answer names one side, or is a timeout naming both. */
+const namesSide = (answer: Answer): boolean =>
+  SIDES.includes(answer.side as Side) || ("system" in answer && answer.system === "timeout" && answer.side === "both");
+
 // Resign and timeout both end the game at once: the other side wins, and nothing is left open.
 // A timeout is the host's deadline job saying `side` was late, so `side` must be the one being waited for.
+// A timeout for "both" is both sides missing one simultaneous pick that neither has made: a draw.
 function applySystem(state: GameState, answer: Extract<Answer, { system: string }>): Applied {
   let reason: string;
   if (answer.system === "resign") reason = "resigned";
   else if (answer.system === "timeout") {
-    if (!pendingFor(state, answer.side)) return fail("wrongSide", "The game is not waiting for that side.");
+    const waiting = answer.side === "both" ? bothWaiting(state) : pendingFor(state, answer.side) !== null;
+    if (!waiting) return fail("wrongSide", "The game is not waiting for that side.");
     reason = "timeout";
   } else return fail("notSupported", `The ${String(answer.system)} answer is not supported yet.`);
   const next = copyJson(state);
@@ -79,6 +84,19 @@ function applySystem(state: GameState, answer: Extract<Answer, { system: string 
   next.public.pending = [];
   next.public.stack = [];
   for (const side of SIDES) next.private[side].picks = [];
-  next.public.status = { kind: "over", winner: otherSide(answer.side), reason };
+  const winner = answer.side === "both" ? null : otherSide(answer.side);
+  next.public.status = { kind: "over", winner, reason };
   return { ok: true, value: { state: next, events: [] } };
+}
+
+/** True when both sides wait on one simultaneous pick and neither has made it (a picked side has no pending). */
+function bothWaiting(state: GameState): boolean {
+  const lio = pendingFor(state, "lio");
+  const sae = pendingFor(state, "sae");
+  return (
+    lio !== null &&
+    sae !== null &&
+    lio.simultaneousGroup !== undefined &&
+    lio.simultaneousGroup === sae.simultaneousGroup
+  );
 }

@@ -197,8 +197,11 @@ export type AnswerValue =
   | { kind: "playCardAs"; card: CardId; as: PlayUse }
   | { kind: "rivalEventOrder"; event: "before" | "after" }
   | { kind: "discardCards"; cards: CardId[] };
+/** A timeout naming "both" is a simultaneous pick missed by both sides: a draw. */
 export type Answer =
-  { decisionId: string; side: Side; value: AnswerValue } | { system: "timeout" | "resign" | "adjudicate"; side: Side };
+  | { decisionId: string; side: Side; value: AnswerValue }
+  | { system: "timeout"; side: Side | "both" }
+  | { system: "resign" | "adjudicate"; side: Side };
 
 export type VarName = string;
 /** Both sides' yes/no answers to a simultaneous choice, keyed by side in SIDES order. */

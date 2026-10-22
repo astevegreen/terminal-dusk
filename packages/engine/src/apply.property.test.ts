@@ -19,6 +19,7 @@ type MoveKind =
   | "badValue"
   | "resign"
   | "timeout"
+  | "timeoutBoth"
   | "adjudicate"
   | "mismatchedRuleset";
 /** `pick` chooses which open decision to answer and which of its legal answers to give. */
@@ -34,6 +35,7 @@ const moveArb: fc.Arbitrary<Move> = fc.record({
     "badValue",
     "resign",
     "timeout",
+    "timeoutBoth",
     "adjudicate",
     "mismatchedRuleset",
   ),
@@ -69,6 +71,8 @@ function toAnswer(s: GameState, m: Move): Answer {
       return { system: "resign", side: m.side };
     case "timeout":
       return { system: "timeout", side: m.side };
+    case "timeoutBoth":
+      return { system: "timeout", side: "both" };
     case "adjudicate":
       return { system: "adjudicate", side: m.side };
   }
@@ -85,6 +89,12 @@ const canon = (v: unknown): string =>
       : x,
   );
 
+/** True when both sides have an open decision in one simultaneous group (so neither has picked yet). */
+const oneOpenPair = (s: GameState): boolean => {
+  const groups = SIDES.map((side) => s.public.pending.find((d) => d.side === side)?.simultaneousGroup);
+  return groups[0] !== undefined && groups[0] === groups[1];
+};
+
 /**
  * What `apply` must give, worked out from the state and the answer alone, in the order apply checks:
  * "ok", or the error code it must refuse with.
@@ -94,6 +104,7 @@ function expectedOutcome(rs: Ruleset, s: GameState, a: Answer): "ok" | EngineErr
   if (s.public.status.kind === "over") return "gameOver";
   if ("system" in a) {
     if (a.system === "resign") return "ok";
+    if (a.system === "timeout" && a.side === "both") return oneOpenPair(s) ? "ok" : "wrongSide";
     if (a.system === "timeout") return s.public.pending.some((d) => d.side === a.side) ? "ok" : "wrongSide";
     return "notSupported";
   }
@@ -121,7 +132,8 @@ function step(s: GameState, m: Move): GameState {
   const next = r.value.state;
   if ("system" in answer) {
     const reason = answer.system === "timeout" ? "timeout" : "resigned";
-    expect(next.public.status).toEqual({ kind: "over", winner: otherSide(answer.side), reason });
+    const winner = answer.side === "both" ? null : otherSide(answer.side);
+    expect(next.public.status).toEqual({ kind: "over", winner, reason });
     expect(next.public.pending).toEqual([]);
     expect(next.public.stack).toEqual([]);
     for (const side of SIDES) expect(next.private[side].picks).toEqual([]);
