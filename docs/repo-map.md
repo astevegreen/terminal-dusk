@@ -480,6 +480,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/inviteHandler.ts` - The HTTP side of the invite Edge Function (docs/architecture.md, Decision 5), as plain data in and out so it runs under vitest, the same way the submit handler… Exports: InviteHandlerDeps, InviteHandlerErrorCode, handleInvite.
 - `packages/server/src/inviteStore.test.ts`
 - `packages/server/src/inviteStore.ts` - The invite port behind private games (docs/architecture.md, Decision 5), and an in-memory store for tests. Exports: SideMode, Invite, StoredInvite, SaveResult, AcceptResult, InviteStore, MemoryInviteStore.
+- `packages/server/src/mailMessages.test.ts`
+- `packages/server/src/mailMessages.ts` - The two emails online play sends (docs/sprint.md, O8): the sign-in code and the turn alert. Exports: signInCodeEmail, turnAlertEmail.
+- `packages/server/src/mailer.test.ts`
+- `packages/server/src/mailer.ts` - The mail port (docs/architecture.md, Decision 5, "Accounts and purchases"): sign-in codes and turn alerts go out through a paid email provider. Exports: Email, SendResult, Mailer, MemoryMailer.
 - `packages/server/src/matchRow.test.ts`
 - `packages/server/src/matchRow.ts` - The mapping between a `match` row (rows.ts, the SQL column names) and the host's `MatchRecord`. Exports: matchRowFor, recordFromRow.
 - `packages/server/src/migrations/commitMatch.test.ts` - The commit_match migration (supabase/migrations/20261021000000_commit_match.sql) on the local Supabase stack.
@@ -489,6 +493,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/read.leaks.test.ts`
 - `packages/server/src/read.test.ts`
 - `packages/server/src/read.ts` - Who may read which row (docs/architecture.md, Decision 5, "Who can read it"), and the read itself. Exports: Caller, StoredRows, ReadStore, MatchRead, canRead, readMatch.
+- `packages/server/src/resendMailer.test.ts`
+- `packages/server/src/resendMailer.ts` - The Resend adapter for the mail port: one POST to Resend's send-email endpoint per email. Exports: RESEND_SEND_URL, MailFetch, ResendOptions, resendMailer.
 - `packages/server/src/rows.test.ts`
 - `packages/server/src/rows.ts` - The read model (docs/architecture.md, Decision 5): the rows a client may read, as each commit writes them. Exports: VIEWERS, MatchRow, MatchViewRow, MatchEventRow, CommitRows, rowsFor.
 - `packages/server/src/store.test.ts`

@@ -23,5 +23,10 @@ export type {
 } from "./invite.ts";
 export { inviteCode, INVITE_CODE_ALPHABET, INVITE_CODE_LENGTH } from "./inviteCode.ts";
 export { MemoryInviteStore } from "./inviteStore.ts";
+export { MemoryMailer } from "./mailer.ts";
+export type { Email, Mailer, SendResult } from "./mailer.ts";
+export { RESEND_SEND_URL, resendMailer } from "./resendMailer.ts";
+export type { MailFetch, ResendOptions } from "./resendMailer.ts";
+export { signInCodeEmail, turnAlertEmail } from "./mailMessages.ts";
 export { SupabaseInviteStore } from "./supabaseInviteStore.ts";
 export type { AcceptResult, Invite, InviteStore, SaveResult, SideMode, StoredInvite } from "./inviteStore.ts";
