@@ -100,7 +100,6 @@ export type HostErrorCode =
   | "verifyFailed"
   | "gameNotOver"
   | "notDue"
-  | "bothLate"
   | "pastDeadline";
 export type HostError = { code: EngineErrorCode | HostErrorCode; message?: string };
 export type HostOutcome = { ok: true; value: HostResult } | { ok: false; error: HostError };

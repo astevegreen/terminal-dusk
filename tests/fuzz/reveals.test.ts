@@ -97,7 +97,7 @@ function countStep(counts: Counts, before: GameState, after: GameState, events: 
     known[peeker].push(...event.cards);
   });
   const card = cardOf(answer);
-  if (card === null) return;
+  if (card === null || !("value" in answer)) return;
   const rival = other(answer.side);
   if (before.private[rival].knowledge.includes(card) && !after.private[rival].knowledge.includes(card)) {
     counts.playedAndForgotten++;

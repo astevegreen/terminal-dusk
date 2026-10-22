@@ -12,8 +12,8 @@ import type { HostError, HostOutcome, MatchClock, MatchRecord, MatchSecret } fro
  * Applies the deadline rule to every side whose deadline is at or before `now`. A late side with its
  * grace extension left gets one more deadline of the same length from `now` (seq, state and log stay
  * the same); a late side without one loses on time through hostTimeout. When both sides are late and
- * neither has an extension left, the result would be a draw, which this host cannot make yet: it
- * refuses bothLate. Refuses invalidTime like hostSubmit, gameOver for a finished game, and notDue
+ * neither has an extension left (always so under lossOnTime), the game ends in a draw on time through
+ * hostTimeout with "both". Refuses invalidTime like hostSubmit, gameOver for a finished game, and notDue
  * when the match has no clock or nobody is late. It never throws, and never changes its inputs.
  */
 export function hostDeadline(ruleset: Ruleset, record: MatchRecord, secret: MatchSecret, now: number): HostOutcome {
@@ -24,13 +24,9 @@ export function hostDeadline(ruleset: Ruleset, record: MatchRecord, secret: Matc
   if (!validClock(clock)) return refuse("notDue", "This match has no deadlines.");
   const late = SIDES.filter((side) => isLate(clock, side, now));
   if (late.length === 0) return refuse("notDue", "No deadline has passed yet.");
-  const loser = late.find((side) => !hasGrace(clock, side));
-  if (loser !== undefined) {
-    if (late.every((side) => !hasGrace(clock, side)) && late.length > 1) {
-      return refuse("bothLate", "Both sides missed their deadlines; a draw on time is not supported yet.");
-    }
-    return hostTimeout(ruleset, record, secret, loser, now);
-  }
+  const losers = late.filter((side) => !hasGrace(clock, side));
+  if (losers.length > 1) return hostTimeout(ruleset, record, secret, "both", now);
+  if (losers.length === 1) return hostTimeout(ruleset, record, secret, losers[0]!, now);
   return extend(record, secret, clock, late, now);
 }
 

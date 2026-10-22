@@ -113,21 +113,43 @@ describe("hostDeadline: both sides late in a simultaneous pick", () => {
     }
   });
 
-  it("neither with grace left: bothLate, and nothing changes", () => {
+  it("neither with grace left: exactly at the later deadline the game ends in a draw on time", () => {
     const extended = swept(startedWith("graceThenLoss"), NOW + DAY);
     const frozen = deepFreeze(extended);
     const before = JSON.stringify(frozen);
     expect(code(frozen, NOW + 2 * DAY - 1)).toBe("notDue");
-    expect(code(frozen, NOW + 2 * DAY)).toBe("bothLate");
+    expectDraw(frozen, NOW + 2 * DAY);
     expect(JSON.stringify(frozen)).toBe(before);
   });
 
-  it("lossOnTime: bothLate", () => {
+  it("neither with grace left, deadlines apart: one millisecond before the later one, the earlier side loses", () => {
+    const host = withClock(startedWith("graceThenLoss"), {
+      deadlines: { lio: NOW + 5, sae: NOW + 9 },
+      graceUsed: { lio: true, sae: true },
+    });
+    const early = swept(host, NOW + 8);
+    expect(early.record.status).toEqual({ kind: "over", winner: "sae", reason: "timeout" });
+    expectDraw(deepFreeze(host), NOW + 9);
+  });
+
+  it("lossOnTime: exactly at the deadline the game ends in a draw on time", () => {
     const host = deepFreeze(startedWith("lossOnTime"));
     expect(code(host, NOW + DAY - 1)).toBe("notDue");
-    expect(code(host, NOW + DAY)).toBe("bothLate");
+    expectDraw(host, NOW + DAY);
   });
 });
+
+/** Checks the sweep at `now` ends `host` as a draw on time through a both-sides timeout. */
+function expectDraw(host: HostResult, now: number): void {
+  const next = swept(host, now);
+  expect(next.record.status).toEqual({ kind: "over", winner: null, reason: "timeout" });
+  expect(next.record.seq).toBe(host.record.seq + 1);
+  expect(next.secret.log).toEqual([...host.secret.log, { system: "timeout", side: "both" }]);
+  expect(clockOf(next).deadlines).toEqual({ lio: null, sae: null });
+  expect(clockOf(next).graceUsed).toEqual(clockOf(host).graceUsed);
+  expect(next.record.seed).toBeDefined();
+  expect(next.effects).toEqual([{ finalize: true }]);
+}
 
 describe("hostDeadline: a late answer and the sweep reach the same clock", () => {
   it("the late answer alone, or after the extension was saved, both leave graceUsed true", () => {

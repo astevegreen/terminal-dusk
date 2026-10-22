@@ -12,13 +12,13 @@ import type { HostResult, Submission } from "./types.ts";
 
 const other = (side: Side): Side => (side === "lio" ? "sae" : "lio");
 
-function timedOut(host: HostResult, side: Side, now = NOW + 10): HostResult {
+function timedOut(host: HostResult, side: Side | "both", now = NOW + 10): HostResult {
   const r = hostTimeout(ruleset, host.record, host.secret, side, now);
   if (!r.ok) throw new Error(`hostTimeout failed: ${r.error.code}`);
   return r.value;
 }
 
-const code = (host: HostResult, side: Side, now = NOW + 10): string => {
+const code = (host: HostResult, side: Side | "both", now = NOW + 10): string => {
   const r = hostTimeout(ruleset, host.record, host.secret, side, now);
   return r.ok ? "ok" : r.error.code;
 };
@@ -73,6 +73,56 @@ describe("hostTimeout: a loss on time", () => {
   }
 });
 
+/** A few moves in, at the next simultaneous pick with neither side having picked yet. */
+function atLaterPair(): HostResult {
+  let host = midGame();
+  for (let i = 4; i < 40 && !bothWaiting(host); i++) host = accept(host, submissionFor(host, nextSide(host)), NOW + i);
+  if (!bothWaiting(host)) throw new Error("the test game never reached a second simultaneous pick");
+  return host;
+}
+
+const bothWaiting = (host: HostResult): boolean =>
+  host.record.status.kind === "active" && SIDES.every((s) => host.frames[s].decision !== null);
+
+describe("hostTimeout: both sides late is a draw", () => {
+  it("the record shows the draw on time, seq and updatedAt move on and the seed is published", () => {
+    const host = atLaterPair();
+    expect(host.secret.log.length).toBeGreaterThan(3);
+    const next = timedOut(host, "both", host.record.updatedAt + 50);
+    expect(next.record.status).toEqual({ kind: "over", winner: null, reason: "timeout" });
+    expect(next.record.seq).toBe(host.record.seq + 1);
+    expect(next.record.updatedAt).toBe(host.record.updatedAt + 50);
+    expect(next.record.seed).toBe(SEED);
+  });
+
+  it("the move log gets the both-sides timeout, frames are rebuilt and the effects finalize", () => {
+    const host = atLaterPair();
+    const next = timedOut(host, "both", host.record.updatedAt);
+    expect(next.secret.log).toEqual([...host.secret.log, { system: "timeout", side: "both" }]);
+    for (const viewer of ["lio", "sae", "spectator"] as const) {
+      expect(next.frames[viewer].decision).toBeNull();
+      expect(next.frames[viewer].view.public.status).toEqual(next.record.status);
+    }
+    expect(next.effects).toEqual([{ finalize: true }]);
+  });
+
+  it("the draw passes checkFinished and the replay archive builds from it", () => {
+    const host = atLaterPair();
+    const next = timedOut(host, "both", host.record.updatedAt);
+    expect(checkFinished(ruleset, next.secret, next.secret.log, next.secret.state)).toBeNull();
+    const archive = hostArchive(ruleset, next.record, next.secret);
+    expect(archive.ok).toBe(true);
+    if (!archive.ok) return;
+    expect(archive.value.status).toEqual({ kind: "over", winner: null, reason: "timeout" });
+    expect(archive.value.frames).toHaveLength(next.secret.log.length + 1);
+  });
+
+  it("refused with wrongSide when only one side is being waited for", () => {
+    const host = deepFreeze(midGame());
+    expect(code(host, "both")).toBe("wrongSide");
+  });
+});
+
 describe("hostTimeout: refusals", () => {
   it("refuses invalidTime the same way hostSubmit does", () => {
     const host = deepFreeze(midGame());
@@ -94,7 +144,7 @@ describe("hostTimeout: refusals", () => {
   it("never throws and never changes its inputs", () => {
     const host = deepFreeze(midGame());
     const before = JSON.stringify(host);
-    for (const side of [...SIDES, "nobody" as Side]) {
+    for (const side of [...SIDES, "both" as const, "nobody" as Side]) {
       expect(() => hostTimeout(ruleset, host.record, host.secret, side, NOW + 10)).not.toThrow();
     }
     expect(code(host, "nobody" as Side)).not.toBe("ok");
@@ -105,7 +155,6 @@ describe("hostTimeout: refusals", () => {
 describe("hostSubmit: a player cannot send a timeout", () => {
   it("a body that tries to be a timeout is refused and nothing ends the game", () => {
     const host = deepFreeze(midGame());
-    const before = JSON.stringify(host);
     const bodies = [
       { player: "alice", system: "timeout" },
       { player: "alice", system: "timeout", side: "sae" },
@@ -114,12 +163,30 @@ describe("hostSubmit: a player cannot send a timeout", () => {
       { player: "alice", expectedSeq: host.record.seq, system: "timeout", side: "sae" },
       { player: "bob", expectedSeq: host.record.seq, timeout: true },
     ];
-    for (const body of bodies) {
-      const r = hostSubmit(ruleset, host.record, host.secret, body as unknown as Submission, NOW + 10);
-      expect(r.ok).toBe(false);
-      if (!r.ok) expect(["staleSeq", "illegalAnswer"]).toContain(r.error.code);
-    }
-    expect(JSON.stringify(host)).toBe(before);
-    expect(host.record.status).toEqual({ kind: "active" });
+    expectRefused(host, bodies);
+  });
+
+  it("a body that tries to be a both-sides timeout is refused, without and with a matching expectedSeq", () => {
+    const host = deepFreeze(atLaterPair());
+    const seq = host.record.seq;
+    expectRefused(host, [
+      { player: "alice", system: "timeout", side: "both" },
+      { player: "bob", system: "timeout", side: "both" },
+      { player: "alice", expectedSeq: seq, system: "timeout", side: "both" },
+      { player: "bob", expectedSeq: seq, system: "timeout", side: "both" },
+    ]);
   });
 });
+
+/** Every body is refused with staleSeq or illegalAnswer, and the game is still active and unchanged. */
+function expectRefused(host: HostResult, bodies: object[]): void {
+  const before = JSON.stringify(host);
+  for (const body of bodies) {
+    const now = host.record.updatedAt + 10;
+    const r = hostSubmit(ruleset, host.record, host.secret, body as unknown as Submission, now);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(["staleSeq", "illegalAnswer"]).toContain(r.error.code);
+  }
+  expect(JSON.stringify(host)).toBe(before);
+  expect(host.record.status).toEqual({ kind: "active" });
+}
