@@ -14,6 +14,10 @@
       "amount": 2
     },
     {
+      "op": "revealHand",
+      "side": "lio"
+    },
+    {
       "op": "drawContingency",
       "side": "sae",
       "bind": "d"
@@ -40,7 +44,7 @@
   ],
   "text": {
     "name": "The Hanssen Leak",
-    "rules": "Record \"mole inside\". SAE spends 2 points. Draw from SAE's Contingency deck. If the result is 2 or less, record \"mole caught\", then LIO spends 1 point.",
+    "rules": "Record \"mole inside\". SAE spends 2 points. LIO's hand is shown to SAE. Draw from SAE's Contingency deck. If the result is 2 or less, record \"mole caught\", then LIO spends 1 point.",
     "history": "FBI agent Robert Hanssen was arrested on 18 February 2001 after spying for the Soviet Union and Russia on and off since 1979; he was sentenced to life imprisonment.",
     "art": "art/e1-sae-005"
   }

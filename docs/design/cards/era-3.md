@@ -25,8 +25,8 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 ### e3-lio-003 · Ghost Stories · LIO · Ops 2 · Split (LIO)
 
 - **Event:** Ten Russian sleeper agents are arrested in American suburbs.
-- **Design:** LIO 2; LIO may trade them for its own people on a Vienna runway (each side 1 at turn end) or jail them.
-- **Playable:** `marker "sleepers exposed"; spend lio 2; ask lio "Trade them?" -> v; if yes v { on turnEnd { spend lio 1; spend sae 1 } } else { marker "no exchange" }`
+- **Design:** LIO 2; LIO may trade them for its own people on a Vienna runway (LIO sees SAE's hand, and each side 1 at turn end) or jail them (SAE discards 1 card at random).
+- **Playable:** `marker "sleepers exposed"; spend lio 2; ask lio "Trade them?" -> v; if yes v { show sae; on turnEnd { spend lio 1; spend sae 1 } } else { marker "no exchange"; discard sae 1 }`
 - **History:** On 27 June 2010 the FBI arrested ten Russian agents who had lived under false identities in the United States; on 9 July 2010 they were exchanged in Vienna for four people held in Russia.
 - **Theme:** gray-zone, intelligence · **Notion:** update `3fceb012942f81a58fe9f2ed14425fa7`
 

@@ -9,6 +9,7 @@ describeCard("e3-lio-003", "Ghost Stories", [
       sleepers exposed
       points:lio:2
       no exchange
+      discard:sae:1
       points:sae:2
       points:lio:2
       points:sae:2
@@ -20,6 +21,7 @@ describeCard("e3-lio-003", "Ghost Stories", [
     story: `
       sleepers exposed
       points:lio:2
+      reveal:sae
       triggerSet:turnEnd
       points:sae:2
       points:lio:2

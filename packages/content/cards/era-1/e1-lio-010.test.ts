@@ -8,6 +8,7 @@ describeCard("e1-lio-010", "Arrest of Aldrich Ames", [
     story: `
       mole exposed
       points:lio:1
+      reveal:sae
       draw:lio:3
       points:sae:1
       points:sae:2
@@ -21,6 +22,7 @@ describeCard("e1-lio-010", "Arrest of Aldrich Ames", [
     story: `
       mole exposed
       points:lio:1
+      reveal:sae
       draw:lio:4
       points:lio:1
       points:sae:2

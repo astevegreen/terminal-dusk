@@ -9,6 +9,7 @@ describeCard("e1-sae-005", "The Hanssen Leak", [
       points:lio:2
       mole inside
       points:sae:2
+      reveal:lio
       draw:sae:2
       mole caught
       points:lio:1
@@ -23,6 +24,7 @@ describeCard("e1-sae-005", "The Hanssen Leak", [
       points:lio:2
       mole inside
       points:sae:2
+      reveal:lio
       draw:sae:3
       points:lio:2
       points:sae:2
