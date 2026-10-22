@@ -463,6 +463,12 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## packages/server - Supabase functions and SQL: the single submit write path, scheduled jobs and migrations.
 
 - `packages/server/package.json`
+- `packages/server/src/authEmailEdge.test.ts`
+- `packages/server/src/authEmailEdge.ts` - The glue between the runtime's fetch-style requests and `handleAuthEmail`. Exports: authEmailFetchHandler, unconfiguredMailer.
+- `packages/server/src/authEmailHandler.leaks.test.ts`
+- `packages/server/src/authEmailHandler.stack.test.ts` - The auth-email Edge Function served by the local Supabase stack: an unsigned call is refused with 401.
+- `packages/server/src/authEmailHandler.test.ts`
+- `packages/server/src/authEmailHandler.ts` - Supabase Auth's "send email" hook (docs/architecture.md, Decision 5, "Accounts and purchases"): Auth calls the auth-email Edge Function with the player's addre… Exports: AuthEmailRequest, AuthEmailDeps, TIMESTAMP_TOLERANCE_MS, handleAuthEmail, hookError.
 - `packages/server/src/deadlineStore.test.ts`
 - `packages/server/src/deadlineStore.ts` - The storage port behind the deadline sweep (docs/architecture.md, Decision 5, "Scheduled jobs"). Exports: DeadlineStore, earliestDeadline, dueIds.
 - `packages/server/src/edge.ts` - The glue every Edge Function shares: turning the runtime's fetch-style requests into the plain-data requests the handlers take and back, and the Supabase sign-… Exports: FetchRequest, MakeResponse, serveFetch, supabaseAuthenticate.
@@ -528,6 +534,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/sweepDeadlines.storage.test.ts`
 - `packages/server/src/sweepDeadlines.test.ts`
 - `packages/server/src/sweepDeadlines.ts` - The deadline sweep (docs/architecture.md, Decision 5, "Scheduled jobs", Deadlines): for every match past a deadline, apply its deadline rule through the host a… Exports: SweepResult, sweepDeadlines.
+- `packages/server/src/test/authEmail.ts` - Test helpers for the auth-email hook: a test secret, a send-email payload, a correctly signed hook request and a handler wired to a MemoryMailer and a recorded… Exports: TEST_SECRET, TEST_CODE, TEST_TOKEN_HASH, TEST_EMAIL, NOW_MS, NOW_SECONDS, payload, signedRequest, authEmailWorld.
 - `packages/server/src/test/deadlines.ts` - Test helpers for the deadline sweep: matches with deadlines in an in-memory store. Exports: DAY, rulesetFor, createdWithClock, insertMatch, insertSaeLate.
 - `packages/server/src/test/errors.ts` - Test helpers for checking what a thrown storage error shows. Exports: shown, thrown.
 - `packages/server/src/test/functions.ts` - Test helpers for calling an Edge Function served by the local Supabase stack (`supabase functions serve`). Exports: SERVE_HINT, callFunction, whyFunctionUnavailable.
@@ -541,8 +548,12 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/test/stack.ts` - Test helpers for the SupabaseStore checks on the local Supabase stack (O3's localStack.ts finds it). Exports: onLocalStack, TestUser, makeUser, accessToken, freshMatchId, newGame, writeOf, putIn, Stored, storedRows, cleanUp.
 - `packages/server/src/test/stackGame.ts` - The shared setup for the tests on the local Supabase stack: a service-role client and two fresh test users made before the tests, and every test match and user… Exports: StackGame, stackGame, answered, expectStoredAs.
 - `packages/server/src/test/stores.ts` - Test helpers that wrap any MatchStore, for the in-memory and the Supabase store alike. Exports: loadTogether, recording.
+- `packages/server/src/webhookSignature.test.ts`
+- `packages/server/src/webhookSignature.ts` - The Standard Webhooks signature check Supabase Auth's hooks use: HMAC-SHA256 with the hook secret over `<webhook-id>.<webhook-timestamp>.<raw body>`, sent base… Exports: WebhookHeaders, secretKey, sign, sameText, signatureMatches.
 - `packages/server/supabase/.gitignore` - Folders the Supabase CLI writes for the local stack.
 - `packages/server/supabase/config.toml` - Local Supabase stack for development and tests only (docs/sprint.md, lane "online").
+- `packages/server/supabase/functions/auth-email/deno.json`
+- `packages/server/supabase/functions/auth-email/index.ts` - The `auth-email` Edge Function (docs/architecture.md, Decision 5, "Accounts and purchases"): Supabase Auth's "send email" hook calls it to send a 6-digit sign-…
 - `packages/server/supabase/functions/invite/deno.json`
 - `packages/server/supabase/functions/invite/index.ts` - The `invite` Edge Function (docs/architecture.md, Decision 5): create, preview and join a private game.
 - `packages/server/supabase/functions/submit/deno.json`

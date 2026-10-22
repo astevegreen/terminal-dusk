@@ -3,7 +3,9 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 export const HOW_TO_START =
-  "Start the local Supabase stack (Docker must be running): in packages/server run " +
+  "Start the local Supabase stack (Docker must be running): in packages/server first give the sign-in email " +
+  "hook a local test secret, which `supabase start` reads (any random value, never a real one): " +
+  '`export SEND_EMAIL_HOOK_SECRET="v1,whsec_$(openssl rand -base64 32)"`, then run ' +
   '`pnpm exec supabase start`, then `eval "$(pnpm exec supabase status -o env)"`, then `pnpm test:migrations`, ' +
   "which empties the local database, applies every migration (`supabase db reset`) and runs these checks.";
 // Why the test itself doesn't apply the migration: that needs a direct Postgres connection or a child process,
