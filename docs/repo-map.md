@@ -82,7 +82,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/transport/localMatch.test.ts`
 - `packages/app/src/transport/localMatch.ts` - A match run entirely in memory: it keeps the host's record and secret, and gives each viewer a transport. Exports: ArchiveWith, LocalMatch, createLocalMatch.
 - `packages/app/src/transport/matchTransport.ts` - What the screens talk to: one viewer's window onto a match. Exports: ServerErrorCode, TransportError, SubmitResult, MatchTransport.
-- `packages/app/src/transport/remoteHttp.ts` - The online transport's HTTP side (docs/architecture.md, Decision 5): the client-readable rows it reads through Supabase's REST endpoints, and the submit functi… Exports: FetchReply, FetchLike, Endpoint, Seats, StepEvents, readSeats, readFrame, readEvents, PostReply, postSubmission.
+- `packages/app/src/transport/remoteHttp.ts` - The online transport's HTTP side (docs/architecture.md, Decision 5): the client-readable rows it reads through Supabase's REST endpoints, and the submit and se… Exports: FetchReply, FetchLike, Endpoint, Seats, StepEvents, readSeats, readFrame, readEvents, PostReply, postSubmission, postSeen.
+- `packages/app/src/transport/remoteMatch.seen.test.ts` - The app's half of "unseen" for turn alerts (docs/architecture.md, Decision 5, Notifications): the remote transport tells the seen function once for each turn t…
 - `packages/app/src/transport/remoteMatch.submit.test.ts`
 - `packages/app/src/transport/remoteMatch.test.ts`
 - `packages/app/src/transport/remoteMatch.ts` - The online transport (docs/architecture.md, Decisions 3 and 5): one caller's window onto one match on Supabase. Exports: RemoteMatchOptions, createRemoteMatch.

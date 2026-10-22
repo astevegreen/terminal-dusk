@@ -154,7 +154,10 @@ describe("remote transport: what it asks for", () => {
           if (q.path !== "/rest/v1/match") expect(q.params).toContainEqual(["viewer", `eq.${viewer}`]);
           expect(q.params.filter(([k]) => k === "viewer")).toHaveLength(q.path === "/rest/v1/match" ? 0 : 1);
         } else {
-          expect(q.path).toBe("/functions/v1/submit");
+          // Only the two players tell the seen function about a turn (O8h); anyone may try to submit.
+          expect(
+            viewer === "spectator" ? ["/functions/v1/submit"] : ["/functions/v1/submit", "/functions/v1/seen"],
+          ).toContain(q.path);
           expect(q.method).toBe("POST");
         }
       }

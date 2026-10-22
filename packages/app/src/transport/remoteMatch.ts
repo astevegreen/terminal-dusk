@@ -1,10 +1,10 @@
 // The online transport (docs/architecture.md, Decisions 3 and 5): one caller's window onto one match on
-// Supabase. It polls the caller's own frame and events from the client-readable rows, and posts answers to
-// the submit function. Everything it talks to is passed in, so it holds no URL, key, token or platform code.
+// Supabase. It polls the caller's own frame and events from the client-readable rows, posts answers to the
+// submit function, and tells the seen function when a turn that waits for the caller has been shown. Everything it talks to is passed in, so it holds no URL, key, token or platform code.
 import type { Viewer } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import type { MatchTransport, SubmitResult, TransportError } from "./matchTransport.ts";
-import { postSubmission, readEvents, readFrame, readSeats } from "./remoteHttp.ts";
+import { postSeen, postSubmission, readEvents, readFrame, readSeats } from "./remoteHttp.ts";
 import type { Endpoint, FetchLike, Seats } from "./remoteHttp.ts";
 
 export type RemoteMatchOptions = {
@@ -51,6 +51,8 @@ export function createRemoteMatch(options: RemoteMatchOptions): MatchTransport {
   // The match's players never change, so the first successful read is kept. A failed read is tried again later.
   let seats: Promise<Seats | null> | null = null;
   let queue: Promise<unknown> = Promise.resolve();
+  // The last seq this transport told the seen function about; null before the first.
+  let seenSeq: number | null = null;
 
   const token = async (): Promise<string | null> => (playerId === null ? null : await accessToken());
 
@@ -70,6 +72,19 @@ export function createRemoteMatch(options: RemoteMatchOptions): MatchTransport {
 
   const viewerOf = (s: Seats): Viewer => (playerId === s.lio ? "lio" : playerId === s.sae ? "sae" : "spectator");
 
+  /**
+   * Tells the seen function, once per seq, that the signed-in player has been shown a turn that waits for them,
+   * so they get no email for it (Decision 5, Notifications). Not awaited: a slow or failed call never holds up
+   * a frame, a poll or a submission, and is not tried again.
+   */
+  const tellSeen = (frame: Frame, viewer: Viewer, t: string | null): void => {
+    if (playerId === null || t === null || viewer === "spectator") return;
+    if (frame.viewer !== viewer || frame.decision === null) return;
+    if (seenSeq !== null && frame.seq <= seenSeq) return;
+    seenSeq = frame.seq;
+    void postSeen(endpoint, t, frame.seq);
+  };
+
   /** One poll: reads the latest frame and gives it, with the events each subscriber has not had, to each. */
   const pollOnce = async (): Promise<void> => {
     const t = await token();
@@ -83,12 +98,15 @@ export function createRemoteMatch(options: RemoteMatchOptions): MatchTransport {
     // Events are read only up to this frame's seq, so a step committed since is left for the next poll.
     const after = Math.min(...behind.map((s) => s.last ?? -1));
     const steps = await readEvents(endpoint, t, viewer, after, frame.seq);
+    let given = false;
     for (const s of behind) {
       if (!subscribers.has(s)) continue;
       const from = s.last ?? -1;
       s.last = frame.seq;
       s.onFrame({ ...frame, events: steps.filter((step) => step.seq > from).flatMap((step) => step.events) });
+      given = true;
     }
+    if (given) tellSeen(frame, viewer, t);
   };
 
   /** Runs one poll, then schedules the next. Only one poll runs at a time; a failed poll delivers nothing. */
