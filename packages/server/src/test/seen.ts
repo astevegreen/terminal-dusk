@@ -69,9 +69,9 @@ export async function seenWorld(): Promise<SeenWorld> {
   const logged: string[] = [];
   return {
     deps: {
-      authenticate: async (token) => {
+      authenticate: (token) => {
         authCalls.push(token);
-        return TOKENS[token] ?? null;
+        return Promise.resolve(TOKENS[token] ?? null);
       },
       store: recordingStore(memory, storeCalls),
       notify: recordingNotify(notify, notifyCalls),
