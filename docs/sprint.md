@@ -71,7 +71,7 @@ An item too big for about 300 changed lines becomes `<ID>a`, `<ID>b`, and so on.
 - **A1** The yes/no prompt shows the card's question, not only "yes or no?".
 - **A2** Easy AI and its tests handle each new step and condition from R4–R8 (one task as they merge).
 - **A3** Real findings from the Gemini weekly audit (#3) and the "How the code is organised" page (#4), one task each.
-- **A4** Open SonarCloud findings on `main` (see the memory note on reading them via check-run annotations).
+- **A4** Open SonarCloud findings on `main`. `node tools/sonar.mjs <pr>` lists a pull request's findings; GitHub gets at most about 50 of them, so the full list for `main` needs the owner's SonarCloud sign-in.
 - **A5** Accessibility of the game screen: labels, focus order and keyboard play, phone first, no new look.
 - **A6** Playwright smoke tests for the replay viewer and a full AI game to the end screen.
 
