@@ -22,7 +22,7 @@ merge by hand, or make design decisions. You hand each task to subagents, one at
 their hand-back blocks. `L` below is the label `lane:$ARGUMENTS`.
 
 Run the implementer and the reviewer with model `opus` every time. Before every task, stop if:
-- `date -u +%Y%m%dT%H%M` is outside `20261021T0000` to `20261022T0600`
+- `date -u +%Y%m%dT%H%M` is outside `20261021T0000` to `20261022T1400`
 - any subagent reported a usage-limit error
 - you have run 6 tasks this session (the supervisor starts a fresh session next hour)
 - nothing below is left
