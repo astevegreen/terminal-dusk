@@ -14,6 +14,29 @@ describeCard("e1-lio-006", "Desert Storm Coalition", [
       points:sae:1
     `,
   },
+  {
+    it: "when SAE plays it for points: LIO 3 only, no SAE -1 Ops",
+    rival: "points",
+    story: `
+      coalition victory
+      points:lio:3
+      points:sae:4
+      points:lio:2
+      points:sae:2
+    `,
+  },
+  {
+    it: "when SAE picks it as its opening card: LIO 3 only, no SAE -1 Ops",
+    rival: "opening",
+    story: `
+      coalition victory
+      points:lio:3
+      points:lio:2
+      points:sae:2
+      points:lio:2
+      points:sae:2
+    `,
+  },
 ]);
 
 describeOnceOnly("e1-lio-006", "Desert Storm Coalition");

@@ -34,8 +34,8 @@ starting deck: the turn 1 refill deals both hands from it, so it must hold at le
 ### e1-lio-006 · Desert Storm Coalition · LIO · Ops 4 · Hot
 
 - **Event:** A 34-nation coalition frees Kuwait in six weeks.
-- **Design:** LIO 3 and SAE -1 Ops this turn: the unipolar moment. Hot: an SAE holder wants 4 Ops but hands LIO the event.
-- **Playable:** `marker "coalition victory"; spend lio 3; mod sae -1 min 1 (turn); once-only`
+- **Design:** LIO 3 and SAE -1 Ops this turn: the unipolar moment. Hot: an SAE holder wants 4 Ops but hands LIO the event. If SAE plays it: LIO 3 only, no SAE -1 Ops.
+- **Playable:** `marker "coalition victory"; spend lio 3; if played lio { mod sae -1 min 1 (turn) }; once-only`
 - **History:** Operation Desert Storm began on 17 January 1991 and ended with a ceasefire on 28 February 1991; a coalition of some 34 nations under a UN mandate expelled Iraqi forces from Kuwait.
 - **Theme:** alliances, proxy wars · **Notion:** create
 
@@ -84,8 +84,8 @@ starting deck: the turn 1 refill deals both hands from it, so it must hold at le
 ### e1-sae-002 · Handover of Hong Kong · SAE · Ops 4 · Hot
 
 - **Event:** The Union flag comes down over a territory promised fifty years of autonomy.
-- **Design:** SAE 3; a "promise made" tag that the 2020 security law card closes (W1, W3). Hot: 4 Ops tempts LIO holders.
-- **Playable:** `marker "one country, two systems" lasting; spend sae 3; once-only`
+- **Design:** SAE 3; a "promise made" tag that the 2020 security law card closes (W1, W3). Hot: 4 Ops tempts LIO holders. If LIO plays it: SAE 2 instead of 3.
+- **Playable:** `marker "one country, two systems" lasting; if played lio { spend sae 2 } else { spend sae 3 }; once-only`
 - **History:** Britain returned Hong Kong to China on 1 July 1997; under the 1990 Basic Law the territory was promised a high degree of autonomy for fifty years, to 2047.
 - **Theme:** alliances, gray-zone · **Notion:** update `3fceb012942f8143974df5a9772fb204`
 
@@ -100,8 +100,8 @@ starting deck: the turn 1 refill deals both hands from it, so it must hold at le
 ### e1-sae-004 · Second Chechen War · SAE · Ops 3 · Hot
 
 - **Event:** A new prime minister wins a war and the presidency in seven months.
-- **Design:** SAE 3: power consolidated. A "strongman" tag (W1).
-- **Playable:** `marker "consolidation"; spend sae 3`
+- **Design:** SAE 3: power consolidated. A "strongman" tag (W1). If LIO plays it: SAE 2 instead of 3.
+- **Playable:** `marker "consolidation"; if played lio { spend sae 2 } else { spend sae 3 }`
 - **History:** Russia's second war in Chechnya began with fighting in Dagestan in August 1999 and a ground offensive on 1 October 1999; Vladimir Putin, appointed acting prime minister on 9 August 1999 and acting president on 31 December 1999, won the presidential election on 26 March 2000.
 - **Theme:** proxy wars, populism · **Notion:** update `3fceb012942f81f6b6c9c3534e43b1a2`
 

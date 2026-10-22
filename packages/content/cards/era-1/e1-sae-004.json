@@ -9,14 +9,30 @@
       "label": "consolidation"
     },
     {
-      "op": "spendPoints",
-      "side": "sae",
-      "amount": 3
+      "op": "if",
+      "cond": {
+        "op": "playedBy",
+        "side": "lio"
+      },
+      "then": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 2
+        }
+      ],
+      "else": [
+        {
+          "op": "spendPoints",
+          "side": "sae",
+          "amount": 3
+        }
+      ]
     }
   ],
   "text": {
     "name": "Second Chechen War",
-    "rules": "Record \"consolidation\". SAE spends 3 points.",
+    "rules": "Record \"consolidation\". If LIO played this card, SAE spends 2 points; otherwise, SAE spends 3 points.",
     "history": "Russia's second war in Chechnya began with fighting in Dagestan in August 1999 and a ground offensive on 1 October 1999; Vladimir Putin, appointed acting prime minister on 9 August 1999 and acting president on 31 December 1999, won the presidential election on 26 March 2000.",
     "art": "art/e1-sae-004"
   }
