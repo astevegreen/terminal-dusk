@@ -512,7 +512,12 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/resendMailer.ts` - The Resend adapter for the mail port: one POST to Resend's send-email endpoint per email. Exports: RESEND_SEND_URL, MailFetch, ResendOptions, resendMailer.
 - `packages/server/src/rows.test.ts`
 - `packages/server/src/rows.ts` - The read model (docs/architecture.md, Decision 5): the rows a client may read, as each commit writes them. Exports: VIEWERS, MatchRow, MatchViewRow, MatchEventRow, CommitRows, rowsFor.
+- `packages/server/src/seenEdge.test.ts`
+- `packages/server/src/seenEdge.ts` - The glue between the runtime's fetch-style requests and `handleSeen`, kept here, not in the Deno entry, so it is tested. Exports: seenFetchHandler.
+- `packages/server/src/seenHandler.refusals.test.ts`
 - `packages/server/src/seenHandler.stack.test.ts` - The seen Edge Function served by the local Supabase stack: a player's seen call marks their queued turn alert seen, so the sweep no longer finds it.
+- `packages/server/src/seenHandler.test.ts`
+- `packages/server/src/seenHandler.ts` - The HTTP side of the seen Edge Function (docs/architecture.md, Decision 5, Notifications: "Email only if the turn is still unseen after about 20 minutes"), as… Exports: SeenHandlerDeps, SeenErrorCode, handleSeen.
 - `packages/server/src/store.test.ts`
 - `packages/server/src/store.ts` - The storage port behind `submit` (docs/architecture.md, Decision 5), and an in-memory store for tests. Exports: LoadedMatch, MatchWrite, CommitResult, MatchStore, MemoryStore.
 - `packages/server/src/submit.leaks.test.ts`
@@ -558,6 +563,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/test/invites.ts` - Test helpers for invites: an in-memory invite store over O1's MemoryStore, with repeatable codes, match ids, seeds and random sides, and submit deps that run t… Exports: HOST, JOINER, INVITE_NOW, sequence, InviteWorld, inviteWorld.
 - `packages/server/src/test/leaks.ts` - Test helper for leak checks, copying the idea of the host's test/leaks.ts. Exports: leaksIn, leaksFor.
 - `packages/server/src/test/match.ts` - Test helpers: a small ruleset and a match in an in-memory store, copying the idea of the host's tests. Exports: SEED, NOW, MATCH, ruleset, makeConfig, created, setup, bodyFor, nextSide.
+- `packages/server/src/test/seen.ts` - Test helpers for the seen handler: "match-1" at seq 0 with its first turn alerts queued (alerts.ts), behind a match store and a notify store that record every… Exports: TOKEN_OF, recordingStore, recordingNotify, SeenWorld, seenWorld.
 - `packages/server/src/test/stack.ts` - Test helpers for the SupabaseStore checks on the local Supabase stack (O3's localStack.ts finds it). Exports: onLocalStack, TestUser, makeUser, accessToken, freshMatchId, newGame, writeOf, putIn, Stored, storedRows, cleanUp.
 - `packages/server/src/test/stackGame.ts` - The shared setup for the tests on the local Supabase stack: a service-role client and two fresh test users made before the tests, and every test match and user… Exports: StackGame, stackGame, answered, expectStoredAs.
 - `packages/server/src/test/stores.ts` - Test helpers that wrap any MatchStore, for the in-memory and the Supabase store alike. Exports: loadTogether, recording.
