@@ -1,7 +1,7 @@
 // The read model (docs/architecture.md, Decision 5): the rows a client may read, as each commit writes
 // them. Field names are the SQL column names. Rows are built from the record and frames only, never the secret.
 import type { GameEvent, GameStatus, RulesetId, Seed, Viewer } from "@terminal-dusk/engine";
-import type { Frame, MatchRecord, PlayerId } from "@terminal-dusk/host";
+import type { Frame, MatchClock, MatchRecord, PlayerId } from "@terminal-dusk/host";
 import { matchRowFor } from "./matchRow.ts";
 
 /** The three live viewers, in the order their rows are written. */
@@ -20,6 +20,10 @@ export type MatchRow = {
   status: GameStatus;
   created_at: number;
   updated_at: number;
+  /** The match's deadline clock as the record holds it, or null for a match without one. */
+  clock: MatchClock | null;
+  /** The earliest deadline while the game is active, else null: what the deadline sweep looks for. */
+  next_deadline: number | null;
 };
 
 /** One row of the `match_view` table: one viewer's latest frame. */

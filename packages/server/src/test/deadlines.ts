@@ -1,7 +1,7 @@
 // Test helpers for the deadline sweep: matches with deadlines in an in-memory store.
 import type { Ruleset, RulesetId } from "@terminal-dusk/engine";
 import { hostCreate } from "@terminal-dusk/host";
-import type { DeadlineRule } from "@terminal-dusk/host";
+import type { DeadlineRule, HostResult, MatchConfig } from "@terminal-dusk/host";
 import { MemoryStore } from "../store.ts";
 import { submit } from "../submit.ts";
 import { bodyFor, makeConfig, ruleset, SEED } from "./match.ts";
@@ -13,18 +13,24 @@ export const DAY = 86_400_000;
 export const rulesetFor = (id: RulesetId): Ruleset | null => (id === ruleset.id ? ruleset : null);
 
 /**
- * Puts in a one-day match `matchId` made at `at` with `rule`. Both sides wait on their opening picks,
- * so both deadlines are `at + DAY`.
+ * A one-day match `matchId` made at `at` with `rule` between `players` (alice and bob by default).
+ * Both sides wait on their opening picks, so both deadlines are `at + DAY`.
  */
-export function insertMatch(store: MemoryStore, matchId: string, rule: DeadlineRule, at: number): void {
-  const r = hostCreate(
-    ruleset,
-    { ...makeConfig(matchId, { lio: "alice", sae: "bob" }), deadline: { rule, days: 1 } },
-    SEED,
-    at,
-  );
+export function createdWithClock(
+  matchId: string,
+  rule: DeadlineRule,
+  at: number,
+  players: MatchConfig["players"] = { lio: "alice", sae: "bob" },
+): HostResult {
+  const r = hostCreate(ruleset, { ...makeConfig(matchId, players), deadline: { rule, days: 1 } }, SEED, at);
   if (!r.ok) throw new Error(`hostCreate failed: ${r.error.code}`);
-  store.insert(matchId, { record: r.value.record, secret: r.value.secret, frames: r.value.frames });
+  return r.value;
+}
+
+/** Puts in a match made by createdWithClock: both deadlines are `at + DAY`. */
+export function insertMatch(store: MemoryStore, matchId: string, rule: DeadlineRule, at: number): void {
+  const r = createdWithClock(matchId, rule, at);
+  store.insert(matchId, { record: r.record, secret: r.secret, frames: r.frames });
 }
 
 /**

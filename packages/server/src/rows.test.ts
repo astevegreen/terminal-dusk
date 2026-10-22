@@ -6,9 +6,11 @@ import { submit } from "./submit.ts";
 import { bodyFor, created, MATCH, NOW, setup } from "./test/match.ts";
 
 const MATCH_FIELDS = [
+  "clock",
   "created_at",
   "lio_player",
   "match_id",
+  "next_deadline",
   "ruleset",
   "sae_player",
   "seed",
@@ -33,7 +35,7 @@ describe("rowsFor: one commit becomes one match row, three view rows and three e
     for (const row of rows.events) expect(keys(row)).toEqual(EVENT_FIELDS);
   });
 
-  it("the match row copies the record into the SQL column names, with a null seed while the game is active", () => {
+  it("the match row copies the record into the SQL column names, with a null seed while the game is active and null clock columns without a clock", () => {
     const { record } = created();
     expect(rowsFor(created()).match).toEqual({
       match_id: MATCH,
@@ -46,6 +48,8 @@ describe("rowsFor: one commit becomes one match row, three view rows and three e
       status: { kind: "active" },
       created_at: record.createdAt,
       updated_at: record.updatedAt,
+      clock: null,
+      next_deadline: null,
     });
   });
 
