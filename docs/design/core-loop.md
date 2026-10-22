@@ -56,7 +56,9 @@ change it in Notion and promote again.
   names (LIO, SAE or both). A neutral card can be an opening pick; it then resolves as its event, like any
   opening card. A neutral card played for its action points has no event (owner, 18 Oct, decision 17 option c).
   For whose Contingency deck a neutral event draws from, see docs/design/contingency-deck.md.
-- **The new action.** One new kind of action sits alongside the familiar ones. Which one is not decided yet.
+- **The new action.** One new kind of action sits alongside the familiar ones: the tech race. A side spends a
+  card's action points to move up the tech race track (owner, 22 Oct; docs/design/map-and-points.md). The track
+  itself is not designed yet.
 
 ## Undo
 
@@ -84,7 +86,8 @@ change it in Notion and promote again.
 
 ## Not decided yet
 
-- Which new action joins the loop, and the full list of actions and their costs.
+- The tech race track, and the full list of actions and their costs.
 - How many cards each player plays per turn, and how a turn ends.
 - How scoring cards are played.
-- The tension track and scoring (their own topic pages).
+- Scoring (its own topic page). The Escalation track (formerly the tension track) is decided in
+  docs/design/map-and-points.md, except the parts that wait on scoring, the map and the tech race.
