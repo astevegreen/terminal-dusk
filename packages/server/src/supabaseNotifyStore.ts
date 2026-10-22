@@ -20,10 +20,13 @@ type Step = "queue" | "seen" | "due" | "markSent";
  */
 export class NotifyStorageError extends Error {
   constructor(step: Step, matchId: string | null, reason: string) {
-    super(`Turn alert ${step} failed${matchId === null ? "" : ` for match ${matchId}`}: ${reason}.`);
+    super(`Turn alert ${step} failed${forMatch(matchId)}: ${reason}.`);
     this.name = "NotifyStorageError";
   }
 }
+
+/** " for match <id>" for a step about one match, or nothing. */
+const forMatch = (matchId: string | null): string => (matchId === null ? "" : ` for match ${matchId}`);
 
 const reasonOf = (error: { code?: string } | null | undefined): string =>
   error?.code ? `database error ${error.code}` : "the database did not answer";
