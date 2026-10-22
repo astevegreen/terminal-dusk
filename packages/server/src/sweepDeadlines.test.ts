@@ -66,21 +66,29 @@ describe("sweepDeadlines: single matches", () => {
     expect((await store.load("m1"))!.record.seq).toBe(2);
   });
 
-  it("bothLate is skipped and the match is left unchanged", async () => {
+  it("both sides late on a simultaneous pick: the match row shows a draw on time (O7d)", async () => {
+    const store = new MemoryStore();
+    insertMatch(store, "m1", "lossOnTime", NOW);
+    const seqBefore = store.stored("m1")!.record.seq;
+    expect(await sweepDeadlines(store, rulesetFor, NOW + DAY)).toEqual([{ matchId: "m1", status: "timedOut" }]);
+    const read = (await readMatch(store, "m1", null, -1))!;
+    expect(read.match.status).toEqual({ kind: "over", winner: null, reason: "timeout" });
+    expect(read.match.seed).toBe(SEED);
+    expect(store.stored("m1")?.record.seq).toBe(seqBefore + 1);
+    expect(store.stored("m1")?.record.clock?.deadlines).toEqual({ lio: null, sae: null });
+  });
+
+  it("one millisecond before both deadlines, the both-late match is not due and is left unchanged", async () => {
     const store = new MemoryStore();
     insertMatch(store, "m1", "lossOnTime", NOW);
     const before = store.stored("m1");
-    const rowsBefore = await store.rows("m1");
-    expect(await sweepDeadlines(store, rulesetFor, NOW + DAY)).toEqual([
-      { matchId: "m1", status: "skipped", code: "bothLate" },
-    ]);
+    expect(await sweepDeadlines(store, rulesetFor, NOW + DAY - 1)).toEqual([]);
     expect(store.stored("m1")).toEqual(before);
-    expect(await store.rows("m1")).toEqual(rowsBefore);
   });
 });
 
 describe("sweepDeadlines: batches", () => {
-  /** Due at NOW + DAY - 1000 (extension), - 500 (loss on time) and 0 (bothLate); one more not due yet. */
+  /** Due at NOW + DAY - 1000 (extension), - 500 (loss on time) and 0 (both late, a draw); one more not due yet. */
   async function mixed(): Promise<MemoryStore> {
     const store = new MemoryStore();
     insertMatch(store, "a-both-late", "lossOnTime", NOW);
@@ -95,8 +103,9 @@ describe("sweepDeadlines: batches", () => {
     expect(await sweepDeadlines(store, rulesetFor, NOW + DAY)).toEqual([
       { matchId: "c-extends", status: "extended" },
       { matchId: "b-times-out", status: "timedOut" },
-      { matchId: "a-both-late", status: "skipped", code: "bothLate" },
+      { matchId: "a-both-late", status: "timedOut" },
     ]);
+    expect(store.stored("a-both-late")?.record.status).toEqual({ kind: "over", winner: null, reason: "timeout" });
     expect(store.stored("d-not-due")?.record.clock?.graceUsed).toEqual({ lio: false, sae: false });
   });
 
@@ -107,9 +116,7 @@ describe("sweepDeadlines: batches", () => {
     const ids = ["a-both-late", "b-times-out", "c-extends", "d-not-due"];
     const snapshot = async () => Promise.all(ids.map(async (id) => [store.stored(id), await store.rows(id)]));
     const before = await snapshot();
-    expect(await sweepDeadlines(store, rulesetFor, now)).toEqual([
-      { matchId: "a-both-late", status: "skipped", code: "bothLate" },
-    ]);
+    expect(await sweepDeadlines(store, rulesetFor, now)).toEqual([]);
     expect(await snapshot()).toEqual(before);
   });
 });
