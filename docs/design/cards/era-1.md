@@ -92,8 +92,8 @@ starting deck: the turn 1 refill deals both hands from it, so it must hold at le
 ### e1-sae-003 · Golden Shield · SAE · Ops 2 · Tempo
 
 - **Event:** China starts building the wall around its internet.
-- **Design:** SAE 1 now and 1 after every card played this turn (both sides' plays, W2): control compounds.
-- **Playable:** `marker "walled network"; spend sae 1; on cardPlayed (turn) { spend sae 1 }`
+- **Design:** SAE 1 now and 1 after every later card LIO plays this turn (W2): control compounds.
+- **Playable:** `marker "walled network"; spend sae 1; on cardPlayed by lio (turn) { spend sae 1 }`
 - **History:** China's Ministry of Public Security launched the Golden Shield project in 1998; the filtering and surveillance system, widely known as the Great Firewall, was operational by 2003.
 - **Theme:** cyber, information · **Notion:** update `3fceb012942f81e2827be465891b3789`
 
