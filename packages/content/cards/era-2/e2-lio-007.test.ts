@@ -30,6 +30,48 @@ describeCard("e2-lio-007", "Big Bang Enlargement 2004", [
       points:lio:2
     `,
   },
+  {
+    it: "when SAE plays it for points with no union founded: LIO 3 and nothing at turn end",
+    rival: "points",
+    story: `
+      eastward
+      points:lio:3
+      triggerSet:turnEnd
+      points:sae:4
+      points:lio:2
+      points:sae:2
+      triggerFired:turnEnd
+    `,
+  },
+  {
+    it: "when SAE plays it for points after Maastricht Treaty recorded union founded: LIO spends 1 at turn end",
+    rival: "points",
+    before: ["e1-lio-001"],
+    story: `
+      eastward
+      points:lio:3
+      triggerSet:turnEnd
+      points:sae:4
+      points:lio:2
+      points:sae:2
+      triggerFired:turnEnd
+      points:lio:1
+    `,
+  },
+  {
+    it: "when SAE picks it as its opening card with no union founded: LIO 3 and nothing at turn end",
+    rival: "opening",
+    story: `
+      eastward
+      points:lio:3
+      triggerSet:turnEnd
+      points:lio:2
+      points:sae:2
+      points:lio:2
+      points:sae:2
+      triggerFired:turnEnd
+    `,
+  },
 ]);
 
 describeOnceOnly("e2-lio-007", "Big Bang Enlargement 2004");

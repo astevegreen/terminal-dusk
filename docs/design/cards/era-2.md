@@ -32,8 +32,8 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 ### e2-lio-007 · Big Bang Enlargement 2004 · LIO · Ops 4 · Hot
 
 - **Event:** Seven states join NATO and ten join the EU within five weeks.
-- **Design:** LIO 3 now and 1 at turn end (2 if "union founded" has been recorded); the eastward shift. Hot: an SAE holder wants the 4 Ops but hates the event.
-- **Playable:** `marker "eastward"; spend lio 3; on turnEnd { if has "union founded" { spend lio 2 } else { spend lio 1 } }; once-only`
+- **Design:** LIO 3 now and 1 at turn end (2 if "union founded" has been recorded); the eastward shift. Hot: an SAE holder wants the 4 Ops but hates the event. If SAE plays it: the turn-end point is 1 less (none without the tag).
+- **Playable:** `marker "eastward"; spend lio 3; if played lio { on turnEnd { if has "union founded" { spend lio 2 } else { spend lio 1 } } } else { on turnEnd { if has "union founded" { spend lio 1 } } }; once-only`
 - **History:** Seven countries, including the three Baltic states, joined NATO on 29 March 2004, and ten countries joined the European Union on 1 May 2004.
 - **Theme:** alliances · **Notion:** create
 
@@ -90,8 +90,8 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 ### e2-sae-001 · Invasion of Iraq · SAE · Ops 3 · Hot
 
 - **Event:** The coalition splits over a war sold on weapons that were not there.
-- **Design:** SAE 2 and LIO -1 Ops this turn; a lasting "credibility" tag that Curveball and Abu Ghraib deepen (W1, W3).
-- **Playable:** `marker "coalition fractures" lasting; spend sae 2; mod lio -1 min 1 (turn)`
+- **Design:** SAE 2 and LIO -1 Ops this turn; a lasting "credibility" tag that Curveball and Abu Ghraib deepen (W1, W3). If LIO plays it: SAE 2 only, no LIO -1 Ops.
+- **Playable:** `marker "coalition fractures" lasting; spend sae 2; if played sae { mod lio -1 min 1 (turn) }`
 - **History:** A US-led coalition invaded Iraq on 20 March 2003 and took Baghdad on 9 April 2003. The stated justification, Iraqi weapons of mass destruction, was not borne out.
 - **Theme:** proxy wars, alliances · **Notion:** update `3fceb012942f8154b177c1f3c802bbf5`
 
@@ -106,8 +106,8 @@ defined there. Every card: LIO 10, SAE 11, neutral 8 (the plan had 13, 13 and 8;
 ### e2-sae-003 · Olympic Summer 2008 · SAE · Ops 4 · Hot
 
 - **Event:** Beijing opens the Games while Russian tanks roll into Georgia.
-- **Design:** SAE 3 and +1 Ops this turn: confidence at its peak. Hot: LIO holders want the 4 Ops.
-- **Playable:** `marker "summer of 2008"; spend sae 3; mod sae +1 (turn); once-only`
+- **Design:** SAE 3 and +1 Ops this turn: confidence at its peak. Hot: LIO holders want the 4 Ops. If LIO plays it: SAE 3 only, no SAE +1 Ops.
+- **Playable:** `marker "summer of 2008"; spend sae 3; if played sae { mod sae +1 (turn) }; once-only`
 - **History:** The Beijing Olympics opened on 8 August 2008; the same week, Russian forces fought a five-day war with Georgia that ended in a ceasefire brokered by France.
 - **Theme:** gray-zone, proxy wars · **Notion:** update `3fceb012942f81b2a70ace2419b7112e`
 
