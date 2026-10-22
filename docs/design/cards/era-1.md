@@ -42,8 +42,8 @@ starting deck: the turn 1 refill deals both hands from it, so it must hold at le
 ### e1-lio-010 · Arrest of Aldrich Ames · LIO · Ops 2 · Gamble
 
 - **Event:** The CIA catches its own counter-intelligence officer after nine years of betrayal.
-- **Design:** LIO 1 for the arrest; then the damage assessment: either the network is rebuilt (LIO 1 more) or the losses were already fatal (SAE 1).
-- **Playable:** `marker "mole exposed"; spend lio 1; draw lio -> d; if d >= 4 { spend lio 1 } else { spend sae 1 }`
+- **Design:** LIO 1 for the arrest, and LIO sees SAE's hand; then the damage assessment: either the network is rebuilt (LIO 1 more) or the losses were already fatal (SAE 1).
+- **Playable:** `marker "mole exposed"; spend lio 1; show sae; draw lio -> d; if d >= 4 { spend lio 1 } else { spend sae 1 }`
 - **History:** Aldrich Ames, a CIA counter-intelligence officer, was arrested on 21 February 1994 after nine years of spying for the Soviet Union and Russia; his betrayal exposed many Western agents.
 - **Theme:** gray-zone, intelligence · **Notion:** update `3fceb012942f8116b044c7a78f26fddf` (side changed from SAE to LIO: the arrest is LIO's win; see Owner questions)
 
@@ -108,8 +108,8 @@ starting deck: the turn 1 refill deals both hands from it, so it must hold at le
 ### e1-sae-005 · The Hanssen Leak · SAE · Ops 2 · Gamble
 
 - **Event:** An FBI agent sells secrets for two decades before he is caught.
-- **Design:** SAE 2 for the intelligence; a small chance the mole is caught early (LIO 1).
-- **Playable:** `marker "mole inside"; spend sae 2; draw sae -> d; if d <= 2 { marker "mole caught"; spend lio 1 }`
+- **Design:** SAE 2 for the intelligence, and SAE sees LIO's hand; a small chance the mole is caught early (LIO 1).
+- **Playable:** `marker "mole inside"; spend sae 2; show lio; draw sae -> d; if d <= 2 { marker "mole caught"; spend lio 1 }`
 - **History:** FBI agent Robert Hanssen was arrested on 18 February 2001 after spying for the Soviet Union and Russia on and off since 1979; he was sentenced to life imprisonment.
 - **Theme:** gray-zone, intelligence · **Notion:** update `3fceb012942f81fd8aafecba4f2e3341`
 

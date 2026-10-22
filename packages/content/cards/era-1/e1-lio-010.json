@@ -14,6 +14,10 @@
       "amount": 1
     },
     {
+      "op": "revealHand",
+      "side": "sae"
+    },
+    {
       "op": "drawContingency",
       "side": "lio",
       "bind": "d"
@@ -43,7 +47,7 @@
   ],
   "text": {
     "name": "Arrest of Aldrich Ames",
-    "rules": "Record \"mole exposed\". LIO spends 1 point. Draw from LIO's Contingency deck. If the result is 4 or more, LIO spends 1 point; otherwise, SAE spends 1 point.",
+    "rules": "Record \"mole exposed\". LIO spends 1 point. SAE's hand is shown to LIO. Draw from LIO's Contingency deck. If the result is 4 or more, LIO spends 1 point; otherwise, SAE spends 1 point.",
     "history": "Aldrich Ames, a CIA counter-intelligence officer, was arrested on 21 February 1994 after nine years of spying for the Soviet Union and Russia; his betrayal exposed many Western agents.",
     "art": "art/e1-lio-010"
   }
