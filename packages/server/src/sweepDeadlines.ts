@@ -8,8 +8,9 @@ import type { CommitResult, LoadedMatch, MatchStore, MatchWrite } from "./store.
 
 /**
  * One due match's outcome. `extended`: a grace extension was saved. `timedOut`: a loss on time was saved.
+ * A draw because both sides missed a simultaneous pick (O7d) is a `timedOut` too.
  * `conflict`: the stored seq moved on first, so nothing was written. `skipped`: nothing was written, with
- * the host's refusal code (for example `bothLate`), or `unknownRuleset`, `notFound` or `storageFailed`.
+ * the host's refusal code (for example `notDue`), or `unknownRuleset`, `notFound` or `storageFailed`.
  */
 export type SweepResult = { matchId: string } & (
   { status: "extended" | "timedOut" | "conflict" } | { status: "skipped"; code: string }
