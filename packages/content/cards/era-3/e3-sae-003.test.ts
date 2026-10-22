@@ -14,6 +14,22 @@ const crimea = (n: number) => `
   points:lio:1
 `;
 
+/** LIO's first play when LIO plays the card: its 3 points for points, or a filler's 2 after picking it to open. */
+const lioFirst = { points: 3, opening: 2 } as const;
+
+/** The story when LIO plays the card and SAE spends `n` points from it: LIO still spends 1 at turn end. */
+const crimeaByLio = (rival: "points" | "opening", n: number) => `
+  borders redrawn
+  points:sae:${n}
+  triggerSet:turnEnd
+  points:lio:${lioFirst[rival]}
+  points:sae:2
+  points:lio:2
+  points:sae:2
+  triggerFired:turnEnd
+  points:lio:1
+`;
+
 /** Budapest Memorandum with SAE saying no, which records "hollow assurance". */
 const budapestNo: EarlierCard = { card: "e1-lio-002", yes: { sae: false } };
 
@@ -36,5 +52,27 @@ describeCard("e3-sae-003", "Annexation of Crimea", [
     it: "with both hollow assurance and precedent set recorded, SAE spends 4 once",
     before: [budapestNo, "e2-neu-007"],
     story: crimea(4),
+  },
+  {
+    it: "when LIO plays it for points without either tag, SAE spends 2",
+    rival: "points",
+    story: crimeaByLio("points", 2),
+  },
+  {
+    it: "when LIO picks it as its opening card without either tag, SAE spends 2",
+    rival: "opening",
+    story: crimeaByLio("opening", 2),
+  },
+  {
+    it: "when LIO plays it for points after Budapest Memorandum recorded hollow assurance, SAE spends 3",
+    rival: "points",
+    before: [budapestNo],
+    story: crimeaByLio("points", 3),
+  },
+  {
+    it: "when LIO plays it for points after Kosovo Declares Independence recorded precedent set, SAE spends 3",
+    rival: "points",
+    before: ["e2-neu-007"],
+    story: crimeaByLio("points", 3),
   },
 ]);

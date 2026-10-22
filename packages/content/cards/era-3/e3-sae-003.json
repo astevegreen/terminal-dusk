@@ -16,9 +16,25 @@
       },
       "then": [
         {
-          "op": "spendPoints",
-          "side": "sae",
-          "amount": 4
+          "op": "if",
+          "cond": {
+            "op": "playedBy",
+            "side": "lio"
+          },
+          "then": [
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 3
+            }
+          ],
+          "else": [
+            {
+              "op": "spendPoints",
+              "side": "sae",
+              "amount": 4
+            }
+          ]
         }
       ],
       "else": [
@@ -30,16 +46,48 @@
           },
           "then": [
             {
-              "op": "spendPoints",
-              "side": "sae",
-              "amount": 4
+              "op": "if",
+              "cond": {
+                "op": "playedBy",
+                "side": "lio"
+              },
+              "then": [
+                {
+                  "op": "spendPoints",
+                  "side": "sae",
+                  "amount": 3
+                }
+              ],
+              "else": [
+                {
+                  "op": "spendPoints",
+                  "side": "sae",
+                  "amount": 4
+                }
+              ]
             }
           ],
           "else": [
             {
-              "op": "spendPoints",
-              "side": "sae",
-              "amount": 3
+              "op": "if",
+              "cond": {
+                "op": "playedBy",
+                "side": "lio"
+              },
+              "then": [
+                {
+                  "op": "spendPoints",
+                  "side": "sae",
+                  "amount": 2
+                }
+              ],
+              "else": [
+                {
+                  "op": "spendPoints",
+                  "side": "sae",
+                  "amount": 3
+                }
+              ]
             }
           ]
         }
@@ -62,7 +110,7 @@
   ],
   "text": {
     "name": "Annexation of Crimea",
-    "rules": "Record \"borders redrawn\". If \"hollow assurance\" or \"precedent set\" (or both) has been recorded this game, SAE spends 4 points; otherwise, SAE spends 3 points. At the end of this turn, LIO spends 1 point.",
+    "rules": "Record \"borders redrawn\". If \"hollow assurance\" or \"precedent set\" (or both) has been recorded this game, SAE spends 4 points, or 3 if LIO played this card; otherwise, SAE spends 3 points, or 2 if LIO played this card. At the end of this turn, LIO spends 1 point.",
     "history": "Russian forces took control of Crimea in late February 2014; after a referendum on 16 March 2014 Russia annexed the peninsula on 18 March, and the UN General Assembly declared the referendum invalid on 27 March 2014.",
     "art": "art/e3-sae-003"
   }

@@ -83,24 +83,24 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 ### e3-sae-002 · Belt and Road · SAE · Ops 3 · Split (LIO)
 
 - **Event:** China lends the world its roads, ports and railways.
-- **Design:** SAE 3; LIO may challenge the loan terms: LIO 1 at turn end, but -1 Ops this turn spent on the campaign.
-- **Playable:** `marker "corridors"; spend sae 3; ask lio "Challenge the loan terms?" -> v; if yes v { mod lio -1 min 1 (turn); on turnEnd { spend lio 1 } } else { marker "unanswered" }`
+- **Design:** SAE 3; LIO may challenge the loan terms: LIO 1 at turn end, but -1 Ops this turn spent on the campaign. If LIO plays it: SAE 2 instead of 3.
+- **Playable:** `marker "corridors"; if played lio { spend sae 2 } else { spend sae 3 }; ask lio "Challenge the loan terms?" -> v; if yes v { mod lio -1 min 1 (turn); on turnEnd { spend lio 1 } } else { marker "unanswered" }`
 - **History:** China's leader announced the "Silk Road Economic Belt" in Astana on 7 September 2013 and a maritime counterpart in Jakarta that October; in December 2017 Sri Lanka handed the Chinese-financed port of Hambantota to a Chinese company on a 99-year lease.
 - **Theme:** supply chains, finance · **Notion:** update `3fceb012942f81478758f96150bc0d64` (Sri Lanka/Zambia row folded in)
 
 ### e3-sae-003 · Annexation of Crimea · SAE · Ops 3 · Hold
 
 - **Event:** Unmarked soldiers, a two-week referendum and a redrawn border.
-- **Design:** SAE 3; LIO 1 at turn end as sanctions begin. Reads the "hollow assurance" (Budapest Memorandum) and "precedent set" (Kosovo Declares Independence) tags (W3): if either or both is recorded, SAE 4 instead of 3, once (owner, 21 Oct).
-- **Playable:** `marker "borders redrawn"; if has "hollow assurance" { spend sae 4 } else { if has "precedent set" { spend sae 4 } else { spend sae 3 } }; on turnEnd { spend lio 1 }`
+- **Design:** SAE 3; LIO 1 at turn end as sanctions begin. Reads the "hollow assurance" (Budapest Memorandum) and "precedent set" (Kosovo Declares Independence) tags (W3): if either or both is recorded, SAE 4 instead of 3, once (owner, 21 Oct). If LIO plays it: SAE 1 less in each case (2, or 3 with a tag).
+- **Playable:** `marker "borders redrawn"; if has "hollow assurance" { if played lio { spend sae 3 } else { spend sae 4 } } else { if has "precedent set" { if played lio { spend sae 3 } else { spend sae 4 } } else { if played lio { spend sae 2 } else { spend sae 3 } } }; on turnEnd { spend lio 1 }`
 - **History:** Russian forces took control of Crimea in late February 2014; after a referendum on 16 March 2014 Russia annexed the peninsula on 18 March, and the UN General Assembly declared the referendum invalid on 27 March 2014.
 - **Theme:** gray-zone, proxy wars · **Notion:** update `3fceb012942f8126818be1c71b7818e1`
 
 ### e3-sae-004 · Full-Scale Invasion · SAE · Ops 4 · Hot
 
 - **Event:** The largest war in Europe since 1945 begins.
-- **Design:** SAE 3 and LIO -1 Ops this turn; LIO 1 at turn end as the West rallies. Hot: 4 Ops for LIO holders who can stomach the event.
-- **Playable:** `marker "full-scale war"; spend sae 3; mod lio -1 min 1 (turn); on turnEnd { spend lio 1 }; once-only`
+- **Design:** SAE 3 and LIO -1 Ops this turn; LIO 1 at turn end as the West rallies. Hot: 4 Ops for LIO holders who can stomach the event. If LIO plays it: SAE 3 and LIO 1 at turn end, no LIO -1 Ops.
+- **Playable:** `marker "full-scale war"; spend sae 3; if played sae { mod lio -1 min 1 (turn) }; on turnEnd { spend lio 1 }; once-only`
 - **History:** Russia launched a full-scale invasion of Ukraine on 24 February 2022, twenty days after Russia and China declared a partnership with "no limits" in Beijing on 4 February 2022.
 - **Theme:** proxy wars, alliances · **Notion:** update `3fceb012942f8135ba48ebf191eafbef`
 
@@ -123,8 +123,8 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 ### e3-sae-008 · Syrian Intervention · SAE · Ops 3 · Hold
 
 - **Event:** Russian jets save a client and Russia returns to the Middle East.
-- **Design:** SAE 2 now and 1 at turn end; a "foothold" tag that Assad's fall removes (W1, W3).
-- **Playable:** `marker "proxy war" lasting; spend sae 2; on turnEnd { spend sae 1 }`
+- **Design:** SAE 2 now and 1 at turn end; a "foothold" tag that Assad's fall removes (W1, W3). If LIO plays it: SAE 2 now and no turn-end point.
+- **Playable:** `marker "proxy war" lasting; spend sae 2; if played sae { on turnEnd { spend sae 1 } }`
 - **History:** Russia began air strikes in Syria on 30 September 2015 in support of the Assad government, its first major military operation outside the former Soviet Union since the Cold War.
 - **Theme:** proxy wars · **Notion:** update `3fceb012942f8115abd1c8c2714da8f8`
 
