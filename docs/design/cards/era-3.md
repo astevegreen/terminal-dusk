@@ -107,8 +107,8 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 ### e3-sae-005 · The Leaks · SAE · Ops 1 · Tempo
 
 - **Event:** Diplomatic cables, then surveillance programmes, spill onto the internet.
-- **Design:** SAE 1 after every card played this turn, by either side (W2): each new story lands on the last.
-- **Playable:** `marker "surveillance exposed"; on cardPlayed (turn) { spend sae 1 }`
+- **Design:** SAE sees LIO's hand, then SAE 1 after every later card LIO plays this turn (W2): each new story lands on the last.
+- **Playable:** `marker "surveillance exposed"; show lio; on cardPlayed by lio (turn) { spend sae 1 }`
 - **History:** WikiLeaks began publishing some 250,000 US diplomatic cables on 28 November 2010; in June 2013 documents leaked by Edward Snowden revealed large-scale US surveillance programmes.
 - **Theme:** information warfare · **Notion:** update `3fceb012942f81ad9174c281c38c34e4` (WikiLeaks row folded in)
 

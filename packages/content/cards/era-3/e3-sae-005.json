@@ -9,8 +9,16 @@
       "label": "surveillance exposed"
     },
     {
+      "op": "revealHand",
+      "side": "lio"
+    },
+    {
       "op": "trigger",
       "hook": "cardPlayed",
+      "filter": {
+        "op": "playedBy",
+        "side": "lio"
+      },
       "do": [
         {
           "op": "spendPoints",
@@ -25,7 +33,7 @@
   ],
   "text": {
     "name": "The Leaks",
-    "rules": "Record \"surveillance exposed\". After every card played this turn, by either side, SAE spends 1 point.",
+    "rules": "Record \"surveillance exposed\". LIO's hand is shown to SAE. After each later card LIO plays this turn, SAE spends 1 point.",
     "history": "WikiLeaks began publishing some 250,000 US diplomatic cables on 28 November 2010; in June 2013 documents leaked by Edward Snowden revealed large-scale US surveillance programmes.",
     "art": "art/e3-sae-005"
   }

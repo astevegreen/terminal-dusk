@@ -16,6 +16,10 @@
     {
       "op": "trigger",
       "hook": "cardPlayed",
+      "filter": {
+        "op": "playedBy",
+        "side": "lio"
+      },
       "do": [
         {
           "op": "spendPoints",
@@ -30,7 +34,7 @@
   ],
   "text": {
     "name": "Golden Shield",
-    "rules": "Record \"walled network\". SAE spends 1 point. After each later card played this turn, by either side, SAE spends 1 point.",
+    "rules": "Record \"walled network\". SAE spends 1 point. After each later card LIO plays this turn, SAE spends 1 point.",
     "history": "China's Ministry of Public Security launched the Golden Shield project in 1998; the filtering and surveillance system, widely known as the Great Firewall, was operational by 2003.",
     "art": "art/e1-sae-003"
   }
