@@ -7,6 +7,10 @@ export type { CommitResult, LoadedMatch, MatchStore, MatchWrite } from "./store.
 export type { DeadlineStore } from "./deadlineStore.ts";
 export { sweepDeadlines } from "./sweepDeadlines.ts";
 export type { SweepResult } from "./sweepDeadlines.ts";
+export { alertsFrom, MemoryNotifyStore, TURN_ALERT_DELAY_MS } from "./notifyStore.ts";
+export type { NotifyStore, TurnAlert } from "./notifyStore.ts";
+export { sweepTurnAlerts } from "./sweepTurnAlerts.ts";
+export type { TurnAlertDeps, TurnAlertResult } from "./sweepTurnAlerts.ts";
 export { rowsFor, VIEWERS } from "./rows.ts";
 export type { CommitRows, MatchEventRow, MatchRow, MatchViewRow } from "./rows.ts";
 export { canRead, readMatch } from "./read.ts";

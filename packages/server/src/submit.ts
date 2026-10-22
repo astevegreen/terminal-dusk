@@ -3,10 +3,19 @@
 import type { Ruleset, RulesetId } from "@terminal-dusk/engine";
 import { hostSubmit } from "@terminal-dusk/host";
 import type { HostEffect, HostError, PlayerId, Submission } from "@terminal-dusk/host";
+import type { NotifyStore } from "./notifyStore.ts";
+import { queueAlerts } from "./queueAlerts.ts";
 import type { LoadedMatch, MatchStore, MatchWrite } from "./store.ts";
 
-/** What the handler needs: where matches live, and the rulesets this server can run, by id. */
-export type SubmitDeps = { store: MatchStore; ruleset: (id: RulesetId) => Ruleset | undefined };
+/**
+ * What the handler needs: where matches live, and the rulesets this server can run, by id. With `notify`,
+ * a saved move queues its turn alerts there.
+ */
+export type SubmitDeps = {
+  store: MatchStore;
+  ruleset: (id: RulesetId) => Ruleset | undefined;
+  notify?: NotifyStore | undefined;
+};
 
 /**
  * One call. `player` is the caller's signed-in id; `body` is the wire payload as received: an answer
@@ -38,6 +47,7 @@ export async function submit(deps: SubmitDeps, request: SubmitRequest): Promise<
   const committed = await attempt(() => deps.store.commit(matchId, record.seq, write satisfies MatchWrite));
   if (!committed.ok) return committed;
   if (committed.value === "conflict") return refuse("staleSeq", "The game has moved on since that answer was made.");
+  await queueAlerts(deps.notify, matchId, write.record.seq, effects, now);
   return { ok: true, value: { seq: write.record.seq, effects } };
 }
 
