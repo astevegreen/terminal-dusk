@@ -2,6 +2,7 @@
 // then build the new record, secret, frames and effects. hostSubmit and hostTimeout both end here.
 import { apply, pendingFor, SIDES } from "@terminal-dusk/engine";
 import type { Answer, GameState, Ruleset, Side } from "@terminal-dusk/engine";
+import { deadlineEffects, nextClock } from "./clock.ts";
 import { copyJson, framesFor } from "./frames.ts";
 import { checkFinished } from "./hostFinish.ts";
 import type { HostEffect, HostError, HostOutcome, MatchRecord, MatchSecret } from "./types.ts";
@@ -9,6 +10,7 @@ import type { HostEffect, HostError, HostOutcome, MatchRecord, MatchSecret } fro
 /**
  * Applies `answer`, already checked by the caller, at time `now`. An engine refusal passes through with
  * the engine's code. A finished game is checked again from its move log and its seed is published.
+ * A match with a clock gets its next clock; `usedGrace` names a side whose late answer used its extension.
  */
 export function acceptAnswer(
   ruleset: Ruleset,
@@ -16,6 +18,7 @@ export function acceptAnswer(
   secret: MatchSecret,
   answer: Answer,
   now: number,
+  usedGrace: Side | null = null,
 ): HostOutcome {
   const result = apply(ruleset, secret.state, answer);
   if (!result.ok) return { ok: false, error: result.error };
@@ -30,20 +33,22 @@ export function acceptAnswer(
     notify: record.players[s],
   }));
   if (over) effects.push({ finalize: true });
+  const next: MatchRecord = {
+    ...record,
+    players: { ...record.players },
+    seq: state.meta.seq,
+    status: copyJson(state.public.status),
+    updatedAt: now,
+    ...(over ? { seed: secret.seed } : {}),
+    ...(record.clock ? { clock: nextClock(record.clock, secret.state, state, now, usedGrace) } : {}),
+  };
   return {
     ok: true,
     value: {
-      record: {
-        ...record,
-        players: { ...record.players },
-        seq: state.meta.seq,
-        status: copyJson(state.public.status),
-        updatedAt: now,
-        ...(over ? { seed: secret.seed } : {}),
-      },
+      record: next,
       secret: { seed: secret.seed, setup: copyJson(secret.setup), state, log },
       frames: framesFor(record.matchId, state, events),
-      effects,
+      effects: [...effects, ...deadlineEffects(next)],
     },
   };
 }

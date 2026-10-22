@@ -19,8 +19,30 @@ import type {
 
 export type PlayerId = string;
 
-/** Who plays each side, and the setup to start from. The host adds the seed's fingerprint. */
-export type MatchConfig = { matchId: string; players: Record<Side, PlayerId>; setup: Omit<Setup, "seedHash"> };
+/** What happens when a side misses its deadline: it loses on time, or first gets one extension of the same length. */
+export type DeadlineRule = "lossOnTime" | "graceThenLoss";
+/** A match's deadline rule and how many days each side has to answer each decision. */
+export type MatchDeadline = { rule: DeadlineRule; days: 1 | 3 | 7 };
+
+/**
+ * Who plays each side, and the setup to start from. The host adds the seed's fingerprint.
+ * Without `deadline` the match has no deadlines (local and practice games).
+ */
+export type MatchConfig = {
+  matchId: string;
+  players: Record<Side, PlayerId>;
+  setup: Omit<Setup, "seedHash">;
+  deadline?: MatchDeadline;
+};
+
+/**
+ * A match's clock. `deadlines[side]` is the time (whole milliseconds) by which `side` must answer, or
+ * null when the game is not waiting on it. `graceUsed[side]` is true once `side` has had its extension.
+ */
+export type MatchClock = MatchDeadline & {
+  deadlines: Record<Side, number | null>;
+  graceUsed: Record<Side, boolean>;
+};
 
 /** What players and spectators may read (the `match` table). Nothing hidden, and no Contingency data. */
 export type MatchRecord = {
@@ -34,6 +56,8 @@ export type MatchRecord = {
   status: GameStatus;
   createdAt: number;
   updatedAt: number;
+  /** Present exactly when the match was set up with a deadline. */
+  clock?: MatchClock;
 };
 
 /** What only the host may read (the `match_secret` table). `log` holds the answers, oldest first. */
@@ -55,8 +79,11 @@ export type Submission =
   | { player: PlayerId; expectedSeq: number; decisionId: string; value: AnswerValue }
   | { player: PlayerId; resign: true };
 
-/** Something the adapter must do after a host call. `notify`: tell this player a decision waits. */
-export type HostEffect = { notify: PlayerId } | { finalize: true };
+/**
+ * Something the adapter must do after a host call. `notify`: tell this player a decision waits.
+ * `deadlineAt`: the earliest time the deadline rule may need applying (call hostDeadline then).
+ */
+export type HostEffect = { notify: PlayerId } | { deadlineAt: number } | { finalize: true };
 
 export type HostResult = {
   record: MatchRecord;
@@ -65,7 +92,16 @@ export type HostResult = {
   effects: HostEffect[];
 };
 
-export type HostErrorCode = "invalidConfig" | "invalidTime" | "notPlayer" | "staleSeq" | "verifyFailed" | "gameNotOver";
+export type HostErrorCode =
+  | "invalidConfig"
+  | "invalidTime"
+  | "notPlayer"
+  | "staleSeq"
+  | "verifyFailed"
+  | "gameNotOver"
+  | "notDue"
+  | "bothLate"
+  | "pastDeadline";
 export type HostError = { code: EngineErrorCode | HostErrorCode; message?: string };
 export type HostOutcome = { ok: true; value: HostResult } | { ok: false; error: HostError };
 
