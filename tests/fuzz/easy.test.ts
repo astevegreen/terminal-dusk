@@ -80,7 +80,7 @@ describe("Easy in the fuzz games", () => {
   });
 
   it("does not always answer first in the simultaneous opening pick", () => {
-    const firstSides = new Set<Side>();
+    const firstSides = new Set<Side | "both">();
     for (let game = 1; game <= 30; game++) {
       const rng = seededRng(game);
       const { setup, seed } = randomGame(rng, game);

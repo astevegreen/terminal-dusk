@@ -37,7 +37,7 @@ function eventRan(ruleset: Ruleset, prior: GameState, answer: Answer, card: Card
   const value = "value" in answer ? answer.value : null;
   if ([...picked, value].some((v) => v?.kind === "chooseCard" && v.card === card)) return true;
   if (value?.kind !== "playCardAs" || value.card !== card) return false;
-  return value.as === "event" || isRivals(ruleset, card, answer.side);
+  return value.as === "event" || ("value" in answer && isRivals(ruleset, card, answer.side));
 }
 
 /** Whether `card` belongs to the rival of `side`: a card of the other side, never a neutral card. */

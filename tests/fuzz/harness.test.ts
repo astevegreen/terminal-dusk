@@ -53,7 +53,7 @@ function firstAnswerers(record: GameRecord): Side[] {
   let state = r.value.state;
   const sides: Side[] = [];
   for (const answer of record.answers) {
-    if (SIDES.every((side) => pendingFor(state, side) !== null)) sides.push(answer.side);
+    if (SIDES.every((side) => pendingFor(state, side) !== null) && "decisionId" in answer) sides.push(answer.side);
     const next = apply(ruleset, state, answer);
     if (!next.ok) throw new Error(`apply failed: ${next.error.code}`);
     state = next.value.state;
