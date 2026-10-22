@@ -3,6 +3,7 @@
 import type { HostResult, PlayerId } from "@terminal-dusk/host";
 import { MemoryMailer } from "../mailer.ts";
 import { alertsFrom, MemoryNotifyStore } from "../notifyStore.ts";
+import type { NotifyStore } from "../notifyStore.ts";
 import type { MemoryStore } from "../store.ts";
 import { submit } from "../submit.ts";
 import type { SubmitDeps } from "../submit.ts";
@@ -22,6 +23,16 @@ export type AlertWorld = {
   /** The players the new match is waiting for, from hostCreate's notify effects. */
   waiting: PlayerId[];
 };
+
+/** A notify store that passes every call to `inner`, except the ones in `override`. */
+export const withNotify = (inner: NotifyStore, override: Partial<NotifyStore>): NotifyStore => ({
+  queue: (alerts) => inner.queue(alerts),
+  seen: (matchId, player, seq) => inner.seen(matchId, player, seq),
+  keep: (matchId, player, seq) => inner.keep(matchId, player, seq),
+  due: (now) => inner.due(now),
+  markSent: (alert, now) => inner.markSent(alert, now),
+  ...override,
+});
 
 /**
  * Answers "match-1"'s waiting decisions through submit at `now`, one at a time, until a saved move has a

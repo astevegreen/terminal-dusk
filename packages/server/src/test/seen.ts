@@ -25,7 +25,7 @@ export function recordingStore(inner: MatchStore, calls: string[]): MatchStore {
   };
 }
 
-/** A notify store wrapper that records every call, with `seen`'s arguments. */
+/** A notify store wrapper that records every call, with `seen`'s and `keep`'s arguments. */
 export function recordingNotify(inner: NotifyStore, calls: string[]): NotifyStore {
   return {
     queue(alerts) {
@@ -35,6 +35,10 @@ export function recordingNotify(inner: NotifyStore, calls: string[]): NotifyStor
     seen(matchId, player, seq) {
       calls.push(`seen ${matchId} ${player} ${seq}`);
       return inner.seen(matchId, player, seq);
+    },
+    keep(matchId, player, seq) {
+      calls.push(`keep ${matchId} ${player} ${seq}`);
+      return inner.keep(matchId, player, seq);
     },
     due(now) {
       calls.push("due");

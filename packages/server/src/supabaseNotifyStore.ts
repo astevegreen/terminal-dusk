@@ -7,11 +7,13 @@ import { TURN_ALERT_DELAY_MS } from "./notifyStore.ts";
 import type { NotifyStore, TurnAlert } from "./notifyStore.ts";
 
 /** The `notify_queue` columns that make up a `TurnAlert`. */
-type AlertRow = { match_id: string; player: PlayerId; seq: number; queued_at: number };
+type AlertRow = { match_id: string; player: PlayerId; seq: number; queued_at: number; waiting_seq: number };
+/** What `queue_turn_alerts` takes for each alert: it sets `waiting_seq` to the alert's seq itself. */
+type QueueRow = Omit<AlertRow, "waiting_seq">;
 
-const ALERT_COLUMNS = "match_id, player, seq, queued_at";
+const ALERT_COLUMNS = "match_id, player, seq, queued_at, waiting_seq";
 
-type Step = "queue" | "seen" | "due" | "markSent";
+type Step = "queue" | "seen" | "keep" | "due" | "markSent";
 
 /**
  * A turn alert storage failure. Its message names only the step, the match id (for a step about one match)
@@ -56,10 +58,13 @@ export class SupabaseNotifyStore implements NotifyStore {
     this.#db = db;
   }
 
-  /** One call to `queue_turn_alerts`, which keeps the newest seq per (match, player) as a fresh alert. */
+  /**
+   * One call to `queue_turn_alerts`, which keeps the newest seq per (match, player) as a fresh alert, waiting at
+   * its own seq.
+   */
   async queue(alerts: TurnAlert[]): Promise<void> {
     if (alerts.length === 0) return;
-    const p_alerts: AlertRow[] = alerts.map((a) => ({
+    const p_alerts: QueueRow[] = alerts.map((a) => ({
       match_id: a.matchId,
       player: a.player,
       seq: a.seq,
@@ -76,6 +81,19 @@ export class SupabaseNotifyStore implements NotifyStore {
         .eq("match_id", matchId)
         .eq("player", player)
         .lte("seq", seq),
+    );
+  }
+
+  /** One update, guarded so it changes only an unsent alert whose `waiting_seq` is below `seq`. */
+  async keep(matchId: string, player: PlayerId, seq: number): Promise<void> {
+    await call("keep", matchId, () =>
+      this.#db
+        .from("notify_queue")
+        .update({ waiting_seq: seq })
+        .eq("match_id", matchId)
+        .eq("player", player)
+        .is("sent_at", null)
+        .lt("waiting_seq", seq),
     );
   }
 
@@ -97,6 +115,7 @@ export class SupabaseNotifyStore implements NotifyStore {
       player: row.player,
       seq: row.seq,
       queuedAt: row.queued_at,
+      waitingSeq: row.waiting_seq,
     }));
   }
 

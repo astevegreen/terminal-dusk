@@ -12,6 +12,7 @@ const D = TURN_ALERT_DELAY_MS;
 const failingQueue: NotifyStore = {
   queue: () => Promise.reject(new Error("db down")),
   seen: async () => undefined,
+  keep: async () => undefined,
   due: async () => [],
   markSent: async () => undefined,
 };
@@ -22,7 +23,7 @@ describe("submit queues turn alerts after a saved move only", () => {
     const notify = new MemoryNotifyStore();
     const { seq, notified } = await moveUntilNotified({ ...world.submitDeps, notify }, world.store, NOW + 5);
     expect(await notify.due(NOW + 5 + D)).toEqual(
-      notified.map((p) => ({ matchId: MATCH, player: p, seq, queuedAt: NOW + 5 })),
+      notified.map((p) => ({ matchId: MATCH, player: p, seq, queuedAt: NOW + 5, waitingSeq: seq })),
     );
   });
 
@@ -75,7 +76,13 @@ describe("joinInvite queues turn alerts for the new match", () => {
     const notified = joined.value.effects.flatMap((e) => ("notify" in e ? [e.notify] : []));
     expect(notified.length).toBeGreaterThan(0);
     expect(await notify.due(INVITE_NOW + 1 + D)).toEqual(
-      notified.map((player) => ({ matchId: joined.value.matchId, player, seq: 0, queuedAt: INVITE_NOW + 1 })),
+      notified.map((player) => ({
+        matchId: joined.value.matchId,
+        player,
+        seq: 0,
+        queuedAt: INVITE_NOW + 1,
+        waitingSeq: 0,
+      })),
     );
   });
 

@@ -1,22 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { turnAlertEmail } from "./mailMessages.ts";
 import { alertsFrom, TURN_ALERT_DELAY_MS } from "./notifyStore.ts";
-import type { NotifyStore } from "./notifyStore.ts";
 import type { MatchStore } from "./store.ts";
 import { submit } from "./submit.ts";
 import { sweepTurnAlerts } from "./sweepTurnAlerts.ts";
-import { ADDRESSES, alertWorld, APP_URL, moveUntilNotified } from "./test/alerts.ts";
+import { ADDRESSES, alertWorld, APP_URL, moveUntilNotified, withNotify } from "./test/alerts.ts";
 import { bodyFor, created, MATCH, nextSide, NOW } from "./test/match.ts";
 
 const D = TURN_ALERT_DELAY_MS;
-/** A notify store that passes every call to `inner`, except the ones in `override`. */
-const withNotify = (inner: NotifyStore, override: Partial<NotifyStore>): NotifyStore => ({
-  queue: (alerts) => inner.queue(alerts),
-  seen: (matchId, player, seq) => inner.seen(matchId, player, seq),
-  due: (now) => inner.due(now),
-  markSent: (alert, now) => inner.markSent(alert, now),
-  ...override,
-});
 const sentTo = (players: string[]) => players.map((p) => turnAlertEmail(ADDRESSES[p]!, APP_URL));
 const results = (players: string[], status: string) => players.map((player) => ({ matchId: MATCH, player, status }));
 
@@ -46,6 +37,22 @@ describe("sweepTurnAlerts: when an email goes out", () => {
     for (const player of world.waiting) await world.notify.seen(MATCH, player, 0);
     expect(await sweepTurnAlerts(world.deps, NOW + D)).toEqual([]);
     expect(world.mailer.sent).toEqual([]);
+  });
+
+  it("an alert kept up to the match's seq is sent, though its turn began at an earlier seq", async () => {
+    const world = await alertWorld();
+    const side = nextSide(world.start.secret);
+    const mover = world.start.record.players[side];
+    const plainDeps = { store: world.store, ruleset: world.submitDeps.ruleset };
+    const body = bodyFor(0, world.start.secret, side);
+    expect(await submit(plainDeps, { matchId: MATCH, player: mover, body, now: NOW + 1 })).toMatchObject({ ok: true });
+    const others = world.waiting.filter((p) => p !== mover);
+    for (const player of others) await world.notify.keep(MATCH, player, 1);
+    expect(await sweepTurnAlerts(world.deps, NOW + D)).toEqual([
+      ...results([mover], "stale"),
+      ...results(others, "sent"),
+    ]);
+    expect(world.mailer.sent).toEqual(sentTo(others));
   });
 
   it("a new turn after a sent alert queues a fresh one, which is emailed 20 minutes later", async () => {
@@ -83,7 +90,7 @@ describe("sweepTurnAlerts: alerts marked sent without an email", () => {
 
   it("an alert whose match is not found is stale and is never tried again", async () => {
     const world = await alertWorld();
-    await world.notify.queue([{ matchId: "gone", player: "alice", seq: 0, queuedAt: NOW - 1 }]);
+    await world.notify.queue([{ matchId: "gone", player: "alice", seq: 0, queuedAt: NOW - 1, waitingSeq: 0 }]);
     const swept = await sweepTurnAlerts(world.deps, NOW + D);
     expect(swept[0]).toEqual({ matchId: "gone", player: "alice", status: "stale" });
     expect(world.mailer.sent).toEqual(sentTo(world.waiting));

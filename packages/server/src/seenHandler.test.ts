@@ -31,8 +31,8 @@ describe("handleSeen: a signed-in player marks their turn alert seen", () => {
 
   it("calls notify.seen(matchId, caller, seq) for the signed-in caller only, leaving the other player's alert", async () => {
     const w = await seenWorld();
-    await w.notify.queue([{ matchId: MATCH, player: "alice", seq: 0, queuedAt: NOW }]);
-    await w.notify.queue([{ matchId: MATCH, player: "bob", seq: 0, queuedAt: NOW }]);
+    await w.notify.queue([{ matchId: MATCH, player: "alice", seq: 0, queuedAt: NOW, waitingSeq: 0 }]);
+    await w.notify.queue([{ matchId: MATCH, player: "bob", seq: 0, queuedAt: NOW, waitingSeq: 0 }]);
     const reply = await handleSeen(w.deps, post("token-bob", { matchId: MATCH, seq: 0 }));
     expect(reply.status).toBe(204);
     expect(w.notifyCalls).toEqual([`seen ${MATCH} bob 0`]);
@@ -60,11 +60,17 @@ describe("handleSeen: a seq above the match's current seq is clamped to it", () 
     const w = await seenWorld();
     // An alert for a turn the match has not reached in the store the handler reads (as when a move is saved
     // between the handler's read and its call to the queue).
-    await w.notify.queue([{ matchId: MATCH, player: "alice", seq: 2, queuedAt: NOW }]);
+    await w.notify.queue([{ matchId: MATCH, player: "alice", seq: 2, queuedAt: NOW, waitingSeq: 2 }]);
     const reply = await handleSeen(w.deps, post("token-alice", { matchId: MATCH, seq: 99 }));
     expect(reply.status).toBe(204);
     expect(w.notify.stored(MATCH, "alice")?.seen).toBe(false);
-    expect(await w.notify.due(LATER)).toContainEqual({ matchId: MATCH, player: "alice", seq: 2, queuedAt: NOW });
+    expect(await w.notify.due(LATER)).toContainEqual({
+      matchId: MATCH,
+      player: "alice",
+      seq: 2,
+      queuedAt: NOW,
+      waitingSeq: 2,
+    });
   });
 
   it("a seq at or below the match's seq is passed on unchanged", async () => {

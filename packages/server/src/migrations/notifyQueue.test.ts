@@ -2,7 +2,8 @@
 // the rest run on the local Supabase stack, where `pnpm test:migrations` applies every migration to an empty
 // database first. They prove the table's columns and keys, that deleting a match removes its alerts, and that
 // no client may read or write the queue or run queue_turn_alerts.
-// Without a running local stack, one test says so and how to start it.
+// Without a running local stack, one test says so and how to start it. The rows include waiting_seq, which
+// 20261025000000_notify_queue_waiting_seq.sql adds (notifyQueueWaitingSeq.test.ts).
 import { describe, expect, it } from "vitest";
 import NOTIFY_MIGRATION from "../../supabase/migrations/20261024000000_notify_queue.sql?raw";
 import { onLocalStack } from "../test/stack.ts";
@@ -13,7 +14,7 @@ const T = 1_700_000_000_000;
 const PERMISSION_DENIED = "42501";
 const UNIQUE_VIOLATION = "23505";
 const FOREIGN_KEY_VIOLATION = "23503";
-const COLUMNS = ["match_id", "player", "seq", "queued_at", "seen_seq", "sent_at"];
+const COLUMNS = ["match_id", "player", "seq", "queued_at", "seen_seq", "sent_at", "waiting_seq"];
 
 type Row = Record<string, unknown>;
 
@@ -46,6 +47,7 @@ await onLocalStack("notify_queue migration on the local Supabase stack", (keys) 
     queued_at: T,
     seen_seq: null,
     sent_at: null,
+    waiting_seq: 2,
     ...change,
   });
   const readQueue = async (matchId: string) =>
