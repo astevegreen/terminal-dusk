@@ -8,12 +8,15 @@ import type { HostEffect, HostError, PlayerId } from "@terminal-dusk/host";
 import { firstDeckConfig, firstDeckRuleset } from "@terminal-dusk/host/first-deck";
 import { inviteCode } from "./inviteCode.ts";
 import type { InviteStore, SideMode } from "./inviteStore.ts";
+import type { NotifyStore } from "./notifyStore.ts";
+import { queueAlerts } from "./queueAlerts.ts";
 import type { MatchWrite } from "./store.ts";
 
 /**
  * What the invite functions need: where invites (and the matches they make) live, and the random parts,
  * injected so tests are repeatable: a fresh match id, a fresh seed, the side the host gets in a random
- * invite, and the invite code (defaults to `inviteCode`, a secure random 8-character code).
+ * invite, and the invite code (defaults to `inviteCode`, a secure random 8-character code). With `notify`,
+ * a joined invite queues the new match's turn alerts there.
  */
 export type InviteDeps = {
   invites: InviteStore;
@@ -21,6 +24,7 @@ export type InviteDeps = {
   seed: () => Seed;
   randomHostSide: () => Side;
   code?: () => string;
+  notify?: NotifyStore | undefined;
 };
 
 export type InviteErrorCode =
@@ -105,6 +109,7 @@ export async function joinInvite(deps: InviteDeps, request: JoinInviteRequest): 
     const { effects, ...write } = created.value;
     const accepted = await deps.invites.accept(code, player, write satisfies MatchWrite);
     if (accepted !== "accepted") return notFound();
+    await queueAlerts(deps.notify, matchId, write.record.seq, effects, now);
     return { ok: true, value: { matchId, side: joinerSide, effects } };
   });
 }
