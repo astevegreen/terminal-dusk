@@ -77,6 +77,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/testMode/promptTree.ts` - Test helper: finds the buttons a prompt would draw and lets a test press them, without a browser. Exports: Button, buttonsOf.
 - `packages/app/src/testMode/session.ts` - The state behind the test-mode screen: one local match, the viewer being looked at, that viewer's latest frame and game log, and the last refusal. Exports: Snapshot, TestSession, logLine, createTestSession.
 - `packages/app/src/testMode/sessionEra.test.ts` - The era in the test-mode session: kept per viewer next to the log, reset by restart.
+- `packages/app/src/transport/emailAuth.test.ts`
+- `packages/app/src/transport/emailAuth.ts` - Email sign-in codes (docs/architecture.md, Decisions 5 and 7): asks Supabase Auth to email a 6-digit code, trades the code for a session and refreshes that ses… Exports: AuthEndpoint, Session, AuthRefusal, AuthResult, REFRESH_MARGIN_MS, requestCode, verifyCode, refreshSession, sessionToken.
 - `packages/app/src/transport/localMatch.test.ts`
 - `packages/app/src/transport/localMatch.ts` - A match run entirely in memory: it keeps the host's record and secret, and gives each viewer a transport. Exports: ArchiveWith, LocalMatch, createLocalMatch.
 - `packages/app/src/transport/matchTransport.ts` - What the screens talk to: one viewer's window onto a match. Exports: ServerErrorCode, TransportError, SubmitResult, MatchTransport.
@@ -84,6 +86,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/transport/remoteMatch.submit.test.ts`
 - `packages/app/src/transport/remoteMatch.test.ts`
 - `packages/app/src/transport/remoteMatch.ts` - The online transport (docs/architecture.md, Decisions 3 and 5): one caller's window onto one match on Supabase. Exports: RemoteMatchOptions, createRemoteMatch.
+- `packages/app/src/transport/sessionToken.test.ts`
+- `packages/app/src/transport/test/fakeAuth.ts` - A fake Supabase Auth for the email-code client's tests: a fake `fetch` that records every request and answers with whatever the test queued, or a stock success… Exports: AUTH_URL, AUTH_ANON_KEY, AuthRequest, AuthAnswer, sessionBody, FakeAuth, createFakeAuth.
 - `packages/app/src/transport/test/fakeSupabase.ts` - A fake Supabase for the remote transport's tests: one match run by the real host, served over a fake `fetch`. Exports: URL_BASE, ANON_KEY, FakeRequest, FakeSupabase, createFakeSupabase.
 - `packages/app/src/transport/test/remoteGame.ts` - The remote transport tests' match: a small game on the fake Supabase, fake timers, and helpers to subscribe, wait and find the next legal move. Exports: POLL_MS, ruleset, config, TOKENS, fakeTimers, settle, Rig, rig, watch, nextMove.
 - `packages/app/src/vsAi/VsAiScreen.test.tsx`
