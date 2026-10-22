@@ -8,6 +8,9 @@ Era 3 LIO Ops 4 card is a balance question for later"). This file lays out optio
 It decides nothing, and nothing here is a rule until the owner picks an option and it is written into
 docs/design/.
 
+**Decided** (owner, 21 Oct): options C1 and F1, narrowing the gap rather than closing it, with every new card's
+design drafted for the owner's approval first. Recorded in deck-plan.md, Owner question 51.
+
 ## The gap in numbers
 
 Counted card by card from the headings of era-1.md, era-2.md and era-3.md (each heading gives the card's side and
@@ -38,8 +41,8 @@ gap comes from.
 **The two summary tables in deck-plan.md are one card behind.** "The deck at a glance" and the built "Ops spread"
 table still show Era 3 neutral as 7 cards (2/4/1/0), an Era 3 total of 27 and 90 cards in all. They omit
 e3-neu-009 "October 7 and Gaza" (neutral, Ops 2), which the owner added later (Owner question 14) and which is in
-era-3.md. This file uses the era files' counts: Era 3 neutral 8 cards, 2/5/1/0. Fixing deck-plan.md is outside
-this task.
+era-3.md. This file uses the era files' counts: Era 3 neutral 8 cards, 2/5/1/0. Both tables were corrected in
+the pull request that recorded the owner's decision (question 6 below).
 
 **The Ops 4 cards.** Five exist: Desert Storm Coalition (Era 1 LIO), Handover of Hong Kong (Era 1 SAE), Big Bang
 Enlargement 2004 (Era 2 LIO), Olympic Summer 2008 (Era 2 SAE) and Full-Scale Invasion (Era 3 SAE). Era 3 LIO's
