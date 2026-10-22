@@ -25,7 +25,7 @@ or make design decisions. You only start, archive and report on sessions, with t
 comment nothing.
 
 ## 1. Window
-Run `date -u +%Y%m%dT%H%M`. The window is `20261021T0000` to `20261022T0600`.
+Run `date -u +%Y%m%dT%H%M`. The window is `20261021T0000` to `20261022T1400`.
 - Before it: print "before the window" and stop.
 - After it: `RemoteTrigger` `list`, then `update` each trigger whose name starts "Sprint supervisor" with
   `{"enabled": false}` (skip in dry-run), comment

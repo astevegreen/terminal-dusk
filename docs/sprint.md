@@ -1,12 +1,13 @@
 # Sprint: 20–22 October 2026
 
-**Window:** Tuesday 20 Oct 20:00 to Thursday 22 Oct 02:00, Eastern time
-(UTC `20261021T0000` to `20261022T0600`). Check with `date -u +%Y%m%dT%H%M`.
+**Window:** Tuesday 20 Oct 20:00 to Thursday 22 Oct 10:00, Eastern time
+(UTC `20261021T0000` to `20261022T1400`). Check with `date -u +%Y%m%dT%H%M`.
+The owner extended the end from 02:00 to 10:00 Eastern on 22 Oct.
 
 Inside the window this file overrides `docs/workflow.md`, the `night-shift` and `plan-tasks` skills, and the
 "wait for the owner" steps in `CLAUDE.md`, wherever they conflict. Outside it, this file is inactive.
 
-**Goal:** use the plan's usage fully for 30 hours with no owner input, without lowering quality: every
+**Goal:** use the plan's usage fully for 38 hours with no owner input, without lowering quality: every
 change still has tests, passes `pnpm gate`, and gets a reviewer pass.
 
 ## Owner's standing permissions (20 Oct, in the session that set up the sprint)
