@@ -123,7 +123,9 @@ A proposal lays out two or three options with trade-offs and decides nothing. It
   started (`claude rc` or the desktop app), because scheduled sessions have no `archive_session`. It archives
   finished sessions after an hour, and stuck ones (no event in 60 minutes, or 30 minutes waiting for an answer).
   It is on before the window opens, and the dry run proves it: one finished session archived, its process gone.
-- Progress and questions go to the pinned issue #2 "Night shift log".
+- Progress and questions go to the sprint log, issue `#<n>` (filled in at setup): a pinned issue for this sprint
+  alone, not #2, which the night shift shares. Its body is the status block, which the supervisor rewrites
+  every hour; comments hold the history.
 
 ## Preflight (Claude runs it the evening before; the owner fixes what it finds)
 

@@ -65,6 +65,6 @@ For each:
 6. Remove `in-progress`.
 
 ## 4. Report
-When you stop, comment once on issue #2 "Night shift log", under 15 lines: the lane, the time, one line per
+When you stop, comment once on the sprint log issue (`docs/sprint.md`, Machinery), under 15 lines: the lane, the time, one line per
 task (#issue, merging, held or blocked, pull request link), each question the owner must answer, and why you
 stopped. Then run `git worktree prune`.

@@ -29,7 +29,7 @@ comment nothing.
 Run `date -u +%Y%m%dT%H%M` and read the window from the `Window (UTC)` line of `docs/sprint.md`.
 - Before it: print "before the window" and stop.
 - After it: `RemoteTrigger` `update` the supervisor trigger whose id is in `docs/sprint.md` (Machinery) with
-  `{"enabled": false}` (skip in dry-run), comment "Sprint over" on issue #2 "Night shift log" with one line
+  `{"enabled": false}` (skip in dry-run), comment "Sprint over" on the sprint log issue with one line
   per lane from step 4, and stop. Don't look for it with `list`: that returns only the account's newest 20
   triggers, and asking for the next page returns the first page again.
 
@@ -42,7 +42,7 @@ Run `git worktree prune`.
 **Memory floor.** First read free memory:
 `powershell.exe -NoProfile -Command "[int]((Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory/1024)"`.
 Under 4096 MB: start nothing this run, though you still read the sessions below and name stuck ones. Comment
-"@astevegreen Supervisor: <n> MB free; started nothing" on issue #2, so GitHub notifies the owner, then go on
+"@astevegreen Supervisor: <n> MB free; started nothing" on the sprint log issue, so GitHub notifies the owner, then go on
 to step 4. Don't archive anything or end any process.
 
 Lanes: `rules`, `app`, `online`, `research`. For each lane there are two session titles:
@@ -83,7 +83,21 @@ For each lane: open `sprint-ready`, `in-progress`, `blocked` and `held` counts, 
 since the window opened (`gh pr list --state merged --label lane:<lane> --search "merged:>=<window start as YYYY-MM-DDTHH:MM:00Z>"`).
 
 ## 5. Report
-Comment on issue #2 only on the first run of the window, every sixth hour (UTC hour 00, 06, 12, 18), or
-when a session is stuck or never started, the archiver is not working, or something in step 2 needed attention. Under 15 lines:
-the time, one line per lane (counts, sessions started), and anything the owner must act on,
-such as code-owned pull requests waiting for approval (`gh pr list --search "review:required"`).
+**Status block.** Every run, rewrite the body of the sprint log issue with `gh issue edit <n> --body-file -`
+(the text on standard input). Read the old body first (`gh issue view <n> --json body`): its "Needs you" list
+is what the ping below compares against. The body holds:
+- the time;
+- one line per lane: ready, building, held and blocked counts, and pull requests merged since the window opened;
+- the last merge to `main` and its CI result;
+- free memory (step 3);
+- "Needs you", one linked line per item: a `blocked` question, a code-owned pull request waiting for approval
+  (`gh pr list --search "review:required"`), a `held` pull request that waits for the owner, a stuck session,
+  a session that failed to start.
+
+**Comment** on the sprint log issue, under 15 lines, when either holds:
+- "Needs you" has an item the old body didn't: start "@astevegreen", so GitHub notifies the owner, and list
+  only the new items first;
+- it is the first run of the window or a sixth UTC hour (00, 06, 12, 18), a session is stuck or never started,
+  the archiver is not working, or something in step 2 needed attention: the time, one line per lane (counts,
+  sessions started), and anything the owner must act on.
+One comment per run at most; when both hold, the ping comes first.
