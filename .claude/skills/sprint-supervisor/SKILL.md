@@ -63,7 +63,7 @@ run `list_runs` on it. Its newest run is the session:
 To start one, `RemoteTrigger` `create` with this body, filling the name, model and prompt:
 `{"name": "<title>", "run_once_at": "<now + 1 minute, UTC, ISO 8601 with Z>", "enabled": true,
 "job_config": {"ccr": {"environment_id": "env_01NzJ5sYBdPtRrLcXKYr7zTM", "session_context": {"model": "<model>"},
-"events": [{"data": {"type": "user", "uuid": "<new random UUID>", "parent_tool_use_id": null,
+"events": [{"data": {"type": "user", "uuid": "<new random UUID from node -e \"console.log(crypto.randomUUID())\">", "parent_tool_use_id": null,
 "message": {"role": "user", "content": "<prompt>"}}}]}}}`
 Prompt `/sprint-lane <lane>` on model `claude-sonnet-5-5` (the skill runs implementer and reviewer on Opus), or
 `/sprint-plan <lane>` on `claude-opus-5-5`. The session runs on the owner's laptop in the main checkout.
@@ -74,7 +74,10 @@ Work exists for a lane session when the lane has an open `sprint-ready` issue wi
 (a split part). Get every title once with `gh issue list --state all --search "[task] in:title" --limit 500 --json title`
 and match the start of the title yourself; GitHub search matches whole words, so `R4` does not find `R4a`.
 
-For a finished run, read the end of `get_run_log`: if it stopped on a usage limit, start nothing new this hour.
+For a finished run, read the end of `get_run_log`: if it stopped on a usage limit, find the reset time the
+error names (it may give a local time and zone: convert it to UTC) and start nothing for that title before it;
+once it has passed, start as usual. If the log names no reset time, start nothing while its last event is
+under an hour old.
 
 Archiving is the sprint archiver's job; don't try it here.
 
