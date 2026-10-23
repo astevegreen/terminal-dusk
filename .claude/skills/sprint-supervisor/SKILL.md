@@ -39,6 +39,12 @@ In the main checkout: `git fetch origin --prune`. If `git status --porcelain` is
 Run `git worktree prune`.
 
 ## 3. Sessions
+**Memory floor.** First read free memory:
+`powershell.exe -NoProfile -Command "[int]((Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory/1024)"`.
+Under 4096 MB: start nothing this run, though you still read the sessions below and name stuck ones. Comment
+"@astevegreen Supervisor: <n> MB free; started nothing" on issue #2, so GitHub notifies the owner, then go on
+to step 4. Don't archive anything or end any process.
+
 Lanes: `rules`, `app`, `online`, `research`. For each lane there are two session titles:
 `Sprint lane: <lane>` and `Sprint plan: <lane>`.
 
