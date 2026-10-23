@@ -126,6 +126,9 @@ A proposal lays out two or three options with trade-offs and decides nothing. It
 - Progress and questions go to the sprint log, issue `#<n>` (filled in at setup): a pinned issue for this sprint
   alone, not #2, which the night shift shares. Its body is the status block, which the supervisor rewrites
   every hour; comments hold the history.
+- One sprint per computer (owner, 22 Oct): no other project's sprint or soak runs on this computer during the
+  window. A sprint on another computer still shares the account's usage limit, so one usage-limit stop can halt
+  both at once (21 Oct, 02:11 UTC); the supervisor restarts the lanes after it.
 
 ## Preflight (Claude runs it the evening before; the owner fixes what it finds)
 
@@ -134,8 +137,7 @@ A proposal lays out two or three options with trade-offs and decides nothing. It
    (archive the rest).
 3. The sprint archiver is on, and the dry run proved it (Machinery).
 4. The supervisor trigger exists, its id is in Machinery, and the dry run showed an agent can switch it off.
-5. Another project's sprint on this account or this computer in the same window has the owner's explicit OK:
-   in October two sprints shared one usage limit and one laptop's memory.
+5. No other project's sprint or soak runs on this computer during the window (Machinery).
 6. The owner has answered the design questions for the first issues, and has approved the reserve backlog.
 7. Browser tests run with one worker for the sprint (set in the lane prompt, not in the test config).
 8. The night shift's scheduled task is paused.
