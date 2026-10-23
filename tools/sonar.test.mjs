@@ -39,6 +39,7 @@ function fakeGh({ findings = [], runs = [sonarRun({ issues: findings.length })],
     calls.push(args);
     if (fail) throw new Error(fail);
     if (args[0] === "pr") return JSON.stringify({ number: 246, headRefOid: SHA });
+    if (args[1] === "repos/{owner}/{repo}/commits/main") return `${SHA}\n`;
     if (args.some((a) => a.includes("/check-runs?")))
       return JSON.stringify({ check_runs: [{ id: 1, name: "gate", app: { slug: "github-actions" } }, ...runs] });
     return findings.map((f) => JSON.stringify(f)).join("\n");
@@ -111,6 +112,25 @@ test("when SonarCloud ran more than once on the commit, the newest run counts", 
   assert.match(r.out, /Quality Gate passed/);
 });
 
+test("the Sonar findings check, which copies every finding, wins over SonarCloud's own", () => {
+  const copy = sonarRun({ id: 3, name: "Sonar findings", app: { slug: "github-actions" } });
+  const { gh, calls } = fakeGh({
+    runs: [copy, sonarRun({ id: 9, output: { title: "Quality Gate failed", summary: "" } })],
+  });
+  const r = report("246", { gh });
+  assert.match(r.out, /Quality Gate passed/);
+  assert.equal(calls[2][2], "repos/{owner}/{repo}/check-runs/3/annotations?per_page=100");
+});
+
+test("main reads the checks on main's latest commit", () => {
+  const { gh, calls } = fakeGh({ findings: [finding("src/sort.ts", "Provide a compare function.", 12, "B1")] });
+  const r = report("main", { gh });
+  assert.equal(r.code, 0, r.out);
+  assert.deepEqual(calls[0], ["api", "repos/{owner}/{repo}/commits/main", "--jq", ".sha"]);
+  assert.match(r.out, /^SonarCloud on main \(commit 7188303\): Quality Gate passed/);
+  assert.match(r.out, /src\/sort\.ts:12 {2}\(issue B1\)/);
+});
+
 test("while SonarCloud is still running it says so and fails", () => {
   const r = report("246", fakeGh({ runs: [sonarRun({ status: "in_progress", conclusion: null })] }));
   assert.equal(r.code, 1);
@@ -138,13 +158,13 @@ test("Claude runs it without asking the owner, by day and on the night shift", (
   }
 });
 
-test("without a pull request number it prints how to use it and fails", () => {
-  for (const args of [[], ["main"], ["12a"]]) {
+test("without a pull request number or main it prints how to use it and fails", () => {
+  for (const args of [[], ["mainline"], ["12a"]]) {
     const r = spawnSync(process.execPath, [path.join(import.meta.dirname, "sonar.mjs"), ...args], {
       encoding: "utf8",
       windowsHide: true,
     });
     assert.equal(r.status, 1, args.join(" "));
-    assert.match(r.stdout, /usage: node tools\/sonar\.mjs <pull request number>/);
+    assert.match(r.stdout, /usage: node tools\/sonar\.mjs <pull request number\|main>/);
   }
 });

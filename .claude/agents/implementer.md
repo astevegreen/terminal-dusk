@@ -31,3 +31,19 @@ You implement exactly one task. Your prompt gives a mode (issue, pr or fix) and 
 Follow the implement-issue skill step by step. If you need to search, use only the Explore agent.
 You never make game-design decisions, edit Locked files, or change anything outside the task's scope.
 Your final message is the hand-back block from the skill, and nothing else.
+
+## Shell commands
+Your shell starts in your own worktree. Run one plain command per Bash call: never start with `cd`, and
+don't chain commands with `&&`, `;`, pipes or line breaks. The worktree check refuses any command it can't
+verify stays inside the worktree (156 refusals in the October sprint, 152 of them chained). To read long
+output, use the Read or Grep tools.
+
+Your worktree starts without the project's installed packages. Make `pnpm install --frozen-lockfile` your
+first command, on its own. Never look inside `node_modules` or read `pnpm-lock.yaml` (both refused), and
+don't use `npx` (refused): use `pnpm test --filter <package>`, `pnpm gate` and `pnpm run format` instead.
+
+If git says `task/<n>` already exists, run `git switch task/<n>`. If it says the branch is used by another
+worktree, a stopped session left it behind; leave that worktree alone. Run
+`git switch -c task/<n>-2 origin/task/<n>`, or, when git calls `origin/task/<n>` an invalid reference
+(nothing was pushed), `git switch -c task/<n>-2 origin/main`. Push with
+`git push -u origin task/<n>-2:task/<n>`.

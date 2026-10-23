@@ -1,0 +1,36 @@
+name: Sonar findings
+
+# Each time SonarCloud finishes a commit, copy its findings into a GitHub check named "Sonar findings",
+# which `node tools/sonar.mjs <pr|main>` reads (tools/sonar-mirror.mjs). SonarCloud's own check carries only
+# some findings, and its API needs SONAR_TOKEN, a repository secret the owner sets once; no agent sees it.
+# GitHub runs check_run workflows from main's copy only, so a pull request can't change what this does with it.
+on:
+  check_run:
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    if: github.event.check_run.name == 'SonarCloud Code Analysis'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          sparse-checkout: tools
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Copy SonarCloud's findings
+        run: node tools/sonar-mirror.mjs
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.check_run.head_sha }}
+          DETAILS_URL: ${{ github.event.check_run.details_url }}

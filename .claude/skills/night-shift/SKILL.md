@@ -25,6 +25,8 @@ Cap: $ARGUMENTS tasks, or 4 if empty. Before every task, stop if:
 - two tasks in a row ended BLOCKED or GATE-FAILED
 - any subagent reported a usage-limit error
 - the cap is reached or nothing is left
+- `docs/sprint.md` has a `Window (UTC)` line and `date -u +%Y%m%dT%H%M` is inside it (the sprint's lanes have
+  the night)
 
 ## 1. Held pull requests (at most 2)
 `gh pr list --label held --json number,title,labels,comments`. Skip any with a `lane:*` label

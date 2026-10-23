@@ -1,8 +1,8 @@
 # Sprint: 20–22 October 2026
 
-**Window:** Tuesday 20 Oct 20:00 to Thursday 22 Oct 10:00, Eastern time
-(UTC `20261021T0000` to `20261022T1400`). Check with `date -u +%Y%m%dT%H%M`.
-The owner extended the end from 02:00 to 10:00 Eastern on 22 Oct.
+**Window (UTC):** `20261021T0000` to `20261022T1400` (Tue 20 Oct 20:00 to Thu 22 Oct 10:00, Eastern).
+Check with `date -u +%Y%m%dT%H%M`. Every sprint skill reads the window from this line, and nothing else holds
+it: to extend the sprint, change this line. The owner extended the end from 02:00 to 10:00 Eastern on 22 Oct.
 
 Inside the window this file overrides `docs/workflow.md`, the `night-shift` and `plan-tasks` skills, and the
 "wait for the owner" steps in `CLAUDE.md`, wherever they conflict. Outside it, this file is inactive.
@@ -111,13 +111,49 @@ A proposal lays out two or three options with trade-offs and decides nothing. It
 
 ## Machinery
 
-- An hourly scheduled task, "Sprint supervisor", runs `.claude/skills/sprint-supervisor` on the owner's laptop.
+- One supervisor trigger, "Sprint supervisor", id `trig_…` (filled in at setup), runs
+  `.claude/skills/sprint-supervisor` on the owner's laptop at minute 2 of every hour from the evening before.
+  Outside the window its first step stops it; after the window it switches itself off by this id. It is
+  created from a session the owner started (desktop app or `claude rc`) with the remote `create_trigger` tool,
+  so any agent can edit it later: a trigger made through the HTTP API can be changed only by its own runs or by
+  the owner.
 - It starts `Sprint lane: <lane>` sessions (`.claude/skills/sprint-lane`) and `Sprint plan: <lane>` sessions
   (`.claude/skills/sprint-plan`), and restarts any that stopped, for example after a usage limit.
-- Progress and questions go to the pinned issue #2 "Night shift log".
+- The sprint archiver: an hourly scheduled task at minute 50 that posts into a long-lived session the owner
+  started (`claude rc` or the desktop app), because scheduled sessions have no `archive_session`. It archives
+  finished sessions after an hour, and stuck ones (no event in 60 minutes, or 30 minutes waiting for an answer).
+  It is on before the window opens, and the dry run proves it: one finished session archived, its process gone.
+- Progress and questions go to the sprint log, issue `#<n>` (filled in at setup): a pinned issue for this sprint
+  alone, not #2, which the night shift shares. Its body is the status block, which the supervisor rewrites
+  every hour; comments hold the history.
+- One sprint per computer (owner, 22 Oct): no other project's sprint or soak runs on this computer during the
+  window. A sprint on another computer still shares the account's usage limit, so one usage-limit stop can halt
+  both at once (21 Oct, 02:11 UTC); the supervisor restarts the lanes after it.
+
+## Planning day (the day before the window)
+
+- The owner runs `/sprint-plan <lane>` for each lane, one after another. Plan sessions spec each lane's first 6
+  issues. Every design question goes in one issue, "Sprint questions": one numbered question per comment, with
+  options and a recommended answer. The owner answers them in one sitting before the window opens, by number;
+  plan sessions then file the items those answers settle.
+- The reserve backlog (what the lanes take when the main one runs dry) is proposed and approved the same day.
+- During the window, a new question goes on its task issue as usual, since lanes look for the answer there.
+  The status block links it under "Needs you".
+
+## Preflight (Claude runs it the evening before; the owner fixes what it finds)
+
+1. GitHub Actions: the budget has room for about 300 more runs.
+2. This computer: at least 30 GB of free disk and 8 GB of free memory; fewer than 10 sessions on the rc host
+   (archive the rest).
+3. The sprint archiver is on, and the dry run proved it (Machinery).
+4. The supervisor trigger exists, its id is in Machinery, and the dry run showed an agent can switch it off.
+5. No other project's sprint or soak runs on this computer during the window (Machinery).
+6. The "Sprint questions" issue is answered and the reserve backlog approved (Planning day).
+7. Browser tests run with one worker for the sprint (set in the lane prompt, not in the test config).
+8. The night shift's scheduled task is paused.
 
 ## Turning it off
 
-- Pause: disable the "Sprint supervisor" scheduled tasks. Running sessions finish their current task.
+- Pause: disable the supervisor trigger (its id is under Machinery). Running sessions finish their current task.
 - Afterwards: one pull request deletes this file, `.claude/skills/sprint-*`, the sprint lines in the `implement-issue`
   and `night-shift` skills and the `reviewer` agent, and deletes the `lane:*` and `sprint-ready` labels.
