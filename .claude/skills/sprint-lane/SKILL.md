@@ -31,8 +31,15 @@ Run the implementer and the reviewer with model `opus` every time. Before every 
 `gh pr list --state open --label L --json number,title,headRefName,baseRefName,labels,mergeable,statusCheckRollup,autoMergeRequest,closingIssuesReferences,comments`.
 The issue is the one in `closingIssuesReferences`. Take at most 2 fix passes per session:
 - `held`, with a comment from the owner newer than the last sprint or night-shift comment
-- no `held`, and a failed required check or `mergeable` is `CONFLICTING`. If the pass does not fix it,
-  the pull request ends `held` and waits for the owner; never retry a `held` one without a new owner comment.
+- `held`, its newest held comment names only a merge conflict, and `main` has changed since that comment
+  (`git log -1 --format=%cI origin/main` is newer): one fix pass for the conflict
+- no `held`, and a failed required check, `mergeable` is `CONFLICTING`, or the `SonarCloud Code Analysis`
+  check failed with a finding the owner has not accepted. Read Sonar's findings with `node tools/sonar.mjs <n>`.
+  The owner accepts these in Sonar, so leave them alone: `then` as a key on an if-step, and ID type aliases
+  such as `EraId`. If the pass does not fix it, the pull request ends `held` and waits for the owner; never
+  retry a `held` one without a new owner comment, except in the conflict-only case above.
+- base `main`, draft, title starting `[stacked on`: its dependency has merged. Remove that prefix with
+  `gh pr edit <n> --title`, run `gh pr ready <n>`, then treat it as the next case.
 - base `main`, not draft, no `held`, checks green, `autoMergeRequest` empty: run `gh pr merge <n> --auto --squash` only.
   This also merges a stacked pull request once GitHub has moved it onto `main`.
 
@@ -57,9 +64,11 @@ For each:
 2. Run the implementer with "Mode: issue. Number: <n>." For a stacked task add "Stack on: task/<dep>."
 3. STATUS DONE: run the reviewer with "Issue <n>, branch task/<n>." (add "Base: task/<dep>." when stacked).
    CONCERNS: run the implementer once more with "Mode: fix. Number: <n>. Concerns: <list>", then the reviewer again.
-4. Final PASS: `gh pr ready <pr>`, `gh pr edit <pr> --add-label L`, then `gh pr merge <pr> --auto --squash`, except
-   for a stacked pull request: never merge it into `task/<dep>`. Leave it open; once the dependency merges, GitHub
-   moves it onto `main` and step 1 turns on auto-merge, so CI and the owner's rules apply.
+4. Final PASS: `gh pr ready <pr>`, `gh pr edit <pr> --add-label L`, then `gh pr merge <pr> --auto --squash`. If
+   `gh pr view <pr> --json reviewDecision` then says `REVIEW_REQUIRED`, run
+   `gh pr edit <pr> --add-reviewer astevegreen`, so the owner gets a review button.
+   A stacked pull request instead stays a draft, titled `[stacked on #<dep pr>] …`, so nobody can merge it into
+   `task/<dep>`. Once GitHub moves it onto `main`, step 1 takes it from there.
    Concerns left: `gh pr ready <pr>`, add labels `L` and `held`, and comment the concerns.
 5. BLOCKED or GATE-FAILED: check the issue has `blocked` and the implementer's question or report.
 6. Remove `in-progress`.
