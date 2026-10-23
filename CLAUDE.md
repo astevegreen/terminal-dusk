@@ -11,7 +11,7 @@ The owner is not a programmer: explain every change in plain English, and prove 
 - `pnpm golden:update` - re-record golden replays; only for an intended rules change
 - `pnpm replay <matchId>` - turn a reported game into a test fixture
 - `pnpm dev` - run the web app locally
-- `node tools/sonar.mjs <pr>` - a PR's SonarCloud findings, without prompts; never hand-write `gh api` loops for them
+- `node tools/sonar.mjs <pr|main>` - SonarCloud's findings on a PR or on main, without prompts; never hand-write `gh api` loops for them
 
 ## Map
 - `packages/engine` pure rules engine; `packages/content` cards, map, scenarios, schemas

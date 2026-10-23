@@ -691,7 +691,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/replay.test.mjs`
 - `tools/repo-map.mjs` - `pnpm repo-map`: writes docs/repo-map.md, a one-line-per-file index of the repository.
 - `tools/repo-map.test.mjs`
-- `tools/sonar.mjs` - `node tools/sonar.mjs <pr>`: SonarCloud's findings on a pull request, read through GitHub.
+- `tools/sonar-mirror.mjs` - `node tools/sonar-mirror.mjs`, run by .github/workflows/sonar-findings.yml each time SonarCloud finishes a commit: copies SonarCloud's findings into a GitHub c…
+- `tools/sonar-mirror.test.mjs`
+- `tools/sonar.mjs` - `node tools/sonar.mjs <pr|main>`: SonarCloud's findings on a pull request or on main, read through GitHub.
 - `tools/sonar.test.mjs`
 - `tools/test.mjs` - `pnpm test`: unit tests.
 - `tools/test.test.mjs`
@@ -757,3 +759,4 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `.github/workflows/ci.yml`
 - `.github/workflows/nightly.yml`
 - `.github/workflows/preview.yml`
+- `.github/workflows/sonar-findings.yml`
