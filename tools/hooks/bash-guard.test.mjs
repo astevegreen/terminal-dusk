@@ -77,6 +77,18 @@ test("read-only mode allows only inspection commands", () => {
   }
 });
 
+test("read-only mode runs the reviewer's usual inspection commands, and nothing that reads secrets", () => {
+  for (const ok of ["git fetch -q origin", "git grep -n x", "gh pr list --label lane:rules", "gh pr checks 3",
+    "git diff origin/main...task/3 | head -50", "tail -20 packages/x.ts", "grep -n foo packages/x.ts",
+    "wc -l packages/x.ts", "cat packages/x.ts", "MSYS_NO_PATHCONV=1 git show task/142:.claude/rules/x.md"]) {
+    assert.equal(guard(ok, ["--read-only"]).stdout, "", ok);
+  }
+  for (const bad of ["cat .env", "head -5 .env.local", "grep KEY .env", "grep -rn KEY .", "grep --recursive x .",
+    "git fetch origin main:main", "GIT_EXTERNAL_DIFF=calc git diff", "env git diff", "tail -5 x | tee y"]) {
+    assert.ok(denied(guard(bad, ["--read-only"])), bad);
+  }
+});
+
 const ownerOnlyGh = ["gh api repos/o/r/branches/main/protection", "gh repo edit --visibility public", "gh auth switch", "gh secret list", "pnpm gate && gh api user", "gh -R o/r secret set X"];
 
 const ghReads = [
