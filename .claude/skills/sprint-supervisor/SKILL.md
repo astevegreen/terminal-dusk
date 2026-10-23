@@ -1,6 +1,6 @@
 ---
 name: sprint-supervisor
-description: Hourly supervisor for the 20-22 October sprint. Starts and restarts the lane and plan sessions. Run only from the "Sprint supervisor" scheduled task.
+description: Hourly supervisor for the sprint in docs/sprint.md. Starts and restarts the lane and plan sessions. Run only from the "Sprint supervisor" scheduled task.
 disable-model-invocation: true
 argument-hint: "[dry-run]"
 model: sonnet
@@ -26,11 +26,12 @@ ToolSearch). You cannot archive: scheduled sessions have no `archive_session`. T
 comment nothing.
 
 ## 1. Window
-Run `date -u +%Y%m%dT%H%M`. The window is `20261021T0000` to `20261022T1400`.
+Run `date -u +%Y%m%dT%H%M` and read the window from the `Window (UTC)` line of `docs/sprint.md`.
 - Before it: print "before the window" and stop.
-- After it: `RemoteTrigger` `list`, then `update` each trigger whose name starts "Sprint supervisor" with
-  `{"enabled": false}` (skip in dry-run), comment
-  "Sprint over" on issue #2 "Night shift log" with one line per lane from step 4, and stop.
+- After it: `RemoteTrigger` `update` the supervisor trigger whose id is in `docs/sprint.md` (Machinery) with
+  `{"enabled": false}` (skip in dry-run), comment "Sprint over" on issue #2 "Night shift log" with one line
+  per lane from step 4, and stop. Don't look for it with `list`: that returns only the account's newest 20
+  triggers, and asking for the next page returns the first page again.
 
 ## 2. Sync
 In the main checkout: `git fetch origin --prune`. If `git status --porcelain` is empty and the branch is
@@ -73,7 +74,7 @@ Archiving is the sprint archiver's job; don't try it here.
 
 ## 4. Status
 For each lane: open `sprint-ready`, `in-progress`, `blocked` and `held` counts, and pull requests merged
-since the window opened (`gh pr list --state merged --label lane:<lane> --search "merged:>=2026-10-21T00:00:00Z"`).
+since the window opened (`gh pr list --state merged --label lane:<lane> --search "merged:>=<window start as YYYY-MM-DDTHH:MM:00Z>"`).
 
 ## 5. Report
 Comment on issue #2 only on the first run of the window, every sixth hour (UTC hour 00, 06, 12, 18), or

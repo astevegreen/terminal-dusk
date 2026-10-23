@@ -741,9 +741,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `.claude/skills/night-shift/SKILL.md` - Overnight coordinator for the ready queue. Run only as /night-shift.
 - `.claude/skills/plan-tasks/SKILL.md` - Turn a promoted design decision into night-shift-ready GitHub issues. Run as /plan-tasks.
 - `.claude/skills/promote/SKILL.md` - Copy approved design decisions and cards from Notion into the repo. Run as /promote.
-- `.claude/skills/sprint-lane/SKILL.md` - Coordinator for one lane of the 20-22 October sprint. Run only as /sprint-lane <lane>, from a session the sprint supervisor started.
-- `.claude/skills/sprint-plan/SKILL.md` - Writes specs for the next backlog items of one sprint lane, 20-22 October. Run only as /sprint-plan <lane>, from a session the sprint supervisor started.
-- `.claude/skills/sprint-supervisor/SKILL.md` - Hourly supervisor for the 20-22 October sprint. Starts and restarts the lane and plan sessions. Run only from the "Sprint supervisor" scheduled task.
+- `.claude/skills/sprint-lane/SKILL.md` - Coordinator for one lane of the sprint in docs/sprint.md. Run only as /sprint-lane <lane>, from a session the sprint supervisor started.
+- `.claude/skills/sprint-plan/SKILL.md` - Writes specs for the next backlog items of one lane of the sprint in docs/sprint.md. Run only as /sprint-plan <lane>, from a session the sprint supervisor star…
+- `.claude/skills/sprint-supervisor/SKILL.md` - Hourly supervisor for the sprint in docs/sprint.md. Starts and restarts the lane and plan sessions. Run only from the "Sprint supervisor" scheduled task.
 - `.claude/skills/triage/SKILL.md` - Turn the week's playtest feedback into design questions and bug issues. Run as /triage.
 
 ## .github

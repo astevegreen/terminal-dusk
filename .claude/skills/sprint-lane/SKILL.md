@@ -1,6 +1,6 @@
 ---
 name: sprint-lane
-description: Coordinator for one lane of the 20-22 October sprint. Run only as /sprint-lane <lane>, from a session the sprint supervisor started.
+description: Coordinator for one lane of the sprint in docs/sprint.md. Run only as /sprint-lane <lane>, from a session the sprint supervisor started.
 disable-model-invocation: true
 argument-hint: "<rules|app|online|research>"
 model: sonnet
@@ -22,7 +22,7 @@ merge by hand, or make design decisions. You hand each task to subagents, one at
 their hand-back blocks. `L` below is the label `lane:$ARGUMENTS`.
 
 Run the implementer and the reviewer with model `opus` every time. Before every task, stop if:
-- `date -u +%Y%m%dT%H%M` is outside `20261021T0000` to `20261022T1400`
+- `date -u +%Y%m%dT%H%M` is outside the `Window (UTC)` line of `docs/sprint.md`
 - any subagent reported a usage-limit error
 - you have run 6 tasks this session (the supervisor starts a fresh session next hour)
 - nothing below is left
