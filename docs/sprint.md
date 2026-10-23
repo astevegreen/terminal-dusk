@@ -114,6 +114,10 @@ A proposal lays out two or three options with trade-offs and decides nothing. It
 - An hourly scheduled task, "Sprint supervisor", runs `.claude/skills/sprint-supervisor` on the owner's laptop.
 - It starts `Sprint lane: <lane>` sessions (`.claude/skills/sprint-lane`) and `Sprint plan: <lane>` sessions
   (`.claude/skills/sprint-plan`), and restarts any that stopped, for example after a usage limit.
+- The sprint archiver: an hourly scheduled task at minute 50 that posts into a long-lived session the owner
+  started (`claude rc` or the desktop app), because scheduled sessions have no `archive_session`. It archives
+  finished sessions after an hour, and stuck ones (no event in 60 minutes, or 30 minutes waiting for an answer).
+  It is on before the window opens, and the dry run proves it: one finished session archived, its process gone.
 - Progress and questions go to the pinned issue #2 "Night shift log".
 
 ## Turning it off
