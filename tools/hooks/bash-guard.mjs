@@ -22,9 +22,11 @@ const REMOVERS = new Set(["rm", "rmdir", "del", "erase", "rd", "remove-item", "r
 const WRITERS = new Set(["out-file", "set-content", "add-content", "sc", "ac"]);
 const COPIERS = new Set(["cp", "mv", "copy-item", "move-item", "copy", "move", "cpi", "mi"]);
 const READ_ONLY_ALLOWED = [
-  ["git", "diff"], ["git", "log"], ["git", "show"], ["git", "status"],
-  ["gh", "issue", "view"], ["gh", "pr", "view"], ["gh", "pr", "diff"],
+  ["git", "diff"], ["git", "log"], ["git", "show"], ["git", "status"], ["git", "fetch"], ["git", "grep"],
+  ["gh", "issue", "view"], ["gh", "pr", "view"], ["gh", "pr", "diff"], ["gh", "pr", "list"], ["gh", "pr", "checks"],
+  ["head"], ["tail"], ["grep"], ["wc"], ["cat"],
 ];
+const READ_ONLY_LIST = "git diff/log/show/status/fetch/grep, gh issue view, gh pr view/diff/list/checks, head, tail, grep, wc or cat";
 
 // Split into tokens, keeping quoted strings together and operators as their own tokens.
 // A word is `plain` when bash reads it exactly as kept here: one quoted string, or no quotes or
@@ -185,7 +187,16 @@ function check(seg) {
   if (READ_ONLY) {
     if (seg.redirects.length) return "the reviewer is read-only: output redirects are not allowed.";
     const ok = READ_ONLY_ALLOWED.some((p) => p[0] === name && p.slice(1).every((w, i) => args[i] === w));
-    if (!ok) return `the reviewer is read-only: \`${seg.words.join(" ")}\` is not one of git diff/log/show/status, gh issue view, gh pr view or gh pr diff.`;
+    if (!ok) return `the reviewer is read-only: \`${seg.words.join(" ")}\` is not one of ${READ_ONLY_LIST}.`;
+    // Words before the command, such as GIT_EXTERNAL_DIFF=x, env or command, could run something else.
+    const lead = seg.words.slice(0, seg.words.length - args.length - 1);
+    if (lead.some((w) => w !== "MSYS_NO_PATHCONV=1"))
+      return "the reviewer is read-only: nothing may come before the command except MSYS_NO_PATHCONV=1.";
+    if (args.some(isEnvFile)) return "the reviewer is read-only: .env files hold secrets and must not be read.";
+    if (name === "grep" && args.some((a) => /^-[a-zA-Z]*[rRd]/.test(a) || /^--(recursive|dereference-recursive|directories)/.test(a)))
+      return "the reviewer is read-only: search files with the Grep tool, not a recursive grep.";
+    if (name === "git" && gitSub(args).sub === "fetch" && args.some((a) => a.includes(":")))
+      return "the reviewer is read-only: git fetch may update origin's branches, not write a local one.";
     if (name === "git" && (args.some((a) => /^--output(=|$)/.test(a)) || gitSub(args).globals.includes("-c")))
       return "the reviewer is read-only: git --output and -c are not allowed.";
     return null;

@@ -73,7 +73,7 @@ jobs:
 
           const project = await get("components/show", { component: PROJECT, organization: ORG });
           if (project.status === 403 || project.status === 404)
-            fail(`SonarCloud accepts SONAR_TOKEN, but its account can't see project ${PROJECT} (HTTP ${project.status}). Use a token from an account that is a member of the ${ORG} organization.`);
+            fail(`SonarCloud accepts SONAR_TOKEN, but its account can't see project ${PROJECT}, or there is no such project (HTTP ${project.status}). Use a token from an account that is a member of the ${ORG} organization.`);
           if (project.status !== 200) fail(`components/show: HTTP ${project.status}`);
 
           const issues = [];
