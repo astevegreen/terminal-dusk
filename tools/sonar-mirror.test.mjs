@@ -157,6 +157,21 @@ test("more than 50 annotations go in batches of 50: one POST, then PATCHes to th
   );
 });
 
+test("past 500 issues it reads the next page too, and keeps at most 1000", async () => {
+  const many = Array.from({ length: 1200 }, (_, i) => issue(`K${i}`, `src/f${i}.ts`, 1));
+  const { fetchFn, calls } = fakeFetch({ issues: many });
+  const line = await mirror({ env: env(), fetchFn });
+  const pages = calls.filter((c) => c.url.pathname.endsWith("/issues/search")).map((c) => c.url.searchParams.get("p"));
+  assert.deepEqual(pages.sort(), ["1", "2"]);
+  assert.match(line, /1200 issues, 0 duplicated files, 1000 annotations/);
+});
+
+test("a repository name that is not owner/repo stops it before any call", async () => {
+  const { fetchFn, calls } = fakeFetch();
+  await assert.rejects(mirror({ env: env({ GITHUB_REPOSITORY: "evil.example/x/../y" }), fetchFn }), /not owner\/repo/);
+  assert.equal(calls.length, 0);
+});
+
 test("without SONAR_TOKEN it copies nothing and calls nothing", async () => {
   const { fetchFn, calls } = fakeFetch();
   const line = await mirror({ env: env({ SONAR_TOKEN: "" }), fetchFn });

@@ -8,6 +8,7 @@ export const MIRROR = "Sonar findings";
 const SONAR = "https://sonarcloud.io";
 const GITHUB = "https://api.github.com";
 const MAX_FINDINGS = 1000;
+const PAGE = 500; // SonarCloud's largest page
 const PER_REQUEST = 50; // GitHub takes at most 50 annotations per request
 const DUPLICATION_LIMIT = 3; // percent of new lines, the quality gate's condition
 
@@ -91,8 +92,12 @@ export async function mirror({ env = process.env, fetchFn = fetch } = {}) {
     if (!r.ok) throw new Error(`SonarCloud ${endpoint}: HTTP ${r.status}`);
     return r.json();
   };
+  // The only GitHub URLs this calls: the repository's check-runs, and one check run by its numeric id.
+  if (!/^[\w.-]+\/[\w.-]+$/.test(env.GITHUB_REPOSITORY ?? "")) throw new Error("GITHUB_REPOSITORY is not owner/repo");
+  const [owner, repo] = env.GITHUB_REPOSITORY.split("/").map(encodeURIComponent);
+  const checkRuns = `${GITHUB}/repos/${owner}/${repo}/check-runs`;
   const github = async (method, url, body) => {
-    const r = await fetchFn(`${GITHUB}/repos/${env.GITHUB_REPOSITORY}/${url}`, {
+    const r = await fetchFn(url, {
       method,
       headers: {
         Authorization: `Bearer ${env.GH_TOKEN}`,
@@ -108,20 +113,13 @@ export async function mirror({ env = process.env, fetchFn = fetch } = {}) {
   const { projectStatus: gate } = await sonar("qualitygates/project_status", { projectKey: project });
   // On a branch, the new-code period is what the gate judges; a pull request is all new code.
   const newCode = scope.branch ? { inNewCodePeriod: "true" } : {};
-  const issues = [];
-  let total = 0;
-  for (let p = 1; issues.length < MAX_FINDINGS; p++) {
-    const page = await sonar("issues/search", {
-      componentKeys: project,
-      resolved: "false",
-      ...newCode,
-      ps: "500",
-      p: String(p),
-    });
-    issues.push(...page.issues);
-    total = page.paging?.total ?? issues.length;
-    if (!page.issues.length || issues.length >= total) break;
-  }
+  const search = (p) =>
+    sonar("issues/search", { componentKeys: project, resolved: "false", ...newCode, ps: String(PAGE), p: String(p) });
+  const first = await search(1);
+  const total = first.paging?.total ?? first.issues.length;
+  const pages = Math.min(Math.ceil(total / PAGE), Math.ceil(MAX_FINDINGS / PAGE));
+  const rest = await Promise.all(Array.from({ length: Math.max(0, pages - 1) }, (_, i) => search(i + 2)));
+  const issues = [first, ...rest].flatMap((page) => page.issues).slice(0, MAX_FINDINGS);
   const tree = await sonar("measures/component_tree", {
     component: project,
     metricKeys: "new_duplicated_lines_density",
@@ -129,11 +127,12 @@ export async function mirror({ env = process.env, fetchFn = fetch } = {}) {
     ps: "500",
   });
   const duplicated = (tree.components ?? []).filter((c) => valueOf(c.measures?.[0]) > DUPLICATION_LIMIT);
-  const annotations = issueAnnotations(project, scope, issues);
-  for (const file of duplicated.slice(0, 20)) {
-    const shown = await sonar("duplications/show", { key: file.key });
-    annotations.push(...duplicationAnnotations(project, pathOf(project, file.key), shown));
-  }
+  const files = duplicated.slice(0, 20);
+  const shown = await Promise.all(files.map((file) => sonar("duplications/show", { key: file.key })));
+  const annotations = [
+    ...issueAnnotations(project, scope, issues),
+    ...files.flatMap((file, i) => duplicationAnnotations(project, pathOf(project, file.key), shown[i])),
+  ];
   const kept = annotations.slice(0, MAX_FINDINGS);
 
   const failed = (gate.conditions ?? []).filter((c) => c.status === "ERROR").map((c) => c.metricKey);
@@ -141,27 +140,29 @@ export async function mirror({ env = process.env, fetchFn = fetch } = {}) {
     title: gate.status === "OK" ? "Quality Gate passed" : `Quality Gate failed: ${failed.join(", ") || gate.status}`,
     summary: summary({ project, scope, gate, total, annotations: kept, duplicated }),
   };
-  const run = await github("POST", "check-runs", {
+  const run = await github("POST", checkRuns, {
     name: MIRROR,
     head_sha: env.HEAD_SHA,
     status: "completed",
     conclusion: "neutral",
     output: { ...output, annotations: kept.slice(0, PER_REQUEST) },
   });
-  for (let i = PER_REQUEST; i < kept.length; i += PER_REQUEST) {
-    await github("PATCH", `check-runs/${run.id}`, {
-      output: { ...output, annotations: kept.slice(i, i + PER_REQUEST) },
-    });
-  }
+  const batches = [];
+  for (let i = PER_REQUEST; i < kept.length; i += PER_REQUEST) batches.push(kept.slice(i, i + PER_REQUEST));
+  // One update at a time: each adds its batch to the check's annotations.
+  await batches.reduce(
+    (done, annotations) =>
+      done.then(() => github("PATCH", `${checkRuns}/${Number(run.id)}`, { output: { ...output, annotations } })),
+    Promise.resolve(),
+  );
   return `${MIRROR}: ${total} issues, ${duplicated.length} duplicated files, ${kept.length} annotations on ${String(env.HEAD_SHA).slice(0, 7)}.`;
 }
 
 if (import.meta.main) {
-  mirror().then(
-    (line) => process.stdout.write(`${line}\n`),
-    (err) => {
-      process.stderr.write(`sonar-mirror: ${err.message}\n`);
-      process.exit(1);
-    },
-  );
+  try {
+    process.stdout.write(`${await mirror()}\n`);
+  } catch (err) {
+    process.stderr.write(`sonar-mirror: ${err.message}\n`);
+    process.exit(1);
+  }
 }
