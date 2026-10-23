@@ -1,0 +1,151 @@
+name: SonarCloud issues
+
+# Saves every open SonarCloud issue on main as a file a Claude session can download. SonarCloud's project for this
+# repository is private, its API answers nobody who isn't signed in, and the SONAR_TOKEN secret exists only inside
+# Actions runs, so this job is how a session gets the full list (the PR check shows about 50 per pull request).
+#
+# A session uses it like this:
+#   gh workflow run sonar-issues.yml
+#   gh run list --workflow sonar-issues.yml --limit 1      (wait until it says completed, about 20 seconds)
+#   gh run download <run id> -n sonar-issues -D <empty folder>
+# The artifact has sonar-issues.json (every open issue) and sonar-issues.txt (counts by severity, then the worst 40).
+# The same text is in the run's log and its summary page.
+#
+# The token reaches the script through env: only. It is sent as a header, never put on a command line or printed, and
+# the artifact holds issue data only. Nothing from the repository is checked out, so no repository code runs next to
+# the token. The artifact is kept for 3 days.
+#
+# The pull_request trigger is there so the pull request that changes this file can prove the token works: a workflow
+# that only has workflow_dispatch can't be run until it is on the default branch. Only edits to this file start it.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/sonar-issues.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sonar-issues-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Fetch open issues from SonarCloud
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [ -z "$SONAR_TOKEN" ]; then
+            echo "::error::SONAR_TOKEN is not set for this run (a pull request from a fork never gets it)"
+            exit 1
+          fi
+          node --input-type=module - <<'EOF'
+          import { appendFileSync, writeFileSync } from "node:fs";
+
+          const PROJECT = "astevegreen_terminal-dusk";
+          const ORG = "astevegreen";
+          const BRANCH = "main";
+          const API = "https://sonarcloud.io/api";
+          const SEVERITIES = ["BLOCKER", "CRITICAL", "MAJOR", "MINOR", "INFO"];
+          const SHOWN = 40;
+
+          function fail(message) {
+            console.log(`::error::${message}`);
+            process.exit(1);
+          }
+
+          // Only the status code and the route ever reach the log, never a header.
+          async function get(route, params) {
+            const res = await fetch(`${API}/${route}?${new URLSearchParams(params)}`, {
+              headers: { Authorization: `Bearer ${process.env.SONAR_TOKEN}` },
+            });
+            return { status: res.status, body: res.ok ? await res.json() : null };
+          }
+
+          const who = await get("authentication/validate", {});
+          if (who.status === 401 || who.body?.valid === false)
+            fail("SonarCloud does not accept SONAR_TOKEN: it is wrong, expired or revoked. Make a new one and update the secret.");
+          if (who.status !== 200) fail(`authentication/validate: HTTP ${who.status}`);
+
+          const project = await get("components/show", { component: PROJECT, organization: ORG });
+          if (project.status === 403 || project.status === 404)
+            fail(`SonarCloud accepts SONAR_TOKEN, but its account can't see project ${PROJECT} (HTTP ${project.status}). Use a token from an account that is a member of the ${ORG} organization.`);
+          if (project.status !== 200) fail(`components/show: HTTP ${project.status}`);
+
+          const issues = [];
+          let total = 0;
+          // SonarCloud serves at most 10,000 results (page number times page size), so 20 pages of 500 is the ceiling.
+          for (let p = 1; p <= 20; p++) {
+            const page = await get("issues/search", {
+              organization: ORG,
+              componentKeys: PROJECT,
+              branch: BRANCH,
+              resolved: "false",
+              s: "SEVERITY",
+              asc: "false",
+              ps: "500",
+              p: String(p),
+            });
+            if (page.status !== 200) fail(`issues/search page ${p}: HTTP ${page.status}`);
+            total = page.body.paging.total;
+            for (const i of page.body.issues) {
+              issues.push({
+                key: i.key,
+                severity: i.severity,
+                type: i.type,
+                rule: i.rule,
+                file: i.component.replace(`${PROJECT}:`, ""),
+                line: i.line ?? null,
+                message: i.message,
+                status: i.status,
+                created: i.creationDate,
+              });
+            }
+            if (issues.length >= total || page.body.issues.length === 0) break;
+          }
+
+          const gate = await get("qualitygates/project_status", { projectKey: PROJECT, branch: BRANCH });
+          const gateStatus = gate.status === 200 ? gate.body.projectStatus?.status : `unknown (HTTP ${gate.status})`;
+
+          const count = (key) => {
+            const n = {};
+            for (const i of issues) n[i[key]] = (n[i[key]] ?? 0) + 1;
+            return n;
+          };
+          const bySeverity = count("severity");
+          const byType = count("type");
+          const byRule = Object.entries(count("rule")).sort((a, b) => b[1] - a[1]);
+
+          writeFileSync(
+            "sonar-issues.json",
+            JSON.stringify({ project: PROJECT, branch: BRANCH, total, qualityGate: gateStatus, bySeverity, byType, issues }, null, 2),
+          );
+
+          const lines = [
+            `${PROJECT} @ ${BRANCH}: ${total} open issues, quality gate ${gateStatus}`,
+            `By severity: ${SEVERITIES.map((s) => `${s} ${bySeverity[s] ?? 0}`).join(", ")}`,
+            `By type: ${Object.entries(byType).map(([t, n]) => `${t} ${n}`).join(", ") || "none"}`,
+            `Most common rules: ${byRule.slice(0, 5).map(([r, n]) => `${r} x${n}`).join(", ") || "none"}`,
+            "",
+            `Worst ${Math.min(SHOWN, issues.length)} of ${issues.length}:`,
+            ...issues.slice(0, SHOWN).map((i) => `${i.severity} ${i.rule} ${i.file}:${i.line ?? "-"} ${i.message}`),
+          ];
+          if (issues.length < total) lines.push("", `Only ${issues.length} of ${total} fetched (SonarCloud's 10,000-result ceiling).`);
+          const text = `${lines.join("\n")}\n`;
+
+          writeFileSync("sonar-issues.txt", text);
+          process.stdout.write(text);
+          if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `\`\`\`\n${text}\`\`\`\n`);
+          EOF
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sonar-issues
+          path: |
+            sonar-issues.json
+            sonar-issues.txt
+          retention-days: 3
+          if-no-files-found: error

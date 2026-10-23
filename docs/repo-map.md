@@ -756,3 +756,4 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `.github/workflows/ci.yml`
 - `.github/workflows/nightly.yml`
 - `.github/workflows/preview.yml`
+- `.github/workflows/sonar-issues.yml`
