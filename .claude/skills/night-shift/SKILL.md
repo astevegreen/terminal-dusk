@@ -40,7 +40,10 @@ and skip any whose dependencies are still open. For each, up to the cap:
 1. `gh issue edit <n> --add-label in-progress --remove-label ready`
 2. Run the implementer with "Mode: issue. Number: <n>." Pass model opus if the issue has `model:opus`.
 3. STATUS DONE: run the reviewer with "Issue <n>, branch task/<n>."
-   CONCERNS: run the implementer once more with "Mode: fix. Number: <n>. Concerns: <list>", then the reviewer again.
+   CONCERNS: send "Mode: fix. Number: <n>. Concerns: <list>" to the same implementer, by the agent ID step 2
+   returned, with `SendMessage` (load it with ToolSearch), so it fixes with what it learned building the task.
+   If the message fails, or the reply shows it has lost the task, run a fresh implementer with that text
+   instead. Then run the reviewer again.
 4. Final PASS: `gh pr ready <pr>` and `gh pr merge <pr> --auto --squash`.
    Concerns left: `gh pr ready <pr>`, add the `held` label, and comment the concerns on the pull request.
 5. BLOCKED or GATE-FAILED: check the issue has the `blocked` label and the implementer's question or report.

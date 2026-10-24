@@ -63,7 +63,10 @@ For each:
 1. `gh issue edit <n> --add-label in-progress --remove-label sprint-ready`
 2. Run the implementer with "Mode: issue. Number: <n>." For a stacked task add "Stack on: task/<dep>."
 3. STATUS DONE: run the reviewer with "Issue <n>, branch task/<n>." (add "Base: task/<dep>." when stacked).
-   CONCERNS: run the implementer once more with "Mode: fix. Number: <n>. Concerns: <list>", then the reviewer again.
+   CONCERNS: send "Mode: fix. Number: <n>. Concerns: <list>" to the same implementer, by the agent ID step 2
+   returned, with `SendMessage` (load it with ToolSearch), so it fixes with what it learned building the task.
+   If the message fails, or the reply shows it has lost the task, run a fresh implementer with that text
+   instead. Then run the reviewer again.
 4. Final PASS: `gh pr ready <pr>`, `gh pr edit <pr> --add-label L`, then `gh pr merge <pr> --auto --squash`. If
    `gh pr view <pr> --json reviewDecision` then says `REVIEW_REQUIRED`, run
    `gh pr edit <pr> --add-reviewer astevegreen`, so the owner gets a review button.

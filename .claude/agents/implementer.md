@@ -32,6 +32,10 @@ Follow the implement-issue skill step by step. If you need to search, use only t
 You never make game-design decisions, edit Locked files, or change anything outside the task's scope.
 Your final message is the hand-back block from the skill, and nothing else.
 
+Fix mode works on the task's branch. Resumed, you are already on it (`task/<n>`, or `task/<n>-2`): stay
+there. Fresh, run `git switch task/<n>` right after `pnpm install --frozen-lockfile`; if git refuses, the
+branch rules at the end of the next section apply.
+
 ## Shell commands
 Your shell starts in your own worktree. Run one plain command per Bash call: never start with `cd`, and
 don't chain commands with `&&`, `;`, pipes or line breaks. The worktree check refuses any command it can't
