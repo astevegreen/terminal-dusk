@@ -642,6 +642,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/balance/stats.mjs` - The balance report's numbers, worked out from finished games only.
 - `tools/balance/stats.test.mjs` - The report numbers from hand-made game summaries, so wins and win shares can be checked before any victory rule exists.
 - `tools/eslint-formatter.mjs` - ESLint output as one `file:line:col message (rule)` line per problem, with repository-relative paths, so the gate (which keeps lines that point at a place in t…
+- `tools/eval/reviewer-cases.json`
+- `tools/eval/reviewer-eval.mjs` - `node tools/eval/reviewer-eval.mjs [--case <id>]...
+- `tools/eval/reviewer-eval.test.mjs` - Tests for the reviewer eval's pure parts: the prompt, token counts, verdicts and the scoring hint.
 - `tools/gates/boundaries.mjs` - `pnpm boundaries`: enforces hard rules 1 and 2 of CLAUDE.md and the package table in docs/architecture.md.
 - `tools/gates/boundaries.test.mjs`
 - `tools/gates/boundary-rules.mjs` - What `pnpm boundaries` enforces, written as data.
