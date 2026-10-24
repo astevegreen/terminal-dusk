@@ -1,10 +1,55 @@
-// How the audits talk to agy: which models, what every prompt starts with, and how a reply is read.
+// How the audits talk to agy: which model reviews what, what every prompt starts with, and how a reply is read.
+// The same rules are in blockchain-technology-course/tools/agy.mjs and YODC/scripts/lib/agy.mjs: change all three.
+import { readFileSync, writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
-// Which Gemini models the audits use, in order. Pinned on purpose; change them deliberately, not by default.
-// Argon gives the deeper review. Flash has its own quota, so it answers when Argon's has run out.
-export const MODELS = ["gemini-4-argon-high", "gemini-3.8-flash-high"];
+// Every model runs at high effort; agy names the effort in the model id.
+export const EFFORT = "high";
+export const ARGON = `gemini-4-argon-${EFFORT}`;
+export const OPUS = `claude-opus-5-5-${EFFORT}`;
+export const FLASH = `gemini-3.8-flash-${EFFORT}`;
+export const SONNET = `claude-sonnet-5-5-${EFFORT}`;
+const NAMES = {
+  [ARGON]: "Gemini 4 Argon",
+  [OPUS]: "Claude Opus 5.5",
+  [FLASH]: "Gemini 3.8 Flash",
+  [SONNET]: "Claude Sonnet 5.5",
+};
+export const modelName = (model) => `${NAMES[model] ?? model} (${EFFORT})`;
 
-// How long agy may run before it is cut off (its --print-timeout); the prompt tells Gemini so it can pace itself.
+// The order each depth of review asks the models in; a model that is out of usage passes to the next.
+// Argon reads deepest but has the smallest quota, so only a deep review spends it; Opus is the next deepest.
+// A standard review starts on Flash, which is fast and has usage to spare, and never spends Argon's.
+export const ORDER = {
+  deep: [ARGON, OPUS, FLASH, SONNET],
+  standard: [FLASH, SONNET, OPUS],
+};
+
+// A change of more than this many lines (added plus removed) gets a deep review wherever it is.
+export const LARGE = 300;
+
+// How deep a review must be, from what it reviews, with the reason in words for the report.
+// kind: "spec" (a plan, before any code), "repo" (a whole-repo audit) or "change" (a diff's files and lines).
+// deepPaths: the path prefixes where a mistake costs most in this repo.
+export function pickDepth({ kind, files = [], lines = 0 }, deepPaths = []) {
+  if (kind === "spec") return { depth: "deep", why: "it is a spec, where a gap is cheapest to fix" };
+  if (kind === "repo")
+    return { depth: "standard", why: "it reads the whole repo, which has to finish inside the time limit" };
+  const hit = files.find((f) => deepPaths.some((p) => f.startsWith(p)));
+  if (hit) return { depth: "deep", why: `it touches ${hit}` };
+  if (lines > LARGE) return { depth: "deep", why: `it changes ${lines} lines` };
+  return { depth: "standard", why: `it changes ${lines} lines and touches none of the high-risk paths` };
+}
+
+// The files a unified diff changes, and how many lines it adds or removes.
+export function diffStats(diff) {
+  const files = [...diff.matchAll(/^diff --git a\/.+? b\/(.+)$/gm)].map((m) => m[1]);
+  const lines = diff.split("\n").filter((l) => /^[+-]/.test(l) && !/^(\+\+\+|---) /.test(l)).length;
+  return { files, lines };
+}
+
+// How long agy may run before it is cut off (its --print-timeout); the prompt tells the model so it can pace itself.
 export const TIMEOUT = "10m";
 
 // agy runs headless, so it cannot ask before a command; it blocks anything its settings don't allow and the
@@ -24,7 +69,7 @@ export function buildPrompt(text, materialFile) {
   return prompt;
 }
 
-// Reads one `agy -p ... --output-format json` run (a spawnSync result) and returns Gemini's answer, or throws why not.
+// Reads one `agy -p ... --output-format json` run (a spawnSync result) and returns the model's answer, or throws why not.
 export function parseReply(r) {
   if (r.error) throw new Error(r.error.code === "ENOENT" ? "agy is not installed" : r.error.message);
   let out;
@@ -35,28 +80,87 @@ export function parseReply(r) {
   }
   // Past --print-timeout agy returns whatever the model had written so far; never post that as a finished audit.
   const timedOut = /print timeout after (\S+)/i.exec(r.stderr ?? "")?.[1];
-  if (timedOut) throw new Error(`Gemini ran out of time (${timedOut}) before finishing its answer`);
+  if (timedOut) throw new Error(`the model ran out of time (${timedOut}) before finishing its answer`);
   if (out.status === "SUCCESS" && out.response?.trim()) return out.response.trim();
   if (out.error) throw new Error(out.error);
   const denied = (out.denied_actions ?? []).map((a) => a.display_name ?? a.action);
   if (denied.length)
-    throw new Error(`Gemini gave no answer after trying something it is not allowed to do (${denied.join(", ")})`);
-  throw new Error(`Gemini gave no answer (agy status ${out.status})`);
+    throw new Error(`the model gave no answer after trying something it is not allowed to do (${denied.join(", ")})`);
+  throw new Error(`the model gave no answer (agy status ${out.status})`);
 }
 
-const isQuotaError = (err) => /quota/i.test(err.message);
+// agy says when a used-up quota comes back ("Resets in 151h45m8s"); without that, the model is tried again in an hour.
+export function resetsAt(message, now) {
+  const m = /resets in (?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?/i.exec(message);
+  const [h, min, s] = [m?.[1], m?.[2], m?.[3]].map((n) => Number(n ?? 0));
+  return new Date(now + (((h * 60 + min) * 60 + s) * 1000 || 3_600_000));
+}
 
-// Asks each model in turn until one answers. Only a quota error moves on to the next model; anything else
-// (agy missing, a timeout, a blocked command) would fail the same way on every model, so it is thrown as it is.
-export function askFirstAvailable(models, ask) {
-  let last;
-  for (const model of models) {
+// Remembers which models are out of usage and until when, so a review skips them instead of spending about
+// 40 seconds finding out again. One file serves every repo on this PC, because the quota is the account's.
+export const QUOTA_FILE = path.join(os.tmpdir(), "agy-quota.json");
+
+export function quotaFile(file = QUOTA_FILE) {
+  const read = () => {
     try {
-      return { model, response: ask(model) };
+      return JSON.parse(readFileSync(file, "utf8"));
+    } catch {
+      return {};
+    }
+  };
+  return {
+    outUntil(model, now) {
+      const t = Date.parse(read()[model]);
+      return t > now ? new Date(t) : null;
+    },
+    markOut(model, until) {
+      try {
+        writeFileSync(file, JSON.stringify({ ...read(), [model]: until.toISOString() }, null, 2));
+      } catch {
+        // A review never fails because it could not write down a quota.
+      }
+    },
+  };
+}
+
+const OUT_OF_QUOTA = /quota/i;
+// Too busy rather than used up: move on to the next model, but try this one again next time.
+const BUSY = /rate.?limit|resource.?exhausted|\b429\b|overloaded|capacity/i;
+
+const when = (d) =>
+  d.toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+const passedOver = (p) =>
+  p.until ? `${modelName(p.model)} is out of usage until ${when(p.until)}` : `${modelName(p.model)} was too busy`;
+
+// Asks each model in turn until one answers, skipping any the store knows is out of usage. Running out of
+// usage, or being too busy, moves on to the next model; anything else (agy missing, a timeout, a blocked
+// command) would fail the same way on every model, so it is thrown with the model's name in front.
+// Returns { model, response, passed }: passed lists the models it went past, for the report.
+export function askFirstAvailable(models, ask, store = quotaFile(), now = Date.now) {
+  const passed = [];
+  for (const model of models) {
+    const until = store.outUntil(model, now());
+    if (until) {
+      passed.push({ model, until });
+      continue;
+    }
+    try {
+      return { model, response: ask(model), passed };
     } catch (err) {
-      if (!isQuotaError(err)) throw err;
-      last = err;
+      if (OUT_OF_QUOTA.test(err.message)) {
+        const reset = resetsAt(err.message, now());
+        store.markOut(model, reset);
+        passed.push({ model, until: reset });
+      } else if (BUSY.test(err.message)) passed.push({ model });
+      else throw new Error(`${modelName(model)}: ${err.message}`, { cause: err });
     }
   }
-  throw new Error(`every model is out of quota (${models.join(", ")}): ${last.message}`);
+  throw new Error(`every model is out of usage: ${passed.map(passedOver).join("; ")}`);
+}
+
+// One line for the report: which model answered, how deep a review it was and why, and whom it stood in for.
+export function byLine({ model, depth, why, passed = [] }) {
+  return [`${modelName(model)}, a ${depth} review because ${why}.`, ...passed.map((p) => `${passedOver(p)}.`)].join(
+    " ",
+  );
 }

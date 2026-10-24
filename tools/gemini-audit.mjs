@@ -5,12 +5,31 @@ import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { MODELS, TIMEOUT, askFirstAvailable, buildPrompt, parseReply } from "./gemini/agy.mjs";
+import {
+  ORDER,
+  TIMEOUT,
+  askFirstAvailable,
+  buildPrompt,
+  byLine,
+  diffStats,
+  parseReply,
+  pickDepth,
+} from "./gemini/agy.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const MARKER = "<!-- gemini-audit -->";
 const MAX_DIFF = 200_000;
 const PINNED = { weekly: "Gemini weekly audit", narrative: "How the code is organised" };
+// Where a mistake costs most: the rules, the host and server that keep hidden information hidden, the architecture
+// decisions, and the checks themselves. A pull request touching one gets the deep review.
+const DEEP_PATHS = [
+  "packages/engine/",
+  "packages/host/",
+  "packages/server/",
+  "docs/architecture.md",
+  "tools/gates/",
+  "tools/hooks/",
+];
 
 const argv = process.argv.slice(2);
 const DRY = argv.includes("--dry-run");
@@ -35,7 +54,9 @@ function gh(...args) {
   return r.stdout;
 }
 
-function askGemini(promptName, material) {
+// what: what is reviewed, for pickDepth. Returns { model, response, passed, depth, why }, so the comment can say
+// which model answered and why it was chosen.
+function askGemini(promptName, material, what) {
   const text = readFileSync(path.join(ROOT, "tools", "gemini", "prompts", `${promptName}.md`), "utf8");
   let file;
   if (material) {
@@ -43,8 +64,8 @@ function askGemini(promptName, material) {
     writeFileSync(file, material);
   }
   const prompt = buildPrompt(text, file);
-  // Returns { model, response }: the model is whichever one answered, so the comment can name it.
-  return askFirstAvailable(MODELS, (model) =>
+  const pick = pickDepth(what, DEEP_PATHS);
+  const answer = askFirstAvailable(ORDER[pick.depth], (model) =>
     parseReply(
       run("agy", [
         "-p",
@@ -60,6 +81,7 @@ function askGemini(promptName, material) {
       ]),
     ),
   );
+  return { ...answer, ...pick };
 }
 
 function post(kind, number, text) {
@@ -70,7 +92,8 @@ function post(kind, number, text) {
   gh(kind, "comment", String(number), "--body-file", file);
 }
 
-const report = (label, { model, response }) => `**Gemini audit: ${label}** (${model})\n\n${response}`;
+// The answering model may be a Claude model when both Gemini models are out of usage; the by-line names it.
+const report = (label, answer) => `**Gemini audit: ${label}**\n_${byLine(answer)}_\n\n${answer.response}`;
 const skipped = (err) => `Gemini audit skipped: ${err.message}`;
 
 function issueText(n) {
@@ -102,7 +125,7 @@ function specs() {
   const material = numbers.map(issueText).join("\n---\n\n");
   let answer;
   try {
-    answer = askGemini("spec-audit", material);
+    answer = askGemini("spec-audit", material, { kind: "spec" });
   } catch (err) {
     for (const n of numbers) post("issue", n, skipped(err));
     return;
@@ -110,7 +133,7 @@ function specs() {
   // The prompt asks for one "## #<n>" section per issue; post each issue its own section.
   for (const n of numbers) {
     const section = new RegExp(String.raw`^## #${n}\b[\s\S]*?(?=^## #\d+|(?![\s\S]))`, "m").exec(answer.response)?.[0];
-    post("issue", n, report("spec", { model: answer.model, response: section ?? answer.response }));
+    post("issue", n, report("spec", { ...answer, response: section ?? answer.response }));
   }
 }
 
@@ -120,10 +143,11 @@ function prs() {
     try {
       const linked = /\b(?:closes|fixes|resolves)\s+#(\d+)/i.exec(pr.body ?? "")?.[1];
       let diff = gh("pr", "diff", String(pr.number));
+      const what = { kind: "change", ...diffStats(diff) };
       if (diff.length > MAX_DIFF) diff = `${diff.slice(0, MAX_DIFF)}\n... (diff truncated; read the rest from disk)\n`;
       const spec = linked ? issueText(linked) : 'No linked task spec (no "Closes #n" in the pull request).\n';
       const material = `# Task spec\n\n${spec}\n# Pull request #${pr.number}\n\n${pr.body ?? ""}\n\n# Diff\n\n\`\`\`diff\n${diff}\`\`\`\n`;
-      post("pr", pr.number, report("pull request", askGemini("pr-audit", material)));
+      post("pr", pr.number, report("pull request", askGemini("pr-audit", material, what)));
     } catch (err) {
       post("pr", pr.number, skipped(err));
     }
@@ -135,7 +159,7 @@ function repoWide(promptName, label) {
   const date = new Date().toISOString().slice(0, 10);
   let text;
   try {
-    text = report(`${label} ${date}`, askGemini(promptName));
+    text = report(`${label} ${date}`, askGemini(promptName, null, { kind: "repo" }));
   } catch (err) {
     text = skipped(err);
   }

@@ -263,6 +263,15 @@ Gemini works through Antigravity: the desktop app for interactive work and brows
 
 **Scheduling the audits.** The 4:30 am and weekly audits are small desktop scheduled tasks whose only step is running `tools/gemini-audit.ts`. Use Haiku in Manual mode with that one command set to "always allow" (Auto mode doesn't support Haiku), so each run costs almost no Claude usage. Windows Task Scheduler can run the same script with no Claude usage at all.
 
+**Which model answers.** `agy` offers four models, and every audit runs them at high effort. Each audit picks how deep a review it needs from what it reads, then asks the models in order until one has usage left:
+
+| Review   | Used for                                                                                                                                                                                    | Models, in order                                                     |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Deep     | Specs; pull requests that touch `packages/engine/`, `packages/host/`, `packages/server/`, `docs/architecture.md`, `tools/gates/` or `tools/hooks/`; any pull request over 300 changed lines | Gemini 4 Argon, Claude Opus 5.5, Gemini 3.8 Flash, Claude Sonnet 5.5 |
+| Standard | Other pull requests; the weekly audit and the monthly narrative, which read the whole repo and must finish within 10 minutes                                                                | Gemini 3.8 Flash, Claude Sonnet 5.5, Claude Opus 5.5                 |
+
+Argon has the smallest quota, so only deep reviews spend it. When `agy` reports a model out of usage, the script writes down when it resets (in `agy-quota.json` in the temp folder) and skips that model until then, instead of losing 40 seconds asking again. Every comment names the model that answered and why it was picked. The rules in `tools/gemini/agy.mjs` decide this, and its tests check them.
+
 **Settings.** Gemini gets read access and nothing else. The `tools/gemini-audit.mjs` script hands it the material, runs `agy -p`, and posts the findings to GitHub itself, so Gemini never needs GitHub access. Never use `--dangerously-skip-permissions`; in headless runs, anything not pre-approved is quietly refused.
 
 **How Claude uses the findings.** The night shift's `implement-issue` skill reads any Gemini comment on its issue or pull request, checks each point against the code and the spec, applies the valid ones, and replies with what it rejected and why. A Gemini "blocker" on a pull request keeps it `held` until Claude has answered it.
