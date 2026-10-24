@@ -53,11 +53,12 @@ export function diffStats(diff) {
 export const TIMEOUT = "10m";
 
 // agy runs headless, so it cannot ask before a command; it blocks anything its settings don't allow and the
-// model then ends with an empty answer. Its settings allow reading files and these four read-only git commands.
+// model then ends with an empty answer. Its settings allow reading files but almost no commands (on 24 Oct 2026,
+// only an exact `git status`; Opus was blocked running one), so the material carries what git would show.
 // Each file read takes about 20 seconds, and a model that keeps following references never gets to answer.
 const HEADLESS =
-  "You are running headless. You can read any file in the repository and run only git diff, git log, git show " +
-  "and git status. Every other command is blocked, and a blocked command ends your turn with no answer, " +
+  "You are running headless. You can read any file in the repository, but you cannot run any command, " +
+  "not even git: every command is blocked, and a blocked command ends your turn with no answer, " +
   "so never try one: read files instead (for example, to count a file's lines). " +
   `You have ${TIMEOUT} in total and each file read takes about 20 seconds. Read the material first, then ` +
   "at most 15 other files, choosing the ones that matter most, and leave time to write your answer. " +
@@ -124,17 +125,20 @@ export function quotaFile(file = QUOTA_FILE) {
 }
 
 const OUT_OF_QUOTA = /quota/i;
-// Too busy rather than used up: move on to the next model, but try this one again next time.
-const BUSY = /rate.?limit|resource.?exhausted|\b429\b|overloaded|capacity/i;
+// Not used up, so tried again next time, but this model won't answer now: it is too busy, or it tried a command
+// (models differ in how well they keep to "run no command").
+const PASS_ON = [
+  [/rate.?limit|resource.?exhausted|\b429\b|overloaded|capacity/i, "was too busy"],
+  [/not allowed to do/, "tried a command it may not run"],
+];
 
 const when = (d) =>
   d.toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-const passedOver = (p) =>
-  p.until ? `${modelName(p.model)} is out of usage until ${when(p.until)}` : `${modelName(p.model)} was too busy`;
+const passedOver = (p) => `${modelName(p.model)} ${p.until ? `is out of usage until ${when(p.until)}` : p.why}`;
 
 // Asks each model in turn until one answers, skipping any the store knows is out of usage. Running out of
-// usage, or being too busy, moves on to the next model; anything else (agy missing, a timeout, a blocked
-// command) would fail the same way on every model, so it is thrown with the model's name in front.
+// usage, being too busy, or trying a blocked command moves on to the next model; anything else (agy missing,
+// a timeout) would fail the same way on every model, so it is thrown with the model's name in front.
 // Returns { model, response, passed }: passed lists the models it went past, for the report.
 export function askFirstAvailable(models, ask, store = quotaFile(), now = Date.now) {
   const passed = [];
@@ -147,15 +151,16 @@ export function askFirstAvailable(models, ask, store = quotaFile(), now = Date.n
     try {
       return { model, response: ask(model), passed };
     } catch (err) {
+      const why = PASS_ON.find(([pattern]) => pattern.test(err.message))?.[1];
       if (OUT_OF_QUOTA.test(err.message)) {
         const reset = resetsAt(err.message, now());
         store.markOut(model, reset);
         passed.push({ model, until: reset });
-      } else if (BUSY.test(err.message)) passed.push({ model });
+      } else if (why) passed.push({ model, why });
       else throw new Error(`${modelName(model)}: ${err.message}`, { cause: err });
     }
   }
-  throw new Error(`every model is out of usage: ${passed.map(passedOver).join("; ")}`);
+  throw new Error(`no model answered: ${passed.map(passedOver).join("; ")}`);
 }
 
 // One line for the report: which model answered, how deep a review it was and why, and whom it stood in for.

@@ -157,9 +157,14 @@ function prs() {
 function repoWide(promptName, label) {
   const n = pinnedIssue(PINNED[mode]);
   const date = new Date().toISOString().slice(0, 10);
+  // The model can run no command, so the narrative's "what changed since last month" reads a month of git log here.
+  const log =
+    mode === "narrative"
+      ? `# git log, last month\n\n${run("git", ["log", "--since=1 month ago", "--no-merges", "--date=short", "--format=%h %ad %s"]).stdout}`
+      : null;
   let text;
   try {
-    text = report(`${label} ${date}`, askGemini(promptName, null, { kind: "repo" }));
+    text = report(`${label} ${date}`, askGemini(promptName, log, { kind: "repo" }));
   } catch (err) {
     text = skipped(err);
   }

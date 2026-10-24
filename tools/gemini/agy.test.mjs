@@ -137,6 +137,17 @@ test("a model whose remembered reset has passed is asked again", () => {
 test("a model too busy to answer passes to the next but is not remembered", () => {
   const { result, store } = ask(["a", "b"], { a: new Error("RESOURCE_EXHAUSTED (code 429): try later"), b: "ok" });
   assert.equal(result.model, "b");
+  assert.deepEqual(result.passed, [{ model: "a", why: "was too busy" }]);
+  assert.deepEqual(store.out, {});
+});
+
+test("a model that tried a blocked command passes to the next, which may keep to the rule, and is not remembered", () => {
+  // On 2026-10-24 Opus tried a command during YODC's second look and was blocked with no answer.
+  const blocked = new Error("the model gave no answer after trying something it is not allowed to do (RunCommand)");
+  const { result, asked, store } = ask(["a", "b"], { a: blocked, b: "no findings" });
+  assert.equal(result.model, "b");
+  assert.deepEqual(asked, ["a", "b"]);
+  assert.deepEqual(result.passed, [{ model: "a", why: "tried a command it may not run" }]);
   assert.deepEqual(store.out, {});
 });
 
@@ -148,13 +159,13 @@ test("any other failure is reported with the model's name, without trying anothe
   assert.deepEqual(agy.asked, [FLASH]);
 });
 
-test("when every model is out of usage, the error names each one", () => {
+test("when no model answers, the error names each one and why", () => {
   const store = memory({ [ARGON]: NOW + HOUR });
   const agy = fakeAgy({ [OPUS]: new Error(QUOTA) });
   assert.throws(
     () => askFirstAvailable([ARGON, OPUS], agy.ask, store, () => NOW),
     (err) => {
-      assert.match(err.message, /^every model is out of usage: Gemini 4 Argon \(high\) is out of usage until /);
+      assert.match(err.message, /^no model answered: Gemini 4 Argon \(high\) is out of usage until /);
       assert.match(err.message, /; Claude Opus 5\.5 \(high\) is out of usage until /);
       return true;
     },
@@ -190,16 +201,20 @@ test("the by-line says which model answered, how deep a review it was and why, a
     model: OPUS,
     depth: "deep",
     why: "it touches packages/engine/src/a.ts",
-    passed: [{ model: ARGON, until: new Date(NOW + HOUR) }, { model: FLASH }],
+    passed: [
+      { model: ARGON, until: new Date(NOW + HOUR) },
+      { model: FLASH, why: "was too busy" },
+    ],
   });
   assert.match(line, /^Claude Opus 5\.5 \(high\), a deep review because it touches packages\/engine\/src\/a\.ts\. /);
   assert.match(line, /Gemini 4 Argon \(high\) is out of usage until .+\. Gemini 3\.8 Flash \(high\) was too busy\.$/);
 });
 
-test("every prompt starts by telling the model which commands it can run", () => {
+test("every prompt starts by telling the model it can run no command, not even git", () => {
+  // agy's settings allow only an exact `git status` (24 Oct 2026); the prompt used to promise four git commands.
   const prompt = buildPrompt("Audit the repo.");
   assert.match(prompt, /^You are running headless/);
-  assert.match(prompt, /git diff, git log, git show and git status/);
+  assert.match(prompt, /cannot run any command, not even git/);
   assert.match(prompt, /blocked/);
   assert.match(prompt, /Audit the repo\.$/);
 });
