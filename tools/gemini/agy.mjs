@@ -29,10 +29,21 @@ export const ORDER = {
 // A change of more than this many lines (added plus removed) gets a deep review wherever it is.
 export const LARGE = 300;
 
+// Where a mistake costs most: the rules, the host and server that keep hidden information hidden, the architecture
+// decisions, and the checks themselves. A change touching one gets the deep review.
+export const DEEP_PATHS = [
+  "packages/engine/",
+  "packages/host/",
+  "packages/server/",
+  "docs/architecture.md",
+  "tools/gates/",
+  "tools/hooks/",
+];
+
 // How deep a review must be, from what it reviews, with the reason in words for the report.
 // kind: "spec" (a plan, before any code), "repo" (a whole-repo audit) or "change" (a diff's files and lines).
 // deepPaths: the path prefixes where a mistake costs most in this repo.
-export function pickDepth({ kind, files = [], lines = 0 }, deepPaths = []) {
+export function pickDepth({ kind, files = [], lines = 0 }, deepPaths = DEEP_PATHS) {
   if (kind === "spec") return { depth: "deep", why: "it is a spec, where a gap is cheapest to fix" };
   if (kind === "repo")
     return { depth: "standard", why: "it reads the whole repo, which has to finish inside the time limit" };
@@ -137,7 +148,10 @@ const PASS_ON = [
 
 const when = (d) =>
   d.toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-const passedOver = (p) => `${modelName(p.model)} ${p.until ? `is out of usage until ${when(p.until)}` : p.why}`;
+const passedOver = (p) => {
+  const state = p.until ? `is out of usage until ${when(p.until)}` : p.why;
+  return `${modelName(p.model)} ${state}`;
+};
 
 // Asks each model in turn until one answers, skipping any the store knows is out of usage. Running out of
 // usage, or any reason in PASS_ON, moves on to the next model; anything else (agy missing, not signed in)

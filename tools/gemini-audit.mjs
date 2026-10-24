@@ -20,16 +20,6 @@ const ROOT = path.resolve(import.meta.dirname, "..");
 const MARKER = "<!-- gemini-audit -->";
 const MAX_DIFF = 200_000;
 const PINNED = { weekly: "Gemini weekly audit", narrative: "How the code is organised" };
-// Where a mistake costs most: the rules, the host and server that keep hidden information hidden, the architecture
-// decisions, and the checks themselves. A pull request touching one gets the deep review.
-const DEEP_PATHS = [
-  "packages/engine/",
-  "packages/host/",
-  "packages/server/",
-  "docs/architecture.md",
-  "tools/gates/",
-  "tools/hooks/",
-];
 
 const argv = process.argv.slice(2);
 const DRY = argv.includes("--dry-run");
@@ -64,7 +54,7 @@ function askGemini(promptName, material, what) {
     writeFileSync(file, material);
   }
   const prompt = buildPrompt(text, file);
-  const pick = pickDepth(what, DEEP_PATHS);
+  const pick = pickDepth(what);
   const answer = askFirstAvailable(ORDER[pick.depth], (model) =>
     parseReply(
       run("agy", [
@@ -92,7 +82,8 @@ function post(kind, number, text) {
   gh(kind, "comment", String(number), "--body-file", file);
 }
 
-// The answering model may be a Claude model when both Gemini models are out of usage; the by-line names it.
+// The answering model may be a Claude model when a Gemini model ahead of it in the order could not answer;
+// the by-line names it.
 const report = (label, answer) => `**Gemini audit: ${label}**\n_${byLine(answer)}_\n\n${answer.response}`;
 const skipped = (err) => `Gemini audit skipped: ${err.message}`;
 

@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import {
   ARGON,
+  DEEP_PATHS,
   FLASH,
   OPUS,
   ORDER,
@@ -77,6 +78,24 @@ test("a change touching a high-risk path gets a deep review, and the reason name
     "packages/engine/",
   ]);
   assert.deepEqual(pick, { depth: "deep", why: "it touches packages/engine/src/apply.ts" });
+});
+
+test("a small change to a file under each high-risk path the workflow names gets a deep review", () => {
+  const named = {
+    "packages/engine/": "packages/engine/src/apply.ts",
+    "packages/host/": "packages/host/src/MatchHost.ts",
+    "packages/server/": "packages/server/src/submit.ts",
+    "docs/architecture.md": "docs/architecture.md",
+    "tools/gates/": "tools/gates/boundary.mjs",
+    "tools/hooks/": "tools/hooks/quick-check.mjs",
+  };
+  assert.deepEqual([...DEEP_PATHS].sort(), Object.keys(named).sort());
+  for (const file of Object.values(named))
+    assert.deepEqual(pickDepth({ kind: "change", files: [file], lines: 1 }), {
+      depth: "deep",
+      why: `it touches ${file}`,
+    });
+  assert.equal(pickDepth({ kind: "change", files: ["packages/app/src/App.tsx"], lines: 1 }).depth, "standard");
 });
 
 test("a large change gets a deep review anywhere; a small one elsewhere gets a standard review", () => {
