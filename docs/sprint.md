@@ -38,6 +38,9 @@ change still has tests, passes `pnpm gate`, and gets a reviewer pass.
 ## Lanes
 
 Each open sprint issue and pull request carries exactly one lane label. One coordinator runs per lane.
+The queue's rules (whether a session has work, what a lane does next, how labels move, the status block) live
+once in `tools/sprint/queue.mjs`, which reads the window, lanes and backlog from this file. The supervisor,
+lanes and night shift ask it rather than spelling the rules out.
 
 | Lane       | Label           | Where it works                                                              |
 | ---------- | --------------- | --------------------------------------------------------------------------- |
