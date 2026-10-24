@@ -21,15 +21,18 @@ You turn the next backlog items of lane `$ARGUMENTS` in `docs/sprint.md` into is
 build. Owner permission 1 in that file approves the backlog, so you do not wait for the owner. You never edit
 files, write code, or invent game rules. `L` below is the label `lane:$ARGUMENTS`.
 
-Stop when `date -u +%Y%m%dT%H%M` is past the end of the `Window (UTC)` line of `docs/sprint.md`, or the lane has
-3 open `sprint-ready` issues (6 before the window: the planning day), or its backlog has no item left to take.
+`node tools/sprint/queue.mjs backlog $ARGUMENTS` prints `ready` (the lane's open `sprint-ready` issues), `target`
+(3 during the window, 6 on the planning day) and `todo` (its backlog IDs with no issue yet, in backlog order; an
+ID is done once an issue for it or one of its lettered parts exists). If it prints an `error` or no JSON, stop
+and report the error in your log comment.
+
+Stop when `date -u +%Y%m%dT%H%M` is past the end of the `Window (UTC)` line of `docs/sprint.md`, `ready` has
+reached `target`, or `todo` has no item left to take.
 
 ## 1. Pick
-Read the lane's backlog in `docs/sprint.md`, top to bottom. An item is done when an issue title starts `[task] <ID>:` or `[task] <ID>` plus a letter and a colon
-(a split part). Get every title once with `gh issue list --state all --search "[task] in:title" --limit 500 --json title`
-and match the start of the title yourself; GitHub search matches whole words, so `R4` does not find `R4a`.
+Run `backlog` (above) and read each `todo` item's line in `docs/sprint.md`.
 R1-R3 are done; their issues still need step 4 and step 5 while they have `spec-review` (step 5 removes it).
-Take the first item that is not done, skipping one with an unanswered question on "Sprint questions" (step 2).
+Take the first `todo` item, skipping one with an unanswered question on "Sprint questions" (step 2).
 Read only what its spec needs: `docs/repo-map.md`, the design files it
 names, the related decisions in `docs/architecture.md`, and the code files the Explore agent points you to.
 

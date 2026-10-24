@@ -7,7 +7,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { HELD_CONFLICT, MEMORY_FLOOR_MB, hasWork, next, nextNight, status } from "./rules.mjs";
+import { HELD_CONFLICT, MEMORY_FLOOR_MB, backlog, hasWork, next, nextNight, status } from "./rules.mjs";
 import { readFixture, snapshotAt } from "./replay.mjs";
 import { readSprintDoc, taskId } from "./sprint-doc.mjs";
 
@@ -322,4 +322,52 @@ test("the status block names only new needs in newNeeds, and the supervisor's ow
   ]);
   assert.deepEqual(status(S, DOC, { oldBody: first.body }).newNeeds, []);
   assert.match(first.body, /- rules: 0 ready, 0 building, 0 held, 1 blocked, 0 merged since the window opened/);
+});
+
+test("a stacked draft that GitHub moved onto main merges only once its checks are green, like any other", () => {
+  const stacked = (checks) => snap({ prs: [pr(130, { isDraft: true, title: "[stacked on #129] R130", checks })] });
+  const ok = (name, state) => ({ name, state });
+  assert.equal(next(stacked([ok("gate", "SUCCESS"), ok("tools-windows", "SUCCESS")]), DOC, "rules").mode, "merge");
+  assert.equal(next(stacked([ok("gate", "PENDING"), ok("tools-windows", "SUCCESS")]), DOC, "rules"), null);
+  assert.equal(
+    next(stacked([ok("gate", "SUCCESS"), ok("tools-windows", "SUCCESS"), ok("e2e", "FAILURE")]), DOC, "rules"),
+    null,
+  );
+});
+
+test("the night shift retries a held pull request only on the owner's own reply, never a sprint one, and at most twice", () => {
+  const night = (prs) => ({ ...snap({ prs }), now: new Date("2026-10-23T07:10:00Z"), localMinutes: 3 * 60 + 10 });
+  const hold = comment("greenbeanbot", "2026-10-23T01:00:00Z", "Night shift: held after review.");
+  const answered = (n, labels = ["held"]) =>
+    pr(n, { labels, comments: [hold, comment("astevegreen", "2026-10-23T02:00:00Z", "Go ahead.")] });
+  assert.equal(nextNight(night([answered(130)]), DOC).mode, "fix");
+  assert.equal(nextNight(night([answered(130)]), DOC, { fixesDone: 2 }), null, "two fix passes a night");
+  assert.equal(nextNight(night([answered(130, ["held", "lane:rules"])]), DOC), null, "sprint work");
+  const relayed = pr(130, {
+    labels: ["held"],
+    comments: [hold, comment("greenbeanbot", "2026-10-23T02:00:00Z", "Owner's answer (in chat): go ahead")],
+  });
+  assert.equal(nextNight(night([relayed]), DOC), null);
+  const conflict = pr(130, {
+    labels: ["held"],
+    comments: [comment("greenbeanbot", "2026-10-23T01:00:00Z", `${HELD_CONFLICT} x.ts`)],
+  });
+  assert.equal(
+    nextNight({ ...night([conflict]), mainChangedAt: "2026-10-23T05:00:00Z" }, DOC),
+    null,
+    "conflict holds wait for a lane",
+  );
+});
+
+test("backlog gives a plan session its ready count, its target (6 on the planning day) and the IDs still to specify", () => {
+  const S = snap({
+    issues: [
+      issue(1, ["lane:rules", "sprint-ready"], { title: "[task] R1: x" }),
+      issue(2, [], { title: "[task] R2a: x", state: "CLOSED" }),
+    ],
+  });
+  assert.deepEqual(backlog(S, DOC, "rules").todo.slice(0, 2), ["R3", "R4"]);
+  assert.equal(backlog(S, DOC, "rules").ready, 1);
+  assert.equal(backlog(S, DOC, "rules").target, 3);
+  assert.equal(backlog({ ...S, now: new Date("2026-10-20T15:00:00Z") }, DOC, "rules").target, 6);
 });

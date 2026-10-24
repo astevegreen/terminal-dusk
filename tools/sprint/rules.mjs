@@ -14,6 +14,7 @@ export const ACCEPTED_SONAR = [/^Do not add `then` to an object\b/, /^Remove thi
 export const HELD_CONFLICT = "Held: merge conflict with main only.";
 export const FIX_PASSES = 2; // per lane or night-shift session
 const PLAN_TARGET = 3; // a plan session tops its lane up to this many ready issues
+const PLANNING_DAY_TARGET = 6; // before the window, the planning day specs each lane's first six
 const NIGHT_STOP = [3 * 60 + 30, 17 * 60]; // the night shift stops between 03:30 and 17:00 local time
 
 const has = (item, label) => item.labels.includes(label);
@@ -120,10 +121,11 @@ function prJob(pr, S, fixesLeft, { heldOnly = false } = {}) {
     return fix(what.join("; "), what.length > 1 ? `${what.length} problems` : what[0]);
   }
   if (pr.base !== "main") return null; // stacked: it waits for its base to merge first
+  // A merge job needs every check green but accepted Sonar findings, as a stacked draft does once on main.
+  if (!c.requiredGreen || c.otherFailed.length) return null;
   if (pr.isDraft && pr.title.startsWith("[stacked on"))
     return { mode: "merge", ...job, reason: "its dependency merged, so GitHub moved it onto main" };
-  if (!pr.isDraft && !pr.autoMerge && c.requiredGreen && !c.otherFailed.length)
-    return { mode: "merge", ...job, reason: "checks green, auto-merge not yet on" };
+  if (!pr.isDraft && !pr.autoMerge) return { mode: "merge", ...job, reason: "checks green, auto-merge not yet on" };
   return null;
 }
 
@@ -221,6 +223,17 @@ export function nextNight(S, doc, { fixesDone = 0 } = {}) {
 // A backlog ID is done once an issue title starts `[task] <ID>:` or `[task] <ID><letter>:`.
 export const doneIds = (S) => new Set(S.issues.map((i) => taskId(i.title)?.base).filter(Boolean));
 
+// A lane's open sprint-ready issues, how many a plan session aims for, and its backlog IDs with no issue yet.
+export function backlog(S, doc, lane) {
+  const done = doneIds(S);
+  const planningDay = Boolean(doc.window?.start) && S.now < doc.window.start;
+  return {
+    ready: openWith(S, `lane:${lane}`, "sprint-ready").length,
+    target: planningDay ? PLANNING_DAY_TARGET : PLAN_TARGET,
+    todo: (doc.backlog[lane] ?? []).filter((id) => !done.has(id)),
+  };
+}
+
 // Whether the supervisor should start the session with this title.
 export function hasWork(S, doc, title) {
   const m = /^Sprint (lane|plan): ([a-z]+)$/.exec(title);
@@ -250,9 +263,7 @@ export function hasWork(S, doc, title) {
         : "nothing ready, in progress or to fix",
     };
   }
-  const ready = openWith(S, `lane:${lane}`, "sprint-ready").length;
-  const done = doneIds(S);
-  const todo = (doc.backlog[lane] ?? []).filter((id) => !done.has(id));
+  const { ready, todo } = backlog(S, doc, lane);
   if (ready >= PLAN_TARGET) return { start: false, reason: `${ready} ready issues already` };
   if (!todo.length) return { start: false, reason: "every backlog ID has an issue" };
   return { start: true, reason: `${ready} ready; not yet specified: ${todo.join(", ")}` };

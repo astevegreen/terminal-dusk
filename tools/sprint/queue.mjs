@@ -3,6 +3,7 @@
 //   has-work "<session title>"     {"start": bool, "reason": "…"}
 //   next <lane|night> [--fixes-done <k>]   the next job, or null
 //   move <n> <state> [--note "…"] [--conflict] [--dry-run]   {"moved": n, "to": state, "ran": [...]}, or {"error", "do"}
+//   backlog <lane>                 {"ready": n, "target": n, "todo": [backlog IDs with no issue yet]}, for sprint-plan
 //   status [--need "…"]... [--write]   {"body": "…", "needsYou": [...], "newNeeds": [...]}; --write puts the body on the sprint log issue
 // The rules are in rules.mjs (and moves.mjs); this file loads GitHub's state and runs the planned gh commands.
 // `--fixture <file.jsonl> --at <ISO time> [--free-mb <n>]` answers from a recorded sprint instead of GitHub.
@@ -12,7 +13,7 @@ import { existsSync, readFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { report } from "../sonar.mjs";
-import { OWNER, SONAR_CHECK, hasWork, next, nextNight, status } from "./rules.mjs";
+import { OWNER, SONAR_CHECK, backlog, hasWork, next, nextNight, status } from "./rules.mjs";
 import { planMove } from "./moves.mjs";
 import { readFixture, snapshotAt } from "./replay.mjs";
 import { readSprintDoc } from "./sprint-doc.mjs";
@@ -20,7 +21,7 @@ import { readSprintDoc } from "./sprint-doc.mjs";
 const ROOT = path.resolve(import.meta.dirname, "..", "..");
 const STOP = "Stop and report this error to the owner; don't fall back to the prose rules.";
 const USAGE =
-  'usage: queue.mjs has-work "<title>" | next <lane|night> [--fixes-done <k>] | move <n> <state> [--note "…"] [--conflict] [--dry-run] | status [--need "…"] [--write]';
+  'usage: queue.mjs has-work "<title>" | next <lane|night> [--fixes-done <k>] | move <n> <state> [--note "…"] [--conflict] [--dry-run] | backlog <lane> | status [--need "…"] [--write]';
 
 export function runGh(args) {
   const r = spawnSync("gh", args, { cwd: ROOT, encoding: "utf8", windowsHide: true, maxBuffer: 64 * 1024 * 1024 }); // NOSONAR (javascript:S4036)
@@ -210,6 +211,11 @@ export function main(argv, { gh = runGh, docText, now, freeMb, localMinutes } = 
       if (!doc.lanes.includes(a1))
         throw new Error(`unknown lane "${a1}"; docs/sprint.md has ${doc.lanes.join(", ") || "no lanes"}`);
       return line(next(S, doc, a1, { fixesDone }));
+    }
+    if (cmd === "backlog" && a1) {
+      if (!doc.lanes.includes(a1))
+        throw new Error(`unknown lane "${a1}"; docs/sprint.md has ${doc.lanes.join(", ") || "no lanes"}`);
+      return line(backlog(S, doc, a1));
     }
     if (cmd === "status") {
       const facts = fixture ? {} : statusFacts(doc, gh);
