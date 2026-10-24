@@ -193,11 +193,8 @@ function statusFacts(doc, gh) {
 // docs/sprint.md as main has it (origin/main, as of the last fetch), so a checkout left on another branch still
 // reads the sprint's lanes and backlog. The working tree's copy only when there is no origin/main.
 function mainDoc() {
-  const r = spawnSync("git", ["show", "origin/main:docs/sprint.md"], {
-    cwd: ROOT,
-    encoding: "utf8",
-    windowsHide: true,
-  }); // NOSONAR (javascript:S4036)
+  const ref = "origin/main:docs/sprint.md";
+  const r = spawnSync("git", ["show", ref], { cwd: ROOT, encoding: "utf8", windowsHide: true }); // NOSONAR (javascript:S4036)
   if (r.status === 0) return r.stdout;
   if (/does not exist in|exists on disk, but not in/.test(r.stderr ?? "")) return ""; // between sprints
   const file = path.join(ROOT, "docs", "sprint.md");

@@ -70,7 +70,7 @@ const iso = (t) => new Date(t).toISOString().replace(/:\d{2}\.\d{3}Z$/, "Z");
 // { start, reason, after?, restartAt? }: `after` is the reset, and start is false until restartAt, 2 minutes
 // later, when a replacement is scheduled. `lastEventAt` is the run's last event.
 export function resumeAfter(text, { lastEventAt, now = new Date() } = {}) {
-  const last = new Date(lastEventAt ?? NaN).getTime();
+  const last = new Date(lastEventAt ?? Number.NaN).getTime();
   if (Number.isNaN(last))
     throw new Error(`--last-event "${lastEventAt ?? ""}" is not a time; give the run's last_event_at`);
   if (!LIMIT.test(String(text ?? ""))) return { start: true, reason: "the run did not stop on a usage limit" };

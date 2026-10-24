@@ -75,11 +75,12 @@ export function nightShiftWork(S) {
       (i) => i.state === "OPEN" && i.labels.includes("in-progress") && !i.labels.some((l) => l.startsWith("lane:")),
     )
     .map((i) => ({ number: i.number, title: i.title }));
+  const numbers = building.map((i) => `#${i.number}`).join(", ");
   return {
     active: building.length > 0,
     building,
     reason: building.length
-      ? `the night shift is building ${building.map((i) => `#${i.number}`).join(", ")}; it stops after that task`
+      ? `the night shift is building ${numbers}; it stops after that task`
       : "no night-shift task in progress",
   };
 }
