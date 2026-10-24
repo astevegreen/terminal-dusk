@@ -706,12 +706,13 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/sprint/fixtures/october-sprint.md` - Sprint: 20–22 October 2026
 - `tools/sprint/fixtures/october.jsonl`
 - `tools/sprint/moves.mjs` - `queue.mjs move <n> <state>`: the label changes and standard comment for each change of state, planned as gh commands from a snapshot.
+- `tools/sprint/moves.test.mjs` - Tests for the sprint's label moves (moves.mjs): which gh commands each move plans, and which moves are refused with what to do instead.
 - `tools/sprint/queue.mjs` - `node tools/sprint/queue.mjs <command>`: the sprint's queue rules, asked by the supervisor, the lanes and the night shift instead of each applying its own pros…
-- `tools/sprint/queue.test.mjs` - Tests for `node tools/sprint/queue.mjs`: label moves, loading GitHub's state through gh, and the command line's one line of JSON.
+- `tools/sprint/queue.test.mjs` - Tests for `node tools/sprint/queue.mjs`: loading GitHub's state through gh, and the command line's one line of JSON.
 - `tools/sprint/replay.mjs` - Rebuilds a queue snapshot at any moment of a recorded sprint, from a fixture of issues and pull requests with their timelines (tools/sprint/fixtures/october.js…
 - `tools/sprint/rules.mjs` - The sprint queue's rules as pure functions of a snapshot: open issues and pull requests with their labels, comments and checks, plus docs/sprint.md.
 - `tools/sprint/rules.test.mjs` - Tests for the sprint queue's rules: October's sprint replayed from its recorded issues and pull requests, plus small made-up cases for the rules October's reco…
-- `tools/sprint/sprint-doc.mjs` - Reads what the sprint queue needs from docs/sprint.md: the window, the lanes, each lane's backlog IDs and the sprint log issue.
+- `tools/sprint/sprint-doc.mjs` - Reads what the sprint queue needs from docs/sprint.md: the window, the lanes, each lane's backlog IDs, the sprint log issue and the environment the sessions ru…
 - `tools/test.mjs` - `pnpm test`: unit tests.
 - `tools/test.test.mjs`
 
@@ -739,7 +740,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `docs/proposals/w7/4-tension.md` - Topic 4: the tension track
 - `docs/proposals/w7/5-scoring.md` - Topic 5: scoring (when it happens and how a game is won)
 - `docs/proposals/w7/README.md` - W7: the map, influence, points, the tension track and scoring
-- `docs/sprint.md` - Sprint: 20–22 October 2026
+- `docs/sprint.md` - Sprint: 27–29 October 2026
 - `docs/workflow.md` - Terminal Dusk — Claude Code Workflow
 
 ## .claude

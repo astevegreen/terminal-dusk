@@ -60,13 +60,15 @@ run `list_runs` on it. Its newest run is the session:
   First `update` every enabled trigger with that name that has no run to `{"enabled": false}`, so a late
   start can never put two coordinators in one lane.
 
-To start one, `RemoteTrigger` `create` with this body, filling the name, model and prompt:
+To start one, `RemoteTrigger` `create` with this body, filling the name, environment, model and prompt:
 `{"name": "<title>", "run_once_at": "<now + 1 minute, UTC, ISO 8601 with Z>", "enabled": true,
-"job_config": {"ccr": {"environment_id": "env_01NzJ5sYBdPtRrLcXKYr7zTM", "session_context": {"model": "<model>"},
+"job_config": {"ccr": {"environment_id": "<environment_id from Q env>", "session_context": {"model": "<model>"},
 "events": [{"data": {"type": "user", "uuid": "<new random UUID from node -e \"console.log(crypto.randomUUID())\">", "parent_tool_use_id": null,
 "message": {"role": "user", "content": "<prompt>"}}}]}}}`
 Prompt `/sprint-lane <lane>` on model `claude-sonnet-5-5` (the skill runs implementer and reviewer on Opus), or
-`/sprint-plan <lane>` on `claude-opus-5-5`. The session runs on the owner's laptop in the main checkout.
+`/sprint-plan <lane>` on `claude-opus-5-5`. The session runs on the sprint's computer in the main checkout.
+`Q env` prints the environment id from `docs/sprint.md` (Machinery); never copy an id from anywhere else, since
+it changes when the sprint moves to another computer. If it prints an `error`, start nothing this run.
 
 `has-work` answers `"start": false` with "<n> MB free, under the 4096 MB floor" when memory is low. Then start
 nothing this run, though you still read the sessions and name stuck ones, and comment "@astevegreen Supervisor:

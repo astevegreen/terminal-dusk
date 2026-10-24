@@ -5,8 +5,10 @@
 //   move <n> <state> [--note "…"] [--conflict] [--dry-run]   {"moved": n, "to": state, "ran": [...]}, or {"error", "do"}
 //   backlog <lane>                 {"ready": n, "target": n, "todo": [backlog IDs with no issue yet]}, for sprint-plan
 //   status [--need "…"]... [--write]   {"body": "…", "needsYou": [...], "newNeeds": [...]}; --write puts the body on the sprint log issue
+//   env                            {"environment_id": "env_…"}, the computer sessions start on (Machinery)
 // The rules are in rules.mjs (and moves.mjs); this file loads GitHub's state and runs the planned gh commands.
 // `--fixture <file.jsonl> --at <ISO time> [--free-mb <n>]` answers from a recorded sprint instead of GitHub.
+// `--doc <file>` reads that sprint document instead of docs/sprint.md.
 // Any failure prints {"error", "do"} and exits 2: the caller stops and reports, and never falls back to prose.
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
@@ -21,7 +23,7 @@ import { readSprintDoc } from "./sprint-doc.mjs";
 const ROOT = path.resolve(import.meta.dirname, "..", "..");
 const STOP = "Stop and report this error to the owner; don't fall back to the prose rules.";
 const USAGE =
-  'usage: queue.mjs has-work "<title>" | next <lane|night> [--fixes-done <k>] | move <n> <state> [--note "…"] [--conflict] [--dry-run] | backlog <lane> | status [--need "…"] [--write]';
+  'usage: queue.mjs has-work "<title>" | next <lane|night> [--fixes-done <k>] | move <n> <state> [--note "…"] [--conflict] [--dry-run] | backlog <lane> | status [--need "…"] [--write] | env';
 
 export function runGh(args) {
   const r = spawnSync("gh", args, { cwd: ROOT, encoding: "utf8", windowsHide: true, maxBuffer: 64 * 1024 * 1024 }); // NOSONAR (javascript:S4036)
@@ -189,8 +191,15 @@ export function main(argv, { gh = runGh, docText, now, freeMb, localMinutes } = 
   const line = (value, code = 0) => ({ code, out: JSON.stringify(value) });
   try {
     // Between sprints docs/sprint.md may be gone: then there is no window and no lane, and the night shift runs.
-    const docFile = path.join(ROOT, "docs", "sprint.md");
+    const docFile = option(argv, "--doc") ?? path.join(ROOT, "docs", "sprint.md");
     const doc = readSprintDoc(docText ?? (existsSync(docFile) ? readFileSync(docFile, "utf8") : ""));
+    if (argv[0] === "env") {
+      if (!doc.environment)
+        throw new Error(
+          "docs/sprint.md names no environment (Machinery, `**Environment:**`), so a new session has nowhere to run",
+        );
+      return line({ environment_id: doc.environment });
+    }
     const fixture = option(argv, "--fixture");
     const freeOpt = option(argv, "--free-mb");
     const S = fixture

@@ -1,5 +1,6 @@
-// Reads what the sprint queue needs from docs/sprint.md: the window, the lanes, each lane's backlog IDs
-// and the sprint log issue. docs/sprint.md stays the one place these live; nothing here copies them.
+// Reads what the sprint queue needs from docs/sprint.md: the window, the lanes, each lane's backlog IDs, the
+// sprint log issue and the environment the sessions run in. docs/sprint.md stays the one place these live;
+// nothing here copies them.
 
 // `20261021T0000` (UTC) as a Date.
 export function parseStamp(s) {
@@ -28,11 +29,14 @@ export function readSprintDoc(text) {
   }
 
   const log = /sprint log, issue `#(\d+)`/.exec(text);
+  // The computer's environment id (Machinery). A placeholder such as `env_…` names none.
+  const environment = /\*\*Environment:\*\*\s*`(env_[A-Za-z0-9]+)`/.exec(text);
   return {
     window: window ? { start: parseStamp(window[1]), end: parseStamp(window[2]) } : null,
     lanes,
     backlog,
     logIssue: log ? Number(log[1]) : null,
+    environment: environment ? environment[1] : null,
   };
 }
 
