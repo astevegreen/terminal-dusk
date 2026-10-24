@@ -698,6 +698,15 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/sonar-mirror.test.mjs`
 - `tools/sonar.mjs` - `node tools/sonar.mjs <pr|main>`: SonarCloud's findings on a pull request or on main, read through GitHub.
 - `tools/sonar.test.mjs`
+- `tools/sprint/fixtures/october-sprint.md` - Sprint: 20–22 October 2026
+- `tools/sprint/fixtures/october.jsonl`
+- `tools/sprint/moves.mjs` - `queue.mjs move <n> <state>`: the label changes and standard comment for each change of state, planned as gh commands from a snapshot.
+- `tools/sprint/queue.mjs` - `node tools/sprint/queue.mjs <command>`: the sprint's queue rules, asked by the supervisor, the lanes and the night shift instead of each applying its own pros…
+- `tools/sprint/queue.test.mjs` - Tests for `node tools/sprint/queue.mjs`: label moves, loading GitHub's state through gh, and the command line's one line of JSON.
+- `tools/sprint/replay.mjs` - Rebuilds a queue snapshot at any moment of a recorded sprint, from a fixture of issues and pull requests with their timelines (tools/sprint/fixtures/october.js…
+- `tools/sprint/rules.mjs` - The sprint queue's rules as pure functions of a snapshot: open issues and pull requests with their labels, comments and checks, plus docs/sprint.md.
+- `tools/sprint/rules.test.mjs` - Tests for the sprint queue's rules: October's sprint replayed from its recorded issues and pull requests, plus small made-up cases for the rules October's reco…
+- `tools/sprint/sprint-doc.mjs` - Reads what the sprint queue needs from docs/sprint.md: the window, the lanes, each lane's backlog IDs and the sprint log issue.
 - `tools/test.mjs` - `pnpm test`: unit tests.
 - `tools/test.test.mjs`
 

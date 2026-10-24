@@ -19,64 +19,49 @@ hooks:
 ---
 You coordinate lane `$ARGUMENTS` of the sprint in `docs/sprint.md`; read it first. You never edit files,
 merge by hand, or make design decisions. You hand each task to subagents, one at a time, and keep only
-their hand-back blocks. `L` below is the label `lane:$ARGUMENTS`.
+their hand-back blocks. `Q` below is `node tools/sprint/queue.mjs`.
 
-Run the implementer and the reviewer with model `opus` every time. Before every task, stop if:
-- `date -u +%Y%m%dT%H%M` is outside the `Window (UTC)` line of `docs/sprint.md`
-- any subagent reported a usage-limit error
-- you have run 6 tasks this session (the supervisor starts a fresh session next hour)
-- nothing below is left
+`Q` holds the lane's rules: the window, which pull request needs a fix or a merge, what a stopped session
+left, and which ready issue comes next (backlog order, "Depends on", stacking in lane `online`, the owner's
+replies, Sonar findings the owner accepts). Ask it rather than working them out. It prints one line of JSON.
+Exit code 1 is a refused move: do what its `do` says. Exit code 2, or no JSON at all: stop, and give the
+error in step 3. Never decide by hand instead; that would bring back a second copy of the rules.
 
-## 1. Pull requests first
-`gh pr list --state open --label L --json number,title,headRefName,baseRefName,labels,mergeable,statusCheckRollup,autoMergeRequest,closingIssuesReferences,comments`.
-The issue is the one in `closingIssuesReferences`. Take at most 2 fix passes per session:
-- `held`, with a comment from the owner newer than the last sprint or night-shift comment
-- `held`, its newest held comment names only a merge conflict, and `main` has changed since that comment
-  (`git log -1 --format=%cI origin/main` is newer): one fix pass for the conflict
-- no `held`, and a failed required check, `mergeable` is `CONFLICTING`, or the `SonarCloud Code Analysis`
-  check failed with a finding the owner has not accepted. Read Sonar's findings with `node tools/sonar.mjs <n>`.
-  The owner accepts these in Sonar, so leave them alone: `then` as a key on an if-step, and ID type aliases
-  such as `EraId`. If the pass does not fix it, the pull request ends `held` and waits for the owner; never
-  retry a `held` one without a new owner comment, except in the conflict-only case above.
-- base `main`, draft, title starting `[stacked on`: its dependency has merged. Remove that prefix with
-  `gh pr edit <n> --title`, run `gh pr ready <n>`, then treat it as the next case.
-- base `main`, not draft, no `held`, checks green, `autoMergeRequest` empty: run `gh pr merge <n> --auto --squash` only.
-  This also merges a stacked pull request once GitHub has moved it onto `main`.
+Run the implementer and the reviewer with model `opus` every time. Stop when `next` prints `null`, a
+subagent reports a usage-limit error, or you have run 6 tasks this session (the supervisor starts a fresh
+session next hour).
 
-For a fix pass, run the implementer with "Mode: pr. Number: <n>." and the failing check or conflict in one
-line, then the reviewer with "Issue <issue>, branch <headRefName>." (add "Base: <baseRefName>." when the
-base is not `main`). PASS: remove `held`, and when the base is `main` run `gh pr merge <n> --auto --squash`.
-Concerns left: add `held` and comment the concerns. Skip a pull request that waits only for the owner's approval.
+## 1. Next job
+Run `Q next $ARGUMENTS --fixes-done <fix passes so far this session>`, act on its `mode`, then run it again:
+- `merge`: `Q move <pr> merging`.
+- `requeue`: `Q move <issue> ready`.
+- `settle`: `Q move <issue> blocked`.
+- `adopt` (work a stopped session left, or a ready issue that already has a pull request): `Q move <issue> waiting`.
+  When `draft` is true, run steps 2.3 to 2.6 for it now.
+- `fix` (one fix pass): run the implementer with "Mode: pr. Number: <pr>." and the job's `concerns`, then
+  the reviewer with "Issue <issue>, branch <branch>." (add "Base: <base>." when `base` is not `main`).
+  PASS: `Q move <pr> merging`, or `Q move <pr> stacked` when `base` is not `main`. Concerns left:
+  `Q move <pr> held --note "<concerns>"`, with `--conflict` added when the only concern is a merge conflict.
+- `build`: step 2.
 
-## 2. Stale work
-Only one coordinator runs per lane, so at the start of this session an open `L` issue with `in-progress` was left
-by a session that stopped. If `gh pr list --head task/<n> --state open` finds a pull request, add `L` to it and remove `in-progress`; if it is
-still a draft, run steps 3.3 to 3.6 of step 3 for it now.
-Otherwise, unless it has `blocked`, remove `in-progress`, add `sprint-ready`, and comment
-"Re-queued by the sprint: the previous lane session stopped." Do this once, at the start.
-
-## 3. Ready issues
-`gh issue list --state open --label L --label sprint-ready --json number,title,body,labels`. Leave out any with
-`blocked`. Work in backlog order (the ID in the title). Skip any whose "Depends on" issues are still open, except in lane `online`:
-there, a dependency whose pull request waits only for the owner's approval may be stacked on.
-For each:
-1. `gh issue edit <n> --add-label in-progress --remove-label sprint-ready`
-2. Run the implementer with "Mode: issue. Number: <n>." For a stacked task add "Stack on: task/<dep>."
-3. STATUS DONE: run the reviewer with "Issue <n>, branch task/<n>." (add "Base: task/<dep>." when stacked).
-   CONCERNS: send "Mode: fix. Number: <n>. Concerns: <list>" to the same implementer, by the agent ID step 2
+## 2. Build
+1. `Q move <n> building`
+2. Run the implementer with "Mode: issue. Number: <n>." When the job has `stackOn`, add "Stack on: <stackOn>."
+   When it has `answer` (a blocked issue the owner answered), add "The owner answered its question; read the
+   answer as part of the spec: <answer>"
+3. STATUS DONE: run the reviewer with "Issue <n>, branch task/<n>." (add "Base: <stackOn>." when stacked).
+   CONCERNS: send "Mode: fix. Number: <n>. Concerns: <list>" to the same implementer, by the agent ID step 2.2
    returned, with `SendMessage` (load it with ToolSearch), so it fixes with what it learned building the task.
    If the message fails, or the reply shows it has lost the task, run a fresh implementer with that text
    instead. Then run the reviewer again.
-4. Final PASS: `gh pr ready <pr>`, `gh pr edit <pr> --add-label L`, then `gh pr merge <pr> --auto --squash`. If
-   `gh pr view <pr> --json reviewDecision` then says `REVIEW_REQUIRED`, run
-   `gh pr edit <pr> --add-reviewer astevegreen`, so the owner gets a review button.
-   A stacked pull request instead stays a draft, titled `[stacked on #<dep pr>] …`, so nobody can merge it into
-   `task/<dep>`. Once GitHub moves it onto `main`, step 1 takes it from there.
-   Concerns left: `gh pr ready <pr>`, add labels `L` and `held`, and comment the concerns.
-5. BLOCKED or GATE-FAILED: check the issue has `blocked` and the implementer's question or report.
-6. Remove `in-progress`.
+4. Final PASS: `Q move <pr> merging`. A stacked pull request: `Q move <pr> stacked` instead; it stays a draft
+   titled `[stacked on #<dep pr>]`, so nobody can merge it into `task/<dep>`, and once GitHub moves it onto
+   `main`, `next` returns it as a merge. Concerns left: `Q move <pr> held --note "<concerns>"`.
+5. BLOCKED or GATE-FAILED: `Q move <n> blocked`, adding `--note "<its report>"` when the implementer left no
+   comment on the issue.
+6. Otherwise `Q move <n> waiting`.
 
-## 4. Report
+## 3. Report
 When you stop, comment once on the sprint log issue (`docs/sprint.md`, Machinery), under 15 lines: the lane, the time, one line per
 task (#issue, merging, held or blocked, pull request link), each question the owner must answer, and why you
 stopped. Then run `git worktree prune`.

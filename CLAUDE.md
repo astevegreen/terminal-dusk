@@ -38,7 +38,7 @@ The owner is not a programmer: explain every change in plain English, and prove 
 - Stay inside the task's scope. Mention other problems in your summary instead of fixing them.
 - No new dependency without a reason in your summary.
 - If the spec is unclear, contradicts docs/architecture.md, or needs a game-design choice: stop and ask.
-  In a night run, comment the question on the issue and label it `blocked`. Never invent game rules.
+  In a night run, comment the question on the issue, starting `Blocked:`, and label it `blocked`. Never invent game rules.
 - When compacting, keep word for word: the issue or pull request number and branch, the files changed, each
   `pnpm gate` or test run with its result, and any question waiting on the owner.
 

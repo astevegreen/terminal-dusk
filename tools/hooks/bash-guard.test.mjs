@@ -89,6 +89,13 @@ test("read-only mode runs the reviewer's usual inspection commands, and nothing 
   }
 });
 
+test("unattended mode lets the sprint skills ask the queue script", () => {
+  for (const ok of ["node tools/sprint/queue.mjs next rules --fixes-done 1", "node tools/sprint/queue.mjs has-work \"Sprint lane: rules\"",
+    "node tools/sprint/queue.mjs move 230 held --note \"1. [minor] summary out of date; see review\" --conflict", "node tools/sprint/queue.mjs status --need \"Sprint lane: app is stuck\""]) {
+    assert.equal(guard(ok, ["--unattended"]).stdout, "", ok);
+  }
+});
+
 const ownerOnlyGh = ["gh api repos/o/r/branches/main/protection", "gh repo edit --visibility public", "gh auth switch", "gh secret list", "pnpm gate && gh api user", "gh -R o/r secret set X"];
 
 const ghReads = [

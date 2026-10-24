@@ -25,12 +25,17 @@ ToolSearch). You cannot archive: scheduled sessions have no `archive_session`. T
 `$ARGUMENTS` is `dry-run`: do every check and print what you would start, but create, update and
 comment nothing.
 
+`Q` below is `node tools/sprint/queue.mjs`. It holds every rule for whether a session has work, and builds
+the status block. It prints one line of JSON. If it prints an `error` or no JSON at all, start nothing that
+needs it, and put the error first in step 5. Never decide by hand instead; that would bring back a second copy
+of the rules.
+
 ## 1. Window
 Run `date -u +%Y%m%dT%H%M` and read the window from the `Window (UTC)` line of `docs/sprint.md`.
 - Before it: print "before the window" and stop.
 - After it: `RemoteTrigger` `update` the supervisor trigger whose id is in `docs/sprint.md` (Machinery) with
-  `{"enabled": false}` (skip in dry-run), comment "Sprint over" on the sprint log issue with one line
-  per lane from step 4, and stop. Don't look for it with `list`: that returns only the account's newest 20
+  `{"enabled": false}` (skip in dry-run), comment "Sprint over" on the sprint log issue with the lane lines
+  of `Q status`, and stop. Don't look for it with `list`: that returns only the account's newest 20
   triggers, and asking for the next page returns the first page again.
 
 ## 2. Sync
@@ -39,12 +44,6 @@ In the main checkout: `git fetch origin --prune`. If `git status --porcelain` is
 Run `git worktree prune`.
 
 ## 3. Sessions
-**Memory floor.** First read free memory:
-`powershell.exe -NoProfile -Command "[int]((Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory/1024)"`.
-Under 4096 MB: start nothing this run, though you still read the sessions below and name stuck ones. Comment
-"@astevegreen Supervisor: <n> MB free; started nothing" on the sprint log issue, so GitHub notifies the owner, then go on
-to step 4. Don't archive anything or end any process.
-
 Lanes: `rules`, `app`, `online`, `research`. For each lane there are two session titles:
 `Sprint lane: <lane>` and `Sprint plan: <lane>`.
 
@@ -56,7 +55,8 @@ run `list_runs` on it. Its newest run is the session:
   finished. Name it in step 5. If the same run is still there and still stuck on your next run, the archiver
   is not working: put that first in step 5.
 - **Missing, or finished** (`worker_status` `idle`, `status` `archived`, or no run yet after its `run_once_at` plus 15 minutes means
-  it never started: report that too): start one if it has work (below).
+  it never started: report that too): run `Q has-work "<title>"` and start one only when it prints
+  `"start": true`. Its `reason` goes in step 5 either way.
   First `update` every enabled trigger with that name that has no run to `{"enabled": false}`, so a late
   start can never put two coordinators in one lane.
 
@@ -68,11 +68,10 @@ To start one, `RemoteTrigger` `create` with this body, filling the name, model a
 Prompt `/sprint-lane <lane>` on model `claude-sonnet-5-5` (the skill runs implementer and reviewer on Opus), or
 `/sprint-plan <lane>` on `claude-opus-5-5`. The session runs on the owner's laptop in the main checkout.
 
-Work exists for a lane session when the lane has an open `sprint-ready` issue without `blocked`, an open
-`in-progress` issue, or an open pull request that step 1 of the `sprint-lane` skill would act on. Work exists for a plan session when the lane has fewer than 3 open `sprint-ready` issues and its backlog in
-`docs/sprint.md` has an ID that is not done. An ID is done when an issue title starts `[task] <ID>:` or `[task] <ID>` plus a letter and a colon
-(a split part). Get every title once with `gh issue list --state all --search "[task] in:title" --limit 500 --json title`
-and match the start of the title yourself; GitHub search matches whole words, so `R4` does not find `R4a`.
+`has-work` answers `"start": false` with "<n> MB free, under the 4096 MB floor" when memory is low. Then start
+nothing this run, though you still read the sessions and name stuck ones, and comment "@astevegreen Supervisor:
+<n> MB free; started nothing" on the sprint log issue, so GitHub notifies the owner. Don't archive anything or
+end any process.
 
 For a finished run, read the end of `get_run_log`: if it stopped on a usage limit, find the reset time the
 error names (it may give a local time and zone: convert it to UTC) and start nothing for that title before it;
@@ -82,24 +81,14 @@ under an hour old.
 Archiving is the sprint archiver's job; don't try it here.
 
 ## 4. Status
-For each lane: open `sprint-ready`, `in-progress`, `blocked` and `held` counts, and pull requests merged
-since the window opened (`gh pr list --state merged --label lane:<lane> --search "merged:>=<window start as YYYY-MM-DDTHH:MM:00Z>"`).
+Every run, `Q status --write` (in dry-run, without `--write`), adding `--need "<title>: stuck since <time>, <url>"`
+for each stuck session and `--need "<title>: never started"` for each that never started. It rewrites the
+sprint log issue's body: the status block, with the lane counts, the last merge to `main` and its CI result,
+free memory, and "Needs you". It prints `body`, `needsYou` and `newNeeds` (the items the old body lacked).
 
 ## 5. Report
-**Status block.** Every run, rewrite the body of the sprint log issue with `gh issue edit <n> --body-file -`
-(the text on standard input). Read the old body first (`gh issue view <n> --json body`): its "Needs you" list
-is what the ping below compares against. The body holds:
-- the time;
-- one line per lane: ready, building, held and blocked counts, and pull requests merged since the window opened;
-- the last merge to `main` and its CI result;
-- free memory (step 3);
-- "Needs you", one linked line per item: a `blocked` question, a code-owned pull request waiting for approval
-  (`gh pr list --search "review:required"`), a `held` pull request that waits for the owner, a stuck session,
-  a session that failed to start.
-
 **Comment** on the sprint log issue, under 15 lines, when either holds:
-- "Needs you" has an item the old body didn't: start "@astevegreen", so GitHub notifies the owner, and list
-  only the new items first;
+- `newNeeds` is not empty: start "@astevegreen", so GitHub notifies the owner, and list those items first;
 - it is the first run of the window or a sixth UTC hour (00, 06, 12, 18), a session is stuck or never started,
   the archiver is not working, or something in step 2 needed attention: the time, one line per lane (counts,
   sessions started), and anything the owner must act on.

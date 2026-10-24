@@ -15,7 +15,8 @@ Task: $ARGUMENTS (in a night run, the mode and number are in your prompt instead
 ## 2. Stop early when
 - the spec is unclear or contradicts docs/architecture.md
 - the task needs a game-design choice, a Locked file, or a step type the spec didn't ask for
-Then comment one specific question on the issue, add the `blocked` label, and hand back STATUS: BLOCKED.
+Then comment one specific question on the issue, starting `Blocked:` (the owner's next comment is read as the
+answer only after one), add the `blocked` label, and hand back STATUS: BLOCKED.
 
 ## 3. Build
 - New work: branch `task/<n>` from `origin/main`. Sprint only (`docs/sprint.md`): when your prompt says
