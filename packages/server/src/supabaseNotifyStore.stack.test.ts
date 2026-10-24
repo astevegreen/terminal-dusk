@@ -13,11 +13,12 @@ import { stackGame } from "./test/stackGame.ts";
 // Far from the other stack tests' times.
 const T = 5_000_000_000_000;
 const D = TURN_ALERT_DELAY_MS;
-const alert = (matchId: string, player: string, seq: number, queuedAt = T): TurnAlert => ({
+const alert = (matchId: string, player: string, seq: number, queuedAt = T, waitingSeq = seq): TurnAlert => ({
   matchId,
   player,
   seq,
   queuedAt,
+  waitingSeq,
 });
 
 await onLocalStack("SupabaseNotifyStore on the local Supabase stack", (keys) => {
@@ -51,7 +52,7 @@ await onLocalStack("SupabaseNotifyStore on the local Supabase stack", (keys) => 
     const [m1] = await matches(1);
     await store().queue([alert(m1!, alice(), 1)]);
     await store().seen(m1!, alice(), 1);
-    await store().queue([alert(m1!, alice(), 2, T + 5)]);
+    await store().queue([alert(m1!, alice(), 2, T + 5, 9)]);
     expect(await row(m1!, alice())).toEqual({
       match_id: m1,
       player: alice(),
@@ -59,6 +60,7 @@ await onLocalStack("SupabaseNotifyStore on the local Supabase stack", (keys) => 
       queued_at: T + 5,
       seen_seq: null,
       sent_at: null,
+      waiting_seq: 2,
     });
   }, 60_000);
 
@@ -85,7 +87,38 @@ await onLocalStack("SupabaseNotifyStore on the local Supabase stack", (keys) => 
       queued_at: T,
       seen_seq: null,
       sent_at: T + D,
+      waiting_seq: 2,
     });
+  }, 60_000);
+
+  it("keep raises an unsent alert's waiting_seq, leaving its seq, queued_at and seen_seq, and due gives it", async () => {
+    const [m1] = await matches(1);
+    await store().queue([alert(m1!, alice(), 2), alert(m1!, bob(), 2)]);
+    await store().seen(m1!, bob(), 2);
+    await store().keep(m1!, alice(), 4);
+    await store().keep(m1!, bob(), 4);
+    expect(await row(m1!, alice())).toMatchObject({ seq: 2, queued_at: T, seen_seq: null, waiting_seq: 4 });
+    expect(await row(m1!, bob())).toMatchObject({ seq: 2, queued_at: T, seen_seq: 2, waiting_seq: 4 });
+    expect(await dueOf(T + D, [m1!])).toEqual([alert(m1!, alice(), 2, T, 4)]);
+  }, 60_000);
+
+  it("a newer alert from queue replaces a kept one, waiting at its own seq", async () => {
+    const [m1] = await matches(1);
+    await store().queue([alert(m1!, alice(), 2)]);
+    await store().keep(m1!, alice(), 4);
+    await store().queue([alert(m1!, alice(), 6, T + 9, 8)]);
+    expect(await row(m1!, alice())).toMatchObject({ seq: 6, queued_at: T + 9, sent_at: null, waiting_seq: 6 });
+  }, 60_000);
+
+  it("keep changes nothing when waiting_seq is at or above seq, or the alert is sent", async () => {
+    const [m1] = await matches(1);
+    await store().queue([alert(m1!, alice(), 2), alert(m1!, bob(), 2)]);
+    await store().keep(m1!, alice(), 5);
+    await store().keep(m1!, alice(), 4);
+    await store().markSent(alert(m1!, bob(), 2), T + D);
+    await store().keep(m1!, bob(), 3);
+    expect((await row(m1!, alice()))?.waiting_seq).toBe(5);
+    expect(await row(m1!, bob())).toMatchObject({ seq: 2, sent_at: T + D, waiting_seq: 2 });
   }, 60_000);
 
   it("seen marks the alert when its seq is at most the seen seq", async () => {

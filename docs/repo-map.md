@@ -502,10 +502,11 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/migrations/matchInvite.test.ts` - The match_invite migration (supabase/migrations/20261022000000_match_invite.sql) on the local Supabase stack.
 - `packages/server/src/migrations/matchTables.test.ts` - The match tables migration (supabase/migrations/20261020000000_match_tables.sql) on the local Supabase stack.
 - `packages/server/src/migrations/notifyQueue.test.ts` - The notify_queue migration (supabase/migrations/20261024000000_notify_queue.sql).
+- `packages/server/src/migrations/notifyQueueWaitingSeq.test.ts` - The waiting_seq migration (supabase/migrations/20261025000000_notify_queue_waiting_seq.sql).
 - `packages/server/src/migrations/sqlRaw.d.ts` - A migration file read as text by Vitest's `?raw` import, for checks the client API cannot make.
 - `packages/server/src/notifyStore.test.ts`
 - `packages/server/src/notifyStore.ts` - The turn alert queue (docs/architecture.md, Decision 5, `notify_queue` and "Scheduled jobs", Notifications: "Email only if the turn is still unseen after about… Exports: TURN_ALERT_DELAY_MS, TurnAlert, NotifyStore, alertsFrom, MemoryNotifyStore.
-- `packages/server/src/queueAlerts.ts` - Queues the turn alerts of a move that is already saved. Exports: queueAlerts.
+- `packages/server/src/queueAlerts.ts` - Queues the turn alerts of a move that is already saved. Exports: queueAlerts, keepWaiting.
 - `packages/server/src/read.leaks.test.ts`
 - `packages/server/src/read.test.ts`
 - `packages/server/src/read.ts` - Who may read which row (docs/architecture.md, Decision 5, "Who can read it"), and the read itself. Exports: Caller, StoredRows, ReadStore, MatchRead, canRead, readMatch.
@@ -552,7 +553,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/sweepDeadlines.ts` - The deadline sweep (docs/architecture.md, Decision 5, "Scheduled jobs", Deadlines): for every match past a deadline, apply its deadline rule through the host a… Exports: SweepResult, sweepDeadlines.
 - `packages/server/src/sweepTurnAlerts.test.ts`
 - `packages/server/src/sweepTurnAlerts.ts` - The turn alert sweep (docs/architecture.md, Decision 5, "Scheduled jobs", Notifications): email each player whose turn is still waiting and still unseen 20 min… Exports: TurnAlertDeps, TurnAlertResult, sweepTurnAlerts.
-- `packages/server/src/test/alerts.ts` - Test helpers for turn alerts: the test match in a MemoryStore, its first alerts queued in a MemoryNotifyStore, a MemoryMailer, and addresses for alice and bob. Exports: APP_URL, ADDRESSES, AlertWorld, moveUntilNotified, alertWorld.
+- `packages/server/src/test/alerts.ts` - Test helpers for turn alerts: the test match in a MemoryStore, its first alerts queued in a MemoryNotifyStore, a MemoryMailer, and addresses for alice and bob. Exports: APP_URL, ADDRESSES, AlertWorld, withNotify, moveUntilNotified, alertWorld.
 - `packages/server/src/test/authEmail.ts` - Test helpers for the auth-email hook: a test secret, a send-email payload, a correctly signed hook request and a handler wired to a MemoryMailer and a recorded… Exports: TEST_SECRET, TEST_CODE, TEST_TOKEN_HASH, TEST_EMAIL, NOW_MS, NOW_SECONDS, payload, signedRequest, authEmailWorld.
 - `packages/server/src/test/deadlines.ts` - Test helpers for the deadline sweep: matches with deadlines in an in-memory store. Exports: DAY, rulesetFor, createdWithClock, insertMatch, insertSaeLate.
 - `packages/server/src/test/errors.ts` - Test helpers for checking what a thrown storage error shows. Exports: shown, thrown.
@@ -568,6 +569,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/test/stack.ts` - Test helpers for the SupabaseStore checks on the local Supabase stack (O3's localStack.ts finds it). Exports: onLocalStack, TestUser, makeUser, accessToken, freshMatchId, newGame, writeOf, putIn, Stored, storedRows, cleanUp.
 - `packages/server/src/test/stackGame.ts` - The shared setup for the tests on the local Supabase stack: a service-role client and two fresh test users made before the tests, and every test match and user… Exports: StackGame, stackGame, answered, expectStoredAs.
 - `packages/server/src/test/stores.ts` - Test helpers that wrap any MatchStore, for the in-memory and the Supabase store alike. Exports: loadTogether, recording.
+- `packages/server/src/turnAlerts.keep.test.ts` - A turn alert stays live while its player is still waiting on the decision it is for (#267).
 - `packages/server/src/turnAlerts.queue.test.ts`
 - `packages/server/src/webhookSignature.test.ts`
 - `packages/server/src/webhookSignature.ts` - The Standard Webhooks signature check Supabase Auth's hooks use: HMAC-SHA256 with the hook secret over `<webhook-id>.<webhook-timestamp>.<raw body>`, sent base… Exports: WebhookHeaders, secretKey, sign, sameText, signatureMatches.
@@ -585,6 +587,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/supabase/migrations/20261022000000_match_invite.sql` - Private game invites (docs/architecture.md, Decision 5).
 - `packages/server/supabase/migrations/20261023000000_match_clock.sql` - A match's deadline clock (docs/architecture.md, Decision 5, "Deadlines" and "Scheduled jobs").
 - `packages/server/supabase/migrations/20261024000000_notify_queue.sql` - Turn alerts waiting to be emailed (docs/architecture.md, Decision 5, `notify_queue`: pending notifications).
+- `packages/server/supabase/migrations/20261025000000_notify_queue_waiting_seq.sql` - A turn alert stays live while its player is still waiting on that turn (#267).
 - `packages/server/tsconfig.json`
 
 ## tests

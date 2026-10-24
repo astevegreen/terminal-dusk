@@ -1,5 +1,7 @@
 // The turn alert sweep (docs/architecture.md, Decision 5, "Scheduled jobs", Notifications): email each
-// player whose turn is still waiting and still unseen 20 minutes after its alert was queued, once.
+// player whose turn is still waiting and still unseen 20 minutes after its alert was queued, once. A player is
+// still waiting when the match is at the alert's `waitingSeq`: its own seq, or a later one `keep` raised it to
+// because someone else's move left them still waiting.
 // Plain TypeScript; the scheduled job that calls it is a later task. The email text comes only from
 // `turnAlertEmail` and `appUrl`, so it never carries anything from a match.
 import type { PlayerId } from "@terminal-dusk/host";
@@ -18,8 +20,9 @@ export type TurnAlertDeps = {
 };
 
 /**
- * One due alert's outcome. `sent`: emailed and marked sent. `stale`: the match moved on, ended or is gone,
- * so it was marked sent without an email. `noAddress`: the player has no address; marked sent, no email.
+ * One due alert's outcome. `sent`: emailed and marked sent. `stale`: the match moved on past the alert's
+ * `waitingSeq`, ended or is gone, so it was marked sent without an email. `noAddress`: the player has no
+ * address; marked sent, no email.
  * `failed`: something went wrong; the alert stays due for the next sweep.
  */
 export type TurnAlertResult = { matchId: string; player: PlayerId; status: "sent" | "stale" | "noAddress" | "failed" };
@@ -44,7 +47,7 @@ async function sweepOne(deps: TurnAlertDeps, alert: TurnAlert, now: number): Pro
   const loaded = await attempt(() => deps.store.load(alert.matchId));
   if (!loaded.ok) return "failed";
   const record = loaded.value?.record;
-  if (record?.status.kind !== "active" || record.seq !== alert.seq) return markSent(deps, alert, now, "stale");
+  if (record?.status.kind !== "active" || record.seq !== alert.waitingSeq) return markSent(deps, alert, now, "stale");
   const address = await attempt(async () => deps.emailOf(alert.player));
   if (!address.ok) return "failed";
   if (address.value === null) return markSent(deps, alert, now, "noAddress");
