@@ -12,3 +12,6 @@ coverage/
 .claude/settings.local.json
 .claude/worktrees/
 .handoff/
+
+# Reviewer eval answers (tools/eval/reviewer-eval.mjs)
+tools/eval/results/

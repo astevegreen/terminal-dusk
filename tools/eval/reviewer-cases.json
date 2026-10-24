@@ -1,0 +1,29 @@
+[
+  {
+    "id": "O7d",
+    "pr": 249,
+    "issue": 215,
+    "kind": "bad",
+    "later": "#251: O7c's deadline sweep tests still expected the host to refuse a match where both sides are late; once O7d made that a draw, they failed on main.",
+    "lookFor": "sweep|O7c|bothLate|both.?late"
+  },
+  {
+    "id": "O8d",
+    "pr": 265,
+    "issue": 255,
+    "kind": "bad",
+    "later": "#267 (O8i): in a simultaneous pick, when one player answers first, the still-waiting player's alert goes stale and they never get their email.",
+    "lookFor": "simultaneous|still.waiting|stale"
+  },
+  {
+    "id": "O8e",
+    "pr": 268,
+    "issue": 256,
+    "kind": "bad, borderline",
+    "later": "#271: SonarCloud found an async fake sign-in with no await in the seen tests (a code smell, which the reviewer's rules count as style).",
+    "lookFor": "async|await"
+  },
+  { "id": "O8a", "pr": 262, "issue": 252, "kind": "clean", "later": "No later change fixed it." },
+  { "id": "R6a", "pr": 193, "issue": 184, "kind": "clean", "later": "R6b's fuzz games (#197) found no bug in R6a." },
+  { "id": "R7a", "pr": 194, "issue": 189, "kind": "clean", "later": "R7b's fuzz games (#212) found no bug in R7a." }
+]

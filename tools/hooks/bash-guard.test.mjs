@@ -199,6 +199,54 @@ test("unattended mode still allows the night shift's gh commands and keeps the n
   }
 });
 
+const skipHooks = [
+  "git commit --no-verify -m x",
+  "git commit --no-verif -m x",
+  "git commit -n -m x",
+  "git commit -nm x",
+  "git commit -anm x",
+  "git commit -m x -n",
+  "git add . && git commit -nm x",
+  "git push --no-verify -u origin task/1",
+  "git config core.hooksPath /dev/null",
+  "git config --local core.hooksPath x",
+  "git config --unset core.hooksPath",
+  "git -c core.hooksPath=/dev/null commit -m x",
+  "git -c core.hooksPath commit -m x",
+  "git --config-env core.hooksPath=X commit -m x",
+];
+
+const keepHooks = [
+  "git commit -m \"skip -n checks\"",
+  "git commit -m -n",
+  "git commit -mn",
+  "git commit -am x",
+  "git commit --amend --no-edit",
+  "git commit -F msg.txt",
+  "git push -n -u origin task/1",
+  "git config user.name x",
+];
+
+for (const command of skipHooks) {
+  test(`by day, asks before skipping git's hooks: ${command}`, () => {
+    const r = guard(command);
+    assert.equal(decision(r), "ask");
+    assert.match(r.json.hookSpecificOutput.permissionDecisionReason, /hooks/);
+  });
+  test(`unattended, blocks skipping git's hooks: ${command}`, () => {
+    const r = guard(command, ["--unattended"]);
+    assert.ok(denied(r), `expected deny, got ${r.stdout || "nothing"}`);
+    assert.match(r.json.hookSpecificOutput.permissionDecisionReason, /hooks/);
+  });
+}
+
+test("commits and pushes that keep git's hooks are left alone", () => {
+  for (const command of keepHooks) {
+    assert.equal(decision(guard(command)), "none", command);
+    assert.equal(decision(guard(command, ["--unattended"])), "none", command);
+  }
+});
+
 test("empty or malformed input is allowed silently", () => {
   const r = runHook("bash-guard.mjs", {});
   assert.equal(r.status, 0);
