@@ -54,7 +54,9 @@ export function index(S) {
 }
 // An item the snapshot doesn't hold closed before the snapshot's oldest item: it counts as closed.
 const isOpen = (n, S) => index(S).get(n)?.state === "OPEN";
-const taskPr = (n, S) => S.prs.find((p) => p.state === "OPEN" && (p.head === `task/${n}` || p.closes.includes(n)));
+// An issue's open pull request: from its branch task/<n> (or a later attempt, task/<n>-2), or one that closes it.
+export const taskPr = (n, S) =>
+  S.prs.find((p) => p.state === "OPEN" && (new RegExp(`^task/${n}(-\\d+)?$`).test(p.head) || p.closes.includes(n)));
 
 // The open tasks an issue waits for, each as its issue number (a pull request counts as the issue it closes).
 export function openDeps(issue, S) {
@@ -112,17 +114,18 @@ function prJob(pr, S, fixesLeft, { heldOnly = false } = {}) {
   if (heldOnly) return null;
   const c = checkState(pr, S);
   const conflict = pr.mergeable === "CONFLICTING";
-  if (c.requiredFailed.length || conflict || c.sonarOpen.length) {
+  if (c.requiredFailed.length || conflict || c.otherFailed.length || c.sonarOpen.length) {
     const what = [
       ...c.requiredFailed.map((n) => `the ${n} check failed`),
       ...(conflict ? ["it conflicts with its base"] : []),
+      ...c.otherFailed.map((n) => `the ${n} check failed`),
       ...c.sonarOpen.map((t) => `Sonar: ${t}`),
     ];
     return fix(what.join("; "), what.length > 1 ? `${what.length} problems` : what[0]);
   }
   if (pr.base !== "main") return null; // stacked: it waits for its base to merge first
-  // A merge job needs every check green but accepted Sonar findings, as a stacked draft does once on main.
-  if (!c.requiredGreen || c.otherFailed.length) return null;
+  // A merge job needs the required checks green; any other failure was a fix above. Stacked drafts too.
+  if (!c.requiredGreen) return null;
   if (pr.isDraft && pr.title.startsWith("[stacked on"))
     return { mode: "merge", ...job, reason: "its dependency merged, so GitHub moved it onto main" };
   if (!pr.isDraft && !pr.autoMerge) return { mode: "merge", ...job, reason: "checks green, auto-merge not yet on" };
@@ -131,21 +134,27 @@ function prJob(pr, S, fixesLeft, { heldOnly = false } = {}) {
 
 // --- Issues -----------------------------------------------------------------------------------------
 
+const adoptJob = (issue, pr, reason) => ({
+  mode: "adopt",
+  issue: issue.number,
+  pr: pr.number,
+  branch: pr.head,
+  base: pr.base,
+  draft: pr.isDraft,
+  reason,
+});
+
 // sprint-lane step 2: an in-progress issue at the start of a lane session was left by one that stopped.
 function staleJob(issue, S) {
   const pr = taskPr(issue.number, S);
   if (pr)
-    return {
-      mode: "adopt",
-      issue: issue.number,
-      pr: pr.number,
-      branch: pr.head,
-      base: pr.base,
-      draft: pr.isDraft,
-      reason: pr.isDraft
+    return adoptJob(
+      issue,
+      pr,
+      pr.isDraft
         ? "a stopped session left it in progress; its pull request is still a draft"
         : "a stopped session left it in progress; its pull request is open",
-    };
+    );
   if (has(issue, "blocked"))
     return { mode: "settle", issue: issue.number, reason: "a stopped session left it in progress and blocked" };
   return {
@@ -172,6 +181,25 @@ function buildJob(issue, S, lane) {
   return null;
 }
 
+// The owner's answer on a blocked issue, if any: such an issue is work again, and the answer is part of its spec.
+export const ownerAnswer = (issue, S) => (has(issue, "blocked") ? ownerReply(issue, S.owner) : null);
+
+// A blocked issue the owner answered, or a ready one: build it, or adopt the pull request a ready one already has.
+function issueJob(issue, S, lane) {
+  const answer = ownerAnswer(issue, S);
+  if (!answer) {
+    const pr = taskPr(issue.number, S);
+    if (pr) return adoptJob(issue, pr, `ready, but pull request #${pr.number} already exists for it`);
+  }
+  const job = buildJob(issue, S, lane);
+  if (!job || !answer) return job;
+  return {
+    ...job,
+    answer: answer.body.slice(0, 1500),
+    reason: job.stackOn ? `the owner answered; ${job.reason}` : "blocked, and the owner answered",
+  };
+}
+
 function backlogKey(issue, doc, lane) {
   const id = taskId(issue.title);
   const at = id ? (doc.backlog[lane] ?? []).indexOf(id.base) : -1;
@@ -193,17 +221,18 @@ export function next(S, doc, lane, { fixesDone = 0 } = {}) {
   }
   const stale = openWith(S, L, "in-progress").sort(byNumber)[0];
   if (stale) return staleJob(stale, S);
-  const ready = openWith(S, L, "sprint-ready")
-    .filter((i) => !has(i, "blocked"))
-    .sort((a, b) => compareKeys(backlogKey(a, doc, lane), backlogKey(b, doc, lane)));
-  for (const issue of ready) {
-    const job = buildJob(issue, S, lane);
+  const order = (list) => list.sort((a, b) => compareKeys(backlogKey(a, doc, lane), backlogKey(b, doc, lane)));
+  const answered = order(openWith(S, L, "blocked").filter((i) => ownerAnswer(i, S)));
+  const ready = order(openWith(S, L, "sprint-ready").filter((i) => !has(i, "blocked")));
+  for (const issue of [...answered, ...ready]) {
+    const job = issueJob(issue, S, lane);
     if (job) return job;
   }
   return null;
 }
 
-// The night shift's next job: held pull requests outside the sprint with an owner reply, then `ready` issues.
+// The night shift's next job: held pull requests outside the sprint with an owner reply, then blocked issues
+// outside the sprint that the owner answered, then `ready` issues.
 export function nextNight(S, doc, { fixesDone = 0 } = {}) {
   if (inWindow(doc, S.now)) return null; // the sprint's lanes have the night
   if (S.localMinutes >= NIGHT_STOP[0] && S.localMinutes < NIGHT_STOP[1]) return null;
@@ -211,10 +240,10 @@ export function nextNight(S, doc, { fixesDone = 0 } = {}) {
     const job = prJob(pr, S, FIX_PASSES - fixesDone, { heldOnly: true });
     if (job) return job;
   }
-  for (const issue of openWith(S, "ready")
-    .filter((i) => !has(i, "blocked") && !has(i, "in-progress"))
-    .sort(byNumber)) {
-    const job = buildJob(issue, S, null);
+  const answered = openWith(S, "blocked").filter((i) => !laneOf(i) && !has(i, "in-progress") && ownerAnswer(i, S));
+  const ready = openWith(S, "ready").filter((i) => !has(i, "blocked") && !has(i, "in-progress"));
+  for (const issue of [...answered.sort(byNumber), ...ready.sort(byNumber)]) {
+    const job = issueJob(issue, S, null);
     if (job) return job;
   }
   return null;
@@ -289,7 +318,7 @@ export function status(S, doc, { merged = [], lastMain = null, need = [], oldBod
   lines.push(`Free memory: ${S.freeMb} MB`);
   const needs = [
     ...S.issues
-      .filter((i) => i.state === "OPEN" && laneOf(i) && has(i, "blocked"))
+      .filter((i) => i.state === "OPEN" && laneOf(i) && has(i, "blocked") && !ownerAnswer(i, S))
       .sort(byNumber)
       .map((i) => `#${i.number} ${i.title}: blocked on a question`),
     ...S.prs

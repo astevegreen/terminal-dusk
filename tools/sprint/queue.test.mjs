@@ -56,6 +56,37 @@ test("building takes a ready issue; a blocked or unready one is refused with wha
   assert.match(r.do, /next <lane>/);
 });
 
+test("building a blocked issue the owner answered unblocks it and says so; without the owner's reply it stays refused", () => {
+  const ask = { author: "greenbeanbot", createdAt: "2026-10-21T09:00:00Z", body: "Blocked: which colour?" };
+  const answer = { author: "astevegreen", createdAt: "2026-10-21T10:00:00Z", body: "Red." };
+  const S = snap([
+    issue(5, ["lane:rules", "blocked"], { comments: [ask, answer] }),
+    issue(6, ["blocked"], { comments: [ask, answer] }),
+    issue(7, ["lane:rules", "blocked"], { comments: [{ ...answer, createdAt: "2026-10-21T08:00:00Z" }, ask] }),
+  ]);
+  assert.deepEqual(planMove(S, 5, "building").steps, [
+    ["issue", "edit", "5", "--add-label", "in-progress", "--remove-label", "blocked"],
+    ["issue", "comment", "5", "--body", "Unblocked by the owner's answer; the sprint builds it again."],
+  ]);
+  assert.deepEqual(
+    planMove(S, 6, "building").steps[1].at(-1),
+    "Unblocked by the owner's answer; the night shift builds it again.",
+  );
+  assert.equal(planMove(S, 7, "building").error, "#7 is blocked");
+});
+
+test("adopting a ready issue's pull request takes the issue out of the ready queue", () => {
+  const S = snap(
+    [issue(30, ["lane:rules", "sprint-ready"]), issue(31, ["ready"])],
+    [pr(130), pr(131, { isDraft: true })],
+  );
+  assert.deepEqual(planMove(S, 30, "waiting").steps, [
+    ["issue", "edit", "30", "--remove-label", "sprint-ready"],
+    ["pr", "edit", "130", "--add-label", "lane:rules"],
+  ]);
+  assert.deepEqual(planMove(S, 31, "waiting").steps, [["issue", "edit", "31", "--remove-label", "ready"]]);
+});
+
 test("re-queueing comments why, and is refused once the issue has a pull request or is blocked", () => {
   const S = snap(
     [

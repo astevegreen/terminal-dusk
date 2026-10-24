@@ -1,7 +1,7 @@
 // `queue.mjs move <n> <state>`: the label changes and standard comment for each change of state, planned as
 // gh commands from a snapshot. A change the sprint doesn't allow comes back as { error, do }, where `do` is a
 // line the coordinator can act on. Nothing here runs gh; queue.mjs runs the planned commands in order.
-import { HELD_CONFLICT, OWNER, index } from "./rules.mjs";
+import { HELD_CONFLICT, OWNER, index, ownerAnswer, taskPr } from "./rules.mjs";
 
 const ISSUE_STATES = ["building", "ready", "blocked", "waiting"];
 const PR_STATES = ["merging", "held", "stacked"];
@@ -15,12 +15,25 @@ function issueMove(S, issue, state, { note }) {
   const n = String(issue.number);
   const lane = laneOf(issue);
   const readyLabel = lane ? "sprint-ready" : "ready";
-  const pr = S.prs.find((p) => p.state === "OPEN" && (p.head === `task/${n}` || p.closes.includes(issue.number)));
+  const pr = taskPr(issue.number, S);
   if (issue.state !== "OPEN") return refuse(`#${n} is closed`, `Take the next job: ${NEXT}.`);
   const steps = [];
-  if (state === "building") {
-    if (has(issue, "blocked"))
+  if (state === "building" && has(issue, "blocked")) {
+    // Blocked comes back to building only on the owner's own answer; the comment marks the answer as read.
+    if (!ownerAnswer(issue, { ...S, owner: S.owner ?? OWNER }))
       return refuse(`#${n} is blocked`, `Leave it for the owner and take the next job: ${NEXT}.`);
+    if (has(issue, "in-progress"))
+      return refuse(`#${n} is already in progress`, `Take the next job: ${NEXT}; it says whether this one is stale.`);
+    const drop = ["blocked", ...(has(issue, readyLabel) ? [readyLabel] : [])];
+    steps.push(["issue", "edit", n, "--add-label", "in-progress", ...drop.flatMap((l) => ["--remove-label", l])]);
+    steps.push([
+      "issue",
+      "comment",
+      n,
+      "--body",
+      `Unblocked by the owner's answer; the ${lane ? "sprint" : "night shift"} builds it again.`,
+    ]);
+  } else if (state === "building") {
     if (has(issue, "in-progress"))
       return refuse(`#${n} is already in progress`, `Take the next job: ${NEXT}; it says whether this one is stale.`);
     if (!has(issue, readyLabel))
@@ -58,7 +71,9 @@ function issueMove(S, issue, state, { note }) {
     ]);
     if (note) steps.push(["issue", "comment", n, "--body", note]);
   } else {
-    if (has(issue, "in-progress")) steps.push(["issue", "edit", n, "--remove-label", "in-progress"]);
+    // An adopted ready issue leaves the ready queue as well.
+    const drop = ["in-progress", readyLabel].filter((l) => has(issue, l));
+    if (drop.length) steps.push(["issue", "edit", n, ...drop.flatMap((l) => ["--remove-label", l])]);
     if (lane && pr && !has(pr, lane)) steps.push(["pr", "edit", String(pr.number), "--add-label", lane]);
   }
   return { steps };

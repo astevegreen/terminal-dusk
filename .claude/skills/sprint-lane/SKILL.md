@@ -36,7 +36,8 @@ Run `Q next $ARGUMENTS --fixes-done <fix passes so far this session>`, act on it
 - `merge`: `Q move <pr> merging`.
 - `requeue`: `Q move <issue> ready`.
 - `settle`: `Q move <issue> blocked`.
-- `adopt`: `Q move <issue> waiting`. When `draft` is true, run steps 2.3 to 2.6 for it now.
+- `adopt` (work a stopped session left, or a ready issue that already has a pull request): `Q move <issue> waiting`.
+  When `draft` is true, run steps 2.3 to 2.6 for it now.
 - `fix` (one fix pass): run the implementer with "Mode: pr. Number: <pr>." and the job's `concerns`, then
   the reviewer with "Issue <issue>, branch <branch>." (add "Base: <base>." when `base` is not `main`).
   PASS: `Q move <pr> merging`, or `Q move <pr> stacked` when `base` is not `main`. Concerns left:
@@ -46,6 +47,8 @@ Run `Q next $ARGUMENTS --fixes-done <fix passes so far this session>`, act on it
 ## 2. Build
 1. `Q move <n> building`
 2. Run the implementer with "Mode: issue. Number: <n>." When the job has `stackOn`, add "Stack on: <stackOn>."
+   When it has `answer` (a blocked issue the owner answered), add "The owner answered its question; read the
+   answer as part of the spec: <answer>"
 3. STATUS DONE: run the reviewer with "Issue <n>, branch task/<n>." (add "Base: <stackOn>." when stacked).
    CONCERNS: send "Mode: fix. Number: <n>. Concerns: <list>" to the same implementer, by the agent ID step 2.2
    returned, with `SendMessage` (load it with ToolSearch), so it fixes with what it learned building the task.

@@ -32,11 +32,15 @@ Run `Q next night --fixes-done <held pull requests fixed so far tonight>`, act o
 - `fix` (a held pull request the owner answered): run the implementer with "Mode: pr. Number: <pr>.", then the
   reviewer with "Issue <issue>, branch <branch>.". PASS: `Q move <pr> merging`. Otherwise
   `Q move <pr> held --note "<concerns>"`.
+- `adopt` (a ready issue that already has a pull request): `Q move <issue> waiting`. When `draft` is true, run
+  steps 2.3 to 2.6 for it now.
 - `build`: step 2.
 
 ## 2. Ready issue
 1. `Q move <n> building`
 2. Run the implementer with "Mode: issue. Number: <n>." Pass model opus if the issue has `model:opus`.
+   When the job has `answer` (a blocked issue the owner answered), add "The owner answered its question; read
+   the answer as part of the spec: <answer>"
 3. STATUS DONE: run the reviewer with "Issue <n>, branch task/<n>."
    CONCERNS: send "Mode: fix. Number: <n>. Concerns: <list>" to the same implementer, by the agent ID step 2.2
    returned, with `SendMessage` (load it with ToolSearch), so it fixes with what it learned building the task.

@@ -238,7 +238,7 @@ test("Sonar findings the owner accepted make no work and don't stop a merge; any
   assert.deepEqual(next(S, DOC, "rules").concerns, "Sonar: Prefer `String#codePointAt()` over `String#charCodeAt()`.");
 });
 
-test("a failed required check or a conflict is a fix; a failed check that isn't required makes no job at all", () => {
+test("a failed required check or a conflict is a fix; so is a failed check that isn't required, named in the concerns", () => {
   const checks = (gate, e2e) => [
     { name: "gate", state: gate },
     { name: "tools-windows", state: "SUCCESS" },
@@ -252,7 +252,24 @@ test("a failed required check or a conflict is a fix; a failed check that isn't 
     next(snap({ prs: [pr(130, { mergeable: "CONFLICTING" })] }), DOC, "rules").reason,
     "it conflicts with its base",
   );
-  assert.equal(next(snap({ prs: [pr(130, { checks: checks("SUCCESS", "FAILURE") })] }), DOC, "rules"), null);
+  assert.deepEqual(next(snap({ prs: [pr(130, { checks: checks("SUCCESS", "FAILURE") })] }), DOC, "rules"), {
+    mode: "fix",
+    pr: 130,
+    issue: 30,
+    branch: "task/30",
+    base: "main",
+    concerns: "the e2e check failed",
+    reason: "the e2e check failed",
+  });
+  assert.equal(
+    next(
+      snap({ prs: [pr(130, { labels: ["lane:rules", "held"], checks: checks("SUCCESS", "FAILURE") })] }),
+      DOC,
+      "rules",
+    ),
+    null,
+    "a held one still waits for the owner's reply",
+  );
   assert.equal(
     next(snap({ prs: [pr(130, { checks: checks("PENDING", "SUCCESS") })] }), DOC, "rules"),
     null,
@@ -330,8 +347,9 @@ test("a stacked draft that GitHub moved onto main merges only once its checks ar
   assert.equal(next(stacked([ok("gate", "SUCCESS"), ok("tools-windows", "SUCCESS")]), DOC, "rules").mode, "merge");
   assert.equal(next(stacked([ok("gate", "PENDING"), ok("tools-windows", "SUCCESS")]), DOC, "rules"), null);
   assert.equal(
-    next(stacked([ok("gate", "SUCCESS"), ok("tools-windows", "SUCCESS"), ok("e2e", "FAILURE")]), DOC, "rules"),
-    null,
+    next(stacked([ok("gate", "SUCCESS"), ok("tools-windows", "SUCCESS"), ok("e2e", "FAILURE")]), DOC, "rules").mode,
+    "fix",
+    "a failed e2e check is fixed before the merge",
   );
 });
 
@@ -370,4 +388,115 @@ test("backlog gives a plan session its ready count, its target (6 on the plannin
   assert.equal(backlog(S, DOC, "rules").ready, 1);
   assert.equal(backlog(S, DOC, "rules").target, 3);
   assert.equal(backlog({ ...S, now: new Date("2026-10-20T15:00:00Z") }, DOC, "rules").target, 6);
+});
+
+// --- A ready issue that already has a pull request is adopted, not built again ----------------------
+
+test("October: A2a (#171) was ready with pull request #187 open at 10:30 on 21 Oct, so the lane adopts it", () => {
+  assert.deepEqual(next(at("2026-10-21T10:30:00Z"), DOC, "app"), {
+    mode: "adopt",
+    issue: 171,
+    pr: 187,
+    branch: "task/171",
+    base: "main",
+    draft: false,
+    reason: "ready, but pull request #187 already exists for it",
+  });
+});
+
+test("October: #267 was ready with draft #273 on 22 Oct; with the window over that evening, the lane adopts the draft", () => {
+  const S = at("2026-10-22T19:45:00Z");
+  const doc = { ...DOC, window: { start: DOC.window.start, end: new Date("2026-10-23T14:00:00Z") } };
+  const job = next(S, doc, "online");
+  assert.equal(job.mode, "adopt");
+  assert.equal(job.issue, 267);
+  assert.equal(job.pr, 273);
+  assert.equal(job.draft, true);
+});
+
+test("October: the night shift adopts #106's draft #120 instead of building #106 again (19 Oct)", () => {
+  const job = nextNight(at("2026-10-19T01:45:00Z", { localMinutes: 20 * 60 }), DOC);
+  assert.deepEqual(job, {
+    mode: "adopt",
+    issue: 106,
+    pr: 120,
+    branch: "task/106",
+    base: "main",
+    draft: true,
+    reason: "ready, but pull request #120 already exists for it",
+  });
+});
+
+test("a second attempt's branch (task/<n>-2) counts as the issue's pull request too", () => {
+  const S = snap({
+    issues: [issue(30, ["lane:rules", "sprint-ready"])],
+    prs: [pr(130, { head: "task/30-2", closes: [], labels: [], isDraft: true })],
+  });
+  assert.equal(next(S, DOC, "rules").mode, "adopt");
+  assert.equal(next(S, DOC, "rules").branch, "task/30-2");
+  S.prs[0].head = "task/300";
+  assert.equal(next(S, DOC, "rules").mode, "build", "task/300 is another issue's branch");
+});
+
+// --- The owner's answer unblocks a blocked issue ---------------------------------------------------
+
+test("October: the owner answered blocked O8g (#258) at 10:50 on 22 Oct; it is work again once O8d (#255) is done", () => {
+  const S = at("2026-10-22T10:55:00Z");
+  assert.ok(!status(S, DOC).needsYou.some((n) => n.startsWith("#258")), "no longer waits on the owner");
+  assert.equal(next(S, DOC, "online").issue, 255, "O8d is still being built");
+  // Had O8d merged then (the issue was closed at 11:01 instead), the lane would have built O8g with the answer.
+  const done = S.issues.find((i) => i.number === 255);
+  done.state = "CLOSED";
+  done.labels = [];
+  const job = next(S, DOC, "online");
+  assert.equal(job.mode, "build");
+  assert.equal(job.issue, 258);
+  assert.equal(job.reason, "blocked, and the owner answered");
+  assert.match(job.answer, /^Owner answer: no separate warning before the deadline\./);
+});
+
+test("a blocked issue comes back only on the owner's own reply, newer than the last sprint comment", () => {
+  const blocked = (comments) => snap({ issues: [issue(30, ["lane:rules", "blocked"], { comments })] });
+  const ask = comment("greenbeanbot", "2026-10-21T09:00:00Z", "Blocked: which colour should the badge be?");
+  assert.equal(next(blocked([ask]), DOC, "rules"), null);
+  assert.equal(
+    next(
+      blocked([ask, comment("greenbeanbot", "2026-10-21T10:00:00Z", "Owner's answer (in chat): red")]),
+      DOC,
+      "rules",
+    ),
+    null,
+    "relayed",
+  );
+  assert.equal(next(blocked([comment("astevegreen", "2026-10-21T08:00:00Z", "red"), ask]), DOC, "rules"), null);
+  assert.deepEqual(next(blocked([ask, comment("astevegreen", "2026-10-21T10:00:00Z", "Red.")]), DOC, "rules"), {
+    mode: "build",
+    issue: 30,
+    answer: "Red.",
+    reason: "blocked, and the owner answered",
+  });
+});
+
+test("the night shift builds a blocked issue the owner answered, but leaves sprint issues to the lanes", () => {
+  const night = (labels) => ({
+    ...snap({
+      issues: [
+        issue(30, labels, {
+          comments: [
+            comment("greenbeanbot", "2026-10-23T01:00:00Z", "Night shift: blocked, see the question above."),
+            comment("astevegreen", "2026-10-23T02:00:00Z", "Use the default."),
+          ],
+        }),
+      ],
+    }),
+    now: new Date("2026-10-23T07:10:00Z"),
+    localMinutes: 3 * 60 + 10,
+  });
+  assert.deepEqual(nextNight(night(["blocked"]), DOC), {
+    mode: "build",
+    issue: 30,
+    answer: "Use the default.",
+    reason: "blocked, and the owner answered",
+  });
+  assert.equal(nextNight(night(["blocked", "lane:rules"]), DOC), null);
 });
