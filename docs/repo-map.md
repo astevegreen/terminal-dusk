@@ -682,7 +682,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/hooks/no-web.test.mjs`
 - `tools/hooks/quick-check.mjs` - PostToolUse (Edit|Write): fast checks on the one file just edited.
 - `tools/hooks/quick-check.test.mjs`
-- `tools/hooks/settings.test.mjs` - Tests for the web and gh rules in .claude/settings.json, the night shift's web block and the agents' own tool limits.
+- `tools/hooks/settings.test.mjs` - Tests for the web, gh and git-hook rules in .claude/settings.json, the night shift's web block and the agents' own tool limits.
 - `tools/hooks/shared.mjs` - Helpers shared by the Claude Code hook scripts.
 - `tools/hooks/test-helpers.mjs` - Shared helpers for the hook tests (tools/hooks/*.test.mjs).
 - `tools/lib/run.mjs` - Helpers for the tool scripts: start pnpm and other commands the same way on Windows, macOS and Linux.
