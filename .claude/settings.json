@@ -59,7 +59,6 @@
       "Bash(gh auth *)",
       "Bash(git commit *--no-verify*)",
       "Bash(git commit -n *)",
-      "Bash(git commit * -n *)",
       "Bash(git push *--no-verify*)",
       "Bash(git config core.hooksPath*)",
       "Bash(git -c core.hooksPath*)",

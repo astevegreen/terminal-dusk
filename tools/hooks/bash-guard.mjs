@@ -1,9 +1,10 @@
 // PreToolUse (Bash): catch disguised versions of denied commands anywhere in a command line.
 // Permission rules only match prefixes; this checks every part of a chained command.
 // With --read-only (the reviewer), only a short list of inspection commands may run.
-// With --unattended (the night shift), owner-only gh commands are blocked. By day, gh auth and
-// gh secret are `ask` rules, and this hook lets gh api reads and gh repo view through but asks
-// the owner about anything else under gh api or gh repo.
+// With --unattended (the night shift), owner-only gh commands and skipping git's hooks are blocked.
+// By day, gh auth and gh secret are `ask` rules, and this hook lets gh api reads and gh repo view
+// through but asks the owner about anything else under gh api or gh repo, and before git's hooks
+// are skipped in any spelling the `ask` rules' prefixes miss (git commit -anm, --no-verif).
 import path from "node:path";
 import { readInput, lockedEntry, deny, decide, git, repoRootFor, canonical } from "./shared.mjs";
 
@@ -180,6 +181,45 @@ function checkGit(sub, rest) {
   return null;
 }
 
+// git takes any unambiguous start of a long option, so --no-veri and --no-verif skip hooks too.
+const isNoVerify = (a) => a.length >= "--no-veri".length && "--no-verify".startsWith(a);
+const COMMIT_LONG_VALUE = /^--(message|file|reuse-message|reedit-message|template|author|date|cleanup|fixup|squash|trailer|pathspec-from-file)$/;
+
+// True when a git commit's options include -n, alone or in a group such as -anm. A group ends at the
+// first option that takes a value (-m, -F, -C, -c, -t; -S and -u take theirs attached): -mn is the message "n".
+function commitSkipsHooks(rest) {
+  for (let i = 0; i < rest.length; i++) {
+    const a = rest[i];
+    if (a === "--") break;
+    if (isNoVerify(a)) return true;
+    if (COMMIT_LONG_VALUE.test(a)) i++;
+    else if (/^-[^-]/.test(a)) {
+      for (let j = 1; j < a.length; j++) {
+        if (a[j] === "n") return true;
+        if ("mFCct".includes(a[j])) {
+          if (j === a.length - 1) i++;
+          break;
+        }
+        if ("Su".includes(a[j])) break;
+      }
+    }
+  }
+  return false;
+}
+
+// Skipping git's hooks: --no-verify on commit or push, commit's -n, or core.hooksPath set from the command line.
+function skipsHooks(seg) {
+  const { name, args } = commandName(seg.words);
+  if (name !== "git") return false;
+  const { sub, rest, globals } = gitSub(args);
+  // -c core.hooksPath=x, or --config-env core.hooksPath=VAR (which gitSub reads as the subcommand).
+  const setsHooksPath = (a) => /^(--config-env=)?core\.hookspath=/i.test(a);
+  if (globals.some(setsHooksPath) || setsHooksPath(sub)) return true;
+  if (sub === "config") return rest.some((a) => /^core\.hookspath$/i.test(a));
+  if (sub === "push") return rest.some(isNoVerify);
+  return sub === "commit" && commitSkipsHooks(rest);
+}
+
 function check(seg) {
   const { name, args } = commandName(seg.words);
   const all = [...args, ...seg.redirects];
@@ -211,6 +251,8 @@ function check(seg) {
     const { sub } = ghSub(args);
     if (OWNER_ONLY_GH.has(sub)) return `gh ${sub} is owner-only and can't run unattended. Ask the owner on the issue instead.`;
   }
+  if (UNATTENDED && skipsHooks(seg))
+    return "skipping git's hooks (--no-verify, -n or core.hooksPath) needs the owner's OK and can't run unattended. Fix what the hook reports instead.";
   if (NETWORK.has(name) || /\bnet\.webclient\b/i.test(seg.words.join(" ")))
     return `${name} reaches the network, which agents may not do from the shell.`;
   if (READERS.has(name) && args.some(isEnvFile)) return ".env files hold secrets and must not be read.";
@@ -240,6 +282,8 @@ for (const seg of segs) {
 }
 
 if (!READ_ONLY && !UNATTENDED) {
+  if (segs.some(skipsHooks))
+    decide("ask", "bash-guard: skipping git's hooks (--no-verify, -n or core.hooksPath) needs the owner's OK.");
   const kinds = segs.map(ghKind);
   if (kinds.includes("write"))
     decide("ask", "bash-guard: gh api calls that can change GitHub, and gh repo commands other than view, need the owner's OK.");

@@ -49,12 +49,13 @@ test("bash-guard decides gh api and gh repo; gh auth and gh secret always ask", 
 test("skipping git hooks always asks the owner, in Bash and in PowerShell", () => {
   const { allow, ask } = permissions();
   // `git commit *` is allowed, so without these `git commit --no-verify` would run unasked.
-  for (const tool of ["Bash", "PowerShell"]) {
-    for (const pattern of ["git commit *--no-verify*", "git commit -n *", "git commit * -n *", "git push *--no-verify*", "git config core.hooksPath*", "git -c core.hooksPath*"]) {
-      const rule = `${tool}(${pattern})`;
-      assert.ok(ask.includes(rule), `${rule} is missing from the ask list`);
-      assert.ok(!allow.includes(rule), `${rule} is on the allow list`);
-    }
+  // bash-guard catches the spellings these prefixes miss (git commit -anm, -m x -n); PowerShell has no
+  // such hook, so it keeps the broader `* -n *`, which also asks when a message holds " -n ".
+  const patterns = ["git commit *--no-verify*", "git commit -n *", "git push *--no-verify*", "git config core.hooksPath*", "git -c core.hooksPath*"];
+  const rules = [...patterns.map((p) => `Bash(${p})`), ...[...patterns, "git commit * -n *"].map((p) => `PowerShell(${p})`)];
+  for (const rule of rules) {
+    assert.ok(ask.includes(rule), `${rule} is missing from the ask list`);
+    assert.ok(!allow.includes(rule), `${rule} is on the allow list`);
   }
 });
 
