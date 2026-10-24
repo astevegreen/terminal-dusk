@@ -1,4 +1,4 @@
-// Tests for the web and gh rules in .claude/settings.json, the night shift's web block and the agents' own tool limits.
+// Tests for the web, gh and git-hook rules in .claude/settings.json, the night shift's web block and the agents' own tool limits.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -44,6 +44,19 @@ test("bash-guard decides gh api and gh repo; gh auth and gh secret always ask", 
   // An ask rule beats a hook's allow, so these must be off the list for bash-guard to let reads through.
   for (const rule of ["Bash(gh api *)", "Bash(gh repo *)"]) assert.ok(!ask.includes(rule), `${rule} is still on the ask list`);
   for (const rule of ["Bash(gh auth *)", "Bash(gh secret *)"]) assert.ok(ask.includes(rule), `${rule} is missing from the ask list`);
+});
+
+test("skipping git hooks always asks the owner, in Bash and in PowerShell", () => {
+  const { allow, ask } = permissions();
+  // `git commit *` is allowed, so without these `git commit --no-verify` would run unasked.
+  // bash-guard catches the spellings these prefixes miss (git commit -anm, -m x -n); PowerShell has no
+  // such hook, so it keeps the broader `* -n *`, which also asks when a message holds " -n ".
+  const patterns = ["git commit *--no-verify*", "git commit -n *", "git push *--no-verify*", "git config core.hooksPath*", "git -c core.hooksPath*"];
+  const rules = [...patterns.map((p) => `Bash(${p})`), ...[...patterns, "git commit * -n *"].map((p) => `PowerShell(${p})`)];
+  for (const rule of rules) {
+    assert.ok(ask.includes(rule), `${rule} is missing from the ask list`);
+    assert.ok(!allow.includes(rule), `${rule} is on the allow list`);
+  }
 });
 
 test("marking a pull request ready and turning on auto-merge run without asking", () => {
