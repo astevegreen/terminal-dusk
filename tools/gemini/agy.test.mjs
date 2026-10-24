@@ -141,6 +141,21 @@ test("a model too busy to answer passes to the next but is not remembered", () =
   assert.deepEqual(store.out, {});
 });
 
+test("a per-minute rate limit that mentions a quota is busy, not used up, so it is not remembered", () => {
+  const limit = new Error("RESOURCE_EXHAUSTED: Quota exceeded for quota metric 'Generate requests' per minute");
+  const { result, store } = ask(["a", "b"], { a: limit, b: "ok" });
+  assert.deepEqual(result.passed, [{ model: "a", why: "was too busy" }]);
+  assert.deepEqual(store.out, {});
+});
+
+test("a model that runs out of time passes to the next, which may be faster", () => {
+  const slow = new Error("the model ran out of time (10m0s) before finishing its answer");
+  const { result, store } = ask(["a", "b"], { a: slow, b: "one note" });
+  assert.equal(result.model, "b");
+  assert.deepEqual(result.passed, [{ model: "a", why: "ran out of time" }]);
+  assert.deepEqual(store.out, {});
+});
+
 test("a model that tried a blocked command passes to the next, which may keep to the rule, and is not remembered", () => {
   // On 2026-10-24 Opus tried a command during YODC's second look and was blocked with no answer.
   const blocked = new Error("the model gave no answer after trying something it is not allowed to do (RunCommand)");

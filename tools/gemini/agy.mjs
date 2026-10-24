@@ -124,11 +124,14 @@ export function quotaFile(file = QUOTA_FILE) {
   };
 }
 
-const OUT_OF_QUOTA = /quota/i;
-// Not used up, so tried again next time, but this model won't answer now: it is too busy, or it tried a command
-// (models differ in how well they keep to "run no command").
+// A used-up quota says so, or says when it resets. A per-minute rate limit can mention a quota too
+// ("Quota exceeded for quota metric ... per minute"), so the word alone only means busy.
+const USED_UP = /individual quota|resets in/i;
+// Not used up, so tried again next time, but this model won't answer now: it is too busy, too slow for the time
+// limit (Argon and Opus are the slowest), or it tried a command (models differ in keeping to "run no command").
 const PASS_ON = [
-  [/rate.?limit|resource.?exhausted|\b429\b|overloaded|capacity/i, "was too busy"],
+  [/quota|rate.?limit|resource.?exhausted|\b429\b|overloaded|capacity/i, "was too busy"],
+  [/ran out of time/, "ran out of time"],
   [/not allowed to do/, "tried a command it may not run"],
 ];
 
@@ -137,8 +140,8 @@ const when = (d) =>
 const passedOver = (p) => `${modelName(p.model)} ${p.until ? `is out of usage until ${when(p.until)}` : p.why}`;
 
 // Asks each model in turn until one answers, skipping any the store knows is out of usage. Running out of
-// usage, being too busy, or trying a blocked command moves on to the next model; anything else (agy missing,
-// a timeout) would fail the same way on every model, so it is thrown with the model's name in front.
+// usage, or any reason in PASS_ON, moves on to the next model; anything else (agy missing, not signed in)
+// would fail the same way on every model, so it is thrown with the model's name in front.
 // Returns { model, response, passed }: passed lists the models it went past, for the report.
 export function askFirstAvailable(models, ask, store = quotaFile(), now = Date.now) {
   const passed = [];
@@ -152,7 +155,7 @@ export function askFirstAvailable(models, ask, store = quotaFile(), now = Date.n
       return { model, response: ask(model), passed };
     } catch (err) {
       const why = PASS_ON.find(([pattern]) => pattern.test(err.message))?.[1];
-      if (OUT_OF_QUOTA.test(err.message)) {
+      if (USED_UP.test(err.message)) {
         const reset = resetsAt(err.message, now());
         store.markOut(model, reset);
         passed.push({ model, until: reset });
