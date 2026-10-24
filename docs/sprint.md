@@ -1,13 +1,15 @@
-# Sprint: 27–29 October 2026
+# Sprint: the W7 rules and online play
 
-**Window (UTC):** `20261028T0000` to `20261029T1400` (Tue 27 Oct 20:00 to Thu 29 Oct 10:00, Eastern).
-Check with `date -u +%Y%m%dT%H%M`. Every sprint skill reads the window from this line, and nothing else holds
-it: to extend the sprint, change this line. Eastern is still daylight time (UTC-4) until 1 November.
+**Window (UTC):** none in this file. `/sprint-start [hours]` opens it on this computer when the owner cues the
+sprint (38 hours unless told otherwise), and `/sprint-stop` ends it early. `node tools/sprint/queue.mjs window`
+prints it, in UTC and Eastern, and every sprint skill asks it rather than reading a date here. It lives in
+`sprint-window.json` in the git folder every worktree shares, so a cue never waits for a pull request. There is
+no extend command: let it end, or stop it, and cue a new one.
 
 Inside the window this file overrides `docs/workflow.md`, the `night-shift` and `plan-tasks` skills, and the
 "wait for the owner" steps in `CLAUDE.md`, wherever they conflict. Outside it, this file is inactive.
 
-**Goal:** 38 hours with no owner input, without lowering quality: every change still has tests, passes
+**Goal:** a window (38 hours unless the cue says otherwise) with no owner input, without lowering quality: every change still has tests, passes
 `pnpm gate`, and gets a reviewer pass. What it should leave behind:
 
 - **rules:** the decided part of W7 built in the engine: the map as scenario data, influence and control, the
@@ -23,7 +25,8 @@ Inside the window this file overrides `docs/workflow.md`, the `night-shift` and 
 2. Claude applies the valid Gemini audit points itself and adds `sprint-ready` to sprint issues
    (the desktop night shift reads only `ready` and skips `lane:*` pull requests, so it leaves sprint work alone).
 3. Implementer and reviewer run on Opus for every task.
-4. No hour limit and no task cap. Up to four lanes run at once, one coordinator per lane.
+4. No hour limit and no cap on the sprint's tasks: a lane session stops after 6 and the supervisor starts a
+   fresh one the next hour. Up to four lanes run at once, one coordinator per lane.
 5. Phase 4 (online play) continues before the phase 3 gate in the build order of `docs/architecture.md`.
 6. The rules lane builds what `docs/design/map-and-points.md` decides. Anything it marks "open" is a question,
    never a guess: the planning day asks it, and the build waits for the answer or works on a test map.
@@ -42,7 +45,8 @@ Inside the window this file overrides `docs/workflow.md`, the `night-shift` and 
   question 4); and every number `map-and-points.md` marks "open".
 - Every hard rule and "Never" in `CLAUDE.md`, every hook, deny rule and Locked path.
 - Code-owned paths (`.github/CODEOWNERS`: migrations, `package.json`, lockfile, configs, golden replays) still
-  need the owner's approval on GitHub. The owner checks at about 06:00 and 19:00 Eastern on Wednesday 28 Oct.
+  need the owner's approval on GitHub. The owner checks about twice a day while the window is open, morning
+  and evening Eastern.
   Keep such changes in as few, small pull requests as possible, open them early, and build other work so it
   does not wait for them. R16 changes the golden replays; O11 adds a migration.
 - In lane `online` only, a task whose dependency is an open pull request that waits only for the owner's
@@ -53,8 +57,9 @@ Inside the window this file overrides `docs/workflow.md`, the `night-shift` and 
 
 Each open sprint issue and pull request carries exactly one lane label. One coordinator runs per lane.
 The queue's rules (whether a session has work, what a lane does next, how labels move, the status block) live
-once in `tools/sprint/queue.mjs`, which reads the window, lanes, backlog and environment from this file. The
-supervisor, lanes and night shift ask it rather than spelling the rules out.
+once in `tools/sprint/queue.mjs`, which reads the lanes, backlog and environment from this file as `origin/main`
+has it, and the window from this computer. The supervisor, lanes and night shift ask it rather than spelling
+the rules out.
 
 | Lane       | Label           | Where it works                                                              |
 | ---------- | --------------- | --------------------------------------------------------------------------- |
@@ -150,49 +155,53 @@ A proposal lays out two or three options with trade-offs and decides nothing. It
 
 ## Machinery
 
-- **Environment:** `env_…` (filled in at setup): the computer every sprint session runs on. `queue.mjs env`
+- **The cue:** in a session in the main checkout, on `main` with this file merged, the owner (or the root
+  `/sprint-cue` on this computer) runs `/sprint-start [hours]`. It asks nothing. It checks the computer, opens
+  the window, makes the supervisor and the archiver, fires the supervisor once and posts on the sprint log.
+  Its last message starts `STARTED terminal-dusk window <start>Z–<end>Z` or `REFUSED terminal-dusk: <reason>`.
+  `/sprint-start --dry-run` runs every check and read, writes nothing, and ends `DRY-RUN OK terminal-dusk` or
+  `DRY-RUN FAIL terminal-dusk: <items>`. `/sprint-stop` ends the window now and switches both tasks off.
+- **Environment:** `env_01Qq41L677xykRpHYXs2FnXL`: the computer every sprint session runs on. `queue.mjs env`
   reads it from here, and the supervisor starts sessions with it. Environment ids change when the sprint moves
   to another computer, so this line is the only place that names it.
-- One supervisor trigger, "Sprint supervisor", id `trig_…` (filled in at setup), runs
-  `.claude/skills/sprint-supervisor` on that computer at minute 2 of every hour from the evening before.
-  Outside the window its first step stops it; after the window it switches itself off by this id. It is
-  created from a session the owner started (desktop app or `claude rc`) with the remote `create_trigger` tool,
-  so any agent can edit it later: a trigger made through the HTTP API can be changed only by its own runs or by
+- **Supervisor:** "Sprint supervisor", made by `/sprint-start` with the remote `create_trigger` tool, runs
+  `.claude/skills/sprint-supervisor` in a fresh session at minute 2 of every hour. Its id is kept with the
+  window (`queue.mjs window` prints it), and after the window it switches itself off by that id. A trigger made
+  with `create_trigger` can be changed by any agent later; one made through the HTTP API only by its own runs or
   the owner.
 - It starts `Sprint lane: <lane>` sessions (`.claude/skills/sprint-lane`) and `Sprint plan: <lane>` sessions
-  (`.claude/skills/sprint-plan`), and restarts any that stopped, for example after a usage limit.
-- The sprint archiver: an hourly scheduled task at minute 50 that posts into a session the owner started
-  (`claude rc` or the desktop app), because scheduled sessions have no `archive_session`. It archives finished
-  sessions after an hour, and stuck ones (no event in 60 minutes, or 30 minutes waiting for an answer). It is on
-  before the window opens, and the dry run proves it: one finished session archived, its process gone.
-  Every run lands in the same conversation and re-reads all the runs before it (YODC's archiver used 12.9 M
-  tokens in 25 hours in October), so it runs lean:
-  - a fresh session each sprint day, which the owner starts; the schedule fires into the session it was set up
-    with, so set up each day's session and schedule on the planning day, or re-point the schedule each morning;
-  - on Haiku 5.5 (`claude-haiku-5-5`), or Sonnet at low effort: archiving is a list, a filter and a call, and
-    an archive can be undone (`unarchive_session`);
-  - with exactly this prompt, its environment id the same as the Environment line above:
-    ```
-    Sprint archiver. Use only the claude-code-remote tools list_sessions and archive_session (load them with
-    ToolSearch if they are not listed).
-    1. list_sessions with limit 50.
-    2. Archive each session where environment_id is env_…, origin is scheduled_trigger,
-       it is not this session, and one of these holds:
-       - finished: session_status is not RUNNING, status_bucket is COMPLETED, REVIEW_READY or FAILED, and
-         updated_at is over 60 minutes ago;
-       - stuck: session_status is RUNNING and updated_at is over 60 minutes ago, or status_bucket is BLOCKED
-         and updated_at is over 30 minutes ago.
-    3. Every other session stays as it is. The API prefixes these values (SESSION_STATUS_RUNNING,
-       SESSION_STATUS_BUCKET_COMPLETED).
-    Reply with one line: "Archived <n>: <titles>" (mark stuck ones "(stuck)"), or "Archived 0".
-    ```
+  (`.claude/skills/sprint-plan`), records each trigger's id (`queue.mjs started`) and finds them again by that
+  id (`queue.mjs sessions`), never in `RemoteTrigger list`, which shows only the account's newest 20. It
+  restarts any that stopped; after a usage limit, at 2 minutes past the reset the error names
+  (`queue.mjs resume`).
+- **Archiver:** "Sprint archiver", made by `/sprint-start`, posts into one session at minute 50 of every hour:
+  its own session on Haiku 5.5 (`claude-haiku-5-5`), made with `create_session`, or the start session when
+  that fails (the cue says which). `list_sessions` leaves out the sessions triggers start, so it works from the
+  ids the supervisor recorded. Every run lands in the same conversation and re-reads the ones before it (YODC's
+  archiver used 12.9 M tokens in 25 hours in October), so its prompt is short, and an archive can be undone
+  (`unarchive_session`). Exactly this prompt:
+  ```
+  Sprint archiver. In the main checkout, use only Bash for `node tools/sprint/queue.mjs`, RemoteTrigger
+  (list_runs and update) and archive_session; load them with ToolSearch if they are not listed.
+  1. `node tools/sprint/queue.mjs window`, then `node tools/sprint/queue.mjs sessions --all`: the
+     supervisor's id and the ids of the triggers it started this sprint.
+  2. RemoteTrigger list_runs on each id. Archive each run that is not this session and is finished (not
+     running, last event over 60 minutes ago) or stuck (running with no event in 60 minutes, or waiting
+     for an answer for 30). Leave every other run.
+  3. When the window says "after" and no run is left running, RemoteTrigger update its archiver id with
+     {"enabled": false}.
+  Reply with one line: "Archived <n>: <titles>" (mark stuck ones "(stuck)"), or "Archived 0".
+  ```
 - Progress and questions go to the sprint log, issue `#290`: an issue for this sprint alone, not #2, which the
-  night shift shares. (It is not pinned yet: GitHub allows three pinned issues, and #2, #3 and #4 hold them.) Its body is the status block, which the supervisor rewrites
-  every hour; comments hold the history.
-- One sprint per computer (owner, 22 Oct): no other project's sprint or soak runs on this computer during the
-  window. Proposed for this sprint: no games on it either, since a busy computer caused October's test
-  time-outs. A sprint on another computer still shares the account's usage limit, so one usage-limit stop can
-  halt both at once (21 Oct, 02:11 UTC); the supervisor restarts the lanes after it.
+  night shift shares. (It is not pinned yet: GitHub allows three pinned issues, and #2, #3 and #4 hold them.)
+  Its body is the status block, which the supervisor rewrites every hour; comments hold the history.
+- The night shift builds nothing while the window is open: `queue.mjs next night` prints `null` inside it, and
+  the night-shift skill checks the window before anything else. A task it was already building finishes;
+  `/sprint-start` names it (`queue.mjs night-shift`).
+- Other projects' sprints may run on this computer at the same time (relayed 24 Oct; approving this pull
+  request confirms it), their supervisors at minutes 22 and 42. They share the computer's memory, so the
+  supervisor keeps 1.5 GB back for each session it has already started that run (`has-work --started`), and
+  they share the account's usage limit, so one usage-limit stop can halt every lane at once (21 Oct, 02:11 UTC).
 
 ## What we measure (agent practices review, 23 Oct, items 6 and 7)
 
@@ -206,41 +215,47 @@ Claude writes these on the sprint log the morning after the window, next to Octo
   (October: 8 skipped).
 - **Time-outs:** test runs that failed on a time limit and passed on a rerun (October: 5).
 
-## Planning day (the day before the window)
+## Planning day (before the cue)
 
 - The owner runs `/sprint-plan <lane>` for each lane, one after another. Plan sessions spec each lane's first 6
   issues. Every design question goes in one issue, "Sprint questions": one numbered question per comment, with
-  options and a recommended answer. The owner answers them in one sitting before the window opens, by number;
-  plan sessions then file the items those answers settle.
+  options and a recommended answer. The owner answers them in one sitting before the cue, by number; plan
+  sessions then file the items those answers settle.
 - The reserve items are part of the backlog above, so approving this file approves them.
 - During the window, a new question goes on its task issue as usual, since lanes look for the answer there.
   The status block links it under "Needs you".
 
-## Preflight (Claude runs it the evening before; the owner fixes what it finds)
+## Preflight
 
-1. GitHub Actions: the budget has room for about 300 more runs.
-2. This computer: at least 30 GB of free disk and 8 GB of free memory; fewer than 10 sessions on the rc host
-   (archive the rest).
-3. The sprint archiver is on, and the dry run proved it (Machinery).
-4. The supervisor trigger exists, its id is in Machinery, and the dry run showed an agent can switch it off.
-5. No other project's sprint or soak runs on this computer during the window (Machinery).
-6. The "Sprint questions" issue is answered (Planning day).
-7. Browser tests run with one worker for the sprint (set in the lane prompt, not in the test config).
-8. The night shift's scheduled task is paused.
-9. Claude Code is 2.1.304 or later, both the `claude` on PATH (`claude --version`) and the copy the desktop app
+The owner, before the cue:
+
+1. GitHub Actions: the budget has room for about 300 more runs (this repository is private, and its Windows
+   job counts double).
+2. The "Sprint questions" issue is answered (Planning day).
+3. Claude Code is 2.1.304 or later, both the `claude` on PATH (`claude --version`) and the copy the desktop app
    bundles. Lanes send a reviewer's concerns back to the implementer that built the task (`SendMessage`), and
    before 2.1.304 a resumed subagent could forget its latest work. Auto-update is off on this computer
    (`autoUpdates: false`, and the desktop app sets `DISABLE_AUTOUPDATER=1`): the owner updates by hand, with
    `claude update` and the desktop app's own update.
-10. The Environment id in Machinery is listed by `list_environments`, and `node tools/sprint/queue.mjs env`
-    prints it. (October's laptop id had disappeared by 24 Oct.)
-11. Docker is running and the local Supabase stack starts on this computer, so the online lane's stack tests
-    run (in October they skipped in 8 pull requests).
-12. On the idle computer, `pnpm fuzz:quick` finishes, and its time is noted on the sprint log. A test that
-    times out during the window can then be told apart: a busy computer, or slow code.
+4. `/sprint-start --dry-run` ends `DRY-RUN OK terminal-dusk`.
+
+`/sprint-start` checks the rest itself. It refuses when one of the first three fails, and otherwise starts and
+names what is short:
+
+5. The main checkout is on `main`, clean and up to date, with this file and `tools/sprint/cue.mjs` on it.
+6. The Environment id in Machinery is listed by `list_environments`, and `queue.mjs env` prints it.
+   (October's laptop id had disappeared by 24 Oct.)
+7. No window is open already.
+8. At least 30 GB of free disk and 8 GB of free memory; fewer than 10 sessions on the rc host.
+9. Docker is running and the local Supabase stack starts, so the online lane's stack tests run (in October they
+   skipped in 8 pull requests).
+10. The night shift's task in flight, if any (`queue.mjs night-shift`): it finishes, and builds nothing more.
+
+A test that times out during the window is rerun once before anyone blames the code: the computer is shared.
 
 ## Turning it off
 
-- Pause: disable the supervisor trigger (its id is under Machinery). Running sessions finish their current task.
+- Stop: `/sprint-stop` ends the window now and switches the supervisor off. Running sessions finish their
+  current task, and the archiver switches itself off once none is left.
 - Afterwards: one pull request deletes this file, `.claude/skills/sprint-*`, the sprint lines in the `implement-issue`
   and `night-shift` skills and the `reviewer` agent, and deletes the `lane:*` and `sprint-ready` labels.

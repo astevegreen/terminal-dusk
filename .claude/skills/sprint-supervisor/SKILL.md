@@ -31,12 +31,12 @@ needs it, and put the error first in step 5. Never decide by hand instead; that 
 of the rules.
 
 ## 1. Window
-Run `date -u +%Y%m%dT%H%M` and read the window from the `Window (UTC)` line of `docs/sprint.md`.
-- Before it: print "before the window" and stop.
-- After it: `RemoteTrigger` `update` the supervisor trigger whose id is in `docs/sprint.md` (Machinery) with
-  `{"enabled": false}` (skip in dry-run), comment "Sprint over" on the sprint log issue with the lane lines
-  of `Q status`, and stop. Don't look for it with `list`: that returns only the account's newest 20
-  triggers, and asking for the next page returns the first page again.
+Run `Q window`: the window `/sprint-start` opened on this computer, with the sprint's `lanes`, its `log` issue
+and the `supervisor` id.
+- `none` or `before`: print it and stop.
+- `after`: `RemoteTrigger` `update` the `supervisor` id with `{"enabled": false}` (skip in dry-run), comment
+  "Sprint over" on the sprint log issue with the lane lines of `Q status`, and stop.
+- `open`: go on.
 
 ## 2. Sync
 In the main checkout: `git fetch origin --prune`. If `git status --porcelain` is empty and the branch is
@@ -44,21 +44,27 @@ In the main checkout: `git fetch origin --prune`. If `git status --porcelain` is
 Run `git worktree prune`.
 
 ## 3. Sessions
-Lanes: `rules`, `app`, `online`, `research`. For each lane there are two session titles:
-`Sprint lane: <lane>` and `Sprint plan: <lane>`.
+Each lane in `Q window`'s `lanes` has two session titles: `Sprint lane: <lane>` and `Sprint plan: <lane>`.
+`Q sessions` prints, for each title, the id of the newest trigger a supervisor run created for it this
+sprint, or `null`. Those recorded ids are the only way to find them: `RemoteTrigger` `list` shows only the
+account's newest 20, so a live lane would read as missing and get a second coordinator.
 
-Run `RemoteTrigger` `list`. For each of the eight titles, take the newest trigger with that exact name and
-run `list_runs` on it. Its newest run is the session:
+For each title with an id, `list_runs` on it. Its newest run is the session:
 - **Running** (`worker_status` is not `idle`, and `last_event_at` is within 60 minutes): leave it.
 - **Stuck** (running, but no event in 60 minutes, or waiting for input or permission for 30 minutes): start
   nothing for that title this run. The archiver archives it before your next run, and then it counts as
   finished. Name it in step 5. If the same run is still there and still stuck on your next run, the archiver
   is not working: put that first in step 5.
-- **Missing, or finished** (`worker_status` `idle`, `status` `archived`, or no run yet after its `run_once_at` plus 15 minutes means
-  it never started: report that too): run `Q has-work "<title>"` and start one only when it prints
-  `"start": true`. Its `reason` goes in step 5 either way.
-  First `update` every enabled trigger with that name that has no run to `{"enabled": false}`, so a late
-  start can never put two coordinators in one lane.
+- **No run yet:** `RemoteTrigger` `get` the id. Enabled, with a `run_once_at` still to come or under 15 minutes
+  ago: it is starting, or a restart scheduled after a usage limit; leave it. Otherwise it never started:
+  `update` it with `{"enabled": false}` (so a late start can never put two coordinators in one lane), report
+  it (step 4), and treat the title as missing.
+- **Finished** (`worker_status` `idle`, or `status` `archived`): run `Q resume "<the last lines of its
+  get_run_log>" --last-event <its last_event_at>`. `"start": false` means it stopped on a usage limit: start
+  its replacement only when `has-work` (below) says so, with `run_once_at` set to `after` plus 2 minutes, and
+  name the wait in step 5. Otherwise treat the title as missing.
+- **Missing** (`null`): run `Q has-work "<title>" --started <sessions you have created this run>` and start one
+  only when it prints `"start": true`. Its `reason` goes in step 5 either way.
 
 To start one, `RemoteTrigger` `create` with this body, filling the name, environment, model and prompt:
 `{"name": "<title>", "run_once_at": "<now + 1 minute, UTC, ISO 8601 with Z>", "enabled": true,
@@ -69,16 +75,14 @@ Prompt `/sprint-lane <lane>` on model `claude-sonnet-5-5` (the skill runs implem
 `/sprint-plan <lane>` on `claude-opus-5-5`. The session runs on the sprint's computer in the main checkout.
 `Q env` prints the environment id from `docs/sprint.md` (Machinery); never copy an id from anywhere else, since
 it changes when the sprint moves to another computer. If it prints an `error`, start nothing this run.
+Straight after each create, `Q started "<title>" <the new trigger's id>`. When that fails, `update` the new
+trigger with `{"enabled": false}` and put the error first in step 5: a trigger left unrecorded is one the next
+run cannot see.
 
-`has-work` answers `"start": false` with "<n> MB free, under the 4096 MB floor" when memory is low. Then start
-nothing this run, though you still read the sessions and name stuck ones, and comment "@astevegreen Supervisor:
-<n> MB free; started nothing" on the sprint log issue, so GitHub notifies the owner. Don't archive anything or
-end any process.
-
-For a finished run, read the end of `get_run_log`: if it stopped on a usage limit, find the reset time the
-error names (it may give a local time and zone: convert it to UTC) and start nothing for that title before it;
-once it has passed, start as usual. If the log names no reset time, start nothing while its last event is
-under an hour old.
+`has-work` answers `"start": false` with "<n> MB free, under the 4096 MB floor" when memory is low, counting
+1536 MB for each session already created this run. Then start nothing more this run, though you still read the
+sessions and name stuck ones, and comment "@astevegreen Supervisor: <n> MB free; started nothing" on the sprint
+log issue, so GitHub notifies the owner. Don't archive anything or end any process.
 
 Archiving is the sprint archiver's job; don't try it here.
 
