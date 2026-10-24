@@ -151,6 +151,9 @@ A proposal lays out two or three options with trade-offs and decides nothing. It
 6. The "Sprint questions" issue is answered and the reserve backlog approved (Planning day).
 7. Browser tests run with one worker for the sprint (set in the lane prompt, not in the test config).
 8. The night shift's scheduled task is paused.
+9. Claude Code is 2.1.304 or later, both the `claude` on PATH (`claude --version`) and the copy the desktop app
+   bundles. Lanes send a reviewer's concerns back to the implementer that built the task (`SendMessage`), and
+   before 2.1.304 a resumed subagent could forget its latest work.
 
 ## Turning it off
 
