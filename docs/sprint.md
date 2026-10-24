@@ -156,7 +156,9 @@ A proposal lays out two or three options with trade-offs and decides nothing. It
 8. The night shift's scheduled task is paused.
 9. Claude Code is 2.1.304 or later, both the `claude` on PATH (`claude --version`) and the copy the desktop app
    bundles. Lanes send a reviewer's concerns back to the implementer that built the task (`SendMessage`), and
-   before 2.1.304 a resumed subagent could forget its latest work.
+   before 2.1.304 a resumed subagent could forget its latest work. Auto-update is off on this computer
+   (`autoUpdates: false`, and the desktop app sets `DISABLE_AUTOUPDATER=1`): the owner updates by hand, with
+   `claude update` and the desktop app's own update.
 
 ## Turning it off
 
