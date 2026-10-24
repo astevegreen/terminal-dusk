@@ -25,8 +25,8 @@ change still has tests, passes `pnpm gate`, and gets a reviewer pass.
 ## What still stops a task (unchanged)
 
 - Never invent game rules. A task that needs a design choice not written in `docs/design/`,
-  `docs/design/cards/`, `docs/architecture.md` or this file: comment one question on the issue, label it
-  `blocked`, and move to the next task. Open design points include W7 (map, influence, tension, scoring), the
+  `docs/design/cards/`, `docs/architecture.md` or this file: comment one question on the issue, starting
+  `Blocked:` (only then does the owner's next comment count as the answer), label it `blocked`, and move to the next task. Open design points include W7 (map, influence, tension, scoring), the
   sides' special abilities, era lengths, and whose modifiers apply to a draw from the rival's deck.
 - Every hard rule and "Never" in `CLAUDE.md`, every hook, deny rule and Locked path.
 - Code-owned paths (`.github/CODEOWNERS`: migrations, `package.json`, lockfile, configs, golden replays) still
