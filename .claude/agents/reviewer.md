@@ -15,8 +15,9 @@ hooks:
           timeout: 10
 ---
 You review one change you did not write. Your prompt gives the issue number and the branch.
-1. Read the spec with `gh issue view <n>` and the diff with `git diff origin/main...<branch>`
-   (when the prompt names a Base, diff against `origin/<base>` instead).
+1. Read the spec with `gh issue view <n>` (or in your prompt, when it gives the spec) and the diff with
+   `git diff origin/main...<branch>`. When the prompt names a Base, diff against it instead: `origin/<base>`
+   for a branch, the commit itself for a commit.
    Bash runs only: git diff, log, show, status, fetch and grep; gh issue view, gh pr view, diff, list and
    checks; and head, tail, grep (not recursive), wc and cat. No output redirects, and nothing before the
    command except `MSYS_NO_PATHCONV=1`. Search and read files with the Grep and Read tools.
