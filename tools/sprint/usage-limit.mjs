@@ -1,6 +1,7 @@
 // When a session that stopped on a usage limit may be started again. The supervisor passes the end of the
-// run's log and the time of its last event; this reads the reset time the error names, converts its local
-// time and zone to UTC, and says whether that time has passed. No one converts time zones by hand.
+// run's log (on stdin, so no quote in it can break the command) and the time of its last event; this reads the
+// reset time the error names, converts its local time and zone to UTC, and says whether that time has passed.
+// No one converts time zones by hand.
 //   "You've hit your session limit · resets 4:30pm (America/New_York) (error type rate_limit, HTTP 429…)"
 //   "You've hit your weekly limit · resets Oct 28, 9am (America/New_York)"
 // With no reset time, or no zone to read it in, it waits an hour after the last event.
@@ -10,6 +11,7 @@ const RESET =
   /resets\s+(?:([A-Z][a-z]{2})\s+(\d{1,2}),?\s+(?:at\s+)?)?(\d{1,2})(?::(\d{2}))?\s*([ap]m)\s*\(([^)\s]+)\)/i;
 const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 const HOUR = 3600000;
+const MARGIN = 2 * 60000; // a restart waits 2 minutes past the reset
 const DAY = 24 * HOUR;
 
 // The zone's wall clock at an instant, as the fields of a UTC date.
@@ -65,7 +67,8 @@ function resetAt(m, zone, last) {
 
 const iso = (t) => new Date(t).toISOString().replace(/:\d{2}\.\d{3}Z$/, "Z");
 
-// { start, reason, after? }: start is false until the limit has reset. `lastEventAt` is the run's last event.
+// { start, reason, after?, restartAt? }: start is false until the limit has reset, and a replacement is scheduled
+// for restartAt, 2 minutes after it. `lastEventAt` is the run's last event.
 export function resumeAfter(text, { lastEventAt, now = new Date() } = {}) {
   const last = new Date(lastEventAt ?? NaN).getTime();
   if (Number.isNaN(last))
@@ -87,5 +90,10 @@ export function resumeAfter(text, { lastEventAt, now = new Date() } = {}) {
   const why = named
     ? `usage limit; resets ${iso(after)}`
     : `usage limit with no reset time I can read; waits until ${iso(after)}, an hour after its last event`;
-  return { start, after: iso(after), reason: start ? `${why}, which has passed` : why };
+  return {
+    start,
+    after: iso(after),
+    restartAt: iso(after + MARGIN),
+    reason: start ? `${why}, which has passed` : why,
+  };
 }

@@ -59,10 +59,12 @@ For each title with an id, `list_runs` on it. Its newest run is the session:
   ago: it is starting, or a restart scheduled after a usage limit; leave it. Otherwise it never started:
   `update` it with `{"enabled": false}` (so a late start can never put two coordinators in one lane), report
   it (step 4), and treat the title as missing.
-- **Finished** (`worker_status` `idle`, or `status` `archived`): run `Q resume "<the last lines of its
-  get_run_log>" --last-event <its last_event_at>`. `"start": false` means it stopped on a usage limit: start
-  its replacement only when `has-work` (below) says so, with `run_once_at` set to `after` plus 2 minutes, and
-  name the wait in step 5. Otherwise treat the title as missing.
+- **Finished** (`worker_status` `idle`, or `status` `archived`): give `Q resume -` the last lines of its
+  `get_run_log` on stdin, in a quoted heredoc so nothing in them runs:
+  `Q resume - --last-event <its last_event_at> <<'LOG'`, then the lines, then `LOG` alone on its line.
+  `"start": false` means it stopped on a usage limit: start its replacement only when `has-work` (below) says
+  so, with `run_once_at` set to its `restartAt`, and name the wait in step 5. Otherwise treat the title as
+  missing.
 - **Missing** (`null`): run `Q has-work "<title>" --started <sessions you have created this run>` and start one
   only when it prints `"start": true`. Its `reason` goes in step 5 either way.
 

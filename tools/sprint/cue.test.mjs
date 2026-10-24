@@ -20,8 +20,8 @@ const DOC_TEXT = OCTOBER_DOC.replace(
 ).replace("issue `#<n>` (filled in at setup)", "issue `#290`");
 const CUE = new Date("2026-10-27T23:59:30Z");
 const fresh = () => mkdtempSync(path.join(os.tmpdir(), "sprint-state-"));
-const run = (argv, opts) => {
-  const r = main(argv, { docText: DOC_TEXT, now: CUE, ...opts });
+const run = (argv, opts, stdin) => {
+  const r = main(argv, { docText: DOC_TEXT, now: CUE, stdin, ...opts });
   return { code: r.code, json: JSON.parse(r.out) };
 };
 const later = (h) => new Date(CUE.getTime() + h * 3600000);
@@ -34,7 +34,7 @@ test("a window runs from the cue, to the minute, for 38 hours unless told otherw
   assert.equal(eastern(new Date("2026-11-02T01:00:00Z")), "Sun 1 Nov 20:00", "after the clocks go back");
 });
 
-test("window start opens it on this computer, ids records the scheduled tasks, and stop ends it now", () => {
+test("window start opens it on this computer, ids records the scheduled tasks, stop ends it now, and a new one waits for the last archiver", () => {
   const dir = fresh();
   assert.equal(run(["window"], { dir }).json.state, "none");
   assert.equal(run(["window", "start", "--dry-run"], { dir }).json.state, "open");
@@ -56,7 +56,12 @@ test("window start opens it on this computer, ids records the scheduled tasks, a
   const stopped = run(["window", "stop"], { dir, now: later(3) }).json;
   assert.deepEqual([stopped.state, stopped.end], ["after", "2026-10-28T02:59Z"]);
   assert.equal(run(["window", "stop"], { dir, now: later(4) }).code, 1, "nothing left to stop");
-  assert.equal(run(["window", "start"], { dir, now: later(4) }).json.state, "open", "a new cue after a stop");
+  const early = run(["window", "start"], { dir, now: later(4) });
+  assert.equal(early.code, 1, "the last window's sessions may still be running");
+  assert.match(early.json.error, /archiver trig_01Arc is still on record/);
+  assert.equal(run(["window", "archived"], { dir, now: later(5) }).json.archiver, null, "the archiver is off");
+  assert.equal(run(["window", "start"], { dir, now: later(5) }).json.state, "open", "a new cue after a stop");
+  assert.equal(run(["window", "archived"], { dir, now: later(6) }).code, 1, "not while the window is open");
 });
 
 test("the night shift gets nothing while this computer's window is open, and works again after it", () => {
@@ -149,17 +154,18 @@ test("has-work keeps 1.5 GB back for each session the supervisor already started
   });
 });
 
-test("resume reads a run's usage-limit error without loading GitHub", () => {
+test("resume reads a run's usage-limit error from stdin without loading GitHub, and names the restart time", () => {
   const gh = () => assert.fail("resume asks GitHub nothing");
   const text = "You've hit your session limit · resets 12am (America/New_York)";
-  const r = run(["resume", text, "--last-event", "2026-10-21T02:11:00Z"], {
-    gh,
-    now: new Date("2026-10-21T03:00:00Z"),
-  });
+  const log = `${text}\nQuotes " and ' and $(date) in a log stay text`;
+  const at = { gh, now: new Date("2026-10-21T03:00:00Z") };
+  const r = run(["resume", "-", "--last-event", "2026-10-21T02:11:00Z"], at, () => log);
   assert.deepEqual(r.json, {
     start: false,
     after: "2026-10-21T04:00Z",
+    restartAt: "2026-10-21T04:02Z",
     reason: "usage limit; resets 2026-10-21T04:00Z",
   });
-  assert.equal(run(["resume", text], { gh }).code, 2, "no last event");
+  assert.equal(run(["resume", "-"], { gh }, () => text).code, 2, "no last event");
+  assert.equal(run(["resume", text, "--last-event", "2026-10-21T02:11:00Z"], at).code, 2, "the log goes on stdin");
 });

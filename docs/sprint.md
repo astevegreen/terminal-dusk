@@ -160,7 +160,9 @@ A proposal lays out two or three options with trade-offs and decides nothing. It
   the window, makes the supervisor and the archiver, fires the supervisor once and posts on the sprint log.
   Its last message starts `STARTED terminal-dusk window <start>Z–<end>Z` or `REFUSED terminal-dusk: <reason>`.
   `/sprint-start --dry-run` runs every check and read, writes nothing, and ends `DRY-RUN OK terminal-dusk` or
-  `DRY-RUN FAIL terminal-dusk: <items>`. `/sprint-stop` ends the window now and switches both tasks off.
+  `DRY-RUN FAIL terminal-dusk: <items>`. `/sprint-stop` ends the window now and switches the supervisor off;
+  the archiver switches itself off once no sprint session is left running. A new `/sprint-start` waits until
+  it has.
 - **Environment:** `env_01Qq41L677xykRpHYXs2FnXL`: the computer every sprint session runs on. `queue.mjs env`
   reads it from here, and the supervisor starts sessions with it. Environment ids change when the sprint moves
   to another computer, so this line is the only place that names it.
@@ -173,7 +175,7 @@ A proposal lays out two or three options with trade-offs and decides nothing. It
   (`.claude/skills/sprint-plan`), records each trigger's id (`queue.mjs started`) and finds them again by that
   id (`queue.mjs sessions`), never in `RemoteTrigger list`, which shows only the account's newest 20. It
   restarts any that stopped; after a usage limit, at 2 minutes past the reset the error names
-  (`queue.mjs resume`).
+  (`queue.mjs resume` gives that time as `restartAt`).
 - **Archiver:** "Sprint archiver", made by `/sprint-start`, posts into one session at minute 50 of every hour:
   its own session on Haiku 5.5 (`claude-haiku-5-5`), made with `create_session`, or the start session when
   that fails (the cue says which). `list_sessions` leaves out the sessions triggers start, so it works from the
@@ -189,7 +191,7 @@ A proposal lays out two or three options with trade-offs and decides nothing. It
      running, last event over 60 minutes ago) or stuck (running with no event in 60 minutes, or waiting
      for an answer for 30). Leave every other run.
   3. When the window says "after" and no run is left running, RemoteTrigger update its archiver id with
-     {"enabled": false}.
+     {"enabled": false}, then run `node tools/sprint/queue.mjs window archived`.
   Reply with one line: "Archived <n>: <titles>" (mark stuck ones "(stuck)"), or "Archived 0".
   ```
 - Progress and questions go to the sprint log, issue `#290`: an issue for this sprint alone, not #2, which the

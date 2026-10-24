@@ -99,6 +99,7 @@ export function sessions(doc, dir, { all = false } = {}) {
 const refuse = (error, todo) => ({ code: 1, value: { error, do: todo } });
 
 // The cue's commands: { value, code } for `window …`, `started` and `sessions`; undefined for any other command.
+// `window archived` is the archiver's last step: once it is off, the next `window start` may go ahead.
 export function cueCommand(argv, { doc, dir, now, option }) {
   const [cmd, sub, arg] = argv;
   const needDir = () => {
@@ -111,6 +112,13 @@ export function cueCommand(argv, { doc, dir, now, option }) {
     const w = newWindow(now, hours);
     if (inWindow(doc, now))
       return refuse(`a window is already open, until ${iso(doc.window.end)}`, "Report it; /sprint-stop ends it.");
+    // The last window's archiver clears its id when it switches itself off; until then its sessions may still run.
+    const last = readWindow(dir);
+    if (last?.archiver)
+      return refuse(
+        `the last window's archiver ${last.archiver} is still on record, so its sessions may still be running`,
+        "RemoteTrigger get it. Disabled: run `window archived`, then start again. Enabled: report it; it switches itself off once none of them runs.",
+      );
     if (!argv.includes("--dry-run")) writeWindow(dir, w);
     return { value: windowState({ ...doc, window: { start: new Date(w.start), end: new Date(w.end) } }, now) };
   }
@@ -134,8 +142,15 @@ export function cueCommand(argv, { doc, dir, now, option }) {
     writeWindow(dir, { ...w, end: new Date(Math.floor(now.getTime() / 60000) * 60000).toISOString() });
     return { value: windowState(withLocalWindow(doc, dir), now) };
   }
+  if (cmd === "window" && sub === "archived") {
+    needDir();
+    const w = readWindow(dir);
+    if (w && inWindow(doc, now)) return refuse("the window is still open", "Leave the archiver on until it ends.");
+    if (w?.archiver) writeWindow(dir, { ...w, archiver: null });
+    return { value: windowState(withLocalWindow(doc, dir), now) };
+  }
   if (cmd === "window")
-    throw new Error(`unknown window command "${sub}": use window, window start, window ids or window stop`);
+    throw new Error(`unknown window command "${sub}": use window, window start, ids, stop or archived`);
   if (cmd === "started") {
     needDir();
     const m = TITLE.exec(sub ?? "");

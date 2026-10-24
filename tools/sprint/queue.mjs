@@ -6,10 +6,10 @@
 //   backlog <lane>                 {"ready": n, "target": n, "todo": [backlog IDs with no issue yet]}, for sprint-plan
 //   status [--need "…"]... [--write]   {"body": "…", "needsYou": [...], "newNeeds": [...]}; --write puts the body on the sprint log issue
 //   env                            {"environment_id": "env_…"}, the computer sessions start on (Machinery)
-//   window [start [hours] [--dry-run] | ids --supervisor <id> --archiver <id> | stop]   {"state", "start", "end", …}
+//   window [start [hours] [--dry-run] | ids --supervisor <id> --archiver <id> | stop | archived]   {"state", "start", …}
 //   started "<session title>" <trigger id>    records a trigger the supervisor created; sessions [--all] reads them
 //   night-shift                    {"active", "building", "reason"}: night-shift tasks still in flight
-//   resume "<end of a run's log>" --last-event <ISO>   {"start", "after", "reason"}: waits out a usage limit
+//   resume - --last-event <ISO>   the end of a run's log on stdin; {"start", "after", "restartAt", "reason"}
 // The rules are in rules.mjs (and moves.mjs, cue.mjs, usage-limit.mjs); this file loads GitHub's state and runs
 // the planned gh commands. docs/sprint.md is read as origin/main has it; the window is this computer's own
 // (local-state.mjs), which /sprint-start sets.
@@ -32,7 +32,7 @@ import { resumeAfter } from "./usage-limit.mjs";
 const ROOT = path.resolve(import.meta.dirname, "..", "..");
 const STOP = "Stop and report this error to the owner; don't fall back to the prose rules.";
 const USAGE =
-  'usage: queue.mjs has-work "<title>" [--started <k>] | next <lane|night> [--fixes-done <k>] | move <n> <state> [--note "…"] [--conflict] [--dry-run] | backlog <lane> | status [--need "…"] [--write] | env | window [start [hours] | ids | stop] | started "<title>" <trigger id> | sessions [--all] | night-shift | resume "<log>" --last-event <ISO>';
+  'usage: queue.mjs has-work "<title>" [--started <k>] | next <lane|night> [--fixes-done <k>] | move <n> <state> [--note "…"] [--conflict] [--dry-run] | backlog <lane> | status [--need "…"] [--write] | env | window [start [hours] | ids | stop | archived] | started "<title>" <trigger id> | sessions [--all] | night-shift | resume - --last-event <ISO> (the log on stdin)';
 const SESSION_MB = 1536; // what one new session is counted as using before it shows in free memory
 
 export function runGh(args) {
@@ -211,8 +211,11 @@ function option(args, name) {
 const options = (args, name) => args.flatMap((a, i) => (a === name ? [args[i + 1]] : []));
 
 // Runs one command; returns { code, out } with `out` a single line of JSON.
-// `dir` is the local state folder; tests pass their own, and --doc or --fixture use none.
-export function main(argv, { gh = runGh, docText, now, freeMb, localMinutes, dir } = {}) {
+// `dir` is the local state folder; tests pass their own, and --doc or --fixture use none. `stdin` reads `resume -`.
+export function main(
+  argv,
+  { gh = runGh, docText, now, freeMb, localMinutes, dir, stdin = () => readFileSync(0, "utf8") } = {},
+) {
   const line = (value, code = 0) => ({ code, out: JSON.stringify(value) });
   try {
     // Between sprints docs/sprint.md may be gone: then there is no window and no lane, and the night shift runs.
@@ -236,8 +239,8 @@ export function main(argv, { gh = runGh, docText, now, freeMb, localMinutes, dir
     const cue = cueCommand(argv, { doc, dir: local, now: clock, option });
     if (cue) return line(cue.value, cue.code);
     if (argv[0] === "resume") {
-      if (!argv[1] || argv[1].startsWith("--")) throw new Error(USAGE);
-      return line(resumeAfter(argv[1], { lastEventAt: option(argv, "--last-event"), now: clock }));
+      if (argv[1] !== "-") throw new Error(USAGE);
+      return line(resumeAfter(stdin(), { lastEventAt: option(argv, "--last-event"), now: clock }));
     }
     const freeOpt = option(argv, "--free-mb");
     const S = fixture

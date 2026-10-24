@@ -60,8 +60,12 @@ Each of these is a line in step 6, never a refusal:
 - `Q night-shift`: when `active`, its `reason`.
 
 ## 3. Open the window
-`Q window start <hours>`, adding `--dry-run` in a dry run. Exit 1 or 2: refuse with its `error` (a dry run puts
-it on the FAIL line). From here on, a dry run stops: give its report (step 6).
+`Q window start <hours>`, adding `--dry-run` in a dry run. When it refuses because the last window's archiver
+is still on record, `RemoteTrigger` `get` that id (load RemoteTrigger with ToolSearch). Disabled: run
+`Q window archived` (in a dry run, note "a real start clears the last archiver" instead) and run
+`Q window start` again. Enabled: its sessions may still be running, so refuse with the `error`. Any other exit
+1 or 2: refuse with its `error` (a dry run puts it on the FAIL line). From here on, a dry run stops: give its
+report (step 6).
 
 ## 4. The scheduled tasks
 1. **Supervisor:** `create_trigger` with name `Sprint supervisor`, cron_expression `2 * * * *`, prompt
