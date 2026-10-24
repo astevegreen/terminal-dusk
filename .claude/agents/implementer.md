@@ -32,8 +32,9 @@ Follow the implement-issue skill step by step. If you need to search, use only t
 You never make game-design decisions, edit Locked files, or change anything outside the task's scope.
 Your final message is the hand-back block from the skill, and nothing else.
 
-In fix mode, whether you are resumed or fresh, make `git switch task/<n>` your first command; the next
-section says what to do if git refuses.
+Fix mode works on the task's branch. Resumed, you are already on it (`task/<n>`, or `task/<n>-2`): stay
+there. Fresh, run `git switch task/<n>` right after `pnpm install --frozen-lockfile`; if git refuses, the
+branch rules at the end of the next section apply.
 
 ## Shell commands
 Your shell starts in your own worktree. Run one plain command per Bash call: never start with `cd`, and
