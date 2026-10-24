@@ -122,10 +122,32 @@ A proposal lays out two or three options with trade-offs and decides nothing. It
   the owner.
 - It starts `Sprint lane: <lane>` sessions (`.claude/skills/sprint-lane`) and `Sprint plan: <lane>` sessions
   (`.claude/skills/sprint-plan`), and restarts any that stopped, for example after a usage limit.
-- The sprint archiver: an hourly scheduled task at minute 50 that posts into a long-lived session the owner
-  started (`claude rc` or the desktop app), because scheduled sessions have no `archive_session`. It archives
-  finished sessions after an hour, and stuck ones (no event in 60 minutes, or 30 minutes waiting for an answer).
-  It is on before the window opens, and the dry run proves it: one finished session archived, its process gone.
+- The sprint archiver: an hourly scheduled task at minute 50 that posts into a session the owner started
+  (`claude rc` or the desktop app), because scheduled sessions have no `archive_session`. It archives finished
+  sessions after an hour, and stuck ones (no event in 60 minutes, or 30 minutes waiting for an answer). It is on
+  before the window opens, and the dry run proves it: one finished session archived, its process gone.
+  Every run lands in the same conversation and re-reads all the runs before it (YODC's archiver used 12.9 M
+  tokens in 25 hours in October), so it runs lean:
+  - a fresh session each sprint day, which the owner starts; the schedule fires into the session it was set up
+    with, so set up each day's session and schedule on the planning day, or re-point the schedule each morning;
+  - on Haiku 5.5 (`claude-haiku-5-5`), or Sonnet at low effort: archiving is a list, a filter and a call, and
+    an archive can be undone (`unarchive_session`);
+  - with exactly this prompt:
+    ```
+    Sprint archiver. Use only the claude-code-remote tools list_sessions and archive_session (load them with
+    ToolSearch if they are not listed).
+    1. list_sessions with limit 50.
+    2. Archive each session where environment_id is env_01NzJ5sYBdPtRrLcXKYr7zTM, origin is scheduled_trigger,
+       it is not this session, and one of these holds:
+       - finished: session_status is not RUNNING, status_bucket is COMPLETED, REVIEW_READY or FAILED, and
+         updated_at is over 60 minutes ago;
+       - stuck: session_status is RUNNING and updated_at is over 60 minutes ago, or status_bucket is BLOCKED
+         and updated_at is over 30 minutes ago.
+    3. Every other session stays as it is. The API prefixes these values (SESSION_STATUS_RUNNING,
+       SESSION_STATUS_BUCKET_COMPLETED).
+    Reply with one line: "Archived <n>: <titles>" (mark stuck ones "(stuck)"), or "Archived 0".
+    ```
+  - Measure its tokens per day (the session's usage), against October's.
 - Progress and questions go to the sprint log, issue `#<n>` (filled in at setup): a pinned issue for this sprint
   alone, not #2, which the night shift shares. Its body is the status block, which the supervisor rewrites
   every hour; comments hold the history.
