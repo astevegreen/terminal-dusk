@@ -51,10 +51,11 @@ Each of these is a line in step 6, never a refusal:
 - Under 30 GB of free disk or 8192 MB of free memory:
   `node -e "const s=require('fs').statfsSync('.');console.log(Math.round(s.bavail*s.bsize/2**30))"` (GB) and
   `node -e "console.log(Math.round(require('os').freemem()/2**20))"` (MB).
-- 10 or more of this sprint's sessions are not archived: "archive some on the rc host". Count them with
-  `list_sessions` (`mine: true`, `limit: 100`, then `after_id` for the next page while `has_more`, up to 3 pages):
-  only those whose `environment_id` is the one `Q env` printed and whose `session_status` is not
-  `SESSION_STATUS_ARCHIVED`. Other projects' sprints share the computer, and their sessions are theirs to archive.
+- 10 or more sessions in this project's environment are not archived: "archive some on the rc host". Count them
+  with `list_sessions` (`mine: true`, `limit: 100`; while `has_more` and fewer than 10 are counted, call it again
+  with `after_id` set to the last response's `last_id`, up to 3 pages): only those whose `environment_id` is the
+  one `Q env` printed and whose `session_status` is not `SESSION_STATUS_ARCHIVED`. Other projects' sprints share
+  the computer, and their sessions are theirs to archive.
 - The local Supabase stack: `docker info --format "{{.ServerVersion}}"` succeeds, and
   `pnpm --filter @terminal-dusk/server exec supabase status > /dev/null 2>&1` exits 0. When it doesn't (and
   this is no dry run), run `pnpm --filter @terminal-dusk/server exec supabase start > /dev/null 2>&1` and check
