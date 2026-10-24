@@ -205,6 +205,7 @@ const skipHooks = [
   "git config --local core.hooksPath x",
   "git config --unset core.hooksPath",
   "git -c core.hooksPath=/dev/null commit -m x",
+  "git -c core.hooksPath commit -m x",
   "git --config-env core.hooksPath=X commit -m x",
 ];
 

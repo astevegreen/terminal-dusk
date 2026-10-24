@@ -212,8 +212,9 @@ function skipsHooks(seg) {
   const { name, args } = commandName(seg.words);
   if (name !== "git") return false;
   const { sub, rest, globals } = gitSub(args);
-  // -c core.hooksPath=x, or --config-env core.hooksPath=VAR (which gitSub reads as the subcommand).
-  const setsHooksPath = (a) => /^(--config-env=)?core\.hookspath=/i.test(a);
+  // -c core.hooksPath=x, a bare -c core.hooksPath (git reads it as "true", a folder with no hooks), or
+  // --config-env core.hooksPath=VAR (which gitSub reads as the subcommand).
+  const setsHooksPath = (a) => /^(--config-env=)?core\.hookspath(=|$)/i.test(a);
   if (globals.some(setsHooksPath) || setsHooksPath(sub)) return true;
   if (sub === "config") return rest.some((a) => /^core\.hookspath$/i.test(a));
   if (sub === "push") return rest.some(isNoVerify);
