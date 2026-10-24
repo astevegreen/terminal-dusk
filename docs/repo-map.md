@@ -430,6 +430,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/package.json`
 - `packages/host/src/clock.test.ts`
 - `packages/host/src/clock.ts` - A match's clock: who must answer by when, and who has had their grace extension (architecture Decision 5, "Deadlines"). Exports: validDeadline, lengthOf, startClock, nextClock, deadlineEffects, isLate, hasGrace, validClock.
+- `packages/host/src/entitlement.test.ts`
+- `packages/host/src/entitlement.ts` - Who may create an online game (docs/architecture.md, Product calls: "Free players cannot create online games"). Exports: PLATFORMS, Platform, Entitlement, isPlatform, isEntitlement, createOnlineRefusal.
 - `packages/host/src/firstDeck.test.ts`
 - `packages/host/src/firstDeck.ts` - The first deck as a game the app can start: the ruleset, a match config, and card names. Exports: FIRST_DECK_NOTE, firstDeckRuleset, firstDeckCardName, firstDeckCardQuestion, firstDeckConfig.
 - `packages/host/src/firstDeckQuestion.test.ts`
@@ -450,7 +452,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/src/hostTimeout.test.ts`
 - `packages/host/src/hostTimeout.ts` - A missed deadline: the server's deadline job (never a player) tells the host that `side` was late. Exports: hostTimeout.
 - `packages/host/src/index.test.ts`
-- `packages/host/src/index.ts` - Public entry point of MatchHost (docs/architecture.md, Decision 3). Exports: hostCreate, hostSubmit, hostTimeout, hostDeadline, hostArchive, DeadlineRule, Frame, HostEffect, HostError, HostErrorCode, HostOutcome, HostResult, ….
+- `packages/host/src/index.ts` - Public entry point of MatchHost (docs/architecture.md, Decision 3). Exports: hostCreate, hostSubmit, hostTimeout, hostDeadline, hostArchive, createOnlineRefusal, isEntitlement, isPlatform, PLATFORMS, Entitlement, Platform, DeadlineRule, ….
 - `packages/host/src/test/clock.ts` - Test helpers for matches with deadlines. Exports: DAY, startedWith, lioToPlay, clockOf, withClock, swept.
 - `packages/host/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
 - `packages/host/src/test/leaks.ts` - Test helpers for leak checks, copying the idea of tests/fuzz/checks.ts (hiddenFrom, leaksIn). Exports: hiddenFrom, leaksIn.

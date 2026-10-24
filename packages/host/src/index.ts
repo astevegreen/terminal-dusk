@@ -4,6 +4,8 @@ export { hostSubmit } from "./hostSubmit.ts";
 export { hostTimeout } from "./hostTimeout.ts";
 export { hostDeadline } from "./hostDeadline.ts";
 export { hostArchive } from "./hostArchive.ts";
+export { createOnlineRefusal, isEntitlement, isPlatform, PLATFORMS } from "./entitlement.ts";
+export type { Entitlement, Platform } from "./entitlement.ts";
 export type {
   DeadlineRule,
   Frame,
