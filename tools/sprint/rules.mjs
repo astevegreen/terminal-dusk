@@ -181,8 +181,11 @@ function buildJob(issue, S, lane) {
   return null;
 }
 
-// The owner's answer on a blocked issue, if any: such an issue is work again, and the answer is part of its spec.
-export const ownerAnswer = (issue, S) => (has(issue, "blocked") ? ownerReply(issue, S.owner) : null);
+// The owner's answer to the question an agent asked in a comment on a blocked issue (the implementer's, or
+// `move blocked --note`): the issue is work again, and the answer is part of its spec. An issue the plan blocked
+// keeps its question in the body and has only a Goal, and one the owner blocked has no question: neither counts.
+export const ownerAnswer = (issue, S) =>
+  has(issue, "blocked") && issue.comments.some((c) => isSprint(c, S.owner)) ? ownerReply(issue, S.owner) : null;
 
 // A blocked issue the owner answered, or a ready one: build it, or adopt the pull request a ready one already has.
 function issueJob(issue, S, lane) {

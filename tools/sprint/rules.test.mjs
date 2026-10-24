@@ -440,19 +440,26 @@ test("a second attempt's branch (task/<n>-2) counts as the issue's pull request 
 
 // --- The owner's answer unblocks a blocked issue ---------------------------------------------------
 
-test("October: the owner answered blocked O8g (#258) at 10:50 on 22 Oct; it is work again once O8d (#255) is done", () => {
+test("October: O8g (#258) was blocked by the plan with its question in the body; the owner's answer doesn't send that Goal-only issue to a lane", () => {
   const S = at("2026-10-22T10:55:00Z");
-  assert.ok(!status(S, DOC).needsYou.some((n) => n.startsWith("#258")), "no longer waits on the owner");
-  assert.equal(next(S, DOC, "online").issue, 255, "O8d is still being built");
-  // Had O8d merged then (the issue was closed at 11:01 instead), the lane would have built O8g with the answer.
-  const done = S.issues.find((i) => i.number === 255);
+  const done = S.issues.find((i) => i.number === 255); // as if O8d, which it waits on, had merged
   done.state = "CLOSED";
   done.labels = [];
+  assert.equal(next(S, DOC, "online").issue, 256, "the lane builds O8f (#256), not O8g");
+  assert.ok(
+    status(S, DOC).needsYou.includes(`#258 ${S.issues.find((i) => i.number === 258).title}: blocked on a question`),
+  );
+  // Had the implementer blocked it with a question comment, the same answer would bring it back with the answer.
+  const o8g = S.issues.find((i) => i.number === 258);
+  o8g.comments.unshift(
+    comment("greenbeanbot", "2026-10-22T05:00:00Z", "Blocked: a warning email before the deadline?"),
+  );
   const job = next(S, DOC, "online");
   assert.equal(job.mode, "build");
   assert.equal(job.issue, 258);
   assert.equal(job.reason, "blocked, and the owner answered");
   assert.match(job.answer, /^Owner answer: no separate warning before the deadline\./);
+  assert.ok(!status(S, DOC).needsYou.some((n) => n.startsWith("#258")), "no longer waits on the owner");
 });
 
 test("a blocked issue comes back only on the owner's own reply, newer than the last sprint comment", () => {
@@ -499,4 +506,7 @@ test("the night shift builds a blocked issue the owner answered, but leaves spri
     reason: "blocked, and the owner answered",
   });
   assert.equal(nextNight(night(["blocked", "lane:rules"]), DOC), null);
+  const noQuestion = night(["blocked"]);
+  noQuestion.issues[0].comments.shift();
+  assert.equal(nextNight(noQuestion, DOC), null, "the owner's own note on an issue he blocked is no answer");
 });
