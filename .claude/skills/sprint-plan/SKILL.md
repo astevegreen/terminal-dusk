@@ -22,16 +22,15 @@ build. Owner permission 1 in that file approves the backlog, so you do not wait 
 files, write code, or invent game rules. `L` below is the label `lane:$ARGUMENTS`.
 
 `node tools/sprint/queue.mjs backlog $ARGUMENTS` prints `ready` (the lane's open `sprint-ready` issues), `target`
-(3 during the window, 6 on the planning day) and `todo` (its backlog IDs with no issue yet, in backlog order; an
+(3 while the window is open, 6 outside it: the planning day) and `todo` (its backlog IDs with no issue yet, in backlog order; an
 ID is done once an issue for it or one of its lettered parts exists). If it prints an `error` or no JSON, stop
 and report the error in your log comment.
 
-Stop when `date -u +%Y%m%dT%H%M` is past the end of the `Window (UTC)` line of `docs/sprint.md`, `ready` has
-reached `target`, or `todo` has no item left to take.
+`node tools/sprint/queue.mjs window` says whether the window is `open`; anything else is the planning day.
+Stop when `ready` has reached `target`, or `todo` has no item left to take.
 
 ## 1. Pick
 Run `backlog` (above) and read each `todo` item's line in `docs/sprint.md`.
-R1-R3 are done; their issues still need step 4 and step 5 while they have `spec-review` (step 5 removes it).
 Take the first `todo` item, skipping one with an unanswered question on "Sprint questions" (step 2).
 Read only what its spec needs: `docs/repo-map.md`, the design files it
 names, the related decisions in `docs/architecture.md`, and the code files the Explore agent points you to.
@@ -41,10 +40,10 @@ First read the "Sprint questions" issue (`docs/sprint.md`, Planning day): an `as
 answers a question by number settles it, like a line of `docs/design/`.
 If the item needs a game-design choice that is not written in `docs/design/`, `docs/design/cards/`,
 `docs/architecture.md`, `docs/sprint.md` (see "What still stops a task") or those answers:
-- before the window (the planning day): comment it on "Sprint questions" (create that issue if it is missing)
+- on the planning day: comment it on "Sprint questions" (create that issue if it is missing)
   as `Q<next number> <ID>: <question>`, with options and a recommended answer. File nothing for the item yet,
   and go to the next item.
-- during the window: create the issue with the Goal and one question, label it `L` and `blocked`, and go to
+- while the window is open: create the issue with the Goal and one question, label it `L` and `blocked`, and go to
   the next item.
 
 A bug item: check it still happens on today's `origin/main`. Run its repro steps when it has them; otherwise

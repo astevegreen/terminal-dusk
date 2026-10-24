@@ -1,29 +1,39 @@
 // `node tools/sprint/queue.mjs <command>`: the sprint's queue rules, asked by the supervisor, the lanes and
 // the night shift instead of each applying its own prose copy. Prints one line of JSON:
-//   has-work "<session title>"     {"start": bool, "reason": "…"}
+//   has-work "<session title>" [--started <k>]   {"start": bool, "reason": "…"}; k sessions this run already started
 //   next <lane|night> [--fixes-done <k>]   the next job, or null
 //   move <n> <state> [--note "…"] [--conflict] [--dry-run]   {"moved": n, "to": state, "ran": [...]}, or {"error", "do"}
 //   backlog <lane>                 {"ready": n, "target": n, "todo": [backlog IDs with no issue yet]}, for sprint-plan
 //   status [--need "…"]... [--write]   {"body": "…", "needsYou": [...], "newNeeds": [...]}; --write puts the body on the sprint log issue
 //   env                            {"environment_id": "env_…"}, the computer sessions start on (Machinery)
-// The rules are in rules.mjs (and moves.mjs); this file loads GitHub's state and runs the planned gh commands.
+//   window [start [hours] [--dry-run] | ids --supervisor <id> --archiver <id> | stop | archived]   {"state", "start", …}
+//   started "<session title>" <trigger id>    records a trigger the supervisor created; sessions [--all] reads them
+//   night-shift                    {"active", "building", "reason"}: night-shift tasks still in flight
+//   resume - --last-event <ISO>   the end of a run's log on stdin; {"start", "after", "restartAt", "reason"}
+// The rules are in rules.mjs (and moves.mjs, cue.mjs, usage-limit.mjs); this file loads GitHub's state and runs
+// the planned gh commands. docs/sprint.md is read as origin/main has it; the window is this computer's own
+// (local-state.mjs), which /sprint-start sets.
 // `--fixture <file.jsonl> --at <ISO time> [--free-mb <n>]` answers from a recorded sprint instead of GitHub.
-// `--doc <file>` reads that sprint document instead of docs/sprint.md.
+// `--doc <file>` reads that sprint document instead, and the window from it alone.
 // Any failure prints {"error", "do"} and exits 2: the caller stops and reports, and never falls back to prose.
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { report } from "../sonar.mjs";
+import { cueCommand, nightShiftWork, withLocalWindow } from "./cue.mjs";
+import { stateDir } from "./local-state.mjs";
 import { OWNER, SONAR_CHECK, backlog, hasWork, next, nextNight, status } from "./rules.mjs";
 import { planMove } from "./moves.mjs";
 import { readFixture, snapshotAt } from "./replay.mjs";
 import { readSprintDoc } from "./sprint-doc.mjs";
+import { resumeAfter } from "./usage-limit.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..", "..");
 const STOP = "Stop and report this error to the owner; don't fall back to the prose rules.";
 const USAGE =
-  'usage: queue.mjs has-work "<title>" | next <lane|night> [--fixes-done <k>] | move <n> <state> [--note "…"] [--conflict] [--dry-run] | backlog <lane> | status [--need "…"] [--write] | env';
+  'usage: queue.mjs has-work "<title>" [--started <k>] | next <lane|night> [--fixes-done <k>] | move <n> <state> [--note "…"] [--conflict] [--dry-run] | backlog <lane> | status [--need "…"] [--write] | env | window [start [hours] | ids | stop | archived] | started "<title>" <trigger id> | sessions [--all] | night-shift | resume - --last-event <ISO> (the log on stdin)';
+const SESSION_MB = 1536; // what one new session is counted as using before it shows in free memory
 
 export function runGh(args) {
   const r = spawnSync("gh", args, { cwd: ROOT, encoding: "utf8", windowsHide: true, maxBuffer: 64 * 1024 * 1024 }); // NOSONAR (javascript:S4036)
@@ -180,6 +190,17 @@ function statusFacts(doc, gh) {
   return { merged, lastMain: last && { ...last, ci: run ? run.conclusion || run.status : "unknown" }, oldBody };
 }
 
+// docs/sprint.md as main has it (origin/main, as of the last fetch), so a checkout left on another branch still
+// reads the sprint's lanes and backlog. The working tree's copy only when there is no origin/main.
+function mainDoc() {
+  const ref = "origin/main:docs/sprint.md";
+  const r = spawnSync("git", ["show", ref], { cwd: ROOT, encoding: "utf8", windowsHide: true }); // NOSONAR (javascript:S4036)
+  if (r.status === 0) return r.stdout;
+  if (/does not exist in|exists on disk, but not in/.test(r.stderr ?? "")) return ""; // between sprints
+  const file = path.join(ROOT, "docs", "sprint.md");
+  return existsSync(file) ? readFileSync(file, "utf8") : "";
+}
+
 function option(args, name) {
   const i = args.indexOf(name);
   return i < 0 ? undefined : args[i + 1];
@@ -187,12 +208,24 @@ function option(args, name) {
 const options = (args, name) => args.flatMap((a, i) => (a === name ? [args[i + 1]] : []));
 
 // Runs one command; returns { code, out } with `out` a single line of JSON.
-export function main(argv, { gh = runGh, docText, now, freeMb, localMinutes } = {}) {
+// `dir` is the local state folder; tests pass their own, and --doc or --fixture use none. `stdin` reads `resume -`.
+export function main(
+  argv,
+  { gh = runGh, docText, now, freeMb, localMinutes, dir, stdin = () => readFileSync(0, "utf8") } = {},
+) {
   const line = (value, code = 0) => ({ code, out: JSON.stringify(value) });
   try {
     // Between sprints docs/sprint.md may be gone: then there is no window and no lane, and the night shift runs.
-    const docFile = option(argv, "--doc") ?? path.join(ROOT, "docs", "sprint.md");
-    const doc = readSprintDoc(docText ?? (existsSync(docFile) ? readFileSync(docFile, "utf8") : ""));
+    const docFile = option(argv, "--doc");
+    const fixture = option(argv, "--fixture");
+    const alone = docText !== undefined || docFile || fixture;
+    let text = docText;
+    if (text === undefined && docFile) text = existsSync(docFile) ? readFileSync(docFile, "utf8") : "";
+    text ??= mainDoc();
+    let local = dir;
+    if (local === undefined) local = alone ? null : stateDir(ROOT);
+    const doc = withLocalWindow(readSprintDoc(text), local);
+    const clock = now ?? new Date();
     if (argv[0] === "env") {
       if (!doc.environment)
         throw new Error(
@@ -200,7 +233,12 @@ export function main(argv, { gh = runGh, docText, now, freeMb, localMinutes } = 
         );
       return line({ environment_id: doc.environment });
     }
-    const fixture = option(argv, "--fixture");
+    const cue = cueCommand(argv, { doc, dir: local, now: clock, option });
+    if (cue) return line(cue.value, cue.code);
+    if (argv[0] === "resume") {
+      if (argv[1] !== "-") throw new Error(USAGE);
+      return line(resumeAfter(stdin(), { lastEventAt: option(argv, "--last-event"), now: clock }));
+    }
     const freeOpt = option(argv, "--free-mb");
     const S = fixture
       ? snapshotAt(readFixture(readFileSync(fixture, "utf8")), option(argv, "--at") ?? now ?? new Date(), {
@@ -213,7 +251,19 @@ export function main(argv, { gh = runGh, docText, now, freeMb, localMinutes } = 
           ...(localMinutes !== undefined && { localMinutes }),
         });
     const [cmd, a1, a2] = argv;
-    if (cmd === "has-work" && a1) return line(hasWork(S, doc, a1));
+    if (cmd === "has-work" && a1) {
+      const started = Number(option(argv, "--started") ?? 0);
+      const r = hasWork({ ...S, freeMb: S.freeMb - SESSION_MB * started }, doc, a1);
+      return line(
+        started && /MB free/.test(r.reason)
+          ? {
+              ...r,
+              reason: `${r.reason}, counting ${SESSION_MB} MB for each of the ${started} sessions started this run`,
+            }
+          : r,
+      );
+    }
+    if (cmd === "night-shift") return line(nightShiftWork(S));
     if (cmd === "next" && a1) {
       const fixesDone = Number(option(argv, "--fixes-done") ?? 0);
       if (a1 === "night") return line(nextNight(S, doc, { fixesDone }));

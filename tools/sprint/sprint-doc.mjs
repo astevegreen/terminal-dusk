@@ -1,6 +1,6 @@
 // Reads what the sprint queue needs from docs/sprint.md: the window, the lanes, each lane's backlog IDs, the
 // sprint log issue and the environment the sessions run in. docs/sprint.md stays the one place these live;
-// nothing here copies them.
+// nothing here copies them. The window /sprint-start opens lives on this computer instead (local-state.mjs).
 
 // `20261021T0000` (UTC) as a Date.
 export function parseStamp(s) {

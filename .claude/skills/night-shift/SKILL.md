@@ -24,6 +24,9 @@ held pull request the owner answered, "Depends on") and prints one line of JSON.
 move: do what its `do` says. Exit code 2, or no JSON at all: stop, and give the error in step 3. Never decide
 by hand instead.
 
+First run `Q window`. When it says `open`, a sprint has this computer: comment "Night shift: standing down,
+the sprint's window is open until <end>" on issue #2 and stop.
+
 Cap: $ARGUMENTS tasks, or 4 if empty. Stop when `next` prints `null`, two tasks in a row ended BLOCKED or
 GATE-FAILED, a subagent reported a usage-limit error, or the cap is reached.
 

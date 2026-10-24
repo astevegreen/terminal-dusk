@@ -703,8 +703,11 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/sonar-mirror.test.mjs`
 - `tools/sonar.mjs` - `node tools/sonar.mjs <pr|main>`: SonarCloud's findings on a pull request or on main, read through GitHub.
 - `tools/sonar.test.mjs`
+- `tools/sprint/cue.mjs` - The sprint's cue: `/sprint-start [hours]` opens the window when it runs, instead of on dates fixed at planning, and `/sprint-stop` closes it.
+- `tools/sprint/cue.test.mjs` - Tests for the sprint's cue (cue.mjs, local-state.mjs) through `queue.mjs`: the window /sprint-start opens on this computer, the night shift standing down insid…
 - `tools/sprint/fixtures/october-sprint.md` - Sprint: 20–22 October 2026
 - `tools/sprint/fixtures/october.jsonl`
+- `tools/sprint/local-state.mjs` - What a sprint keeps on its own computer, in the git folder every worktree shares (`git rev-parse --git-common-dir`), never committed.
 - `tools/sprint/moves.mjs` - `queue.mjs move <n> <state>`: the label changes and standard comment for each change of state, planned as gh commands from a snapshot.
 - `tools/sprint/moves.test.mjs` - Tests for the sprint's label moves (moves.mjs): which gh commands each move plans, and which moves are refused with what to do instead.
 - `tools/sprint/queue.mjs` - `node tools/sprint/queue.mjs <command>`: the sprint's queue rules, asked by the supervisor, the lanes and the night shift instead of each applying its own pros…
@@ -713,6 +716,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/sprint/rules.mjs` - The sprint queue's rules as pure functions of a snapshot: open issues and pull requests with their labels, comments and checks, plus docs/sprint.md.
 - `tools/sprint/rules.test.mjs` - Tests for the sprint queue's rules: October's sprint replayed from its recorded issues and pull requests, plus small made-up cases for the rules October's reco…
 - `tools/sprint/sprint-doc.mjs` - Reads what the sprint queue needs from docs/sprint.md: the window, the lanes, each lane's backlog IDs, the sprint log issue and the environment the sessions ru…
+- `tools/sprint/usage-limit.mjs` - When a session that stopped on a usage limit may be started again.
+- `tools/sprint/usage-limit.test.mjs` - Tests for usage-limit.mjs: when a session that stopped on a usage limit may start again.
 - `tools/test.mjs` - `pnpm test`: unit tests.
 - `tools/test.test.mjs`
 
@@ -740,7 +745,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `docs/proposals/w7/4-tension.md` - Topic 4: the tension track
 - `docs/proposals/w7/5-scoring.md` - Topic 5: scoring (when it happens and how a game is won)
 - `docs/proposals/w7/README.md` - W7: the map, influence, points, the tension track and scoring
-- `docs/sprint.md` - Sprint: 27–29 October 2026
+- `docs/sprint.md` - Sprint: the W7 rules and online play
 - `docs/workflow.md` - Terminal Dusk — Claude Code Workflow
 
 ## .claude
@@ -763,7 +768,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `.claude/skills/promote/SKILL.md` - Copy approved design decisions and cards from Notion into the repo. Run as /promote.
 - `.claude/skills/sprint-lane/SKILL.md` - Coordinator for one lane of the sprint in docs/sprint.md. Run only as /sprint-lane <lane>, from a session the sprint supervisor started.
 - `.claude/skills/sprint-plan/SKILL.md` - Writes specs for the next backlog items of one lane of the sprint in docs/sprint.md. Run only as /sprint-plan <lane>, from a session the sprint supervisor star…
+- `.claude/skills/sprint-start/SKILL.md` - Cue the sprint in docs/sprint.md now - check the computer, open the window, make the supervisor and the archiver. Run only as /sprint-start [hours] [--dry-run].
 - `.claude/skills/sprint-status/SKILL.md` - Sprint status in at most 8 lines, read from the sprint log's status block. Use when the owner asks how the sprint is going, whether it is running, or what wait…
+- `.claude/skills/sprint-stop/SKILL.md` - End the sprint's window now and switch its supervisor off; sessions already running finish their task. Run only as /sprint-stop.
 - `.claude/skills/sprint-supervisor/SKILL.md` - Hourly supervisor for the sprint in docs/sprint.md. Starts and restarts the lane and plan sessions. Run only from the "Sprint supervisor" scheduled task.
 - `.claude/skills/triage/SKILL.md` - Turn the week's playtest feedback into design questions and bug issues. Run as /triage.
 

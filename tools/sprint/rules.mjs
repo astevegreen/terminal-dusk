@@ -16,7 +16,7 @@ export const HELD_CONFLICT = "Held: merge conflict with main only.";
 export const BLOCKED = "Blocked:";
 export const FIX_PASSES = 2; // per lane or night-shift session
 const PLAN_TARGET = 3; // a plan session tops its lane up to this many ready issues
-const PLANNING_DAY_TARGET = 6; // before the window, the planning day specs each lane's first six
+const PLANNING_DAY_TARGET = 6; // outside the window, the planning day specs each lane's first six
 const NIGHT_STOP = [3 * 60 + 30, 17 * 60]; // the night shift stops between 03:30 and 17:00 local time
 
 const has = (item, label) => item.labels.includes(label);
@@ -265,7 +265,7 @@ export const doneIds = (S) => new Set(S.issues.map((i) => taskId(i.title)?.base)
 // A lane's open sprint-ready issues, how many a plan session aims for, and its backlog IDs with no issue yet.
 export function backlog(S, doc, lane) {
   const done = doneIds(S);
-  const planningDay = Boolean(doc.window?.start) && S.now < doc.window.start;
+  const planningDay = !inWindow(doc, S.now); // no window yet, before it or after it
   return {
     ready: openWith(S, `lane:${lane}`, "sprint-ready").length,
     target: planningDay ? PLANNING_DAY_TARGET : PLAN_TARGET,
