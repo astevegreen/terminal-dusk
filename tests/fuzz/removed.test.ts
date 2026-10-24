@@ -174,38 +174,43 @@ function kindOf({ card, to, use }: Left): keyof Counts {
 }
 
 describe("the fuzz games move flagged cards out of play every way", () => {
-  it("count each way a flagged card leaves play, and a reshuffle once cards have left the game", () => {
-    const counts: Counts = {
-      ownEvent: 0,
-      neutralEvent: 0,
-      opening: 0,
-      pointsDiscarded: 0,
-      rivalPoints: 0,
-      wrong: 0,
-      reshuffle: 0,
-    };
-    for (let game = 1; game <= GAMES; game++) {
-      const { record } = playFuzzGame(game);
-      const created = createGame(ruleset, record.setup, record.seed);
-      if (!created.ok) throw new Error(`createGame failed: ${created.error.code}`);
-      let state = created.value.state;
-      const uses = new Map<string, Use>();
-      for (const answer of record.answers) {
-        noteUse(uses, answer);
-        const next = apply(ruleset, state, answer);
-        if (!next.ok) throw new Error(`apply failed: ${next.error.code}`);
-        for (const left of flaggedLeft(LEAVING, uses, state, answer, next.value.state)) counts[kindOf(left)] += 1;
-        const reshuffled = next.value.events.some((e) => e.kind === "drawPileReshuffled");
-        if (reshuffled && state.public.removed.length > 0) counts.reshuffle += 1;
-        state = next.value.state;
+  it(
+    "count each way a flagged card leaves play, and a reshuffle once cards have left the game",
+    () => {
+      const counts: Counts = {
+        ownEvent: 0,
+        neutralEvent: 0,
+        opening: 0,
+        pointsDiscarded: 0,
+        rivalPoints: 0,
+        wrong: 0,
+        reshuffle: 0,
+      };
+      for (let game = 1; game <= GAMES; game++) {
+        const { record } = playFuzzGame(game);
+        const created = createGame(ruleset, record.setup, record.seed);
+        if (!created.ok) throw new Error(`createGame failed: ${created.error.code}`);
+        let state = created.value.state;
+        const uses = new Map<string, Use>();
+        for (const answer of record.answers) {
+          noteUse(uses, answer);
+          const next = apply(ruleset, state, answer);
+          if (!next.ok) throw new Error(`apply failed: ${next.error.code}`);
+          for (const left of flaggedLeft(LEAVING, uses, state, answer, next.value.state)) counts[kindOf(left)] += 1;
+          const reshuffled = next.value.events.some((e) => e.kind === "drawPileReshuffled");
+          if (reshuffled && state.public.removed.length > 0) counts.reshuffle += 1;
+          state = next.value.state;
+        }
       }
-    }
-    expect(counts.ownEvent).toBeGreaterThan(0);
-    expect(counts.neutralEvent).toBeGreaterThan(0);
-    expect(counts.opening).toBeGreaterThan(0);
-    expect(counts.pointsDiscarded).toBeGreaterThan(0);
-    expect(counts.rivalPoints).toBeGreaterThan(0);
-    expect(counts.reshuffle).toBeGreaterThan(0);
-    expect(counts.wrong).toBe(0);
-  });
+      expect(counts.ownEvent).toBeGreaterThan(0);
+      expect(counts.neutralEvent).toBeGreaterThan(0);
+      expect(counts.opening).toBeGreaterThan(0);
+      expect(counts.pointsDiscarded).toBeGreaterThan(0);
+      expect(counts.rivalPoints).toBeGreaterThan(0);
+      expect(counts.reshuffle).toBeGreaterThan(0);
+      expect(counts.wrong).toBe(0);
+      // The same limit as filtered.test.ts's 200 games: vitest's 5 s default is too short when every fuzz file runs at once.
+    },
+    GAMES * 100,
+  );
 });
