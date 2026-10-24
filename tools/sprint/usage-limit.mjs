@@ -67,8 +67,8 @@ function resetAt(m, zone, last) {
 
 const iso = (t) => new Date(t).toISOString().replace(/:\d{2}\.\d{3}Z$/, "Z");
 
-// { start, reason, after?, restartAt? }: start is false until the limit has reset, and a replacement is scheduled
-// for restartAt, 2 minutes after it. `lastEventAt` is the run's last event.
+// { start, reason, after?, restartAt? }: `after` is the reset, and start is false until restartAt, 2 minutes
+// later, when a replacement is scheduled. `lastEventAt` is the run's last event.
 export function resumeAfter(text, { lastEventAt, now = new Date() } = {}) {
   const last = new Date(lastEventAt ?? NaN).getTime();
   if (Number.isNaN(last))
@@ -86,7 +86,7 @@ export function resumeAfter(text, { lastEventAt, now = new Date() } = {}) {
     }
   }
   after ??= last + HOUR;
-  const start = now.getTime() >= after;
+  const start = now.getTime() >= after + MARGIN;
   const why = named
     ? `usage limit; resets ${iso(after)}`
     : `usage limit with no reset time I can read; waits until ${iso(after)}, an hour after its last event`;

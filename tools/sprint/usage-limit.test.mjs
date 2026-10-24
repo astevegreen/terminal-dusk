@@ -16,6 +16,8 @@ test("21 Oct: a session limit at 02:11 UTC that resets 12am New York waits until
     restartAt: "2026-10-21T04:02Z",
     reason: "usage limit; resets 2026-10-21T04:00Z",
   });
+  const between = resumeAfter(SESSION("12am"), { lastEventAt: last, now: at("2026-10-21T04:01:00Z") });
+  assert.equal(between.start, false, "reset, but not yet 2 minutes past it");
   const later = resumeAfter(SESSION("12am"), { lastEventAt: last, now: at("2026-10-21T04:02:00Z") });
   assert.equal(later.start, true);
   assert.match(later.reason, /which has passed$/);
