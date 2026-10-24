@@ -37,8 +37,9 @@ Inside the window this file overrides `docs/workflow.md`, the `night-shift` and 
   `Blocked:` (only then does the owner's next comment count as the answer), label it `blocked`, and move to the
   next task. Open design points include: the real map's countries, regions, adjacency, stabilities and
   battlegrounds; scoring; the tech race track; the sides' special abilities; era lengths and plays per turn;
-  how the AI plays a missed online turn; whose bonuses apply to a draw from the rival's deck; and every number
-  `map-and-points.md` marks "open".
+  how the AI plays a missed online turn; whose bonuses apply to a draw from the rival's deck; whether the
+  intervention and realign formulas are what the owner wants (`map-and-points.md`, "Still to confirm" and owner
+  question 4); and every number `map-and-points.md` marks "open".
 - Every hard rule and "Never" in `CLAUDE.md`, every hook, deny rule and Locked path.
 - Code-owned paths (`.github/CODEOWNERS`: migrations, `package.json`, lockfile, configs, golden replays) still
   need the owner's approval on GitHub. The owner checks at about 06:00 and 19:00 Eastern on Wednesday 28 Oct.
@@ -81,11 +82,12 @@ for tests and fuzz, and every number the file marks "open" is scenario data, not
   at 0, and a fuzz invariant that influence is never negative.
 - **R16** The action menu: a card played for points, and every `spendPoints` step, spends its points on place,
   intervene or realign. This replaces the TEMPORARY "spending points only says so" in
-  `packages/engine/src/stack.ts` and `types.ts`. Probably R16a place, R16b intervene, R16c realign. The golden
-  replays change: one code-owned pull request, opened early.
+  `packages/engine/src/stack.ts` and `types.ts`. Probably R16a place, R16b intervene, R16c realign. Intervene
+  and realign wait for the owner's answer on their formulas (`map-and-points.md` question 4), which the planning
+  day asks, so R16a goes first. The golden replays change: one code-owned pull request, opened early.
 - **R17** Escalation: the track and its levels, +1 for each intervention in a battleground, -1 at turn end,
-  regions closing to interventions and realignments at 3 and 4 (which ones is scenario data), and the crisis at
-  6 as far as it is decided (its score waits for scoring).
+  one more region closed to interventions and realignments at each of 3, 4 and 5, staying closed as the track
+  rises (which ones is scenario data), and the crisis at 6 as far as it is decided (its score waits for scoring).
 - **R18** The sixteen cards that move Escalation by 1 (`map-and-points.md`, "Cards that move it"), once R17 is in.
 - **R19** Leftovers from October: check `triggers.ts` afterProgram's player (`playsMade` or `inPlayBy`) and the
   neutralDraw test's out-of-date header (#165); correct the stale card notes at `era-1.md` 95 and 191,
@@ -131,7 +133,7 @@ its first line.
 ### research
 
 - **X6** Proposal: the six-region map's content: countries per region, adjacency, stabilities, battlegrounds,
-  and which regions close first at Escalation 3 and 4 (owner question 3 in `map-and-points.md`).
+  and which regions close at Escalation 3, 4 and 5, in what order (owner question 3 in `map-and-points.md`).
 - **X7** Proposal: the tech race track: branches, costs, what moving up gives, and its links to Escalation and
   Credibility (owner question 1).
 - **X8** Proposal: how the AI plays a missed online turn when Decision 8 rules out an AI on the server
@@ -184,8 +186,8 @@ A proposal lays out two or three options with trade-offs and decides nothing. It
        SESSION_STATUS_BUCKET_COMPLETED).
     Reply with one line: "Archived <n>: <titles>" (mark stuck ones "(stuck)"), or "Archived 0".
     ```
-- Progress and questions go to the sprint log, issue `#<n>` (filled in at setup): a pinned issue for this sprint
-  alone, not #2, which the night shift shares. Its body is the status block, which the supervisor rewrites
+- Progress and questions go to the sprint log, issue `#290`: an issue for this sprint alone, not #2, which the
+  night shift shares. (It is not pinned yet: GitHub allows three pinned issues, and #2, #3 and #4 hold them.) Its body is the status block, which the supervisor rewrites
   every hour; comments hold the history.
 - One sprint per computer (owner, 22 Oct): no other project's sprint or soak runs on this computer during the
   window. Proposed for this sprint: no games on it either, since a busy computer caused October's test
