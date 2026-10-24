@@ -12,6 +12,8 @@ export const SONAR_CHECK = "SonarCloud Code Analysis";
 export const ACCEPTED_SONAR = [/^Do not add `then` to an object\b/, /^Remove this redundant type alias\b/];
 // `move <pr> held --conflict` starts its comment with this; the lane retries such a hold once main moves on.
 export const HELD_CONFLICT = "Held: merge conflict with main only.";
+// Every agent comment that blocks an issue on a question starts with this; the owner's next comment answers it.
+export const BLOCKED = "Blocked:";
 export const FIX_PASSES = 2; // per lane or night-shift session
 const PLAN_TARGET = 3; // a plan session tops its lane up to this many ready issues
 const PLANNING_DAY_TARGET = 6; // before the window, the planning day specs each lane's first six
@@ -181,11 +183,16 @@ function buildJob(issue, S, lane) {
   return null;
 }
 
-// The owner's answer to the question an agent asked in a comment on a blocked issue (the implementer's, or
-// `move blocked --note`): the issue is work again, and the answer is part of its spec. An issue the plan blocked
-// keeps its question in the body and has only a Goal, and one the owner blocked has no question: neither counts.
-export const ownerAnswer = (issue, S) =>
-  has(issue, "blocked") && issue.comments.some((c) => isSprint(c, S.owner)) ? ownerReply(issue, S.owner) : null;
+// The owner's answer to the question an agent asked on a blocked issue: the newest sprint comment starts with
+// "Blocked:" (the implementer's question, or `move blocked --note`), and the owner commented after it. The issue
+// is work again, and the answer is part of its spec. Any other newest sprint comment ("Re-queued", "Unblocked", a
+// plan audit note) asks nothing, so an issue the owner blocked himself, or the plan blocked with its question in
+// the body, stays blocked whatever the owner writes.
+export function ownerAnswer(issue, S) {
+  if (!has(issue, "blocked")) return null;
+  const ask = newest(issue.comments, (c) => isSprint(c, S.owner));
+  return ask?.body.startsWith(BLOCKED) ? ownerReply(issue, S.owner) : null;
+}
 
 // A blocked issue the owner answered, or a ready one: build it, or adopt the pull request a ready one already has.
 function issueJob(issue, S, lane) {

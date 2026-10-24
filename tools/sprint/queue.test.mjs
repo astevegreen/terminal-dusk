@@ -330,3 +330,40 @@ test("a stacked pull request that passes its fix pass loses held and keeps its d
   );
   assert.deepEqual(planMove(S, 157, "stacked").steps, [["pr", "edit", "157", "--remove-label", "held"]]);
 });
+
+test("blocking with a note starts the comment with Blocked:, once", () => {
+  const S = snap([issue(8, ["lane:rules", "in-progress"])]);
+  assert.deepEqual(planMove(S, 8, "blocked", { note: "which colour?" }).steps[1], [
+    "issue",
+    "comment",
+    "8",
+    "--body",
+    "Blocked: which colour?",
+  ]);
+  assert.equal(planMove(S, 8, "blocked", { note: "Blocked: which colour?" }).steps[1].at(-1), "Blocked: which colour?");
+});
+
+test("only an answer to a Blocked: question unblocks: the owner's own note, or a reply after a Re-queued comment, does not", () => {
+  const owner = (at, body) => ({ author: "astevegreen", createdAt: at, body });
+  const bot = (at, body) => ({ author: "greenbeanbot", createdAt: at, body });
+  const S = snap([
+    // The owner blocked it himself, with a note, after an old sprint comment.
+    issue(9, ["lane:rules", "blocked"], {
+      comments: [
+        bot("2026-10-21T08:00:00Z", "Re-queued by the sprint: the previous lane session stopped."),
+        owner("2026-10-21T09:00:00Z", "Blocking this until the art lands."),
+      ],
+    }),
+    // An agent's question was answered once, and a later sprint comment asks nothing.
+    issue(10, ["lane:rules", "blocked"], {
+      comments: [
+        bot("2026-10-21T08:00:00Z", "Blocked: which colour?"),
+        owner("2026-10-21T09:00:00Z", "Red."),
+        bot("2026-10-21T10:00:00Z", "Unblocked by the owner's answer; the sprint builds it again."),
+        owner("2026-10-21T11:00:00Z", "Hold it again, please."),
+      ],
+    }),
+  ]);
+  assert.equal(planMove(S, 9, "building").error, "#9 is blocked");
+  assert.equal(planMove(S, 10, "building").error, "#10 is blocked");
+});

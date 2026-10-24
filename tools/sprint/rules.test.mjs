@@ -490,7 +490,7 @@ test("the night shift builds a blocked issue the owner answered, but leaves spri
       issues: [
         issue(30, labels, {
           comments: [
-            comment("greenbeanbot", "2026-10-23T01:00:00Z", "Night shift: blocked, see the question above."),
+            comment("greenbeanbot", "2026-10-23T01:00:00Z", "Blocked: should the timer use the default length?"),
             comment("astevegreen", "2026-10-23T02:00:00Z", "Use the default."),
           ],
         }),

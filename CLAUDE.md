@@ -38,7 +38,7 @@ The owner is not a programmer: explain every change in plain English, and prove 
 - Stay inside the task's scope. Mention other problems in your summary instead of fixing them.
 - No new dependency without a reason in your summary.
 - If the spec is unclear, contradicts docs/architecture.md, or needs a game-design choice: stop and ask.
-  In a night run, comment the question on the issue and label it `blocked`. Never invent game rules.
+  In a night run, comment the question on the issue, starting `Blocked:`, and label it `blocked`. Never invent game rules.
 
 ## Never
 - Weaken, skip or delete a test to get green, or change gate scripts, test configs or hooks to pass.

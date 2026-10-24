@@ -1,7 +1,7 @@
 // `queue.mjs move <n> <state>`: the label changes and standard comment for each change of state, planned as
 // gh commands from a snapshot. A change the sprint doesn't allow comes back as { error, do }, where `do` is a
 // line the coordinator can act on. Nothing here runs gh; queue.mjs runs the planned commands in order.
-import { HELD_CONFLICT, OWNER, index, ownerAnswer, taskPr } from "./rules.mjs";
+import { BLOCKED, HELD_CONFLICT, OWNER, index, ownerAnswer, taskPr } from "./rules.mjs";
 
 const ISSUE_STATES = ["building", "ready", "blocked", "waiting"];
 const PR_STATES = ["merging", "held", "stacked"];
@@ -69,7 +69,7 @@ function issueMove(S, issue, state, { note }) {
       "blocked",
       ...(has(issue, "in-progress") ? ["--remove-label", "in-progress"] : []),
     ]);
-    if (note) steps.push(["issue", "comment", n, "--body", note]);
+    if (note) steps.push(["issue", "comment", n, "--body", note.startsWith(BLOCKED) ? note : `${BLOCKED} ${note}`]);
   } else {
     // An adopted ready issue leaves the ready queue as well.
     const drop = ["in-progress", readyLabel].filter((l) => has(issue, l));
