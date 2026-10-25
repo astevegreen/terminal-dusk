@@ -147,6 +147,35 @@ describe("createSignIn: useOtherEmail and resendCode", () => {
     expect(r.signIn.getSnapshot()).toEqual({ kind: "email", busy: false, refusal: null });
   });
 
+  it("useOtherEmail while signedIn changes nothing: the snapshot, the token and the stored session stay", async () => {
+    const r = await rigWith(STORED);
+    await r.signIn.start();
+    const seenBefore = r.seen.length;
+    r.signIn.useOtherEmail();
+    expect(r.seen).toHaveLength(seenBefore);
+    expect(r.signIn.getSnapshot()).toEqual({ kind: "signedIn", userId: "user-0", busy: false, refusal: null });
+    expect(await r.signIn.accessToken()).toBe("access-0");
+    expect(JSON.parse((await r.store.get(SESSION_KEY)) ?? "null")).toEqual(STORED);
+  });
+
+  it("useOtherEmail while loading changes nothing, and start still signs in", async () => {
+    const r = await rigWith(STORED);
+    r.signIn.useOtherEmail();
+    expect(r.seen).toHaveLength(1);
+    expect(r.signIn.getSnapshot()).toEqual({ kind: "loading", busy: false, refusal: null });
+    await r.signIn.start();
+    expect(r.signIn.getSnapshot().kind).toBe("signedIn");
+  });
+
+  it("useOtherEmail while start is reading storage changes nothing, and start still signs in", async () => {
+    const r = await rigWith(STORED);
+    const pending = r.signIn.start();
+    r.signIn.useOtherEmail();
+    expect(r.signIn.getSnapshot()).toEqual({ kind: "loading", busy: true, refusal: null });
+    await pending;
+    expect(r.signIn.getSnapshot().kind).toBe("signedIn");
+  });
+
   it("resendCode asks for a new code for the same address and stays on code", async () => {
     const r = await rigOnCode();
     await r.signIn.resendCode();

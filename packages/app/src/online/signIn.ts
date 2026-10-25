@@ -28,7 +28,7 @@ export type SignIn = {
   sendCode(email: string): Promise<void>;
   /** Trades the code for a session, stores it and moves to signedIn. */
   enterCode(code: string): Promise<void>;
-  /** Goes back to asking for an address. */
+  /** Goes back to asking for an address; does nothing unless on email or code. */
   useOtherEmail(): void;
   /** Asks for a new code for the same address. */
   resendCode(): Promise<void>;
@@ -156,6 +156,8 @@ export function createSignIn({ auth, store, now }: SignInOptions): SignIn {
     },
 
     useOtherEmail() {
+      // Only from asking for an address or a code: signed in, it would hide a session that is still stored.
+      if (snapshot.kind !== "code" && snapshot.kind !== "email") return;
       toEmail();
     },
 
