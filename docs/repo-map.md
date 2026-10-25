@@ -692,6 +692,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/hooks/quick-check.test.mjs`
 - `tools/hooks/settings.test.mjs` - Tests for the web, gh and git-hook rules in .claude/settings.json, the night shift's web block and the agents' own tool limits.
 - `tools/hooks/shared.mjs` - Helpers shared by the Claude Code hook scripts.
+- `tools/hooks/shell-words.mjs` - How bash splits a command line, for bash-guard: every simple command bash would run, including the ones inside $(…), backticks and <(…), wherever those appear…
+- `tools/hooks/shell-words.test.mjs` - How shell-words.mjs splits a command line into the simple commands bash would run.
 - `tools/hooks/test-helpers.mjs` - Shared helpers for the hook tests (tools/hooks/*.test.mjs).
 - `tools/lib/run.mjs` - Helpers for the tool scripts: start pnpm and other commands the same way on Windows, macOS and Linux.
 - `tools/lib/run.test.mjs`
