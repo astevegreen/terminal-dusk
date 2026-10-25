@@ -8,7 +8,7 @@ import type { Ruleset, Side } from "@terminal-dusk/engine";
 import type { Frame, MatchSecret } from "@terminal-dusk/host";
 import type { MatchTransport } from "../matchTransport.ts";
 import type { FetchLike } from "../remoteHttp.ts";
-import { leaksFor, withoutCards } from "./leaks.ts";
+import { canonical, leaksFor, withoutCards } from "./leaks.ts";
 
 /** What the server holds after the latest step, read past the client read rules (the service role). */
 export type ServerSnapshot = {
@@ -55,13 +55,13 @@ type Response = { side: Side; url: string; text: string; atSeq: number };
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
-/** JSON with every object's keys sorted, so a database's key order never counts as a difference. */
-function canonical(value: unknown): string {
-  return JSON.stringify(value, (_key, v: unknown) =>
-    typeof v === "object" && v !== null && !Array.isArray(v)
-      ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)))
-      : v,
-  );
+/** A reply's text as compact JSON with sorted keys, so leaksFor finds objects whatever their spacing or order. */
+function canonicalText(text: string): string {
+  try {
+    return canonical(JSON.parse(text));
+  } catch {
+    return text;
+  }
 }
 
 /** A fetch that records the text of every reply and hands the transport the same reply. */
@@ -131,10 +131,10 @@ function leaksInResponse(response: Response, secrets: Map<number, MatchSecret>):
   const pieces: { seq: number; text: string; viewer?: unknown }[] = Array.isArray(parsed)
     ? parsed.map((row: { seq?: unknown; frame?: { viewer?: unknown } }) => ({
         seq: typeof row.seq === "number" ? row.seq : response.atSeq,
-        text: JSON.stringify(row),
+        text: canonical(row),
         viewer: row.frame?.viewer,
       }))
-    : [{ seq: response.atSeq, text: response.text }];
+    : [{ seq: response.atSeq, text: canonicalText(response.text) }];
   const found: string[] = [];
   for (const piece of pieces) {
     const secret = secrets.get(piece.seq);

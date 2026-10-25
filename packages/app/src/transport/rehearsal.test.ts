@@ -8,6 +8,7 @@ import type { FetchLike } from "./remoteHttp.ts";
 import { createRemoteMatch } from "./remoteMatch.ts";
 import { ANON_KEY, createFakeSupabase, URL_BASE } from "./test/fakeSupabase.ts";
 import type { FakeSupabase } from "./test/fakeSupabase.ts";
+import { canonical, leaksFor } from "./test/leaks.ts";
 import { playRehearsalGame } from "./test/rehearsal.ts";
 import type { GameOptions, GameResult, GameRig, ServerSnapshot } from "./test/rehearsal.ts";
 import { rehearsalReport } from "./test/rehearsalReport.ts";
@@ -130,6 +131,60 @@ describe("the phase 4 rehearsal harness on the fake Supabase", () => {
     // SAE was shown LIO's frame, so it is a desync too.
     expect(result.desyncs.length).toBeGreaterThan(0);
   }, 60_000);
+
+  it("a reply with a database's spacing and key order still has the rival's private compartment found in it", async () => {
+    const { fake, rig } = fakeRig();
+    const spaced: FetchLike = async (url, init) => {
+      const reply = await fake.fetch(url, init);
+      if (!url.includes("/rest/v1/match_view") || init.headers.Authorization !== "Bearer token-bob") return reply;
+      const lio = fake.current().secret.state.private.lio;
+      const rows = ((await reply.json()) as Row[]).map((row) => ({
+        ...row,
+        extra: Object.fromEntries(Object.entries(lio).reverse()),
+      }));
+      const text = JSON.stringify(rows, null, 1);
+      return {
+        ok: reply.ok,
+        status: reply.status,
+        json: () => Promise.resolve(rows),
+        text: () => Promise.resolve(text),
+      };
+    };
+    const result = await playRehearsalGame({ ...rig, fetch: spaced }, { ...OPTIONS, maxSteps: 1 });
+    expect(result.leaks).toContain("seq 0, sae, /rest/v1/match_view: lio's private compartment");
+  }, 60_000);
+});
+
+describe("the rehearsal's leak check on the rival's private fields", () => {
+  /** The fake's secret at seq 0, with LIO's knowledge set to `knowledge` (cards of SAE's it was shown). */
+  function secretWithKnowledge(fake: FakeSupabase, knowledge: (sae: string[]) => string[]) {
+    const base = fake.current().secret;
+    const { private: priv } = base.state;
+    const lio = { ...priv.lio, knowledge: knowledge(priv.sae.hand) };
+    return { ...base, state: { ...base.state, private: { ...priv, lio } } };
+  }
+
+  it("the rival's knowledge in a response is a leak, though the cards in it are the viewer's own", () => {
+    const { fake } = fakeRig();
+    const secret = secretWithKnowledge(fake, (hand) => hand.slice(0, 1));
+    const text = canonical({ extra: { knowledge: secret.state.private.lio.knowledge } });
+    expect(leaksFor(text, secret, "sae")).toEqual(["lio's knowledge"]);
+  });
+
+  it("the rival's whole private compartment in a response is a leak", () => {
+    const { fake } = fakeRig();
+    const secret = secretWithKnowledge(fake, (hand) => hand.slice(0, 1));
+    expect(leaksFor(canonical({ extra: secret.state.private.lio }), secret, "sae")).toContain(
+      "lio's private compartment",
+    );
+  });
+
+  it("the viewer's own frame is no leak, even when the rival has been shown the viewer's whole hand", () => {
+    const { fake } = fakeRig();
+    const secret = secretWithKnowledge(fake, (hand) => [...hand]);
+    expect(secret.state.private.lio.knowledge.length).toBeGreaterThan(0);
+    expect(leaksFor(canonical(fake.current().frames.sae), secret, "sae")).toEqual([]);
+  });
 });
 
 describe("the phase 4 rehearsal's report", () => {
