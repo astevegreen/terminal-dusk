@@ -477,6 +477,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/deadlineStore.test.ts`
 - `packages/server/src/deadlineStore.ts` - The storage port behind the deadline sweep (docs/architecture.md, Decision 5, "Scheduled jobs"). Exports: DeadlineStore, earliestDeadline, dueIds.
 - `packages/server/src/edge.ts` - The glue every Edge Function shares: turning the runtime's fetch-style requests into the plain-data requests the handlers take and back, and the Supabase sign-… Exports: FetchRequest, MakeResponse, serveFetch, supabaseAuthenticate.
+- `packages/server/src/entitlementStore.test.ts`
+- `packages/server/src/entitlementStore.ts` - The entitlement port (docs/architecture.md, Decision 5): which full-game copies a player owns, and an in-memory store for tests. Exports: EntitlementRow, EntitlementStore, MemoryEntitlementStore.
 - `packages/server/src/http.ts` - The plain-data HTTP pieces the Edge Function handlers share (docs/architecture.md, Decision 5): the request and reply shapes, the CORS headers, signing a calle… Exports: HttpRequest, HttpReply, Authenticate, CORS_HEADERS, preflight, signedIn, jsonObject, reply, refusal, isPlainObject.
 - `packages/server/src/index.test.ts`
 - `packages/server/src/index.ts` - Public entry point of the server package (docs/architecture.md, Decision 5). Exports: submit, ServerErrorCode, SubmitDeps, SubmitError, SubmitOutcome, SubmitRequest, MemoryStore, SupabaseStore, CommitResult, LoadedMatch, MatchStore, MatchWrite, ….
@@ -539,6 +541,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/submitHandler.ts` - The HTTP side of the submit Edge Function (docs/architecture.md, Decision 5), as plain data in and out so it runs under vitest: it signs the caller in, checks… Exports: CORS_HEADERS, HttpReply, HttpRequest, SubmitHandlerDeps, HandlerErrorCode, handleSubmit.
 - `packages/server/src/supabaseEmailOf.test.ts` - supabaseEmailOf against a stand-in client: the player's address through the Auth admin API, or null when the user has none or is not found.
 - `packages/server/src/supabaseEmailOf.ts` - A player's email address for the turn alert sweep (sweepTurnAlerts.ts, `emailOf`), read through Supabase Auth's admin API. Exports: EmailLookupError, supabaseEmailOf.
+- `packages/server/src/supabaseEntitlementStore.test.ts` - SupabaseEntitlementStore against a stand-in client, so these run without the local stack.
+- `packages/server/src/supabaseEntitlementStore.ts` - The Supabase side of the entitlement port (docs/architecture.md, Decision 5). Exports: EntitlementStorageError, SupabaseEntitlementStore.
 - `packages/server/src/supabaseInviteStore.games.stack.test.ts` - Private games through the Supabase stores on the local Supabase stack: for each side mode, createInvite, previewInvite and joinInvite create a match whose rows…
 - `packages/server/src/supabaseInviteStore.guards.stack.test.ts` - SupabaseInviteStore's guards on the local Supabase stack: two joins of one code at once, a clash on save, an unknown code, and database errors, which throw wit…
 - `packages/server/src/supabaseInviteStore.test.ts` - SupabaseInviteStore against a stand-in client, so these run without the local stack.
