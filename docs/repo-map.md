@@ -500,12 +500,14 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/inviteHandler.ts` - The HTTP side of the invite Edge Function (docs/architecture.md, Decision 5), as plain data in and out so it runs under vitest, the same way the submit handler… Exports: InviteHandlerDeps, InviteHandlerErrorCode, handleInvite.
 - `packages/server/src/inviteStore.test.ts`
 - `packages/server/src/inviteStore.ts` - The invite port behind private games (docs/architecture.md, Decision 5), and an in-memory store for tests. Exports: SideMode, Invite, StoredInvite, SaveResult, AcceptResult, InviteStore, MemoryInviteStore.
+- `packages/server/src/later.ts` - For in-memory ports that answer with a promise but have nothing to wait for. Exports: later.
 - `packages/server/src/mailMessages.test.ts`
 - `packages/server/src/mailMessages.ts` - The two emails online play sends (docs/sprint.md, O8): the sign-in code and the turn alert. Exports: signInCodeEmail, turnAlertEmail.
 - `packages/server/src/mailer.test.ts`
 - `packages/server/src/mailer.ts` - The mail port (docs/architecture.md, Decision 5, "Accounts and purchases"): sign-in codes and turn alerts go out through a paid email provider. Exports: Email, SendResult, Mailer, MemoryMailer.
 - `packages/server/src/matchRow.test.ts`
 - `packages/server/src/matchRow.ts` - The mapping between a `match` row (rows.ts, the SQL column names) and the host's `MatchRecord`. Exports: matchRowFor, recordFromRow.
+- `packages/server/src/memoryStores.rejects.test.ts` - O12, acceptance criterion 4: an in-memory store method runs its body inside the promise, so a failure in it reaches the caller as a rejected promise, never as…
 - `packages/server/src/migrations/commitMatch.test.ts` - The commit_match migration (supabase/migrations/20261021000000_commit_match.sql) on the local Supabase stack.
 - `packages/server/src/migrations/localStack.ts` - Connects the migration test to the local Supabase stack (docs/sprint.md, lane "online": no hosted project). Exports: HOW_TO_START, StackKeys, stackKeys, client, whyUnavailable, freshId.
 - `packages/server/src/migrations/matchInvite.test.ts` - The match_invite migration (supabase/migrations/20261022000000_match_invite.sql) on the local Supabase stack.
@@ -529,6 +531,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/seenHandler.stack.test.ts` - The seen Edge Function served by the local Supabase stack: a player's seen call marks their queued turn alert seen, so the sweep no longer finds it.
 - `packages/server/src/seenHandler.test.ts`
 - `packages/server/src/seenHandler.ts` - The HTTP side of the seen Edge Function (docs/architecture.md, Decision 5, Notifications: "Email only if the turn is still unseen after about 20 minutes"), as… Exports: SeenHandlerDeps, SeenErrorCode, handleSeen.
+- `packages/server/src/sideModeOf.test.ts` - O12, acceptance criterion 1: `sideModeOf` sorts its keys with an explicit compare function, and its results are unchanged.
 - `packages/server/src/store.test.ts`
 - `packages/server/src/store.ts` - The storage port behind `submit` (docs/architecture.md, Decision 5), and an in-memory store for tests. Exports: LoadedMatch, MatchWrite, CommitResult, MatchStore, MemoryStore.
 - `packages/server/src/submit.leaks.test.ts`
@@ -569,6 +572,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/test/alerts.ts` - Test helpers for turn alerts: the test match in a MemoryStore, its first alerts queued in a MemoryNotifyStore, a MemoryMailer, and addresses for alice and bob. Exports: APP_URL, ADDRESSES, AlertWorld, withNotify, moveUntilNotified, alertWorld.
 - `packages/server/src/test/authEmail.ts` - Test helpers for the auth-email hook: a test secret, a send-email payload, a correctly signed hook request and a handler wired to a MemoryMailer and a recorded… Exports: TEST_SECRET, TEST_CODE, TEST_TOKEN_HASH, TEST_EMAIL, NOW_MS, NOW_SECONDS, payload, signedRequest, authEmailWorld.
 - `packages/server/src/test/deadlines.ts` - Test helpers for the deadline sweep: matches with deadlines in an in-memory store. Exports: DAY, rulesetFor, createdWithClock, insertMatch, insertSaeLate.
+- `packages/server/src/test/errors.test.ts` - O12, acceptance criterion 2: `shown` prints a plain-object cause by its fields, never "[object Object]".
 - `packages/server/src/test/errors.ts` - Test helpers for checking what a thrown storage error shows. Exports: shown, thrown.
 - `packages/server/src/test/functions.ts` - Test helpers for calling an Edge Function served by the local Supabase stack (`supabase functions serve`). Exports: SERVE_HINT, callFunction, whyFunctionUnavailable.
 - `packages/server/src/test/games.ts` - Test helper: whole games played through `submit`, calling back after every step with what is stored. Exports: Strategy, STRATEGIES, Step, playGame.
@@ -760,6 +764,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `docs/proposals/card-count-gap.md` - The LIO/SAE card-count gap and the missing Era 3 LIO Ops 4 card: options
 - `docs/proposals/card-rewording/README.md` - Card rules text once points have a use: wording rules
 - `docs/proposals/card-rewording/era-1.md` - Era 1 cards: rules text reworded now that points have a use
+- `docs/proposals/card-rewording/era-2.md` - Era 2 cards: rules text reworded now that points have a use
 - `docs/proposals/card-rewording/era-3.md` - Era 3 and future cards: rules text reworded now that points have a use
 - `docs/proposals/era-lengths.md` - Era lengths and turns per era: options
 - `docs/proposals/map-content/README.md` - The six-region map's content, and the order regions close at Escalation

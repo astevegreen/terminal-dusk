@@ -1,6 +1,7 @@
 // Test helpers for the submit handler: a match in an in-memory store, fake sign-in by token, a store that
 // counts its calls, and a logger that keeps every line.
 import type { HostResult } from "@terminal-dusk/host";
+import { later } from "../later.ts";
 import type { MemoryStore, MatchStore } from "../store.ts";
 import type { HttpReply, HttpRequest, SubmitHandlerDeps } from "../submitHandler.ts";
 import { NOW, setup } from "./match.ts";
@@ -50,10 +51,11 @@ export function handlerWorld(): HandlerWorld {
     deps: {
       ...deps,
       store,
-      authenticate: async (token) => {
-        authCalls.push(token);
-        return TOKENS[token] ?? null;
-      },
+      authenticate: (token) =>
+        later(() => {
+          authCalls.push(token);
+          return TOKENS[token] ?? null;
+        }),
       now: () => ++clock,
       log: (line) => logged.push(line),
     },

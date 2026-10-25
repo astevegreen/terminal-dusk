@@ -2,6 +2,7 @@
 // An invite is a code a signed-in host shares; the second player joins with it and a match is created.
 import type { Side } from "@terminal-dusk/engine";
 import type { PlayerId } from "@terminal-dusk/host";
+import { later } from "./later.ts";
 import type { MatchWrite, MemoryStore } from "./store.ts";
 
 /**
@@ -49,23 +50,29 @@ export class MemoryInviteStore implements InviteStore {
     this.#matches = matches;
   }
 
-  async save(invite: Invite): Promise<SaveResult> {
-    if (this.#invites.has(invite.code)) return "clash";
-    this.#invites.set(invite.code, { ...copy(invite), accepted: null });
-    return "saved";
+  save(invite: Invite): Promise<SaveResult> {
+    return later((): SaveResult => {
+      if (this.#invites.has(invite.code)) return "clash";
+      this.#invites.set(invite.code, { ...copy(invite), accepted: null });
+      return "saved";
+    });
   }
 
-  async find(code: string): Promise<StoredInvite | null> {
-    const found = this.#invites.get(code);
-    return found ? copy(found) : null;
+  find(code: string): Promise<StoredInvite | null> {
+    return later(() => {
+      const found = this.#invites.get(code);
+      return found ? copy(found) : null;
+    });
   }
 
-  async accept(code: string, joiner: PlayerId, write: MatchWrite): Promise<AcceptResult> {
-    const found = this.#invites.get(code);
-    if (!found || found.accepted !== null) return "unavailable";
-    const matchId = write.record.matchId;
-    this.#invites.set(code, { ...found, accepted: { joiner, matchId } });
-    this.#matches.insert(matchId, write);
-    return "accepted";
+  accept(code: string, joiner: PlayerId, write: MatchWrite): Promise<AcceptResult> {
+    return later((): AcceptResult => {
+      const found = this.#invites.get(code);
+      if (!found || found.accepted !== null) return "unavailable";
+      const matchId = write.record.matchId;
+      this.#invites.set(code, { ...found, accepted: { joiner, matchId } });
+      this.#matches.insert(matchId, write);
+      return "accepted";
+    });
   }
 }

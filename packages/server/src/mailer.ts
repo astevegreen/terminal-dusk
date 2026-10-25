@@ -2,6 +2,8 @@
 // go out through a paid email provider. The rest of the server sends through `Mailer` and never learns which
 // provider is behind it. `MemoryMailer` records what was sent, for tests.
 
+import { later } from "./later.ts";
+
 /** One plain-text email. */
 export type Email = { to: string; subject: string; text: string };
 /** How a send went: accepted by the provider, refused by it (`rejected`), or the provider was not reached (`unavailable`). */
@@ -24,10 +26,12 @@ export class MemoryMailer implements Mailer {
     this.failures.push(code);
   }
 
-  async send(email: Email): Promise<SendResult> {
-    const failure = this.failures.shift();
-    if (failure !== undefined) return { ok: false, code: failure };
-    this.sent.push({ to: email.to, subject: email.subject, text: email.text });
-    return { ok: true };
+  send(email: Email): Promise<SendResult> {
+    return later((): SendResult => {
+      const failure = this.failures.shift();
+      if (failure !== undefined) return { ok: false, code: failure };
+      this.sent.push({ to: email.to, subject: email.subject, text: email.text });
+      return { ok: true };
+    });
   }
 }
