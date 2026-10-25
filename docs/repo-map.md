@@ -508,6 +508,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/migrations/notifyQueue.test.ts` - The notify_queue migration (supabase/migrations/20261024000000_notify_queue.sql).
 - `packages/server/src/migrations/notifyQueueWaitingSeq.test.ts` - The waiting_seq migration (supabase/migrations/20261025000000_notify_queue_waiting_seq.sql).
 - `packages/server/src/migrations/sqlRaw.d.ts` - A migration file read as text by Vitest's `?raw` import, for checks the client API cannot make.
+- `packages/server/src/migrations/sweepJobs.test.ts` - The scheduled-job migration (supabase/migrations/20261026000000_sweep_jobs.sql).
 - `packages/server/src/notifyStore.test.ts`
 - `packages/server/src/notifyStore.ts` - The turn alert queue (docs/architecture.md, Decision 5, `notify_queue` and "Scheduled jobs", Notifications: "Email only if the turn is still unseen after about… Exports: TURN_ALERT_DELAY_MS, TurnAlert, NotifyStore, alertsFrom, MemoryNotifyStore.
 - `packages/server/src/queueAlerts.ts` - Queues the turn alerts of a move that is already saved. Exports: queueAlerts, keepWaiting.
@@ -601,6 +602,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/supabase/migrations/20261023000000_match_clock.sql` - A match's deadline clock (docs/architecture.md, Decision 5, "Deadlines" and "Scheduled jobs").
 - `packages/server/supabase/migrations/20261024000000_notify_queue.sql` - Turn alerts waiting to be emailed (docs/architecture.md, Decision 5, `notify_queue`: pending notifications).
 - `packages/server/supabase/migrations/20261025000000_notify_queue_waiting_seq.sql` - A turn alert stays live while its player is still waiting on that turn (#267).
+- `packages/server/supabase/migrations/20261026000000_sweep_jobs.sql` - The scheduled job (docs/architecture.md, Decision 5, "Scheduled jobs (every minute)"): every minute pg_cron calls the sweep-deadlines and sweep-turn-alerts Edg…
 - `packages/server/tsconfig.json`
 
 ## tests
