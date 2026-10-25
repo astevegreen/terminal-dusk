@@ -1,152 +1,110 @@
 // Runs a command while holding the computer's one local Supabase stack, so two folders never use it at once:
 // a `supabase db reset` from one would empty the database under the other's stack tests (docs/sprint.md, online).
 //   node tools/stack-lock.mjs <command…>   wait for the stack (up to 8 minutes), run the command, let the stack go
-// The lock is a file in the temp folder that names who holds it. Its holder touches it every few seconds; a lock
-// whose process has ended, or that nobody has touched for 5 minutes, is taken over.
-// Exit codes: the command's own, or 1 when no command was given or the stack stayed busy (nothing ran).
-// STACK_LOCK_FILE, STACK_LOCK_WAIT_MS and STACK_LOCK_STALE_MS change the file and the two limits (the tests use them).
-import { spawn } from "node:child_process";
-import { randomUUID } from "node:crypto";
-import {
-  closeSync,
-  linkSync,
-  openSync,
-  readFileSync,
-  renameSync,
-  rmSync,
-  statSync,
-  utimesSync,
-  writeSync,
-} from "node:fs";
-import os from "node:os";
-import path from "node:path";
+// The lock is a listening socket on 127.0.0.1, port 47853. The system lets only one program listen on a port and
+// frees it the moment that program ends, even in a crash, so a lock is never left behind and never needs taking over.
+// A waiter connects to it and is told which folder holds the stack, and for what.
+// Exit codes: the command's own (128 + the signal's number when a signal stopped it), or 1 when no command was given,
+// the stack stayed busy or the port couldn't be used (nothing ran then).
+// STACK_LOCK_PORT and STACK_LOCK_WAIT_MS change the port and the wait (the tests use them).
+import net from "node:net";
+import { exitCode, startCommand, stopCommand } from "./stack-lock-command.mjs";
 
-const FILE = process.env.STACK_LOCK_FILE || path.join(os.tmpdir(), "terminal-dusk-stack.lock");
+const HOST = "127.0.0.1";
+const PORT = Number(process.env.STACK_LOCK_PORT) || 47853;
 const WAIT_MS = Number(process.env.STACK_LOCK_WAIT_MS) || 8 * 60_000;
-const STALE_MS = Number(process.env.STACK_LOCK_STALE_MS) || 5 * 60_000;
 const POLL_MS = 250;
+const ANSWER_MS = 1000;
+const MARK = "terminal-dusk-stack-lock";
+const WINDOWS = process.platform === "win32";
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// The lock as it is now: { raw, holder, age }, or null when there is none. A file still being written has no holder.
-function current() {
-  try {
-    const age = Date.now() - statSync(FILE).mtimeMs;
-    const raw = readFileSync(FILE, "utf8");
-    let holder = null;
-    try {
-      holder = JSON.parse(raw);
-    } catch {
-      // still being written: it counts as held until it is stale
-    }
-    return { raw, holder, age };
-  } catch (e) {
-    if (e.code === "ENOENT") return null;
-    throw e;
-  }
-}
-
-function alive(pid) {
-  if (!Number.isInteger(pid) || pid <= 0) return false;
-  try {
-    process.kill(pid, 0);
-    return true;
-  } catch (e) {
-    return e.code === "EPERM";
-  }
-}
-
-const stale = (lock) => lock.age > STALE_MS || (lock.holder !== null && !alive(lock.holder.pid));
-
-// Creates the lock file only if there is none, so of two runs at the same moment exactly one gets it.
+// Listens on the lock's port, answering each connection with who holds the stack. Resolves to the server, or to the
+// error code: EADDRINUSE when someone holds the port, EACCES when the system keeps it back (Windows reserves ranges).
 function take(me) {
-  let fd;
-  try {
-    fd = openSync(FILE, "wx");
-  } catch (e) {
-    if (e.code === "EEXIST") return false;
-    throw e;
-  }
-  try {
-    writeSync(fd, JSON.stringify(me));
-  } finally {
-    closeSync(fd);
-  }
-  return true;
+  return new Promise((resolve) => {
+    const server = net.createServer((socket) => {
+      socket.on("error", () => {});
+      // The waiter closes the connection, so the port never lingers in TIME_WAIT once the holder ends.
+      socket.write(`${JSON.stringify({ mark: MARK, ...me })}\n`);
+    });
+    server.once("error", (e) => resolve(e.code ?? String(e)));
+    server.listen(PORT, HOST, () => resolve(server));
+  });
 }
 
-// Moves a stale lock aside and deletes it. When another waiter replaced it first, the newer lock goes back.
-// True when the lock is gone, false when it couldn't be moved (it is open elsewhere; try again later).
-function breakStale(lock) {
-  const aside = `${FILE}.${process.pid}.stale`;
-  try {
-    renameSync(FILE, aside);
-  } catch (e) {
-    if (e.code === "ENOENT") return true;
-    if (e.code === "EPERM" || e.code === "EBUSY" || e.code === "EACCES") return false;
-    throw e;
-  }
-  if (readFileSync(aside, "utf8") !== lock.raw) {
-    try {
-      linkSync(aside, FILE);
-    } catch {
-      // a third run holds the lock by now, so the newer one is lost; its holder stops refreshing it
-    }
-  }
-  rmSync(aside, { force: true });
-  return true;
+// Who holds the stack, as its holder says: { folder, command, started }; null when nobody answers (it has just let
+// go); "foreign" when some other program is listening on the port.
+function holder() {
+  return new Promise((resolve) => {
+    let text = "";
+    const socket = net.connect(PORT, HOST);
+    const done = (value) => {
+      socket.destroy();
+      resolve(value);
+    };
+    const read = () => {
+      try {
+        const said = JSON.parse(text);
+        return said?.mark === MARK ? said : "foreign";
+      } catch {
+        return "foreign";
+      }
+    };
+    socket.setEncoding("utf8");
+    socket.setTimeout(ANSWER_MS, () => done("foreign"));
+    socket.on("data", (d) => {
+      text += d;
+      if (text.includes("\n") || text.length > 4096) done(read());
+    });
+    socket.on("end", () => done(read()));
+    socket.on("error", () => done(null));
+  });
 }
 
-const describe = (holder) =>
-  holder ? `${holder.folder} is using for "${holder.command}" (since ${holder.started})` : "another run is using";
+const describe = (h) => (h ? `${h.folder} is using for "${h.command}" (since ${h.started})` : "another run is using");
+const fail = (message) => {
+  console.error(`stack-lock: ${message}`);
+  process.exit(1);
+};
 
 const command = process.argv.slice(2).join(" ").trim();
-if (!command) {
-  console.error(
-    "usage: node tools/stack-lock.mjs <command…>  (runs the command while holding the local Supabase stack)",
-  );
-  process.exit(1);
-}
+if (!command)
+  fail("usage: node tools/stack-lock.mjs <command…>  (runs the command while holding the local Supabase stack)");
+const notRun = `"${command}" did not run`;
+const where = `127.0.0.1:${PORT}, the port that marks who holds the local Supabase stack`;
 
-const me = { pid: process.pid, token: randomUUID(), folder: process.cwd(), command, started: new Date().toISOString() };
+const me = { folder: process.cwd(), command, started: new Date().toISOString() };
 const since = Date.now();
 let told = false;
-while (!take(me)) {
-  const lock = current();
-  if (lock === null || (stale(lock) && breakStale(lock))) continue;
-  if (Date.now() - since >= WAIT_MS) {
-    console.error(
-      `stack-lock: gave up after ${Math.round(WAIT_MS / 1000)} s waiting for the local Supabase stack, which ` +
-        `${describe(lock.holder)}. "${command}" did not run; run it again once that has finished.`,
+for (;;) {
+  const got = await take(me);
+  if (typeof got !== "string") break;
+  if (got !== "EADDRINUSE")
+    fail(
+      `can't listen on ${where} (${got}). ${notRun}. Free that port, or set STACK_LOCK_PORT to another one everywhere.`,
     );
-    process.exit(1);
-  }
-  if (!told) console.error(`stack-lock: waiting for the local Supabase stack, which ${describe(lock.holder)}.`);
-  told = true;
+  const h = await holder();
+  if (h === "foreign")
+    fail(
+      `another program is listening on ${where}. ${notRun}. Stop it, or set STACK_LOCK_PORT to another port everywhere.`,
+    );
+  if (Date.now() - since >= WAIT_MS)
+    fail(
+      `gave up after ${Math.round(WAIT_MS / 1000)} s waiting for the local Supabase stack, which ${describe(h)}. ` +
+        `${notRun}; run it again once that has finished.`,
+    );
+  if (!told && h) console.error(`stack-lock: waiting for the local Supabase stack, which ${describe(h)}.`);
+  told ||= Boolean(h);
   await sleep(POLL_MS);
 }
 
-const mine = () => current()?.holder?.token === me.token;
-const beat = setInterval(
-  () => {
-    try {
-      if (mine()) utimesSync(FILE, new Date(), new Date());
-    } catch {
-      // gone between the check and the touch: there is nothing left to keep fresh
-    }
-  },
-  Math.max(50, Math.floor(STALE_MS / 4)),
-);
-const release = () => {
-  clearInterval(beat);
-  if (mine()) rmSync(FILE, { force: true });
-};
-process.on("exit", release);
-
-// The command is the package script's own text, never input from a player or the network.
-const child = spawn(command, { shell: true, stdio: "inherit", windowsHide: true }); // NOSONAR (javascript:S4721)
-for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) process.on(signal, () => child.kill(signal));
-child.on("error", (e) => {
-  console.error(`stack-lock: couldn't start "${command}": ${e.message}`);
-  process.exit(1);
-});
-child.on("exit", (code, signal) => process.exit(code ?? (signal ? 1 : 0)));
+const child = startCommand(command);
+let stoppedBy = null;
+for (const signal of ["SIGINT", "SIGTERM", "SIGHUP", ...(WINDOWS ? ["SIGBREAK"] : [])])
+  process.on(signal, () => {
+    stoppedBy ??= signal;
+    stopCommand(child, signal);
+  });
+child.on("error", (e) => fail(`couldn't start "${command}": ${e.message}`));
+child.on("exit", (code, signal) => process.exit(exitCode(code, signal ?? stoppedBy)));
