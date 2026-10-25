@@ -116,7 +116,7 @@ Checked by the script described in the README ("How the tables were checked").
 
 ## Trade-offs
 
-**Cards whose place is on the board.** Of the 52 cards in the README's card table, 41 have all their places on
+**Cards whose place is on the board.** Of the 53 cards in the README's card table, 42 have all their places on
 this board, 6 some and 5 none.
 
 - **Some:** NATO Enlargement 1999 (Poland only), Desert Storm Coalition (Iraq, not Kuwait), Big Bang

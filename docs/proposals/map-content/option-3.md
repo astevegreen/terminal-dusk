@@ -98,7 +98,7 @@ Checked by the script described in the README ("How the tables were checked").
 
 ## Trade-offs
 
-**Cards whose place is on the board.** Of the 52 cards in the README's card table, 31 have all their places on
+**Cards whose place is on the board.** Of the 53 cards in the README's card table, 32 have all their places on
 this board, 9 some and 12 none.
 
 - **Some:** NATO Enlargement 1999 (Poland only), Desert Storm Coalition (Iraq, not Kuwait), Shanghai Five
@@ -142,11 +142,11 @@ at 4 and 6 at Brink under every order, and 15 of the 30 countries are closed at 
 In a closed region placing goes on, but influence there can then be removed only by card events, so a lead
 held when it closes tends to last.
 
-- **C1** and **C3** close East and South Asia at 3 or 4. There LIO's only way in by placement is Taiwan's
-  starting influence (Reach, above), so once the region closes, LIO cannot use interventions or realignments to
-  make up for that.
-- **C2** keeps East and South Asia open to the end, so the region where LIO places hardest stays open to
-  interventions and realignments, while the Americas, next to the LIO box, close at 4.
+- **C1** and **C3** close East and South Asia at 4 or 3. LIO can reach India, Pakistan and Afghanistan there
+  by placement through Iran, but Japan and Taiwan only through Taiwan's starting influence (Reach, above); once
+  the region closes, LIO cannot use interventions or realignments in Japan or Taiwan to make up for that.
+- **C2** keeps East and South Asia open to the end, so Japan and Taiwan, the two countries LIO cannot reach from
+  its home box, stay open to interventions and realignments, while the Americas, next to the LIO box, close at 4.
 
 **Scenario-data work for the rules lane.** 30 country entries (31 with a Crimea box), 38 adjacency pairs
 between countries, two home-box neighbour lists (3 and 11 under H1), three region IDs for the closing order, and

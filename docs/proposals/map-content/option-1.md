@@ -106,8 +106,8 @@ Checked by the script described in the README ("How the tables were checked").
 
 ## Trade-offs
 
-**Cards whose place is on the board.** Of the 52 cards in the README's card table (cards that name a place off
-the home boxes), 33 have all their places on this board, 10 some and 9 none.
+**Cards whose place is on the board.** Of the 53 cards in the README's card table (cards that name a place off
+the home boxes), 34 have all their places on this board, 10 some and 9 none.
 
 - **Some:** NATO Enlargement 1999 (Poland only), Desert Storm Coalition (Iraq, not Kuwait), Shanghai Five (not
   Tajikistan), Big Bang Enlargement 2004 (Estonia only), Cedar Revolution (Syria, not Lebanon), Sovereign Wealth

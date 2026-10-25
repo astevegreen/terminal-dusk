@@ -123,6 +123,7 @@ each option's board; Crimea counts as on the board either way. No card changes a
 | Olympic Summer 2008            | 2      | Georgia                                                           | all         | all        | all         |
 | Estonian Cyberattacks 2007     | 2      | Estonia                                                           | all         | all        | all         |
 | Litvinenko Poisoning           | 2      | United Kingdom                                                    | all         | all        | all         |
+| Ana Montes Unmasked            | 2      | Cuba                                                              | all         | all        | all         |
 | North Korean Nuclear Test      | 2      | North Korea                                                       | none        | all        | none        |
 | Petrocaribe                    | 2      | Venezuela                                                         | all         | all        | all         |
 | Munich Speech 2007             | 2      | Germany                                                           | all         | all        | all         |
@@ -150,11 +151,12 @@ each option's board; Crimea counts as on the board either way. No card changes a
 | Populist Wave                  | 3      | United Kingdom, Italy, Brazil                                     | some        | all        | some        |
 | October 7 and Gaza             | 3      | Israel                                                            | all         | all        | all         |
 | Cable Cut in the Baltic        | future | Finland, Estonia                                                  | all         | all        | some        |
-| **Totals (all / some / none)** |        |                                                                   | 33 / 10 / 9 | 41 / 6 / 5 | 31 / 9 / 12 |
+| **Totals (all / some / none)** |        |                                                                   | 34 / 10 / 9 | 42 / 6 / 5 | 32 / 9 / 12 |
 
 **Cards whose place is a home box**, on the board under every option: End of the Soviet Union, Handover of Hong
 Kong, Golden Shield, Second Chechen War, Hainan Island Incident, Shock Therapy Backlash, Ruble Default (Era 1);
-ABM Treaty Withdrawal, Peace Mission 2005, China Joins the WTO, September 11, SARS (Era 2); Ghost Stories, Chip
+ABM Treaty Withdrawal, Peace Mission 2005, Chinese Anti-Satellite Test, China Joins the WTO, September 11, SARS
+(Era 2); Ghost Stories, Chip
 Chokepoint, Belt and Road, Global Financial Crisis, Hong Kong Security Law, Hypersonics on Parade, Tariff Shock
 (Era 3). Olympic Summer 2008 is about both China and Georgia. The other cards name no place, or the whole world.
 
@@ -185,7 +187,7 @@ It reported no errors for any of the three files. Each option file's "Reach" sec
 | Next to the SAE box, H1 / H2                     | 14 / 3         | 16 / 3         | 11 / 3                                                         |
 | Next to the LIO box                              | 3              | 3              | 3                                                              |
 | Reachable from both home boxes                   | all, H1 and H2 | all, H1 and H2 | all but Japan and Taiwan (SAE only under H1; neither under H2) |
-| Cards with all their places on the board (of 52) | 33             | 41             | 31                                                             |
+| Cards with all their places on the board (of 53) | 34             | 42             | 32                                                             |
 
 ## Questions for the owner
 
