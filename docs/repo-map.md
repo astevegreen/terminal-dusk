@@ -501,6 +501,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/mailer.ts` - The mail port (docs/architecture.md, Decision 5, "Accounts and purchases"): sign-in codes and turn alerts go out through a paid email provider. Exports: Email, SendResult, Mailer, MemoryMailer.
 - `packages/server/src/matchRow.test.ts`
 - `packages/server/src/matchRow.ts` - The mapping between a `match` row (rows.ts, the SQL column names) and the host's `MatchRecord`. Exports: matchRowFor, recordFromRow.
+- `packages/server/src/migrations/acceptInviteClock.test.ts` - The accept_invite clock migration (supabase/migrations/20261026000000_accept_invite_clock.sql).
 - `packages/server/src/migrations/commitMatch.test.ts` - The commit_match migration (supabase/migrations/20261021000000_commit_match.sql) on the local Supabase stack.
 - `packages/server/src/migrations/localStack.ts` - Connects the migration test to the local Supabase stack (docs/sprint.md, lane "online": no hosted project). Exports: HOW_TO_START, StackKeys, stackKeys, client, whyUnavailable, freshId.
 - `packages/server/src/migrations/matchInvite.test.ts` - The match_invite migration (supabase/migrations/20261022000000_match_invite.sql) on the local Supabase stack.
@@ -539,6 +540,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/submitHandler.ts` - The HTTP side of the submit Edge Function (docs/architecture.md, Decision 5), as plain data in and out so it runs under vitest: it signs the caller in, checks… Exports: CORS_HEADERS, HttpReply, HttpRequest, SubmitHandlerDeps, HandlerErrorCode, handleSubmit.
 - `packages/server/src/supabaseEmailOf.test.ts` - supabaseEmailOf against a stand-in client: the player's address through the Auth admin API, or null when the user has none or is not found.
 - `packages/server/src/supabaseEmailOf.ts` - A player's email address for the turn alert sweep (sweepTurnAlerts.ts, `emailOf`), read through Supabase Auth's admin API. Exports: EmailLookupError, supabaseEmailOf.
+- `packages/server/src/supabaseInviteStore.clock.stack.test.ts` - SupabaseInviteStore.accept and the deadline clock on the local Supabase stack: a match made from an invite keeps the clock it was given, so SupabaseStore.load…
 - `packages/server/src/supabaseInviteStore.games.stack.test.ts` - Private games through the Supabase stores on the local Supabase stack: for each side mode, createInvite, previewInvite and joinInvite create a match whose rows…
 - `packages/server/src/supabaseInviteStore.guards.stack.test.ts` - SupabaseInviteStore's guards on the local Supabase stack: two joins of one code at once, a clash on save, an unknown code, and database errors, which throw wit…
 - `packages/server/src/supabaseInviteStore.test.ts` - SupabaseInviteStore against a stand-in client, so these run without the local stack.
@@ -592,6 +594,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/supabase/migrations/20261023000000_match_clock.sql` - A match's deadline clock (docs/architecture.md, Decision 5, "Deadlines" and "Scheduled jobs").
 - `packages/server/supabase/migrations/20261024000000_notify_queue.sql` - Turn alerts waiting to be emailed (docs/architecture.md, Decision 5, `notify_queue`: pending notifications).
 - `packages/server/supabase/migrations/20261025000000_notify_queue_waiting_seq.sql` - A turn alert stays live while its player is still waiting on that turn (#267).
+- `packages/server/supabase/migrations/20261026000000_accept_invite_clock.sql` - accept_invite as before (20261022000000_match_invite.sql), now also writing the match's deadline clock and next deadline (the columns 20261023000000_match_cloc…
 - `packages/server/tsconfig.json`
 
 ## tests
