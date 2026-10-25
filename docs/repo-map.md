@@ -360,6 +360,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/copy.ts` - State is plain JSON, so a JSON round trip is a complete copy that shares nothing with the original. Exports: copyJson.
 - `packages/engine/src/createGame.test.ts`
 - `packages/engine/src/createGame.ts` - Exports: createGame.
+- `packages/engine/src/createGameMap.test.ts` - A game started with a map keeps it, and every country's influence, in the public compartment only.
 - `packages/engine/src/decisions.test.ts`
 - `packages/engine/src/decisions.ts` - Pending decisions: building them, finding the one a side must answer, and listing its legal answers. Exports: whoseCard, newDecision, newDiscardDecision, newGroup, pendingFor, legalAnswers.
 - `packages/engine/src/discard.property.test.ts` - Property test (#186): for random hands, counts and generator states, a discardFromHand takes exactly min(count, hand size) distinct cards from the hand, all of…
@@ -381,6 +382,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/knowledge.ts` - Knowledge: the rival's cards a side has been shown (docs/architecture.md, section 3), kept in that side's own private compartment while they stay in the rival'… Exports: revealHand, forgetCard.
 - `packages/engine/src/knowledgeTypes.ts` - The events of the steps that look at or take from a hand: revealHand (knowledge.ts) and discardFromHand (discard.ts). Exports: HandRevealedHidden, HandRevealed, CardsDiscarded.
 - `packages/engine/src/lastingTypes.ts` - The types of what a card leaves in force: hooks, durations, modifiers and triggers (modifiers.ts, triggers.ts). Exports: HookId, Duration, ModifierSpec, ModifierExpiry, ActiveModifier, TriggerFilter, ActiveTrigger.
+- `packages/engine/src/mapChecks.test.ts` - createGame refuses a bad map with invalidSetup and a message naming the problem: one test per refusal.
+- `packages/engine/src/mapChecks.ts` - The setup's map (docs/design/map-and-points.md, "Map" and "Influence"): checking it, and the public state it starts. Exports: mapError, mapState.
+- `packages/engine/src/mapTypes.ts` - The map's types (docs/design/map-and-points.md, "Map" and "Influence"). Exports: RegionId, CountryId, Region, Country, GameMap, InfluenceEntry, SetupMap.
 - `packages/engine/src/markers.test.ts` - Lasting markers (#141): a marker step with `lasting: true` keeps its label in state.public.markers until the game ends.
 - `packages/engine/src/markers.ts` - Lasting markers: named tags a card leaves in the public state until the game ends, which a later card's `has` condition tests. Exports: keepMarker, hasMarker.
 - `packages/engine/src/modifiers.test.ts` - Modifiers (#89): rule changes in public state, the opsValue hook, and their end at the turn's end.
@@ -410,6 +414,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/stepBudget.test.ts`
 - `packages/engine/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
 - `packages/engine/src/test/game.ts` - Test helpers: a started game, answers for it, and small programs for the stack. Exports: testCard, rulesetWith, ruleset, sideCard, withCards, makeSetup, setupPlus, startGame, startAtPlay, cardAnswer, playAnswer, orderAnswer, ….
+- `packages/engine/src/test/map.ts` - A small made-up map for engine tests: two regions, five countries in a ring with one cross link. Exports: testMap, mapSetup.
 - `packages/engine/src/triggerFilter.test.ts` - A trigger's filter and once (#189): a trigger that reacts only to one side's plays, or only while a lasting marker is set, and a trigger that fires at most onc…
 - `packages/engine/src/triggerFilterChecks.test.ts` - createGame's checks of a trigger's filter and once (#189): badTrigger, and the ruleset check that a has names a marker some card sets, which reads a trigger's…
 - `packages/engine/src/triggers.test.ts` - Triggers (#90): reactions a card leaves behind, fired at the cardPlayed and turnEnd hooks.
