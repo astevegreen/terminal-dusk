@@ -42,6 +42,30 @@ test("the ) after a case pattern doesn't end the $(…) around it", () => {
   assert.equal(complete('echo "$(case x in x) a;; esac)"'), true);
 });
 
+// A pattern can itself be the word `case` (`case x in x) a;; case) b;; esac`), and then the reader can't tell
+// which ) closes the $(…), so whatever follows it may be misread.
+test("a case starting a command inside $(…) or <(…) makes the reading unsure; anywhere else it doesn't", () => {
+  const unsure = (line) => segments(line).unsure;
+  for (const line of [
+    'echo "$(case x in x) a;; esac)"',
+    "cat <(case x in x) a;; esac)",
+    "echo $(echo $(case x in x) a;; esac))",
+    "echo $( (case x in x) a;; esac) )",
+    "echo `echo $(case x in x) a;; esac)`",
+    "cat <<EOF\n$(case x in x) a;; esac)\nEOF",
+  ])
+    assert.equal(unsure(line), true, line);
+  for (const line of [
+    "case x in x) a;; esac",
+    "(case x in x) a;; esac)",
+    "echo `case x in x) a;; esac`",
+    'echo "$(echo case)"',
+    "echo $(git log --grep=case)",
+    "cat <<'EOF'\n$(case x in x) a;; esac)\nEOF",
+  ])
+    assert.equal(unsure(line), false, line);
+});
+
 test("a backtick inside backticks is escaped, and its command is found too", () => {
   assert.deepEqual(commands("echo `a \\`b\\``"), ["a `b`", "b", "echo `a \\`b\\``"]);
 });

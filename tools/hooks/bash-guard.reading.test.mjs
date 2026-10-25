@@ -48,6 +48,29 @@ for (const command of hidden) {
   }
 }
 
+// A case statement inside $(…) or <(…) can hide a command: when a pattern is itself the word `case`, the reader
+// can't tell which ) closes the substitution, so the rest of the line may look like quoted text. Bash runs the
+// git push in all but the first line (the first is the reviewer's, and bash refuses it for its unclosed quote).
+const unsure = [
+  'echo "$(case x in x) :;; case) :;; esac)" ; git push --force origin main ; "',
+  'echo "$(case x in x) :;; case) :;; esac)" ; git push --force origin main # "',
+  'echo "$(case x in\ncase) :;; esac)" ; git push --force origin main # "',
+  'echo "$(case x in (case) :;; esac)" ; git push --force origin main # "',
+  "cat <(case x in x) :;; esac)",
+];
+
+test("a case statement inside $(…) or <(…) is refused unattended and read-only, and asked about by day", () => {
+  for (const command of unsure) {
+    for (const args of [["--unattended"], ["--read-only"]]) {
+      const r = guard(command, args);
+      assert.ok(denied(r), `${args[0]} ${JSON.stringify(command)}: expected deny, got ${r.stdout || "nothing"}`);
+    }
+    // Read-only refuses `case` itself (not a reviewer command); unattended, the unsure reading is what refuses it.
+    assert.match(guard(command, ["--unattended"]).stdout, /case statement inside/);
+    assert.equal(decision(guard(command)), "ask", JSON.stringify(command));
+  }
+});
+
 test("reading .env through an input redirect is blocked in every mode", () => {
   for (const args of [[], ["--unattended"], ["--read-only"]]) {
     for (const command of ["cat < .env", "grep KEY < .env.local", "node x.mjs 0< .env"]) assert.ok(denied(guard(command, args)), `${args} ${command}`);

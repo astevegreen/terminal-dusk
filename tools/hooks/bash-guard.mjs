@@ -242,10 +242,16 @@ function check(seg) {
   return null;
 }
 
-const { list: segs, complete } = segments(command);
+const { list: segs, complete, unsure } = segments(command);
 for (const seg of segs) {
   const why = check(seg);
   if (why) deny(`Blocked by bash-guard: ${why}`);
+}
+// The reader may have misread the rest of such a line, so nobody can vouch for what it runs (shell-words.mjs).
+if (unsure) {
+  const why = "it can't be sure what this line runs: it has a case statement inside $(…) or <(…).";
+  if (READ_ONLY || UNATTENDED) deny(`Blocked by bash-guard: ${why} Write it with if, or in a script file.`);
+  decide("ask", `bash-guard: ${why} Check the whole line before it runs.`);
 }
 
 if (!READ_ONLY && !UNATTENDED) {

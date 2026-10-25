@@ -3,7 +3,7 @@
 // here-string, and in a here-document whose end word is unquoted. Only single-quoted text, escaped characters,
 // quoted here-documents and comments stay text.
 //
-// segments(line) gives { list, complete }. Each item in list is one simple command:
+// segments(line) gives { list, complete, unsure }. Each item in list is one simple command:
 //   words      its words. A word that is one quoted string loses its quotes; any other word keeps its text as
 //              written (backslashes too, so a Windows path such as C:\x is still recognised).
 //   redirects  files it writes (>, >>, &>, >|, <>, and >& a file name)
@@ -12,6 +12,9 @@
 //              one quoted string. A $ or backtick still counts as plain; callers check for those themselves.
 // complete is false when the line ends inside a quote, a substitution or a here-document, so bash would read
 // something different from this, or nothing at all.
+// unsure is true when a `case` starts a command inside $(…) or <(…). A ) there may end one of its patterns or the
+// substitution, and a pattern can itself be the word `case`, so this reader can't always tell which: everything
+// after it may be misread.
 
 const SPACE = new Set([" ", "\t", "\r"]);
 const BREAKS = new Set([...SPACE, "\n", ";", "&", "|", "(", ")", "<", ">"]);
@@ -21,7 +24,7 @@ const REDIRECT = /(?:\d+|\{[A-Za-z_]\w*\})?(<<<|<<-|<<|<>|<&|>&|&>>|&>|>>|>\||<|
 const RESERVED = new Set(["{", "!", "if", "then", "else", "elif", "do", "while", "until", "time"]);
 
 export function segments(line) {
-  const out = { list: [], complete: true };
+  const out = { list: [], complete: true, unsure: false };
   scanner(String(line), out).list(0, false);
   return out;
 }
@@ -51,8 +54,10 @@ function scanner(src, out) {
     const add = ({ value, plain, raw }) => {
       if (redirect === null) {
         if (plain && cur.words.every((x) => RESERVED.has(x))) {
-          if (value === "case") cases.push(depth);
-          else if (value === "esac") cases.pop();
+          if (value === "case") {
+            cases.push(depth);
+            out.unsure ||= nested;
+          } else if (value === "esac") cases.pop();
         }
         cur.words.push(value);
         cur.plain &&= plain;
