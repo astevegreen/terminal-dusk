@@ -10,6 +10,7 @@
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint . --format ../../tools/eslint-formatter.mjs",
     "test": "vitest run",
+    "test:stack": "node ../../tools/stack-lock.mjs vitest run src/transport/rehearsal.stack.test.ts",
     "test:e2e": "playwright test"
   },
   "dependencies": {
