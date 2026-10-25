@@ -33,6 +33,11 @@ proposed value.
   redraws a Contingency card (L2), none adds or widens a placement (L3, S3), and none primes a later play in the
   turn (S1). Points changed by an ability buy steps exactly like any other points; the track neither reads nor
   changes the ability. Each option repeats this check below.
+- **Stacking with L2.** L2 (LIO redraws the first 1 it draws from its own Contingency deck each turn) acts on the
+  same realignments and interventions whose totals and results these options' rewards raise. The two do not
+  clash: L2 replaces the drawn number before it is used, and a track bonus is added afterwards, so both apply and
+  the order does not change the result. They do add up for LIO only, so if the owner picks L2, the gap between a
+  side with tech bonuses and one without would be wider for LIO. Whether that stacking is acceptable is question 11.
 - **Integers only, every wait is a Decision, the track is data** (`architecture.md`, Decisions 1 and 4). Each
   option says which state fields, Decisions and schema it needs.
 - **Scoring is not decided.** No option chooses a scoring rule; each says what it would need from one.
@@ -84,8 +89,9 @@ first pull the marker back to parity, removing the rival's lead one step at a ti
   only lasting value is lead 1 and 2's bonuses.
 
 **Same rules for both sides, and special abilities.** Both sides use the same marker, cost and table. The rewards
-change realignment totals and intervention results only; no special ability option touches either. Points an
-ability changes (L1, S1, S2) buy positions like any other points.
+change realignment totals and intervention results only. No special ability option changes a total or a result
+directly; L2 changes the Contingency draw inside them, and stacks with the lead bonus rather than clashing with
+it (see "Stacking with L2" above). Points an ability changes (L1, S1, S2) buy positions like any other points.
 
 **Trade-offs.**
 
@@ -154,8 +160,10 @@ Since no event points can fund a step and no step moves Escalation, this option 
 question.
 
 **Same rules for both sides, and special abilities.** Both tracks are identical. The rewards change realignment
-totals and intervention results and award score; no special ability option does any of these. Points an ability
-changes buy levels like any other points.
+totals and intervention results and award score. No special ability option changes a total or a result directly
+or awards score; L2 changes the Contingency draw inside realignments and interventions, and stacks with the level
+bonuses rather than clashing with them (see "Stacking with L2" above). Points an ability changes buy levels like
+any other points.
 
 **Trade-offs.**
 
@@ -229,8 +237,10 @@ branch; neither blocks the other, and getting there first gives nothing extra.
 
 **Same rules for both sides, and special abilities.** Both sides have the same three branches, costs and
 rewards; SAE's branches are one set for the whole side. The rewards change realignment totals, intervention
-results, Credibility and Escalation, and award score; no special ability option does any of these. Points an
-ability changes buy steps like any other points.
+results, Credibility and Escalation, and award score. No special ability option changes a total, a result,
+Credibility or Escalation directly, or awards score; L2 changes the Contingency draw inside realignments and
+interventions, and stacks with the Networks and Orbit bonuses rather than clashing with them (see "Stacking with
+L2" above). Points an ability changes buy steps like any other points.
 
 **Trade-offs.**
 
@@ -289,3 +299,5 @@ ability changes buy steps like any other points.
 9. Should Escalation's thresholds close the tech race too, or only interventions and realignments as now?
 10. Should the rewards stay within realignment totals, intervention results, Credibility and score (as here, to
     keep clear of every special ability option), or may they touch hand size, placement or card points?
+11. If LIO's ability is L2 (redraw the first 1 each turn), may a tech race bonus to realignment totals or
+    intervention results stack with it, or should the rewards then avoid realignments and interventions?
