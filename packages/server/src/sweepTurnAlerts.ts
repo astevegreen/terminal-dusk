@@ -43,11 +43,29 @@ export async function sweepTurnAlerts(deps: TurnAlertDeps, now: number): Promise
   return results;
 }
 
-async function sweepOne(deps: TurnAlertDeps, alert: TurnAlert, now: number): Promise<TurnAlertResult["status"]> {
+/**
+ * One alert. When the match is still active but not at the alert's `waitingSeq`, `keep` may have raised it
+ * since `due` read it (the other player's move is saved before `keep` runs), so the sweep re-reads it first:
+ * raised, the alert is checked again with the new `waitingSeq`, once; not raised, it is stale. This shrinks
+ * the gap in which a still-waiting player loses their email, but does not close it (#309, answer A).
+ */
+async function sweepOne(
+  deps: TurnAlertDeps,
+  alert: TurnAlert,
+  now: number,
+  recheck = true,
+): Promise<TurnAlertResult["status"]> {
   const loaded = await attempt(() => deps.store.load(alert.matchId));
   if (!loaded.ok) return "failed";
   const record = loaded.value?.record;
-  if (record?.status.kind !== "active" || record.seq !== alert.waitingSeq) return markSent(deps, alert, now, "stale");
+  if (record?.status.kind !== "active") return markSent(deps, alert, now, "stale");
+  if (record.seq !== alert.waitingSeq) {
+    if (!recheck) return markSent(deps, alert, now, "stale");
+    const fresh = await attempt(() => deps.notify.waitingSeq(alert));
+    if (!fresh.ok) return "failed";
+    if (fresh.value === null || fresh.value <= alert.waitingSeq) return markSent(deps, alert, now, "stale");
+    return sweepOne(deps, { ...alert, waitingSeq: fresh.value }, now, false);
+  }
   const address = await attempt(async () => deps.emailOf(alert.player));
   if (!address.ok) return "failed";
   if (address.value === null) return markSent(deps, alert, now, "noAddress");

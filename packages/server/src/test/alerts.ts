@@ -31,6 +31,7 @@ export const withNotify = (inner: NotifyStore, override: Partial<NotifyStore>): 
   keep: (matchId, player, seq) => inner.keep(matchId, player, seq),
   due: (now) => inner.due(now),
   markSent: (alert, now) => inner.markSent(alert, now),
+  waitingSeq: (alert) => inner.waitingSeq(alert),
   ...override,
 });
 

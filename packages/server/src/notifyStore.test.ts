@@ -183,3 +183,23 @@ describe("MemoryNotifyStore.markSent", () => {
     expect(await store.due(T + D)).toEqual([alert("m1", "alice", 2)]);
   });
 });
+
+describe("MemoryNotifyStore.waitingSeq", () => {
+  it("gives the stored waitingSeq as it is now, including a raise by keep after the alert was read", async () => {
+    const store = new MemoryNotifyStore();
+    await store.queue([alert("m1", "alice", 1)]);
+    const [read] = await store.due(T + D);
+    expect(await store.waitingSeq(read!)).toBe(1);
+    await store.keep("m1", "alice", 3);
+    expect(await store.waitingSeq(read!)).toBe(3);
+  });
+
+  it("gives null when nothing is stored, the stored alert has another seq, or it is sent", async () => {
+    const store = new MemoryNotifyStore();
+    expect(await store.waitingSeq(alert("m1", "alice", 1))).toBeNull();
+    await store.queue([alert("m1", "alice", 2)]);
+    expect(await store.waitingSeq(alert("m1", "alice", 1))).toBeNull();
+    await store.markSent(alert("m1", "alice", 2), T + D);
+    expect(await store.waitingSeq(alert("m1", "alice", 2))).toBeNull();
+  });
+});
