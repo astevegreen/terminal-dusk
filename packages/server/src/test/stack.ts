@@ -30,7 +30,8 @@ export async function onLocalStack(
     it(`did not run, because ${unavailable} (the warning below says how to start it)`, () => {
       (globalThis as { console?: { warn(m: string): void } }).console?.warn(
         `${title}: checks did not run: ${unavailable}. ${HOW_TO_START} ` +
-          "With the stack up, `pnpm test` in packages/server runs these checks too.",
+          "With the stack up, `pnpm test:stack` in packages/server runs these checks too, holding the stack so " +
+          "another folder's `pnpm test:migrations` can't empty the database under them.",
       );
       expect(unavailable).not.toBeNull();
     });

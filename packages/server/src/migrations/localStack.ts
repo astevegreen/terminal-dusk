@@ -7,7 +7,8 @@ export const HOW_TO_START =
   "hook a local test secret, which `supabase start` reads (any random value, never a real one): " +
   '`export SEND_EMAIL_HOOK_SECRET="v1,whsec_$(openssl rand -base64 32)"`, then run ' +
   '`pnpm exec supabase start`, then `eval "$(pnpm exec supabase status -o env)"`, then `pnpm test:migrations`, ' +
-  "which empties the local database, applies every migration (`supabase db reset`) and runs these checks.";
+  "which empties the local database, applies every migration (`supabase db reset`) and runs these checks. " +
+  "It waits its turn if another folder is using the stack (tools/stack-lock.mjs).";
 // Why the test itself doesn't apply the migration: that needs a direct Postgres connection or a child process,
 // both Node APIs this package's tsconfig doesn't have (no Node types). The test:migrations script does it instead.
 
