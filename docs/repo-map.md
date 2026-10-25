@@ -44,6 +44,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/.gitignore`
 - `packages/app/e2e/game.e2e.ts`
 - `packages/app/e2e/keyboard.e2e.ts`
+- `packages/app/e2e/online.e2e.ts`
 - `packages/app/e2e/replay.e2e.ts`
 - `packages/app/e2e/server.test.ts` - The Playwright run's own port (server.ts): a free one, kept for the run's workers, never a server already running.
 - `packages/app/e2e/server.ts` - Where the Playwright smoke tests serve the app (playwright.config.ts). Exports: e2ePort, e2eServer.
@@ -54,7 +55,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/package.json`
 - `packages/app/playwright.config.ts` - Playwright smoke tests (`pnpm test:e2e`), kept apart from Vitest: their files end in .e2e.ts. Exports: default.
 - `packages/app/src/App.test.tsx`
-- `packages/app/src/App.tsx` - The home screen: the game's name, a button to play against the AI and a button into developer test mode. Exports: AppProps, App.
+- `packages/app/src/App.tsx` - The home screen: the game's name, a button to play against the AI, a button to play online and a button into developer test mode. Exports: AppProps, App, Home.
 - `packages/app/src/decisionPrompts.test.tsx`
 - `packages/app/src/decisionPrompts.tsx` - One prompt component per DecisionKind. Exports: CardQuestion, PromptProps, PromptComponent, askingCard, decisionPrompts.
 - `packages/app/src/eventPresentation.test.ts`
@@ -66,9 +67,14 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/gameScreen.css`
 - `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, Hand, Opponent, Table, Contingency, Log.
 - `packages/app/src/main.tsx` - Browser entry point: mounts the app into the #root element of index.html.
+- `packages/app/src/online/OnlineScreen.press.test.tsx` - Pressing the sign-in screen's buttons and submitting its forms without a browser: each calls the right thing.
+- `packages/app/src/online/OnlineScreen.test.tsx`
+- `packages/app/src/online/OnlineScreen.tsx` - The online screen (docs/architecture.md, Decision 7, "Guest mode": sign-in only when going online). Exports: OnlineSetup, OnlineScreenProps, OnlineScreen.
+- `packages/app/src/online/SignInView.tsx` - The sign-in screen drawn from a sign-in snapshot (online/signIn.ts): the email step, the code step and the signed-in step, each with a Back button home. Exports: NOT_SET_UP, REFUSAL_MESSAGE, SignInActions, SignInView.
 - `packages/app/src/online/signIn.test.ts`
 - `packages/app/src/online/signIn.token.test.ts`
 - `packages/app/src/online/signIn.ts` - The state behind signing in by email code (docs/architecture.md, Decisions 5 and 7): asks for a code, trades it for a session through transport/emailAuth.ts, k… Exports: SESSION_KEY, SignInSnapshot, SignInOptions, SignIn, createSignIn.
+- `packages/app/src/online/test/screenTree.ts` - Test helper: walks the element tree the sign-in screen draws and lets a test press its buttons and submit its forms with typed values, without a browser (like… Exports: TreeButton, TreeForm, Tree, treeOf, button.
 - `packages/app/src/online/test/signInRig.ts` - A sign-in session wired to the fake Supabase Auth, a memory store and a hand-moved clock, for the tests. Exports: START, EMAIL, CODE, STORED, Rig, rig, rigWith, rigOnCode, settle, heldStore.
 - `packages/app/src/platform/storage.test.ts`
 - `packages/app/src/platform/storage.ts` - The `storage` part of the Platform interface (docs/architecture.md, Decision 7): a small async key-value store, so a Capacitor implementation fits later. Exports: KeyValueStore, StorageLike, memoryStore, webStore.
