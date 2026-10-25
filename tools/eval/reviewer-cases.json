@@ -25,5 +25,34 @@
   },
   { "id": "O8a", "pr": 262, "issue": 252, "kind": "clean", "later": "No later change fixed it." },
   { "id": "R6a", "pr": 193, "issue": 184, "kind": "clean", "later": "R6b's fuzz games (#197) found no bug in R6a." },
-  { "id": "R7a", "pr": 194, "issue": 189, "kind": "clean", "later": "R7b's fuzz games (#212) found no bug in R7a." }
+  { "id": "R7a", "pr": 194, "issue": 189, "kind": "clean", "later": "R7b's fuzz games (#212) found no bug in R7a." },
+  {
+    "id": "R8b",
+    "pr": 219,
+    "issue": 205,
+    "kind": "bad",
+    "later": "#288 (issue #286): the new 200-game count test in tests/fuzz/removed.test.ts kept vitest's 5-second default time limit, unlike its 200-game sibling in filtered.test.ts (20 s); run with the other fuzz files it took over 5 s, so `pnpm gate` failed on main on the owner's PC.",
+    "lookFor": "time.?limit|time.?out|timeout|flaky|too slow"
+  },
+  {
+    "id": "O8b",
+    "pr": 264,
+    "issue": 253,
+    "kind": "clean",
+    "later": "No later change touched its files (authEmailHandler.ts, webhookSignature.ts, authEmailEdge.ts, the auth-email function) or fixed it."
+  },
+  {
+    "id": "R5a",
+    "pr": 183,
+    "issue": 169,
+    "kind": "clean",
+    "later": "R5b's fuzz games (#188, 10,000 games with a check of every playedBy branch) passed with no engine change, and no later change fixed R5a."
+  },
+  {
+    "id": "R4a",
+    "pr": 180,
+    "issue": 141,
+    "kind": "clean",
+    "later": "R4b's fuzz games (#182, 10,000 games with checks of the lasting markers and has branches) passed with no engine change, and no later change fixed R4a."
+  }
 ]
