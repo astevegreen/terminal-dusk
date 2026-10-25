@@ -723,6 +723,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/sprint/sprint-doc.mjs` - Reads what the sprint queue needs from docs/sprint.md: the window, the lanes, each lane's backlog IDs, the sprint log issue and the environment the sessions ru…
 - `tools/sprint/usage-limit.mjs` - When a session that stopped on a usage limit may be started again.
 - `tools/sprint/usage-limit.test.mjs` - Tests for usage-limit.mjs: when a session that stopped on a usage limit may start again.
+- `tools/stack-lock-command.mjs` - How stack-lock.mjs runs its command: in a shell, as one group of programs that can be stopped together, so a stopped run never leaves part of its command on th…
+- `tools/stack-lock.mjs` - Runs a command while holding the computer's one local Supabase stack, so two folders never use it at once: a `supabase db reset` from one would empty the datab…
+- `tools/stack-lock.test.mjs` - stack-lock.mjs lets one folder at a time use the computer's local Supabase stack.
 - `tools/test.mjs` - `pnpm test`: unit tests.
 - `tools/test.test.mjs`
 

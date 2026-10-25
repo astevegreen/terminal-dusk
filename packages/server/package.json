@@ -11,7 +11,8 @@
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint . --format ../../tools/eslint-formatter.mjs",
     "test": "vitest run",
-    "test:migrations": "supabase db reset && vitest run src/migrations"
+    "test:migrations": "node ../../tools/stack-lock.mjs \"supabase db reset && vitest run src/migrations\"",
+    "test:stack": "node ../../tools/stack-lock.mjs vitest run"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.3",
