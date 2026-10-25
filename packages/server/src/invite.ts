@@ -125,7 +125,7 @@ function joinerSideFor(deps: InviteDeps, sides: SideMode, side: Side | undefined
 export function sideModeOf(value: unknown): SideMode | null {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
   const fields = value as Record<string, unknown>;
-  const keys = Object.keys(fields).sort().join(",");
+  const keys = Object.keys(fields).sort(byCodeUnit).join(",");
   if ((fields.mode === "random" || fields.mode === "invitee") && keys === "mode") return { mode: fields.mode };
   if (fields.mode === "host" && keys === "hostSide,mode" && isSide(fields.hostSide)) {
     return { mode: "host", hostSide: fields.hostSide };
@@ -133,6 +133,11 @@ export function sideModeOf(value: unknown): SideMode | null {
   return null;
 }
 
+/** UTF-16 code-unit order, the order of a sort with no compare function (not `localeCompare`). */
+const byCodeUnit = (a: string, b: string): number => {
+  if (a < b) return -1;
+  return a > b ? 1 : 0;
+};
 const other = (side: Side): Side => (side === "lio" ? "sae" : "lio");
 const isSide = (value: unknown): value is Side => SIDES.includes(value as Side);
 const isPlayer = (value: unknown): value is PlayerId => typeof value === "string" && value.length > 0;
