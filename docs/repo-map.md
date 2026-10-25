@@ -756,6 +756,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `docs/proposals/era-lengths.md` - Era lengths and turns per era: options
 - `docs/proposals/new-lio-cards.md` - New LIO cards: drafts for the owner's approval
 - `docs/proposals/special-abilities.md` - Special abilities for LIO and SAE: options
+- `docs/proposals/tech-race.md` - The tech race track: options
 - `docs/proposals/w7/1-map.md` - Topic 1: the map (regions, how many countries, adjacency)
 - `docs/proposals/w7/2-influence.md` - Topic 2: influence (placing it, and controlling a country)
 - `docs/proposals/w7/3-points-and-actions.md` - Topic 3: what points are spent on, and what a card's points award stands for
