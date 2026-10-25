@@ -574,6 +574,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/sweepEdge.sweeps.test.ts`
 - `packages/server/src/sweepEdge.test.ts`
 - `packages/server/src/sweepEdge.ts` - The sweep Edge Functions' handlers (docs/architecture.md, Decision 5, "Scheduled jobs"): `sweep-deadlines` runs `sweepDeadlines` and `sweep-turn-alerts` runs `… Exports: SweepAccess, SweepDeadlinesDeps, SweepTurnAlertsDeps, DEADLINE_STATUSES, TURN_ALERT_STATUSES, handleSweepDeadlines, handleSweepTurnAlerts, sweepDeadlinesFetchHandler, sweepTurnAlertsFetchHandler.
+- `packages/server/src/sweepTurnAlerts.recheck.test.ts` - O11c (#309): the sweep re-reads an alert's waitingSeq just before marking it stale, so a `keep` that lands after the sweep read the alert, but before it marks…
 - `packages/server/src/sweepTurnAlerts.test.ts`
 - `packages/server/src/sweepTurnAlerts.ts` - The turn alert sweep (docs/architecture.md, Decision 5, "Scheduled jobs", Notifications): email each player whose turn is still waiting and still unseen 20 min… Exports: TurnAlertDeps, TurnAlertResult, sweepTurnAlerts.
 - `packages/server/src/test/alerts.ts` - Test helpers for turn alerts: the test match in a MemoryStore, its first alerts queued in a MemoryNotifyStore, a MemoryMailer, and addresses for alice and bob. Exports: APP_URL, ADDRESSES, AlertWorld, withNotify, moveUntilNotified, alertWorld.

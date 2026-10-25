@@ -38,6 +38,11 @@ export interface NotifyStore {
   due(now: number): Promise<TurnAlert[]>;
   /** Records the alert as sent at `now`, only when the stored alert still has the same seq. */
   markSent(alert: TurnAlert, now: number): Promise<void>;
+  /**
+   * The stored `waitingSeq` of the alert's (match, player), as it is now: `null` when nothing is stored, the
+   * stored alert has another seq, or it is already sent. The sweep re-reads it before marking an alert stale.
+   */
+  waitingSeq(alert: TurnAlert): Promise<number | null>;
 }
 
 /** One `TurnAlert` per `{ notify }` effect, for the match at `seq`, queued at `now`. Other effects are ignored. */
@@ -96,6 +101,13 @@ export class MemoryNotifyStore implements NotifyStore {
     return later(() => {
       const found = this.#alerts.get(keyOf(alert.matchId, alert.player));
       if (found && found.alert.seq === alert.seq) found.sentAt = now;
+    });
+  }
+
+  waitingSeq(alert: TurnAlert): Promise<number | null> {
+    return later(() => {
+      const found = this.#alerts.get(keyOf(alert.matchId, alert.player));
+      return found && found.alert.seq === alert.seq && found.sentAt === null ? found.alert.waitingSeq : null;
     });
   }
 
