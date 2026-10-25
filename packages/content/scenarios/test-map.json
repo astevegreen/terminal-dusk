@@ -1,0 +1,123 @@
+{
+  "id": "test-map",
+  "name": "TEST scenario with a made-up test map (test data, not the game's map; placeholder numbers: 4 turns, 1 play each, hands of 2)",
+  "turns": 4,
+  "playsPerTurn": 1,
+  "handSize": 2,
+  "map": {
+    "regions": [
+      { "id": "test-a", "name": "Test Region A" },
+      { "id": "test-b", "name": "Test Region B" },
+      { "id": "test-c", "name": "Test Region C" },
+      { "id": "test-d", "name": "Test Region D" },
+      { "id": "test-e", "name": "Test Region E" },
+      { "id": "test-f", "name": "Test Region F" }
+    ],
+    "countries": [
+      {
+        "id": "test-a1",
+        "name": "Test A1",
+        "region": "test-a",
+        "stability": 2,
+        "battleground": true,
+        "neighbours": ["test-a2", "test-f2"]
+      },
+      {
+        "id": "test-a2",
+        "name": "Test A2",
+        "region": "test-a",
+        "stability": 1,
+        "battleground": false,
+        "neighbours": ["test-a1", "test-b1"]
+      },
+      {
+        "id": "test-b1",
+        "name": "Test B1",
+        "region": "test-b",
+        "stability": 3,
+        "battleground": true,
+        "neighbours": ["test-a2", "test-b2"]
+      },
+      {
+        "id": "test-b2",
+        "name": "Test B2",
+        "region": "test-b",
+        "stability": 1,
+        "battleground": false,
+        "neighbours": ["test-b1", "test-c1"]
+      },
+      {
+        "id": "test-c1",
+        "name": "Test C1",
+        "region": "test-c",
+        "stability": 2,
+        "battleground": true,
+        "neighbours": ["test-b2", "test-c2", "test-f1"]
+      },
+      {
+        "id": "test-c2",
+        "name": "Test C2",
+        "region": "test-c",
+        "stability": 3,
+        "battleground": false,
+        "neighbours": ["test-c1", "test-d1"]
+      },
+      {
+        "id": "test-d1",
+        "name": "Test D1",
+        "region": "test-d",
+        "stability": 1,
+        "battleground": false,
+        "neighbours": ["test-c2", "test-d2"]
+      },
+      {
+        "id": "test-d2",
+        "name": "Test D2",
+        "region": "test-d",
+        "stability": 2,
+        "battleground": true,
+        "neighbours": ["test-d1", "test-e1"]
+      },
+      {
+        "id": "test-e1",
+        "name": "Test E1",
+        "region": "test-e",
+        "stability": 3,
+        "battleground": true,
+        "neighbours": ["test-d2", "test-e2"]
+      },
+      {
+        "id": "test-e2",
+        "name": "Test E2",
+        "region": "test-e",
+        "stability": 1,
+        "battleground": false,
+        "neighbours": ["test-e1", "test-f1"]
+      },
+      {
+        "id": "test-f1",
+        "name": "Test F1",
+        "region": "test-f",
+        "stability": 2,
+        "battleground": true,
+        "neighbours": ["test-e2", "test-f2", "test-c1"]
+      },
+      {
+        "id": "test-f2",
+        "name": "Test F2",
+        "region": "test-f",
+        "stability": 1,
+        "battleground": false,
+        "neighbours": ["test-f1", "test-a1"]
+      }
+    ],
+    "homeBox": { "lio": ["test-a1", "test-b1", "test-c1"], "sae": ["test-c1", "test-e1", "test-f1"] },
+    "startingInfluence": [
+      { "country": "test-a1", "lio": 2, "sae": 0 },
+      { "country": "test-b1", "lio": 1, "sae": 0 },
+      { "country": "test-c1", "lio": 1, "sae": 1 },
+      { "country": "test-e1", "lio": 0, "sae": 2 },
+      { "country": "test-f1", "lio": 0, "sae": 1 }
+    ]
+  }
+}
