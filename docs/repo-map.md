@@ -758,6 +758,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `docs/proposals/map-content/option-1.md` - Option 1: even regions, six countries each
 - `docs/proposals/map-content/option-2.md` - Option 2: card places first, uneven regions
 - `docs/proposals/map-content/option-3.md` - Option 3: compact, five countries per region
+- `docs/proposals/missed-turn-ai.md` - How "the AI plays the missed turn" could work online: options
 - `docs/proposals/new-lio-cards.md` - New LIO cards: drafts for the owner's approval
 - `docs/proposals/special-abilities.md` - Special abilities for LIO and SAE: options
 - `docs/proposals/w7/1-map.md` - Topic 1: the map (regions, how many countries, adjacency)
