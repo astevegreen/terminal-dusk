@@ -30,12 +30,23 @@ const READ_ONLY_ALLOWED = [
 ];
 const READ_ONLY_LIST = "git diff/log/show/status/fetch/grep, gh issue view, gh pr view/diff/list/checks, head, tail, grep, wc or cat";
 
-// Words bash reads before the command itself: assignments, wrappers, and the reserved words that start one.
-const LEAD = new Set(["env", "command", "exec", "sudo", "nohup", "time", "&", "!", "{", "if", "then", "else", "elif", "do", "while", "until"]);
+// Words bash reads before the command itself: assignments, wrappers with their options (`time -p`, `env -i`), the
+// reserved words that start one, and the name in `function f {` or `coproc NAME {`.
+const WRAPPERS = new Set(["env", "command", "exec", "sudo", "nohup", "time", "coproc"]);
+const LEAD = new Set(["&", "!", "{", "if", "then", "else", "elif", "do", "while", "until"]);
 
 function commandName(words) {
   let i = 0;
-  while (i < words.length && (/^[A-Za-z_][A-Za-z0-9_]*=/.test(words[i]) || LEAD.has(words[i]))) i++;
+  while (i < words.length) {
+    const w = words[i];
+    if (/^[A-Za-z_][A-Za-z0-9_]*=/.test(w) || LEAD.has(w)) i++;
+    else if (WRAPPERS.has(w)) {
+      i++;
+      while (words[i]?.startsWith("-")) i++;
+      if (w === "coproc" && words[i + 1] === "{") i += 2;
+    } else if (w === "function") i += words[i + 2] === "{" ? 3 : 2;
+    else break;
+  }
   const name = (words[i] ?? "").split(/[\\/]/).pop().toLowerCase().replace(/\.(exe|cmd|bat|ps1)$/, "");
   return { name, args: words.slice(i + 1) };
 }

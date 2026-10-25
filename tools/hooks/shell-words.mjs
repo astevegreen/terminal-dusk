@@ -17,6 +17,8 @@ const SPACE = new Set([" ", "\t", "\r"]);
 const BREAKS = new Set([...SPACE, "\n", ";", "&", "|", "(", ")", "<", ">"]);
 const OPS = ["&&", "||", ";;&", ";;", ";&", "|&", ";", "|", "&", "\n", "(", ")"];
 const REDIRECT = /(?:\d+|\{[A-Za-z_]\w*\})?(<<<|<<-|<<|<>|<&|>&|&>>|&>|>>|>\||<|>)/y;
+// Reserved words after which `case` and `esac` are still reserved words, not ordinary arguments.
+const RESERVED = new Set(["{", "!", "if", "then", "else", "elif", "do", "while", "until", "time"]);
 
 export function segments(line) {
   const out = { list: [], complete: true };
@@ -39,6 +41,7 @@ function scanner(src, out) {
     const fresh = () => ({ words: [], redirects: [], inputs: [], plain: true });
     let cur = fresh();
     let depth = 0;
+    const cases = []; // the ( depth each open `case` started at: a ) at that depth ends one of its patterns
     let redirect = null;
     const finish = () => {
       if (cur.words.length || cur.redirects.length || cur.inputs.length) out.list.push(cur);
@@ -47,6 +50,10 @@ function scanner(src, out) {
     };
     const add = ({ value, plain, raw }) => {
       if (redirect === null) {
+        if (plain && cur.words.every((x) => RESERVED.has(x))) {
+          if (value === "case") cases.push(depth);
+          else if (value === "esac") cases.pop();
+        }
         cur.words.push(value);
         cur.plain &&= plain;
       } else if (redirect === "<<" || redirect === "<<-") {
@@ -74,6 +81,11 @@ function scanner(src, out) {
       if (c === "\n") {
         finish();
         i = bodies(i + 1);
+        continue;
+      }
+      if (c === ")" && cases.length && depth === cases.at(-1)) {
+        finish(); // the end of a pattern such as `x)` in `case $v in x) …;; esac`
+        i++;
         continue;
       }
       if (nested && c === ")" && depth === 0) {

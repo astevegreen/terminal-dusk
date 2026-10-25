@@ -34,6 +34,14 @@ test("finds them inside ${…} and $((…)), which are not commands themselves",
   assert.deepEqual(commands("echo $((1<<2))\nb"), ["b", "echo $((1<<2))"]);
 });
 
+test("the ) after a case pattern doesn't end the $(…) around it", () => {
+  const found = commands('echo "$(case x in x) a;; (y) b;; esac; c)"; d');
+  for (const c of ["a", "b", "c", "d"]) assert.ok(found.includes(c), `${c} in ${JSON.stringify(found)}`);
+  const sub = commands('echo "$( (case x in x) a;; esac); b )"');
+  for (const c of ["a", "b"]) assert.ok(sub.includes(c), `${c} in ${JSON.stringify(sub)}`);
+  assert.equal(complete('echo "$(case x in x) a;; esac)"'), true);
+});
+
 test("a backtick inside backticks is escaped, and its command is found too", () => {
   assert.deepEqual(commands("echo `a \\`b\\``"), ["a `b`", "b", "echo `a \\`b\\``"]);
 });
