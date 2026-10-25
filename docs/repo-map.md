@@ -66,6 +66,12 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/gameScreen.css`
 - `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, Hand, Opponent, Table, Contingency, Log.
 - `packages/app/src/main.tsx` - Browser entry point: mounts the app into the #root element of index.html.
+- `packages/app/src/online/signIn.test.ts`
+- `packages/app/src/online/signIn.token.test.ts`
+- `packages/app/src/online/signIn.ts` - The state behind signing in by email code (docs/architecture.md, Decisions 5 and 7): asks for a code, trades it for a session through transport/emailAuth.ts, k… Exports: SESSION_KEY, SignInSnapshot, SignInOptions, SignIn, createSignIn.
+- `packages/app/src/online/test/signInRig.ts` - A sign-in session wired to the fake Supabase Auth, a memory store and a hand-moved clock, for the tests. Exports: START, EMAIL, CODE, STORED, Rig, rig, rigWith, rigOnCode, settle, heldStore.
+- `packages/app/src/platform/storage.test.ts`
+- `packages/app/src/platform/storage.ts` - The `storage` part of the Platform interface (docs/architecture.md, Decision 7): a small async key-value store, so a Capacitor implementation fits later. Exports: KeyValueStore, StorageLike, memoryStore, webStore.
 - `packages/app/src/replay/ReplayScreen.test.tsx`
 - `packages/app/src/replay/ReplayScreen.tsx` - The replay viewer: steps through a finished game's recorded frames, both hands showing. Exports: ReplayScreenProps, ReplayView, ReplayScreen.
 - `packages/app/src/replay/recording.test.ts`
