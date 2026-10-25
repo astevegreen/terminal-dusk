@@ -678,6 +678,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/handoff-notes.mjs` - Handoff notes for the /handoff skill.
 - `tools/handoff-notes.test.mjs`
 - `tools/hooks/bash-guard.mjs` - PreToolUse (Bash): catch disguised versions of denied commands anywhere in a command line.
+- `tools/hooks/bash-guard.reading.test.mjs` - How bash-guard reads a command line: the commands bash runs wherever they hide, and the text it never runs.
 - `tools/hooks/bash-guard.test.mjs`
 - `tools/hooks/codeowners.test.mjs` - .github/CODEOWNERS must keep the fences, database migrations and dependency files waiting for the owner.
 - `tools/hooks/env-check.mjs` - SessionStart (startup): check this machine is set up the way the project expects.
@@ -694,6 +695,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/hooks/quick-check.test.mjs`
 - `tools/hooks/settings.test.mjs` - Tests for the web, gh and git-hook rules in .claude/settings.json, the night shift's web block and the agents' own tool limits.
 - `tools/hooks/shared.mjs` - Helpers shared by the Claude Code hook scripts.
+- `tools/hooks/shell-words.mjs` - How bash splits a command line, for bash-guard: every simple command bash would run, including the ones inside $(…), backticks and <(…), wherever those appear…
+- `tools/hooks/shell-words.test.mjs` - How shell-words.mjs splits a command line into the simple commands bash would run.
 - `tools/hooks/test-helpers.mjs` - Shared helpers for the hook tests (tools/hooks/*.test.mjs).
 - `tools/lib/run.mjs` - Helpers for the tool scripts: start pnpm and other commands the same way on Windows, macOS and Linux.
 - `tools/lib/run.test.mjs`
