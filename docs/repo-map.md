@@ -758,6 +758,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `docs/design/map-and-points.md` - The map, influence, points and escalation: owner decisions (W7)
 - `docs/design/sides.md` - Sides
 - `docs/proposals/card-count-gap.md` - The LIO/SAE card-count gap and the missing Era 3 LIO Ops 4 card: options
+- `docs/proposals/card-rewording/README.md` - Card rules text once points have a use: wording rules
+- `docs/proposals/card-rewording/era-1.md` - Era 1 cards: rules text reworded now that points have a use
 - `docs/proposals/era-lengths.md` - Era lengths and turns per era: options
 - `docs/proposals/map-content/README.md` - The six-region map's content, and the order regions close at Escalation
 - `docs/proposals/map-content/option-1.md` - Option 1: even regions, six countries each
