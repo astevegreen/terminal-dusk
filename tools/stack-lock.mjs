@@ -44,6 +44,7 @@ function holder() {
       resolve(value);
     };
     const read = () => {
+      if (text === "") return null; // hung up without a word: it is letting go
       try {
         const said = JSON.parse(text);
         return said?.mark === MARK ? said : "foreign";

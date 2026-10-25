@@ -199,6 +199,21 @@ test("another program on the lock's port is reported, and nothing runs", async (
   }
 });
 
+test("a holder that hangs up without answering is just letting go: the run waits and then takes its turn", async () => {
+  const t = await fresh();
+  const letting = await listen(t.port, (socket) => {
+    socket.on("error", () => {});
+    socket.end();
+  });
+  const waiting = t.start(t.step("B", 0));
+  await new Promise((r) => setTimeout(r, 600));
+  await close(letting);
+  const r = await waiting.done;
+  assert.equal(r.status, 0, r.stderr);
+  assert.doesNotMatch(r.stderr, /another program/);
+  assert.deepEqual(t.lines(), ["B start", "B end"]);
+});
+
 test("with no command it says how to use it and runs nothing", () => {
   const r = spawnSync(process.execPath, [TOOL], { encoding: "utf8", windowsHide: true });
   assert.equal(r.status, 1);
