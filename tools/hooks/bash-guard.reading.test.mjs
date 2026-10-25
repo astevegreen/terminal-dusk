@@ -48,25 +48,30 @@ for (const command of hidden) {
   }
 }
 
-// A case statement inside $(…) or <(…) can hide a command: when a pattern is itself the word `case`, the reader
-// can't tell which ) closes the substitution, so the rest of the line may look like quoted text. Bash runs the
-// git push in all but the first line (the first is the reviewer's, and bash refuses it for its unclosed quote).
+// A case statement inside $(…) or <(…) can hide a command: when a pattern is itself the word `case`, or the
+// statement follows time -p, coproc or `function g`, the reader can't tell which ) closes the substitution, so the
+// rest may look like quoted text. Bash runs every git push here except the first line's (the reviewer's line,
+// which bash refuses for its unclosed quote).
 const unsure = [
   'echo "$(case x in x) :;; case) :;; esac)" ; git push --force origin main ; "',
   'echo "$(case x in x) :;; case) :;; esac)" ; git push --force origin main # "',
   'echo "$(case x in\ncase) :;; esac)" ; git push --force origin main # "',
   'echo "$(case x in (case) :;; esac)" ; git push --force origin main # "',
+  'echo "$(time -p case x in x) git push --force origin main;; esac)"',
+  'echo "$(time -- case x in x) git push --force origin main;; esac)"',
+  'echo "$(coproc case x in x) git push --force origin main;; esac)"',
+  'echo "$(function g case x in x) git push --force origin main;; esac\ng)"',
   "cat <(case x in x) :;; esac)",
 ];
 
-test("a case statement inside $(…) or <(…) is refused unattended and read-only, and asked about by day", () => {
+test("the word case inside $(…) or <(…) is refused unattended and read-only, and asked about by day", () => {
   for (const command of unsure) {
     for (const args of [["--unattended"], ["--read-only"]]) {
       const r = guard(command, args);
       assert.ok(denied(r), `${args[0]} ${JSON.stringify(command)}: expected deny, got ${r.stdout || "nothing"}`);
     }
     // Read-only refuses `case` itself (not a reviewer command); unattended, the unsure reading is what refuses it.
-    assert.match(guard(command, ["--unattended"]).stdout, /case statement inside/);
+    assert.match(guard(command, ["--unattended"]).stdout, /can't be sure what this line runs/);
     assert.equal(decision(guard(command)), "ask", JSON.stringify(command));
   }
 });

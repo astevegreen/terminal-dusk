@@ -12,9 +12,9 @@
 //              one quoted string. A $ or backtick still counts as plain; callers check for those themselves.
 // complete is false when the line ends inside a quote, a substitution or a here-document, so bash would read
 // something different from this, or nothing at all.
-// unsure is true when a `case` starts a command inside $(…) or <(…). A ) there may end one of its patterns or the
-// substitution, and a pattern can itself be the word `case`, so this reader can't always tell which: everything
-// after it may be misread.
+// unsure is true when the word `case` appears inside $(…) or <(…). If it starts a case statement, a ) there may end
+// one of its patterns or the substitution. A pattern can itself be the word `case`, and bash also starts a statement
+// after coproc, `function f` or `time -p`, so this reader can't always tell which: everything after may be misread.
 
 const SPACE = new Set([" ", "\t", "\r"]);
 const BREAKS = new Set([...SPACE, "\n", ";", "&", "|", "(", ")", "<", ">"]);
@@ -54,11 +54,10 @@ function scanner(src, out) {
     const add = ({ value, plain, raw }) => {
       if (redirect === null) {
         if (plain && cur.words.every((x) => RESERVED.has(x))) {
-          if (value === "case") {
-            cases.push(depth);
-            out.unsure ||= nested;
-          } else if (value === "esac") cases.pop();
+          if (value === "case") cases.push(depth);
+          else if (value === "esac") cases.pop();
         }
+        out.unsure ||= nested && value === "case";
         cur.words.push(value);
         cur.plain &&= plain;
       } else if (redirect === "<<" || redirect === "<<-") {

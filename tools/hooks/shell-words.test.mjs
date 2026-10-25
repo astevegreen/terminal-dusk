@@ -42,9 +42,10 @@ test("the ) after a case pattern doesn't end the $(…) around it", () => {
   assert.equal(complete('echo "$(case x in x) a;; esac)"'), true);
 });
 
-// A pattern can itself be the word `case` (`case x in x) a;; case) b;; esac`), and then the reader can't tell
-// which ) closes the $(…), so whatever follows it may be misread.
-test("a case starting a command inside $(…) or <(…) makes the reading unsure; anywhere else it doesn't", () => {
+// A pattern can itself be the word `case` (`case x in x) a;; case) b;; esac`), and bash also starts a case
+// statement after coproc, `function f` or `time -p`. So the reader can't always tell which ) closes the $(…), and
+// whatever follows it may be misread.
+test("the word case inside $(…) or <(…) makes the reading unsure; anywhere else it doesn't", () => {
   const unsure = (line) => segments(line).unsure;
   for (const line of [
     'echo "$(case x in x) a;; esac)"',
@@ -53,17 +54,27 @@ test("a case starting a command inside $(…) or <(…) makes the reading unsure
     "echo $( (case x in x) a;; esac) )",
     "echo `echo $(case x in x) a;; esac)`",
     "cat <<EOF\n$(case x in x) a;; esac)\nEOF",
+    'echo "$(time -p case x in x) a;; esac)"',
+    'echo "$(coproc case x in x) a;; esac)"',
+    'echo "$(function g case x in x) a;; esac\ng)"',
+    'echo "$(echo case)"',
   ])
     assert.equal(unsure(line), true, line);
   for (const line of [
     "case x in x) a;; esac",
     "(case x in x) a;; esac)",
     "echo `case x in x) a;; esac`",
-    'echo "$(echo case)"',
+    'echo "$(echo cases "a case")"',
     "echo $(git log --grep=case)",
+    "echo $(echo > case)",
     "cat <<'EOF'\n$(case x in x) a;; esac)\nEOF",
   ])
     assert.equal(unsure(line), false, line);
+});
+
+// Bash 5.3 reads the lines after `$(cat <<EOF )` as the here-document's body, as this reader does.
+test("a here-document opened in a $(…) that closes on the same line takes its body from the next lines", () => {
+  assert.deepEqual(commands('echo "$(cat <<EOF )"\n$(a) b\nEOF\nc'), ["a", "c", "cat", "echo $(cat <<EOF )"]);
 });
 
 test("a backtick inside backticks is escaped, and its command is found too", () => {
