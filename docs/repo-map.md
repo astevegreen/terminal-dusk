@@ -555,6 +555,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/sweepDeadlines.storage.test.ts`
 - `packages/server/src/sweepDeadlines.test.ts`
 - `packages/server/src/sweepDeadlines.ts` - The deadline sweep (docs/architecture.md, Decision 5, "Scheduled jobs", Deadlines): for every match past a deadline, apply its deadline rule through the host a… Exports: SweepResult, sweepDeadlines.
+- `packages/server/src/sweepEdge.sweeps.test.ts`
+- `packages/server/src/sweepEdge.test.ts`
+- `packages/server/src/sweepEdge.ts` - The sweep Edge Functions' handlers (docs/architecture.md, Decision 5, "Scheduled jobs"): `sweep-deadlines` runs `sweepDeadlines` and `sweep-turn-alerts` runs `… Exports: SweepAccess, SweepDeadlinesDeps, SweepTurnAlertsDeps, DEADLINE_STATUSES, TURN_ALERT_STATUSES, handleSweepDeadlines, handleSweepTurnAlerts, sweepDeadlinesFetchHandler, sweepTurnAlertsFetchHandler.
 - `packages/server/src/sweepTurnAlerts.test.ts`
 - `packages/server/src/sweepTurnAlerts.ts` - The turn alert sweep (docs/architecture.md, Decision 5, "Scheduled jobs", Notifications): email each player whose turn is still waiting and still unseen 20 min… Exports: TurnAlertDeps, TurnAlertResult, sweepTurnAlerts.
 - `packages/server/src/test/alerts.ts` - Test helpers for turn alerts: the test match in a MemoryStore, its first alerts queued in a MemoryNotifyStore, a MemoryMailer, and addresses for alice and bob. Exports: APP_URL, ADDRESSES, AlertWorld, withNotify, moveUntilNotified, alertWorld.
@@ -573,6 +576,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/test/stack.ts` - Test helpers for the SupabaseStore checks on the local Supabase stack (O3's localStack.ts finds it). Exports: onLocalStack, TestUser, makeUser, accessToken, freshMatchId, newGame, writeOf, putIn, Stored, storedRows, cleanUp.
 - `packages/server/src/test/stackGame.ts` - The shared setup for the tests on the local Supabase stack: a service-role client and two fresh test users made before the tests, and every test match and user… Exports: StackGame, stackGame, answered, expectStoredAs.
 - `packages/server/src/test/stores.ts` - Test helpers that wrap any MatchStore, for the in-memory and the Supabase store alike. Exports: loadTogether, recording.
+- `packages/server/src/test/sweeps.ts` - Test helpers for the sweep Edge Function handlers (sweepEdge.ts): one due match and one due turn alert, in in-memory stores, with distinctive ids, address and… Exports: SERVICE_KEY, PLAYERS, DEADLINE_MATCH, ALERT_MATCH, ADDRESS_OF, DEADLINE_AT, ALERT_AT, sweepRequest, DeadlineWorld, deadlineWorld, AlertSweepWorld, alertSweepWorld.
 - `packages/server/src/turnAlerts.keep.test.ts` - A turn alert stays live while its player is still waiting on the decision it is for (#267).
 - `packages/server/src/turnAlerts.queue.test.ts`
 - `packages/server/src/webhookSignature.test.ts`
