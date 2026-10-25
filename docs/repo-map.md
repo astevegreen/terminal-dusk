@@ -555,6 +555,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/sweepDeadlines.storage.test.ts`
 - `packages/server/src/sweepDeadlines.test.ts`
 - `packages/server/src/sweepDeadlines.ts` - The deadline sweep (docs/architecture.md, Decision 5, "Scheduled jobs", Deadlines): for every match past a deadline, apply its deadline rule through the host a… Exports: SweepResult, sweepDeadlines.
+- `packages/server/src/sweepEdge.stack.test.ts` - The sweep-deadlines Edge Function served by the local Supabase stack: called with the service role key, it finishes a first-deck match whose deadline has passe…
 - `packages/server/src/sweepEdge.sweeps.test.ts`
 - `packages/server/src/sweepEdge.test.ts`
 - `packages/server/src/sweepEdge.ts` - The sweep Edge Functions' handlers (docs/architecture.md, Decision 5, "Scheduled jobs"): `sweep-deadlines` runs `sweepDeadlines` and `sweep-turn-alerts` runs `… Exports: SweepAccess, SweepDeadlinesDeps, SweepTurnAlertsDeps, DEADLINE_STATUSES, TURN_ALERT_STATUSES, handleSweepDeadlines, handleSweepTurnAlerts, sweepDeadlinesFetchHandler, sweepTurnAlertsFetchHandler.
@@ -590,6 +591,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/supabase/functions/seen/index.ts` - The `seen` Edge Function (docs/architecture.md, Decision 5, Notifications): a player's app says it has shown them a turn, so no email goes out for it.
 - `packages/server/supabase/functions/submit/deno.json`
 - `packages/server/supabase/functions/submit/index.ts` - The `submit` Edge Function (docs/architecture.md, Decision 5): the one place a client sends an answer or a resignation.
+- `packages/server/supabase/functions/sweep-deadlines/deno.json`
+- `packages/server/supabase/functions/sweep-deadlines/index.ts` - The `sweep-deadlines` Edge Function (docs/architecture.md, Decision 5, "Scheduled jobs"): the scheduled job calls it every minute to apply every passed deadlin…
+- `packages/server/supabase/functions/sweep-turn-alerts/deno.json`
+- `packages/server/supabase/functions/sweep-turn-alerts/index.ts` - The `sweep-turn-alerts` Edge Function (docs/architecture.md, Decision 5, "Scheduled jobs", Notifications): the scheduled job calls it every minute to email eac…
 - `packages/server/supabase/migrations/20261020000000_match_tables.sql` - The match tables and who may read them (docs/architecture.md, Decision 5).
 - `packages/server/supabase/migrations/20261021000000_commit_match.sql` - The one write of a submit (docs/architecture.md, Decision 5): one transaction, guarded by `where seq = expectedSeq`.
 - `packages/server/supabase/migrations/20261022000000_match_invite.sql` - Private game invites (docs/architecture.md, Decision 5).
