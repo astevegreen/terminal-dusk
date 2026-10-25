@@ -3,6 +3,7 @@
 // effects become queued alerts; the sweep (sweepTurnAlerts.ts) emails the ones still unseen and unsent.
 // `MemoryNotifyStore` is the in-memory store for tests; supabaseNotifyStore.ts is the Supabase one.
 import type { HostEffect, PlayerId } from "@terminal-dusk/host";
+import { later } from "./later.ts";
 
 /** How long a turn must stay unseen before its alert is emailed: 20 minutes. */
 export const TURN_ALERT_DELAY_MS = 20 * 60 * 1000;
@@ -55,35 +56,47 @@ const compareText = (a: string, b: string): number => (a < b ? -1 : Number(a > b
 export class MemoryNotifyStore implements NotifyStore {
   readonly #alerts = new Map<string, Stored>();
 
-  async queue(alerts: TurnAlert[]): Promise<void> {
-    for (const alert of alerts) {
-      const key = keyOf(alert.matchId, alert.player);
-      const found = this.#alerts.get(key);
-      if (found && found.alert.seq >= alert.seq) continue;
-      this.#alerts.set(key, { alert: { ...alert, waitingSeq: alert.seq }, seen: false, sentAt: null });
-    }
+  queue(alerts: TurnAlert[]): Promise<void> {
+    return later(() => {
+      for (const alert of alerts) {
+        const key = keyOf(alert.matchId, alert.player);
+        const found = this.#alerts.get(key);
+        if (found && found.alert.seq >= alert.seq) continue;
+        this.#alerts.set(key, { alert: { ...alert, waitingSeq: alert.seq }, seen: false, sentAt: null });
+      }
+    });
   }
 
-  async seen(matchId: string, player: PlayerId, seq: number): Promise<void> {
-    const found = this.#alerts.get(keyOf(matchId, player));
-    if (found && found.alert.seq <= seq) found.seen = true;
+  seen(matchId: string, player: PlayerId, seq: number): Promise<void> {
+    return later(() => {
+      const found = this.#alerts.get(keyOf(matchId, player));
+      if (found && found.alert.seq <= seq) found.seen = true;
+    });
   }
 
-  async keep(matchId: string, player: PlayerId, seq: number): Promise<void> {
-    const found = this.#alerts.get(keyOf(matchId, player));
-    if (found && found.sentAt === null && found.alert.waitingSeq < seq) found.alert.waitingSeq = seq;
+  keep(matchId: string, player: PlayerId, seq: number): Promise<void> {
+    return later(() => {
+      const found = this.#alerts.get(keyOf(matchId, player));
+      if (found && found.sentAt === null && found.alert.waitingSeq < seq) found.alert.waitingSeq = seq;
+    });
   }
 
-  async due(now: number): Promise<TurnAlert[]> {
-    return [...this.#alerts.values()]
-      .filter((s) => !s.seen && s.sentAt === null && s.alert.queuedAt + TURN_ALERT_DELAY_MS <= now)
-      .map((s) => ({ ...s.alert }))
-      .sort((a, b) => a.queuedAt - b.queuedAt || compareText(a.matchId, b.matchId) || compareText(a.player, b.player));
+  due(now: number): Promise<TurnAlert[]> {
+    return later(() =>
+      [...this.#alerts.values()]
+        .filter((s) => !s.seen && s.sentAt === null && s.alert.queuedAt + TURN_ALERT_DELAY_MS <= now)
+        .map((s) => ({ ...s.alert }))
+        .sort(
+          (a, b) => a.queuedAt - b.queuedAt || compareText(a.matchId, b.matchId) || compareText(a.player, b.player),
+        ),
+    );
   }
 
-  async markSent(alert: TurnAlert, now: number): Promise<void> {
-    const found = this.#alerts.get(keyOf(alert.matchId, alert.player));
-    if (found && found.alert.seq === alert.seq) found.sentAt = now;
+  markSent(alert: TurnAlert, now: number): Promise<void> {
+    return later(() => {
+      const found = this.#alerts.get(keyOf(alert.matchId, alert.player));
+      if (found && found.alert.seq === alert.seq) found.sentAt = now;
+    });
   }
 
   /** A copy of what is stored for (match, player), or `null`. For tests. */

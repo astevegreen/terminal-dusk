@@ -4,6 +4,7 @@ import type { Side } from "@terminal-dusk/engine";
 import type { HttpReply } from "../http.ts";
 import type { InviteHandlerDeps } from "../inviteHandler.ts";
 import type { InviteStore } from "../inviteStore.ts";
+import { later } from "../later.ts";
 import type { SubmitHandlerDeps } from "../submitHandler.ts";
 import { HOST, INVITE_NOW, inviteWorld, JOINER } from "./invites.ts";
 import type { InviteWorld } from "./invites.ts";
@@ -53,10 +54,11 @@ export function inviteHandlerWorld(randomHostSide: Side = "lio"): InviteHandlerW
   const { store, calls } = countingInvites(world.invites);
   const authCalls: string[] = [];
   let clock = INVITE_NOW;
-  const authenticate = async (token: string) => {
-    authCalls.push(token);
-    return INVITE_TOKENS[token] ?? null;
-  };
+  const authenticate = (token: string) =>
+    later(() => {
+      authCalls.push(token);
+      return INVITE_TOKENS[token] ?? null;
+    });
   const now = () => ++clock;
   return {
     world,
