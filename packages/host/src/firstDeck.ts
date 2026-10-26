@@ -11,7 +11,7 @@ import {
   cardName,
   scenarioSetup,
 } from "@terminal-dusk/content/first-deck";
-import type { CardId, Ruleset } from "@terminal-dusk/engine";
+import type { CardId, Ruleset, Side } from "@terminal-dusk/engine";
 import type { MatchConfig } from "./types.ts";
 
 export const FIRST_DECK_NOTE =
@@ -36,6 +36,11 @@ const QUESTIONS = new Map<CardId, string | undefined>(
  * question is the rules text"). Undefined for a card that asks nothing or an unknown id. Display data only.
  */
 export const firstDeckCardQuestion = (id: CardId): string | undefined => QUESTIONS.get(id);
+
+const AFFILIATIONS = new Map<CardId, Side | "neutral">(FIRST_DECK_CARDS.map((card) => [card.id, card.affiliation]));
+
+/** Whose card a first-deck card is, so the screen offers only the plays it allows. Undefined for an unknown id. Display data only. */
+export const firstDeckCardAffiliation = (id: CardId): Side | "neutral" | undefined => AFFILIATIONS.get(id);
 
 /** The match config for the first deck: the TEST scenario's numbers, empty hands and the Era 1 draw pile. */
 export function firstDeckConfig(): MatchConfig {

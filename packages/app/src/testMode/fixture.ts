@@ -46,6 +46,10 @@ export const fixtureRuleset: Ruleset = {
   })),
 };
 
+/** Whose a fixture card is, from the same table as the ruleset, so the prompts offer only the plays it allows. */
+export const cardAffiliation = (id: CardId): CardDef["affiliation"] | undefined =>
+  fixtureRuleset.cards.find((card) => card.id === id)?.affiliation;
+
 /** Each hand has the 6 non-neutral cards two turns of an opening card and 2 plays need, one of them the rival's. */
 export const fixtureConfig: MatchConfig = {
   matchId: "test-mode",

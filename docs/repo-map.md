@@ -61,7 +61,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/App.test.tsx`
 - `packages/app/src/App.tsx` - The home screen: the game's name, a button to play against the AI, a button to play online and a button into developer test mode. Exports: AppProps, App, onlineRoute, Home.
 - `packages/app/src/decisionPrompts.test.tsx`
-- `packages/app/src/decisionPrompts.tsx` - One prompt component per DecisionKind. Exports: CardQuestion, PromptProps, PromptComponent, askingCard, decisionPrompts.
+- `packages/app/src/decisionPrompts.tsx` - One prompt component per DecisionKind. Exports: CardQuestion, CardAffiliation, PromptProps, PromptComponent, askingCard, decisionPrompts.
 - `packages/app/src/eventPresentation.test.ts`
 - `packages/app/src/eventPresentation.ts` - How each EventKind is presented. Exports: EventPresentation, eventPresentation.
 - `packages/app/src/game/GameScreen.test.tsx`
@@ -122,7 +122,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/test/order.ts` - Compare function for sorting strings in UTF-16 code-unit order: the same order as a sort with no compare function, written out so the order is explicit. Exports: byCodeUnit.
 - `packages/app/src/testMode/TestModeScreen.test.tsx`
 - `packages/app/src/testMode/TestModeScreen.tsx` - Test mode (docs/architecture.md, Decision 3): the Local transport with a switch to view the game as LIO, as SAE or as a spectator. Exports: TestModeView, TestModeScreen.
-- `packages/app/src/testMode/fixture.ts` - DEVELOPER FIXTURE for test mode. Exports: DEFAULT_SEED, cardName, cardQuestion, fixtureRuleset, fixtureConfig.
+- `packages/app/src/testMode/fixture.ts` - DEVELOPER FIXTURE for test mode. Exports: DEFAULT_SEED, cardName, cardQuestion, fixtureRuleset, cardAffiliation, fixtureConfig.
 - `packages/app/src/testMode/promptTree.ts` - Test helper: finds the buttons a prompt would draw and lets a test press them, without a browser. Exports: Button, buttonsOf.
 - `packages/app/src/testMode/session.ts` - The state behind the test-mode screen: one local match, the viewer being looked at, that viewer's latest frame and game log, and the last refusal. Exports: Snapshot, TestSession, logLine, createTestSession.
 - `packages/app/src/testMode/sessionEra.test.ts` - The era in the test-mode session: kept per viewer next to the log, reset by restart.
@@ -512,7 +512,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/src/entitlement.test.ts`
 - `packages/host/src/entitlement.ts` - Who may create an online game (docs/architecture.md, Product calls: "Free players cannot create online games"). Exports: PLATFORMS, Platform, Entitlement, isPlatform, isEntitlement, createOnlineRefusal.
 - `packages/host/src/firstDeck.test.ts`
-- `packages/host/src/firstDeck.ts` - The first deck as a game the app can start: the ruleset, a match config, and card names. Exports: FIRST_DECK_NOTE, firstDeckRuleset, firstDeckCardName, firstDeckCardQuestion, firstDeckConfig.
+- `packages/host/src/firstDeck.ts` - The first deck as a game the app can start: the ruleset, a match config, and card names. Exports: FIRST_DECK_NOTE, firstDeckRuleset, firstDeckCardName, firstDeckCardQuestion, firstDeckCardAffiliation, firstDeckConfig.
+- `packages/host/src/firstDeckAffiliation.test.ts`
 - `packages/host/src/firstDeckQuestion.test.ts`
 - `packages/host/src/frames.ts` - Shared by the host's entry points: building the three frames, and copying plain JSON. Exports: framesFor, copyJson.
 - `packages/host/src/hostAccept.ts` - The shared second half of every host call that moves a game: run the answer through the engine, then build the new record, secret, frames and effects. Exports: acceptAnswer, badTime.

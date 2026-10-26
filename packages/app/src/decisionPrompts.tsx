@@ -1,11 +1,22 @@
 // One prompt component per DecisionKind. A new kind without an entry here fails the type check (hard rule 9).
 // The prompts only list what a decision asks. They do not work out what is legal: an illegal pick is
 // refused by the transport and the screen shows the refusal (.claude/rules/app.md, no rules logic).
-import type { AnswerValue, CardId, Decision, PlayUse, DecisionKind, Frame as StackFrame } from "@terminal-dusk/engine";
+import type {
+  AnswerValue,
+  CardId,
+  Decision,
+  PlayUse,
+  DecisionKind,
+  Frame as StackFrame,
+  Side,
+} from "@terminal-dusk/engine";
 import type { ComponentType } from "react";
 
 /** A card's yes/no question, from its rules text, or undefined when it has none. Display data only. */
 export type CardQuestion = (card: CardId) => string | undefined;
+
+/** Whose card it is ("lio", "sae" or "neutral"), or undefined for an unknown card. Display data only. */
+export type CardAffiliation = (card: CardId) => Side | "neutral" | undefined;
 
 export type PromptProps = {
   decision: Decision;
@@ -15,6 +26,8 @@ export type PromptProps = {
   known: CardId[];
   /** A card's display name. Display data only. */
   label: (card: CardId) => string;
+  /** A card's affiliation, to offer each card only the plays its kind allows. Display data only; left out: every card counts as neutral. */
+  affiliation?: CardAffiliation | undefined;
   /** The public resolution stack from the frame, bottom first: it shows which card's effect is asking. */
   stack: readonly StackFrame[];
   question: CardQuestion;
@@ -99,19 +112,27 @@ function ChooseCardPrompt({ decision, hand, label, onAnswer }: Readonly<PromptPr
   );
 }
 
-/** A play: every card in the hand, with every use that any kind of card is allowed. */
-function PlayCardAsPrompt({ decision, hand, label, onAnswer }: Readonly<PromptProps>) {
+/**
+ * Whose card this is from the deciding side's seat, which picks the decision's list of uses for it. A card
+ * whose affiliation is unknown counts as neutral, as in the engine. The uses themselves come from the decision.
+ */
+function kindOf(card: CardId, side: Side, affiliation: CardAffiliation | undefined): "own" | "rival" | "neutral" {
+  const owner = affiliation?.(card);
+  if (owner === undefined || owner === "neutral") return "neutral";
+  return owner === side ? "own" : "rival";
+}
+
+/** A play: every card in the hand, with the uses the decision allows for that card's kind. */
+function PlayCardAsPrompt({ decision, hand, label, affiliation, onAnswer }: Readonly<PromptProps>) {
   const options = decision.options;
-  const allowed =
-    "uses" in options
-      ? new Set([...options.uses.own, ...options.uses.rival, ...options.uses.neutral])
-      : new Set<PlayUse>();
-  const choices: Choice[] = hand.flatMap((card) =>
-    USES.filter((use) => allowed.has(use)).map((as): Choice => ({
+  const choices: Choice[] = hand.flatMap((card) => {
+    const allowed: ReadonlySet<PlayUse> =
+      "uses" in options ? new Set(options.uses[kindOf(card, decision.side, affiliation)]) : new Set<PlayUse>();
+    return USES.filter((use) => allowed.has(use)).map((as): Choice => ({
       text: `${label(card)}: ${as}`,
       value: { kind: "playCardAs", card, as },
-    })),
-  );
+    }));
+  });
   return (
     <Choices
       decision={decision}

@@ -3,7 +3,7 @@
 import type { AnswerValue, EraId } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import { decisionPrompts } from "../decisionPrompts.tsx";
-import type { CardQuestion } from "../decisionPrompts.tsx";
+import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
 import "./gameScreen.css";
 import { Contingency, Hand, Log, MapArea, Opponent, Region, StatusBar, Table } from "./regions.tsx";
 import type { Label } from "./regions.tsx";
@@ -17,12 +17,21 @@ export type GameScreenProps = {
   label: Label;
   /** A card's yes/no question, for the prompt. Display data only. */
   question: CardQuestion;
+  /** Whose each card is, so the prompt offers only the plays a card allows. Display data only. */
+  affiliation?: CardAffiliation | undefined;
   /** Present: the waiting decision can be answered. Absent: it is shown read-only. */
   onAnswer?: ((value: AnswerValue) => void) | undefined;
   refusal?: string | null | undefined;
 };
 
-function DecisionRegion({ frame, label, question, onAnswer, refusal }: Readonly<Omit<GameScreenProps, "log" | "era">>) {
+function DecisionRegion({
+  frame,
+  label,
+  question,
+  affiliation,
+  onAnswer,
+  refusal,
+}: Readonly<Omit<GameScreenProps, "log" | "era">>) {
   const stack = frame.view.public.stack;
   const hand = frame.view.mine?.hand ?? [];
   const known = frame.view.mine?.knowledge ?? [];
@@ -43,6 +52,7 @@ function DecisionRegion({ frame, label, question, onAnswer, refusal }: Readonly<
             label={label}
             stack={stack}
             question={question}
+            affiliation={affiliation}
             {...answer}
           />
         );
@@ -52,7 +62,16 @@ function DecisionRegion({ frame, label, question, onAnswer, refusal }: Readonly<
   );
 }
 
-export function GameScreen({ frame, log, era, label, question, onAnswer, refusal }: Readonly<GameScreenProps>) {
+export function GameScreen({
+  frame,
+  log,
+  era,
+  label,
+  question,
+  affiliation,
+  onAnswer,
+  refusal,
+}: Readonly<GameScreenProps>) {
   return (
     <div className="game">
       <StatusBar frame={frame} era={era} />
@@ -63,7 +82,14 @@ export function GameScreen({ frame, log, era, label, question, onAnswer, refusal
         <Opponent frame={frame} />
         <Table pub={frame.view.public} label={label} />
         <Contingency pub={frame.view.public} />
-        <DecisionRegion frame={frame} label={label} question={question} onAnswer={onAnswer} refusal={refusal} />
+        <DecisionRegion
+          frame={frame}
+          label={label}
+          question={question}
+          affiliation={affiliation}
+          onAnswer={onAnswer}
+          refusal={refusal}
+        />
         <Log log={log} />
       </div>
     </div>

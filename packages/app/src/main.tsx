@@ -4,6 +4,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import {
   FIRST_DECK_NOTE,
+  firstDeckCardAffiliation,
   firstDeckCardName,
   firstDeckCardQuestion,
   firstDeckConfig,
@@ -22,6 +23,7 @@ const firstDeckGame: VsAiGame = {
   makeMatch: (seed, clock) => createLocalMatch(firstDeckRuleset, firstDeckConfig(), seed, clock),
   cardName: firstDeckCardName,
   cardQuestion: firstDeckCardQuestion,
+  cardAffiliation: firstDeckCardAffiliation,
   note: FIRST_DECK_NOTE,
 };
 
