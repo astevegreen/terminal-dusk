@@ -1,6 +1,7 @@
 import { handSizeError, rulesetError, setupCardsError } from "./cardChecks.ts";
 import { contingencyError, shuffleContingency } from "./contingency.ts";
 import { erasError } from "./eras.ts";
+import { ESCALATION_START } from "./escalation.ts";
 import { mapError, mapState } from "./mapChecks.ts";
 import { seedRng, shuffle } from "./rng.ts";
 import { seedHash } from "./sha256.ts";
@@ -73,8 +74,8 @@ export function createGame(
       triggers: [],
       turnEndFired: false,
       markers: [],
-      // Only a setup with a map adds these two fields, so a game without one starts exactly as before.
-      ...(setup.map === undefined ? {} : mapState(setup.map)),
+      // Only a setup with a map adds the map, influence and Escalation, so a game without one starts exactly as before.
+      ...(setup.map === undefined ? {} : { ...mapState(setup.map), escalation: ESCALATION_START }),
     },
     private: {
       lio: { hand: [...setup.hands.lio], picks: [], knowledge: [] },

@@ -91,8 +91,10 @@ describe("random games with the content test map", () => {
   it(`plays ${GAMES} random games with TEST_MAP_SCENARIO's map to the end, and every check holds at every step`, () => {
     let finished = 0;
     for (let game = 1; game <= GAMES; game++) {
-      const { final } = playMapGame(game);
+      const { final, record } = playMapGame(game);
       expect(final.public.influence!.map((e) => e.country)).toEqual(testMap().countries.map((c) => c.id));
+      // Escalation starts at 2 and falls by 1 at the end of every turn, the last included (R17a).
+      expect(final.public.escalation).toBe(Math.max(0, 2 - record.setup.turns));
       if (final.public.status.kind === "over") finished++;
     }
     expect(finished).toBe(GAMES);

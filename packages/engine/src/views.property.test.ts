@@ -271,6 +271,24 @@ describe("views over random games", () => {
       { numRuns: 300 },
     );
   });
+  it("Escalation is a whole number from 0 to 6 in a game with a map, absent without one, and every viewer sees it alike", () => {
+    fc.assert(
+      fc.property(gameArb, (game) => {
+        for (const s of play(game)) {
+          expect("escalation" in s.public).toBe(game.setup.map !== undefined);
+          if (game.setup.map !== undefined) {
+            expect(Number.isInteger(s.public.escalation)).toBe(true);
+            expect(s.public.escalation).toBeGreaterThanOrEqual(0);
+            expect(s.public.escalation).toBeLessThanOrEqual(6);
+          }
+          for (const viewer of [...SIDES, "spectator"] as const) {
+            expect(viewFor(s, viewer).public.escalation).toBe(s.public.escalation);
+          }
+        }
+      }),
+      { numRuns: 300 },
+    );
+  });
   it("the random games really include games with a map and with starting influence", () => {
     const games = fc.sample(gameArb, { numRuns: 200, seed: 1 });
     expect(games.filter((g) => g.setup.map !== undefined).length).toBeGreaterThan(50);

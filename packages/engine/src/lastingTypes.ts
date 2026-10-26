@@ -19,6 +19,16 @@ export type Duration = { kind: "turnEnd" };
 export type ModifierSpec = { hook: "opsValue"; side: Side | "both"; add: number; min?: number };
 /** When a modifier in force ends: at the end of turn `turn`, the turn it was made in. */
 export type ModifierExpiry = { kind: "turnEnd"; turn: number };
+/** A `modifier` step ran: `source`'s effect made the rule change `mod`, in force until `expires`. */
+export type ModifierStarted = {
+  kind: "modifierStarted";
+  visibility: "public";
+  source: CardId;
+  mod: ModifierSpec;
+  expires: ModifierExpiry;
+};
+/** A modifier's duration ran out (the turn it was made in ended), so its rule change no longer applies. */
+export type ModifierEnded = { kind: "modifierEnded"; visibility: "public"; source: CardId; mod: ModifierSpec };
 /** A modifier in force: the card whose effect made it, the rule change, and when it ends. */
 export type ActiveModifier = { source: CardId; mod: ModifierSpec; expires: ModifierExpiry };
 /**
