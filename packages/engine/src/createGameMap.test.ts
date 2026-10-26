@@ -19,12 +19,17 @@ describe("createGame with a map", () => {
     expect("map" in s.public).toBe(false);
     expect("influence" in s.public).toBe(false);
   });
-  it("state.public.map holds the regions, countries and home-box neighbours, but not the starting influence", () => {
+  it("state.public.map holds the regions, closing order, countries and home-box neighbours, but not the starting influence", () => {
     const { startingInfluence, ...fixed } = testMap();
     expect(startingInfluence.length).toBeGreaterThan(0);
     const s = build(mapSetup());
     expect(s.public.map).toStrictEqual(fixed);
-    expect(Object.keys(s.public.map!).toSorted(byCodeUnit)).toEqual(["countries", "homeBox", "regions"]);
+    expect(Object.keys(s.public.map!).toSorted(byCodeUnit)).toEqual([
+      "closingOrder",
+      "countries",
+      "homeBox",
+      "regions",
+    ]);
   });
   it("state.public.influence has one entry per country in the map's order, starting at the setup's influence (0 where none is given)", () => {
     expect(build(mapSetup()).public.influence).toStrictEqual([
@@ -33,6 +38,7 @@ describe("createGame with a map", () => {
       { country: "charlie", lio: 1, sae: 1 },
       { country: "delta", lio: 0, sae: 0 },
       { country: "echo", lio: 0, sae: 3 },
+      { country: "foxtrot", lio: 0, sae: 0 },
     ]);
   });
   it("the influence counts are plain JSON whole numbers", () => {
@@ -43,7 +49,8 @@ describe("createGame with a map", () => {
   it("nothing about the map is in private or secret", () => {
     const s = build(mapSetup());
     const hidden = JSON.stringify({ private: s.private, secret: s.secret });
-    for (const word of ["alpha", "bravo", "charlie", "delta", "echo", "north", "south", "homeBox", "influence"]) {
+    const words = ["alpha", "bravo", "charlie", "delta", "echo", "foxtrot", "north", "south", "east"];
+    for (const word of [...words, "homeBox", "closingOrder", "influence"]) {
       expect(hidden).not.toContain(word);
     }
   });

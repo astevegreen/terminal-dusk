@@ -15,6 +15,7 @@ type ScenarioMap = NonNullable<Scenario["map"]>;
 function copyMap(map: ScenarioMap): NonNullable<Setup["map"]> {
   return {
     regions: map.regions.map(({ id, name }) => ({ id, name })),
+    closingOrder: [...map.closingOrder],
     countries: map.countries.map(({ id, name, region, stability, battleground, neighbours }) => ({
       id,
       name,

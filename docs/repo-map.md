@@ -72,6 +72,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/eventPresentation.ts` - How each EventKind is presented. Exports: EventPresentation, eventPresentation.
 - `packages/app/src/game/GameScreen.test.tsx`
 - `packages/app/src/game/GameScreen.tsx` - The game screen: one whole game drawn from one frame, laid out for a phone held sideways (844x390). Exports: GameScreenProps, GameScreen.
+- `packages/app/src/game/MapView.test.tsx` - The map zoomed out (issue #364): badges per country, grouped by region, net influence, controller colour.
+- `packages/app/src/game/MapView.tsx` - The map zoomed out (docs/architecture.md, Decision 6): one badge per country, grouped by region, each showing the country's net influence in its controller's c… Exports: netInfluence, MapView.
 - `packages/app/src/game/decisionFocus.test.tsx`
 - `packages/app/src/game/decisionFocus.tsx` - Keyboard play: when a new decision waits for the player, focus moves to its first choice button. Exports: shouldFocusDecision, FocusRoot, FIRST_CHOICE, applyDecisionFocus, FocusingGameScreen.
 - `packages/app/src/game/gameScreen.css`
@@ -370,7 +372,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/schema/index.test.ts`
 - `packages/content/schema/index.ts` - Content schemas, one per content folder of this package (cards/ is checked by schemas.cards, and so on). Exports: ContentIssue, ContentSchema, schemas.
 - `packages/content/schema/map.test.ts`
-- `packages/content/schema/map.ts` - The map a scenario can carry (docs/design/map-and-points.md, "Map" and "Influence"): regions, countries, the countries next to each home box, and starting infl… Exports: mapSchema.
+- `packages/content/schema/map.ts` - The map a scenario can carry (docs/design/map-and-points.md, "Map", "Influence" and "Escalation"): regions, their closing order, countries, the countries next… Exports: mapSchema.
 - `packages/content/schema/scenario.test.ts`
 - `packages/content/schema/scenario.ts` - The scenario schema: what one scenario file in packages/content/scenarios/ must hold (docs/architecture.md, section 4). Exports: scenarioSchema, Scenario.
 - `packages/content/schema/scenario.types.test.ts` - Type-level check, run by `tsc`: the scenario schema and the engine's Setup can't drift apart.
@@ -417,6 +419,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/cardChecks.ts` - Card checks for createGame: the ruleset's cards are well formed, and a setup uses only known cards, each once. Exports: rulesetError, setupCardsError, handSizeError.
 - `packages/engine/src/cardFlags.test.ts` - createGame's check of a card's flags (#199): only `removeAfterEvent: true`, the one flag so far.
 - `packages/engine/src/cardPlayer.test.ts` - Who picked or played a card (#117; docs/design/contingency-deck.md, "Whose deck"): the engine records it for every card's event, opening picks included, so a n…
+- `packages/engine/src/closedRegions.test.ts` - Which regions are closed to interventions and realignments (R17b, docs/design/map-and-points.md, "Thresholds close regions"): none below Escalation 3, then one…
+- `packages/engine/src/closedRegions.ts` - Which regions are closed to interventions and realignments (docs/design/map-and-points.md, "Thresholds close regions"): below Escalation 3 none; at 3 the first… Exports: FIRST_CLOSING_LEVEL, CLOSING_THRESHOLDS, closedRegions, isRegionClosed.
+- `packages/engine/src/closingOrder.test.ts` - The map's closing order (R17b): createGame refuses a bad one with invalidSetup, one test per refusal, and keeps a good one in state.public.map as its own copy.
 - `packages/engine/src/conditions.ts` - An `if` step's condition (stack.ts): a yes/no answer, a number test, `has` a lasting marker, or `playedBy` the side that picked or played the card. Exports: unbound, notANumber, testCondition.
 - `packages/engine/src/contingency.test.ts` - Contingency decks in the game state (#64, #131): the setup's checks, the shuffle, and who sees what.
 - `packages/engine/src/contingency.ts` - Contingency decks (docs/design/contingency-deck.md): each side's numbered cards and the shared World deck, drawn instead of rolling a die. Exports: contingencyError, shuffleContingency, deckFor, drawContingency.
@@ -447,7 +452,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/events.ts` - Filtering events by who may see them. Exports: eventsFor.
 - `packages/engine/src/hasCondition.test.ts` - The `has` condition (#141): an if is true exactly when a lasting marker with that label has been set.
 - `packages/engine/src/index.test.ts`
-- `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, createGame, legalAnswers, pendingFor, eventsFor, controller, placementCost, seedHash, DECKS, SIDES, verifyGame, hiddenPart, ….
+- `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, closedRegions, isRegionClosed, createGame, legalAnswers, pendingFor, eventsFor, controller, placementCost, seedHash, DECKS, SIDES, ….
 - `packages/engine/src/influence.test.ts` - R15: who controls a country, what one influence costs to place, and adding and removing influence (docs/design/map-and-points.md, "Influence").
 - `packages/engine/src/influence.ts` - The influence rules (docs/design/map-and-points.md, "Influence"): who controls a country, whether a side may place one influence there and at what cost, and ad… Exports: controller, placementCost, addInfluence, removeInfluence.
 - `packages/engine/src/knowledge.property.test.ts` - Property test (#184): in random games where cards show hands (revealHand), each side's knowledge always lists, each once, only cards still in the rival's hand,…
@@ -486,7 +491,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/stepBudget.test.ts`
 - `packages/engine/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
 - `packages/engine/src/test/game.ts` - Test helpers: a started game, answers for it, and small programs for the stack. Exports: testCard, rulesetWith, ruleset, sideCard, withCards, makeSetup, setupPlus, startGame, startAtPlay, cardAnswer, playAnswer, orderAnswer, ….
-- `packages/engine/src/test/map.ts` - A small made-up map for engine tests: two regions, five countries in a ring with one cross link. Exports: testMap, mapSetup.
+- `packages/engine/src/test/map.ts` - A small made-up map for engine tests: three regions, five countries in a ring with one cross link, and one country on its own. Exports: testMap, mapSetup.
 - `packages/engine/src/test/sort.ts` - Test helper: the sort order the tests use for object keys and card ids. Exports: byCodeUnit.
 - `packages/engine/src/triggerFilter.test.ts` - A trigger's filter and once (#189): a trigger that reacts only to one side's plays, or only while a lasting marker is set, and a trigger that fires at most onc…
 - `packages/engine/src/triggerFilterChecks.test.ts` - createGame's checks of a trigger's filter and once (#189): badTrigger, and the ruleset check that a has names a marker some card sets, which reads a trigger's…
@@ -547,11 +552,12 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 - `packages/server/package.json`
 - `packages/server/src/authEmailEdge.test.ts`
-- `packages/server/src/authEmailEdge.ts` - The glue between the runtime's fetch-style requests and `handleAuthEmail`. Exports: authEmailFetchHandler, unconfiguredMailer.
+- `packages/server/src/authEmailEdge.ts` - The glue between the runtime's fetch-style requests and `handleAuthEmail`. Exports: authEmailFetchHandler, unconfiguredMailer, MailerName, LOCAL_TEST_SENDER, mailerFromEnv, startupLogLine.
 - `packages/server/src/authEmailHandler.leaks.test.ts`
 - `packages/server/src/authEmailHandler.stack.test.ts` - The auth-email Edge Function served by the local Supabase stack: an unsigned call is refused with 401.
 - `packages/server/src/authEmailHandler.test.ts`
 - `packages/server/src/authEmailHandler.ts` - Supabase Auth's "send email" hook (docs/architecture.md, Decision 5, "Accounts and purchases"): Auth calls the auth-email Edge Function with the player's addre… Exports: AuthEmailRequest, AuthEmailDeps, TIMESTAMP_TOLERANCE_MS, handleAuthEmail, hookError.
+- `packages/server/src/authEmailMailpit.stack.test.ts` - A sign-in code reaches the local stack's mail catcher (Mailpit): a correctly signed `magiclink` hook call to the served auth-email function answers 200, and th…
 - `packages/server/src/deadlineStore.test.ts`
 - `packages/server/src/deadlineStore.ts` - The storage port behind the deadline sweep (docs/architecture.md, Decision 5, "Scheduled jobs"). Exports: DeadlineStore, earliestDeadline, dueIds.
 - `packages/server/src/edge.ts` - The glue every Edge Function shares: turning the runtime's fetch-style requests into the plain-data requests the handlers take and back, and the Supabase sign-… Exports: FetchRequest, MakeResponse, serveFetch, supabaseAuthenticate.
@@ -579,6 +585,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/inviteStore.test.ts`
 - `packages/server/src/inviteStore.ts` - The invite port behind private games (docs/architecture.md, Decision 5), and an in-memory store for tests. Exports: SideMode, Invite, StoredInvite, SaveResult, AcceptResult, InviteStore, MemoryInviteStore.
 - `packages/server/src/later.ts` - For in-memory ports that answer with a promise but have nothing to wait for. Exports: later.
+- `packages/server/src/localMailer.test.ts`
+- `packages/server/src/localMailer.ts` - The local-stack adapter for the mail port: one POST to Mailpit's send API (`<url>/api/v1/send`) per email, so sign-in codes land in the local Supabase stack's… Exports: LocalMailerOptions, localMailer.
 - `packages/server/src/mailMessages.test.ts`
 - `packages/server/src/mailMessages.ts` - The two emails online play sends (docs/sprint.md, O8): the sign-in code and the turn alert. Exports: signInCodeEmail, turnAlertEmail.
 - `packages/server/src/mailer.test.ts`

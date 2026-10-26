@@ -204,20 +204,20 @@ test("an import may not reach past another package's entry point", () => {
 test("app may import types and the listed helpers from the engine, but no other values", () => {
   const list = problems({
     "packages/app/src/a.ts": [
-      'import { SIDES, seedHash, type Side } from "@terminal-dusk/engine";',
+      'import { SIDES, controller, seedHash, type Side } from "@terminal-dusk/engine";',
       'import type { Frame } from "@terminal-dusk/engine";',
       'import { apply } from "@terminal-dusk/engine";',
       'import { SIDES as S, legalAnswers } from "@terminal-dusk/engine";',
       'import * as E from "@terminal-dusk/engine";',
       'export { apply as run } from "@terminal-dusk/engine";',
       'export const e = await import("@terminal-dusk/engine");',
-      "export const x = [SIDES, seedHash, apply, S, legalAnswers, E];",
+      "export const x = [SIDES, controller, seedHash, apply, S, legalAnswers, E];",
       "export type Y = Side | Frame;",
     ].join("\n"),
     "packages/app/src/a.test.ts": 'import { apply } from "@terminal-dusk/engine";\nexport const t = apply;\n',
   });
   assert.deepEqual(where(list).map((w) => Number(w.split(":")[1])), [3, 4, 5, 6, 7]);
-  assert.match(list[0].message, /^packages\/app may import from packages\/engine only types and DECKS, SIDES, seedHash outside its tests, not "apply"/);
+  assert.match(list[0].message, /^packages\/app may import from packages\/engine only types and DECKS, SIDES, controller, seedHash outside its tests, not "apply"/);
   assert.match(list[0].message, /docs\/architecture\.md, Guardrails, "May import"/);
   assert.match(list[2].message, /not the whole module/);
   assert.match(list[1].message, /"legalAnswers"/);

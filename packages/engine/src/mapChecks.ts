@@ -1,6 +1,7 @@
 // The setup's map (docs/design/map-and-points.md, "Map" and "Influence"): checking it, and the public state it
 // starts. The map's content is scenario data; these checks only make sure it is a usable map.
 import type { Country, EngineError, GameMap, InfluenceEntry, Setup, SetupMap } from "./types.ts";
+import { CLOSING_THRESHOLDS } from "./closedRegions.ts";
 import { SIDES } from "./types.ts";
 
 const invalidSetup = (message: string): EngineError => ({ code: "invalidSetup", message });
@@ -15,15 +16,16 @@ export function mapError(setup: Setup): EngineError | null {
   const shape = shapeError(map);
   if (shape) return invalidSetup(shape);
   const m = map as SetupMap;
-  const message = idsError(m) ?? adjacencyError(m) ?? homeBoxError(m) ?? influenceError(m);
+  const message = idsError(m) ?? closingOrderError(m) ?? adjacencyError(m) ?? homeBoxError(m) ?? influenceError(m);
   return message ? invalidSetup(message) : null;
 }
 
 /** The map's parts must be lists and objects of the right kinds before anything else is checked. */
 function shapeError(map: unknown): string | null {
   if (!isObject(map)) return "The setup's map must be an object.";
-  const { regions, countries, homeBox, startingInfluence } = map;
+  const { regions, closingOrder, countries, homeBox, startingInfluence } = map;
   if (!Array.isArray(regions) || !regions.every(isObject)) return "The map's regions must be a list of regions.";
+  if (!isStringList(closingOrder)) return "The map's closingOrder must be a list of region ids.";
   if (!Array.isArray(countries) || !countries.every(isObject))
     return "The map's countries must be a list of countries.";
   for (const c of countries) {
@@ -64,6 +66,27 @@ function idsError({ regions, countries }: SetupMap): string | null {
   const used = new Set(countries.map((c) => c.region));
   const empty = regions.find((r) => !used.has(r.id));
   return empty ? `Region ${empty.id} has no country.` : null;
+}
+
+/**
+ * The closing order names exactly CLOSING_THRESHOLDS regions, one for each threshold (Escalation 3, 4 and 5), each a
+ * known region and none twice.
+ */
+function closingOrderError({ regions, closingOrder }: SetupMap): string | null {
+  if (closingOrder.length !== CLOSING_THRESHOLDS) {
+    return (
+      `The map's closingOrder must name exactly ${CLOSING_THRESHOLDS} regions, one per threshold; ` +
+      `it has ${closingOrder.length}.`
+    );
+  }
+  const regionIds = new Set(regions.map((r) => r.id));
+  const seen = new Set<string>();
+  for (const id of closingOrder) {
+    if (!regionIds.has(id)) return `The map's closingOrder names unknown region ${id}.`;
+    if (seen.has(id)) return `The map's closingOrder names ${id} twice.`;
+    seen.add(id);
+  }
+  return null;
 }
 
 /** Each neighbour is a known country other than itself, listed once, that lists this country back. */
@@ -125,6 +148,7 @@ export function mapState(map: SetupMap): { map: GameMap; influence: InfluenceEnt
   return {
     map: {
       regions: map.regions.map(({ id, name }) => ({ id, name })),
+      closingOrder: [...map.closingOrder],
       countries: map.countries.map(({ id, name, region, stability, battleground, neighbours }) => ({
         id,
         name,
