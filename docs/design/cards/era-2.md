@@ -262,5 +262,5 @@ planned. The rules text of each file is written from the JSON.
   tests play each neutral card as the neutral card it is.
 - **Entering the game:** the TEST scenario `first-deck-test` lists all 34 Era 2 cards in its `eras` at turn 3. They
   are shuffled into the draw pile then, and the turn-start refill draws them into hands (question 27).
-- **SARS (e2-neu-003):** turn-end spends happen while the spender's own Ops swing is still in force, so if both hide it each pays 2; kept, and the rules text says so (question 35).
+- **SARS (e2-neu-003):** turn-end spends happen while the spender's own Ops swing is still in force, so if both hide it, each leak point that happens counts 2: a side pays 2 only when its leak happens; kept, and the rules text says so (question 35).
 - **Ruleset:** the first-deck ruleset now holds 68 cards (Era 1 and Era 2); it lives in `firstDeckRules.ts`.
