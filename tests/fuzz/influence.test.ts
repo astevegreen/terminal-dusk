@@ -79,6 +79,16 @@ describe("the influence check", () => {
     expect(() => checkInfluence(setup, withPublic(state, { map: changed }))).toThrow(/is not the setup's map/);
   });
 
+  it("fails a closing order that is not the setup's closingOrder", () => {
+    const { setup, state } = started();
+    const map = state.public.map!;
+    for (const closingOrder of [[...map.closingOrder].reverse(), map.closingOrder.slice(1), []]) {
+      expect(() => checkInfluence(setup, withPublic(state, { map: { ...map, closingOrder } }))).toThrow(
+        /closing order .* is not the setup's closingOrder/,
+      );
+    }
+  });
+
   it("fails a game started without a map that has a map or an influence list", () => {
     const { setup, state } = started(false);
     const withMap = started();

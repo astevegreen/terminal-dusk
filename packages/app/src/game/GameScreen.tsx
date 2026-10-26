@@ -56,7 +56,7 @@ export function GameScreen({ frame, log, era, label, question, onAnswer, refusal
   return (
     <div className="game">
       <StatusBar frame={frame} era={era} />
-      <MapArea />
+      <MapArea frame={frame} />
       <Hand frame={frame} label={label} />
       {/* It scrolls, so the keyboard can reach it; a div with a role, as a section would pick up the boxed style. */}
       <div className="game-side" role="region" aria-label="Game details" tabIndex={0}>

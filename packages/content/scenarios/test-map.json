@@ -13,6 +13,7 @@
       { "id": "test-e", "name": "Test Region E" },
       { "id": "test-f", "name": "Test Region F" }
     ],
+    "closingOrder": ["test-c", "test-f", "test-a"],
     "countries": [
       {
         "id": "test-a1",

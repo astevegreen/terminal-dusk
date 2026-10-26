@@ -35,6 +35,12 @@ describe("the test map scenario", () => {
     expect(map.homeBox.sae.length).toBeGreaterThan(0);
     expect(map.homeBox.lio.some((id) => map.homeBox.sae.includes(id))).toBe(true);
   });
+  it("has a made-up closingOrder of 3 of its regions, none twice", () => {
+    const ids = map.regions.map((r) => r.id);
+    expect(map.closingOrder).toHaveLength(3);
+    expect(new Set(map.closingOrder).size).toBe(3);
+    for (const id of map.closingOrder) expect(ids).toContain(id);
+  });
   it("gives each side some starting influence", () => {
     expect(map.startingInfluence.some((e) => e.lio > 0)).toBe(true);
     expect(map.startingInfluence.some((e) => e.sae > 0)).toBe(true);
@@ -56,6 +62,7 @@ describe("scenarioSetup with a map", () => {
     const got = scenarioSetup(scenario).map!;
     got.regions[0]!.name = "changed";
     got.regions.push({ id: "x", name: "x" });
+    got.closingOrder.reverse();
     got.countries[0]!.stability = 9;
     got.countries[0]!.neighbours.push("x");
     got.countries.pop();
@@ -88,6 +95,7 @@ describe("scenarioSetup with a map", () => {
     if (!result.ok) return;
     const pub = result.value.state.public;
     expect(pub.map?.regions).toEqual(map.regions);
+    expect(pub.map?.closingOrder).toEqual(map.closingOrder);
     expect(pub.map?.countries).toEqual(map.countries);
     expect(pub.map?.homeBox).toEqual(map.homeBox);
     expect(pub.influence).toHaveLength(12);

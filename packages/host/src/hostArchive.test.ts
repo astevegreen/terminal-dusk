@@ -1,8 +1,10 @@
 import { createGame, eventsFor, seedHash, SIDES } from "@terminal-dusk/engine";
+import type { CardId, Side } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { hostArchive } from "./hostArchive.ts";
+import { hostCreate } from "./hostCreate.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
-import { NOW, ruleset, SEED } from "./test/match.ts";
+import { makeConfig, NOW, ruleset, SEED } from "./test/match.ts";
 import { accept, nextSide, started, submissionFor } from "./test/play.ts";
 import type { HostResult } from "./types.ts";
 
@@ -51,7 +53,7 @@ describe("hostArchive", () => {
     },
   );
 
-  it("each step's frame shows both sides' hands as the live game had them (the engine has no card-draw step yet)", () => {
+  it("each step's frame shows both sides' hands as the live game had them, in a game with no card draws", () => {
     const steps = [started()];
     while (steps.at(-1)!.record.status.kind === "active") {
       const h = steps.at(-1)!;
@@ -67,6 +69,47 @@ describe("hostArchive", () => {
     // The opponent's hand is visible too: the first frame shows both full opening hands.
     expect(r.value.frames[0]!.view.sides.lio.hand).toEqual(last.secret.setup.hands.lio);
     expect(r.value.frames[0]!.view.sides.sae.hand).toEqual(last.secret.setup.hands.sae);
+  });
+
+  it("in a game where a hand refills, each frame's hands match the live game and the refill frame has its cardDrawn events", () => {
+    // Hand size 5: each side holds five, plays cards on turn 1, and refills at the start of turn 2.
+    const config = makeConfig();
+    const made = hostCreate(ruleset, { ...config, setup: { ...config.setup, handSize: 5 } }, SEED, NOW);
+    if (!made.ok) throw new Error(`hostCreate failed: ${made.error.code}`);
+    const steps = [made.value];
+    while (steps.at(-1)!.record.status.kind === "active") {
+      const h = steps.at(-1)!;
+      steps.push(accept(h, submissionFor(h, nextSide(h)), NOW + steps.length));
+    }
+    const last = steps.at(-1)!;
+    const r = hostArchive(ruleset, last.record, last.secret);
+    if (!r.ok) throw new Error("archive failed");
+    const frames = r.value.frames;
+    expect(frames).toHaveLength(steps.length);
+    steps.forEach((step, i) => {
+      for (const side of SIDES) expect(frames[i]!.view.sides[side]).toEqual(step.secret.state.private[side]);
+    });
+
+    const opening = last.secret.setup.hands;
+    const drawnAt = (i: number, side: Side): CardId[] =>
+      frames[i]!.view.sides[side].hand.filter(
+        (card) => !frames[i - 1]!.view.sides[side].hand.includes(card) && !opening[side].includes(card),
+      );
+    const refill = frames.findIndex((_f, i) => i > 0 && SIDES.some((side) => drawnAt(i, side).length > 0));
+    expect(refill).toBeGreaterThan(0);
+
+    const draws = frames[refill]!.events.filter((e) => e.kind === "cardDrawn");
+    // Each side's new cards are exactly the ones its cardDrawn events name, in order.
+    for (const side of SIDES) {
+      const named = draws.filter((e) => e.side === side).map((e) => ("card" in e ? e.card : null));
+      expect(named).toEqual(drawnAt(refill, side));
+    }
+    // The live game told each side its own draws: together, those are the archive's omniscient draws.
+    const live = steps[refill]!.frames;
+    const liveDraws = SIDES.flatMap((side) =>
+      live[side].events.filter((e) => e.kind === "cardDrawn" && e.side === side),
+    );
+    expect(draws).toEqual(liveDraws);
   });
 
   it("seedHash(archive.seed) equals archive.seedHash", () => {
