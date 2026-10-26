@@ -23,10 +23,13 @@ export type Country = {
 
 /**
  * The fixed map: regions and countries, each in order, and for each side the countries next to its home
- * box. Home boxes are not countries: they have no influence, stability or control.
+ * box. Home boxes are not countries: they have no influence, stability or control. `closingOrder` lists the
+ * three regions that close to interventions and realignments as Escalation reaches 3, 4 and 5, in that order
+ * (docs/design/map-and-points.md, "Thresholds close regions").
  */
 export type GameMap = {
   regions: Region[];
+  closingOrder: RegionId[];
   countries: Country[];
   homeBox: Record<Side, CountryId[]>;
 };

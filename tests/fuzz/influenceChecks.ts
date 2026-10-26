@@ -1,5 +1,6 @@
 // The fuzz checks for the map and influence (R15, docs/design/map-and-points.md, "Influence"): influence is never
-// negative, has one entry per map country in the map's order, and the map never changes during a game.
+// negative, has one entry per map country in the map's order, and the map, its closing order (R17b) included, never
+// changes during a game.
 // checkStep (checks.ts) runs them on every state.
 import { SIDES } from "@terminal-dusk/engine";
 import type { GameState, Setup } from "@terminal-dusk/engine";
@@ -45,8 +46,9 @@ function checkEntry(entry: InfluenceEntry): void {
 }
 
 /**
- * A game started without a map never has `map` or `influence`. With a map: `state.public.map` is the setup's map
- * without its starting influence, unchanged; `influence` has exactly one entry per map country, in the map's
+ * A game started without a map never has `map` or `influence`. With a map: its closing order is the setup's
+ * `closingOrder`, in the same order; `state.public.map` is the setup's map without its starting influence,
+ * unchanged; `influence` has exactly one entry per map country, in the map's
  * country order, each with only `country`, `lio` and `sae`; and every count is a whole number, 0 or more.
  */
 export function checkInfluence(setup: Setup, state: GameState): void {
@@ -55,8 +57,12 @@ export function checkInfluence(setup: Setup, state: GameState): void {
     checkNoMap(pub);
     return;
   }
-  const { regions, countries: mapCountries, homeBox } = setup.map;
-  const fixed = { regions, countries: mapCountries, homeBox };
+  const { regions, closingOrder, countries: mapCountries, homeBox } = setup.map;
+  const closing = JSON.stringify(pub.map?.closingOrder);
+  if (closing !== JSON.stringify(closingOrder)) {
+    throw new Error(`the closing order ${closing} is not the setup's closingOrder ${JSON.stringify(closingOrder)}`);
+  }
+  const fixed = { regions, closingOrder, countries: mapCountries, homeBox };
   if (canonical(pub.map) !== canonical(fixed)) {
     throw new Error(`the map ${canonical(pub.map)} is not the setup's map ${canonical(fixed)}`);
   }
