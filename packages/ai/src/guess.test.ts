@@ -75,4 +75,39 @@ describe("guessHidden", () => {
       }
     }
   });
+
+  it("never deals a card in public.removed into the opponent's hand or the draw pile, over 50 seeds", () => {
+    for (let seed = 1; seed <= 50; seed++) {
+      const state = newGame(seed);
+      for (const side of SIDES) {
+        const other = side === "lio" ? "sae" : "lio";
+        const inGame = new Set([...state.private.lio.hand, ...state.private.sae.hand, ...state.secret.deck]);
+        // Cards that left the game: every ruleset card no hand or the draw pile holds, so half the pool or more.
+        const removed = ruleset.cards.map((card) => card.id).filter((id) => !inGame.has(id));
+        expect(removed.length).toBeGreaterThan(0);
+        const real = viewFor(state, side);
+        const view = { ...real, public: { ...real.public, removed } };
+        const guess = guessHidden(ruleset, view, side, seededRandom(seed));
+        const guessed = [...guess.opponent.hand, ...guess.secret.deck];
+        expect(guessed.filter((id) => removed.includes(id))).toEqual([]);
+        expect(guess.opponent.hand).toHaveLength(view.counts.hands[other]);
+        expect(guess.secret.deck).toHaveLength(view.counts.deck);
+      }
+    }
+  });
+
+  it("gives the cannot fill error when the removed cards leave fewer unseen cards than the hidden places", () => {
+    const state = newGame(4);
+    const side = "lio";
+    const real = viewFor(state, side);
+    const hidden = real.counts.hands.sae + real.counts.deck;
+    const own = new Set(state.private.lio.hand);
+    // Remove all but one card fewer than the hidden places need.
+    const unseen = ruleset.cards.map((card) => card.id).filter((id) => !own.has(id));
+    const removed = unseen.slice(hidden - 1);
+    const view = { ...real, public: { ...real.public, removed } };
+    expect(() => guessHidden(ruleset, view, side, seededRandom(1))).toThrow(
+      `${hidden - 1} unseen cards cannot fill ${hidden} hidden places`,
+    );
+  });
 });

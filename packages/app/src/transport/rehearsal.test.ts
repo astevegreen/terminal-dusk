@@ -179,6 +179,21 @@ describe("the rehearsal's leak check on the rival's private fields", () => {
     );
   });
 
+  it("a card in the viewer's own knowledge is no leak to it, but the same card is still a leak once the viewer has not been shown it", () => {
+    const { fake } = fakeRig();
+    const base = fake.current().secret;
+    const { private: priv } = base.state;
+    const shown = priv.lio.hand[0] ?? "";
+    expect(shown).not.toBe("");
+    const withSaeKnowledge = (knowledge: string[]) => ({
+      ...base,
+      state: { ...base.state, private: { ...priv, sae: { ...priv.sae, knowledge } } },
+    });
+    const text = canonical({ extra: shown });
+    expect(leaksFor(text, withSaeKnowledge([shown]), "sae")).toEqual([]);
+    expect(leaksFor(text, withSaeKnowledge([]), "sae")).toEqual([`card ${JSON.stringify(shown)}`]);
+  });
+
   it("the viewer's own frame is no leak, even when the rival has been shown the viewer's whole hand", () => {
     const { fake } = fakeRig();
     const secret = secretWithKnowledge(fake, (hand) => [...hand]);

@@ -13,6 +13,8 @@ const MOST_ANSWERS = 500;
 export type EasyOptions = {
   /** Names the game in the "did not end" error. */
   name?: string;
+  /** The most answers the game may take (MOST_ANSWERS if not given); still going after them, it did not end. */
+  mostAnswers?: number;
   /** Called with the milliseconds each answer took. */
   timed?: (ms: number) => void;
   /** Called after each answer with the state it answered, the state after it, the events it made and the answer. */
@@ -21,7 +23,8 @@ export type EasyOptions = {
 
 /**
  * Plays `state` to its end with Easy on both sides: each step a random waiting side answers, and the answer
- * must be non-null and one of the real state's legal answers. Returns the last state.
+ * must be non-null and one of the real state's legal answers. Returns the last state. Throws "did not end"
+ * when the game is still going after the most answers allowed.
  */
 export function playEasy(
   rules: Ruleset,
@@ -30,9 +33,12 @@ export function playEasy(
   random: () => number,
   options: EasyOptions = {},
 ): TestState {
+  const mostAnswers = options.mostAnswers ?? MOST_ANSWERS;
   let state = start;
-  for (let n = 0; state.public.status.kind === "active"; n++) {
-    if (n > MOST_ANSWERS) throw new Error(`${options.name ?? "the game"} did not end`);
+  let answers = 0;
+  while (state.public.status.kind === "active") {
+    if (answers === mostAnswers) throw new Error(`${options.name ?? "the game"} did not end`);
+    answers++;
     const before = state;
     const waiting = SIDES.filter((side) => before.public.pending.some((d) => d.side === side));
     const side = waiting[Math.floor(random() * waiting.length)]!;
