@@ -4,7 +4,7 @@
 
 // The engine's public helpers: the only engine values app code may import ("`engine` types and public
 // helpers" in the package table). Add a name here to allow it.
-export const APP_ENGINE_VALUES = ["DECKS", "SIDES", "seedHash"];
+export const APP_ENGINE_VALUES = ["DECKS", "SIDES", "controller", "seedHash"];
 
 // Which workspace packages each package may import (docs/architecture.md, Guardrails, "May import").
 // "all" allows any import. "types" allows only type imports (`import type ...`) in code; test files may
