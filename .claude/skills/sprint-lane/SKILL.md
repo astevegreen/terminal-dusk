@@ -64,4 +64,4 @@ Run `Q next $ARGUMENTS --fixes-done <fix passes so far this session>`, act on it
 ## 3. Report
 When you stop, comment once on the sprint log issue (`docs/sprint.md`, Machinery), under 15 lines: the lane, the time, one line per
 task (#issue, merging, held or blocked, pull request link), each question the owner must answer, and why you
-stopped. Then run `git worktree prune`.
+stopped. The owner reads it on their phone: those items and nothing else. Then run `git worktree prune`.

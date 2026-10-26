@@ -3,7 +3,7 @@ paths:
   - "packages/engine/**"
 ---
 # Engine rules
-- Exports: createGame, apply, pendingFor, viewFor, hiddenPart, reconstruct, legalAnswers and pure helpers. Nothing else is public.
+- Exports: createGame, apply, pendingFor, viewFor, hiddenPart, reconstruct, legalAnswers, eventsFor, verifyGame and pure helpers. Nothing else is public.
 - No I/O, no clock, no Math.random. All randomness comes from the PRNG in `src/rng.ts`, whose algorithm never changes.
 - Integers only. Ordering is always explicit: arrays or sorted keys, never object key order.
 - New effect behaviour = a resolution-stack step. Anything waiting for a player = a pending Decision.

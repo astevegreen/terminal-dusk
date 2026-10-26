@@ -39,8 +39,8 @@ branch rules at the end of the next section apply.
 ## Shell commands
 Your shell starts in your own worktree. Run one plain command per Bash call: never start with `cd`, and
 don't chain commands with `&&`, `;`, pipes or line breaks. The worktree check refuses any command it can't
-verify stays inside the worktree (156 refusals in the October sprint, 152 of them chained). To read long
-output, use the Read or Grep tools.
+verify stays inside the worktree, and chained commands are what it refuses most. To read long output, use
+the Read or Grep tools.
 
 Your worktree starts without the project's installed packages. Make `pnpm install --frozen-lockfile` your
 first command, on its own. Never look inside `node_modules` or read `pnpm-lock.yaml` (both refused), and
