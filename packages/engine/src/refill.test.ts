@@ -9,6 +9,7 @@ import { eventsFor } from "./events.ts";
 import { seedRng, shuffle } from "./rng.ts";
 import { seedHash } from "./sha256.ts";
 import { rulesetWith } from "./test/game.ts";
+import { byCodeUnit } from "./test/sort.ts";
 import type { CardId, EraEntry, GameEvent, GameState, Setup } from "./types.ts";
 
 const ids = (prefix: string, n: number): CardId[] => Array.from({ length: n }, (_, i) => `${prefix}${i + 1}`);
@@ -105,7 +106,7 @@ describe("later refills", () => {
     const era: EraEntry = { era: "era2", turn: 2, cards: [...ERA] };
     const { after, events } = intoTurn2(setup({ deck: PILE.slice(0, 6), eras: [era] }));
     const drawn = [...after.private.lio.hand, ...after.private.sae.hand].filter((c) => ERA.includes(c));
-    expect(drawn.sort()).toEqual([...ERA].sort());
+    expect(drawn.toSorted(byCodeUnit)).toEqual(ERA.toSorted(byCodeUnit));
     expect(after.public.discard).toHaveLength(4);
     const kinds = events.map((e) => e.kind);
     expect(kinds.indexOf("eraStarted")).toBeLessThan(kinds.indexOf("cardDrawn"));
@@ -136,7 +137,9 @@ describe("when the draw pile runs out", () => {
     expect(after.private.sae.hand).toHaveLength(3);
     expect(after.public.discard).toEqual([]);
     expect(after.secret.deck).toEqual([]);
-    expect([...after.private.lio.hand, ...after.private.sae.hand].sort()).toEqual(PILE.slice(0, 6).sort());
+    expect([...after.private.lio.hand, ...after.private.sae.hand].toSorted(byCodeUnit)).toEqual(
+      PILE.slice(0, 6).toSorted(byCodeUnit),
+    );
   });
 
   it("tells everyone the discards were reshuffled and how many cards that made, never which", () => {
@@ -157,7 +160,7 @@ describe("a refilled hand of only neutral cards", () => {
 
   it("can still open the turn: every neutral card in the hand is a legal opening pick", () => {
     const { state } = start(allNeutral);
-    expect([...state.private.lio.hand].sort()).toEqual(["n1", "n2"]);
+    expect(state.private.lio.hand.toSorted(byCodeUnit)).toEqual(["n1", "n2"]);
     expect(rs.cards.filter((c) => state.private.lio.hand.includes(c.id)).map((c) => c.affiliation)).toEqual(
       Array(2).fill("neutral"),
     );

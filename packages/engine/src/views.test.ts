@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { hiddenPart, reconstruct, viewFor } from "./index.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
 import { playAnswers, startGame } from "./test/game.ts";
+import { byCodeUnit } from "./test/sort.ts";
 
 // startGame: LIO holds l1-l4 and n1; SAE holds s1-s4 and n2; the deck is z1-z3, shuffled.
 const LIO_HAND = ["l1", "l2", "l3", "l4", "n1"];
@@ -28,7 +29,7 @@ describe("viewFor", () => {
     expect(viewFor(startGame(), "sae").counts.hands.lio).toBe(5);
   });
   it("a view has exactly the four parts public, mine, counts and meta", () => {
-    expect(Object.keys(viewFor(startGame(), "lio")).sort()).toEqual(["counts", "meta", "mine", "public"]);
+    expect(Object.keys(viewFor(startGame(), "lio")).toSorted(byCodeUnit)).toEqual(["counts", "meta", "mine", "public"]);
   });
   it("does not change the state, and the view shares no objects with it", () => {
     const s = deepFreeze(startGame());

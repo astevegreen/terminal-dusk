@@ -5,6 +5,7 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { copyJson } from "./copy.ts";
 import { startAtPlay, startWith } from "./test/game.ts";
+import { byCodeUnit } from "./test/sort.ts";
 import type { CardId, GameState, Side } from "./types.ts";
 
 /** Every card in the game: both hands, the draw pile, the discard pile, the cards in play and later eras. */
@@ -45,7 +46,7 @@ describe("discardFromHand: the cards leave the hand for the discard pile, none l
           for (const card of left) expect(hand).toContain(card);
           expect(left).toEqual(hand.filter((card) => !gone.includes(card)));
           expect(state.public.discard).toEqual([...base.public.discard, ...gone]);
-          expect(allCards(state).sort()).toEqual(allCards(base).sort());
+          expect(allCards(state).toSorted(byCodeUnit)).toEqual(allCards(base).toSorted(byCodeUnit));
         },
       ),
     );

@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 import { legalAnswers, viewFor } from "./index.ts";
 import type { CardId, GameState, Step } from "./index.ts";
 import { accepted, asks, choose, setupPlus, sideCard, startGame, withCards } from "./test/game.ts";
+import { byCodeUnit } from "./test/sort.ts";
 
 const drawPlayer: Step = { op: "drawContingency", side: "player", bind: "n" };
 const turnEndDraw: Step = { op: "trigger", hook: "turnEnd", do: [drawPlayer], duration: { kind: "turnEnd" } };
@@ -20,10 +21,12 @@ const rs = withCards(
   sideCard("n2", 3, [drawPlayer, turnEndDraw]),
 );
 const setup = setupPlus({ lio: ["s9"], sae: ["l9"] }, 2, 2);
-const everyCard = [...setup.hands.lio, ...setup.hands.sae, ...setup.deck].sort();
+const everyCard = [...setup.hands.lio, ...setup.hands.sae, ...setup.deck].toSorted(byCodeUnit);
 
 const places = (s: GameState): CardId[] =>
-  [...s.private.lio.hand, ...s.private.sae.hand, ...s.secret.deck, ...s.public.inPlay, ...s.public.discard].sort();
+  [...s.private.lio.hand, ...s.private.sae.hand, ...s.secret.deck, ...s.public.inPlay, ...s.public.discard].toSorted(
+    byCodeUnit,
+  );
 
 /** Expects no view to hold the secret compartment, the generator state or a card in the draw pile. */
 function expectNoSecrets(s: GameState): void {

@@ -4,6 +4,7 @@ import { apply, eventsFor, viewFor } from "./index.ts";
 import type { GameEvent, GameState, OmniscientView, PlayerView, ReplayViewer, Viewer } from "./index.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
 import { playAnswers, ruleset, startGame } from "./test/game.ts";
+import { byCodeUnit } from "./test/sort.ts";
 
 function finishedGame(): GameState {
   const r = apply(ruleset, playAnswers(startGame(), 1), { system: "resign", side: "lio" });
@@ -45,7 +46,7 @@ describe("viewFor(state, 'omniscient')", () => {
   it("has no secret key, and its JSON contains neither the generator state nor any draw-pile card id", () => {
     const s = startGame();
     const view = viewFor(s, "omniscient");
-    expect(Object.keys(view).sort()).toEqual(["counts", "meta", "public", "sides"]);
+    expect(Object.keys(view).toSorted(byCodeUnit)).toEqual(["counts", "meta", "public", "sides"]);
     expect("secret" in view).toBe(false);
     const json = JSON.stringify(view);
     expect(json).not.toContain('"rng"');
