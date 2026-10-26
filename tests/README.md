@@ -9,6 +9,8 @@ Each package's own unit tests live inside that package instead.
   - A failing game prints its record (setup, seed and answers). Once the bug is fixed, the record goes into
     `fixedGames.ts`, which is replayed on every run.
   - `harness.test.ts` proves each check catches what it should.
+  - `influence.test.ts` plays random games on the content test map, so the map and influence check
+    (`influenceChecks.ts`) runs on real states.
 - `golden/` - golden replays: saved games that must reproduce exactly. `pnpm golden:check` runs them;
   `pnpm golden:update` re-records them, and only for an intended rules change.
 
