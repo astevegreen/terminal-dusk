@@ -164,24 +164,33 @@ function JoinGame({ snapshot, actions }: Readonly<{ snapshot: LobbySnapshot; act
   );
 }
 
-function GameList({ games }: Readonly<{ games: LobbySnapshot["games"] }>) {
+function GameList({ games, onOpen }: Readonly<{ games: LobbySnapshot["games"]; onOpen: (matchId: string) => void }>) {
   if (games.refusal !== null) return <Refusal refusal={games.refusal} />;
   if (games.list === null) return <p>Loading your games…</p>;
   if (games.list.length === 0) return <p>No games yet</p>;
   return (
     <ul>
       {games.list.map((g) => (
-        <li key={g.matchId}>{`You play ${SIDE_NAME[g.mySide]}. ${gameLine(g.status, g.mySide)}`}</li>
+        <li key={g.matchId}>
+          <span>{`You play ${SIDE_NAME[g.mySide]}. ${gameLine(g.status, g.mySide)}`}</span>{" "}
+          <button type="button" style={TAP} onClick={() => onOpen(g.matchId)}>
+            Open
+          </button>
+        </li>
       ))}
     </ul>
   );
 }
 
-function MyGames({ snapshot, actions }: Readonly<{ snapshot: LobbySnapshot; actions: LobbyActions }>) {
+function MyGames({
+  snapshot,
+  actions,
+  onOpen,
+}: Readonly<{ snapshot: LobbySnapshot; actions: LobbyActions; onOpen: (matchId: string) => void }>) {
   return (
     <section style={PART} aria-labelledby="lobby-games">
       <h2 id="lobby-games">My games</h2>
-      <GameList games={snapshot.games} />
+      <GameList games={snapshot.games} onOpen={onOpen} />
       <button type="button" style={TAP} disabled={snapshot.games.busy} onClick={() => void actions.refresh()}>
         Refresh
       </button>
@@ -194,17 +203,19 @@ export type LobbyViewProps = {
   actions: LobbyActions;
   onSignOut: () => void;
   onBack: () => void;
+  /** Opens the game with this match id. */
+  onOpen: (matchId: string) => void;
 };
 
 /** The signed-in online screen for one lobby snapshot. */
-export function LobbyView({ snapshot, actions, onSignOut, onBack }: Readonly<LobbyViewProps>) {
+export function LobbyView({ snapshot, actions, onSignOut, onBack, onOpen }: Readonly<LobbyViewProps>) {
   return (
     <main style={{ maxWidth: "100%", boxSizing: "border-box" }}>
       <h1>Play online</h1>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
         <NewGame snapshot={snapshot} actions={actions} />
         <JoinGame snapshot={snapshot} actions={actions} />
-        <MyGames snapshot={snapshot} actions={actions} />
+        <MyGames snapshot={snapshot} actions={actions} onOpen={onOpen} />
       </div>
       <button type="button" style={TAP} onClick={onSignOut}>
         Sign out

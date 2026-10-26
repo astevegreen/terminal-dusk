@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { App } from "../App.tsx";
 import type { AuthRefusal } from "../transport/emailAuth.ts";
 import { AUTH_ANON_KEY, AUTH_URL } from "../transport/test/fakeAuth.ts";
+import { fakeTimers } from "../transport/test/remoteGame.ts";
 import { memoryStore } from "../platform/storage.ts";
 import { OnlineScreen } from "./OnlineScreen.tsx";
 import { NOT_SET_UP, REFUSAL_MESSAGE, SignInView } from "./SignInView.tsx";
@@ -167,14 +168,14 @@ describe("every state has a way home", () => {
     const kinds = [loading, email, code, signedIn].map((r) => r.signIn.getSnapshot().kind);
     expect(kinds).toEqual(["loading", "email", "code", "signedIn"]);
     const pages = [loading, email, code, signedIn].map((r) => page(r.signIn));
-    pages.push(renderToString(<OnlineScreen clock={() => 0} onBack={() => {}} />));
+    pages.push(renderToString(<OnlineScreen clock={() => 0} timers={fakeTimers()} onBack={() => {}} />));
     for (const out of pages) tapSized(out, "Back");
   });
 });
 
 describe("a build with no online play set up", () => {
   it("shows the email step with Send code disabled and the not-set-up line", () => {
-    const screen = <OnlineScreen clock={() => 0} onBack={() => {}} />;
+    const screen = <OnlineScreen clock={() => 0} timers={fakeTimers()} onBack={() => {}} />;
     const out = renderToString(screen);
     expect(out).toContain('name="email"');
     expect(out).toContain(`<p>${NOT_SET_UP}</p>`);
@@ -187,7 +188,9 @@ describe("a build with no online play set up", () => {
       platform: "web" as const,
       copy: () => {},
     };
-    const out = renderToString(<OnlineScreen online={online} clock={() => 0} onBack={() => {}} />);
+    const out = renderToString(
+      <OnlineScreen online={online} clock={() => 0} timers={fakeTimers()} onBack={() => {}} />,
+    );
     expect(out).toContain("Loading");
     expect(out).not.toContain(NOT_SET_UP);
   });
