@@ -5,7 +5,7 @@
 // also shows what the card leaves behind: modifiers, then triggers that fire after later plays and at the end of the turn.
 // A test can also play other real cards first (`before`), one per earlier turn of the same game, so the card under
 // test can read a lasting tag they recorded; their turns are left out of the story.
-import { apply, createGame, seedHash } from "@terminal-dusk/engine";
+import { apply, createGame, legalAnswers, seedHash } from "@terminal-dusk/engine";
 import type { Answer, CardDef, CardId, GameEvent, Ruleset, Side } from "@terminal-dusk/engine";
 import { cardDef } from "../era1.ts";
 import { FIRST_DECK_CARDS } from "../firstDeckRules.ts";
@@ -246,6 +246,9 @@ export function playCardDef(def: CardDef, options: PlayOptions = {}): string[] {
       step({ decisionId: d.id, side: d.side, value: { kind: "yesNo", yes } });
     } else if (d.kind === "rivalEventOrder") {
       step({ decisionId: d.id, side: d.side, value: { kind: "rivalEventOrder", event: "before" } });
+    } else if (d.kind === "placeInfluence") {
+      // Points are placed in the first country the side may place in (R16a); the story leaves the placings out.
+      step({ decisionId: d.id, side: d.side, value: legalAnswers(ruleset, state, d.side)[0]! });
     } else {
       throw new Error(`unexpected decision ${d.kind}`);
     }

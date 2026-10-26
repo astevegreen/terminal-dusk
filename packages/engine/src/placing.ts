@@ -43,7 +43,8 @@ export function resumePlacement(state: GameState, country: CountryId, events: Ga
     return invalidProgram("That country cannot take an influence now.");
   }
   const cost = costNow(state.public, side, country);
-  state.public.influence = addInfluence(state, side, country, 1).public.influence;
+  const influence = addInfluence(state, side, country, 1).public.influence;
+  if (influence !== undefined) state.public.influence = influence;
   events.push({ kind: "influencePlaced", visibility: "public", side, country, cost });
   offer(state, frame, side, points - cost, countries);
   return null;
