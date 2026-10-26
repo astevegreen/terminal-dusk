@@ -1,9 +1,11 @@
 // Pending decisions: building them, finding the one a side must answer, and listing its legal answers.
+import { affordable } from "./influence.ts";
 import { otherSide, SIDES } from "./types.ts";
 import type {
   AnswerValue,
   CardDef,
   CardId,
+  CountryId,
   Decision,
   DecisionKind,
   DecisionOptions,
@@ -27,8 +29,11 @@ export function whoseCard(card: CardDef | undefined, side: Side): keyof PlayUses
   return card.affiliation === side ? "own" : "rival";
 }
 
-/** The kinds of decision whose options follow from the kind alone: all but a discard pick (newDiscardDecision). */
-type PlainKind = Exclude<DecisionKind, "discardCards">;
+/**
+ * The kinds of decision whose options follow from the kind alone: all but a discard pick (newDiscardDecision)
+ * and a placing (newPlaceDecision).
+ */
+type PlainKind = Exclude<DecisionKind, "discardCards" | "placeInfluence">;
 
 /**
  * What a decision of `kind` allows, said without card IDs: a yes/no or a rivalEventOrder has no
@@ -58,6 +63,14 @@ export function newDecision(seq: number, side: Side, kind: PlainKind): Decision 
  */
 export function newDiscardDecision(seq: number, side: Side, from: "hand" | "rivalHand", count: number): Decision {
   return { id: `d${seq}`, side, kind: "discardCards", options: { from, count } };
+}
+
+/**
+ * A new placing: `side` places one influence, with `points` left to spend, in one of `countries` (the list
+ * fixed when the play started). Its ID comes from `seq`, as for newDecision.
+ */
+export function newPlaceDecision(seq: number, side: Side, points: number, countries: CountryId[]): Decision {
+  return { id: `d${seq}`, side, kind: "placeInfluence", options: { points, countries } };
 }
 
 /** A new simultaneous group: one decision per side, in SIDES order, sharing the group `g<seq>`. */
@@ -105,6 +118,12 @@ export function legalAnswers(ruleset: Ruleset, state: GameState, side: Side): An
       if (!("count" in options)) return [];
       const hand = state.private[options.from === "hand" ? side : otherSide(side)].hand;
       return setsOf(hand, options.count).map((cards) => ({ kind: "discardCards", cards }));
+    }
+    case "placeInfluence": {
+      const { options } = decision;
+      if (!("points" in options)) return [];
+      const countries = affordable(state.public, side, options.countries, options.points);
+      return countries.map((country) => ({ kind: "placeInfluence", country }));
     }
   }
 }

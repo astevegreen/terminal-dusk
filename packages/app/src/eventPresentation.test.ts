@@ -17,6 +17,7 @@ describe("eventPresentation", () => {
       "escalationCrisis",
       "handRevealed",
       "handRevealedHidden",
+      "influencePlaced",
       "marker",
       "modifierEnded",
       "modifierStarted",
@@ -92,6 +93,26 @@ describe("eventPresentation", () => {
       amount: 3,
     });
     expect(line).toBe("sae spent 3 points.");
+  });
+  it("logs a placed influence with the side, the country and its cost of 1 point", () => {
+    const line = eventPresentation.influencePlaced.log({
+      kind: "influencePlaced",
+      visibility: "public",
+      side: "lio",
+      country: "alpha",
+      cost: 1,
+    });
+    expect(line).toBe("lio placed 1 influence in alpha for 1 point.");
+  });
+  it("logs a placed influence that cost 2 points in a rival-controlled country", () => {
+    const line = eventPresentation.influencePlaced.log({
+      kind: "influencePlaced",
+      visibility: "public",
+      side: "sae",
+      country: "charlie",
+      cost: 2,
+    });
+    expect(line).toBe("sae placed 1 influence in charlie for 2 points.");
   });
   it("logs a reshuffled draw pile with how many cards it got back, never which", () => {
     const line = eventPresentation.drawPileReshuffled.log({

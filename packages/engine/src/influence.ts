@@ -44,6 +44,32 @@ export function placementCost(state: PublicState, side: Side, country: CountryId
   return controlOf(entry, def.stability) === otherSide(side) ? 2 : 1;
 }
 
+/**
+ * The countries `side` may place in as the state is now, in the map's order: those where placementCost is not
+ * null. A play that spends points on placing fixes this list when it starts (owner, 26 Oct, #315 option a).
+ */
+export function reachable(state: PublicState, side: Side): CountryId[] {
+  return (state.map?.countries ?? []).map((c) => c.id).filter((id) => placementCost(state, side, id) !== null);
+}
+
+/**
+ * The countries of `countries` (the list fixed when the play started) where `side` can still afford one
+ * influence with `points` left: 2 where the rival controls the country now, otherwise 1. Kept in list order.
+ */
+export function affordable(
+  state: PublicState,
+  side: Side,
+  countries: readonly CountryId[],
+  points: number,
+): CountryId[] {
+  return countries.filter((id) => lookup(state, id) !== null && costNow(state, side, id) <= points);
+}
+
+/** What one influence costs `side` in `country` now, reach aside: 2 if the rival controls it, otherwise 1. */
+export function costNow(state: PublicState, side: Side, country: CountryId): 1 | 2 {
+  return controller(state, country) === otherSide(side) ? 2 : 1;
+}
+
 /** `state` with `side`'s count in `country` set by `change`, or `state` itself when nothing may change. */
 function changeInfluence(
   state: GameState,

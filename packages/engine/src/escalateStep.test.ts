@@ -6,6 +6,7 @@ import { createGame } from "./index.ts";
 import type { CardDef, GameEvent, GameState, Ruleset, Setup, Side, Step } from "./index.ts";
 import { startProgram } from "./stack.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
+import { placeAll } from "./test/placing.ts";
 import {
   applied,
   choose,
@@ -55,16 +56,22 @@ const at = (state: GameState, value: number): GameState => ({
 /** The game opened with l1 and s1 (no events), so LIO's play is open. */
 const atLioPlay = (rs: Ruleset, setup: Setup): GameState => openWith(startGame(2, 1, rs, setup), "l1", "s1", rs).state;
 
-/** The state atLioPlay reaches once LIO has played l2 for its points, so SAE's play is open. */
+/**
+ * The state atLioPlay reaches once LIO has played l2 for its points and placed them (placeAll), so SAE's play
+ * is open.
+ */
 function atSaePlay(rs: Ruleset, setup: Setup): GameState {
   const s = atLioPlay(rs, setup);
-  return applied(s, playAnswer(s, "lio", "l2", "points"), rs).state;
+  return placeAll(applied(s, playAnswer(s, "lio", "l2", "points"), rs), rs).state;
 }
 
-/** `side` plays the rival's card `id` for its points, with its event before the points. */
+/**
+ * `side` plays the rival's card `id` for its points, with its event before the points, and places them
+ * (placeAll): the events are the event's and the placings', and whatever followed them.
+ */
 function playRival(state: GameState, side: Side, id: string, rs: Ruleset) {
   const waiting = applied(state, playAnswer(state, side, id, "points"), rs).state;
-  return applied(waiting, orderAnswer(waiting, side, "before"), rs);
+  return placeAll(applied(waiting, orderAnswer(waiting, side, "before"), rs), rs);
 }
 
 /** LIO plays its own l9, whose effect is `effect`, for its event, with Escalation at `from`. */
