@@ -7,8 +7,9 @@ type Env = Record<string, string | undefined>;
 
 /** The mail catcher's address, with no trailing slash. */
 export function mailpitUrl(env: Env): string {
-  const set = env.MAILPIT_URL || env.INBUCKET_URL;
-  return (set || "http://127.0.0.1:54324").replace(/\/+$/, "");
+  let url = env.MAILPIT_URL || env.INBUCKET_URL || "http://127.0.0.1:54324";
+  while (url.endsWith("/")) url = url.slice(0, -1);
+  return url;
 }
 
 /** The 6-digit code in a message's text, ignoring the address (which may hold digits), or null when there is none. */
@@ -20,7 +21,8 @@ const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout
 
 /** The messages sent to `address` (Mailpit's ids). */
 async function idsFor(mail: string, address: string): Promise<string[]> {
-  const reply = await fetch(`${mail}/api/v1/search?query=${encodeURIComponent(`to:${address}`)}`);
+  const query = encodeURIComponent("to:" + address);
+  const reply = await fetch(`${mail}/api/v1/search?query=${query}`);
   const found = (await reply.json()) as { messages?: { ID: string }[] };
   return (found.messages ?? []).map((m) => m.ID);
 }

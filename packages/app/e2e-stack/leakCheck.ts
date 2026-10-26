@@ -81,6 +81,24 @@ function isPublicLeftList(leak: string, text: string, secret: MatchSecret, side:
   return !leaksFor(stripped, secret, side).includes(leak);
 }
 
+/** The problems in one piece of a response, checked against the secret of the piece's own step. */
+function problemsIn(
+  piece: { seq: number; text: string; viewer?: unknown },
+  side: Side,
+  where: string,
+  secret: MatchSecret,
+): string[] {
+  const problems: string[] = [];
+  if (piece.viewer !== undefined && piece.viewer !== side && piece.viewer !== "spectator") {
+    problems.push(`seq ${piece.seq}, ${where}: the rival's frame`);
+  }
+  for (const leak of leaksFor(piece.text, secret, side)) {
+    if (isOwnKnowledge(leak, piece.text, secret, side) || isPublicLeftList(leak, piece.text, secret, side)) continue;
+    problems.push(`seq ${piece.seq}, ${where}: ${withoutCards(leak)}`);
+  }
+  return problems;
+}
+
 /** Rest and function replies are match-related; sign-in replies and the page's own files are not. */
 const isMatchRelated = (url: string): boolean => /^\/(rest|functions)\/v1\//.test(new URL(url).pathname);
 
@@ -104,17 +122,7 @@ export function checkResponses(
         problems.push(`seq ${piece.seq}, ${where}: no server state was read for this step to check it against`);
         continue;
       }
-      if (piece.viewer !== undefined && piece.viewer !== response.side && piece.viewer !== "spectator") {
-        problems.push(`seq ${piece.seq}, ${where}: the rival's frame`);
-      }
-      for (const leak of leaksFor(piece.text, secret, response.side)) {
-        if (
-          isOwnKnowledge(leak, piece.text, secret, response.side) ||
-          isPublicLeftList(leak, piece.text, secret, response.side)
-        )
-          continue;
-        problems.push(`seq ${piece.seq}, ${where}: ${withoutCards(leak)}`);
-      }
+      problems.push(...problemsIn(piece, response.side, where, secret));
     }
   }
   return { checked, problems };

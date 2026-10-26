@@ -29,16 +29,17 @@ export async function grantWebByEmail(keys: StackKeys, email: string): Promise<v
 
 /** The matches these users play in, and the invites they made, found with the service role. */
 async function matchesOf(keys: StackKeys, ids: string[]): Promise<string[]> {
-  const matchIds: string[] = [];
-  for (const id of ids) {
-    await fetch(`${keys.url}/rest/v1/match_invite?host_id=eq.${id}`, { method: "DELETE", headers: admin(keys) });
-    const reply = await fetch(
-      `${keys.url}/rest/v1/match?select=match_id&or=(lio_player.eq.${id},sae_player.eq.${id})`,
-      { headers: admin(keys) },
-    );
-    if (reply.status === 200) matchIds.push(...((await reply.json()) as { match_id: string }[]).map((m) => m.match_id));
-  }
-  return matchIds;
+  const perUser = await Promise.all(
+    ids.map(async (id): Promise<string[]> => {
+      await fetch(`${keys.url}/rest/v1/match_invite?host_id=eq.${id}`, { method: "DELETE", headers: admin(keys) });
+      const reply = await fetch(
+        `${keys.url}/rest/v1/match?select=match_id&or=(lio_player.eq.${id},sae_player.eq.${id})`,
+        { headers: admin(keys) },
+      );
+      return reply.status === 200 ? ((await reply.json()) as { match_id: string }[]).map((m) => m.match_id) : [];
+    }),
+  );
+  return perUser.flat();
 }
 
 /**
@@ -46,11 +47,8 @@ async function matchesOf(keys: StackKeys, ids: string[]): Promise<string[]> {
  * their entitlement rows, their invites, and any match they play in.
  */
 export async function removeRun(keys: StackKeys, emails: string[]): Promise<void> {
-  const ids: string[] = [];
-  for (const email of emails) {
-    const id = await userIdByEmail(keys, email);
-    if (id !== null) ids.push(id);
-  }
+  const found = await Promise.all(emails.map((email) => userIdByEmail(keys, email)));
+  const ids = found.filter((id): id is string => id !== null);
   const matchIds = await matchesOf(keys, ids);
   const users: StackUser[] = ids.map((id) => ({ id, token: "" }));
   await cleanUp(keys, [...new Set(matchIds)], users);
