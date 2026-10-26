@@ -394,7 +394,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/events.ts` - Filtering events by who may see them. Exports: eventsFor.
 - `packages/engine/src/hasCondition.test.ts` - The `has` condition (#141): an if is true exactly when a lasting marker with that label has been set.
 - `packages/engine/src/index.test.ts`
-- `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, createGame, legalAnswers, pendingFor, eventsFor, seedHash, DECKS, SIDES, verifyGame, hiddenPart, reconstruct, viewFor, ….
+- `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, createGame, legalAnswers, pendingFor, eventsFor, controller, placementCost, seedHash, DECKS, SIDES, verifyGame, hiddenPart, ….
+- `packages/engine/src/influence.test.ts` - R15: who controls a country, what one influence costs to place, and adding and removing influence (docs/design/map-and-points.md, "Influence").
+- `packages/engine/src/influence.ts` - The influence rules (docs/design/map-and-points.md, "Influence"): who controls a country, whether a side may place one influence there and at what cost, and ad… Exports: controller, placementCost, addInfluence, removeInfluence.
 - `packages/engine/src/knowledge.property.test.ts` - Property test (#184): in random games where cards show hands (revealHand), each side's knowledge always lists, each once, only cards still in the rival's hand,…
 - `packages/engine/src/knowledge.ts` - Knowledge: the rival's cards a side has been shown (docs/architecture.md, section 3), kept in that side's own private compartment while they stay in the rival'… Exports: revealHand, forgetCard.
 - `packages/engine/src/knowledgeTypes.ts` - The events of the steps that look at or take from a hand: revealHand (knowledge.ts) and discardFromHand (discard.ts). Exports: HandRevealedHidden, HandRevealed, CardsDiscarded.
