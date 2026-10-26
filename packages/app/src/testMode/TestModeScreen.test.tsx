@@ -103,8 +103,11 @@ describe("the viewer switch", () => {
     expect(out).not.toMatch(/\bt\d+\b/);
     expect(out).not.toContain("Test card 1,");
     expect(out.match(/pick an opening card/g)).toHaveLength(2);
-    // Only the three viewer controls and Restart are buttons.
-    expect(out.match(/<button/g)).toHaveLength(4);
+    // Outside the map (whose region buttons zoom, for every viewer: issue #366), only the three viewer controls
+    // and Restart are buttons, so the Decision region has none.
+    const map = /<section aria-label="Map"[^]*?<\/section>/.exec(out)?.[0] ?? "";
+    expect(map).toContain("<button");
+    expect(out.replace(map, "").match(/<button/g)).toHaveLength(4);
   });
   it("marks the chosen viewer", () => {
     const session = fresh();
@@ -183,6 +186,8 @@ describe("a whole game through the prompts", () => {
     expect(eventPlays.some((card) => pub?.discard.includes(card) || pub?.inPlay.includes(card))).toBe(true);
     expect(html(session)).toContain("Game over");
     expect(session.getSnapshot().frame?.view.public.status.kind).toBe("over");
+    // The game was played on the test map (issue #366), which is still there at the end.
+    expect(pub?.map?.countries).toHaveLength(12);
   });
 });
 

@@ -4,6 +4,7 @@
 // neutral ones, 2 turns and 2 plays per turn.
 import type { CardDef, CardId, Ruleset, Step } from "@terminal-dusk/engine";
 import type { MatchConfig } from "@terminal-dusk/host";
+import { firstDeckTestMap } from "@terminal-dusk/host/first-deck";
 
 export const DEFAULT_SEED = "test-mode";
 
@@ -67,3 +68,12 @@ export const fixtureConfig: MatchConfig = {
     contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6], world: [1, 2, 3, 4, 5, 6] },
   },
 };
+
+/**
+ * The test mode's own game: fixtureConfig on R14's test map (a fresh copy each call, from the host), so the map
+ * shows in the running app. fixtureConfig itself, which the vs-AI fixture game also uses, keeps no map.
+ */
+export const testModeConfig = (): MatchConfig => ({
+  ...fixtureConfig,
+  setup: { ...fixtureConfig.setup, map: firstDeckTestMap() },
+});

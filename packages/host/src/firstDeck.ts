@@ -11,7 +11,8 @@ import {
   cardName,
   scenarioSetup,
 } from "@terminal-dusk/content/first-deck";
-import type { CardId, Ruleset } from "@terminal-dusk/engine";
+import { TEST_MAP_SCENARIO } from "@terminal-dusk/content";
+import type { CardId, Ruleset, Setup } from "@terminal-dusk/engine";
 import type { MatchConfig } from "./types.ts";
 
 export const FIRST_DECK_NOTE =
@@ -36,6 +37,16 @@ const QUESTIONS = new Map<CardId, string | undefined>(
  * question is the rules text"). Undefined for a card that asks nothing or an unknown id. Display data only.
  */
 export const firstDeckCardQuestion = (id: CardId): string | undefined => QUESTIONS.get(id);
+
+/**
+ * A fresh copy of R14's test map, starting influence included: TEST_MAP_SCENARIO through content's scenarioSetup.
+ * Test data, not the game's map; the developer test mode plays on it. The first-deck config below has no map.
+ */
+export const firstDeckTestMap = (): NonNullable<Setup["map"]> => {
+  const { map } = scenarioSetup(TEST_MAP_SCENARIO);
+  if (map === undefined) throw new Error("the test map scenario has no map");
+  return map;
+};
 
 /** The match config for the first deck: the TEST scenario's numbers, empty hands and the Era 1 draw pile. */
 export function firstDeckConfig(): MatchConfig {

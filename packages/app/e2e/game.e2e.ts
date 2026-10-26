@@ -6,7 +6,8 @@ test("game screen: every region is visible, nothing scrolls sideways, buttons ar
   await page.goto("/");
   await page.getByRole("button", { name: "Test mode" }).click();
   for (const id of REGIONS) await expect(page.getByTestId(id)).toBeVisible();
-  await expect(page.getByTestId("map-area")).toContainText("No map in this game");
+  // Test mode plays on the test map (issue #366); map.e2e.ts checks its badges.
+  await expect(page.getByTestId("map-area")).not.toContainText("No map in this game");
 
   const noSideScroll = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
   expect(noSideScroll).toBe(true);
