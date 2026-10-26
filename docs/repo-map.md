@@ -505,6 +505,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/deadlineStore.test.ts`
 - `packages/server/src/deadlineStore.ts` - The storage port behind the deadline sweep (docs/architecture.md, Decision 5, "Scheduled jobs"). Exports: DeadlineStore, earliestDeadline, dueIds.
 - `packages/server/src/edge.ts` - The glue every Edge Function shares: turning the runtime's fetch-style requests into the plain-data requests the handlers take and back, and the Supabase sign-… Exports: FetchRequest, MakeResponse, serveFetch, supabaseAuthenticate.
+- `packages/server/src/entitlementStore.test.ts`
+- `packages/server/src/entitlementStore.ts` - The entitlement port (docs/architecture.md, Decision 5): which full-game copies a player owns, and an in-memory store for tests. Exports: EntitlementRow, EntitlementStore, MemoryEntitlementStore.
 - `packages/server/src/http.ts` - The plain-data HTTP pieces the Edge Function handlers share (docs/architecture.md, Decision 5): the request and reply shapes, the CORS headers, signing a calle… Exports: HttpRequest, HttpReply, Authenticate, CORS_HEADERS, preflight, signedIn, jsonObject, reply, refusal, isPlainObject.
 - `packages/server/src/index.test.ts`
 - `packages/server/src/index.ts` - Public entry point of the server package (docs/architecture.md, Decision 5). Exports: submit, ServerErrorCode, SubmitDeps, SubmitError, SubmitOutcome, SubmitRequest, MemoryStore, SupabaseStore, CommitResult, LoadedMatch, MatchStore, MatchWrite, ….
@@ -532,6 +534,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/matchRow.ts` - The mapping between a `match` row (rows.ts, the SQL column names) and the host's `MatchRecord`. Exports: matchRowFor, recordFromRow.
 - `packages/server/src/memoryStores.rejects.test.ts` - O12, acceptance criterion 4: an in-memory store method runs its body inside the promise, so a failure in it reaches the caller as a rejected promise, never as…
 - `packages/server/src/migrations/commitMatch.test.ts` - The commit_match migration (supabase/migrations/20261021000000_commit_match.sql) on the local Supabase stack.
+- `packages/server/src/migrations/entitlement.test.ts` - The entitlement migration (supabase/migrations/20261027000000_entitlement.sql) on the local Supabase stack.
 - `packages/server/src/migrations/localStack.ts` - Connects the migration test to the local Supabase stack (docs/sprint.md, lane "online": no hosted project). Exports: HOW_TO_START, StackKeys, stackKeys, client, whyUnavailable, freshId.
 - `packages/server/src/migrations/matchInvite.test.ts` - The match_invite migration (supabase/migrations/20261022000000_match_invite.sql) on the local Supabase stack.
 - `packages/server/src/migrations/matchTables.test.ts` - The match tables migration (supabase/migrations/20261020000000_match_tables.sql) on the local Supabase stack.
@@ -571,6 +574,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/submitHandler.ts` - The HTTP side of the submit Edge Function (docs/architecture.md, Decision 5), as plain data in and out so it runs under vitest: it signs the caller in, checks… Exports: CORS_HEADERS, HttpReply, HttpRequest, SubmitHandlerDeps, HandlerErrorCode, handleSubmit.
 - `packages/server/src/supabaseEmailOf.test.ts` - supabaseEmailOf against a stand-in client: the player's address through the Auth admin API, or null when the user has none or is not found.
 - `packages/server/src/supabaseEmailOf.ts` - A player's email address for the turn alert sweep (sweepTurnAlerts.ts, `emailOf`), read through Supabase Auth's admin API. Exports: EmailLookupError, supabaseEmailOf.
+- `packages/server/src/supabaseEntitlementStore.stack.test.ts` - SupabaseEntitlementStore against the real entitlement table on the local Supabase stack: the same behaviour the stand-in client tests (supabaseEntitlementStore…
+- `packages/server/src/supabaseEntitlementStore.test.ts` - SupabaseEntitlementStore against a stand-in client, so these run without the local stack.
+- `packages/server/src/supabaseEntitlementStore.ts` - The Supabase side of the entitlement port (docs/architecture.md, Decision 5). Exports: EntitlementStorageError, SupabaseEntitlementStore.
 - `packages/server/src/supabaseInviteStore.games.stack.test.ts` - Private games through the Supabase stores on the local Supabase stack: for each side mode, createInvite, previewInvite and joinInvite create a match whose rows…
 - `packages/server/src/supabaseInviteStore.guards.stack.test.ts` - SupabaseInviteStore's guards on the local Supabase stack: two joins of one code at once, a clash on save, an unknown code, and database errors, which throw wit…
 - `packages/server/src/supabaseInviteStore.test.ts` - SupabaseInviteStore against a stand-in client, so these run without the local stack.
@@ -597,6 +603,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/test/alerts.ts` - Test helpers for turn alerts: the test match in a MemoryStore, its first alerts queued in a MemoryNotifyStore, a MemoryMailer, and addresses for alice and bob. Exports: APP_URL, ADDRESSES, AlertWorld, withNotify, moveUntilNotified, alertWorld.
 - `packages/server/src/test/authEmail.ts` - Test helpers for the auth-email hook: a test secret, a send-email payload, a correctly signed hook request and a handler wired to a MemoryMailer and a recorded… Exports: TEST_SECRET, TEST_CODE, TEST_TOKEN_HASH, TEST_EMAIL, NOW_MS, NOW_SECONDS, payload, signedRequest, authEmailWorld.
 - `packages/server/src/test/deadlines.ts` - Test helpers for the deadline sweep: matches with deadlines in an in-memory store. Exports: DAY, rulesetFor, createdWithClock, insertMatch, insertSaeLate.
+- `packages/server/src/test/entitlementStack.ts` - The shared setup for the entitlement tests on the local Supabase stack: a service-role client and two fresh test users made before the tests, and their entitle… Exports: EntitlementStack, EntitlementInsert, entitlementStack.
 - `packages/server/src/test/errors.test.ts` - O12, acceptance criterion 2: `shown` prints a plain-object cause by its fields, never "[object Object]".
 - `packages/server/src/test/errors.ts` - Test helpers for checking what a thrown storage error shows. Exports: shown, thrown.
 - `packages/server/src/test/functions.ts` - Test helpers for calling an Edge Function served by the local Supabase stack (`supabase functions serve`). Exports: SERVE_HINT, callFunction, whyFunctionUnavailable.
@@ -636,6 +643,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/supabase/migrations/20261024000000_notify_queue.sql` - Turn alerts waiting to be emailed (docs/architecture.md, Decision 5, `notify_queue`: pending notifications).
 - `packages/server/supabase/migrations/20261025000000_notify_queue_waiting_seq.sql` - A turn alert stays live while its player is still waiting on that turn (#267).
 - `packages/server/supabase/migrations/20261026000000_sweep_jobs.sql` - The scheduled job (docs/architecture.md, Decision 5, "Scheduled jobs (every minute)"): every minute pg_cron calls the sweep-deadlines and sweep-turn-alerts Edg…
+- `packages/server/supabase/migrations/20261027000000_entitlement.sql` - Entitlements: which full-game copies a player owns (docs/architecture.md, Decision 5, "Accounts and purchases").
 - `packages/server/tsconfig.json`
 
 ## tests
