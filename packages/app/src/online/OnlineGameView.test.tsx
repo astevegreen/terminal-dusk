@@ -207,7 +207,7 @@ describe("Back", () => {
     const sent = r.sent.length;
     r.timers.fire();
     await settle();
-    expect(r.sent.length).toBe(sent);
+    expect(r.sent).toHaveLength(sent);
   });
   it("still goes back while loading, with no session yet", () => {
     const calls = { closed: 0, back: 0 };

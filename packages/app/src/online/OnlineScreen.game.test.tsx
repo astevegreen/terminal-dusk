@@ -123,7 +123,7 @@ describe("lobbyStep", () => {
     (step.props as { onBack: () => void }).onBack();
     await settle();
     expect(shown).toEqual([null]);
-    expect(r.fake.requests.length).toBe(reads + 1);
+    expect(r.fake.requests).toHaveLength(reads + 1);
     expect(r.fake.requests.at(-1)?.url).toContain("/rest/v1/match");
   });
   it("with no game open, shows the lobby, whose Open shows the game", async () => {
@@ -150,7 +150,7 @@ describe("lobbyStep", () => {
     backToLobby(r.lobby, (id) => shown.push(id));
     await settle();
     expect(shown).toEqual([null]);
-    expect(r.fake.requests.length).toBe(reads + 1);
+    expect(r.fake.requests).toHaveLength(reads + 1);
   });
 });
 

@@ -124,8 +124,8 @@ export function lobbyStep({ online, signIn, play, onBack, playerId, lobby, open,
 export function LobbyFlow(props: Readonly<PlayerProps>) {
   const { online, signIn, playerId } = props;
   const [lobby] = useState(() => createLobbySession(lobbyOptions(online, signIn, playerId)));
-  const [open, show] = useState<string | null>(null);
-  return lobbyStep({ ...props, lobby, open, show });
+  const [open, setOpen] = useState<string | null>(null);
+  return lobbyStep({ ...props, lobby, open, show: setOpen });
 }
 
 /** What the online screen draws for one sign-in snapshot: the lobby once signed in, else the sign-in steps. */

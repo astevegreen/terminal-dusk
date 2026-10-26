@@ -17,7 +17,8 @@ export function timeLeft(t: number): string {
   if (t < DAY) return `${count(Math.floor(t / HOUR), "hour")} left`;
   const days = Math.floor(t / DAY);
   const hours = Math.floor((t % DAY) / HOUR);
-  return `${count(days, "day")}${hours === 0 ? "" : ` ${count(hours, "hour")}`} left`;
+  const parts = hours === 0 ? [count(days, "day")] : [count(days, "day"), count(hours, "hour")];
+  return `${parts.join(" ")} left`;
 }
 
 /** The deadline line: the time left at the read, then the extension still to come when there is one. */
