@@ -1,68 +1,11 @@
 // The map zoomed out (issue #364): badges per country, grouped by region, net influence, controller colour.
 import { controller } from "@terminal-dusk/engine";
-import type { Country, GameMap, InfluenceEntry } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { cardAffiliation, cardName, cardQuestion } from "../testMode/fixture.ts";
-import { createTestSession } from "../testMode/session.ts";
 import { GameScreen } from "./GameScreen.tsx";
-
-const country = (id: string, name: string, region: string, stability: number): Country => ({
-  id,
-  name,
-  region,
-  stability,
-  battleground: false,
-  neighbours: [],
-});
-
-// Two regions, listed East first, while the countries' list starts with a West one.
-const map: GameMap = {
-  regions: [
-    { id: "east", name: "Eastern Reach" },
-    { id: "west", name: "Western Shore" },
-  ],
-  countries: [
-    country("w1", "Alderland", "west", 2),
-    country("e1", "Birchmark", "east", 1),
-    country("w2", "Cedaria", "west", 3),
-    country("e2", "Dunmoor", "east", 2),
-    country("w3", "Elmhaven", "west", 2),
-  ],
-  homeBox: { lio: ["w1"], sae: ["e1"] },
-  // Escalation is 0 below, so no region is closed and the Map area never reads this.
-  closingOrder: [],
-};
-
-// In another order than the map's, and with no entry for Dunmoor (e2).
-const influence: InfluenceEntry[] = [
-  { country: "w3", lio: 1, sae: 1 },
-  { country: "w2", lio: 2, sae: 1 },
-  { country: "e1", lio: 1, sae: 2 },
-  { country: "w1", lio: 3, sae: 0 },
-];
-
-const baseFrame = (): Frame => {
-  const session = createTestSession(() => 0);
-  session.setViewer("lio");
-  const frame = session.getSnapshot().frame;
-  if (!frame) throw new Error("no frame");
-  return frame;
-};
-
-const withMap = (frame: Frame): Frame => ({
-  ...frame,
-  view: { ...frame.view, public: { ...frame.view.public, map, influence, escalation: 0 } },
-});
-
-const withoutMap = (frame: Frame): Frame => {
-  const pub = { ...frame.view.public };
-  delete pub.map;
-  delete pub.influence;
-  delete pub.escalation;
-  return { ...frame, view: { ...frame.view, public: pub } };
-};
+import { baseFrame, map, withMap, withoutMap } from "./test/mapFixture.ts";
 
 const render = (frame: Frame): string =>
   renderToString(
@@ -93,7 +36,8 @@ describe("the Map area with a map in the frame", () => {
   const out = mapAreaOf(render(withMap(baseFrame())));
 
   it("shows one badge per country in the map's order, grouped under each region's name in the map's region order", () => {
-    const regions = [...out.matchAll(/<h3[^>]*>([^<]+)<\/h3>/g)].map((m) => m[1]);
+    // Each region's name is a button inside its heading (issue #365), which zooms into the region.
+    const regions = [...out.matchAll(/<h3[^>]*><button[^>]*>([^<]+)<\/button><\/h3>/g)].map((m) => m[1]);
     expect(regions).toEqual(["Eastern Reach", "Western Shore"]);
     const groups = [...out.matchAll(/data-region="([^"]+)".*?<\/ul>/g)].map((m) => ({
       region: m[1],
