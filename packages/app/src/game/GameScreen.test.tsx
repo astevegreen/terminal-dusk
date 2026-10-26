@@ -33,6 +33,17 @@ const html = (frame: Frame, extra: Partial<GameScreenProps> = {}): string =>
 const over = (winner: Side | null): Frame =>
   withPublic(frameFor("lio"), { status: { kind: "over", winner, reason: "turns ran out" } });
 
+/**
+ * The Decision region's html, up to the Log region after it. The frames are on the test map (issue #366), whose
+ * region buttons (zoom, for every viewer) are elsewhere on the screen, so button checks look here.
+ */
+const decisionOf = (out: string): string => {
+  const start = out.indexOf('data-testid="decision"');
+  const end = out.indexOf('data-testid="log"', start);
+  if (start < 0 || end < 0) throw new Error("no Decision region");
+  return out.slice(start, end);
+};
+
 /** Every text must appear in the page. */
 const expectAll = (out: string, texts: string[]): void => {
   for (const text of texts) expect(out).toContain(text);
@@ -113,7 +124,7 @@ describe("GameScreen for a spectator", () => {
   it("shows no card ids and read-only prompts with no buttons", () => {
     expect(out).not.toMatch(/\bt\d+\b/);
     expect(out.match(/pick an opening card/g)).toHaveLength(2);
-    expect(out).not.toContain("<button");
+    expect(decisionOf(out)).not.toContain("<button");
   });
 });
 
@@ -124,6 +135,8 @@ describe("the decision region", () => {
     expect(buttons.length).toBeGreaterThan(0);
     buttons[0]?.click();
     expect(answers).toHaveLength(1);
+    // The first button pressed is the decision's (the opening pick), not a map region's zoom button.
+    expect(answers[0]).toMatchObject({ kind: "chooseCard" });
   });
   it("gives the yes/no prompt the frame's stack, so it names the asking card and its question", () => {
     const yesNo = { id: "d9", side: "sae" as const, kind: "yesNo" as const, options: {} };
@@ -182,6 +195,6 @@ describe("screen-reader support", () => {
     expect(ids).toHaveLength(2);
     for (const [, by, id] of ids) expect(by).toBe(id);
     expect(ids[0]?.[1]).not.toBe(ids[1]?.[1]);
-    expect(spectator).not.toContain("<button");
+    expect(decisionOf(spectator)).not.toContain("<button");
   });
 });

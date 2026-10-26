@@ -7,7 +7,7 @@ import { toRecording } from "../replay/recording.ts";
 import type { ReplayRecording } from "../replay/recording.ts";
 import { createLocalMatch } from "../transport/localMatch.ts";
 import type { LocalMatch } from "../transport/localMatch.ts";
-import { DEFAULT_SEED, fixtureConfig, fixtureRuleset } from "./fixture.ts";
+import { DEFAULT_SEED, fixtureRuleset, testModeConfig } from "./fixture.ts";
 
 export type Snapshot = {
   viewer: Viewer;
@@ -83,7 +83,7 @@ export function createTestSession(clock: () => number, startSeed: string = DEFAU
     logs = { lio: [], sae: [], spectator: [] };
     lastSeq = { lio: -1, sae: -1, spectator: -1 };
     eras = { lio: null, sae: null, spectator: null };
-    const made = createLocalMatch(fixtureRuleset, fixtureConfig, seed, clock);
+    const made = createLocalMatch(fixtureRuleset, testModeConfig(), seed, clock);
     match = made.ok ? made.value : null;
     snapshot = {
       viewer,

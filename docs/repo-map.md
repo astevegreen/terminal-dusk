@@ -53,6 +53,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e-stack/runUsers.ts` - The run's two players, found and removed by email with the service role (A10). Exports: userIdByEmail, grantWebByEmail, removeRun.
 - `packages/app/e2e/game.e2e.ts`
 - `packages/app/e2e/keyboard.e2e.ts`
+- `packages/app/e2e/map.e2e.ts`
 - `packages/app/e2e/online.e2e.ts`
 - `packages/app/e2e/replay.e2e.ts`
 - `packages/app/e2e/server.test.ts` - The Playwright run's own port (server.ts): a free one, kept for the run's workers, never a server already running.
@@ -131,10 +132,11 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/test/order.ts` - Compare function for sorting strings in UTF-16 code-unit order: the same order as a sort with no compare function, written out so the order is explicit. Exports: byCodeUnit.
 - `packages/app/src/testMode/TestModeScreen.test.tsx`
 - `packages/app/src/testMode/TestModeScreen.tsx` - Test mode (docs/architecture.md, Decision 3): the Local transport with a switch to view the game as LIO, as SAE or as a spectator. Exports: TestModeView, TestModeScreen.
-- `packages/app/src/testMode/fixture.ts` - DEVELOPER FIXTURE for test mode. Exports: DEFAULT_SEED, cardName, cardQuestion, fixtureRuleset, cardAffiliation, fixtureConfig.
+- `packages/app/src/testMode/fixture.ts` - DEVELOPER FIXTURE for test mode. Exports: DEFAULT_SEED, cardName, cardQuestion, fixtureRuleset, cardAffiliation, fixtureConfig, testModeConfig.
 - `packages/app/src/testMode/promptTree.ts` - Test helper: finds the buttons a prompt would draw and lets a test press them, without a browser. Exports: Button, buttonsOf.
 - `packages/app/src/testMode/session.ts` - The state behind the test-mode screen: one local match, the viewer being looked at, that viewer's latest frame and game log, and the last refusal. Exports: Snapshot, TestSession, logLine, createTestSession.
 - `packages/app/src/testMode/sessionEra.test.ts` - The era in the test-mode session: kept per viewer next to the log, reset by restart.
+- `packages/app/src/testMode/testModeMap.test.tsx` - Test mode plays on R14's test map (issue #366): the first frame carries the map and influence, and the screen draws the map's badges for LIO, SAE and the spect…
 - `packages/app/src/transport/emailAuth.test.ts`
 - `packages/app/src/transport/emailAuth.ts` - Email sign-in codes (docs/architecture.md, Decisions 5 and 7): asks Supabase Auth to email a 6-digit code, trades the code for a session and refreshes that ses… Exports: AuthEndpoint, Session, AuthRefusal, AuthResult, REFRESH_MARGIN_MS, requestCode, verifyCode, refreshSession, sessionToken.
 - `packages/app/src/transport/localMatch.test.ts`

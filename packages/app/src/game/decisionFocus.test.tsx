@@ -106,13 +106,16 @@ describe("tab order", () => {
   });
   it("follows reading order: the hand, the side column, the decision's choices, then the log list", () => {
     const at = (text: string): number => out.indexOf(text);
+    // The decision's first choice: the first button after the Decision region opens (the map's region buttons,
+    // issue #366, come before the hand, as the map does on screen).
+    const choice = out.indexOf("<button", at('data-testid="decision"'));
     const marks = [
-      'data-testid="hand" class="game-hand" tabindex="0"',
-      'aria-label="Game details" tabindex="0"',
-      'data-testid="decision"',
-      "<button",
-      '<ol aria-label="Log entries" tabindex="0">',
-    ].map(at);
+      at('data-testid="hand" class="game-hand" tabindex="0"'),
+      at('aria-label="Game details" tabindex="0"'),
+      at('data-testid="decision"'),
+      choice,
+      at('<ol aria-label="Log entries" tabindex="0">'),
+    ];
     for (const mark of marks) expect(mark).toBeGreaterThan(-1);
     expect([...marks].sort((a, b) => a - b)).toEqual(marks);
   });
