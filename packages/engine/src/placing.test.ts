@@ -19,8 +19,7 @@ import {
   withCards,
 } from "./test/game.ts";
 import { mapSetup } from "./test/map.ts";
-
-const spend = (side: Side, amount: number): Step => ({ op: "spendPoints", side, amount });
+import { countOf, mapGame, spend } from "./test/mapGame.ts";
 
 type Played = { state: GameState; events: GameEvent[] };
 
@@ -39,21 +38,6 @@ function placeChosen(played: Played): Played {
 /** startWith, then placing picked on the action choice (placeChosen). */
 const startWith = (steps: Step[], rs = ruleset, state?: GameState): Played =>
   placeChosen(startProgramWith(steps, rs, state));
-
-/** A map game at LIO's first play, with influence set from `counts` (0 where none is given), or the map's start. */
-function mapGame(counts?: Record<CountryId, { lio?: number; sae?: number }>): GameState {
-  const state = playAnswers(startGame(2, 1, ruleset, mapSetup()), 2);
-  if (counts === undefined) return state;
-  const influence = state.public.influence!.map(({ country }) => ({
-    country,
-    lio: counts[country]?.lio ?? 0,
-    sae: counts[country]?.sae ?? 0,
-  }));
-  return { ...state, public: { ...state.public, influence } };
-}
-
-const countOf = (state: GameState, country: CountryId, side: Side): number =>
-  state.public.influence!.find((e) => e.country === country)![side];
 
 /** The answer placing in `country` for the placing `state` has open. */
 function place(state: GameState, country: CountryId) {

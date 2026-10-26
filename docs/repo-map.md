@@ -132,6 +132,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/replay/replayScreen.css`
 - `packages/app/src/test/order.test.ts`
 - `packages/app/src/test/order.ts` - Compare function for sorting strings in UTF-16 code-unit order: the same order as a sort with no compare function, written out so the order is explicit. Exports: byCodeUnit.
+- `packages/app/src/test/promptProps.ts` - Test helper: the props a decision prompt needs when the decision lists no cards (placing, action choice). Exports: promptProps.
 - `packages/app/src/testMode/TestModeScreen.test.tsx`
 - `packages/app/src/testMode/TestModeScreen.tsx` - Test mode (docs/architecture.md, Decision 3): the Local transport with a switch to view the game as LIO, as SAE or as a spectator. Exports: TestModeView, TestModeScreen.
 - `packages/app/src/testMode/fixture.ts` - DEVELOPER FIXTURE for test mode. Exports: DEFAULT_SEED, cardName, cardQuestion, fixtureRuleset, cardAffiliation, fixtureConfig, testModeConfig.
@@ -505,6 +506,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
 - `packages/engine/src/test/game.ts` - Test helpers: a started game, answers for it, and small programs for the stack. Exports: testCard, rulesetWith, ruleset, sideCard, withCards, makeSetup, setupPlus, startGame, startAtPlay, cardAnswer, playAnswer, orderAnswer, ….
 - `packages/engine/src/test/map.ts` - A small made-up map for engine tests: three regions, five countries in a ring with one cross link, and one country on its own. Exports: testMap, mapSetup.
+- `packages/engine/src/test/mapGame.ts` - Test helpers for spending points on the test map (R16a placing, R16b intervening): a game at LIO's first play, with the influence a test needs, and what one si… Exports: spend, mapGame, countOf.
 - `packages/engine/src/test/placing.ts` - Test helper: finishing the spending a play for points asks for in a game with a map (R16a placing.ts, R16b action choice). Exports: placeAll.
 - `packages/engine/src/test/sort.ts` - Test helper: the sort order the tests use for object keys and card ids. Exports: byCodeUnit.
 - `packages/engine/src/triggerFilter.test.ts` - A trigger's filter and once (#189): a trigger that reacts only to one side's plays, or only while a lasting marker is set, and a trigger that fires at most onc…

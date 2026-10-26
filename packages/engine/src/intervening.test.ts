@@ -5,7 +5,7 @@
 // charlie, SAE with 3 in echo and 1 in charlie; stabilities alpha 2, bravo 1, charlie 3, delta 2, echo 1, foxtrot 1.
 import { describe, expect, it } from "vitest";
 import { apply, legalAnswers } from "./index.ts";
-import type { AnswerValue, CountryId, GameEvent, GameState, Side, Step } from "./index.ts";
+import type { AnswerValue, CountryId, GameEvent, GameState, Side } from "./index.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
 import {
   accepted,
@@ -19,20 +19,7 @@ import {
   withCards,
 } from "./test/game.ts";
 import { mapSetup } from "./test/map.ts";
-
-const spend = (side: Side, amount: number): Step => ({ op: "spendPoints", side, amount });
-
-/** A map game at LIO's first play, with influence from `counts` (0 where none is given), or the map's start. */
-function mapGame(counts?: Record<CountryId, { lio?: number; sae?: number }>): GameState {
-  const state = playAnswers(startGame(2, 1, ruleset, mapSetup()), 2);
-  if (counts === undefined) return state;
-  const influence = state.public.influence!.map(({ country }) => ({
-    country,
-    lio: counts[country]?.lio ?? 0,
-    sae: counts[country]?.sae ?? 0,
-  }));
-  return { ...state, public: { ...state.public, influence } };
-}
+import { countOf, mapGame, spend } from "./test/mapGame.ts";
 
 /** `state` with `side`'s next Contingency draw set to `value` (the deck keeps the same cards). */
 function nextDraw(state: GameState, side: Side, value: number): GameState {
@@ -42,9 +29,6 @@ function nextDraw(state: GameState, side: Side, value: number): GameState {
   const reordered = [value, ...order.slice(0, at), ...order.slice(at + 1)];
   return { ...state, secret: { ...state.secret, contingency: { ...state.secret.contingency, [side]: reordered } } };
 }
-
-const countOf = (state: GameState, country: CountryId, side: Side): number =>
-  state.public.influence!.find((e) => e.country === country)![side];
 
 /** The answer to the action choice `state` has open. */
 function choose(state: GameState, value: AnswerValue) {
