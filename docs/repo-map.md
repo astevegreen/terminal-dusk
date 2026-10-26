@@ -71,11 +71,19 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/online/OnlineScreen.test.tsx`
 - `packages/app/src/online/OnlineScreen.tsx` - The online screen (docs/architecture.md, Decision 7, "Guest mode": sign-in only when going online). Exports: OnlineSetup, OnlineScreenProps, OnlineScreen.
 - `packages/app/src/online/SignInView.tsx` - The sign-in screen drawn from a sign-in snapshot (online/signIn.ts): the email step, the code step and the signed-in step, each with a Back button home. Exports: NOT_SET_UP, REFUSAL_MESSAGE, SignInActions, SignInView.
+- `packages/app/src/online/matchClock.ts` - The online game's deadline (docs/architecture.md, Decision 5, "Deadlines"): reads the `clock` column of the match's `match` row (only that column, never the se… Exports: OnlineDeadline, ClockEndpoint, readClock, deadlineFor.
+- `packages/app/src/online/onlineGame.deadline.test.ts`
+- `packages/app/src/online/onlineGame.test.ts`
+- `packages/app/src/online/onlineGame.ts` - The client side of one online game, with no screen (docs/architecture.md, Decision 5): runs the remote transport with real timers, keeps the latest frame and t… Exports: OnlineTurn, OnlineGameSnapshot, OnlineGameOptions, OnlineGame, DEFAULT_POLL_MS, turnOf, createOnlineGame.
+- `packages/app/src/online/onlineGame.wiring.test.ts`
 - `packages/app/src/online/signIn.test.ts`
 - `packages/app/src/online/signIn.token.test.ts`
 - `packages/app/src/online/signIn.ts` - The state behind signing in by email code (docs/architecture.md, Decisions 5 and 7): asks for a code, trades it for a session through transport/emailAuth.ts, k… Exports: SESSION_KEY, SignInSnapshot, SignInOptions, SignIn, createSignIn.
+- `packages/app/src/online/test/onlineRig.ts` - The online game tests' rig: the remote transport's fake Supabase and fake timers (transport/test), with a small wrapper over the fake's fetch that answers the… Exports: NOW, ClockMode, isClockRead, onlineRig, poll, play, clockWith.
 - `packages/app/src/online/test/screenTree.ts` - Test helper: walks the element tree the sign-in screen draws and lets a test press its buttons and submit its forms with typed values, without a browser (like… Exports: TreeButton, TreeForm, Tree, treeOf, button.
 - `packages/app/src/online/test/signInRig.ts` - A sign-in session wired to the fake Supabase Auth, a memory store and a hand-moved clock, for the tests. Exports: START, EMAIL, CODE, STORED, Rig, rig, rigWith, rigOnCode, settle, heldStore.
+- `packages/app/src/online/timers.test.ts`
+- `packages/app/src/online/timers.ts` - Real timers for createRemoteMatch's `setTimer`/`clearTimer` options, over `setTimeout`/`clearTimeout`. Exports: TimerHandle, setTimer, clearTimer, Timers, realTimers.
 - `packages/app/src/platform/storage.test.ts`
 - `packages/app/src/platform/storage.ts` - The `storage` part of the Platform interface (docs/architecture.md, Decision 7): a small async key-value store, so a Capacitor implementation fits later. Exports: KeyValueStore, StorageLike, memoryStore, webStore.
 - `packages/app/src/replay/ReplayScreen.test.tsx`
@@ -400,7 +408,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/events.ts` - Filtering events by who may see them. Exports: eventsFor.
 - `packages/engine/src/hasCondition.test.ts` - The `has` condition (#141): an if is true exactly when a lasting marker with that label has been set.
 - `packages/engine/src/index.test.ts`
-- `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, createGame, legalAnswers, pendingFor, eventsFor, seedHash, DECKS, SIDES, verifyGame, hiddenPart, reconstruct, viewFor, ….
+- `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, createGame, legalAnswers, pendingFor, eventsFor, controller, placementCost, seedHash, DECKS, SIDES, verifyGame, hiddenPart, ….
+- `packages/engine/src/influence.test.ts` - R15: who controls a country, what one influence costs to place, and adding and removing influence (docs/design/map-and-points.md, "Influence").
+- `packages/engine/src/influence.ts` - The influence rules (docs/design/map-and-points.md, "Influence"): who controls a country, whether a side may place one influence there and at what cost, and ad… Exports: controller, placementCost, addInfluence, removeInfluence.
 - `packages/engine/src/knowledge.property.test.ts` - Property test (#184): in random games where cards show hands (revealHand), each side's knowledge always lists, each once, only cards still in the rival's hand,…
 - `packages/engine/src/knowledge.ts` - Knowledge: the rival's cards a side has been shown (docs/architecture.md, section 3), kept in that side's own private compartment while they stay in the rival'… Exports: revealHand, forgetCard.
 - `packages/engine/src/knowledgeTypes.ts` - The events of the steps that look at or take from a hand: revealHand (knowledge.ts) and discardFromHand (discard.ts). Exports: HandRevealedHidden, HandRevealed, CardsDiscarded.
@@ -505,6 +515,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/deadlineStore.test.ts`
 - `packages/server/src/deadlineStore.ts` - The storage port behind the deadline sweep (docs/architecture.md, Decision 5, "Scheduled jobs"). Exports: DeadlineStore, earliestDeadline, dueIds.
 - `packages/server/src/edge.ts` - The glue every Edge Function shares: turning the runtime's fetch-style requests into the plain-data requests the handlers take and back, and the Supabase sign-… Exports: FetchRequest, MakeResponse, serveFetch, supabaseAuthenticate.
+- `packages/server/src/entitlementStore.test.ts`
+- `packages/server/src/entitlementStore.ts` - The entitlement port (docs/architecture.md, Decision 5): which full-game copies a player owns, and an in-memory store for tests. Exports: EntitlementRow, EntitlementStore, MemoryEntitlementStore.
 - `packages/server/src/http.ts` - The plain-data HTTP pieces the Edge Function handlers share (docs/architecture.md, Decision 5): the request and reply shapes, the CORS headers, signing a calle… Exports: HttpRequest, HttpReply, Authenticate, CORS_HEADERS, preflight, signedIn, jsonObject, reply, refusal, isPlainObject.
 - `packages/server/src/index.test.ts`
 - `packages/server/src/index.ts` - Public entry point of the server package (docs/architecture.md, Decision 5). Exports: submit, ServerErrorCode, SubmitDeps, SubmitError, SubmitOutcome, SubmitRequest, MemoryStore, SupabaseStore, CommitResult, LoadedMatch, MatchStore, MatchWrite, ….
@@ -533,6 +545,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/memoryStores.rejects.test.ts` - O12, acceptance criterion 4: an in-memory store method runs its body inside the promise, so a failure in it reaches the caller as a rejected promise, never as…
 - `packages/server/src/migrations/acceptInviteClock.test.ts` - The accept_invite clock migration (supabase/migrations/20261028000000_accept_invite_clock.sql).
 - `packages/server/src/migrations/commitMatch.test.ts` - The commit_match migration (supabase/migrations/20261021000000_commit_match.sql) on the local Supabase stack.
+- `packages/server/src/migrations/entitlement.test.ts` - The entitlement migration (supabase/migrations/20261027000000_entitlement.sql) on the local Supabase stack.
 - `packages/server/src/migrations/localStack.ts` - Connects the migration test to the local Supabase stack (docs/sprint.md, lane "online": no hosted project). Exports: HOW_TO_START, StackKeys, stackKeys, client, whyUnavailable, freshId.
 - `packages/server/src/migrations/matchInvite.test.ts` - The match_invite migration (supabase/migrations/20261022000000_match_invite.sql) on the local Supabase stack.
 - `packages/server/src/migrations/matchTables.test.ts` - The match tables migration (supabase/migrations/20261020000000_match_tables.sql) on the local Supabase stack.
@@ -572,6 +585,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/submitHandler.ts` - The HTTP side of the submit Edge Function (docs/architecture.md, Decision 5), as plain data in and out so it runs under vitest: it signs the caller in, checks… Exports: CORS_HEADERS, HttpReply, HttpRequest, SubmitHandlerDeps, HandlerErrorCode, handleSubmit.
 - `packages/server/src/supabaseEmailOf.test.ts` - supabaseEmailOf against a stand-in client: the player's address through the Auth admin API, or null when the user has none or is not found.
 - `packages/server/src/supabaseEmailOf.ts` - A player's email address for the turn alert sweep (sweepTurnAlerts.ts, `emailOf`), read through Supabase Auth's admin API. Exports: EmailLookupError, supabaseEmailOf.
+- `packages/server/src/supabaseEntitlementStore.stack.test.ts` - SupabaseEntitlementStore against the real entitlement table on the local Supabase stack: the same behaviour the stand-in client tests (supabaseEntitlementStore…
+- `packages/server/src/supabaseEntitlementStore.test.ts` - SupabaseEntitlementStore against a stand-in client, so these run without the local stack.
+- `packages/server/src/supabaseEntitlementStore.ts` - The Supabase side of the entitlement port (docs/architecture.md, Decision 5). Exports: EntitlementStorageError, SupabaseEntitlementStore.
 - `packages/server/src/supabaseInviteStore.clock.stack.test.ts` - SupabaseInviteStore.accept and the deadline clock on the local Supabase stack: a match made from an invite keeps the clock it was given, so SupabaseStore.load…
 - `packages/server/src/supabaseInviteStore.games.stack.test.ts` - Private games through the Supabase stores on the local Supabase stack: for each side mode, createInvite, previewInvite and joinInvite create a match whose rows…
 - `packages/server/src/supabaseInviteStore.guards.stack.test.ts` - SupabaseInviteStore's guards on the local Supabase stack: two joins of one code at once, a clash on save, an unknown code, and database errors, which throw wit…
@@ -599,6 +615,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/test/alerts.ts` - Test helpers for turn alerts: the test match in a MemoryStore, its first alerts queued in a MemoryNotifyStore, a MemoryMailer, and addresses for alice and bob. Exports: APP_URL, ADDRESSES, AlertWorld, withNotify, moveUntilNotified, alertWorld.
 - `packages/server/src/test/authEmail.ts` - Test helpers for the auth-email hook: a test secret, a send-email payload, a correctly signed hook request and a handler wired to a MemoryMailer and a recorded… Exports: TEST_SECRET, TEST_CODE, TEST_TOKEN_HASH, TEST_EMAIL, NOW_MS, NOW_SECONDS, payload, signedRequest, authEmailWorld.
 - `packages/server/src/test/deadlines.ts` - Test helpers for the deadline sweep: matches with deadlines in an in-memory store. Exports: DAY, rulesetFor, createdWithClock, insertMatch, insertSaeLate.
+- `packages/server/src/test/entitlementStack.ts` - The shared setup for the entitlement tests on the local Supabase stack: a service-role client and two fresh test users made before the tests, and their entitle… Exports: EntitlementStack, EntitlementInsert, entitlementStack.
 - `packages/server/src/test/errors.test.ts` - O12, acceptance criterion 2: `shown` prints a plain-object cause by its fields, never "[object Object]".
 - `packages/server/src/test/errors.ts` - Test helpers for checking what a thrown storage error shows. Exports: shown, thrown.
 - `packages/server/src/test/functions.ts` - Test helpers for calling an Edge Function served by the local Supabase stack (`supabase functions serve`). Exports: SERVE_HINT, callFunction, whyFunctionUnavailable.
@@ -638,6 +655,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/supabase/migrations/20261024000000_notify_queue.sql` - Turn alerts waiting to be emailed (docs/architecture.md, Decision 5, `notify_queue`: pending notifications).
 - `packages/server/supabase/migrations/20261025000000_notify_queue_waiting_seq.sql` - A turn alert stays live while its player is still waiting on that turn (#267).
 - `packages/server/supabase/migrations/20261026000000_sweep_jobs.sql` - The scheduled job (docs/architecture.md, Decision 5, "Scheduled jobs (every minute)"): every minute pg_cron calls the sweep-deadlines and sweep-turn-alerts Edg…
+- `packages/server/supabase/migrations/20261027000000_entitlement.sql` - Entitlements: which full-game copies a player owns (docs/architecture.md, Decision 5, "Accounts and purchases").
 - `packages/server/supabase/migrations/20261028000000_accept_invite_clock.sql` - accept_invite as before (20261022000000_match_invite.sql), now also writing the match's deadline clock and next deadline (the columns 20261023000000_match_cloc…
 - `packages/server/tsconfig.json`
 
@@ -645,18 +663,21 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 - `tests/README.md` - Cross-package test suites
 - `tests/fuzz/cards.ts` - TEST-ONLY FIXTURES, never game content: the fuzz suite's cards, c1 to c85, and the sizes of a random game their number is worked out from. Exports: MAX_TURNS, MAX_PLAYS, MAX_EXTRA, MAX_PILE, MAX_ERA_CARDS, FUZZ_CARDS, baseEffectOf, removesAfterEvent, ruleset.
-- `tests/fuzz/checks.ts` - The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite"). Exports: checkHasBranches, checkMarkers, checkKnowledge, knowledgeOf, VIEWERS, Secrets, attempt, History, NEW_GAME, checkStep, checkLive, checkModifiers, ….
+- `tests/fuzz/checks.ts` - The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite"). Exports: checkModifiers, checkTriggers, checkInfluence, checkHasBranches, checkMarkers, checkKnowledge, knowledgeOf, VIEWERS, Secrets, attempt, History, NEW_GAME, ….
 - `tests/fuzz/contingency.test.ts` - Tests for the fuzz harness's Contingency deck checks (#64): the deck invariant and the structural leak check each catch a hand-corrupted state, and the random…
 - `tests/fuzz/deepFreeze.ts` - Freezes a value and everything inside it, so an engine call that changes its input throws. Exports: deepFreeze.
 - `tests/fuzz/easy.test.ts` - The Easy AI inside the fuzz suite (#91): every third game has it on one side, with every invariant checked.
 - `tests/fuzz/engine.test.ts` - Fuzz suite: plays FUZZ_GAMES random games and checks invariants 1, 3, 4, 5 and 6 of docs/architecture.md ("Guardrails", "Fuzz suite") at every step.
 - `tests/fuzz/eras.test.ts` - Tests for the fuzz harness's era checks (#37): invariant 3 catches a card out of place, waiting era cards count as hidden, and the random games really change e…
+- `tests/fuzz/expiryChecks.ts` - The fuzz checks that modifiers and triggers end with their turn (#89, #90). Exports: checkModifiers, checkTriggers.
 - `tests/fuzz/filterChecks.test.ts` - Tests for the trigger filter and once check (filterChecks.ts, #190), on small fixed games whose cards are defined here: it passes real steps, both kinds of pla…
 - `tests/fuzz/filterChecks.ts` - The fuzz check for trigger filters and once (R7a, #190): a filtered trigger fires only when its filter held at its hook, a waiting trigger whose filter held do… Exports: FilterCounts, checkTriggerFilters.
 - `tests/fuzz/filtered.test.ts` - The reaction cards' filtered and once triggers (filtered.ts, #190): every variant is on a LIO, an SAE and a neutral card, and fuzz games fire them, skip them,…
 - `tests/fuzz/filtered.ts` - TEST-ONLY FIXTURES, never game content: the trigger `filter` and `once` (R7a) the reaction cards use (reactions.ts). Exports: FILTERED, VARIANTS, Variant, variantOf, filteredTriggerOf.
 - `tests/fuzz/fixedGames.ts` - Fixed games the fuzz suite replays, with every check, on every run. Exports: FIXED_GAMES.
 - `tests/fuzz/harness.test.ts` - Tests for the fuzz harness itself: each check catches what it should, so a green fuzz run means something.
+- `tests/fuzz/influence.test.ts` - The map and influence in the fuzz games (R15): the influence check (influenceChecks.ts) catches what it should, and random games started with the content test…
+- `tests/fuzz/influenceChecks.ts` - The fuzz checks for the map and influence (R15, docs/design/map-and-points.md, "Influence"): influence is never negative, has one entry per map country in the… Exports: checkInfluence.
 - `tests/fuzz/knowledge.test.ts` - The fuzz checks for shown hands (#185): hiddenFrom lets a side see the rival cards it was shown, and only those; checkKnowledge catches knowledge that does not…
 - `tests/fuzz/knowledgeChecks.ts` - The fuzz check for knowledge and shown hands (R6a, #185): what each side knows of the rival's hand always matches the real hand, and a shown hand reaches only… Exports: KnowledgeBefore, knowledgeOf, checkKnowledge.
 - `tests/fuzz/lasting.test.ts` - The fuzz suite and the lasting effects, modifiers (#89) and triggers (#90): the fuzz cards make them, and the checks catch what they should.

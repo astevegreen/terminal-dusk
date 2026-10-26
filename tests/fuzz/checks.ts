@@ -18,7 +18,6 @@ import type {
   DeckId,
   GameEvent,
   GameState,
-  ModifierExpiry,
   PlayerView,
   Ruleset,
   Seed,
@@ -26,11 +25,15 @@ import type {
   Viewer,
 } from "@terminal-dusk/engine";
 import { deepFreeze } from "./deepFreeze.ts";
+import { checkModifiers, checkTriggers } from "./expiryChecks.ts";
+import { checkInfluence } from "./influenceChecks.ts";
 import { checkKnowledge } from "./knowledgeChecks.ts";
 import type { KnowledgeBefore } from "./knowledgeChecks.ts";
 import { checkHasBranches, checkMarkers } from "./markerChecks.ts";
 import { byCodeUnit } from "./order.ts";
 
+export { checkModifiers, checkTriggers } from "./expiryChecks.ts";
+export { checkInfluence } from "./influenceChecks.ts";
 export { checkHasBranches, checkMarkers } from "./markerChecks.ts";
 export { checkKnowledge, knowledgeOf } from "./knowledgeChecks.ts";
 
@@ -58,7 +61,8 @@ export const NEW_GAME: History = { before: null, allEvents: [], knowledge: null 
 
 /**
  * All the checks for one step: invariants 1, 3, 4 and 5, the Contingency decks, the lasting markers and `has`
- * branches (markerChecks.ts), and knowledge and shown hands (knowledgeChecks.ts). `events` are the step's own.
+ * branches (markerChecks.ts), knowledge and shown hands (knowledgeChecks.ts), and the map and influence
+ * (influenceChecks.ts). `events` are the step's own.
  */
 export function checkStep(
   ruleset: Ruleset,
@@ -79,6 +83,7 @@ export function checkStep(
   checkMarkers(state, events, history.before);
   checkHasBranches(history.allEvents);
   checkKnowledge(state, events, history.knowledge);
+  checkInfluence(setup, state);
 }
 
 /** Invariant 1: while the game is active, some side has a pending decision with at least one legal answer. */
@@ -90,39 +95,6 @@ export function checkLive(ruleset: Ruleset, state: GameState): void {
       attempt(`legalAnswers('${side}')`, () => legalAnswers(ruleset, state, side)).length > 0,
   );
   if (!canAnswer) throw new Error("the game is active, but no side has a decision with a legal answer");
-}
-
-/**
- * Modifiers end with the turn they were made in (#89): while the game is active, every modifier in force
- * expires at the end of the current turn; once it is over, none is left. Runs on finished games too.
- */
-export function checkModifiers(state: GameState): void {
-  checkEndsThisTurn(state, "modifiers", state.public.modifiers);
-}
-
-/**
- * Triggers end with the turn they were set in (#90), as modifiers do; and while a play is open, this turn's
- * turnEnd hook has not fired yet. Runs on finished games too.
- */
-export function checkTriggers(state: GameState): void {
-  checkEndsThisTurn(state, "triggers", state.public.triggers);
-  const { pending, turnEndFired } = state.public;
-  if (turnEndFired && pending.some((d) => d.kind === "playCardAs")) {
-    throw new Error("a play is open, but this turn's turnEnd hook has already fired");
-  }
-}
-
-/** While the game is active, each of `items` (`what`) ends with the current turn; once it is over, none is left. */
-function checkEndsThisTurn(state: GameState, what: string, items: readonly { expires: ModifierExpiry }[]): void {
-  const { status, turn } = state.public;
-  if (status.kind === "over") {
-    if (items.length > 0) throw new Error(`the game is over, but ${items.length} ${what} are still in force`);
-    return;
-  }
-  const stale = items.filter((m) => m.expires.kind !== "turnEnd" || m.expires.turn !== turn);
-  if (stale.length > 0) {
-    throw new Error(`in turn ${turn}, ${what} that do not end with this turn are in force: ${JSON.stringify(stale)}`);
-  }
 }
 
 /**
