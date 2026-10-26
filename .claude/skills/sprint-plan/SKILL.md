@@ -70,4 +70,4 @@ For each issue without `blocked`: `gh issue edit <n> --add-label sprint-ready --
 A blocked issue never gets `sprint-ready`; remove its `spec-review` too, so it is audited only once. Then go back to step 1.
 
 When you stop, comment once on the sprint log issue (`docs/sprint.md`, Machinery): the lane, the issues created (link, ID, ready or
-blocked), and every assumption you made, and nothing else: the owner reads it on their phone.
+blocked), and every assumption you made, and nothing else. Under 10 lines: the owner reads it on their phone.

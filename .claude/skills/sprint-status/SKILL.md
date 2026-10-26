@@ -4,7 +4,7 @@ description: Short sprint status, read from the sprint log's status block. Use w
 model: sonnet
 ---
 Read the status block: the body of the sprint log issue named in `docs/sprint.md`
-(`gh issue view <n> --json body,updatedAt`). Answer for the owner's phone: when the block was written, what needs
+(`gh issue view <n> --json body,updatedAt`). Answer in at most 8 lines, for the owner's phone: when the block was written, what needs
 the owner (with links), what is stuck, and the lane counts. A block over 2 hours old means the supervisor may
 not be running: say so first.
 

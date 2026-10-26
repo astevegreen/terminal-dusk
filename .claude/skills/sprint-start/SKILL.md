@@ -27,7 +27,7 @@ move and 2 when it fails; its `error` is your reason.
 `create_*`, `fire_trigger`, `Q window start/ids` without `--dry-run`, or comment. It proves the cue before the
 owner relies on it.
 
-Your last message starts with exactly one of these lines, then step 6's report, short enough to read on a phone:
+Your last message starts with exactly one of these lines, then at most 8 lines from step 6, for the owner's phone:
 - `STARTED terminal-dusk window <start>–<end>`, both from `Q window` (they end in `Z`)
 - `REFUSED terminal-dusk: <reason>`
 - `DRY-RUN OK terminal-dusk`
