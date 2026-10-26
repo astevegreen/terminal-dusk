@@ -96,6 +96,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/transport/localMatch.test.ts`
 - `packages/app/src/transport/localMatch.ts` - A match run entirely in memory: it keeps the host's record and secret, and gives each viewer a transport. Exports: ArchiveWith, LocalMatch, createLocalMatch.
 - `packages/app/src/transport/matchTransport.ts` - What the screens talk to: one viewer's window onto a match. Exports: ServerErrorCode, TransportError, SubmitResult, MatchTransport.
+- `packages/app/src/transport/rehearsal.stack.test.ts` - The phase 4 gate, rehearsed (O13; docs/architecture.md, "Revised build order", phase 4): 50 games on the local Supabase stack, each made through the invite fun…
+- `packages/app/src/transport/rehearsal.test.ts` - The phase 4 rehearsal's harness (O13), proved on the fake Supabase with the real first deck: a game plays to its end with every step checked, a frame that diff…
 - `packages/app/src/transport/remoteHttp.ts` - The online transport's HTTP side (docs/architecture.md, Decision 5): the client-readable rows it reads through Supabase's REST endpoints, and the submit and se… Exports: FetchReply, FetchLike, Endpoint, Seats, StepEvents, readSeats, readFrame, readEvents, PostReply, postSubmission, postSeen.
 - `packages/app/src/transport/remoteMatch.seen.test.ts` - The app's half of "unseen" for turn alerts (docs/architecture.md, Decision 5, Notifications): the remote transport tells the seen function once for each turn t…
 - `packages/app/src/transport/remoteMatch.submit.test.ts`
@@ -104,6 +106,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/transport/sessionToken.test.ts`
 - `packages/app/src/transport/test/fakeAuth.ts` - A fake Supabase Auth for the email-code client's tests: a fake `fetch` that records every request and answers with whatever the test queued, or a stock success… Exports: AUTH_URL, AUTH_ANON_KEY, AuthRequest, AuthAnswer, sessionBody, FakeAuth, createFakeAuth.
 - `packages/app/src/transport/test/fakeSupabase.ts` - A fake Supabase for the remote transport's tests: one match run by the real host, served over a fake `fetch`. Exports: URL_BASE, ANON_KEY, FakeRequest, FakeSupabase, createFakeSupabase.
+- `packages/app/src/transport/test/leaks.ts` - Test helper for the phase 4 rehearsal's leak checks, the same idea as the server's and the host's test/leaks.ts. Exports: canonical, leaksFor, withoutCards.
+- `packages/app/src/transport/test/localStack.ts` - The phase 4 rehearsal's link to the local Supabase stack (docs/sprint.md, lane "online": no hosted project). Exports: HOW_TO_START, StackKeys, stackKeys, whyUnavailable, StackUser, makeUser, openMatch, serverSnapshot, cleanUp.
+- `packages/app/src/transport/test/rehearsal.ts` - The phase 4 rehearsal (O13; docs/architecture.md, "Revised build order", phase 4): one Easy-vs-Easy game played through two real remote transports, one per sea… Exports: ServerSnapshot, GameRig, GameOptions, GameResult, playRehearsalGame.
+- `packages/app/src/transport/test/rehearsalReport.ts` - The phase 4 rehearsal's short report: what one run played and checked, and every problem it found, each with its match and seq. Exports: rehearsalReport.
 - `packages/app/src/transport/test/remoteGame.ts` - The remote transport tests' match: a small game on the fake Supabase, fake timers, and helpers to subscribe, wait and find the next legal move. Exports: POLL_MS, ruleset, config, TOKENS, fakeTimers, settle, Rig, rig, watch, nextMove.
 - `packages/app/src/vsAi/VsAiScreen.test.tsx`
 - `packages/app/src/vsAi/VsAiScreen.tsx` - Playing against the Easy AI: a side picker, then the game screen for the human's side. Exports: PRACTICE_NOTE, VsAiGame, SidePicker, VsAiView, openSession, VsAiScreenProps, VsAiScreen.
