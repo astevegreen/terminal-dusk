@@ -686,6 +686,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/supabase/functions/auth-email/index.ts` - The `auth-email` Edge Function (docs/architecture.md, Decision 5, "Accounts and purchases"): Supabase Auth's "send email" hook calls it to send a 6-digit sign-…
 - `packages/server/supabase/functions/invite/deno.json`
 - `packages/server/supabase/functions/invite/index.ts` - The `invite` Edge Function (docs/architecture.md, Decision 5): create, preview and join a private game.
+- `packages/server/supabase/functions/seen/deno.json`
 - `packages/server/supabase/functions/seen/index.ts` - The `seen` Edge Function (docs/architecture.md, Decision 5, Notifications): a player's app says it has shown them a turn, so no email goes out for it.
 - `packages/server/supabase/functions/submit/deno.json`
 - `packages/server/supabase/functions/submit/index.ts` - The `submit` Edge Function (docs/architecture.md, Decision 5): the one place a client sends an answer or a resignation.
