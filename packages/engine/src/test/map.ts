@@ -1,17 +1,21 @@
-// A small made-up map for engine tests: two regions, five countries in a ring with one cross link.
+// A small made-up map for engine tests: three regions, five countries in a ring with one cross link, and one
+// country on its own.
 import type { Setup, SetupMap } from "../types.ts";
 import { makeSetup } from "./game.ts";
 
 /**
- * Regions "north" (alpha, bravo, charlie) and "south" (delta, echo). Neighbours: alpha-bravo, bravo-charlie,
- * alpha-charlie, charlie-delta, delta-echo. LIO's home box touches alpha, SAE's echo and delta. Charlie and
- * delta are battlegrounds. LIO starts with 2 in alpha and 1 in charlie, SAE with 3 in echo and 1 in charlie.
+ * Regions "north" (alpha, bravo, charlie), "south" (delta, echo) and "east" (foxtrot). Neighbours: alpha-bravo,
+ * bravo-charlie, alpha-charlie, charlie-delta, delta-echo; foxtrot has none. LIO's home box touches alpha, SAE's
+ * echo and delta. Charlie and delta are battlegrounds. LIO starts with 2 in alpha and 1 in charlie, SAE with 3 in
+ * echo and 1 in charlie. Made-up closing order: south at Escalation 3, then east at 4, then north at 5.
  */
 export const testMap = (): SetupMap => ({
   regions: [
     { id: "north", name: "North" },
     { id: "south", name: "South" },
+    { id: "east", name: "East" },
   ],
+  closingOrder: ["south", "east", "north"],
   countries: [
     {
       id: "alpha",
@@ -39,6 +43,7 @@ export const testMap = (): SetupMap => ({
     },
     { id: "delta", name: "Delta", region: "south", stability: 2, battleground: true, neighbours: ["charlie", "echo"] },
     { id: "echo", name: "Echo", region: "south", stability: 1, battleground: false, neighbours: ["delta"] },
+    { id: "foxtrot", name: "Foxtrot", region: "east", stability: 1, battleground: false, neighbours: [] },
   ],
   homeBox: { lio: ["alpha"], sae: ["echo", "delta"] },
   startingInfluence: [
