@@ -4,14 +4,44 @@
 import { SIDES } from "@terminal-dusk/engine";
 import type { GameState, Setup } from "@terminal-dusk/engine";
 
+type PublicState = GameState["public"];
+type InfluenceEntry = NonNullable<PublicState["influence"]>[number];
+
+/** The keys of `value`, sorted alphabetically. */
+function sortedKeys(value: object): string[] {
+  return Object.keys(value).sort((a, b) => a.localeCompare(b));
+}
+
 /** `value` as JSON with every object's keys sorted, so two values compare equal whatever their key order. */
 function canonical(value: unknown): string {
-  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+  if (Array.isArray(value)) return "[" + value.map(canonical).join(",") + "]";
   if (typeof value === "object" && value !== null) {
-    const keys = Object.keys(value).sort();
-    return `{${keys.map((k) => `${JSON.stringify(k)}:${canonical((value as Record<string, unknown>)[k])}`).join(",")}}`;
+    const record = value as Record<string, unknown>;
+    const fields = sortedKeys(record).map((k) => JSON.stringify(k) + ":" + canonical(record[k]));
+    return "{" + fields.join(",") + "}";
   }
   return JSON.stringify(value);
+}
+
+/** A game started without a map never has `map` or `influence`. */
+function checkNoMap(pub: PublicState): void {
+  for (const field of ["map", "influence"] as const) {
+    if (field in pub) throw new Error(`the game was started without a map, but its state has \`${field}\``);
+  }
+}
+
+/** One influence entry has only `country`, `lio` and `sae`, and each count is a whole number, 0 or more. */
+function checkEntry(entry: InfluenceEntry): void {
+  const keys = sortedKeys(entry);
+  if (JSON.stringify(keys) !== JSON.stringify(["country", "lio", "sae"])) {
+    throw new Error(`the influence entry for ${entry.country} has the fields ${keys.join(", ")}`);
+  }
+  for (const side of SIDES) {
+    const n: unknown = entry[side];
+    if (typeof n !== "number" || !Number.isInteger(n) || n < 0) {
+      throw new Error(`${side}'s influence in ${entry.country} is ${String(n)}, not a whole number 0 or more`);
+    }
+  }
 }
 
 /**
@@ -22,9 +52,7 @@ function canonical(value: unknown): string {
 export function checkInfluence(setup: Setup, state: GameState): void {
   const pub = state.public;
   if (setup.map === undefined) {
-    for (const field of ["map", "influence"] as const) {
-      if (field in pub) throw new Error(`the game was started without a map, but its state has \`${field}\``);
-    }
+    checkNoMap(pub);
     return;
   }
   const { regions, countries: mapCountries, homeBox } = setup.map;
@@ -42,16 +70,5 @@ export function checkInfluence(setup: Setup, state: GameState): void {
         `order, ${JSON.stringify(expected)}`,
     );
   }
-  for (const entry of influence) {
-    const keys = Object.keys(entry).sort();
-    if (JSON.stringify(keys) !== JSON.stringify(["country", "lio", "sae"])) {
-      throw new Error(`the influence entry for ${entry.country} has the fields ${keys.join(", ")}`);
-    }
-    for (const side of SIDES) {
-      const n: unknown = entry[side];
-      if (typeof n !== "number" || !Number.isInteger(n) || n < 0) {
-        throw new Error(`${side}'s influence in ${entry.country} is ${String(n)}, not a whole number 0 or more`);
-      }
-    }
-  }
+  for (const entry of influence) checkEntry(entry);
 }
