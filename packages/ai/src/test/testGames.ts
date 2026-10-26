@@ -29,9 +29,15 @@ export const ruleset: Ruleset = ninetyCards("ai-test", "c", (i) =>
 
 /**
  * A game of `rules` from `seed`, named `<name>-<seed>`: each side holds 2 x turns non-neutral cards and 2
- * neutral ones, with 10 in the pile.
+ * neutral ones, with 10 in the pile. `extra` adds setup fields, such as a map.
  */
-export function dealGame(rules: Ruleset, name: string, seed: number, turns: number): TestState {
+export function dealGame(
+  rules: Ruleset,
+  name: string,
+  seed: number,
+  turns: number,
+  extra: Pick<Setup, "map"> = {},
+): TestState {
   const random = seededRandom(seed);
   const ids = rules.cards.map((card) => card.id);
   for (let i = ids.length - 1; i > 0; i--) {
@@ -52,6 +58,7 @@ export function dealGame(rules: Ruleset, name: string, seed: number, turns: numb
     // The smallest hand size: the dealt hands never drop below it, so these games draw no cards.
     handSize: 2,
     contingency: { lio: [1, 2, 3, 3, 5], sae: [2, 4, 4, 6], world: [1, 1, 7, 8] },
+    ...extra,
   };
   const made = createGame(rules, setup, `${name}-${seed}`);
   if (!made.ok) throw new Error(`createGame refused: ${made.error.code}`);
