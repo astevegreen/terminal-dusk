@@ -31,6 +31,8 @@ const map: GameMap = {
     country("w3", "Elmhaven", "west", 2),
   ],
   homeBox: { lio: ["w1"], sae: ["e1"] },
+  // Escalation is 0 below, so no region is closed and the Map area never reads this.
+  closingOrder: [],
 };
 
 // In another order than the map's, and with no entry for Dunmoor (e2).
