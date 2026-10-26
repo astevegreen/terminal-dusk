@@ -10,6 +10,7 @@ import {
   firstDeckRuleset,
 } from "@terminal-dusk/host/first-deck";
 import { createLocalMatch } from "./transport/localMatch.ts";
+import { serverOnly } from "./transport/serverOnly.ts";
 import { App } from "./App.tsx";
 import type { VsAiGame } from "./vsAi/VsAiScreen.tsx";
 import type { OnlineSetup } from "./online/OnlineScreen.tsx";
@@ -36,7 +37,7 @@ function onlineSetup(): OnlineSetup | undefined {
   const anonKey: unknown = import.meta.env.VITE_SUPABASE_ANON_KEY;
   if (typeof url !== "string" || url === "" || typeof anonKey !== "string" || anonKey === "") return undefined;
   return {
-    auth: { url, anonKey, fetch: (input, init) => fetch(input, init) },
+    auth: { url, anonKey, fetch: serverOnly(url, (input, init) => fetch(input, init)) },
     store: webStore(localStorage),
     platform: "web",
     copy: (text) => navigator.clipboard.writeText(text),

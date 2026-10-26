@@ -138,6 +138,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/transport/remoteMatch.submit.test.ts`
 - `packages/app/src/transport/remoteMatch.test.ts`
 - `packages/app/src/transport/remoteMatch.ts` - The online transport (docs/architecture.md, Decisions 3 and 5): one caller's window onto one match on Supabase. Exports: RemoteMatchOptions, createRemoteMatch.
+- `packages/app/src/transport/serverOnly.test.ts`
+- `packages/app/src/transport/serverOnly.ts` - Online requests go only to the game's own server: the Supabase address this build was made with. Exports: serverOnly.
 - `packages/app/src/transport/sessionToken.test.ts`
 - `packages/app/src/transport/test/fakeAuth.ts` - A fake Supabase Auth for the email-code client's tests: a fake `fetch` that records every request and answers with whatever the test queued, or a stock success… Exports: AUTH_URL, AUTH_ANON_KEY, AuthRequest, AuthAnswer, sessionBody, FakeAuth, createFakeAuth.
 - `packages/app/src/transport/test/fakeSupabase.ts` - A fake Supabase for the remote transport's tests: one match run by the real host, served over a fake `fetch`. Exports: URL_BASE, ANON_KEY, FakeRequest, FakeSupabase, createFakeSupabase.
