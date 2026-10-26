@@ -19,7 +19,7 @@ await onLocalStack(
       const hostToken = await accessToken(stack.host);
       const joinerToken = await accessToken(stack.joiner);
 
-      const create = await call(hostToken, { action: "create", sides: { mode: "invitee" } });
+      const create = await call(hostToken, { action: "create", sides: { mode: "invitee" }, platform: "web" });
       expect(create).toEqual({ status: 200, json: { ok: true, code: expect.any(String) } });
       const { code } = create.json as { code: string };
       stack.codes.push(code);
@@ -63,7 +63,7 @@ await onLocalStack(
     }, 60_000);
 
     it("a signed-out call gets 401 notSignedIn and creates no invite", async () => {
-      const reply = await call(keys.anonKey, { action: "create", sides: { mode: "random" } });
+      const reply = await call(keys.anonKey, { action: "create", sides: { mode: "random" }, platform: "web" });
       expect(reply).toEqual({
         status: 401,
         json: { ok: false, error: { code: "notSignedIn", message: expect.any(String) } },

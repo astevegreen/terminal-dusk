@@ -6,6 +6,7 @@ import { createClient } from "@supabase/supabase-js";
 import { supabaseAuthenticate } from "../../../src/edge.ts";
 import type { FetchRequest, MakeResponse } from "../../../src/edge.ts";
 import { inviteFetchHandler, secureInviteRandom } from "../../../src/inviteEdge.ts";
+import { SupabaseEntitlementStore } from "../../../src/supabaseEntitlementStore.ts";
 import { SupabaseInviteStore } from "../../../src/supabaseInviteStore.ts";
 
 // The server's tsconfig has no Deno or DOM types, so the few runtime globals used are described here.
@@ -30,6 +31,7 @@ runtime.Deno.serve(
   inviteFetchHandler(
     {
       invites: new SupabaseInviteStore(db),
+      entitlements: new SupabaseEntitlementStore(db),
       ...secureInviteRandom(),
       authenticate: supabaseAuthenticate(db),
       now: () => Date.now(),

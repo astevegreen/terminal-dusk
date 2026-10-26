@@ -1,5 +1,6 @@
 // The shared setup for the invite tests on the local Supabase stack: a service-role client and three fresh test
-// users (a host and two joiners) made before the tests, and every test invite, match and user removed after them.
+// users (a host with a "web" entitlement and two joiners with none) made before the tests, and every test
+// entitlement, invite, match and user removed after them.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Side } from "@terminal-dusk/engine";
 import { hostCreate } from "@terminal-dusk/host";
@@ -10,6 +11,7 @@ import type { InviteDeps } from "../invite.ts";
 import { inviteCode } from "../inviteCode.ts";
 import type { InviteStore } from "../inviteStore.ts";
 import { client, type StackKeys } from "../migrations/localStack.ts";
+import { SupabaseEntitlementStore } from "../supabaseEntitlementStore.ts";
 import { SupabaseInviteStore } from "../supabaseInviteStore.ts";
 import { cleanUp, freshMatchId, makeUser } from "./stack.ts";
 import type { TestUser } from "./stack.ts";
@@ -50,10 +52,24 @@ export function inviteStack(keys: StackKeys): InviteStack {
   beforeAll(async () => {
     service = client(keys.url, keys.serviceKey);
     for (const name of ["host", "joiner", "third"]) users.push(await makeUser(keys, service, name));
+    // The host owns the full game on the web, so it may create invites; the joiners own nothing.
+    const granted = await service
+      .from("entitlement")
+      .insert({ player: user(0).id, platform: "web", source: "test", created_at: 0 });
+    if (granted.error) throw new Error(`granting the test host an entitlement failed: ${granted.error.code}`);
   }, 60_000);
 
   afterAll(async () => {
     if (!service) return;
+    // Entitlements have no link to auth.users, so removing the users would leave them behind.
+    if (users.length > 0)
+      await service
+        .from("entitlement")
+        .delete()
+        .in(
+          "player",
+          users.map((u) => u.id),
+        );
     // Removing a match removes its invite; unjoined invites are removed by code.
     if (codes.length > 0) await service.from("match_invite").delete().in("code", codes);
     await cleanUp(service, matchIds, users);
@@ -94,6 +110,7 @@ export function inviteStack(keys: StackKeys): InviteStack {
     deps(randomHostSide = "lio", invites = new SupabaseInviteStore(stack.service)) {
       return {
         invites,
+        entitlements: new SupabaseEntitlementStore(stack.service),
         code: () => stack.code(),
         matchId: () => stack.matchId(),
         seed: () => STACK_SEED,

@@ -24,7 +24,7 @@ const TOKEN_OF: Record<string, string> = { [HOST]: "token-host", [JOINER]: "toke
 /** What O5a itself returns for the same calls, on a fresh world with the same generators. */
 async function directly(sides: SideMode, randomHostSide: Side, side: Side | undefined) {
   const { deps } = inviteWorld(randomHostSide);
-  const made = await createInvite(deps, { host: HOST, sides, now: INVITE_NOW + 1 });
+  const made = await createInvite(deps, { host: HOST, sides, platform: "web", now: INVITE_NOW + 1 });
   if (!made.ok) throw new Error("createInvite refused");
   const preview = await previewInvite(deps, made.value.code);
   const joined = await joinInvite(deps, { code: made.value.code, player: JOINER, side, now: INVITE_NOW + 3 });
@@ -39,7 +39,10 @@ describe("invite handler: create, preview and join return what O5a returns, for 
       const expected = await directly(mode.sides, randomHostSide, mode.side);
       if (!expected.made.ok || !expected.preview.ok || !expected.joined.ok) throw new Error("O5a refused");
 
-      const create = await handleInvite(w.deps, post("token-host", { action: "create", sides: mode.sides }));
+      const create = await handleInvite(
+        w.deps,
+        post("token-host", { action: "create", sides: mode.sides, platform: "web" }),
+      );
       expect(create.status).toBe(200);
       expect(body(create)).toEqual({ ok: true, code: expected.made.value.code });
       const code = expected.made.value.code;

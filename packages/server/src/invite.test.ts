@@ -11,7 +11,7 @@ import type { InviteWorld } from "./test/invites.ts";
 
 /** Creates an invite as the host and returns its code. */
 async function hostInvite(world: InviteWorld, sides: SideMode): Promise<string> {
-  const made = await createInvite(world.deps, { host: HOST, sides, now: INVITE_NOW });
+  const made = await createInvite(world.deps, { host: HOST, sides, platform: "web", now: INVITE_NOW });
   if (!made.ok) throw new Error(`createInvite refused: ${made.error.code}`);
   return made.value.code;
 }

@@ -15,7 +15,7 @@ const request = (method: string, headers: Record<string, string>, text: () => Pr
 describe("invite Edge Function glue: fetch requests to the handler and back", () => {
   it("passes the method, the Authorization header and the body text, and returns the reply's status, headers and body", async () => {
     const w = inviteHandlerWorld();
-    const body = JSON.stringify({ action: "create", sides: { mode: "invitee" } });
+    const body = JSON.stringify({ action: "create", sides: { mode: "invitee" }, platform: "web" });
     const made = await inviteFetchHandler(
       w.deps,
       make,

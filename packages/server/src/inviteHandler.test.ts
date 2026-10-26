@@ -18,11 +18,11 @@ function expectRefused(reply: HttpReply, status: number, code: string): void {
   expect(allowed).toEqual(expect.arrayContaining(ALLOWED));
 }
 
-const CREATE_RANDOM = { action: "create", sides: { mode: "random" } };
+const CREATE_RANDOM = { action: "create", sides: { mode: "random" }, platform: "web" };
 
 /** Creates an invite as the host through the handler and returns its code. */
 async function created(deps: InviteHandlerDeps, sides: unknown = { mode: "random" }): Promise<string> {
-  const reply = await handleInvite(deps, post("token-host", { action: "create", sides }));
+  const reply = await handleInvite(deps, post("token-host", { action: "create", sides, platform: "web" }));
   expect(reply.status).toBe(200);
   return (body(reply) as { code: string }).code;
 }
@@ -136,7 +136,7 @@ describe("invite handler: each refusal's status", () => {
   it("422 invalidInvite: create with a side mode that is missing or not one of the three", async () => {
     const w = inviteHandlerWorld();
     for (const sides of [undefined, null, { mode: "both" }, { mode: "host" }, { mode: "host", hostSide: "x" }]) {
-      const reply = await handleInvite(w.deps, post("token-host", { action: "create", sides }));
+      const reply = await handleInvite(w.deps, post("token-host", { action: "create", sides, platform: "web" }));
       expectRefused(reply, 422, "invalidInvite");
     }
   });
