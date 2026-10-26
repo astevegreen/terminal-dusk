@@ -1,11 +1,11 @@
-// The accept_invite clock migration (supabase/migrations/20261026000000_accept_invite_clock.sql). The text checks
+// The accept_invite clock migration (supabase/migrations/20261028000000_accept_invite_clock.sql). The text checks
 // always run; the rest run on the local Supabase stack, where `pnpm test:migrations` applies every migration to an
 // empty database first. They prove accept_invite now stores the match's clock and next deadline (or null for both)
 // and that everything else it does, and who may run it, is unchanged.
 // Without a running local stack, one test says so and how to start it.
 import { describe, expect, it } from "vitest";
 import INVITE_MIGRATION from "../../supabase/migrations/20261022000000_match_invite.sql?raw";
-import CLOCK_MIGRATION from "../../supabase/migrations/20261026000000_accept_invite_clock.sql?raw";
+import CLOCK_MIGRATION from "../../supabase/migrations/20261028000000_accept_invite_clock.sql?raw";
 import { rowsFor } from "../rows.ts";
 import { createdWithClock, DAY } from "../test/deadlines.ts";
 import { expectedStart, inviteStack } from "../test/inviteStack.ts";

@@ -531,7 +531,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/matchRow.test.ts`
 - `packages/server/src/matchRow.ts` - The mapping between a `match` row (rows.ts, the SQL column names) and the host's `MatchRecord`. Exports: matchRowFor, recordFromRow.
 - `packages/server/src/memoryStores.rejects.test.ts` - O12, acceptance criterion 4: an in-memory store method runs its body inside the promise, so a failure in it reaches the caller as a rejected promise, never as…
-- `packages/server/src/migrations/acceptInviteClock.test.ts` - The accept_invite clock migration (supabase/migrations/20261026000000_accept_invite_clock.sql).
+- `packages/server/src/migrations/acceptInviteClock.test.ts` - The accept_invite clock migration (supabase/migrations/20261028000000_accept_invite_clock.sql).
 - `packages/server/src/migrations/commitMatch.test.ts` - The commit_match migration (supabase/migrations/20261021000000_commit_match.sql) on the local Supabase stack.
 - `packages/server/src/migrations/localStack.ts` - Connects the migration test to the local Supabase stack (docs/sprint.md, lane "online": no hosted project). Exports: HOW_TO_START, StackKeys, stackKeys, client, whyUnavailable, freshId.
 - `packages/server/src/migrations/matchInvite.test.ts` - The match_invite migration (supabase/migrations/20261022000000_match_invite.sql) on the local Supabase stack.
@@ -637,8 +637,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/supabase/migrations/20261023000000_match_clock.sql` - A match's deadline clock (docs/architecture.md, Decision 5, "Deadlines" and "Scheduled jobs").
 - `packages/server/supabase/migrations/20261024000000_notify_queue.sql` - Turn alerts waiting to be emailed (docs/architecture.md, Decision 5, `notify_queue`: pending notifications).
 - `packages/server/supabase/migrations/20261025000000_notify_queue_waiting_seq.sql` - A turn alert stays live while its player is still waiting on that turn (#267).
-- `packages/server/supabase/migrations/20261026000000_accept_invite_clock.sql` - accept_invite as before (20261022000000_match_invite.sql), now also writing the match's deadline clock and next deadline (the columns 20261023000000_match_cloc…
 - `packages/server/supabase/migrations/20261026000000_sweep_jobs.sql` - The scheduled job (docs/architecture.md, Decision 5, "Scheduled jobs (every minute)"): every minute pg_cron calls the sweep-deadlines and sweep-turn-alerts Edg…
+- `packages/server/supabase/migrations/20261028000000_accept_invite_clock.sql` - accept_invite as before (20261022000000_match_invite.sql), now also writing the match's deadline clock and next deadline (the columns 20261023000000_match_cloc…
 - `packages/server/tsconfig.json`
 
 ## tests
