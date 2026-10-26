@@ -242,6 +242,7 @@ export type Condition =
  * `revealHand` shows `side`'s whole hand to the other side, which keeps it in its knowledge (knowledge.ts).
  * `discardFromHand` makes `side` discard `count` (1 or more) cards from its hand, at random (discard.ts), or
  * picked by `chosenBy`: the hand's "owner" or the card's "player", after seeing the hand (discardChoice.ts).
+ * `escalate` moves Escalation by the non-zero whole `by`: up, caused by the card's player, or down (escalateStep.ts).
  */
 export type Step =
   | { op: "choose"; who: Side | "both"; decision: { kind: "yesNo" }; bind: VarName }
@@ -255,7 +256,8 @@ export type Step =
   | { op: "modifier"; mod: ModifierSpec; duration: Duration }
   | { op: "trigger"; hook: HookId; filter?: TriggerFilter; once?: true; do: Step[]; duration: Duration }
   | { op: "revealHand"; side: Side }
-  | { op: "discardFromHand"; side: Side; count: number; chosenBy?: "owner" | "player" };
+  | { op: "discardFromHand"; side: Side; count: number; chosenBy?: "owner" | "player" }
+  | { op: "escalate"; by: number };
 
 export type Binding = { name: VarName; value: VarValue };
 /** The block a frame runs, the index of its next step, and the variables bound in it, in binding order. */

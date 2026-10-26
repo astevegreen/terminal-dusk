@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { OnlineScreen } from "./online/OnlineScreen.tsx";
 import type { OnlineSetup } from "./online/OnlineScreen.tsx";
+import { realTimers } from "./online/timers.ts";
+import type { Timers } from "./online/timers.ts";
 import { TestModeScreen } from "./testMode/TestModeScreen.tsx";
 import { VsAiScreen } from "./vsAi/VsAiScreen.tsx";
 import type { VsAiGame } from "./vsAi/VsAiScreen.tsx";
@@ -17,17 +19,41 @@ export type AppProps = {
   game?: VsAiGame;
   /** Supabase Auth and the session store; left out when this build has no online play set up. */
   online?: OnlineSetup;
+  /** The timers an online game polls with; main.tsx passes the real ones, which are also the default. */
+  timers?: Timers;
 };
 
 const TAP = { minHeight: 44, minWidth: 44 } as const;
 
-export function App({ clock, newSeed, newAiSeed, game, online }: Readonly<AppProps>) {
+export function App({ clock, newSeed, newAiSeed, game, online, timers = realTimers }: Readonly<AppProps>) {
   const [screen, setScreen] = useState<"home" | "vsAi" | "online" | "testMode">("home");
   if (screen === "testMode") return <TestModeScreen clock={clock} />;
   if (screen === "vsAi")
     return <VsAiScreen clock={clock} newSeed={newSeed} newAiSeed={newAiSeed} {...(game ? { game } : {})} />;
-  if (screen === "online") return <OnlineScreen online={online} clock={clock} onBack={() => setScreen("home")} />;
+  if (screen === "online") return onlineRoute({ clock, game, online, timers }, () => setScreen("home"));
   return <Home onPick={setScreen} />;
+}
+
+/** The online screen as the app opens it: with the game's card names and questions and the app's timers. */
+export function onlineRoute(
+  {
+    clock,
+    game,
+    online,
+    timers,
+  }: Readonly<{ clock: () => number; game?: VsAiGame | undefined; online?: OnlineSetup | undefined; timers: Timers }>,
+  onBack: () => void,
+) {
+  return (
+    <OnlineScreen
+      online={online}
+      clock={clock}
+      timers={timers}
+      label={game?.cardName}
+      question={game?.cardQuestion}
+      onBack={onBack}
+    />
+  );
 }
 
 /** The home screen's buttons; `onPick` opens the chosen screen. */

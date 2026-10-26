@@ -14,6 +14,7 @@ import { App } from "./App.tsx";
 import type { VsAiGame } from "./vsAi/VsAiScreen.tsx";
 import type { OnlineSetup } from "./online/OnlineScreen.tsx";
 import { webStore } from "./platform/storage.ts";
+import { realTimers } from "./online/timers.ts";
 
 /** The game against the AI: the real first deck. Test mode keeps its own developer fixture. */
 const firstDeckGame: VsAiGame = {
@@ -25,14 +26,20 @@ const firstDeckGame: VsAiGame = {
 };
 
 /**
- * Online play: Supabase Auth from Vite's environment and the session kept in localStorage. Left out when either
- * setting is missing, so the online screen says online play is not set up in this build.
+ * Online play: Supabase from Vite's environment, the session kept in localStorage, games created as `web` and
+ * invite codes copied with the browser's clipboard. Left out when either setting is missing, so the online
+ * screen says online play is not set up in this build.
  */
 function onlineSetup(): OnlineSetup | undefined {
   const url: unknown = import.meta.env.VITE_SUPABASE_URL;
   const anonKey: unknown = import.meta.env.VITE_SUPABASE_ANON_KEY;
   if (typeof url !== "string" || url === "" || typeof anonKey !== "string" || anonKey === "") return undefined;
-  return { auth: { url, anonKey, fetch: (input, init) => fetch(input, init) }, store: webStore(localStorage) };
+  return {
+    auth: { url, anonKey, fetch: (input, init) => fetch(input, init) },
+    store: webStore(localStorage),
+    platform: "web",
+    copy: (text) => navigator.clipboard.writeText(text),
+  };
 }
 const online = onlineSetup();
 
@@ -49,6 +56,7 @@ createRoot(root).render(
       newSeed={newSeed}
       newAiSeed={newAiSeed}
       game={firstDeckGame}
+      timers={realTimers}
       {...(online ? { online } : {})}
     />
   </StrictMode>,

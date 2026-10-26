@@ -92,7 +92,7 @@ starting deck: the turn 1 refill deals both hands from it, so it must hold at le
 ### e1-sae-002 · Handover of Hong Kong · SAE · Ops 4 · Hot
 
 - **Event:** The Union flag comes down over a territory promised fifty years of autonomy.
-- **Design:** SAE 3; a "promise made" tag that the 2020 security law card closes (W1, W3). Hot: 4 Ops tempts LIO holders. If LIO plays it: SAE 2 instead of 3.
+- **Design:** SAE 3; a lasting "one country, two systems" tag that the 2020 security law card reads; nothing closes it (W1, W3; owner, 21 Oct). Hot: 4 Ops tempts LIO holders. If LIO plays it: SAE 2 instead of 3.
 - **Playable:** `marker "one country, two systems" lasting; if played lio { spend sae 2 } else { spend sae 3 }; once-only`
 - **History:** Britain returned Hong Kong to China on 1 July 1997; under the 1990 Basic Law the territory was promised a high degree of autonomy for fifty years, to 2047.
 - **Theme:** alliances, gray-zone · **Notion:** update `3fceb012942f8143974df5a9772fb204`
@@ -187,8 +187,9 @@ starting deck: the turn 1 refill deals both hands from it, so it must hold at le
 
 ## Neutral (7)
 
-These neutral cards were built before neutral cards could draw a Contingency card (allowed since #126; see Owner
-question 1), so they use choices instead. Redesigns that use draws are a follow-up pull request.
+Neutral cards may draw a Contingency card (allowed since #126; see Owner question 1). Three of these now draw one,
+from the deck of the side that played the card (owner, 21 Oct, R9 option B): Asian Financial Crisis, Ruble Default
+and Kyoto Protocol. The other four do not draw.
 
 ### e1-neu-001 · Rwandan Genocide · neutral · Ops 2 · Swing (both)
 

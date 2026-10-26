@@ -7,6 +7,7 @@ import { createGame, seedHash } from "./index.ts";
 import type { DeckId, GameEvent, GameState, Setup } from "./index.ts";
 import { shuffle } from "./rng.ts";
 import { makeSetup, ruleset } from "./test/game.ts";
+import { byCodeUnit } from "./test/sort.ts";
 
 const SEED = "draw-seed";
 const ONE_TO_SIX = [1, 2, 3, 4, 5, 6];
@@ -200,7 +201,7 @@ describe("drawing a contingency", () => {
   it("no event carries a deck order: only the deck, and for a draw the number drawn", () => {
     for (const d of drawMany(fresh([2, 5, 8]), "sae", 3)) {
       for (const event of d.events)
-        expect(Object.keys(event).sort()).toEqual(
+        expect(Object.keys(event).toSorted(byCodeUnit)).toEqual(
           event.kind === "contingencyDrawn" ? ["deck", "kind", "value", "visibility"] : ["deck", "kind", "visibility"],
         );
     }

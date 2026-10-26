@@ -36,7 +36,7 @@ await onLocalStack("SupabaseInviteStore on the local Supabase stack: the deadlin
 
   it("a match joined through joinInvite (no deadline in its config) still has clock and next_deadline null", async () => {
     const deps = stack.deps();
-    const made = await createInvite(deps, { host: stack.host.id, sides: { mode: "random" }, now: AT });
+    const made = await createInvite(deps, { host: stack.host.id, sides: { mode: "random" }, platform: "web", now: AT });
     if (!made.ok) throw new Error(`createInvite was refused: ${made.error.code}`);
     const joined = await joinInvite(deps, { code: made.value.code, player: stack.joiner.id, now: AT + 1 });
     if (!joined.ok) throw new Error(`joinInvite was refused: ${joined.error.code}`);

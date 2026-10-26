@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { apply, createGame, legalAnswers, seedHash } from "./index.ts";
 import type { CardId, GameState, Ruleset, Setup } from "./index.ts";
 import { rulesetWith } from "./test/game.ts";
+import { byCodeUnit } from "./test/sort.ts";
 
 const ids = (prefix: string, from: number, n: number): CardId[] =>
   Array.from({ length: n }, (_, i) => `${prefix}${from + i}`);
@@ -61,7 +62,7 @@ const places = (s: GameState): CardId[] =>
     ...s.public.inPlay,
     ...s.public.discard,
     ...s.secret.eras.flatMap((entry) => entry.cards),
-  ].sort();
+  ].toSorted(byCodeUnit);
 
 /** A turn's opening pick has just opened: both sides' card picks are open and neither has picked. */
 const turnStart = (s: GameState): boolean =>

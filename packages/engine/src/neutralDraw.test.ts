@@ -1,6 +1,6 @@
 // A neutral card's draw (decision 17, docs/design/contingency-deck.md): "side": "player" draws from the deck
-// of the side that played the card, whichever side answers its choices. Neutral cards are points only for now
-// (decisions.ts), so these tests start the event's program directly, naming who played it.
+// of the side that played the card, whichever side answers its choices. A neutral card may be played for its
+// event or its points (decisions.ts); these tests start the event's program directly, naming who played it.
 import { describe, expect, it } from "vitest";
 import { legalAnswers } from "./decisions.ts";
 import type { GameEvent, GameState, Ruleset, Side, Step } from "./index.ts";

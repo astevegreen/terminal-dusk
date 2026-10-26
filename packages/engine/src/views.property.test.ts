@@ -9,6 +9,7 @@ import { startProgram } from "./stack.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
 import { choose, forEach, ifSaid, ifYes, marker, rulesetWith } from "./test/game.ts";
 import { testMap } from "./test/map.ts";
+import { byCodeUnit } from "./test/sort.ts";
 
 /** An answer move answers the open decision at index `which` (mod the number open), with `yes` or the card at `pick`. */
 type Move =
@@ -234,7 +235,7 @@ describe("views over random games", () => {
             for (const viewer of [...SIDES, "spectator"] as const) {
               const seen = viewFor(s, viewer).public.contingency[side];
               expect(seen).toEqual(open);
-              expect(Object.keys(seen).sort()).toEqual(["cards", "left"]);
+              expect(Object.keys(seen).toSorted(byCodeUnit)).toEqual(["cards", "left"]);
             }
           }
         }

@@ -1,24 +1,35 @@
-// Test helper: walks the element tree the sign-in screen draws and lets a test press its buttons and submit its
-// forms with typed values, without a browser (like testMode/promptTree.ts). Only for components with no hooks.
+// Test helper: walks the element tree the sign-in and lobby screens draw and lets a test press their buttons,
+// type in their fields and submit their forms with typed values, without a browser (like testMode/promptTree.ts). Only for components with no hooks.
 import { isValidElement } from "react";
 import type { ReactElement, ReactNode } from "react";
 
-export type TreeButton = { text: string; type: string; disabled: boolean; press: () => void };
+export type TreeButton = {
+  text: string;
+  type: string;
+  disabled: boolean;
+  /** The button's aria-pressed, or undefined when it has none. */
+  pressed: boolean | undefined;
+  press: () => void;
+};
 export type TreeForm = {
   /** The names of the form's fields. */
   fields: string[];
   /** Submits the form as if `values` had been typed into its fields. */
   submit: (values: Record<string, string>) => void;
 };
-export type Tree = { buttons: TreeButton[]; forms: TreeForm[] };
+/** A named input; `change` calls its onChange as if the player typed in it. */
+export type TreeInput = { name: string; disabled: boolean; change: () => void };
+export type Tree = { buttons: TreeButton[]; forms: TreeForm[]; inputs: TreeInput[] };
 
 type Props = {
   children?: ReactNode;
   onClick?: () => void;
   onSubmit?: (event: unknown) => void;
+  onChange?: (event: unknown) => void;
   type?: string;
   disabled?: boolean;
   name?: string;
+  "aria-pressed"?: boolean;
 };
 
 const textOf = (node: ReactNode): string =>
@@ -45,11 +56,16 @@ function walk(node: ReactNode, tree: Tree, fields: string[] | null): void {
       text: textOf(props.children),
       type: props.type ?? "submit",
       disabled: props.disabled === true,
+      pressed: props["aria-pressed"],
       press: props.onClick ?? (() => {}),
     });
     return;
   }
-  if (element.type === "input" && fields !== null && props.name !== undefined) fields.push(props.name);
+  if (element.type === "input" && props.name !== undefined) {
+    const onChange = props.onChange;
+    tree.inputs.push({ name: props.name, disabled: props.disabled === true, change: () => onChange?.({}) });
+    if (fields !== null) fields.push(props.name);
+  }
   if (element.type === "form") {
     const names: string[] = [];
     const onSubmit = props.onSubmit;
@@ -67,7 +83,7 @@ function walk(node: ReactNode, tree: Tree, fields: string[] | null): void {
 }
 
 export function treeOf(node: ReactNode): Tree {
-  const tree: Tree = { buttons: [], forms: [] };
+  const tree: Tree = { buttons: [], forms: [], inputs: [] };
   walk(node, tree, null);
   return tree;
 }

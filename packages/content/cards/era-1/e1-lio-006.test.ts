@@ -37,6 +37,34 @@ describeCard("e1-lio-006", "Desert Storm Coalition", [
       points:sae:2
     `,
   },
+  {
+    it: "on the map: Escalation rises 2 to 3 as the event's last step, then falls to 2 at turn end",
+    map: true,
+    story: `
+      coalition victory
+      points:lio:3
+      mod:sae:-1:min1
+      escalation:2:3
+      points:sae:1
+      points:lio:2
+      points:sae:1
+      escalation:3:2
+    `,
+  },
+  {
+    it: "on the map, when SAE plays it for points: Escalation still rises 2 to 3",
+    map: true,
+    rival: "points",
+    story: `
+      coalition victory
+      points:lio:3
+      escalation:2:3
+      points:sae:4
+      points:lio:2
+      points:sae:2
+      escalation:3:2
+    `,
+  },
 ]);
 
 describeOnceOnly("e1-lio-006", "Desert Storm Coalition");

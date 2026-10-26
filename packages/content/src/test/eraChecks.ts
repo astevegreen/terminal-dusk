@@ -13,6 +13,16 @@ export const byText = (a: string, b: string): number => a.localeCompare(b);
 export const byNumber = (a: number, b: number): number => a - b;
 
 /**
+ * Text by UTF-16 code unit, the order a bare sort() gives (so "Z" comes before "a"), for lists where
+ * byText's localeCompare would give a different order.
+ */
+export function byCodeUnit(a: string, b: string): number {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
+}
+
+/**
  * Cards the owner removed from the plan (not well known or significant enough). Their numbers stay unused, so the
  * ids of the other cards, the Notion rows and the docs keep matching.
  */
@@ -69,7 +79,7 @@ export function eraDeckChecks(
       ...[...range("lio", 13), ...range("sae", 13), ...range("neu", 8)].filter((id) => !REMOVED_CARDS.includes(id)),
       ...ADDED_CARDS.filter((id) => id.startsWith(`${prefix}-`)),
     ];
-    expect(cards.map((c) => c.id).sort(byText)).toEqual(expected.sort(byText));
+    expect(cards.map((c) => c.id).toSorted(byText)).toEqual(expected.toSorted(byText));
   });
   it(`gives every card its own id, the era string ${era}, a name and a history note`, () => {
     expect(new Set(cards.map((c) => c.id)).size).toBe(cards.length);

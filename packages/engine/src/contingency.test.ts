@@ -4,6 +4,7 @@ import { createGame, hiddenPart, reconstruct, seedHash, SIDES, viewFor } from ".
 import type { GameState, Setup } from "./index.ts";
 import { seedRng, shuffle } from "./rng.ts";
 import { makeSetup, ruleset } from "./test/game.ts";
+import { byCodeUnit } from "./test/sort.ts";
 
 const ONE_TO_SIX = [1, 2, 3, 4, 5, 6];
 const withDecks = (lio: unknown, sae: unknown, world: unknown = ONE_TO_SIX): Setup =>
@@ -137,9 +138,9 @@ describe("who sees the Contingency decks", () => {
     const s = build();
     for (const viewer of [...SIDES, "spectator"] as const) {
       const view = viewFor(s, viewer);
-      expect(Object.keys(view.public.contingency.lio).sort()).toEqual(["cards", "left"]);
-      expect(Object.keys(view.public.contingency.sae).sort()).toEqual(["cards", "left"]);
-      expect(Object.keys(view.public.contingency.world).sort()).toEqual(["cards", "left"]);
+      expect(Object.keys(view.public.contingency.lio).toSorted(byCodeUnit)).toEqual(["cards", "left"]);
+      expect(Object.keys(view.public.contingency.sae).toSorted(byCodeUnit)).toEqual(["cards", "left"]);
+      expect(Object.keys(view.public.contingency.world).toSorted(byCodeUnit)).toEqual(["cards", "left"]);
       const { contingency, ...rest } = view.public;
       expect(contingency).toBeDefined();
       expect(JSON.stringify({ ...view, public: rest })).not.toContain("contingency");

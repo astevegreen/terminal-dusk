@@ -6,6 +6,7 @@ import { deckFor, drawContingency } from "./contingency.ts";
 import { copyJson } from "./copy.ts";
 import { newDecision, newGroup } from "./decisions.ts";
 import { resumeDiscard, runDiscard } from "./discardChoice.ts";
+import { runEscalate } from "./escalateStep.ts";
 import { revealHand } from "./knowledge.ts";
 import { keepMarker } from "./markers.ts";
 import { opsValue, startModifier } from "./modifiers.ts";
@@ -207,6 +208,12 @@ function runStep(state: GameState, frame: Frame, step: Step, events: GameEvent[]
       return "ran";
     case "discardFromHand":
       return runDiscard(state, frame, step, events, programFrame(state.public.stack)?.player);
+    case "escalate": {
+      const error = runEscalate(state, step, programFrame(state.public.stack)?.player, events);
+      if (error !== null) return error;
+      frame.next += 1;
+      return "ran";
+    }
   }
 }
 

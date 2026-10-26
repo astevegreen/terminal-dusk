@@ -5,6 +5,7 @@ import type { GameState, Setup } from "./index.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
 import { makeSetup, ruleset } from "./test/game.ts";
 import { mapSetup, testMap } from "./test/map.ts";
+import { byCodeUnit } from "./test/sort.ts";
 
 const build = (setup: Setup): GameState => {
   const r = createGame(ruleset, setup, "seed-1");
@@ -23,7 +24,12 @@ describe("createGame with a map", () => {
     expect(startingInfluence.length).toBeGreaterThan(0);
     const s = build(mapSetup());
     expect(s.public.map).toStrictEqual(fixed);
-    expect(Object.keys(s.public.map!).sort()).toEqual(["closingOrder", "countries", "homeBox", "regions"]);
+    expect(Object.keys(s.public.map!).toSorted(byCodeUnit)).toEqual([
+      "closingOrder",
+      "countries",
+      "homeBox",
+      "regions",
+    ]);
   });
   it("state.public.influence has one entry per country in the map's order, starting at the setup's influence (0 where none is given)", () => {
     expect(build(mapSetup()).public.influence).toStrictEqual([

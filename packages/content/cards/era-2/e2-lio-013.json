@@ -53,11 +53,15 @@
           "amount": 1
         }
       ]
+    },
+    {
+      "op": "escalate",
+      "by": -1
     }
   ],
   "text": {
     "name": "India-US Nuclear Deal",
-    "rules": "Record \"new partner\". LIO spends 2 points. SAE chooses: Court India too? If yes, SAE spends 1 point, then until the end of this turn, points spent by SAE count 1 less, never below 1; if no, LIO spends 1 point.",
+    "rules": "Record \"new partner\". LIO spends 2 points. SAE chooses: Court India too? If yes, SAE spends 1 point, then until the end of this turn, points spent by SAE count 1 less, never below 1; if no, LIO spends 1 point. Lower Escalation by 1.",
     "history": "The United States and India announced a civil nuclear cooperation initiative on 18 July 2005; the Nuclear Suppliers Group granted India a waiver on 6 September 2008 and the bilateral \"123 Agreement\" was signed on 10 October 2008.",
     "art": "art/e2-lio-013"
   }

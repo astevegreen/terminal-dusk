@@ -23,14 +23,17 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/ai/package.json`
 - `packages/ai/src/easy.test.ts`
 - `packages/ai/src/easy.ts` - The Easy tier (docs/architecture.md, Decision 8): score every legal answer with a small evaluation plus random noise, and take the best. Exports: easyAnswer.
+- `packages/ai/src/firstDeckMap.test.ts` - Easy with the real first-deck cards on the test map, so the sixteen R18 cards that move Escalation are in play (A11a, issue #359).
 - `packages/ai/src/guess.test.ts`
 - `packages/ai/src/guess.ts` - Guessing the cards a side cannot see, so the AI can rebuild a full state with `reconstruct`. Exports: guessHidden.
 - `packages/ai/src/index.ts` - Public entry point of the AI opponent (docs/architecture.md, Decision 8). Exports: easyAnswer, guessHidden, EASY_WEIGHTS, seededRandom, createEasyPlayer, createAiWorkerHandler, AiRequest, AiResponse, Weights.
+- `packages/ai/src/mapGames.test.ts` - Easy in games with a map, influence and the Escalation track (A11a, issue #359).
 - `packages/ai/src/markers.test.ts` - Easy on cards with lasting markers and `has` conditions (R4, issue #171).
 - `packages/ai/src/playedBy.test.ts` - Easy on cards with playedBy conditions (R5, issue #172).
 - `packages/ai/src/player.test.ts`
 - `packages/ai/src/player.ts` - A ready-made Easy player and the plain-data protocol a worker uses to run it (Decision 8). Exports: createEasyPlayer, AiRequest, AiResponse, createAiWorkerHandler.
 - `packages/ai/src/random.ts` - The AI's own noise, kept apart from the game's randomness (which stays in the engine's PRNG). Exports: seededRandom.
+- `packages/ai/src/test/mapGames.ts` - Test helpers for map games (A11a, issue #359): a small ruleset whose cards raise and lower Escalation, dealt with the test map, and first-deck games with the r… Exports: testMap, escalationRuleset, newMapGame, newFirstDeckMapGame.
 - `packages/ai/src/test/markerGames.ts` - Test helpers for lasting markers and `has` conditions (R4): a small ruleset whose cards set two lasting labels, and cards whose yes/no question exists only whi… Exports: MARKER_LABELS, markerRuleset, newMarkerGame.
 - `packages/ai/src/test/playEasy.ts` - Test helper: plays a whole game with Easy on both sides, checking every answer against the real state. Exports: EasyOptions, playEasy.
 - `packages/ai/src/test/playedByGames.ts` - Test helpers for the playedBy condition (R5): a small ruleset whose cards test who played them, and ask both sides a yes/no only on the `then` branch, so a dec… Exports: Branch, Shape, How, branchLabel, shapeOf, playedByRuleset, newPlayedByGame, parseBranch, playOf.
@@ -55,7 +58,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/package.json`
 - `packages/app/playwright.config.ts` - Playwright smoke tests (`pnpm test:e2e`), kept apart from Vitest: their files end in .e2e.ts. Exports: default.
 - `packages/app/src/App.test.tsx`
-- `packages/app/src/App.tsx` - The home screen: the game's name, a button to play against the AI, a button to play online and a button into developer test mode. Exports: AppProps, App, Home.
+- `packages/app/src/App.tsx` - The home screen: the game's name, a button to play against the AI, a button to play online and a button into developer test mode. Exports: AppProps, App, onlineRoute, Home.
 - `packages/app/src/decisionPrompts.test.tsx`
 - `packages/app/src/decisionPrompts.tsx` - One prompt component per DecisionKind. Exports: CardQuestion, PromptProps, PromptComponent, askingCard, decisionPrompts.
 - `packages/app/src/eventPresentation.test.ts`
@@ -67,11 +70,30 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/gameScreen.css`
 - `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, Hand, Opponent, Table, Contingency, Log.
 - `packages/app/src/main.tsx` - Browser entry point: mounts the app into the #root element of index.html.
+- `packages/app/src/online/LobbyView.press.test.tsx` - Pressing the lobby screen's buttons, typing in its code field and submitting its form without a browser: each calls the right lobby session method.
+- `packages/app/src/online/LobbyView.test.tsx` - The lobby screen drawn from each lobby snapshot with renderToString.
+- `packages/app/src/online/LobbyView.tsx` - The online lobby drawn from a lobby snapshot (online/lobbySession.ts): New game, Join a game and My games, plus Sign out and Back. Exports: LobbyActions, JOIN_HINT, LobbyViewProps, LobbyView.
+- `packages/app/src/online/OnlineGameScreen.tsx` - The online game screen's wiring: makes A9a's online game session for one match id with the setup's Supabase project, the sign-in's token, the clock and the tim… Exports: PlaySetup, LOADING_SNAPSHOT, onlineGameOptions, openGame, OnlineGameFlowProps, OnlineGameFlow.
+- `packages/app/src/online/OnlineGameView.test.tsx` - The online game screen drawn from real online game snapshots (A9a's session on the fake Supabase, fake timers): the turn line, the deadline line, the board thr…
+- `packages/app/src/online/OnlineGameView.tsx` - One online game drawn from an online game snapshot (online/onlineGame.ts): the turn line, the deadline line, Back, and the board through the same GameScreen th… Exports: OnlineGameActions, OnlineGameViewProps, OnlineGameView.
+- `packages/app/src/online/OnlineScreen.game.test.tsx` - The wiring from the lobby to an online game: Open in My games and a successful join open the game for that match id, Back closes it and reads My games again, a…
+- `packages/app/src/online/OnlineScreen.lobby.test.tsx` - The wiring from sign-in to the lobby: once signed in the online screen draws the lobby for that player, built from the setup's endpoint, platform and copy func…
 - `packages/app/src/online/OnlineScreen.press.test.tsx` - Pressing the sign-in screen's buttons and submitting its forms without a browser: each calls the right thing.
 - `packages/app/src/online/OnlineScreen.test.tsx`
-- `packages/app/src/online/OnlineScreen.tsx` - The online screen (docs/architecture.md, Decision 7, "Guest mode": sign-in only when going online). Exports: OnlineSetup, OnlineScreenProps, OnlineScreen.
+- `packages/app/src/online/OnlineScreen.tsx` - The online screen (docs/architecture.md, Decision 7, "Guest mode": sign-in only when going online). Exports: OnlineSetup, openingActions, backToLobby, lobbyOptions, lobbyStep, LobbyFlow, onlineStep, SignInFlow, OnlineScreenProps, OnlineScreen.
 - `packages/app/src/online/SignInView.tsx` - The sign-in screen drawn from a sign-in snapshot (online/signIn.ts): the email step, the code step and the signed-in step, each with a Back button home. Exports: NOT_SET_UP, REFUSAL_MESSAGE, SignInActions, SignInView.
+- `packages/app/src/online/gameText.test.ts` - The online game screen's words as tables: time left before a deadline, the extra-deadline note, whose turn.
+- `packages/app/src/online/gameText.ts` - The online game screen's words: whose turn it is, and how long the waiting side has before its deadline. Exports: timeLeft, deadlineText, turnText.
+- `packages/app/src/online/lobby.refusals.test.ts`
+- `packages/app/src/online/lobby.test.ts`
+- `packages/app/src/online/lobby.ts` - The online lobby's invite calls (docs/architecture.md, Decision 5): create a private game, preview an invite by its code, and join it, through the invite Edge… Exports: SideMode, NewGame, Joined, createGame, previewInvite, joinGame.
+- `packages/app/src/online/lobbyHttp.ts` - The lobby client's shared part (docs/architecture.md, Decision 5): one request over an injected `fetch` (like transport/remoteHttp.ts), and the one rule that t… Exports: LobbyEndpoint, SERVER_CODES, LobbyRefusal, LobbyResult, refuse, isObject, postFunction, getTable, outcome.
+- `packages/app/src/online/lobbySession.test.ts`
+- `packages/app/src/online/lobbySession.ts` - The state behind the online lobby (docs/architecture.md, Decision 5), built on the lobby client's calls (lobby.ts, myGames.ts): the New game choices, the invit… Exports: LobbySnapshot, LobbyOptions, LobbySession, DEFAULT_SIDES, DEFAULT_DEADLINE, createLobbySession.
+- `packages/app/src/online/lobbyText.ts` - The lobby's words: one plain message per refusal code, and how a game's side and result read on screen. Exports: LOBBY_REFUSAL, SIDE_NAME, gameLine.
 - `packages/app/src/online/matchClock.ts` - The online game's deadline (docs/architecture.md, Decision 5, "Deadlines"): reads the `clock` column of the match's `match` row (only that column, never the se… Exports: OnlineDeadline, ClockEndpoint, readClock, deadlineFor.
+- `packages/app/src/online/myGames.test.ts`
+- `packages/app/src/online/myGames.ts` - The signed-in player's games, for the lobby (docs/architecture.md, Decision 5): their `match` rows over Supabase's REST endpoint, never the `seed` column, newe… Exports: MyGame, MY_GAMES_COLUMNS, myGames.
 - `packages/app/src/online/onlineGame.deadline.test.ts`
 - `packages/app/src/online/onlineGame.test.ts`
 - `packages/app/src/online/onlineGame.ts` - The client side of one online game, with no screen (docs/architecture.md, Decision 5): runs the remote transport with real timers, keeps the latest frame and t… Exports: OnlineTurn, OnlineGameSnapshot, OnlineGameOptions, OnlineGame, DEFAULT_POLL_MS, turnOf, createOnlineGame.
@@ -79,8 +101,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/online/signIn.test.ts`
 - `packages/app/src/online/signIn.token.test.ts`
 - `packages/app/src/online/signIn.ts` - The state behind signing in by email code (docs/architecture.md, Decisions 5 and 7): asks for a code, trades it for a session through transport/emailAuth.ts, k… Exports: SESSION_KEY, SignInSnapshot, SignInOptions, SignIn, createSignIn.
+- `packages/app/src/online/test/fakeLobby.ts` - A fake server for the lobby client's tests: a fake `fetch` that records every request and answers with whatever the test queued, like transport/test/fakeAuth.t… Exports: LOBBY_URL, LOBBY_ANON_KEY, TOKEN, PLAYER, OTHER, LobbyRequest, LobbyAnswer, FakeLobby, createFakeLobby, refusalBody.
+- `packages/app/src/online/test/lobbyRig.ts` - A lobby session wired to the fake lobby server, for the tests. Exports: LobbyRig, lobbyRig, matchRow, startedRig, game.
 - `packages/app/src/online/test/onlineRig.ts` - The online game tests' rig: the remote transport's fake Supabase and fake timers (transport/test), with a small wrapper over the fake's fetch that answers the… Exports: NOW, ClockMode, isClockRead, onlineRig, poll, play, clockWith.
-- `packages/app/src/online/test/screenTree.ts` - Test helper: walks the element tree the sign-in screen draws and lets a test press its buttons and submit its forms with typed values, without a browser (like… Exports: TreeButton, TreeForm, Tree, treeOf, button.
+- `packages/app/src/online/test/screenTree.ts` - Test helper: walks the element tree the sign-in and lobby screens draw and lets a test press their buttons, type in their fields and submit their forms with ty… Exports: TreeButton, TreeForm, TreeInput, Tree, treeOf, button.
 - `packages/app/src/online/test/signInRig.ts` - A sign-in session wired to the fake Supabase Auth, a memory store and a hand-moved clock, for the tests. Exports: START, EMAIL, CODE, STORED, Rig, rig, rigWith, rigOnCode, settle, heldStore.
 - `packages/app/src/online/timers.test.ts`
 - `packages/app/src/online/timers.ts` - Real timers for createRemoteMatch's `setTimer`/`clearTimer` options, over `setTimeout`/`clearTimeout`. Exports: TimerHandle, setTimer, clearTimer, Timers, realTimers.
@@ -331,6 +355,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/package.json`
 - `packages/content/scenarios/first-deck-test.json`
 - `packages/content/scenarios/test-map.json`
+- `packages/content/schema/card.escalate.test.ts` - R18a: the card schema's escalate step, { "op": "escalate", "by": n }, with n a whole number other than 0.
 - `packages/content/schema/card.test.ts`
 - `packages/content/schema/card.ts` - The card schema: what one card file in packages/content/cards/ must hold (docs/architecture.md, section 4). Exports: CardStep, stepSchema, cardSchema.
 - `packages/content/schema/card.types.test.ts` - Type-level checks, run by `tsc` (the typecheck script): the card schema and the engine's types can't drift apart.
@@ -350,6 +375,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/src/era2Files.ts` - The Era 2 cards (2001 to 2008), one JSON file each in cards/era-2/. Exports: ERA_2_CARDS.
 - `packages/content/src/era3.test.ts`
 - `packages/content/src/era3Files.ts` - The Era 3 cards (2008 to 2025), one JSON file each in cards/era-3/. Exports: ERA_3_CARDS.
+- `packages/content/src/escalationCards.test.ts` - R18b (#345): the sixteen cards that move Escalation by 1 (map-and-points.md, "Cards that move it"), on top of what each already does.
 - `packages/content/src/firstDeck.ts` - What the game screens need of the first deck: the cards as engine rules, their names, and the TEST scenario. Exports: ERA_1_CARDS, cardDef, Card, ERA_2_CARDS, ERA_3_CARDS, FUTURE_CARDS, FIRST_DECK_CARDS, FIRST_DECK_RULESET, cardName, FIRST_DECK_SCENARIO, scenarioSetup.
 - `packages/content/src/firstDeckRules.ts` - The ruleset and card names of the first deck: Era 1, Era 2, Era 3 and the optional future cards. Exports: FIRST_DECK_CARDS, FIRST_DECK_RULESET, cardName.
 - `packages/content/src/firstDeckScenario.ts` - The TEST scenario for the first deck. Exports: FIRST_DECK_SCENARIO.
@@ -364,9 +390,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/src/scenario.ts` - Turns a scenario file into the parts of the engine's Setup it decides. Exports: DEFAULT_CONTINGENCY, ScenarioSetup, scenarioSetup.
 - `packages/content/src/test/cardEnds.ts` - Test helper: where a real card ends up once a one-turn game is over, by the way it was used. Exports: CardUse, placeOf, whereCardEnds, describeOnceOnly.
 - `packages/content/src/test/describeCard.ts` - Test helper for the card test files: each file lists its card's cases as data, and this turns every case into one test that plays the real card (playCard) and… Exports: CardCase, storyLines, bothSidesAsked, describeCard.
-- `packages/content/src/test/eraChecks.ts` - Test helpers shared by the era tests (era1.test.ts, era2.test.ts, era3.test.ts): the checks every era makes of its own cards, and the TEST-scenario game with t… Exports: byText, byNumber, REMOVED_CARDS, ADDED_CARDS, eraDeckChecks, opsSpread, startEraOneGame.
+- `packages/content/src/test/eraChecks.ts` - Test helpers shared by the era tests (era1.test.ts, era2.test.ts, era3.test.ts): the checks every era makes of its own cards, and the TEST-scenario game with t… Exports: byText, byNumber, byCodeUnit, REMOVED_CARDS, ADDED_CARDS, eraDeckChecks, opsSpread, startEraOneGame.
 - `packages/content/src/test/playCard.test.ts` - The card test helper's own options: which side plays a neutral card, and the numbers drawn in order.
 - `packages/content/src/test/playCard.ts` - Test helper: plays one real card through the real engine and tells what happened, in a short story. Exports: YesAnswers, EarlierCard, PlayOptions, story, startCardGame, playCard, playCardDef.
+- `packages/content/src/test/playCardEscalation.test.ts` - R18a: the card test helper tells Escalation's moves (escalation:<from>:<to>, crisis:<side>:<value>), and its `map` option plays the card in a game with the tes…
 - `packages/content/src/test/playCardRival.test.ts` - The card test helper's ways for the rival to play the card under test, and its story lines for a hand shown and for a discard.
 - `packages/content/src/testMapScenario.test.ts`
 - `packages/content/src/testMapScenario.ts` - The TEST scenario with a made-up map, for tests and fuzz suites. Exports: TEST_MAP_SCENARIO.
@@ -407,6 +434,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/drawStep.test.ts` - The drawContingency step (#65): a card's effect draws from a named side's Contingency deck, and a later step of the same card can read the number drawn.
 - `packages/engine/src/eras.test.ts` - A new era (#37): the setup's checks, its cards waiting in secret, and the shuffle into the draw pile only.
 - `packages/engine/src/eras.ts` - Eras after the first (docs/design/eras.md, "When a new era starts"). Exports: erasError, enterEra.
+- `packages/engine/src/escalateStep.test.ts` - R18a: the escalate step (docs/design/map-and-points.md, "Escalation").
+- `packages/engine/src/escalateStep.ts` - The escalate step (R18a; docs/design/map-and-points.md, "Escalation"): a card's event moves Escalation by `by`. Exports: runEscalate.
 - `packages/engine/src/escalation.test.ts` - R17a: the Escalation track (docs/design/map-and-points.md, "Escalation"): it starts at 2 in a game with a map, raiseEscalation and lowerEscalation move it with…
 - `packages/engine/src/escalation.ts` - The Escalation track (docs/design/map-and-points.md, "Escalation"): one shared public number from 0 to 6, in a game with a map only. Exports: ESCALATION_START, ESCALATION_MIN, ESCALATION_MAX, AFTER_CRISIS, raiseEscalation, lowerEscalation.
 - `packages/engine/src/escalationTypes.ts` - The Escalation track's types (docs/design/map-and-points.md, "Escalation"): one shared public number from 0 to 6. Exports: EscalationChanged, EscalationCrisis, EscalationEvent.
@@ -454,6 +483,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
 - `packages/engine/src/test/game.ts` - Test helpers: a started game, answers for it, and small programs for the stack. Exports: testCard, rulesetWith, ruleset, sideCard, withCards, makeSetup, setupPlus, startGame, startAtPlay, cardAnswer, playAnswer, orderAnswer, ….
 - `packages/engine/src/test/map.ts` - A small made-up map for engine tests: three regions, five countries in a ring with one cross link, and one country on its own. Exports: testMap, mapSetup.
+- `packages/engine/src/test/sort.ts` - Test helper: the sort order the tests use for object keys and card ids. Exports: byCodeUnit.
 - `packages/engine/src/triggerFilter.test.ts` - A trigger's filter and once (#189): a trigger that reacts only to one side's plays, or only while a lasting marker is set, and a trigger that fires at most onc…
 - `packages/engine/src/triggerFilterChecks.test.ts` - createGame's checks of a trigger's filter and once (#189): badTrigger, and the ruleset check that a has names a marker some card sets, which reads a trigger's…
 - `packages/engine/src/triggers.test.ts` - Triggers (#90): reactions a card leaves behind, fired at the cardPlayed and turnEnd hooks.

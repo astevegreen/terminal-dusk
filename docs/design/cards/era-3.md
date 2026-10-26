@@ -147,7 +147,7 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 ### e3-sae-008 · Syrian Intervention · SAE · Ops 3 · Hold
 
 - **Event:** Russian jets save a client and Russia returns to the Middle East.
-- **Design:** SAE 2 now and 1 at turn end; a "foothold" tag that Assad's fall removes (W1, W3). If LIO plays it: SAE 2 now and no turn-end point.
+- **Design:** SAE 2 now and 1 at turn end; a lasting "proxy war" tag (the "foothold" of the plan) that Fall of the Assad Regime only reads; nothing removes it (W1, W3; owner, 21 Oct). If LIO plays it: SAE 2 now and no turn-end point.
 - **Playable:** `marker "proxy war" lasting; spend sae 2; if played sae { on turnEnd { spend sae 1 } }`
 - **History:** Russia began air strikes in Syria on 30 September 2015 in support of the Assad government, its first major military operation outside the former Soviet Union since the Cold War.
 - **Theme:** proxy wars · **Notion:** update `3fceb012942f8115abd1c8c2714da8f8`
@@ -194,8 +194,9 @@ end. Era string in JSON: `"era-3"` (future cards: `"future"`). Events from 2025 
 
 ## Neutral (8)
 
-These neutral cards were built before neutral cards could draw a Contingency card (allowed since #126; see Owner
-question 1), so they use choices instead. Redesigns that use draws are a follow-up pull request.
+Neutral cards may draw a Contingency card (allowed since #126; see Owner question 1). Five of these now draw one,
+from the deck of the side that played the card (owner, 21 Oct, R9 option B): Arab Spring, COVID-19, Populist Wave,
+AI Compute Race and Tariff Shock. The other three do not draw.
 
 ### e3-neu-001 · Arab Spring · neutral · Ops 2 · Split (both)
 
@@ -312,7 +313,7 @@ of each file is written from the JSON.
   are shuffled into the draw pile then, and the turn-start refill draws them into hands (question 27).
 - **Future cards:** era string `future`, folder `cards/future/`, ids `ef-...` (the plan's choice). Roles only; their
   history notes describe a trend or a dated event, not a named person. Wired in `futureFiles.ts`.
-- **Ruleset:** the first-deck ruleset now holds 108 cards (Eras 1 to 3 and the future cards).
+- **Ruleset:** the first-deck ruleset now holds 96 cards (Eras 1 to 3 and the future cards).
 - **Ops 4 cards:** the five Ops 4 cards (Desert Storm Coalition, Handover of Hong Kong, Big Bang Enlargement 2004,
   Olympic Summer 2008, Full-Scale Invasion) are now once-only (wish W6, R13): if a card's event happens, it is removed
   from the game afterwards. Sanctions Wall, the other Ops 4 card first planned here, was removed.
