@@ -56,6 +56,6 @@ By day, after opening a pull request: run the `reviewer` agent, fix its concerns
 for code-owned files, once the owner approves. Concerns left: `gh pr ready <n>`, label it `held`, comment them.
 
 End every task with:
-- **What changed** - the behaviour, in plain English, 2-5 bullets
+- **What changed** - the behaviour, in plain English, one bullet per change the owner would notice
 - **Tests** - what now proves it
 - **Unsure about** - anything the owner should check, or "nothing"

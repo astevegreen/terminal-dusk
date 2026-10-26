@@ -60,4 +60,4 @@ Comment once on the pinned issue "Night shift log":
 - one line per task: #issue, outcome (merging, held or blocked), pull request link
 - for each held or blocked item, the one question or concern the owner must answer
 - anything skipped, and why
-Keep it under 25 lines. Then run `git worktree prune`.
+The owner reads it on their phone in the morning: those items and nothing else. Then run `git worktree prune`.

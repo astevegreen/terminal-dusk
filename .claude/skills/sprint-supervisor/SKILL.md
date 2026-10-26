@@ -95,7 +95,7 @@ sprint log issue's body: the status block, with the lane counts, the last merge 
 free memory, and "Needs you". It prints `body`, `needsYou` and `newNeeds` (the items the old body lacked).
 
 ## 5. Report
-**Comment** on the sprint log issue, under 15 lines, when either holds:
+**Comment** on the sprint log issue, short enough to read on a phone, when either holds:
 - `newNeeds` is not empty: start "@astevegreen", so GitHub notifies the owner, and list those items first;
 - it is the first run of the window or a sixth UTC hour (00, 06, 12, 18), a session is stuck or never started,
   the archiver is not working, or something in step 2 needed attention: the time, one line per lane (counts,

@@ -38,7 +38,7 @@ answer only after one), add the `blocked` label, and hand back STATUS: BLOCKED.
 - Your final message, exactly:
 STATUS: DONE | BLOCKED | GATE-FAILED
 PR: <number or none>
-WHAT CHANGED: 2-5 plain-English bullets
+WHAT CHANGED: plain-English bullets, one per change the owner would notice
 TESTS: what now proves it
 UNSURE: anything the owner should check, or nothing
 REJECTED GEMINI POINTS: each with a reason, or none

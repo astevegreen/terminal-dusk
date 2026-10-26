@@ -893,7 +893,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `.claude/skills/sprint-lane/SKILL.md` - Coordinator for one lane of the sprint in docs/sprint.md. Run only as /sprint-lane <lane>, from a session the sprint supervisor started.
 - `.claude/skills/sprint-plan/SKILL.md` - Writes specs for the next backlog items of one lane of the sprint in docs/sprint.md. Run only as /sprint-plan <lane>, from a session the sprint supervisor star…
 - `.claude/skills/sprint-start/SKILL.md` - Cue the sprint in docs/sprint.md now - check the computer, open the window, make the supervisor and the archiver. Run only as /sprint-start [hours] [--dry-run].
-- `.claude/skills/sprint-status/SKILL.md` - Sprint status in at most 8 lines, read from the sprint log's status block. Use when the owner asks how the sprint is going, whether it is running, or what wait…
+- `.claude/skills/sprint-status/SKILL.md` - Short sprint status, read from the sprint log's status block. Use when the owner asks how the sprint is going, whether it is running, or what waits on them.
 - `.claude/skills/sprint-stop/SKILL.md` - End the sprint's window now and switch its supervisor off; sessions already running finish their task. Run only as /sprint-stop.
 - `.claude/skills/sprint-supervisor/SKILL.md` - Hourly supervisor for the sprint in docs/sprint.md. Starts and restarts the lane and plan sessions. Run only from the "Sprint supervisor" scheduled task.
 - `.claude/skills/triage/SKILL.md` - Turn the week's playtest feedback into design questions and bug issues. Run as /triage.

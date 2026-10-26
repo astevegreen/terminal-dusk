@@ -18,7 +18,7 @@ hooks:
 ---
 You end the sprint in `docs/sprint.md` now, in the main checkout. `Q` below is `node tools/sprint/queue.mjs`.
 Your last message starts with exactly one of `STOPPED terminal-dusk at <end>` or
-`NOT RUNNING terminal-dusk: <state from Q window>`, then at most 6 lines.
+`NOT RUNNING terminal-dusk: <state from Q window>`, then a short report the owner can read on a phone.
 
 1. `Q window`. Unless it says `open`, reply `NOT RUNNING` and stop.
 2. `Q window stop`: the window ends now. Every lane's `next` is `null` from here, so each running lane session
