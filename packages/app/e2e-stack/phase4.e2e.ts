@@ -203,7 +203,7 @@ test(TITLE, async ({ browser }) => {
       pages[side].getByTestId("decision").locator("button:enabled").first().click(),
     ]);
     const raw = await reply.text();
-    let body: { ok?: unknown; seq?: unknown; code?: unknown } = {};
+    let body: { ok?: unknown; seq?: unknown; error?: { code?: unknown } } = {};
     try {
       body = JSON.parse(raw) as typeof body;
     } catch {
@@ -212,7 +212,7 @@ test(TITLE, async ({ browser }) => {
     if (body.ok === true && typeof body.seq === "number") return settle(side, body.seq);
     throw new Error(
       `the server refused the first choice of the ${side} decision at step ${current}: ` +
-        `status ${reply.status()}, code ${String(body.code)}, body ${raw.slice(0, 300)}`,
+        `status ${reply.status()}, code ${String(body.error?.code)}, body ${raw.slice(0, 300)}`,
     );
   };
 
