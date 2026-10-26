@@ -338,7 +338,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/schema/index.test.ts`
 - `packages/content/schema/index.ts` - Content schemas, one per content folder of this package (cards/ is checked by schemas.cards, and so on). Exports: ContentIssue, ContentSchema, schemas.
 - `packages/content/schema/map.test.ts`
-- `packages/content/schema/map.ts` - The map a scenario can carry (docs/design/map-and-points.md, "Map" and "Influence"): regions, countries, the countries next to each home box, and starting infl… Exports: mapSchema.
+- `packages/content/schema/map.ts` - The map a scenario can carry (docs/design/map-and-points.md, "Map", "Influence" and "Escalation"): regions, their closing order, countries, the countries next… Exports: mapSchema.
 - `packages/content/schema/scenario.test.ts`
 - `packages/content/schema/scenario.ts` - The scenario schema: what one scenario file in packages/content/scenarios/ must hold (docs/architecture.md, section 4). Exports: scenarioSchema, Scenario.
 - `packages/content/schema/scenario.types.test.ts` - Type-level check, run by `tsc`: the scenario schema and the engine's Setup can't drift apart.

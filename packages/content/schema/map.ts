@@ -1,5 +1,5 @@
-// The map a scenario can carry (docs/design/map-and-points.md, "Map" and "Influence"): regions, countries, the
-// countries next to each home box, and starting influence. It has the shape of the engine's SetupMap and refuses
+// The map a scenario can carry (docs/design/map-and-points.md, "Map", "Influence" and "Escalation"): regions, their
+// closing order, countries, the countries next to each home box, and starting influence. It has the shape of the engine's SetupMap and refuses
 // what the engine's createGame refuses in a map (mapChecks.ts), each problem at its path.
 // scenario.types.test.ts checks it against the engine's type.
 import * as z from "zod";
@@ -21,6 +21,7 @@ const influenceEntry = z.strictObject({ country: name, lio: z.int().min(0), sae:
 
 type MapShape = {
   regions: readonly { id: string }[];
+  closingOrder: readonly string[];
   countries: readonly { id: string; region: string; neighbours: readonly string[] }[];
   homeBox: { lio: readonly string[]; sae: readonly string[] };
   startingInfluence: readonly { country: string }[];
@@ -39,6 +40,18 @@ function checkRegions(map: MapShape, ctx: z.RefinementCtx): void {
     // An empty id is already refused at the id; one problem gets one message.
     if (r.id !== "" && !used.has(r.id))
       ctx.addIssue({ code: "custom", path: ["regions", i], message: `Region ${r.id} has no country.` });
+  });
+}
+
+/** Each region in the closing order is a known region, listed once. Its length is checked by its schema. */
+function checkClosingOrder(map: MapShape, ctx: z.RefinementCtx): void {
+  const regionIds = new Set(map.regions.map((r) => r.id));
+  const seen = new Set<string>();
+  map.closingOrder.forEach((id, i) => {
+    const path = ["closingOrder", i];
+    if (!regionIds.has(id)) ctx.addIssue({ code: "custom", path, message: `Unknown region ${id}.` });
+    else if (seen.has(id)) ctx.addIssue({ code: "custom", path, message: `${id} is listed twice.` });
+    seen.add(id);
   });
 }
 
@@ -111,13 +124,19 @@ function checkInfluence(map: MapShape, ctx: z.RefinementCtx): void {
  */
 function checkMap(map: MapShape, ctx: z.RefinementCtx): void {
   if (map.regions.length === 0 || map.countries.length === 0) return;
-  for (const check of [checkRegions, checkCountries, checkAdjacency, checkHomeBox, checkInfluence]) check(map, ctx);
+  const checks = [checkRegions, checkClosingOrder, checkCountries, checkAdjacency, checkHomeBox, checkInfluence];
+  for (const check of checks) check(map, ctx);
 }
 
-/** A scenario's map. No other fields are allowed at any level. A country left out of startingInfluence starts at 0. */
+/**
+ * A scenario's map. No other fields are allowed at any level. A country left out of startingInfluence starts at 0.
+ * `closingOrder` names the three regions that close as Escalation reaches 3, 4 and 5, one per threshold, in that
+ * order (docs/design/map-and-points.md, "Thresholds close regions").
+ */
 export const mapSchema = z
   .strictObject({
     regions: z.array(region).min(1),
+    closingOrder: z.array(name).length(3),
     countries: z.array(country).min(1),
     homeBox: z.strictObject({ lio: z.array(name), sae: z.array(name) }),
     startingInfluence: z.array(influenceEntry),
