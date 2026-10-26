@@ -60,7 +60,8 @@ export function afterProgram(state: GameState, finished: Frame, events: GameEven
   const played = pub.inPlay[0];
   const isPlay = finished.kind === "program" && pub.playsMade > 0 && pub.inPlay.length === 1;
   if (!isPlay || finished.source !== played || played === undefined) return;
-  // LIO makes the plays with an even count before them, so the play just counted tells who made it.
+  // LIO makes the plays with an even count before them, so the play just counted tells who made it: turn.ts
+  // asks for each play by this same count. Not `inPlayBy`, which is null for a play for points with no event.
   const player = (pub.playsMade - 1) % 2 === 0 ? "lio" : "sae";
   const reacting = pub.triggers.filter(
     (t) => t.hook === "cardPlayed" && t.source !== played && filterHolds(state, t, player),

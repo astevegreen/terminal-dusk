@@ -121,6 +121,35 @@ describe("the cardPlayed hook", () => {
   });
 });
 
+// R19 (#348): `player` comes from the count of plays made, not from `inPlayBy`, which is null for a play for
+// points with no event. These plays pause on a choice, so `inPlayBy` can be read while the card is in play.
+describe("a cardPlayed trigger's player is the side that made the play, even when inPlayBy is null", () => {
+  const PAUSED_REACTION = [choose("go", "lio"), ...REACTION];
+  const rs = withCards(
+    sideCard("l2", 1, [trigger("cardPlayed", PAUSED_REACTION)]),
+    sideCard("n1", 2),
+    sideCard("n2", 2),
+  );
+
+  it("SAE plays a neutral card for its points: player is sae", () => {
+    const set = play(atPlay(rs), "lio", "l2", "event", rs).state;
+    const paused = play(set, "sae", "n2", "points", rs).state;
+    expect(paused.public.inPlay).toEqual(["n2"]);
+    expect(paused.public.inPlayBy).toEqual([null]);
+    expect(story(answerYesNo(paused, true, rs).events)).toEqual(["card:n2", "player:sae"]);
+  });
+
+  it("LIO plays a neutral card for its points: player is lio", () => {
+    const set = play(atPlay(rs), "lio", "l2", "event", rs).state;
+    const firstReaction = play(set, "sae", "s2", "points", rs).state;
+    const lioTurn = answerYesNo(firstReaction, true, rs).state;
+    const paused = play(lioTurn, "lio", "n1", "points", rs).state;
+    expect(paused.public.inPlay).toEqual(["n1"]);
+    expect(paused.public.inPlayBy).toEqual([null]);
+    expect(story(answerYesNo(paused, true, rs).events)).toEqual(["card:n1", "player:lio"]);
+  });
+});
+
 describe("the turnEnd hook", () => {
   const endTrigger = trigger("turnEnd", [marker("end", "turn")]);
 
