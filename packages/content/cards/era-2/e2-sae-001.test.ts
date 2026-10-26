@@ -37,4 +37,33 @@ describeCard("e2-sae-001", "Invasion of Iraq", [
       points:sae:2
     `,
   },
+  {
+    it: "on the map: Escalation rises 2 to 3 as the event's last step, then falls to 2 at turn end",
+    map: true,
+    story: `
+      points:lio:2
+      lasting:coalition fractures
+      points:sae:2
+      mod:lio:-1:min1
+      escalation:2:3
+      points:lio:1
+      points:sae:2
+      escalation:3:2
+    `,
+  },
+  {
+    it: "on the map, when LIO plays it for points: Escalation still rises 2 to 3",
+    map: true,
+    rival: "points",
+    story: `
+      lasting:coalition fractures
+      points:sae:2
+      escalation:2:3
+      points:lio:3
+      points:sae:2
+      points:lio:2
+      points:sae:2
+      escalation:3:2
+    `,
+  },
 ]);

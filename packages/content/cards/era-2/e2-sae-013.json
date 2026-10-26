@@ -39,11 +39,15 @@
           "amount": 1
         }
       ]
+    },
+    {
+      "op": "escalate",
+      "by": 1
     }
   ],
   "text": {
     "name": "Chinese Anti-Satellite Test",
-    "rules": "Record \"debris field\". Draw from SAE's Contingency deck. If the result is 3 or more, SAE spends 2 points; otherwise, SAE spends 1 point, then LIO spends 1 point.",
+    "rules": "Record \"debris field\". Draw from SAE's Contingency deck. If the result is 3 or more, SAE spends 2 points; otherwise, SAE spends 1 point, then LIO spends 1 point. Raise Escalation by 1.",
     "history": "On 11 January 2007 China destroyed one of its own defunct weather satellites with a ground-launched missile, creating more than 3,000 pieces of trackable debris; it acknowledged the test on 23 January.",
     "art": "art/e2-sae-013"
   }

@@ -75,4 +75,38 @@ describeCard("e3-sae-003", "Annexation of Crimea", [
     before: ["e2-neu-007"],
     story: crimeaByLio("points", 3),
   },
+  {
+    it: "on the map: Escalation rises 2 to 3 after the turn-end trigger is set, as the event's last step",
+    map: true,
+    story: `
+      points:lio:2
+      borders redrawn
+      points:sae:3
+      triggerSet:turnEnd
+      escalation:2:3
+      points:lio:2
+      points:sae:2
+      triggerFired:turnEnd
+      points:lio:1
+      escalation:3:2
+    `,
+  },
+  {
+    it: "on the map, when LIO plays it for points: Escalation still rises 2 to 3",
+    map: true,
+    rival: "points",
+    story: `
+      borders redrawn
+      points:sae:2
+      triggerSet:turnEnd
+      escalation:2:3
+      points:lio:3
+      points:sae:2
+      points:lio:2
+      points:sae:2
+      triggerFired:turnEnd
+      points:lio:1
+      escalation:3:2
+    `,
+  },
 ]);
