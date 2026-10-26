@@ -13,6 +13,8 @@ describe("eventPresentation", () => {
       "contingencyDrawn",
       "drawPileReshuffled",
       "eraStarted",
+      "escalationChanged",
+      "escalationCrisis",
       "handRevealed",
       "handRevealedHidden",
       "marker",
@@ -180,6 +182,42 @@ describe("eventPresentation", () => {
       mod: { hook: "opsValue", side: "lio", add: -2 },
     });
     expect(line).toBe("c4's change ended: ops values for lio -2.");
+  });
+  it("logs a rising escalationChanged as a rise to its new value", () => {
+    const line = eventPresentation.escalationChanged.log({
+      kind: "escalationChanged",
+      visibility: "public",
+      from: 3,
+      to: 4,
+    });
+    expect(line).toBe("Escalation rises to 4.");
+  });
+  it("logs a falling escalationChanged as a fall, not a rise", () => {
+    const line = eventPresentation.escalationChanged.log({
+      kind: "escalationChanged",
+      visibility: "public",
+      from: 2,
+      to: 1,
+    });
+    expect(line).toBe("Escalation falls to 1.");
+  });
+  it("logs a crisis drop from 6 to 3 as a fall", () => {
+    const line = eventPresentation.escalationChanged.log({
+      kind: "escalationChanged",
+      visibility: "public",
+      from: 6,
+      to: 3,
+    });
+    expect(line).toBe("Escalation falls to 3.");
+  });
+  it("logs an escalationCrisis with the side that caused it, the number it drew and the drop to 3", () => {
+    const line = eventPresentation.escalationCrisis.log({
+      kind: "escalationCrisis",
+      visibility: "public",
+      side: "sae",
+      value: 5,
+    });
+    expect(line).toBe("Crisis: SAE draws 5; Escalation drops to 3.");
   });
   it.each([
     ["triggerSet", "cardPlayed", "c4 set a reaction whenever a card is played this turn."],

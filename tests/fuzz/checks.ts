@@ -25,6 +25,7 @@ import type {
   Viewer,
 } from "@terminal-dusk/engine";
 import { deepFreeze } from "./deepFreeze.ts";
+import { checkEscalation } from "./escalationChecks.ts";
 import { checkModifiers, checkTriggers } from "./expiryChecks.ts";
 import { checkInfluence } from "./influenceChecks.ts";
 import { checkKnowledge } from "./knowledgeChecks.ts";
@@ -84,6 +85,7 @@ export function checkStep(
   checkHasBranches(history.allEvents);
   checkKnowledge(state, events, history.knowledge);
   checkInfluence(setup, state);
+  checkEscalation(setup, state, events, history.allEvents);
 }
 
 /** Invariant 1: while the game is active, some side has a pending decision with at least one legal answer. */

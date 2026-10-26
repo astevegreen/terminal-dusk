@@ -45,6 +45,12 @@ export const eventPresentation: EventPresentation = {
   handRevealed: { log: (event) => `${event.side}'s hand was shown to you: ${event.cards.join(", ") || "no cards"}.` },
   handRevealedHidden: { log: (event) => `${event.side}'s hand of ${event.cards} cards was shown to the other side.` },
   cardsDiscarded: { log: (event) => `${event.side} discarded ${event.cards.join(", ") || "no cards"}.` },
+  escalationChanged: {
+    log: (event) => `Escalation ${event.to > event.from ? "rises" : "falls"} to ${event.to}.`,
+  },
+  escalationCrisis: {
+    log: (event) => `Crisis: ${event.side.toUpperCase()} draws ${event.value}; Escalation drops to 3.`,
+  },
 };
 
 /** A modifier in words, such as "ops values for both sides -1, minimum 1". */

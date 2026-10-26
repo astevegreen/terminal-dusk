@@ -3,13 +3,16 @@ import type { ContingencyDeck, ContingencyDeckReshuffled, ContingencyDrawn, Deck
 import type { RngState } from "./rng.ts";
 export { DECKS } from "./contingencyTypes.ts";
 export type { ContingencyDeck, ContingencyDeckReshuffled, ContingencyDrawn, DeckId } from "./contingencyTypes.ts";
+import type { EscalationEvent } from "./escalationTypes.ts";
+export type { EscalationChanged, EscalationCrisis, EscalationEvent } from "./escalationTypes.ts";
 import type {
   ActiveModifier,
   ActiveTrigger,
   Duration,
   HookId,
-  ModifierExpiry,
+  ModifierEnded,
   ModifierSpec,
+  ModifierStarted,
   TriggerFilter,
 } from "./lastingTypes.ts";
 export type {
@@ -17,8 +20,10 @@ export type {
   ActiveTrigger,
   Duration,
   HookId,
+  ModifierEnded,
   ModifierExpiry,
   ModifierSpec,
+  ModifierStarted,
   TriggerFilter,
 } from "./lastingTypes.ts";
 import type { CardsDiscarded, HandRevealed, HandRevealedHidden } from "./knowledgeTypes.ts";
@@ -115,16 +120,6 @@ export type PointsSpent = { kind: "pointsSpent"; visibility: "public"; side: Sid
 export type DrawPileReshuffled = { kind: "drawPileReshuffled"; visibility: "public"; cards: number };
 /** A new era started: `cardsAdded` of its cards were shuffled into the draw pile. Never which cards. */
 export type EraStarted = { kind: "eraStarted"; visibility: "public"; era: EraId; cardsAdded: number };
-/** A `modifier` step ran: `source`'s effect made the rule change `mod`, in force until `expires`. */
-export type ModifierStarted = {
-  kind: "modifierStarted";
-  visibility: "public";
-  source: CardId;
-  mod: ModifierSpec;
-  expires: ModifierExpiry;
-};
-/** A modifier's duration ran out (the turn it was made in ended), so its rule change no longer applies. */
-export type ModifierEnded = { kind: "modifierEnded"; visibility: "public"; source: CardId; mod: ModifierSpec };
 /**
  * A trigger's life, each told to everyone with the card that set it and its hook: `triggerSet` when a
  * `trigger` step runs, `triggerFired` each time its hook runs its reaction, `triggerEnded` when it
@@ -149,7 +144,8 @@ export type PublicEvent =
   | ModifierEnded
   | TriggerEvent
   | HandRevealedHidden
-  | CardsDiscarded;
+  | CardsDiscarded
+  | EscalationEvent;
 /**
  * What happened, for animation, the game log, sounds and the tutorial. An event visible to one side
  * may carry a `publicForm`: the public event everyone else gets instead (see eventsFor).
@@ -323,6 +319,8 @@ export type PublicState = {
   map?: GameMap;
   /** Each country's live influence, one entry per country in the map's order; present exactly when `map` is. */
   influence?: InfluenceEntry[];
+  /** The Escalation track, a whole number from 0 to 6 (escalation.ts); present exactly when `map` is. */
+  escalation?: number;
 };
 /** A side's answer to its decision in a simultaneous group, kept secret until the other side's is in. */
 export type UnrevealedPick = { group: string; decisionId: string; value: AnswerValue };

@@ -404,6 +404,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/drawStep.test.ts` - The drawContingency step (#65): a card's effect draws from a named side's Contingency deck, and a later step of the same card can read the number drawn.
 - `packages/engine/src/eras.test.ts` - A new era (#37): the setup's checks, its cards waiting in secret, and the shuffle into the draw pile only.
 - `packages/engine/src/eras.ts` - Eras after the first (docs/design/eras.md, "When a new era starts"). Exports: erasError, enterEra.
+- `packages/engine/src/escalation.test.ts` - R17a: the Escalation track (docs/design/map-and-points.md, "Escalation"): it starts at 2 in a game with a map, raiseEscalation and lowerEscalation move it with…
+- `packages/engine/src/escalation.ts` - The Escalation track (docs/design/map-and-points.md, "Escalation"): one shared public number from 0 to 6, in a game with a map only. Exports: ESCALATION_START, ESCALATION_MIN, ESCALATION_MAX, AFTER_CRISIS, raiseEscalation, lowerEscalation.
+- `packages/engine/src/escalationTypes.ts` - The Escalation track's types (docs/design/map-and-points.md, "Escalation"): one shared public number from 0 to 6. Exports: EscalationChanged, EscalationCrisis, EscalationEvent.
 - `packages/engine/src/events.test.ts`
 - `packages/engine/src/events.ts` - Filtering events by who may see them. Exports: eventsFor.
 - `packages/engine/src/hasCondition.test.ts` - The `has` condition (#141): an if is true exactly when a lasting marker with that label has been set.
@@ -414,7 +417,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/knowledge.property.test.ts` - Property test (#184): in random games where cards show hands (revealHand), each side's knowledge always lists, each once, only cards still in the rival's hand,…
 - `packages/engine/src/knowledge.ts` - Knowledge: the rival's cards a side has been shown (docs/architecture.md, section 3), kept in that side's own private compartment while they stay in the rival'… Exports: revealHand, forgetCard.
 - `packages/engine/src/knowledgeTypes.ts` - The events of the steps that look at or take from a hand: revealHand (knowledge.ts) and discardFromHand (discard.ts). Exports: HandRevealedHidden, HandRevealed, CardsDiscarded.
-- `packages/engine/src/lastingTypes.ts` - The types of what a card leaves in force: hooks, durations, modifiers and triggers (modifiers.ts, triggers.ts). Exports: HookId, Duration, ModifierSpec, ModifierExpiry, ActiveModifier, TriggerFilter, ActiveTrigger.
+- `packages/engine/src/lastingTypes.ts` - The types of what a card leaves in force: hooks, durations, modifiers and triggers (modifiers.ts, triggers.ts). Exports: HookId, Duration, ModifierSpec, ModifierExpiry, ModifierStarted, ModifierEnded, ActiveModifier, TriggerFilter, ActiveTrigger.
 - `packages/engine/src/mapChecks.test.ts` - createGame refuses a bad map with invalidSetup and a message naming the problem: one test per refusal.
 - `packages/engine/src/mapChecks.ts` - The setup's map (docs/design/map-and-points.md, "Map" and "Influence"): checking it, and the public state it starts. Exports: mapError, mapState.
 - `packages/engine/src/mapTypes.ts` - The map's types (docs/design/map-and-points.md, "Map" and "Influence"). Exports: RegionId, CountryId, Region, Country, GameMap, InfluenceEntry, SetupMap.
@@ -455,7 +458,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/turn.test.ts` - The turn structure (#35): secret opening cards, their events in order, then alternating plays.
 - `packages/engine/src/turn.ts` - The turn structure (docs/design/core-loop.md). Exports: startTurn, afterAnswer.
 - `packages/engine/src/types.test.ts`
-- `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: DECKS, ContingencyDeck, ContingencyDeckReshuffled, ContingencyDrawn, DeckId, ActiveModifier, ActiveTrigger, Duration, HookId, ModifierExpiry, ModifierSpec, TriggerFilter, ….
+- `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: DECKS, ContingencyDeck, ContingencyDeckReshuffled, ContingencyDrawn, DeckId, EscalationChanged, EscalationCrisis, EscalationEvent, ActiveModifier, ActiveTrigger, Duration, HookId, ….
 - `packages/engine/src/verifyGame.test.ts`
 - `packages/engine/src/verifyGame.ts` - Exports: verifyGame.
 - `packages/engine/src/viewTypes.ts` - What each viewer receives of the game state (views.ts). Exports: HiddenCounts, PublicMeta, PlayerView, OmniscientView, HiddenPart.
@@ -666,6 +669,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/easy.test.ts` - The Easy AI inside the fuzz suite (#91): every third game has it on one side, with every invariant checked.
 - `tests/fuzz/engine.test.ts` - Fuzz suite: plays FUZZ_GAMES random games and checks invariants 1, 3, 4, 5 and 6 of docs/architecture.md ("Guardrails", "Fuzz suite") at every step.
 - `tests/fuzz/eras.test.ts` - Tests for the fuzz harness's era checks (#37): invariant 3 catches a card out of place, waiting era cards count as hidden, and the random games really change e…
+- `tests/fuzz/escalation.test.ts` - The Escalation check (escalationChecks.ts, R17a) catches what it should.
+- `tests/fuzz/escalationChecks.ts` - The fuzz check for the Escalation track (R17a, docs/design/map-and-points.md, "Escalation"): checkStep (checks.ts) runs it on every state. Exports: checkEscalation.
 - `tests/fuzz/expiryChecks.ts` - The fuzz checks that modifiers and triggers end with their turn (#89, #90). Exports: checkModifiers, checkTriggers.
 - `tests/fuzz/filterChecks.test.ts` - Tests for the trigger filter and once check (filterChecks.ts, #190), on small fixed games whose cards are defined here: it passes real steps, both kinds of pla…
 - `tests/fuzz/filterChecks.ts` - The fuzz check for trigger filters and once (R7a, #190): a filtered trigger fires only when its filter held at its hook, a waiting trigger whose filter held do… Exports: FilterCounts, checkTriggerFilters.

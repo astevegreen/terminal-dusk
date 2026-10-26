@@ -9,6 +9,7 @@
 // goes to the discard pile, or out of the game if it is flagged removeAfterEvent and its event ran (putAway).
 import { newDecision, whoseCard } from "./decisions.ts";
 import { enterEra } from "./eras.ts";
+import { lowerEscalation } from "./escalation.ts";
 import { forgetCard } from "./knowledge.ts";
 import { refillHands } from "./refill.ts";
 import { endTurnModifiers } from "./modifiers.ts";
@@ -122,13 +123,14 @@ function putAway(ruleset: Ruleset, state: GameState, card: CardId, player: Side 
 }
 
 /**
- * The turn ends: the triggers and modifiers lasting until then end first, then the next turn opens, or
- * after the last turn the game is over.
+ * The turn ends: the triggers and modifiers lasting until then end first, then Escalation falls by 1 (the last
+ * turn's too, in a game with a map), then the next turn opens, or after the last turn the game is over.
  */
 function endTurn(state: GameState, events: GameEvent[], budget: Budget): EngineError | null {
   const pub = state.public;
   endTurnTriggers(state, events);
   endTurnModifiers(state, events);
+  lowerEscalation(state, 1, events);
   if (pub.turn >= pub.turns) {
     pub.pending = [];
     pub.status = { kind: "over", winner: null, reason: "turnLimitReached" };
