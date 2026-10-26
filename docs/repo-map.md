@@ -71,11 +71,18 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/online/OnlineScreen.test.tsx`
 - `packages/app/src/online/OnlineScreen.tsx` - The online screen (docs/architecture.md, Decision 7, "Guest mode": sign-in only when going online). Exports: OnlineSetup, OnlineScreenProps, OnlineScreen.
 - `packages/app/src/online/SignInView.tsx` - The sign-in screen drawn from a sign-in snapshot (online/signIn.ts): the email step, the code step and the signed-in step, each with a Back button home. Exports: NOT_SET_UP, REFUSAL_MESSAGE, SignInActions, SignInView.
+- `packages/app/src/online/matchClock.ts` - The online game's deadline (docs/architecture.md, Decision 5, "Deadlines"): reads the `clock` column of the match's `match` row (only that column, never the se… Exports: OnlineDeadline, ClockEndpoint, readClock, deadlineFor.
+- `packages/app/src/online/onlineGame.deadline.test.ts`
+- `packages/app/src/online/onlineGame.test.ts`
+- `packages/app/src/online/onlineGame.ts` - The client side of one online game, with no screen (docs/architecture.md, Decision 5): runs the remote transport with real timers, keeps the latest frame and t… Exports: OnlineTurn, OnlineGameSnapshot, OnlineGameOptions, OnlineGame, DEFAULT_POLL_MS, turnOf, createOnlineGame.
 - `packages/app/src/online/signIn.test.ts`
 - `packages/app/src/online/signIn.token.test.ts`
 - `packages/app/src/online/signIn.ts` - The state behind signing in by email code (docs/architecture.md, Decisions 5 and 7): asks for a code, trades it for a session through transport/emailAuth.ts, k… Exports: SESSION_KEY, SignInSnapshot, SignInOptions, SignIn, createSignIn.
+- `packages/app/src/online/test/onlineRig.ts` - The online game tests' rig: the remote transport's fake Supabase and fake timers (transport/test), with a small wrapper over the fake's fetch that answers the… Exports: NOW, ClockMode, isClockRead, onlineRig, poll, play, clockWith.
 - `packages/app/src/online/test/screenTree.ts` - Test helper: walks the element tree the sign-in screen draws and lets a test press its buttons and submit its forms with typed values, without a browser (like… Exports: TreeButton, TreeForm, Tree, treeOf, button.
 - `packages/app/src/online/test/signInRig.ts` - A sign-in session wired to the fake Supabase Auth, a memory store and a hand-moved clock, for the tests. Exports: START, EMAIL, CODE, STORED, Rig, rig, rigWith, rigOnCode, settle, heldStore.
+- `packages/app/src/online/timers.test.ts`
+- `packages/app/src/online/timers.ts` - Real timers for createRemoteMatch's `setTimer`/`clearTimer` options, over `setTimeout`/`clearTimeout`. Exports: TimerHandle, setTimer, clearTimer, Timers, realTimers.
 - `packages/app/src/platform/storage.test.ts`
 - `packages/app/src/platform/storage.ts` - The `storage` part of the Platform interface (docs/architecture.md, Decision 7): a small async key-value store, so a Capacitor implementation fits later. Exports: KeyValueStore, StorageLike, memoryStore, webStore.
 - `packages/app/src/replay/ReplayScreen.test.tsx`
