@@ -30,10 +30,27 @@ import type { CardsDiscarded, HandRevealed, HandRevealedHidden } from "./knowled
 export type { CardsDiscarded, HandRevealed, HandRevealedHidden } from "./knowledgeTypes.ts";
 import type { EraEntry } from "./setupTypes.ts";
 export type { EraEntry, Setup } from "./setupTypes.ts";
-import type { CountryId, GameMap, InfluenceEntry } from "./mapTypes.ts";
+import type { GameMap, InfluenceEntry } from "./mapTypes.ts";
 export type { Country, CountryId, GameMap, InfluenceEntry, Region, RegionId, SetupMap } from "./mapTypes.ts";
-import type { InfluencePlaced, PlaceOptions, PointsSpent } from "./placingTypes.ts";
-export type { InfluencePlaced, PlaceOptions, PointsSpent } from "./placingTypes.ts";
+import type { InfluencePlaced, Intervened, PointsSpent } from "./placingTypes.ts";
+export type {
+  ActionAnswer,
+  ActionOptions,
+  InfluencePlaced,
+  Intervened,
+  PlaceOptions,
+  PointsSpent,
+} from "./placingTypes.ts";
+import type { AnswerValue, Decision } from "./decisionTypes.ts";
+export type {
+  Answer,
+  AnswerValue,
+  Decision,
+  DecisionKind,
+  DecisionOptions,
+  PlayUse,
+  PlayUses,
+} from "./decisionTypes.ts";
 
 export type Side = "lio" | "sae";
 /** Both sides, in the one order the engine always loops in. */
@@ -134,6 +151,7 @@ export type PublicEvent =
   | MarkerEvent
   | PointsSpent
   | InfluencePlaced
+  | Intervened
   | EraStarted
   | DrawPileReshuffled
   | ContingencyDrawn
@@ -150,58 +168,6 @@ export type PublicEvent =
  */
 export type GameEvent = CardDrawn | HandRevealed | PublicEvent;
 export type EventKind = GameEvent["kind"];
-
-/**
- * `chooseCard`: both sides secretly pick their opening card for the turn. `playCardAs`: one side plays a
- * card from its hand for its event or its points. `rivalEventOrder`: having played a rival's card for
- * its points, that side says whether the card's event happens before or after the points. `discardCards`: a
- * side picks the cards a discardFromHand step discards, from its own hand or the rival's (discardChoice.ts).
- * `placeInfluence`: a side spending points places one influence in a country (placing.ts).
- */
-export type DecisionKind =
-  "yesNo" | "chooseCard" | "playCardAs" | "rivalEventOrder" | "discardCards" | "placeInfluence";
-/** What a played card is used for: its event, or its action points. */
-export type PlayUse = "event" | "points";
-/** The uses a play allows, by whose card it is: the player's own, the rival's, or neutral. */
-export type PlayUses = { own: PlayUse[]; rival: PlayUse[]; neutral: PlayUse[] };
-/**
- * Declarative description of what is legal. Never lists hidden data such as card IDs from a hand. A
- * yes/no or a rivalEventOrder has none; the opening pick says "any card from your hand", neutral ones
- * too; a play says "a card from your hand" and the uses each kind of card allows; a discard pick says whose
- * hand, the picker's own or the rival's, and how many cards; a placing says the points left and the countries.
- */
-export type DecisionOptions =
-  | Record<string, never>
-  | { from: "hand" }
-  | { from: "hand"; uses: PlayUses }
-  | { from: "hand" | "rivalHand"; count: number }
-  | PlaceOptions;
-export type Decision = {
-  /** Unique within the game; answers quote it. */
-  id: string;
-  /** Who must answer. */
-  side: Side;
-  kind: DecisionKind;
-  options: DecisionOptions;
-  /**
-   * Set when both sides answer at once and in secret: the group both decisions share. Each answer
-   * stays in the answering side's private compartment until the other side's is in.
-   */
-  simultaneousGroup?: string;
-};
-
-export type AnswerValue =
-  | { kind: "yesNo"; yes: boolean }
-  | { kind: "chooseCard"; card: CardId }
-  | { kind: "playCardAs"; card: CardId; as: PlayUse }
-  | { kind: "rivalEventOrder"; event: "before" | "after" }
-  | { kind: "discardCards"; cards: CardId[] }
-  | { kind: "placeInfluence"; country: CountryId };
-/** A timeout naming "both" is a simultaneous pick missed by both sides: a draw. */
-export type Answer =
-  | { decisionId: string; side: Side; value: AnswerValue }
-  | { system: "timeout"; side: Side | "both" }
-  | { system: "resign" | "adjudicate"; side: Side };
 
 export type VarName = string;
 /** Both sides' yes/no answers to a simultaneous choice, keyed by side in SIDES order. */

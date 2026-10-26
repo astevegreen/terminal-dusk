@@ -66,6 +66,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/playwright.stack.config.ts` - Playwright settings for the phase 4 browser gate (A10, e2e-stack/): two browsers, a real sign-in by email code and a whole online game on the local Supabase st… Exports: default.
 - `packages/app/src/App.test.tsx`
 - `packages/app/src/App.tsx` - The home screen: the game's name, a button to play against the AI, a button to play online and a button into developer test mode. Exports: AppProps, App, onlineRoute, Home.
+- `packages/app/src/chooseActionPrompt.test.tsx` - The chooseAction prompt (R16b, #316): all the points go to one action, placing or one intervention.
 - `packages/app/src/decisionPrompts.test.tsx`
 - `packages/app/src/decisionPrompts.tsx` - One prompt component per DecisionKind. Exports: CardQuestion, CardAffiliation, PromptProps, PromptComponent, askingCard, decisionPrompts.
 - `packages/app/src/eventPresentation.test.ts`
@@ -435,8 +436,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/createGame.test.ts`
 - `packages/engine/src/createGame.ts` - Exports: createGame.
 - `packages/engine/src/createGameMap.test.ts` - A game started with a map keeps it, and every country's influence, in the public compartment only.
+- `packages/engine/src/decisionTypes.ts` - The types of pending decisions and their answers (hard rule 4: every wait for a player is a Decision). Exports: DecisionKind, PlayUse, PlayUses, DecisionOptions, Decision, AnswerValue, Answer.
 - `packages/engine/src/decisions.test.ts`
-- `packages/engine/src/decisions.ts` - Pending decisions: building them, finding the one a side must answer, and listing its legal answers. Exports: whoseCard, newDecision, newDiscardDecision, newPlaceDecision, newGroup, pendingFor, legalAnswers.
+- `packages/engine/src/decisions.ts` - Pending decisions: building them, finding the one a side must answer, and listing its legal answers. Exports: whoseCard, newDecision, newDiscardDecision, newPlaceDecision, newActionDecision, newGroup, pendingFor, legalAnswers.
 - `packages/engine/src/discard.property.test.ts` - Property test (#186): for random hands, counts and generator states, a discardFromHand takes exactly min(count, hand size) distinct cards from the hand, all of…
 - `packages/engine/src/discard.test.ts` - The discardFromHand step (#186): a side discards cards from its hand, chosen at random with the seeded generator, to the discard pile and without their events.
 - `packages/engine/src/discard.ts` - The discardFromHand step: a side discards cards from its hand, chosen at random with the game's seeded generator (owner, 21 Oct 2026). Exports: discardFromHand, discardChosen.
@@ -459,6 +461,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, closedRegions, isRegionClosed, createGame, legalAnswers, pendingFor, eventsFor, controller, placementCost, seedHash, DECKS, SIDES, ….
 - `packages/engine/src/influence.test.ts` - R15: who controls a country, what one influence costs to place, and adding and removing influence (docs/design/map-and-points.md, "Influence").
 - `packages/engine/src/influence.ts` - The influence rules (docs/design/map-and-points.md, "Influence"): who controls a country, whether a side may place one influence there and at what cost, and ad… Exports: controller, placementCost, reachable, affordable, costNow, addInfluence, removeInfluence.
+- `packages/engine/src/intervening.test.ts` - R16b (#316): intervene on the action menu (docs/design/map-and-points.md, "Points and actions" 1 and 2).
+- `packages/engine/src/intervening.ts` - Intervening (R16b; docs/design/map-and-points.md, "Points and actions" 2). Exports: interveneTargets, intervene.
 - `packages/engine/src/knowledge.property.test.ts` - Property test (#184): in random games where cards show hands (revealHand), each side's knowledge always lists, each once, only cards still in the rival's hand,…
 - `packages/engine/src/knowledge.ts` - Knowledge: the rival's cards a side has been shown (docs/architecture.md, section 3), kept in that side's own private compartment while they stay in the rival'… Exports: revealHand, forgetCard.
 - `packages/engine/src/knowledgeTypes.ts` - The events of the steps that look at or take from a hand: revealHand (knowledge.ts) and discardFromHand (discard.ts). Exports: HandRevealedHidden, HandRevealed, CardsDiscarded.
@@ -474,8 +478,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/numberSteps.test.ts` - Number tests (atLeast, atMost, equals) and the addToNumber step (#74): a card changes the number a Contingency draw gave and branches on the result.
 - `packages/engine/src/omniscient.test.ts` - The omniscient viewer: everything except the secret compartment, for replays of finished games.
 - `packages/engine/src/placing.test.ts` - R16a (#315): points spent on placing influence (docs/design/map-and-points.md, "Influence", "Points and actions", "Event points").
-- `packages/engine/src/placing.ts` - Spending points on placing influence (R16a; docs/design/map-and-points.md, "Influence", "Points and actions" and "Event points"). Exports: runSpendPoints, resumePlacement.
-- `packages/engine/src/placingTypes.ts` - The types of spending points on placing influence (R16a; docs/design/map-and-points.md, "Influence" and "Points and actions"). Exports: PlaceOptions, PointsSpent, InfluencePlaced.
+- `packages/engine/src/placing.ts` - Spending points on placing influence (R16a; docs/design/map-and-points.md, "Influence", "Points and actions" and "Event points"). Exports: runSpendPoints, resumeAction, resumePlacement.
+- `packages/engine/src/placingTypes.ts` - The types of spending points on the action menu: placing influence (R16a) and intervening (R16b) (docs/design/map-and-points.md, "Influence" and "Points and ac… Exports: PlaceOptions, ActionOptions, ActionAnswer, PointsSpent, InfluencePlaced, Intervened.
 - `packages/engine/src/play.property.test.ts` - Property test: in random games with rival and neutral plays, neutral cards drawing from the player's deck included, every card is always in exactly one place,…
 - `packages/engine/src/play.test.ts` - Playing a card for its event or its points, and the rival-card rules (#36).
 - `packages/engine/src/playedBy.property.test.ts` - Property test (#169): in random games where LIO, SAE and neutral cards hold `if playedBy` steps (some nested, some in a trigger's reaction, some after a choice…
@@ -499,7 +503,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
 - `packages/engine/src/test/game.ts` - Test helpers: a started game, answers for it, and small programs for the stack. Exports: testCard, rulesetWith, ruleset, sideCard, withCards, makeSetup, setupPlus, startGame, startAtPlay, cardAnswer, playAnswer, orderAnswer, ….
 - `packages/engine/src/test/map.ts` - A small made-up map for engine tests: three regions, five countries in a ring with one cross link, and one country on its own. Exports: testMap, mapSetup.
-- `packages/engine/src/test/placing.ts` - Test helper: finishing the placings a play for points asks for in a game with a map (R16a, placing.ts). Exports: placeAll.
+- `packages/engine/src/test/placing.ts` - Test helper: finishing the spending a play for points asks for in a game with a map (R16a placing.ts, R16b action choice). Exports: placeAll.
 - `packages/engine/src/test/sort.ts` - Test helper: the sort order the tests use for object keys and card ids. Exports: byCodeUnit.
 - `packages/engine/src/triggerFilter.test.ts` - A trigger's filter and once (#189): a trigger that reacts only to one side's plays, or only while a lasting marker is set, and a trigger that fires at most onc…
 - `packages/engine/src/triggerFilterChecks.test.ts` - createGame's checks of a trigger's filter and once (#189): badTrigger, and the ruleset check that a has names a marker some card sets, which reads a trigger's…

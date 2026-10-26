@@ -212,6 +212,32 @@ function PlaceInfluencePrompt({ decision, onAnswer }: Readonly<PromptProps>) {
   );
 }
 
+/**
+ * An action choice (R16b): all the points go to one action. Placing is always listed (when no placement is
+ * affordable the transport refuses it, like any illegal pick), then one intervention per country the decision
+ * lists, in its order.
+ */
+function ChooseActionPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
+  const options = decision.options;
+  const points = "points" in options ? options.points : 0;
+  const targets = "targets" in options ? options.targets : [];
+  const choices: Choice[] = [
+    { text: "Place influence", value: { kind: "chooseAction", action: "place" } },
+    ...targets.map((country) => ({
+      text: `Intervene in ${country}`,
+      value: { kind: "chooseAction" as const, action: "intervene" as const, country },
+    })),
+  ];
+  return (
+    <Choices
+      decision={decision}
+      question={`${decision.side}: spend all ${points} point${points === 1 ? "" : "s"} on one action`}
+      choices={choices}
+      onAnswer={onAnswer}
+    />
+  );
+}
+
 export const decisionPrompts: Record<DecisionKind, PromptComponent> = {
   yesNo: YesNoPrompt,
   chooseCard: ChooseCardPrompt,
@@ -219,4 +245,5 @@ export const decisionPrompts: Record<DecisionKind, PromptComponent> = {
   rivalEventOrder: RivalEventOrderPrompt,
   discardCards: DiscardCardsPrompt,
   placeInfluence: PlaceInfluencePrompt,
+  chooseAction: ChooseActionPrompt,
 };

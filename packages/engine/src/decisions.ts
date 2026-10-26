@@ -1,5 +1,5 @@
 // Pending decisions: building them, finding the one a side must answer, and listing its legal answers.
-import { affordable } from "./influence.ts";
+import { affordable, reachable } from "./influence.ts";
 import { otherSide, SIDES } from "./types.ts";
 import type {
   AnswerValue,
@@ -31,9 +31,9 @@ export function whoseCard(card: CardDef | undefined, side: Side): keyof PlayUses
 
 /**
  * The kinds of decision whose options follow from the kind alone: all but a discard pick (newDiscardDecision)
- * and a placing (newPlaceDecision).
+ * a placing (newPlaceDecision) and an action choice (newActionDecision).
  */
-type PlainKind = Exclude<DecisionKind, "discardCards" | "placeInfluence">;
+type PlainKind = Exclude<DecisionKind, "discardCards" | "placeInfluence" | "chooseAction">;
 
 /**
  * What a decision of `kind` allows, said without card IDs: a yes/no or a rivalEventOrder has no
@@ -71,6 +71,14 @@ export function newDiscardDecision(seq: number, side: Side, from: "hand" | "riva
  */
 export function newPlaceDecision(seq: number, side: Side, points: number, countries: CountryId[]): Decision {
   return { id: `d${seq}`, side, kind: "placeInfluence", options: { points, countries } };
+}
+
+/**
+ * A new action choice (R16b): `side` puts all `points` into placing influence or one intervention in one of
+ * `targets`. Its ID comes from `seq`, as for newDecision.
+ */
+export function newActionDecision(seq: number, side: Side, points: number, targets: CountryId[]): Decision {
+  return { id: `d${seq}`, side, kind: "chooseAction", options: { points, targets } };
 }
 
 /** A new simultaneous group: one decision per side, in SIDES order, sharing the group `g<seq>`. */
@@ -121,9 +129,19 @@ export function legalAnswers(ruleset: Ruleset, state: GameState, side: Side): An
     }
     case "placeInfluence": {
       const { options } = decision;
-      if (!("points" in options)) return [];
+      if (!("countries" in options)) return [];
       const countries = affordable(state.public, side, options.countries, options.points);
       return countries.map((country) => ({ kind: "placeInfluence", country }));
+    }
+    case "chooseAction": {
+      const { options } = decision;
+      if (!("targets" in options)) return [];
+      const canPlace = affordable(state.public, side, reachable(state.public, side), options.points).length > 0;
+      const place: AnswerValue[] = canPlace ? [{ kind: "chooseAction", action: "place" }] : [];
+      return [
+        ...place,
+        ...options.targets.map((country): AnswerValue => ({ kind: "chooseAction", action: "intervene", country })),
+      ];
     }
   }
 }
