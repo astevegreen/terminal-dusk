@@ -151,6 +151,7 @@ describe("decisionPrompts with an onAnswer", () => {
         known={[]}
         label={label}
         stack={[]}
+        affiliation={() => "sae"}
         question={noQuestion}
         onAnswer={() => {}}
       />,
@@ -181,6 +182,7 @@ describe("the yes/no prompt names the card that asks and its question", () => {
         label={firstDeckCardName}
         stack={stack}
         question={firstDeckCardQuestion}
+        affiliation={() => "sae"}
         {...(onAnswer ? { onAnswer } : {})}
       />,
     );
@@ -212,6 +214,7 @@ describe("the yes/no prompt names the card that asks and its question", () => {
       label: firstDeckCardName,
       stack: [program(asked)],
       question: firstDeckCardQuestion,
+      affiliation: () => "sae",
       onAnswer: (v) => sent.push(v),
     };
     const buttons = buttonsOf(createElement(decisionPrompts.yesNo, props));
@@ -303,7 +306,16 @@ describe("each prompt is a group named by its question", () => {
   const answerable = (d: Decision, hand: string[]) => {
     const Prompt = decisionPrompts[d.kind];
     return renderToString(
-      <Prompt decision={d} hand={hand} known={[]} label={label} stack={[]} question={noQuestion} onAnswer={() => {}} />,
+      <Prompt
+        decision={d}
+        hand={hand}
+        known={[]}
+        label={label}
+        affiliation={() => "sae"}
+        stack={[]}
+        question={noQuestion}
+        onAnswer={() => {}}
+      />,
     );
   };
   const opening = (id: string, side: Decision["side"]): Decision => ({

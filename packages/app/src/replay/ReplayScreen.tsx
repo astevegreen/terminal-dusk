@@ -17,7 +17,7 @@ export type ReplayScreenProps = {
   label: (card: CardId) => string;
   /** A card's yes/no question, for the read-only prompts. Display data only. */
   question: CardQuestion;
-  affiliation?: CardAffiliation | undefined;
+  affiliation: CardAffiliation;
   onClose: () => void;
 };
 
@@ -90,7 +90,7 @@ function OpenDecisions({
   frame: ReplayFrame;
   label: Label;
   question: CardQuestion;
-  affiliation: CardAffiliation | undefined;
+  affiliation: CardAffiliation;
 }>) {
   const { pending, stack } = frame.view.public;
   return (

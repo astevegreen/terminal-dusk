@@ -19,7 +19,7 @@ export type OnlineGameViewProps = {
   game: OnlineGameActions | null;
   label: (id: CardId) => string;
   question: CardQuestion;
-  affiliation?: CardAffiliation | undefined;
+  affiliation: CardAffiliation;
   /** Returns to the lobby, after the session is closed. */
   onBack: () => void;
 };

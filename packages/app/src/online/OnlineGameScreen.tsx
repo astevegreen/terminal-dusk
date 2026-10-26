@@ -17,7 +17,7 @@ export type PlaySetup = {
   timers: Timers;
   label: (id: CardId) => string;
   question: CardQuestion;
-  affiliation?: CardAffiliation | undefined;
+  affiliation: CardAffiliation;
 };
 
 /** The snapshot shown before the session is made: loading, with nothing else. */

@@ -5,7 +5,7 @@ import { isValidElement } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { memoryStore } from "../platform/storage.ts";
-import { cardName, cardQuestion } from "../testMode/fixture.ts";
+import { cardAffiliation, cardName, cardQuestion } from "../testMode/fixture.ts";
 import { ANON_KEY, URL_BASE } from "../transport/test/fakeSupabase.ts";
 import { config, fakeTimers, rig as transportRig, settle } from "../transport/test/remoteGame.ts";
 import { createOnlineGame, DEFAULT_POLL_MS } from "./onlineGame.ts";
@@ -25,6 +25,7 @@ const play = (timers = fakeTimers()): PlaySetup => ({
   timers,
   label: cardName,
   question: cardQuestion,
+  affiliation: cardAffiliation,
 });
 const setup = (): OnlineSetup => {
   const fake = createFakeLobby();

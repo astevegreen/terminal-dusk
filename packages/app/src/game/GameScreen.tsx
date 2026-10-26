@@ -18,7 +18,7 @@ export type GameScreenProps = {
   /** A card's yes/no question, for the prompt. Display data only. */
   question: CardQuestion;
   /** Whose each card is, so the prompt offers only the plays a card allows. Display data only. */
-  affiliation?: CardAffiliation | undefined;
+  affiliation: CardAffiliation;
   /** Present: the waiting decision can be answered. Absent: it is shown read-only. */
   onAnswer?: ((value: AnswerValue) => void) | undefined;
   refusal?: string | null | undefined;

@@ -1,6 +1,8 @@
 // One prompt component per DecisionKind. A new kind without an entry here fails the type check (hard rule 9).
 // The prompts only list what a decision asks. They do not work out what is legal: an illegal pick is
 // refused by the transport and the screen shows the refusal (.claude/rules/app.md, no rules logic).
+// The play prompt sorts each card into own, rival or neutral by its affiliation and the deciding side (the same
+// sort as whoseCard in the engine's decisions.ts), then takes the uses allowed for that kind from the decision.
 import type {
   AnswerValue,
   CardId,
@@ -26,8 +28,8 @@ export type PromptProps = {
   known: CardId[];
   /** A card's display name. Display data only. */
   label: (card: CardId) => string;
-  /** A card's affiliation, to offer each card only the plays its kind allows. Display data only; left out: every card counts as neutral. */
-  affiliation?: CardAffiliation | undefined;
+  /** A card's affiliation, to offer each card only the plays its kind allows. Display data only. */
+  affiliation: CardAffiliation;
   /** The public resolution stack from the frame, bottom first: it shows which card's effect is asking. */
   stack: readonly StackFrame[];
   question: CardQuestion;
@@ -116,8 +118,8 @@ function ChooseCardPrompt({ decision, hand, label, onAnswer }: Readonly<PromptPr
  * Whose card this is from the deciding side's seat, which picks the decision's list of uses for it. A card
  * whose affiliation is unknown counts as neutral, as in the engine. The uses themselves come from the decision.
  */
-function kindOf(card: CardId, side: Side, affiliation: CardAffiliation | undefined): "own" | "rival" | "neutral" {
-  const owner = affiliation?.(card);
+function kindOf(card: CardId, side: Side, affiliation: CardAffiliation): "own" | "rival" | "neutral" {
+  const owner = affiliation(card);
   if (owner === undefined || owner === "neutral") return "neutral";
   return owner === side ? "own" : "rival";
 }

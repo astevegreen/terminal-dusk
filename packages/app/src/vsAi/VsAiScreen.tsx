@@ -23,8 +23,8 @@ export type VsAiGame = {
   cardName: (id: CardId) => string;
   /** A card's yes/no question, shown in its prompt (undefined: the plain "yes or no?" text). */
   cardQuestion: CardQuestion;
-  /** Whose each card is, so a prompt offers only the plays the card allows (left out: the developer fixture's). */
-  cardAffiliation?: CardAffiliation | undefined;
+  /** Whose each card is, so a prompt offers only the plays the card allows. */
+  cardAffiliation: CardAffiliation;
   note: string;
 };
 

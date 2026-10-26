@@ -6,7 +6,7 @@ import { decisionPrompts } from "../decisionPrompts.tsx";
 import { byCodeUnit } from "../test/order.ts";
 import { TestModeView } from "./TestModeScreen.tsx";
 import { buttonsOf } from "./promptTree.ts";
-import { cardName, cardQuestion } from "./fixture.ts";
+import { cardAffiliation, cardName, cardQuestion } from "./fixture.ts";
 import { createTestSession } from "./session.ts";
 import type { TestSession } from "./session.ts";
 import type { AnswerValue } from "@terminal-dusk/engine";
@@ -31,6 +31,7 @@ async function answerOnce(session: TestSession, order: "first" | "last", accepte
       label: cardName,
       stack: session.getSnapshot().frame?.view.public.stack ?? [],
       question: cardQuestion,
+      affiliation: cardAffiliation,
       onAnswer: (value) => {
         pressed = value;
         void session.answer(value);
