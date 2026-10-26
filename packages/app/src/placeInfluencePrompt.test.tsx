@@ -4,7 +4,7 @@ import type { AnswerValue, Decision } from "@terminal-dusk/engine";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { decisionPrompts } from "./decisionPrompts.tsx";
-import type { PromptProps } from "./decisionPrompts.tsx";
+import { promptProps as props } from "./test/promptProps.ts";
 import { buttonsOf } from "./testMode/promptTree.ts";
 
 const placing = (side: Decision["side"], points: number, countries: string[]): Decision => ({
@@ -12,17 +12,6 @@ const placing = (side: Decision["side"], points: number, countries: string[]): D
   side,
   kind: "placeInfluence",
   options: { points, countries },
-});
-
-const props = (decision: Decision, onAnswer?: PromptProps["onAnswer"]): PromptProps => ({
-  decision,
-  hand: [],
-  known: [],
-  label: (card) => `Card ${card}`,
-  affiliation: () => "neutral",
-  stack: [],
-  question: () => undefined,
-  ...(onAnswer ? { onAnswer } : {}),
 });
 
 describe("the placeInfluence prompt (R16a, #315)", () => {

@@ -5,7 +5,7 @@
 // SAE's echo and delta. Every Contingency card in a deck has the same number, so the draws are known.
 import { describe, expect, it } from "vitest";
 import { apply, legalAnswers } from "./index.ts";
-import type { AnswerValue, CountryId, GameEvent, GameState, Side, Step } from "./index.ts";
+import type { AnswerValue, CountryId, GameEvent, GameState, Step } from "./index.ts";
 import { realignBonus } from "./realign.ts";
 import { startProgram } from "./stack.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
@@ -21,10 +21,10 @@ import {
   withCards,
 } from "./test/game.ts";
 import { mapSetup } from "./test/map.ts";
+import { countOf, mapGame, spend } from "./test/mapGame.ts";
 
 type Counts = Record<CountryId, { lio?: number; sae?: number }>;
 
-const spend = (side: Side, amount: number): Step => ({ op: "spendPoints", side, amount });
 const deckOf = (n: number): number[] => [n, n, n, n, n, n];
 
 /**
@@ -34,17 +34,11 @@ const deckOf = (n: number): number[] => [n, n, n, n, n, n];
 function game(draws: { lio: number; sae: number } = { lio: 3, sae: 3 }, counts?: Counts, rs = ruleset): GameState {
   const setup = { ...mapSetup(), contingency: { lio: deckOf(draws.lio), sae: deckOf(draws.sae), world: deckOf(1) } };
   const state = playAnswers(startGame(2, 1, rs, setup), 2, rs);
-  if (counts === undefined) return state;
-  const influence = state.public.influence!.map(({ country }) => ({
-    country,
-    lio: counts[country]?.lio ?? 0,
-    sae: counts[country]?.sae ?? 0,
-  }));
-  return { ...state, public: { ...state.public, influence } };
+  // The influence comes from mapGame: the same map, so the same countries in the same order.
+  return counts === undefined
+    ? state
+    : { ...state, public: { ...state.public, influence: mapGame(counts).public.influence! } };
 }
-
-const countOf = (state: GameState, country: CountryId, side: Side): number =>
-  state.public.influence!.find((e) => e.country === country)![side];
 
 /** The answer `value` to the decision `state` has open. */
 function answer(state: GameState, value: AnswerValue) {

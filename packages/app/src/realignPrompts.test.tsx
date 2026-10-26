@@ -4,7 +4,7 @@ import type { AnswerValue, Decision } from "@terminal-dusk/engine";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { decisionPrompts } from "./decisionPrompts.tsx";
-import type { PromptProps } from "./decisionPrompts.tsx";
+import { promptProps as props } from "./test/promptProps.ts";
 import { buttonsOf } from "./testMode/promptTree.ts";
 
 const menu = (side: Decision["side"], points: number): Decision => ({
@@ -19,17 +19,6 @@ const realign = (side: Decision["side"], attempts: number, targets: string[]): D
   side,
   kind: "realign",
   options: { attempts, targets },
-});
-
-const props = (decision: Decision, onAnswer?: PromptProps["onAnswer"]): PromptProps => ({
-  decision,
-  hand: [],
-  known: [],
-  label: (card) => `Card ${card}`,
-  affiliation: () => "neutral",
-  stack: [],
-  question: () => undefined,
-  ...(onAnswer ? { onAnswer } : {}),
 });
 
 describe("the chooseAction prompt (R16c, #317)", () => {
