@@ -16,9 +16,17 @@ function shuffle<T>(items: readonly T[], random: () => number): T[] {
   return out;
 }
 
-/** The cards the viewer can see: its hand, the ones in play or discarded, and its own unrevealed picks. */
+/**
+ * The cards the viewer can see: its hand, the ones in play, discarded or removed from the game, and its own
+ * unrevealed picks.
+ */
 function seenCards(view: PlayerView): Set<CardId> {
-  const seen = new Set<CardId>([...(view.mine?.hand ?? []), ...view.public.inPlay, ...view.public.discard]);
+  const seen = new Set<CardId>([
+    ...(view.mine?.hand ?? []),
+    ...view.public.inPlay,
+    ...view.public.discard,
+    ...view.public.removed,
+  ]);
   for (const pick of view.mine?.picks ?? []) {
     if (pick.value.kind === "chooseCard" || pick.value.kind === "playCardAs") seen.add(pick.value.card);
   }
