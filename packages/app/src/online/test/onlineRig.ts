@@ -9,7 +9,8 @@ import { createOnlineGame } from "../onlineGame.ts";
 import type { OnlineGame } from "../onlineGame.ts";
 
 export const NOW = 50_000;
-const TOKEN_OF: Record<string, string> = { alice: "token-alice", bob: "token-bob" };
+/** Carol is signed in but plays in neither seat, so she watches as a spectator. */
+const TOKEN_OF: Record<string, string> = { alice: "token-alice", bob: "token-bob", carol: "token-carol" };
 
 /** What the next clock reads get: the clock (or null for none), a failure, or a reply that is not a row list. */
 export type ClockMode = { clock: MatchClock | null } | { fail: "throw" | number } | { malformed: unknown };
@@ -25,7 +26,8 @@ export const isClockRead = (url: string): boolean => {
   return u.pathname === "/rest/v1/match" && u.searchParams.get("select") === "clock";
 };
 
-export function onlineRig(player: string | null = "alice", initial: ClockMode = { clock: null }) {
+/** `defaultPoll` leaves `pollMs` out, so the session's own default is used. */
+export function onlineRig(player: string | null = "alice", initial: ClockMode = { clock: null }, defaultPoll = false) {
   const base = transportRig();
   const { fake, timers } = base;
   let mode: ClockMode = initial;
@@ -56,7 +58,7 @@ export function onlineRig(player: string | null = "alice", initial: ClockMode = 
     accessToken: () => Promise.resolve(player === null ? null : (TOKEN_OF[player] ?? null)),
     fetch,
     now: () => time.now,
-    pollMs: POLL_MS,
+    ...(defaultPoll ? {} : { pollMs: POLL_MS }),
     timers,
   });
 

@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { logLine } from "../testMode/session.ts";
 import { nextMove, POLL_MS, settle, watch } from "../transport/test/remoteGame.ts";
+import type { Frame } from "@terminal-dusk/host";
+import { turnOf } from "./onlineGame.ts";
 import { onlineRig, play, poll } from "./test/onlineRig.ts";
 
 describe("createOnlineGame: frames, log and turn", () => {
@@ -58,6 +60,33 @@ describe("createOnlineGame: frames, log and turn", () => {
     await poll(r);
     expect(r.game.getSnapshot().frame?.view.public.status.kind).toBe("over");
     expect(r.game.getSnapshot().turn).toBe("over");
+  });
+
+  it("a spectator (signed in, not seated) looking at a pending decision sees rival, never mine", async () => {
+    const r = onlineRig("carol");
+    await settle();
+    const s = r.game.getSnapshot();
+    expect(s.frame?.viewer).toBe("spectator");
+    expect(s.frame?.decision).toBeNull();
+    expect(s.frame?.view.public.pending.length).toBeGreaterThan(0);
+    expect(s.turn).toBe("rival");
+  });
+
+  it("turn is rival only when pending holds a decision for the other side; empty pending stays loading", async () => {
+    const r = onlineRig();
+    await settle();
+    await play(r); // alice has answered; bob's card choice is pending
+    const frame = r.game.getSnapshot().frame!;
+    expect(frame.decision).toBeNull();
+    expect(turnOf(frame)).toBe("rival");
+    const withPending = (pending: Frame["view"]["public"]["pending"]): Frame => ({
+      ...frame,
+      view: { ...frame.view, public: { ...frame.view.public, pending } },
+    });
+    expect(turnOf(withPending([]))).toBe("loading");
+    const own = frame.view.public.pending.map((d) => ({ ...d, side: "lio" as const }));
+    expect(turnOf(withPending(own))).toBe("loading");
+    expect(turnOf(null)).toBe("loading");
   });
 
   it("no snapshot holds the access token", async () => {

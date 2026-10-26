@@ -57,12 +57,17 @@ export type OnlineGame = {
 
 export const DEFAULT_POLL_MS = 5_000;
 
-/** Whose turn `frame` shows. */
+/**
+ * Whose turn `frame` shows. "rival" only when the public view's pending decisions hold one for a side other
+ * than the viewer (for a spectator, any side). An active game with nothing pending for anyone else says
+ * nothing about whose turn it is, so it stays "loading" rather than guessing.
+ */
 export function turnOf(frame: Frame | null): OnlineTurn {
   if (frame === null) return "loading";
   if (frame.view.public.status.kind === "over") return "over";
   if (frame.decision !== null) return "mine";
-  return "rival";
+  if (frame.view.public.pending.some((d) => d.side !== frame.viewer)) return "rival";
+  return "loading";
 }
 
 const CLOSED = new Error("online game closed");

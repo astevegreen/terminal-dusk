@@ -75,6 +75,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/online/onlineGame.deadline.test.ts`
 - `packages/app/src/online/onlineGame.test.ts`
 - `packages/app/src/online/onlineGame.ts` - The client side of one online game, with no screen (docs/architecture.md, Decision 5): runs the remote transport with real timers, keeps the latest frame and t… Exports: OnlineTurn, OnlineGameSnapshot, OnlineGameOptions, OnlineGame, DEFAULT_POLL_MS, turnOf, createOnlineGame.
+- `packages/app/src/online/onlineGame.wiring.test.ts`
 - `packages/app/src/online/signIn.test.ts`
 - `packages/app/src/online/signIn.token.test.ts`
 - `packages/app/src/online/signIn.ts` - The state behind signing in by email code (docs/architecture.md, Decisions 5 and 7): asks for a code, trades it for a session through transport/emailAuth.ts, k… Exports: SESSION_KEY, SignInSnapshot, SignInOptions, SignIn, createSignIn.
