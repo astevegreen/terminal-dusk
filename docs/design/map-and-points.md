@@ -26,6 +26,9 @@ Not yet built. Numbers marked "open" are for the owner to set. Scoring is not de
   rival's influence plus the stability.
 - **Placing:** 1 point places 1 influence in a country where the side already has influence, or next to one, or
   next to its home box. Placing in a country the rival controls costs 2 points per influence.
+- **Reach and leftovers when placing** (owner, 26 Oct, #315 option a): which countries a side may place in is
+  fixed when the play starts, so influence placed earlier in the same play does not open up its neighbours. Every
+  point must be spent while a legal placement is left; a side may not stop early.
 - **Removing:** only through interventions, realignments and card events.
 - Influence is a whole number of 0 or more. Every removal stops at 0.
 
@@ -34,7 +37,8 @@ Not yet built. Numbers marked "open" are for the owner to set. Scoring is not de
 What the reference rules mean for this game, as far as they reach:
 
 1. **A card played for its action points** gives its Ops number as points to spend on the action menu. This is
-   the existing "play for points" choice. Open: whether all points go to one action or can be split. Ops modifiers (`opsValue`) apply.
+   the existing "play for points" choice. All of a play's points go to one action; they cannot be split between
+   actions (owner, 26 Oct, #316). Ops modifiers (`opsValue`) apply.
 2. **The action menu** is the proposal's option M1: **place influence**, **intervene**, **realign**, plus the
    fourth action (point 3).
    - **Place influence:** as in the Influence section.
@@ -42,16 +46,17 @@ What the reference rules mean for this game, as far as they reach:
      influence. The acting side draws one card from its Contingency deck (1 to 6; no dice). Result = draw + points
      spent - 2 x the country's stability. If the result is above 0, remove that much rival influence (stopping at 0)
      and, for what is left over, add the same amount of the acting side's own influence. An intervention in a
-     battleground raises Escalation (see below). An intervention does not need adjacency.
+     battleground raises Escalation (see below). An intervention does not need adjacency. The formula is confirmed
+     as written (owner, 26 Oct, #316 option a).
    - **Why the new name.** Coups still happened in 1991-2025, but they were no longer the main way great powers
      flipped a country. "Intervene" covers the period's ways: backed uprisings, armed interventions, contractors
      propping up juntas, grey-zone takeovers. The rule is unchanged; each card tells its own story.
    - **Realign:** choose a country where the rival has influence. Each side draws one Contingency card. The acting
      side adds 1 for each adjacent country it controls and 1 if it has more influence in the target; the rival adds
      the same by the same tests. Higher total wins, and the difference removes that much of the loser's influence
-     (stopping at 0). A tie changes nothing. A realignment does not need adjacency. Open: what a realignment
-     costs and how many attempts a play buys (in the reference rules each point buys one attempt, which may go to
-     different countries), and whether a side whose home box touches the target also adds 1.
+     (stopping at 0). A tie changes nothing. A realignment does not need adjacency. A side whose home box touches
+     the target also adds 1. Each point buys one attempt, and each attempt may target a different country. The
+     formula, cost and home-box bonus are confirmed (owner, 26 Oct, #317, "approved as recommended").
 3. **The fourth action is the tech race** (owner, 22 Oct: "let's go with (a) The track is the fourth action"). It
    takes the place of the reference game's extra track action: a side spends a card's points to move up the tech
    race track. The track itself (its branches, costs and what moving up gives) is its own topic, not designed yet.
@@ -69,11 +74,6 @@ What the reference rules mean for this game, as far as they reach:
   against real placements, and the rules text of every card is reworded in one pass (question 7).
 - Open: how a turn-end payment ("pay again at turn end") is split when it is 1 point (placing only, or any action).
 - Open (tech race topic): whether event points may also be spent on the tech race.
-
-### Still to confirm
-
-- **The intervention formula** above is the reference coup formula restated; confirm it is what you want, since
-  proposal question 5 called the formula only an example.
 
 ## Escalation (proposal topic 4, option B)
 
@@ -145,5 +145,5 @@ and the credibility gap both need a score track.
 2. Scoring, as above.
 3. Country and region content for the six-region map, including which regions close at Escalation's thresholds,
    and in what order.
-4. Whether the intervention and realign formulas above are what you want.
+4. Answered 26 Oct: the intervention and realign formulas stand as written (#316, #317).
 5. Credibility's numbers, once plays per turn and scoring are known.
