@@ -46,6 +46,11 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## packages/app - React UI, transports and the Platform interface. Renders frames and sends answers; no rules.
 
 - `packages/app/.gitignore`
+- `packages/app/e2e-stack/helpers.test.ts` - The browser gate's helpers (A10), proved without a browser or a stack: where the mail catcher is, which code a message holds, which step each response is check…
+- `packages/app/e2e-stack/leakCheck.ts` - The browser gate's leak check (A10): every response the stack sent to a browser is checked, for the side that browser plays, against what the server held at th… Exports: Recorded, frameSeqOf, checkResponses.
+- `packages/app/e2e-stack/mail.ts` - Reading sign-in codes from the local stack's mail catcher (Mailpit) for A10. Exports: mailpitUrl, codeFrom, waitForCode, whyMailUnavailable.
+- `packages/app/e2e-stack/phase4.e2e.ts` - The phase 4 gate in a real browser (A10; docs/architecture.md, "Revised build order", phase 4).
+- `packages/app/e2e-stack/runUsers.ts` - The run's two players, found and removed by email with the service role (A10). Exports: userIdByEmail, grantWebByEmail, removeRun.
 - `packages/app/e2e/game.e2e.ts`
 - `packages/app/e2e/keyboard.e2e.ts`
 - `packages/app/e2e/online.e2e.ts`
@@ -58,6 +63,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/index.html`
 - `packages/app/package.json`
 - `packages/app/playwright.config.ts` - Playwright smoke tests (`pnpm test:e2e`), kept apart from Vitest: their files end in .e2e.ts. Exports: default.
+- `packages/app/playwright.stack.config.ts` - Playwright settings for the phase 4 browser gate (A10, e2e-stack/): two browsers, a real sign-in by email code and a whole online game on the local Supabase st… Exports: default.
 - `packages/app/src/App.test.tsx`
 - `packages/app/src/App.tsx` - The home screen: the game's name, a button to play against the AI, a button to play online and a button into developer test mode. Exports: AppProps, App, onlineRoute, Home.
 - `packages/app/src/decisionPrompts.test.tsx`

@@ -1,0 +1,102 @@
+// The browser gate's leak check (A10): every response the stack sent to a browser is checked, for the side that
+// browser plays, against what the server held at the step the response shows. No Playwright here, so Vitest
+// proves it (helpers.test.ts). Reports name the kind of leak and the step, never a card (`withoutCards`).
+import type { Side } from "@terminal-dusk/engine";
+import type { MatchSecret } from "@terminal-dusk/host";
+import { canonical, leaksFor, withoutCards } from "../src/transport/test/leaks.ts";
+
+/** One response the stack sent a browser: its body, and the server's step when it arrived. */
+export type Recorded = { side: Side; url: string; text: string; atSeq: number };
+
+/** The tables whose rows each carry their own step. */
+const ROW_TABLES = /\/rest\/v1\/(match_view|match_event)$/;
+
+/** Parses `text` as JSON, or null when it isn't. */
+function parse(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+/** The highest step a match_view response shows (the frame its browser was just given), or null. */
+export function frameSeqOf(response: Pick<Recorded, "url" | "text">): number | null {
+  if (new URL(response.url).pathname !== "/rest/v1/match_view") return null;
+  const rows = parse(response.text);
+  if (!Array.isArray(rows)) return null;
+  const seqs = rows.map((row: { seq?: unknown }) => row.seq).filter((seq): seq is number => typeof seq === "number");
+  return seqs.length === 0 ? null : Math.max(...seqs);
+}
+
+/** The pieces of one body to check: each row of a match table with its own step, else the whole body. */
+function piecesOf(response: Recorded): { seq: number; text: string; viewer?: unknown }[] {
+  const parsed = ROW_TABLES.test(new URL(response.url).pathname) ? parse(response.text) : null;
+  if (Array.isArray(parsed)) {
+    return parsed.map((row: { seq?: unknown; frame?: { viewer?: unknown } }) => ({
+      seq: typeof row.seq === "number" ? row.seq : response.atSeq,
+      text: canonical(row),
+      viewer: row.frame?.viewer,
+    }));
+  }
+  const whole = parse(response.text);
+  return [{ seq: response.atSeq, text: whole === null ? response.text : canonical(whole) }];
+}
+
+/**
+ * A rival's unrevealed pick whose card the viewer's own knowledge lists (a card it was legitimately shown, such as by
+ * a revealed hand) is not a leak: the card is in the viewer's own `knowledge`, in the frame's `mine`. `leaksFor`
+ * exempts the viewer's own knowledge for the rival's hand cards but not for this finding (reported in the pull
+ * request), and `src/transport/` is lane online's, so the exemption is made here, for exactly this finding.
+ */
+function isOwnKnowledge(leak: string, knowledge: ReadonlySet<string>): boolean {
+  const card = /^(?:lio|sae)'s unrevealed pick card "(.*)"$/.exec(leak)?.[1];
+  return card !== undefined && knowledge.has(card);
+}
+
+/**
+ * A Contingency order that only shows up as a public `"left":[...]` list is not a leak: `left` is public and sorted,
+ * so when the hidden draw order happens to be ascending too, `leaksFor`'s plain substring search matches it by
+ * chance. Reported in the pull request; the check is made here, only for the order findings.
+ */
+function isPublicLeftList(leak: string, text: string, secret: MatchSecret, side: Side): boolean {
+  if (!/order$/.test(leak)) return false;
+  const stripped = text.replace(/"left":\[[0-9,]*\]/g, '"left":[]');
+  return !leaksFor(stripped, secret, side).includes(leak);
+}
+
+/** Rest and function replies are match-related; sign-in replies and the page's own files are not. */
+const isMatchRelated = (url: string): boolean => /^\/(rest|functions)\/v1\//.test(new URL(url).pathname);
+
+/**
+ * Checks every match-related body in `responses` against the secret of its own step. Returns how many bodies it
+ * checked and one line per problem, each naming the step, the side, the path and the kind of leak.
+ */
+export function checkResponses(
+  responses: Recorded[],
+  secrets: ReadonlyMap<number, MatchSecret>,
+): { checked: number; problems: string[] } {
+  const problems: string[] = [];
+  let checked = 0;
+  for (const response of responses) {
+    if (response.text === "" || !isMatchRelated(response.url)) continue;
+    checked += 1;
+    const where = `${response.side}, ${new URL(response.url).pathname}`;
+    for (const piece of piecesOf(response)) {
+      const secret = secrets.get(piece.seq);
+      if (!secret) {
+        problems.push(`seq ${piece.seq}, ${where}: no server state was read for this step to check it against`);
+        continue;
+      }
+      if (piece.viewer !== undefined && piece.viewer !== response.side && piece.viewer !== "spectator") {
+        problems.push(`seq ${piece.seq}, ${where}: the rival's frame`);
+      }
+      const knowledge = new Set(secret.state.private[response.side].knowledge);
+      for (const leak of leaksFor(piece.text, secret, response.side)) {
+        if (isOwnKnowledge(leak, knowledge) || isPublicLeftList(leak, piece.text, secret, response.side)) continue;
+        problems.push(`seq ${piece.seq}, ${where}: ${withoutCards(leak)}`);
+      }
+    }
+  }
+  return { checked, problems };
+}
