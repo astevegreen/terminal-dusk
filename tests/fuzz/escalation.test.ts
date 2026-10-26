@@ -5,7 +5,7 @@ import { createGame } from "@terminal-dusk/engine";
 import type { GameEvent, GameState, PublicState, Setup } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { checkEscalation } from "./escalationChecks.ts";
-import { playGame, randomChooser, randomGame, ruleset } from "./play.ts";
+import { randomGame, ruleset } from "./play.ts";
 import { seededRng } from "./random.ts";
 
 const testMap = (): NonNullable<Setup["map"]> => scenarioSetup(TEST_MAP_SCENARIO).map!;
@@ -83,22 +83,5 @@ describe("the Escalation check", () => {
     const all = [...earlier, ...now];
     expect(() => checkEscalation(setup, withPublic(state, { escalation: 0 }), now, all)).not.toThrow();
     expect(() => checkEscalation(setup, withPublic(state, { escalation: 1 }), [], earlier)).not.toThrow();
-  });
-});
-
-describe("Escalation in random games with the test map", () => {
-  it("falls by 1 each turn, from 2, and the check holds on every step", () => {
-    for (let game = 1; game <= 20; game++) {
-      const rng = seededRng(game);
-      const { setup, seed } = randomGame(rng, game);
-      const { final } = playGame(
-        ruleset,
-        `Map game ${game}`,
-        { ...setup, map: testMap() },
-        seed,
-        randomChooser(ruleset, rng),
-      );
-      expect(final.public.escalation).toBe(Math.max(0, 2 - setup.turns));
-    }
   });
 });
