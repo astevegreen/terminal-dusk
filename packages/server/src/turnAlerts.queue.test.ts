@@ -15,6 +15,7 @@ const failingQueue: NotifyStore = {
   keep: async () => undefined,
   due: async () => [],
   markSent: async () => undefined,
+  waitingSeq: async () => null,
 };
 
 describe("submit queues turn alerts after a saved move only", () => {

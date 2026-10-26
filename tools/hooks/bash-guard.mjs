@@ -7,6 +7,7 @@
 // are skipped in any spelling the `ask` rules' prefixes miss (git commit -anm, --no-verif).
 import path from "node:path";
 import { readInput, lockedEntry, deny, decide, git, repoRootFor, canonical } from "./shared.mjs";
+import { segments } from "./shell-words.mjs";
 
 const READ_ONLY = process.argv.includes("--read-only");
 const UNATTENDED = process.argv.includes("--unattended");
@@ -29,59 +30,23 @@ const READ_ONLY_ALLOWED = [
 ];
 const READ_ONLY_LIST = "git diff/log/show/status/fetch/grep, gh issue view, gh pr view/diff/list/checks, head, tail, grep, wc or cat";
 
-// Split into tokens, keeping quoted strings together and operators as their own tokens.
-// A word is `plain` when bash reads it exactly as kept here: one quoted string, or no quotes or
-// backslashes, and not glued to the word before. `complete` is false when something this can't
-// read (such as `<`) stopped it early, so the rest of the line went unseen.
-function tokenize(line) {
-  const tokens = [];
-  const re = /\s*(?:(&&|\|\||;;?|\||&(?!>)|\n|\$\(|`|\(|\))|(\d?>>?|&>>?)|("(?:[^"\\]|\\.)*"|'[^']*'|(?:[^\s;&|()<>`"']|"(?:[^"\\]|\\.)*"|'[^']*')+))/gy;
-  let m;
-  let end = 0;
-  while ((m = re.exec(line)) && m[0] !== "") {
-    end = re.lastIndex;
-    if (m[1]) tokens.push({ op: m[1] });
-    else if (m[2]) tokens.push({ redirect: m[2] });
-    else if (m[3]) {
-      const prev = tokens.at(-1);
-      const glued = prev?.word !== undefined && !/^\s/.test(m[0]);
-      if (glued) prev.plain = false;
-      const plain = !glued && (/^'[^']*'$/.test(m[3]) || /^"[^"\\]*"$/.test(m[3]) || !/["'\\]/.test(m[3]));
-      tokens.push({ word: m[3].replace(/^(["'])(.*)\1$/s, "$2"), plain });
-    }
-  }
-  return { tokens, complete: !line.slice(end).trim() };
-}
-
-// Group tokens into simple commands: { words: [...], redirects: [target, ...], plain }.
-function segments(line) {
-  const list = [];
-  const fresh = () => ({ words: [], redirects: [], plain: true });
-  let cur = fresh();
-  const { tokens, complete } = tokenize(line);
-  for (let i = 0; i < tokens.length; i++) {
-    const t = tokens[i];
-    if (t.op) {
-      if (cur.words.length || cur.redirects.length) list.push(cur);
-      cur = fresh();
-    } else if (t.redirect) {
-      const target = tokens[i + 1]?.word;
-      if (target !== undefined) {
-        cur.redirects.push(target);
-        i++;
-      }
-    } else {
-      cur.words.push(t.word);
-      cur.plain &&= t.plain;
-    }
-  }
-  if (cur.words.length || cur.redirects.length) list.push(cur);
-  return { list, complete };
-}
+// Words bash reads before the command itself: assignments, wrappers with their options (`time -p`, `env -i`), the
+// reserved words that start one, and the name in `function f {` or `coproc NAME {`.
+const WRAPPERS = new Set(["env", "command", "exec", "sudo", "nohup", "time", "coproc"]);
+const LEAD = new Set(["&", "!", "{", "if", "then", "else", "elif", "do", "while", "until"]);
 
 function commandName(words) {
   let i = 0;
-  while (i < words.length && (/^[A-Za-z_][A-Za-z0-9_]*=/.test(words[i]) || ["env", "command", "exec", "sudo", "nohup", "time", "&"].includes(words[i]))) i++;
+  while (i < words.length) {
+    const w = words[i];
+    if (/^[A-Za-z_][A-Za-z0-9_]*=/.test(w) || LEAD.has(w)) i++;
+    else if (WRAPPERS.has(w)) {
+      i++;
+      while (words[i]?.startsWith("-")) i++;
+      if (w === "coproc" && words[i + 1] === "{") i += 2;
+    } else if (w === "function") i += words[i + 2] === "{" ? 3 : 2;
+    else break;
+  }
   const name = (words[i] ?? "").split(/[\\/]/).pop().toLowerCase().replace(/\.(exe|cmd|bat|ps1)$/, "");
   return { name, args: words.slice(i + 1) };
 }
@@ -224,6 +189,7 @@ function skipsHooks(seg) {
 function check(seg) {
   const { name, args } = commandName(seg.words);
   const all = [...args, ...seg.redirects];
+  if (seg.inputs.some(isEnvFile)) return ".env files hold secrets and must not be read.";
 
   if (READ_ONLY) {
     if (seg.redirects.length) return "the reviewer is read-only: output redirects are not allowed.";
@@ -276,10 +242,16 @@ function check(seg) {
   return null;
 }
 
-const { list: segs, complete } = segments(command);
+const { list: segs, complete, unsure } = segments(command);
 for (const seg of segs) {
   const why = check(seg);
   if (why) deny(`Blocked by bash-guard: ${why}`);
+}
+// The reader may have misread the rest of such a line, so nobody can vouch for what it runs (shell-words.mjs).
+if (unsure) {
+  const why = "it can't be sure what this line runs: the word case inside $(…) or <(…) may start a statement that hides a command.";
+  if (READ_ONLY || UNATTENDED) deny(`Blocked by bash-guard: ${why} Write it with if, or in a script file.`);
+  decide("ask", `bash-guard: ${why} Check the whole line before it runs.`);
 }
 
 if (!READ_ONLY && !UNATTENDED) {

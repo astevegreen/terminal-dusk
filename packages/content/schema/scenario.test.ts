@@ -36,7 +36,7 @@ describe("scenario schema", () => {
     expect(paths({ ...base, contingency: { world: undefined } })).toEqual([["contingency", "world"]]);
   });
   it("refuses other fields", () => {
-    expect(paths({ ...base, map: "x" })).toEqual([[]]);
+    expect(paths({ ...base, board: "x" })).toEqual([[]]);
   });
   it("refuses empty id and name, and turns or playsPerTurn that are not whole numbers of 1 or more", () => {
     expect(paths({ ...base, id: "" })).toEqual([["id"]]);

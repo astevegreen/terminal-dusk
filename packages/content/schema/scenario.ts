@@ -1,9 +1,10 @@
 // The scenario schema: what one scenario file in packages/content/scenarios/ must hold (docs/architecture.md,
 // section 4). Part 1 covers the length of the game, plays per turn, the hand size, later eras and Contingency
-// decks.
+// decks. Part 2 adds the map (map.ts).
 // It refuses what the engine's createGame would refuse in those fields; scenario.types.test.ts checks it
 // against the engine's Setup.
 import * as z from "zod";
+import { mapSchema } from "./map.ts";
 
 const name = z.string().min(1);
 
@@ -68,6 +69,7 @@ export const scenarioSchema = z
     contingency: z
       .strictObject({ lio: deck.exactOptional(), sae: deck.exactOptional(), world: deck.exactOptional() })
       .exactOptional(),
+    map: mapSchema.exactOptional(),
   })
   .superRefine(checkEras)
   .superRefine(checkHandSize);

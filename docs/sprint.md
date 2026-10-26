@@ -124,6 +124,12 @@ fakes: no hosted project, no project keys, no deploy steps. Docker and the local
 (Preflight), so the stack tests run instead of skipping; a pull request whose stack tests did not run says so in
 its first line.
 
+The computer has one stack, shared by every folder. Only this lane uses it, and always through
+`pnpm test:stack` (the stack tests) or `pnpm test:migrations` (empties the database, applies every migration,
+runs their checks) in packages/server, never `supabase db reset` or `pnpm test` with the stack's keys. Both
+scripts wait their turn (`tools/stack-lock.mjs`, up to 8 minutes), so a reset never empties the database under
+another folder's tests.
+
 - **O9** carries over: #283 (O9b, a migration: the owner's approval) and #284 (O9c, waits on #283).
 - **O10** `accept_invite` writes the game's clock and next deadline (#260).
 - **O11** The schedule: Edge Functions that run `sweepDeadlines` and `sweepTurnAlerts`, and the job that calls

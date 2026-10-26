@@ -30,7 +30,7 @@ function fakeClient(answer: Answer | "throws") {
     return answer;
   };
   const query: Record<string, unknown> = {};
-  for (const name of ["select", "update", "eq", "is", "lt", "lte", "order"])
+  for (const name of ["select", "update", "eq", "is", "lt", "lte", "order", "maybeSingle"])
     query[name] = (...args: unknown[]) => {
       calls.push([name, ...args]);
       return query;
@@ -147,6 +147,32 @@ describe("SupabaseNotifyStore.markSent", () => {
   });
 });
 
+describe("SupabaseNotifyStore.waitingSeq", () => {
+  it("reads waiting_seq from the player's row for the match, only where the seq is the alert's and it is unsent", async () => {
+    const { db, calls } = fakeClient({ data: { waiting_seq: 4 }, error: null });
+    expect(await new SupabaseNotifyStore(db).waitingSeq(alert("m1", ALICE, 2))).toBe(4);
+    expect(calls).toEqual([
+      ["from", "notify_queue"],
+      ["select", "waiting_seq"],
+      ["eq", "match_id", "m1"],
+      ["eq", "player", ALICE],
+      ["eq", "seq", 2],
+      ["is", "sent_at", null],
+      ["maybeSingle"],
+    ]);
+  });
+
+  it("gives null when no such row is found", async () => {
+    const store = new SupabaseNotifyStore(fakeClient({ data: null, error: null }).db);
+    expect(await store.waitingSeq(alert("m1", ALICE, 2))).toBeNull();
+  });
+
+  it("rejects when the row has no whole-number waiting_seq", async () => {
+    const store = new SupabaseNotifyStore(fakeClient({ data: { waiting_seq: "4" }, error: null }).db);
+    expect(shown(await thrown(() => store.waitingSeq(alert("m1", ALICE, 2))))).toContain("waitingSeq");
+  });
+});
+
 describe("SupabaseNotifyStore: a database error rejects with a storage error that shows no row data", () => {
   // A database error that quotes a row, a player id and the key, as a "failing row" detail can.
   const quoting: Answer = {
@@ -159,6 +185,7 @@ describe("SupabaseNotifyStore: a database error rejects with a storage error tha
     keep: (store: SupabaseNotifyStore) => store.keep("m1", ALICE, 3),
     due: (store: SupabaseNotifyStore) => store.due(T + D),
     markSent: (store: SupabaseNotifyStore) => store.markSent(alert("m1", ALICE, 2), T + D),
+    waitingSeq: (store: SupabaseNotifyStore) => store.waitingSeq(alert("m1", ALICE, 2)),
   };
   const cases = Object.keys(steps).flatMap((step) => [
     [step, "a database error", quoting] as const,
@@ -175,11 +202,12 @@ describe("SupabaseNotifyStore: a database error rejects with a storage error tha
     for (const hidden of [ALICE, FAKE_KEY, "bad row", String(T)]) expect(text).not.toContain(hidden);
   });
 
-  it("names the match for seen, keep and markSent, which are about one match", async () => {
+  it("names the match for seen, keep, markSent and waitingSeq, which are about one match", async () => {
     const store = new SupabaseNotifyStore(fakeClient(quoting).db);
     expect(shown(await thrown(() => steps.seen(store)))).toContain("match m1");
     expect(shown(await thrown(() => steps.keep(store)))).toContain("match m1");
     expect(shown(await thrown(() => steps.markSent(store)))).toContain("match m1");
+    expect(shown(await thrown(() => steps.waitingSeq(store)))).toContain("match m1");
   });
 
   it("rejects when due gets an answer that is not a list of rows", async () => {

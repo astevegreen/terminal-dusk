@@ -1,6 +1,7 @@
 import { handSizeError, rulesetError, setupCardsError } from "./cardChecks.ts";
 import { contingencyError, shuffleContingency } from "./contingency.ts";
 import { erasError } from "./eras.ts";
+import { mapError, mapState } from "./mapChecks.ts";
 import { seedRng, shuffle } from "./rng.ts";
 import { seedHash } from "./sha256.ts";
 import { newBudget } from "./stack.ts";
@@ -47,6 +48,8 @@ export function createGame(
   if (badDecks) return { ok: false, error: badDecks };
   const badCards = erasError(setup) ?? setupCardsError(ruleset, setup) ?? handSizeError(ruleset, setup);
   if (badCards) return { ok: false, error: badCards };
+  const badMap = mapError(setup);
+  if (badMap) return { ok: false, error: badMap };
   // The hands keep the setup's order; the turn 1 refill fills them from the draw pile. One generator shuffles the
   // draw pile, then LIO's Contingency deck, then SAE's; this order never changes, so a seed always gives the same game.
   const drawPile = shuffle(seedRng(seed), setup.deck);
@@ -70,6 +73,8 @@ export function createGame(
       triggers: [],
       turnEndFired: false,
       markers: [],
+      // Only a setup with a map adds these two fields, so a game without one starts exactly as before.
+      ...(setup.map === undefined ? {} : mapState(setup.map)),
     },
     private: {
       lio: { hand: [...setup.hands.lio], picks: [], knowledge: [] },

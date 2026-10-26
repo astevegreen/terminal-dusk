@@ -13,7 +13,7 @@ type QueueRow = Omit<AlertRow, "waiting_seq">;
 
 const ALERT_COLUMNS = "match_id, player, seq, queued_at, waiting_seq";
 
-type Step = "queue" | "seen" | "keep" | "due" | "markSent";
+type Step = "queue" | "seen" | "keep" | "due" | "markSent" | "waitingSeq";
 
 /**
  * A turn alert storage failure. Its message names only the step, the match id (for a step about one match)
@@ -128,5 +128,25 @@ export class SupabaseNotifyStore implements NotifyStore {
         .eq("player", alert.player)
         .eq("seq", alert.seq),
     );
+  }
+
+  /** One read of the alert's row, only where its seq is the alert's and it is unsent. */
+  async waitingSeq(alert: TurnAlert): Promise<number | null> {
+    const data = await call("waitingSeq", alert.matchId, () =>
+      this.#db
+        .from("notify_queue")
+        .select("waiting_seq")
+        .eq("match_id", alert.matchId)
+        .eq("player", alert.player)
+        .eq("seq", alert.seq)
+        .is("sent_at", null)
+        .maybeSingle(),
+    );
+    if (data === null) return null;
+    const value = (data as { waiting_seq?: unknown }).waiting_seq;
+    if (!Number.isInteger(value)) {
+      throw new NotifyStorageError("waitingSeq", alert.matchId, "the database gave an unexpected answer");
+    }
+    return value as number;
   }
 }

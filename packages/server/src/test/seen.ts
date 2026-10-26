@@ -48,6 +48,10 @@ export function recordingNotify(inner: NotifyStore, calls: string[]): NotifyStor
       calls.push("markSent");
       return inner.markSent(alert, now);
     },
+    waitingSeq(alert) {
+      calls.push("waitingSeq");
+      return inner.waitingSeq(alert);
+    },
   };
 }
 

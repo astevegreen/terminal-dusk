@@ -35,6 +35,7 @@ const blocked = [
   "cat .env",
   "type .env.local",
   "Get-Content .env",
+  "gh repo view \"$(rm -rf ~/x)\"",
 ];
 
 const allowed = [
@@ -124,8 +125,8 @@ const ghWrites = [
   "gh repo edit --visibility public",
   "gh repo delete o/r --yes",
   "gh repo clone o/r",
-  // Bash runs a command hidden in double quotes before gh sees it.
-  "gh repo view \"$(rm -rf ~/x)\"",
+  // Bash runs a command hidden in double quotes before gh sees it. (With `rm -rf ~/x` inside, it is blocked.)
+  "gh repo view \"$(rm notes.txt)\"",
   "gh repo view \"`rm notes.txt`\"",
   "pnpm gate && gh api -X PUT repos/o/r/topics",
   // Quoting or escaping that bash would join into a method flag.

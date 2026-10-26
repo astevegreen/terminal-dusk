@@ -12,6 +12,8 @@ import {
 import { createLocalMatch } from "./transport/localMatch.ts";
 import { App } from "./App.tsx";
 import type { VsAiGame } from "./vsAi/VsAiScreen.tsx";
+import type { OnlineSetup } from "./online/OnlineScreen.tsx";
+import { webStore } from "./platform/storage.ts";
 
 /** The game against the AI: the real first deck. Test mode keeps its own developer fixture. */
 const firstDeckGame: VsAiGame = {
@@ -22,6 +24,18 @@ const firstDeckGame: VsAiGame = {
   note: FIRST_DECK_NOTE,
 };
 
+/**
+ * Online play: Supabase Auth from Vite's environment and the session kept in localStorage. Left out when either
+ * setting is missing, so the online screen says online play is not set up in this build.
+ */
+function onlineSetup(): OnlineSetup | undefined {
+  const url: unknown = import.meta.env.VITE_SUPABASE_URL;
+  const anonKey: unknown = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  if (typeof url !== "string" || url === "" || typeof anonKey !== "string" || anonKey === "") return undefined;
+  return { auth: { url, anonKey, fetch: (input, init) => fetch(input, init) }, store: webStore(localStorage) };
+}
+const online = onlineSetup();
+
 const randomWords = (count: number): Uint32Array => crypto.getRandomValues(new Uint32Array(count));
 const newSeed = (): string => Array.from(randomWords(4), (n) => n.toString(16).padStart(8, "0")).join("");
 const newAiSeed = (): number => randomWords(1)[0] ?? 0;
@@ -30,6 +44,12 @@ const root = document.getElementById("root");
 if (!root) throw new Error("index.html has no #root element");
 createRoot(root).render(
   <StrictMode>
-    <App clock={() => Date.now()} newSeed={newSeed} newAiSeed={newAiSeed} game={firstDeckGame} />
+    <App
+      clock={() => Date.now()}
+      newSeed={newSeed}
+      newAiSeed={newAiSeed}
+      game={firstDeckGame}
+      {...(online ? { online } : {})}
+    />
   </StrictMode>,
 );
