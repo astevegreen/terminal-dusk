@@ -48,10 +48,11 @@ export function canonical(value: unknown): string {
  */
 export function leaksFor(text: string, secret: MatchSecret, viewer: Side): string[] {
   const state: MatchSecret["state"] = secret.state;
-  const ownHand = new Set(state.private[viewer].hand);
+  // The viewer's own hand and its own knowledge (the rival's cards it has been shown) are not hidden from it.
+  const own = new Set([...state.private[viewer].hand, ...state.private[viewer].knowledge]);
   const found = leaksIn(text, secret).filter((leak) => {
     const card = /^card "(.*)"$/.exec(leak)?.[1];
-    return card === undefined || !ownHand.has(card);
+    return card === undefined || !own.has(card);
   });
   for (const side of SIDES.filter((s) => s !== viewer)) {
     const rival = state.private[side];
