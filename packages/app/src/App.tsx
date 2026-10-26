@@ -30,18 +30,30 @@ export function App({ clock, newSeed, newAiSeed, game, online, timers = realTime
   if (screen === "testMode") return <TestModeScreen clock={clock} />;
   if (screen === "vsAi")
     return <VsAiScreen clock={clock} newSeed={newSeed} newAiSeed={newAiSeed} {...(game ? { game } : {})} />;
-  if (screen === "online")
-    return (
-      <OnlineScreen
-        online={online}
-        clock={clock}
-        timers={timers}
-        label={game?.cardName}
-        question={game?.cardQuestion}
-        onBack={() => setScreen("home")}
-      />
-    );
+  if (screen === "online") return onlineRoute({ clock, game, online, timers }, () => setScreen("home"));
   return <Home onPick={setScreen} />;
+}
+
+/** The online screen as the app opens it: with the game's card names and questions and the app's timers. */
+export function onlineRoute(
+  {
+    clock,
+    game,
+    online,
+    timers,
+  }: Readonly<{ clock: () => number; game?: VsAiGame | undefined; online?: OnlineSetup | undefined; timers: Timers }>,
+  onBack: () => void,
+) {
+  return (
+    <OnlineScreen
+      online={online}
+      clock={clock}
+      timers={timers}
+      label={game?.cardName}
+      question={game?.cardQuestion}
+      onBack={onBack}
+    />
+  );
 }
 
 /** The home screen's buttons; `onPick` opens the chosen screen. */

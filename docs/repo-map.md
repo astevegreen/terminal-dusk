@@ -55,7 +55,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/package.json`
 - `packages/app/playwright.config.ts` - Playwright smoke tests (`pnpm test:e2e`), kept apart from Vitest: their files end in .e2e.ts. Exports: default.
 - `packages/app/src/App.test.tsx`
-- `packages/app/src/App.tsx` - The home screen: the game's name, a button to play against the AI, a button to play online and a button into developer test mode. Exports: AppProps, App, Home.
+- `packages/app/src/App.tsx` - The home screen: the game's name, a button to play against the AI, a button to play online and a button into developer test mode. Exports: AppProps, App, onlineRoute, Home.
 - `packages/app/src/decisionPrompts.test.tsx`
 - `packages/app/src/decisionPrompts.tsx` - One prompt component per DecisionKind. Exports: CardQuestion, PromptProps, PromptComponent, askingCard, decisionPrompts.
 - `packages/app/src/eventPresentation.test.ts`
