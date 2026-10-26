@@ -10,6 +10,7 @@ export { DECKS, SIDES } from "./types.ts";
 export { verifyGame } from "./verifyGame.ts";
 export { hiddenPart, reconstruct, viewFor } from "./views.ts";
 export type {
+  ActionOptions,
   ActiveModifier,
   ActiveTrigger,
   Answer,
@@ -65,11 +66,14 @@ export type {
   PlayerView,
   PlayUse,
   PlayUses,
+  PointsAction,
   PointsSpent,
   PrivateState,
   PublicEvent,
   PublicMeta,
   PublicState,
+  Realigned,
+  RealignOptions,
   Region,
   RegionId,
   ReplayViewer,

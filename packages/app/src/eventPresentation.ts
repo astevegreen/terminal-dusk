@@ -32,6 +32,11 @@ export const eventPresentation: EventPresentation = {
     log: (event) =>
       `${event.side} placed 1 influence in ${event.country} for ${event.cost} point${event.cost === 1 ? "" : "s"}.`,
   },
+  realigned: {
+    log: (event) =>
+      `${event.side} realigned in ${event.country}: lio ${event.totals.lio}, sae ${event.totals.sae}. ` +
+      (event.loser === null ? "A tie: nothing changed." : `${event.loser} lost ${event.removed} influence.`),
+  },
   drawPileReshuffled: {
     log: (event) => `The draw pile ran out: ${event.cards} discarded cards were shuffled into a new one.`,
   },

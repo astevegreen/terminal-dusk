@@ -30,10 +30,14 @@ import type { CardsDiscarded, HandRevealed, HandRevealedHidden } from "./knowled
 export type { CardsDiscarded, HandRevealed, HandRevealedHidden } from "./knowledgeTypes.ts";
 import type { EraEntry } from "./setupTypes.ts";
 export type { EraEntry, Setup } from "./setupTypes.ts";
-import type { CountryId, GameMap, InfluenceEntry } from "./mapTypes.ts";
+import type { GameMap, InfluenceEntry } from "./mapTypes.ts";
 export type { Country, CountryId, GameMap, InfluenceEntry, Region, RegionId, SetupMap } from "./mapTypes.ts";
-import type { InfluencePlaced, PlaceOptions, PointsSpent } from "./placingTypes.ts";
+import type { InfluencePlaced, PointsSpent } from "./placingTypes.ts";
 export type { InfluencePlaced, PlaceOptions, PointsSpent } from "./placingTypes.ts";
+import type { Realigned } from "./realignTypes.ts";
+export type { ActionOptions, PointsAction, Realigned, RealignOptions } from "./realignTypes.ts";
+import type { AnswerValue, Decision } from "./decisionTypes.ts";
+export type { AnswerValue, Decision, DecisionKind, DecisionOptions, PlayUse, PlayUses } from "./decisionTypes.ts";
 
 export type Side = "lio" | "sae";
 /** Both sides, in the one order the engine always loops in. */
@@ -134,6 +138,7 @@ export type PublicEvent =
   | MarkerEvent
   | PointsSpent
   | InfluencePlaced
+  | Realigned
   | EraStarted
   | DrawPileReshuffled
   | ContingencyDrawn
@@ -151,52 +156,6 @@ export type PublicEvent =
 export type GameEvent = CardDrawn | HandRevealed | PublicEvent;
 export type EventKind = GameEvent["kind"];
 
-/**
- * `chooseCard`: both sides secretly pick their opening card for the turn. `playCardAs`: one side plays a
- * card from its hand for its event or its points. `rivalEventOrder`: having played a rival's card for
- * its points, that side says whether the card's event happens before or after the points. `discardCards`: a
- * side picks the cards a discardFromHand step discards, from its own hand or the rival's (discardChoice.ts).
- * `placeInfluence`: a side spending points places one influence in a country (placing.ts).
- */
-export type DecisionKind =
-  "yesNo" | "chooseCard" | "playCardAs" | "rivalEventOrder" | "discardCards" | "placeInfluence";
-/** What a played card is used for: its event, or its action points. */
-export type PlayUse = "event" | "points";
-/** The uses a play allows, by whose card it is: the player's own, the rival's, or neutral. */
-export type PlayUses = { own: PlayUse[]; rival: PlayUse[]; neutral: PlayUse[] };
-/**
- * Declarative description of what is legal. Never lists hidden data such as card IDs from a hand. A
- * yes/no or a rivalEventOrder has none; the opening pick says "any card from your hand", neutral ones
- * too; a play says "a card from your hand" and the uses each kind of card allows; a discard pick says whose
- * hand, the picker's own or the rival's, and how many cards; a placing says the points left and the countries.
- */
-export type DecisionOptions =
-  | Record<string, never>
-  | { from: "hand" }
-  | { from: "hand"; uses: PlayUses }
-  | { from: "hand" | "rivalHand"; count: number }
-  | PlaceOptions;
-export type Decision = {
-  /** Unique within the game; answers quote it. */
-  id: string;
-  /** Who must answer. */
-  side: Side;
-  kind: DecisionKind;
-  options: DecisionOptions;
-  /**
-   * Set when both sides answer at once and in secret: the group both decisions share. Each answer
-   * stays in the answering side's private compartment until the other side's is in.
-   */
-  simultaneousGroup?: string;
-};
-
-export type AnswerValue =
-  | { kind: "yesNo"; yes: boolean }
-  | { kind: "chooseCard"; card: CardId }
-  | { kind: "playCardAs"; card: CardId; as: PlayUse }
-  | { kind: "rivalEventOrder"; event: "before" | "after" }
-  | { kind: "discardCards"; cards: CardId[] }
-  | { kind: "placeInfluence"; country: CountryId };
 /** A timeout naming "both" is a simultaneous pick missed by both sides: a draw. */
 export type Answer =
   | { decisionId: string; side: Side; value: AnswerValue }
@@ -230,7 +189,8 @@ export type Condition =
  * A card choice is only ever both sides at once: the turn's opening pick (turn.ts). Card effects may
  * not hold one (cardChecks.ts): a `choose` in an effect asks yes/no only, and the one other way an effect
  * asks a side to pick cards is a `discardFromHand` with `chosenBy`, to discard them. `spendPoints` is how a play
- * for points spends them (turn.ts): `side` places influence with them, one placeInfluence decision a time (placing.ts). `drawContingency`
+ * for points spends them (turn.ts): `side` spends them all on one action of the menu (actionMenu.ts), placing influence one
+ * placeInfluence decision a time (placing.ts) or realigning one realign decision a time (realign.ts). `drawContingency`
  * draws from `side`'s Contingency deck (an LIO or SAE card may name either deck) and
  * binds the number to `bind`, if given. `side` "player" is the side that played the card: a neutral
  * event's draws, and only theirs, name it (docs/design/contingency-deck.md, cardChecks.ts). A rival's

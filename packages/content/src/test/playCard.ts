@@ -246,6 +246,9 @@ export function playCardDef(def: CardDef, options: PlayOptions = {}): string[] {
       step({ decisionId: d.id, side: d.side, value: { kind: "yesNo", yes } });
     } else if (d.kind === "rivalEventOrder") {
       step({ decisionId: d.id, side: d.side, value: { kind: "rivalEventOrder", event: "before" } });
+    } else if (d.kind === "chooseAction") {
+      // Points always go to placing (R16c's action menu); the story leaves the choice out.
+      step({ decisionId: d.id, side: d.side, value: { kind: "chooseAction", action: "place" } });
     } else if (d.kind === "placeInfluence") {
       // Points are placed in the first country the side may place in (R16a); the story leaves the placings out.
       step({ decisionId: d.id, side: d.side, value: legalAnswers(ruleset, state, d.side)[0]! });

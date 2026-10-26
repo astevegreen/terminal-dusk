@@ -22,6 +22,7 @@ describe("eventPresentation", () => {
       "modifierEnded",
       "modifierStarted",
       "pointsSpent",
+      "realigned",
       "triggerEnded",
       "triggerFired",
       "triggerSet",
@@ -113,6 +114,30 @@ describe("eventPresentation", () => {
       cost: 2,
     });
     expect(line).toBe("sae placed 1 influence in charlie for 2 points.");
+  });
+  it("logs a realignment with the side, the country, both totals and what the loser lost", () => {
+    const line = eventPresentation.realigned.log({
+      kind: "realigned",
+      visibility: "public",
+      side: "lio",
+      country: "delta",
+      totals: { lio: 6, sae: 4 },
+      loser: "sae",
+      removed: 2,
+    });
+    expect(line).toBe("lio realigned in delta: lio 6, sae 4. sae lost 2 influence.");
+  });
+  it("logs a tied realignment as changing nothing", () => {
+    const line = eventPresentation.realigned.log({
+      kind: "realigned",
+      visibility: "public",
+      side: "sae",
+      country: "charlie",
+      totals: { lio: 4, sae: 4 },
+      loser: null,
+      removed: 0,
+    });
+    expect(line).toBe("sae realigned in charlie: lio 4, sae 4. A tie: nothing changed.");
   });
   it("logs a reshuffled draw pile with how many cards it got back, never which", () => {
     const line = eventPresentation.drawPileReshuffled.log({

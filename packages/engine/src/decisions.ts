@@ -1,5 +1,5 @@
 // Pending decisions: building them, finding the one a side must answer, and listing its legal answers.
-import { affordable } from "./influence.ts";
+import { affordable, realignTargets } from "./influence.ts";
 import { otherSide, SIDES } from "./types.ts";
 import type {
   AnswerValue,
@@ -12,6 +12,7 @@ import type {
   GameState,
   PlayUse,
   PlayUses,
+  PointsAction,
   Ruleset,
   Side,
 } from "./types.ts";
@@ -30,10 +31,10 @@ export function whoseCard(card: CardDef | undefined, side: Side): keyof PlayUses
 }
 
 /**
- * The kinds of decision whose options follow from the kind alone: all but a discard pick (newDiscardDecision)
- * and a placing (newPlaceDecision).
+ * The kinds of decision whose options follow from the kind alone: all but a discard pick (newDiscardDecision),
+ * a placing (newPlaceDecision), the action menu (newActionDecision) and a realignment (newRealignDecision).
  */
-type PlainKind = Exclude<DecisionKind, "discardCards" | "placeInfluence">;
+type PlainKind = Exclude<DecisionKind, "discardCards" | "placeInfluence" | "chooseAction" | "realign">;
 
 /**
  * What a decision of `kind` allows, said without card IDs: a yes/no or a rivalEventOrder has no
@@ -71,6 +72,22 @@ export function newDiscardDecision(seq: number, side: Side, from: "hand" | "riva
  */
 export function newPlaceDecision(seq: number, side: Side, points: number, countries: CountryId[]): Decision {
   return { id: `d${seq}`, side, kind: "placeInfluence", options: { points, countries } };
+}
+
+/**
+ * A new action menu (R16c): `side` picks which of `actions` all its `points` go to. Its ID comes from `seq`, as
+ * for newDecision.
+ */
+export function newActionDecision(seq: number, side: Side, points: number, actions: PointsAction[]): Decision {
+  return { id: `d${seq}`, side, kind: "chooseAction", options: { points, actions } };
+}
+
+/**
+ * A new realignment attempt (R16c): `side` picks one of `targets` with `attempts` left, this one included. Its ID
+ * comes from `seq`, as for newDecision.
+ */
+export function newRealignDecision(seq: number, side: Side, attempts: number, targets: CountryId[]): Decision {
+  return { id: `d${seq}`, side, kind: "realign", options: { attempts, targets } };
 }
 
 /** A new simultaneous group: one decision per side, in SIDES order, sharing the group `g<seq>`. */
@@ -121,9 +138,20 @@ export function legalAnswers(ruleset: Ruleset, state: GameState, side: Side): An
     }
     case "placeInfluence": {
       const { options } = decision;
-      if (!("points" in options)) return [];
+      if (!("countries" in options)) return [];
       const countries = affordable(state.public, side, options.countries, options.points);
       return countries.map((country) => ({ kind: "placeInfluence", country }));
+    }
+    case "chooseAction": {
+      const { options } = decision;
+      if (!("actions" in options)) return [];
+      return options.actions.map((action) => ({ kind: "chooseAction", action }));
+    }
+    case "realign": {
+      const { options } = decision;
+      if (!("targets" in options)) return [];
+      const now = realignTargets(state.public, side);
+      return options.targets.filter((c) => now.includes(c)).map((country) => ({ kind: "realign", country }));
     }
   }
 }

@@ -8,6 +8,7 @@ import type {
   CardId,
   Decision,
   PlayUse,
+  PointsAction,
   DecisionKind,
   Frame as StackFrame,
   Side,
@@ -212,6 +213,46 @@ function PlaceInfluencePrompt({ decision, onAnswer }: Readonly<PromptProps>) {
   );
 }
 
+const ACTION_TEXT: Record<PointsAction, string> = { place: "Place influence", realign: "Realign" };
+
+/** The action menu (R16c): one choice per action the decision lists, with the points in the question. */
+function ChooseActionPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
+  const options = decision.options;
+  const points = "actions" in options ? options.points : 0;
+  const actions = "actions" in options ? options.actions : [];
+  const choices: Choice[] = actions.map((action) => ({
+    text: ACTION_TEXT[action],
+    value: { kind: "chooseAction", action },
+  }));
+  return (
+    <Choices
+      decision={decision}
+      question={`${decision.side}: spend ${points} point${points === 1 ? "" : "s"} on`}
+      choices={choices}
+      onAnswer={onAnswer}
+    />
+  );
+}
+
+/** A realignment attempt (R16c): one choice per country the decision lists, with the attempts left in the question. */
+function RealignPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
+  const options = decision.options;
+  const attempts = "targets" in options ? options.attempts : 0;
+  const targets = "targets" in options ? options.targets : [];
+  const choices: Choice[] = targets.map((country) => ({
+    text: `Realign in ${country}`,
+    value: { kind: "realign", country },
+  }));
+  return (
+    <Choices
+      decision={decision}
+      question={`${decision.side}: realign (${attempts} attempt${attempts === 1 ? "" : "s"} left)`}
+      choices={choices}
+      onAnswer={onAnswer}
+    />
+  );
+}
+
 export const decisionPrompts: Record<DecisionKind, PromptComponent> = {
   yesNo: YesNoPrompt,
   chooseCard: ChooseCardPrompt,
@@ -219,4 +260,6 @@ export const decisionPrompts: Record<DecisionKind, PromptComponent> = {
   rivalEventOrder: RivalEventOrderPrompt,
   discardCards: DiscardCardsPrompt,
   placeInfluence: PlaceInfluencePrompt,
+  chooseAction: ChooseActionPrompt,
+  realign: RealignPrompt,
 };

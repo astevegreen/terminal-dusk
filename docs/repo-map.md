@@ -124,6 +124,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/placeInfluencePrompt.test.tsx` - The placeInfluence prompt (R16a, #315): one choice per country a placing lists.
 - `packages/app/src/platform/storage.test.ts`
 - `packages/app/src/platform/storage.ts` - The `storage` part of the Platform interface (docs/architecture.md, Decision 7): a small async key-value store, so a Capacitor implementation fits later. Exports: KeyValueStore, StorageLike, memoryStore, webStore.
+- `packages/app/src/realignPrompts.test.tsx` - The action menu and realign prompts (R16c, #317): one choice per action, and one per country to realign in.
 - `packages/app/src/replay/ReplayScreen.test.tsx`
 - `packages/app/src/replay/ReplayScreen.tsx` - The replay viewer: steps through a finished game's recorded frames, both hands showing. Exports: ReplayScreenProps, ReplayView, ReplayScreen.
 - `packages/app/src/replay/recording.test.ts`
@@ -417,6 +418,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## packages/engine - Pure rules engine: game state, decisions, events and views. Imports nothing outside itself.
 
 - `packages/engine/package.json`
+- `packages/engine/src/actionMenu.ts` - The action menu (R16c, #317; docs/design/map-and-points.md, "Points and actions" and "Event points"). Exports: runSpendPoints, resumePoints.
 - `packages/engine/src/apply.property.test.ts` - Property test: random streams of good and bad answers keep the engine's invariants, and every answer gets exactly the outcome the rules call for (accepted, or…
 - `packages/engine/src/apply.test.ts`
 - `packages/engine/src/apply.timeout.test.ts` - A timeout ends the game as a loss on time for the side that was late (architecture Decision 1, "System actions").
@@ -437,8 +439,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/createGame.test.ts`
 - `packages/engine/src/createGame.ts` - Exports: createGame.
 - `packages/engine/src/createGameMap.test.ts` - A game started with a map keeps it, and every country's influence, in the public compartment only.
+- `packages/engine/src/decisionTypes.ts` - The types of pending decisions and their answers (decisions.ts). Exports: DecisionKind, PlayUse, PlayUses, DecisionOptions, Decision, AnswerValue.
 - `packages/engine/src/decisions.test.ts`
-- `packages/engine/src/decisions.ts` - Pending decisions: building them, finding the one a side must answer, and listing its legal answers. Exports: whoseCard, newDecision, newDiscardDecision, newPlaceDecision, newGroup, pendingFor, legalAnswers.
+- `packages/engine/src/decisions.ts` - Pending decisions: building them, finding the one a side must answer, and listing its legal answers. Exports: whoseCard, newDecision, newDiscardDecision, newPlaceDecision, newActionDecision, newRealignDecision, newGroup, pendingFor, legalAnswers.
 - `packages/engine/src/discard.property.test.ts` - Property test (#186): for random hands, counts and generator states, a discardFromHand takes exactly min(count, hand size) distinct cards from the hand, all of…
 - `packages/engine/src/discard.test.ts` - The discardFromHand step (#186): a side discards cards from its hand, chosen at random with the seeded generator, to the discard pile and without their events.
 - `packages/engine/src/discard.ts` - The discardFromHand step: a side discards cards from its hand, chosen at random with the game's seeded generator (owner, 21 Oct 2026). Exports: discardFromHand, discardChosen.
@@ -460,7 +463,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/index.test.ts`
 - `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, closedRegions, isRegionClosed, createGame, legalAnswers, pendingFor, eventsFor, controller, placementCost, seedHash, DECKS, SIDES, ….
 - `packages/engine/src/influence.test.ts` - R15: who controls a country, what one influence costs to place, and adding and removing influence (docs/design/map-and-points.md, "Influence").
-- `packages/engine/src/influence.ts` - The influence rules (docs/design/map-and-points.md, "Influence"): who controls a country, whether a side may place one influence there and at what cost, and ad… Exports: controller, placementCost, reachable, affordable, costNow, addInfluence, removeInfluence.
+- `packages/engine/src/influence.ts` - The influence rules (docs/design/map-and-points.md, "Influence"): who controls a country, whether a side may place one influence there and at what cost, and ad… Exports: controller, placementCost, reachable, affordable, realignTargets, costNow, addInfluence, removeInfluence.
 - `packages/engine/src/knowledge.property.test.ts` - Property test (#184): in random games where cards show hands (revealHand), each side's knowledge always lists, each once, only cards still in the rival's hand,…
 - `packages/engine/src/knowledge.ts` - Knowledge: the rival's cards a side has been shown (docs/architecture.md, section 3), kept in that side's own private compartment while they stay in the rival'… Exports: revealHand, forgetCard.
 - `packages/engine/src/knowledgeTypes.ts` - The events of the steps that look at or take from a hand: revealHand (knowledge.ts) and discardFromHand (discard.ts). Exports: HandRevealedHidden, HandRevealed, CardsDiscarded.
@@ -476,12 +479,15 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/numberSteps.test.ts` - Number tests (atLeast, atMost, equals) and the addToNumber step (#74): a card changes the number a Contingency draw gave and branches on the result.
 - `packages/engine/src/omniscient.test.ts` - The omniscient viewer: everything except the secret compartment, for replays of finished games.
 - `packages/engine/src/placing.test.ts` - R16a (#315): points spent on placing influence (docs/design/map-and-points.md, "Influence", "Points and actions", "Event points").
-- `packages/engine/src/placing.ts` - Spending points on placing influence (R16a; docs/design/map-and-points.md, "Influence", "Points and actions" and "Event points"). Exports: runSpendPoints, resumePlacement.
+- `packages/engine/src/placing.ts` - Spending points on placing influence (R16a; docs/design/map-and-points.md, "Influence", "Points and actions" and "Event points"). Exports: resumePlacement, offerPlacement.
 - `packages/engine/src/placingTypes.ts` - The types of spending points on placing influence (R16a; docs/design/map-and-points.md, "Influence" and "Points and actions"). Exports: PlaceOptions, PointsSpent, InfluencePlaced.
 - `packages/engine/src/play.property.test.ts` - Property test: in random games with rival and neutral plays, neutral cards drawing from the player's deck included, every card is always in exactly one place,…
 - `packages/engine/src/play.test.ts` - Playing a card for its event or its points, and the rival-card rules (#36).
 - `packages/engine/src/playedBy.property.test.ts` - Property test (#169): in random games where LIO, SAE and neutral cards hold `if playedBy` steps (some nested, some in a trigger's reaction, some after a choice…
 - `packages/engine/src/playedBy.test.ts` - The playedBy condition (#169): an if is true exactly when the side that picked or played the card, as recorded on the running program (#117), is the side it na…
+- `packages/engine/src/realign.test.ts` - R16c (#317): the action menu and realigning (docs/design/map-and-points.md, "Points and actions" 2; owner, 26 Oct, "approved as recommended").
+- `packages/engine/src/realign.ts` - Spending points on realigning (R16c, #317; docs/design/map-and-points.md, "Points and actions" 2). Exports: realignBonus, offerRealign, resumeRealign.
+- `packages/engine/src/realignTypes.ts` - The types of the action menu and of realigning (R16c, #317; docs/design/map-and-points.md, "Points and actions"). Exports: PointsAction, ActionOptions, RealignOptions, Realigned.
 - `packages/engine/src/refill.property.test.ts` - Property test for refilling hands (docs/design/core-loop.md, "Refilling hands"): in random games of random sizes, with an era entering on turn 2 and the draw p…
 - `packages/engine/src/refill.test.ts` - Refilling hands (docs/design/core-loop.md, "Refilling hands"): at each turn's start both sides draw up to the hand size from one shared draw pile, after a new…
 - `packages/engine/src/refill.ts` - Refilling hands (docs/design/core-loop.md, "Refilling hands"). Exports: refillHands.
@@ -501,7 +507,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
 - `packages/engine/src/test/game.ts` - Test helpers: a started game, answers for it, and small programs for the stack. Exports: testCard, rulesetWith, ruleset, sideCard, withCards, makeSetup, setupPlus, startGame, startAtPlay, cardAnswer, playAnswer, orderAnswer, ….
 - `packages/engine/src/test/map.ts` - A small made-up map for engine tests: three regions, five countries in a ring with one cross link, and one country on its own. Exports: testMap, mapSetup.
-- `packages/engine/src/test/placing.ts` - Test helper: finishing the placings a play for points asks for in a game with a map (R16a, placing.ts). Exports: placeAll.
+- `packages/engine/src/test/placing.ts` - Test helper: finishing the placings a play for points asks for in a game with a map (R16a, placing.ts), picking "place" on the action menu when it is offered (… Exports: placeAll.
 - `packages/engine/src/test/sort.ts` - Test helper: the sort order the tests use for object keys and card ids. Exports: byCodeUnit.
 - `packages/engine/src/triggerFilter.test.ts` - A trigger's filter and once (#189): a trigger that reacts only to one side's plays, or only while a lasting marker is set, and a trigger that fires at most onc…
 - `packages/engine/src/triggerFilterChecks.test.ts` - createGame's checks of a trigger's filter and once (#189): badTrigger, and the ruleset check that a has names a marker some card sets, which reads a trigger's…
