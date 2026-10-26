@@ -22,6 +22,7 @@ const firstDeckGame: VsAiGame = {
   makeMatch: (seed, clock) => createLocalMatch(firstDeckRuleset, firstDeckConfig(), seed, clock),
   cardName: firstDeckCardName,
   cardQuestion: firstDeckCardQuestion,
+  cardAffiliation: (id) => firstDeckRuleset.cards.find((card) => card.id === id)?.affiliation,
   note: FIRST_DECK_NOTE,
 };
 

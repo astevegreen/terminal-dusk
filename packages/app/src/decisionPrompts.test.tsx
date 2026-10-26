@@ -1,5 +1,5 @@
 import { createElement } from "react";
-import type { AnswerValue, Decision, DecisionOptions, Frame as StackFrame } from "@terminal-dusk/engine";
+import type { AnswerValue, Decision, DecisionOptions, Frame as StackFrame, Side } from "@terminal-dusk/engine";
 import { firstDeckCardName, firstDeckCardQuestion } from "@terminal-dusk/host/first-deck";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
@@ -28,6 +28,7 @@ function pressAll(d: Decision, hand: string[], known: string[] = []) {
     hand,
     known,
     label,
+    affiliation: () => "sae", // every card is the deciding side's own (the side is "sae" unless a test says otherwise)
     stack: [],
     question: noQuestion,
     onAnswer: (v) => sent.push(v),
@@ -39,7 +40,15 @@ function pressAll(d: Decision, hand: string[], known: string[] = []) {
 const readOnly = (d: Decision, hand: string[], known: string[] = []) => {
   const Prompt = decisionPrompts[d.kind];
   return renderToString(
-    <Prompt decision={d} hand={hand} known={known} label={label} stack={[]} question={noQuestion} />,
+    <Prompt
+      decision={d}
+      hand={hand}
+      known={known}
+      label={label}
+      affiliation={() => "sae"}
+      stack={[]}
+      question={noQuestion}
+    />,
   );
 };
 
@@ -71,6 +80,56 @@ describe("decisionPrompts with an onAnswer", () => {
       ],
     });
   });
+  describe("playCardAs offers each card only the uses its kind allows (#381)", () => {
+    // The engine's rule: your own and a neutral card may be played for the event or the points, a rival's for the points only.
+    const rules: DecisionOptions = {
+      from: "hand",
+      uses: { own: ["event", "points"], rival: ["points"], neutral: ["event", "points"] },
+    };
+    const affiliation = (card: string) => ({ mine: "sae", theirs: "lio", nobody: "neutral" })[card] as Side | "neutral";
+    const offered = (card: string) => {
+      const props: PromptProps = {
+        decision: decision("playCardAs", rules, "sae"),
+        hand: [card],
+        known: [],
+        label,
+        affiliation,
+        stack: [],
+        question: noQuestion,
+        onAnswer: () => {},
+      };
+      return buttonsOf(createElement(decisionPrompts.playCardAs, props)).map((b) => b.text);
+    };
+    it("offers event and points for the player's own card", () => {
+      expect(offered("mine")).toEqual(["Card mine: event", "Card mine: points"]);
+    });
+    it("offers points only for a rival's card", () => {
+      expect(offered("theirs")).toEqual(["Card theirs: points"]);
+    });
+    it("offers event and points for a neutral card", () => {
+      expect(offered("nobody")).toEqual(["Card nobody: event", "Card nobody: points"]);
+    });
+    it("offers what the decision says for the card's kind, not a fixed table", () => {
+      const props: PromptProps = {
+        decision: decision(
+          "playCardAs",
+          { from: "hand", uses: { own: ["points"], rival: ["event"], neutral: [] } },
+          "lio",
+        ),
+        hand: ["mine", "theirs", "nobody"],
+        known: [],
+        label,
+        affiliation,
+        stack: [],
+        question: noQuestion,
+        onAnswer: () => {},
+      };
+      expect(buttonsOf(createElement(decisionPrompts.playCardAs, props)).map((b) => b.text)).toEqual([
+        "Card mine: event",
+        "Card theirs: points",
+      ]);
+    });
+  });
   it("playCardAs offers only the uses that appear in the decision", () => {
     const d = decision("playCardAs", { from: "hand", uses: { own: ["points"], rival: ["points"], neutral: [] } });
     expect(pressAll(d, ["a"]).texts).toEqual(["Card a: points"]);
@@ -92,6 +151,7 @@ describe("decisionPrompts with an onAnswer", () => {
         known={[]}
         label={label}
         stack={[]}
+        affiliation={() => "sae"}
         question={noQuestion}
         onAnswer={() => {}}
       />,
@@ -122,6 +182,7 @@ describe("the yes/no prompt names the card that asks and its question", () => {
         label={firstDeckCardName}
         stack={stack}
         question={firstDeckCardQuestion}
+        affiliation={() => "sae"}
         {...(onAnswer ? { onAnswer } : {})}
       />,
     );
@@ -153,6 +214,7 @@ describe("the yes/no prompt names the card that asks and its question", () => {
       label: firstDeckCardName,
       stack: [program(asked)],
       question: firstDeckCardQuestion,
+      affiliation: () => "sae",
       onAnswer: (v) => sent.push(v),
     };
     const buttons = buttonsOf(createElement(decisionPrompts.yesNo, props));
@@ -244,7 +306,16 @@ describe("each prompt is a group named by its question", () => {
   const answerable = (d: Decision, hand: string[]) => {
     const Prompt = decisionPrompts[d.kind];
     return renderToString(
-      <Prompt decision={d} hand={hand} known={[]} label={label} stack={[]} question={noQuestion} onAnswer={() => {}} />,
+      <Prompt
+        decision={d}
+        hand={hand}
+        known={[]}
+        label={label}
+        affiliation={() => "sae"}
+        stack={[]}
+        question={noQuestion}
+        onAnswer={() => {}}
+      />,
     );
   };
   const opening = (id: string, side: Decision["side"]): Decision => ({

@@ -7,8 +7,8 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import type { ReactElement } from "react";
 import type { CardId } from "@terminal-dusk/engine";
 import type { Platform } from "@terminal-dusk/host";
-import type { CardQuestion } from "../decisionPrompts.tsx";
-import { cardName, cardQuestion } from "../testMode/fixture.ts";
+import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
+import { cardAffiliation as fixtureAffiliation, cardName, cardQuestion } from "../testMode/fixture.ts";
 import type { AuthEndpoint } from "../transport/emailAuth.ts";
 import type { KeyValueStore } from "../platform/storage.ts";
 import { createLobbySession } from "./lobbySession.ts";
@@ -170,6 +170,7 @@ export type OnlineScreenProps = {
   /** How cards are named and asked about; the developer fixture's when left out, as for the game against the AI. */
   label?: ((id: CardId) => string) | undefined;
   question?: CardQuestion | undefined;
+  affiliation?: CardAffiliation | undefined;
   /** Returns to the home screen. */
   onBack: () => void;
 };
@@ -180,8 +181,19 @@ export function OnlineScreen({
   timers,
   label = cardName,
   question = cardQuestion,
+  affiliation = fixtureAffiliation,
   onBack,
 }: Readonly<OnlineScreenProps>) {
   if (!online) return <SignInView snapshot={NOT_SET_UP_SNAPSHOT} actions={null} onBack={onBack} />;
-  return <SetUpFlow online={online} clock={clock} timers={timers} label={label} question={question} onBack={onBack} />;
+  return (
+    <SetUpFlow
+      online={online}
+      clock={clock}
+      timers={timers}
+      label={label}
+      question={question}
+      affiliation={affiliation}
+      onBack={onBack}
+    />
+  );
 }

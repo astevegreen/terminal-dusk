@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import type { Frame } from "@terminal-dusk/host";
 import { GameScreen } from "../game/GameScreen.tsx";
 import type { GameScreenProps } from "../game/GameScreen.tsx";
-import { cardName, cardQuestion } from "../testMode/fixture.ts";
+import { cardAffiliation, cardName, cardQuestion } from "../testMode/fixture.ts";
 import { nextMove, settle } from "../transport/test/remoteGame.ts";
 import type { OnlineGameSnapshot } from "./onlineGame.ts";
 import { LOADING_SNAPSHOT } from "./OnlineGameScreen.tsx";
@@ -28,6 +28,7 @@ const view = (snapshot: OnlineGameSnapshot, game: OnlineGameActions | null, call
     game={game}
     label={cardName}
     question={cardQuestion}
+    affiliation={cardAffiliation}
     onBack={() => {
       if (calls) calls.back++;
     }}
@@ -51,7 +52,16 @@ function gameScreenIn(node: ReactNode): ReactElement<GameScreenProps> | null {
   return gameScreenIn((node.props as { children?: ReactNode }).children);
 }
 const shown = (snapshot: OnlineGameSnapshot, game: OnlineGameActions | null) =>
-  gameScreenIn(OnlineGameView({ snapshot, game, label: cardName, question: cardQuestion, onBack: () => {} }));
+  gameScreenIn(
+    OnlineGameView({
+      snapshot,
+      game,
+      label: cardName,
+      question: cardQuestion,
+      affiliation: cardAffiliation,
+      onBack: () => {},
+    }),
+  );
 
 const started = async (player = "alice", clock = clockWith({ lio: null, sae: null })) => {
   const r = onlineRig(player, { clock });

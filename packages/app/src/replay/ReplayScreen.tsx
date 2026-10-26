@@ -5,7 +5,7 @@ import type { CardId, EraId, GameStatus, Side } from "@terminal-dusk/engine";
 import type { ReplayFrame } from "@terminal-dusk/host";
 import { useState } from "react";
 import { decisionPrompts } from "../decisionPrompts.tsx";
-import type { CardQuestion } from "../decisionPrompts.tsx";
+import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
 import { Contingency, Log, Region, Table } from "../game/regions.tsx";
 import type { Label } from "../game/regions.tsx";
 import { logLine } from "../testMode/session.ts";
@@ -17,6 +17,7 @@ export type ReplayScreenProps = {
   label: (card: CardId) => string;
   /** A card's yes/no question, for the read-only prompts. Display data only. */
   question: CardQuestion;
+  affiliation: CardAffiliation;
   onClose: () => void;
 };
 
@@ -84,7 +85,13 @@ function OpenDecisions({
   frame,
   label,
   question,
-}: Readonly<{ frame: ReplayFrame; label: Label; question: CardQuestion }>) {
+  affiliation,
+}: Readonly<{
+  frame: ReplayFrame;
+  label: Label;
+  question: CardQuestion;
+  affiliation: CardAffiliation;
+}>) {
   const { pending, stack } = frame.view.public;
   return (
     <Region id="decision" title="Open decisions">
@@ -99,6 +106,7 @@ function OpenDecisions({
             label={label}
             stack={stack}
             question={question}
+            affiliation={affiliation}
           />
         );
       })}
@@ -111,6 +119,7 @@ export function ReplayView({
   recording,
   label,
   question,
+  affiliation,
   onClose,
   index,
   onGo,
@@ -136,7 +145,7 @@ export function ReplayView({
       <div className="replay-side">
         <Table pub={pub} label={label} />
         <Contingency pub={pub} />
-        <OpenDecisions frame={frame} label={label} question={question} />
+        <OpenDecisions frame={frame} label={label} question={question} affiliation={affiliation} />
         <Log log={log} />
       </div>
     </div>

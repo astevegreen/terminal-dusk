@@ -4,7 +4,7 @@ import type { Country, GameMap, InfluenceEntry } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { cardName, cardQuestion } from "../testMode/fixture.ts";
+import { cardAffiliation, cardName, cardQuestion } from "../testMode/fixture.ts";
 import { createTestSession } from "../testMode/session.ts";
 import { GameScreen } from "./GameScreen.tsx";
 
@@ -65,7 +65,16 @@ const withoutMap = (frame: Frame): Frame => {
 };
 
 const render = (frame: Frame): string =>
-  renderToString(<GameScreen frame={frame} log={[]} era={null} label={cardName} question={cardQuestion} />);
+  renderToString(
+    <GameScreen
+      frame={frame}
+      log={[]}
+      era={null}
+      label={cardName}
+      question={cardQuestion}
+      affiliation={cardAffiliation}
+    />,
+  );
 
 /** The Map area's html alone. */
 const mapAreaOf = (out: string): string => {

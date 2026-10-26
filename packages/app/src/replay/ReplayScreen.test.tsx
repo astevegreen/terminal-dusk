@@ -1,6 +1,6 @@
 import { renderToString } from "react-dom/server";
 import { beforeAll, describe, expect, it } from "vitest";
-import { cardName, cardQuestion } from "../testMode/fixture.ts";
+import { cardAffiliation, cardName, cardQuestion } from "../testMode/fixture.ts";
 import { buttonsOf } from "../testMode/promptTree.ts";
 import { logLine } from "../testMode/session.ts";
 import { createVsAiSession } from "../vsAi/session.ts";
@@ -27,6 +27,7 @@ const view = (index: number, onGo: (i: number) => void = () => {}, onClose: () =
     recording={recording}
     label={cardName}
     question={cardQuestion}
+    affiliation={cardAffiliation}
     onClose={onClose}
     index={index}
     onGo={onGo}
@@ -129,6 +130,7 @@ describe("the replay viewer on a finished fixture game", () => {
           recording={withEras}
           label={cardName}
           question={cardQuestion}
+          affiliation={cardAffiliation}
           onClose={() => {}}
           index={index}
           onGo={() => {}}
