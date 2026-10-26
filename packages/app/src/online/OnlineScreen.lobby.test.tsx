@@ -9,14 +9,20 @@ import { LobbyFlow, SignInFlow, lobbyOptions, onlineStep } from "./OnlineScreen.
 import type { OnlineSetup } from "./OnlineScreen.tsx";
 import { SignInView } from "./SignInView.tsx";
 import type { PlaySetup } from "./OnlineGameScreen.tsx";
-import { cardName, cardQuestion } from "../testMode/fixture.ts";
+import { cardAffiliation, cardName, cardQuestion } from "../testMode/fixture.ts";
 import { fakeTimers } from "../transport/test/remoteGame.ts";
 import type { SignInSnapshot } from "./signIn.ts";
 import { LOBBY_URL, createFakeLobby } from "./test/fakeLobby.ts";
 import { STORED, rig, rigWith } from "./test/signInRig.ts";
 
 const idle = { busy: false, refusal: null } as const;
-const PLAY: PlaySetup = { clock: () => 0, timers: fakeTimers(), label: cardName, question: cardQuestion };
+const PLAY: PlaySetup = {
+  clock: () => 0,
+  timers: fakeTimers(),
+  label: cardName,
+  question: cardQuestion,
+  affiliation: cardAffiliation,
+};
 
 function setup(copied: string[] = []): OnlineSetup & { fake: ReturnType<typeof createFakeLobby> } {
   const fake = createFakeLobby();

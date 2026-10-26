@@ -2,6 +2,7 @@ Audit the whole repository as it is on disk now. Follow GEMINI.md.
 Start from docs/repo-map.md if it exists, then docs/architecture.md and CLAUDE.md.
 
 Look for:
+
 - drift from the architecture decisions: code that has quietly stopped following one of them
 - duplicated logic: the same rule or calculation written in two places
 - dead code: exports nothing imports, unreachable branches, unused files

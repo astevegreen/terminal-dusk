@@ -2,7 +2,7 @@
 // Back, and the board through the same GameScreen the game against the AI uses. It uses no hooks, so tests can
 // walk and press it without a browser. While the game is loading only the turn line and Back show.
 import type { CardId } from "@terminal-dusk/engine";
-import type { CardQuestion } from "../decisionPrompts.tsx";
+import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
 import { GameScreen } from "../game/GameScreen.tsx";
 import { deadlineText, turnText } from "./gameText.ts";
 import type { OnlineGame, OnlineGameSnapshot } from "./onlineGame.ts";
@@ -19,11 +19,19 @@ export type OnlineGameViewProps = {
   game: OnlineGameActions | null;
   label: (id: CardId) => string;
   question: CardQuestion;
+  affiliation: CardAffiliation;
   /** Returns to the lobby, after the session is closed. */
   onBack: () => void;
 };
 
-export function OnlineGameView({ snapshot, game, label, question, onBack }: Readonly<OnlineGameViewProps>) {
+export function OnlineGameView({
+  snapshot,
+  game,
+  label,
+  question,
+  affiliation,
+  onBack,
+}: Readonly<OnlineGameViewProps>) {
   const { frame, turn, deadline } = snapshot;
   const showing = frame !== null && turn !== "loading";
   const deadlineLine = showing && turn !== "over" && deadline !== null ? deadlineText(deadline) : null;
@@ -47,6 +55,7 @@ export function OnlineGameView({ snapshot, game, label, question, onBack }: Read
           era={snapshot.era}
           label={label}
           question={question}
+          affiliation={affiliation}
           onAnswer={turn === "mine" && game !== null ? (value) => void game.answer(value) : undefined}
           refusal={snapshot.refusal?.code ?? null}
         />

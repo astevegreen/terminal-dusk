@@ -3,7 +3,7 @@
 // the session when the screen goes. Drawing and pressing are tested on OnlineGameView; this only connects them.
 import { useEffect, useState, useSyncExternalStore } from "react";
 import type { CardId } from "@terminal-dusk/engine";
-import type { CardQuestion } from "../decisionPrompts.tsx";
+import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
 import { createOnlineGame } from "./onlineGame.ts";
 import type { OnlineGame, OnlineGameOptions, OnlineGameSnapshot } from "./onlineGame.ts";
 import { OnlineGameView } from "./OnlineGameView.tsx";
@@ -17,6 +17,7 @@ export type PlaySetup = {
   timers: Timers;
   label: (id: CardId) => string;
   question: CardQuestion;
+  affiliation: CardAffiliation;
 };
 
 /** The snapshot shown before the session is made: loading, with nothing else. */
@@ -63,7 +64,16 @@ type ShownProps = { play: PlaySetup; onBack: () => void };
 
 function Shown({ game, play, onBack }: Readonly<ShownProps & { game: OnlineGame }>) {
   const snapshot = useSyncExternalStore(game.subscribe, game.getSnapshot, game.getSnapshot);
-  return <OnlineGameView snapshot={snapshot} game={game} label={play.label} question={play.question} onBack={onBack} />;
+  return (
+    <OnlineGameView
+      snapshot={snapshot}
+      game={game}
+      label={play.label}
+      question={play.question}
+      affiliation={play.affiliation}
+      onBack={onBack}
+    />
+  );
 }
 
 export type OnlineGameFlowProps = ShownProps & {
@@ -85,6 +95,7 @@ export function OnlineGameFlow({ auth, signIn, playerId, matchId, play, onBack }
         game={null}
         label={play.label}
         question={play.question}
+        affiliation={play.affiliation}
         onBack={onBack}
       />
     );

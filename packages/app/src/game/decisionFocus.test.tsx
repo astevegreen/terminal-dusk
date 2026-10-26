@@ -2,7 +2,7 @@ import type { Decision } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { cardName, cardQuestion } from "../testMode/fixture.ts";
+import { cardAffiliation, cardName, cardQuestion } from "../testMode/fixture.ts";
 import { createTestSession } from "../testMode/session.ts";
 import { FIRST_CHOICE, FocusingGameScreen, applyDecisionFocus, shouldFocusDecision } from "./decisionFocus.tsx";
 import type { FocusRoot } from "./decisionFocus.tsx";
@@ -81,6 +81,7 @@ const props = (frame: Frame): GameScreenProps => ({
   era: null,
   label: cardName,
   question: cardQuestion,
+  affiliation: cardAffiliation,
   onAnswer: () => {},
 });
 

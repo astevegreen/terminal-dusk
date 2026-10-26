@@ -5,7 +5,7 @@ import { useState, useSyncExternalStore } from "react";
 import { GameScreen } from "../game/GameScreen.tsx";
 import { ReplayScreen } from "../replay/ReplayScreen.tsx";
 import type { ReplayRecording } from "../replay/recording.ts";
-import { cardName, cardQuestion } from "./fixture.ts";
+import { cardAffiliation, cardName, cardQuestion } from "./fixture.ts";
 import { createTestSession } from "./session.ts";
 import type { Snapshot, TestSession } from "./session.ts";
 
@@ -23,7 +23,13 @@ export function TestModeView({ snapshot, session }: Readonly<{ snapshot: Snapsho
   const { frame, viewer } = snapshot;
   if (watching)
     return (
-      <ReplayScreen recording={watching} label={cardName} question={cardQuestion} onClose={() => setWatching(null)} />
+      <ReplayScreen
+        recording={watching}
+        label={cardName}
+        question={cardQuestion}
+        affiliation={cardAffiliation}
+        onClose={() => setWatching(null)}
+      />
     );
   return (
     <main>
@@ -63,6 +69,7 @@ export function TestModeView({ snapshot, session }: Readonly<{ snapshot: Snapsho
           era={snapshot.era}
           label={cardName}
           question={cardQuestion}
+          affiliation={cardAffiliation}
           onAnswer={(value) => void session.answer(value)}
           refusal={snapshot.refusal}
         />

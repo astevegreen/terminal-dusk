@@ -67,7 +67,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/App.test.tsx`
 - `packages/app/src/App.tsx` - The home screen: the game's name, a button to play against the AI, a button to play online and a button into developer test mode. Exports: AppProps, App, onlineRoute, Home.
 - `packages/app/src/decisionPrompts.test.tsx`
-- `packages/app/src/decisionPrompts.tsx` - One prompt component per DecisionKind. Exports: CardQuestion, PromptProps, PromptComponent, askingCard, decisionPrompts.
+- `packages/app/src/decisionPrompts.tsx` - One prompt component per DecisionKind. Exports: CardQuestion, CardAffiliation, PromptProps, PromptComponent, askingCard, decisionPrompts.
 - `packages/app/src/eventPresentation.test.ts`
 - `packages/app/src/eventPresentation.ts` - How each EventKind is presented. Exports: EventPresentation, eventPresentation.
 - `packages/app/src/game/GameScreen.test.tsx`
@@ -128,7 +128,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/test/order.ts` - Compare function for sorting strings in UTF-16 code-unit order: the same order as a sort with no compare function, written out so the order is explicit. Exports: byCodeUnit.
 - `packages/app/src/testMode/TestModeScreen.test.tsx`
 - `packages/app/src/testMode/TestModeScreen.tsx` - Test mode (docs/architecture.md, Decision 3): the Local transport with a switch to view the game as LIO, as SAE or as a spectator. Exports: TestModeView, TestModeScreen.
-- `packages/app/src/testMode/fixture.ts` - DEVELOPER FIXTURE for test mode. Exports: DEFAULT_SEED, cardName, cardQuestion, fixtureRuleset, fixtureConfig.
+- `packages/app/src/testMode/fixture.ts` - DEVELOPER FIXTURE for test mode. Exports: DEFAULT_SEED, cardName, cardQuestion, fixtureRuleset, cardAffiliation, fixtureConfig.
 - `packages/app/src/testMode/promptTree.ts` - Test helper: finds the buttons a prompt would draw and lets a test press them, without a browser. Exports: Button, buttonsOf.
 - `packages/app/src/testMode/session.ts` - The state behind the test-mode screen: one local match, the viewer being looked at, that viewer's latest frame and game log, and the last refusal. Exports: Snapshot, TestSession, logLine, createTestSession.
 - `packages/app/src/testMode/sessionEra.test.ts` - The era in the test-mode session: kept per viewer next to the log, reset by restart.
@@ -692,6 +692,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/supabase/functions/auth-email/index.ts` - The `auth-email` Edge Function (docs/architecture.md, Decision 5, "Accounts and purchases"): Supabase Auth's "send email" hook calls it to send a 6-digit sign-…
 - `packages/server/supabase/functions/invite/deno.json`
 - `packages/server/supabase/functions/invite/index.ts` - The `invite` Edge Function (docs/architecture.md, Decision 5): create, preview and join a private game.
+- `packages/server/supabase/functions/seen/deno.json`
 - `packages/server/supabase/functions/seen/index.ts` - The `seen` Edge Function (docs/architecture.md, Decision 5, Notifications): a player's app says it has shown them a turn, so no email goes out for it.
 - `packages/server/supabase/functions/submit/deno.json`
 - `packages/server/supabase/functions/submit/index.ts` - The `submit` Edge Function (docs/architecture.md, Decision 5): the one place a client sends an answer or a resignation.

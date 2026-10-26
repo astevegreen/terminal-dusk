@@ -51,6 +51,7 @@ export function onlineRoute(
       timers={timers}
       label={game?.cardName}
       question={game?.cardQuestion}
+      affiliation={game?.cardAffiliation}
       onBack={onBack}
     />
   );

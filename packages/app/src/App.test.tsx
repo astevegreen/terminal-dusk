@@ -25,6 +25,7 @@ describe("the online route", () => {
     makeMatch: (seed, clock) => createLocalMatch(firstDeckRuleset, firstDeckConfig(), seed, clock),
     cardName: firstDeckCardName,
     cardQuestion: firstDeckCardQuestion,
+    cardAffiliation: () => undefined,
     note: FIRST_DECK_NOTE,
   };
   it("hands OnlineScreen the game's card names and questions, the clock, the timers and Back", () => {

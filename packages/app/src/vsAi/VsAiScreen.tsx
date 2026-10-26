@@ -5,8 +5,8 @@ import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { FocusingGameScreen } from "../game/decisionFocus.tsx";
 import { ReplayScreen } from "../replay/ReplayScreen.tsx";
 import type { ReplayRecording } from "../replay/recording.ts";
-import type { CardQuestion } from "../decisionPrompts.tsx";
-import { cardName, cardQuestion } from "../testMode/fixture.ts";
+import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
+import { cardAffiliation as fixtureAffiliation, cardName, cardQuestion } from "../testMode/fixture.ts";
 import type { MakeAi } from "./aiOpponent.ts";
 import { createVsAiSession } from "./session.ts";
 import type { VsAiOptions } from "./session.ts";
@@ -23,6 +23,8 @@ export type VsAiGame = {
   cardName: (id: CardId) => string;
   /** A card's yes/no question, shown in its prompt (undefined: the plain "yes or no?" text). */
   cardQuestion: CardQuestion;
+  /** Whose each card is, so a prompt offers only the plays the card allows. */
+  cardAffiliation: CardAffiliation;
   note: string;
 };
 
@@ -52,6 +54,7 @@ export function VsAiView({
   note = PRACTICE_NOTE,
   label = cardName,
   question = cardQuestion,
+  affiliation = fixtureAffiliation,
 }: Readonly<{
   snapshot: VsAiSnapshot;
   session: VsAiSession;
@@ -59,11 +62,20 @@ export function VsAiView({
   note?: string | undefined;
   label?: ((id: CardId) => string) | undefined;
   question?: CardQuestion | undefined;
+  affiliation?: CardAffiliation | undefined;
 }>) {
   const [watching, setWatching] = useState<ReplayRecording | null>(null);
   const { frame } = snapshot;
   if (watching)
-    return <ReplayScreen recording={watching} label={label} question={question} onClose={() => setWatching(null)} />;
+    return (
+      <ReplayScreen
+        recording={watching}
+        label={label}
+        question={question}
+        affiliation={affiliation}
+        onClose={() => setWatching(null)}
+      />
+    );
   return (
     <main>
       <p>{note}</p>
@@ -75,6 +87,7 @@ export function VsAiView({
           era={snapshot.era}
           label={label}
           question={question}
+          affiliation={affiliation}
           onAnswer={(value) => void session.answer(value)}
           refusal={snapshot.refusal}
         />
@@ -119,6 +132,7 @@ function Game({
       note={game?.note}
       label={game?.cardName}
       question={game?.cardQuestion}
+      affiliation={game?.cardAffiliation}
     />
   );
 }

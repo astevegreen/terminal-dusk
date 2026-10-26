@@ -2,7 +2,7 @@ import type { Side } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { cardName, cardQuestion } from "../testMode/fixture.ts";
+import { cardAffiliation, cardName, cardQuestion } from "../testMode/fixture.ts";
 import { buttonsOf } from "../testMode/promptTree.ts";
 import { createTestSession } from "../testMode/session.ts";
 import { GameScreen } from "./GameScreen.tsx";
@@ -25,6 +25,7 @@ const props = (frame: Frame, extra: Partial<GameScreenProps> = {}): GameScreenPr
   era: null,
   label: cardName,
   question: cardQuestion,
+  affiliation: cardAffiliation,
   ...extra,
 });
 const html = (frame: Frame, extra: Partial<GameScreenProps> = {}): string =>

@@ -2,6 +2,7 @@ Audit one pull request. The material file holds its diff and the linked task spe
 Follow GEMINI.md. Read surrounding code from disk only where the diff is unclear.
 
 Check:
+
 - does the diff do what the spec's goal and acceptance criteria say, and nothing outside its scope
 - hidden-information leaks: hands, deck order, the RNG seed or secret-compartment state reaching a view,
   a public event, a log line, a test snapshot or client-facing server code
