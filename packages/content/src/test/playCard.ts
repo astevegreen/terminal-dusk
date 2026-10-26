@@ -9,6 +9,8 @@ import { apply, createGame, seedHash } from "@terminal-dusk/engine";
 import type { Answer, CardDef, CardId, GameEvent, Ruleset, Side } from "@terminal-dusk/engine";
 import { cardDef } from "../era1.ts";
 import { FIRST_DECK_CARDS } from "../firstDeckRules.ts";
+import { scenarioSetup } from "../scenario.ts";
+import { TEST_MAP_SCENARIO } from "../testMapScenario.ts";
 
 /** Yes/no answers by side. A side asked a question with no answer here fails the test. */
 export type YesAnswers = Partial<Record<Side, boolean>>;
@@ -41,6 +43,11 @@ export type PlayOptions = {
    * no questions. The story leaves these turns out. Default: none, so the game has one turn.
    */
   before?: readonly (CardId | EarlierCard)[];
+  /**
+   * Plays the card in a game with the test map (testMapScenario.ts), so Escalation is on: it starts at 2 and the
+   * story shows its moves, the fall at each turn's end too. Default: off, a game with no map and no Escalation.
+   */
+  map?: true;
 };
 
 const filler = (affiliation: Side, n: number): CardDef => ({
@@ -76,6 +83,10 @@ export function story(events: readonly GameEvent[]): string[] {
         return [`reveal:${e.side}`]; // The side whose hand was shown, never the cards in it.
       case "cardsDiscarded":
         return [`discard:${e.side}:${e.cards.length}`];
+      case "escalationChanged":
+        return [`escalation:${e.from}:${e.to}`];
+      case "escalationCrisis":
+        return [`crisis:${e.side}:${e.value}`];
       default:
         return [];
     }
@@ -153,6 +164,7 @@ function startCardGameDef(def: CardDef, options: PlayOptions, holder: "owner" | 
       playsPerTurn: 2,
       handSize: 3,
       contingency: { lio: deckOf, sae: deckOf, world: deckOf },
+      ...(options.map === true ? { map: scenarioSetup(TEST_MAP_SCENARIO).map! } : {}),
     },
     "card-test",
   );

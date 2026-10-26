@@ -338,6 +338,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/package.json`
 - `packages/content/scenarios/first-deck-test.json`
 - `packages/content/scenarios/test-map.json`
+- `packages/content/schema/card.escalate.test.ts` - R18a: the card schema's escalate step, { "op": "escalate", "by": n }, with n a whole number other than 0.
 - `packages/content/schema/card.test.ts`
 - `packages/content/schema/card.ts` - The card schema: what one card file in packages/content/cards/ must hold (docs/architecture.md, section 4). Exports: CardStep, stepSchema, cardSchema.
 - `packages/content/schema/card.types.test.ts` - Type-level checks, run by `tsc` (the typecheck script): the card schema and the engine's types can't drift apart.
@@ -374,6 +375,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/src/test/eraChecks.ts` - Test helpers shared by the era tests (era1.test.ts, era2.test.ts, era3.test.ts): the checks every era makes of its own cards, and the TEST-scenario game with t… Exports: byText, byNumber, REMOVED_CARDS, ADDED_CARDS, eraDeckChecks, opsSpread, startEraOneGame.
 - `packages/content/src/test/playCard.test.ts` - The card test helper's own options: which side plays a neutral card, and the numbers drawn in order.
 - `packages/content/src/test/playCard.ts` - Test helper: plays one real card through the real engine and tells what happened, in a short story. Exports: YesAnswers, EarlierCard, PlayOptions, story, startCardGame, playCard, playCardDef.
+- `packages/content/src/test/playCardEscalation.test.ts` - R18a: the card test helper tells Escalation's moves (escalation:<from>:<to>, crisis:<side>:<value>), and its `map` option plays the card in a game with the tes…
 - `packages/content/src/test/playCardRival.test.ts` - The card test helper's ways for the rival to play the card under test, and its story lines for a hand shown and for a discard.
 - `packages/content/src/testMapScenario.test.ts`
 - `packages/content/src/testMapScenario.ts` - The TEST scenario with a made-up map, for tests and fuzz suites. Exports: TEST_MAP_SCENARIO.
@@ -411,6 +413,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/drawStep.test.ts` - The drawContingency step (#65): a card's effect draws from a named side's Contingency deck, and a later step of the same card can read the number drawn.
 - `packages/engine/src/eras.test.ts` - A new era (#37): the setup's checks, its cards waiting in secret, and the shuffle into the draw pile only.
 - `packages/engine/src/eras.ts` - Eras after the first (docs/design/eras.md, "When a new era starts"). Exports: erasError, enterEra.
+- `packages/engine/src/escalateStep.test.ts` - R18a: the escalate step (docs/design/map-and-points.md, "Escalation").
+- `packages/engine/src/escalateStep.ts` - The escalate step (R18a; docs/design/map-and-points.md, "Escalation"): a card's event moves Escalation by `by`. Exports: runEscalate.
 - `packages/engine/src/escalation.test.ts` - R17a: the Escalation track (docs/design/map-and-points.md, "Escalation"): it starts at 2 in a game with a map, raiseEscalation and lowerEscalation move it with…
 - `packages/engine/src/escalation.ts` - The Escalation track (docs/design/map-and-points.md, "Escalation"): one shared public number from 0 to 6, in a game with a map only. Exports: ESCALATION_START, ESCALATION_MIN, ESCALATION_MAX, AFTER_CRISIS, raiseEscalation, lowerEscalation.
 - `packages/engine/src/escalationTypes.ts` - The Escalation track's types (docs/design/map-and-points.md, "Escalation"): one shared public number from 0 to 6. Exports: EscalationChanged, EscalationCrisis, EscalationEvent.

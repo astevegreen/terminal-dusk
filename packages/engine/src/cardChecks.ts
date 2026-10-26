@@ -106,13 +106,14 @@ function innerSteps(step: Step): readonly Step[] {
     case "modifier":
     case "revealHand":
     case "discardFromHand":
+    case "escalate":
       return [];
   }
 }
 
 /**
  * Why `step` itself (not the steps inside it) is malformed, or null: a number test's `value` and an
- * addToNumber's `amount` must be whole numbers, and an `amount` may not be 0. A modifier must use a hook,
+ * addToNumber's `amount` and an escalate's `by` must be whole numbers, and neither may be 0. A modifier must use a hook,
  * side, add, min and duration the engine knows (badModifier); a trigger a hook and duration, and a
  * reaction of at least one step (badTrigger). A discardFromHand names LIO or SAE and a whole `count`, 1 or more,
  * and a `chosenBy`, if any, of "owner" or "player".
@@ -123,6 +124,10 @@ function badStep(step: Step): string | null {
       return Number.isInteger(step.amount) && step.amount !== 0
         ? null
         : "adds an amount that is not a non-zero whole number.";
+    case "escalate":
+      return Number.isInteger(step.by) && step.by !== 0
+        ? null
+        : "moves Escalation by an amount that is not a non-zero whole number.";
     case "if":
       return badCondition(step.cond);
     case "marker":

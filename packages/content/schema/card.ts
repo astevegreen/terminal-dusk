@@ -128,6 +128,13 @@ export const stepSchema = z.discriminatedUnion("op", [
       })
       .exactOptional(),
   }),
+  // Raises Escalation by `by` (caused by the side that played the card) or, when negative, lowers it.
+  z.strictObject({
+    op: z.literal("escalate"),
+    by: z
+      .int({ error: "An escalate step's by must be a whole number, such as 1 or -1." })
+      .refine((n) => n !== 0, { error: "An escalate step's by must not be 0." }),
+  }),
 ]);
 
 /** What a platform changes about a card's text: its wording or art, never its rules. At least one of them. */
