@@ -7,17 +7,27 @@ import type { MailFetch } from "./resendMailer.ts";
 
 export type LocalMailerOptions = { url: string; from: string; fetch: MailFetch };
 
-/** Splits `Name <address>` into its parts; a bare address has no name. */
+/** Splits `Name <address>` into its parts; a bare address has no name. Plain string steps, no regex backtracking. */
 function sender(from: string): { Email: string; Name?: string } {
-  const match = /^\s*(.*?)\s*<([^<>]+)>\s*$/.exec(from);
-  if (!match) return { Email: from.trim() };
-  const name = match[1]!.replace(/^"(.*)"$/, "$1");
-  return name === "" ? { Email: match[2]!.trim() } : { Email: match[2]!.trim(), Name: name };
+  const text = from.trim();
+  const open = text.lastIndexOf("<");
+  const address = open >= 0 && text.endsWith(">") ? text.slice(open + 1, -1).trim() : "";
+  if (address === "" || address.includes(">")) return { Email: text };
+  let name = text.slice(0, open).trim();
+  if (name.length >= 2 && name.startsWith('"') && name.endsWith('"')) name = name.slice(1, -1);
+  return name === "" ? { Email: address } : { Email: address, Name: name };
+}
+
+/** `url` without its trailing slashes. */
+function withoutTrailingSlashes(url: string): string {
+  let end = url.length;
+  while (end > 0 && url[end - 1] === "/") end--;
+  return url.slice(0, end);
 }
 
 /** A `Mailer` that sends through Mailpit: 2xx is ok, 4xx rejected, anything else (or no reply) unavailable. */
 export function localMailer({ url, from, fetch }: LocalMailerOptions): Mailer {
-  const endpoint = `${url.replace(/\/+$/, "")}/api/v1/send`;
+  const endpoint = `${withoutTrailingSlashes(url)}/api/v1/send`;
   const From = sender(from);
   return {
     async send(email: Email): Promise<SendResult> {
