@@ -53,7 +53,9 @@ export function inviteStack(keys: StackKeys): InviteStack {
     service = client(keys.url, keys.serviceKey);
     for (const name of ["host", "joiner", "third"]) users.push(await makeUser(keys, service, name));
     // The host owns the full game on the web, so it may create invites; the joiners own nothing.
-    const granted = await service.from("entitlement").insert({ player: user(0).id, platform: "web", source: "test" });
+    const granted = await service
+      .from("entitlement")
+      .insert({ player: user(0).id, platform: "web", source: "test", created_at: 0 });
     if (granted.error) throw new Error(`granting the test host an entitlement failed: ${granted.error.code}`);
   }, 60_000);
 

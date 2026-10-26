@@ -98,7 +98,20 @@ export async function makeUser(keys: StackKeys, name: string): Promise<StackUser
   return { id, token };
 }
 
-/** A new match made the way two players make one: `host` creates an invite and `joiner` joins it as SAE. */
+/**
+ * Gives `user` the full game on the web, with the service role, so the invite function lets them create a game.
+ * `cleanUp` removes the row again.
+ */
+export async function grantWeb(keys: StackKeys, user: StackUser): Promise<void> {
+  const row = { player: user.id, platform: "web", source: "test", created_at: 0 };
+  const { status } = await call(keys, "/rest/v1/entitlement", { method: "POST", key: keys.serviceKey, body: row });
+  if (status !== 201) throw new Error(`could not grant the test host an entitlement: status ${status}`);
+}
+
+/**
+ * A new match made the way two players make one: `host` (who is first given a web entitlement) creates an invite
+ * on the web and `joiner` joins it as SAE.
+ */
 export async function openMatch(
   keys: StackKeys,
   host: StackUser,
@@ -106,7 +119,8 @@ export async function openMatch(
 ): Promise<{ code: string; matchId: string }> {
   const invite = (user: StackUser, body: unknown) =>
     call(keys, "/functions/v1/invite", { method: "POST", key: keys.anonKey, token: user.token, body });
-  const created = await invite(host, { action: "create", sides: { mode: "invitee" } });
+  await grantWeb(keys, host);
+  const created = await invite(host, { action: "create", sides: { mode: "invitee" }, platform: "web" });
   const code = (created.json as { code?: unknown } | null)?.code;
   if (typeof code !== "string") throw new Error(`could not create an invite: status ${created.status}`);
   const joined = await invite(joiner, { action: "join", code, side: "sae" });
@@ -143,9 +157,15 @@ export async function serverSnapshot(keys: StackKeys, matchId: string): Promise<
   return { secret: row.secret, frames: { lio: frameOf("lio"), sae: frameOf("sae") } };
 }
 
-/** Removes the test matches (their invite, secret, view and event rows go with them) and the test users. */
+/**
+ * Removes the test matches (their invite, secret, view and event rows go with them), the test users' entitlement
+ * rows (which have no link to the users, so would otherwise stay behind) and the test users.
+ */
 export async function cleanUp(keys: StackKeys, matchIds: string[], users: StackUser[]): Promise<void> {
   const service = { key: keys.serviceKey };
+  for (const user of users) {
+    await call(keys, `/rest/v1/entitlement?player=eq.${encodeURIComponent(user.id)}`, { method: "DELETE", ...service });
+  }
   for (const matchId of matchIds) {
     await call(keys, `/rest/v1/match?match_id=eq.${encodeURIComponent(matchId)}`, { method: "DELETE", ...service });
   }

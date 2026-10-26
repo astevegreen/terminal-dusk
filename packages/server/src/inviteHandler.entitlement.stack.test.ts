@@ -26,7 +26,7 @@ await onLocalStack(
 
       const granted = await stack.service
         .from("entitlement")
-        .insert({ player: stack.third.id, platform: "ios", source: "test" });
+        .insert({ player: stack.third.id, platform: "ios", source: "test", created_at: 0 });
       expect(granted.error).toBeNull();
 
       const allowed = await call(token, create);
