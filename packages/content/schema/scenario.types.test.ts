@@ -1,5 +1,5 @@
 // Type-level check, run by `tsc`: the scenario schema and the engine's Setup can't drift apart.
-import type { Setup } from "@terminal-dusk/engine";
+import type { Setup, SetupMap } from "@terminal-dusk/engine";
 import { describe, expectTypeOf, it } from "vitest";
 import type { z } from "zod";
 import type { ScenarioSetup } from "../src/scenario.ts";
@@ -22,9 +22,15 @@ describe("scenario schema types", () => {
     expectTypeOf<keyof NonNullable<Scenario["contingency"]>>().toEqualTypeOf<keyof Setup["contingency"]>();
   });
 
+  it("gives a parsed scenario's map the engine's map type", () => {
+    expectTypeOf<NonNullable<Scenario["map"]>>().toExtend<SetupMap>();
+    expectTypeOf<SetupMap>().toExtend<NonNullable<Scenario["map"]>>();
+    expectTypeOf<NonNullable<Scenario["map"]>>().toExtend<NonNullable<Setup["map"]>>();
+  });
+
   it("makes scenarioSetup return exactly those Setup fields", () => {
     expectTypeOf<ScenarioSetup>().toEqualTypeOf<
-      Pick<Setup, "turns" | "playsPerTurn" | "handSize" | "eras" | "contingency">
+      Pick<Setup, "turns" | "playsPerTurn" | "handSize" | "eras" | "contingency" | "map">
     >();
   });
 });

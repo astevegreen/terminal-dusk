@@ -4,10 +4,11 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { apply, createGame, DECKS, hiddenPart, legalAnswers, reconstruct, seedHash, SIDES, viewFor } from "./index.ts";
-import type { Answer, GameState, PlayerView, Ruleset, Setup, Side, Step, Viewer } from "./index.ts";
+import type { Answer, GameState, PlayerView, Ruleset, Setup, SetupMap, Side, Step, Viewer } from "./index.ts";
 import { startProgram } from "./stack.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
 import { choose, forEach, ifSaid, ifYes, marker, rulesetWith } from "./test/game.ts";
+import { testMap } from "./test/map.ts";
 
 /** An answer move answers the open decision at index `which` (mod the number open), with `yes` or the card at `pick`. */
 type Move =
@@ -66,6 +67,22 @@ const PREFIXES = ["l", "s", "n"];
 const deckArb = fc.array(fc.integer({ min: 1, max: 20 }), { minLength: 3, maxLength: 8 });
 
 /**
+ * No map in about half the games; in the rest, the test map with random starting influence (0-9 each side) for
+ * a random selection of its countries.
+ */
+const mapArb: fc.Arbitrary<SetupMap | null> = fc.option(
+  fc
+    .subarray(testMap().countries.map((c) => c.id))
+    .chain((countries) =>
+      fc.tuple(
+        ...countries.map((country) => fc.record({ country: fc.constant(country), lio: fc.nat(9), sae: fc.nat(9) })),
+      ),
+    )
+    .map((startingInfluence) => ({ ...testMap(), startingInfluence })),
+  { freq: 2 },
+);
+
+/**
  * Card IDs are unique, quoted tokens ("l12z", "s40z", "n7z"), so a leak check cannot match part of
  * another value. Each side gets the non-neutral cards the game needs (rulesetWith reads the
  * affiliation from the prefix); the other cards, of any affiliation, are split between the two hands
@@ -86,8 +103,9 @@ const gameArb: fc.Arbitrary<Game> = fc
     lioDeck: deckArb,
     saeDeck: deckArb,
     worldDeck: deckArb,
+    map: mapArb,
   })
-  .map(({ ids, cutA, cutB, turns, playsPerTurn, seed, moves, lioDeck, saeDeck, worldDeck }) => {
+  .map(({ ids, cutA, cutB, turns, playsPerTurn, seed, moves, lioDeck, saeDeck, worldDeck, map }) => {
     const needed = turns * (1 + playsPerTurn);
     const lio = ids.slice(0, needed).map((n) => `l${n}z`);
     const sae = ids.slice(needed, 2 * needed).map((n) => `s${n}z`);
@@ -103,6 +121,7 @@ const gameArb: fc.Arbitrary<Game> = fc
       // The smallest hand size: the dealt hands never drop below it, so this test's games draw no cards.
       handSize: 1 + playsPerTurn,
       contingency: { lio: lioDeck, sae: saeDeck, world: worldDeck },
+      ...(map === null ? {} : { map }),
     };
     return { setup, seed: `seed-${seed}-x`, moves };
   });
@@ -235,6 +254,27 @@ describe("views over random games", () => {
       }),
       { numRuns: 300 },
     );
+  });
+  it("lio, sae and spectators see the state's map and influence alike; a game without a map has neither", () => {
+    fc.assert(
+      fc.property(gameArb, (game) => {
+        for (const s of play(game)) {
+          expect("map" in s.public).toBe(game.setup.map !== undefined);
+          expect("influence" in s.public).toBe(game.setup.map !== undefined);
+          for (const viewer of [...SIDES, "spectator"] as const) {
+            const seen = viewFor(s, viewer).public;
+            expect(seen.map).toStrictEqual(s.public.map);
+            expect(seen.influence).toStrictEqual(s.public.influence);
+          }
+        }
+      }),
+      { numRuns: 300 },
+    );
+  });
+  it("the random games really include games with a map and with starting influence", () => {
+    const games = fc.sample(gameArb, { numRuns: 200, seed: 1 });
+    expect(games.filter((g) => g.setup.map !== undefined).length).toBeGreaterThan(50);
+    expect(games.filter((g) => (g.setup.map?.startingInfluence.length ?? 0) > 0).length).toBeGreaterThan(30);
   });
   it("the leak check itself finds a hidden card when one is planted in a view", () => {
     const game = fc.sample(gameArb, { numRuns: 1, seed: 7 })[0]!;

@@ -33,12 +33,19 @@ export async function callFunction(
   return { status: reply.status, json };
 }
 
-/** Why the function `name` can't be used, or null when it answers OPTIONS with 204. */
-export async function whyFunctionUnavailable(keys: StackKeys, name: string): Promise<string | null> {
-  const down = `the ${name} Edge Function did not answer OPTIONS with 204. ${SERVE_HINT}`;
+/**
+ * Why the function `name` can't be used, or null when it answers `probe.method` with `probe.status`: by default
+ * OPTIONS with 204. A function that takes only POST (the sweeps) is probed with GET, which it answers with 405.
+ */
+export async function whyFunctionUnavailable(
+  keys: StackKeys,
+  name: string,
+  probe: { method: string; status: number } = { method: "OPTIONS", status: 204 },
+): Promise<string | null> {
+  const down = `the ${name} Edge Function did not answer ${probe.method} with ${probe.status}. ${SERVE_HINT}`;
   try {
-    const { status } = await callFunction(keys, name, { method: "OPTIONS", token: keys.anonKey });
-    return status === 204 ? null : `${down} (status ${status})`;
+    const { status } = await callFunction(keys, name, { method: probe.method, token: keys.anonKey });
+    return status === probe.status ? null : `${down} (status ${status})`;
   } catch {
     return down;
   }

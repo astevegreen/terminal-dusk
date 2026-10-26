@@ -39,5 +39,5 @@ export function authEmailFetchHandler<R>(
  * still checked first, so an unsigned call still gets 401.
  */
 export const unconfiguredMailer = (): Mailer => ({
-  send: async () => ({ ok: false, code: "unavailable" }),
+  send: () => Promise.resolve({ ok: false, code: "unavailable" }),
 });

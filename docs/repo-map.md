@@ -44,6 +44,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/.gitignore`
 - `packages/app/e2e/game.e2e.ts`
 - `packages/app/e2e/keyboard.e2e.ts`
+- `packages/app/e2e/online.e2e.ts`
 - `packages/app/e2e/replay.e2e.ts`
 - `packages/app/e2e/server.test.ts` - The Playwright run's own port (server.ts): a free one, kept for the run's workers, never a server already running.
 - `packages/app/e2e/server.ts` - Where the Playwright smoke tests serve the app (playwright.config.ts). Exports: e2ePort, e2eServer.
@@ -54,7 +55,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/package.json`
 - `packages/app/playwright.config.ts` - Playwright smoke tests (`pnpm test:e2e`), kept apart from Vitest: their files end in .e2e.ts. Exports: default.
 - `packages/app/src/App.test.tsx`
-- `packages/app/src/App.tsx` - The home screen: the game's name, a button to play against the AI and a button into developer test mode. Exports: AppProps, App.
+- `packages/app/src/App.tsx` - The home screen: the game's name, a button to play against the AI, a button to play online and a button into developer test mode. Exports: AppProps, App, Home.
 - `packages/app/src/decisionPrompts.test.tsx`
 - `packages/app/src/decisionPrompts.tsx` - One prompt component per DecisionKind. Exports: CardQuestion, PromptProps, PromptComponent, askingCard, decisionPrompts.
 - `packages/app/src/eventPresentation.test.ts`
@@ -66,6 +67,17 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/gameScreen.css`
 - `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, Hand, Opponent, Table, Contingency, Log.
 - `packages/app/src/main.tsx` - Browser entry point: mounts the app into the #root element of index.html.
+- `packages/app/src/online/OnlineScreen.press.test.tsx` - Pressing the sign-in screen's buttons and submitting its forms without a browser: each calls the right thing.
+- `packages/app/src/online/OnlineScreen.test.tsx`
+- `packages/app/src/online/OnlineScreen.tsx` - The online screen (docs/architecture.md, Decision 7, "Guest mode": sign-in only when going online). Exports: OnlineSetup, OnlineScreenProps, OnlineScreen.
+- `packages/app/src/online/SignInView.tsx` - The sign-in screen drawn from a sign-in snapshot (online/signIn.ts): the email step, the code step and the signed-in step, each with a Back button home. Exports: NOT_SET_UP, REFUSAL_MESSAGE, SignInActions, SignInView.
+- `packages/app/src/online/signIn.test.ts`
+- `packages/app/src/online/signIn.token.test.ts`
+- `packages/app/src/online/signIn.ts` - The state behind signing in by email code (docs/architecture.md, Decisions 5 and 7): asks for a code, trades it for a session through transport/emailAuth.ts, k… Exports: SESSION_KEY, SignInSnapshot, SignInOptions, SignIn, createSignIn.
+- `packages/app/src/online/test/screenTree.ts` - Test helper: walks the element tree the sign-in screen draws and lets a test press its buttons and submit its forms with typed values, without a browser (like… Exports: TreeButton, TreeForm, Tree, treeOf, button.
+- `packages/app/src/online/test/signInRig.ts` - A sign-in session wired to the fake Supabase Auth, a memory store and a hand-moved clock, for the tests. Exports: START, EMAIL, CODE, STORED, Rig, rig, rigWith, rigOnCode, settle, heldStore.
+- `packages/app/src/platform/storage.test.ts`
+- `packages/app/src/platform/storage.ts` - The `storage` part of the Platform interface (docs/architecture.md, Decision 7): a small async key-value store, so a Capacitor implementation fits later. Exports: KeyValueStore, StorageLike, memoryStore, webStore.
 - `packages/app/src/replay/ReplayScreen.test.tsx`
 - `packages/app/src/replay/ReplayScreen.tsx` - The replay viewer: steps through a finished game's recorded frames, both hands showing. Exports: ReplayScreenProps, ReplayView, ReplayScreen.
 - `packages/app/src/replay/recording.test.ts`
@@ -84,6 +96,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/transport/localMatch.test.ts`
 - `packages/app/src/transport/localMatch.ts` - A match run entirely in memory: it keeps the host's record and secret, and gives each viewer a transport. Exports: ArchiveWith, LocalMatch, createLocalMatch.
 - `packages/app/src/transport/matchTransport.ts` - What the screens talk to: one viewer's window onto a match. Exports: ServerErrorCode, TransportError, SubmitResult, MatchTransport.
+- `packages/app/src/transport/rehearsal.stack.test.ts` - The phase 4 gate, rehearsed (O13; docs/architecture.md, "Revised build order", phase 4): 50 games on the local Supabase stack, each made through the invite fun…
+- `packages/app/src/transport/rehearsal.test.ts` - The phase 4 rehearsal's harness (O13), proved on the fake Supabase with the real first deck: a game plays to its end with every step checked, a frame that diff…
 - `packages/app/src/transport/remoteHttp.ts` - The online transport's HTTP side (docs/architecture.md, Decision 5): the client-readable rows it reads through Supabase's REST endpoints, and the submit and se… Exports: FetchReply, FetchLike, Endpoint, Seats, StepEvents, readSeats, readFrame, readEvents, PostReply, postSubmission, postSeen.
 - `packages/app/src/transport/remoteMatch.seen.test.ts` - The app's half of "unseen" for turn alerts (docs/architecture.md, Decision 5, Notifications): the remote transport tells the seen function once for each turn t…
 - `packages/app/src/transport/remoteMatch.submit.test.ts`
@@ -92,6 +106,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/transport/sessionToken.test.ts`
 - `packages/app/src/transport/test/fakeAuth.ts` - A fake Supabase Auth for the email-code client's tests: a fake `fetch` that records every request and answers with whatever the test queued, or a stock success… Exports: AUTH_URL, AUTH_ANON_KEY, AuthRequest, AuthAnswer, sessionBody, FakeAuth, createFakeAuth.
 - `packages/app/src/transport/test/fakeSupabase.ts` - A fake Supabase for the remote transport's tests: one match run by the real host, served over a fake `fetch`. Exports: URL_BASE, ANON_KEY, FakeRequest, FakeSupabase, createFakeSupabase.
+- `packages/app/src/transport/test/leaks.ts` - Test helper for the phase 4 rehearsal's leak checks, the same idea as the server's and the host's test/leaks.ts. Exports: canonical, leaksFor, withoutCards.
+- `packages/app/src/transport/test/localStack.ts` - The phase 4 rehearsal's link to the local Supabase stack (docs/sprint.md, lane "online": no hosted project). Exports: HOW_TO_START, StackKeys, stackKeys, whyUnavailable, StackUser, makeUser, openMatch, serverSnapshot, cleanUp.
+- `packages/app/src/transport/test/rehearsal.ts` - The phase 4 rehearsal (O13; docs/architecture.md, "Revised build order", phase 4): one Easy-vs-Easy game played through two real remote transports, one per sea… Exports: ServerSnapshot, GameRig, GameOptions, GameResult, playRehearsalGame.
+- `packages/app/src/transport/test/rehearsalReport.ts` - The phase 4 rehearsal's short report: what one run played and checked, and every problem it found, each with its match and seq. Exports: rehearsalReport.
 - `packages/app/src/transport/test/remoteGame.ts` - The remote transport tests' match: a small game on the fake Supabase, fake timers, and helpers to subscribe, wait and find the next legal move. Exports: POLL_MS, ruleset, config, TOKENS, fakeTimers, settle, Rig, rig, watch, nextMove.
 - `packages/app/src/vsAi/VsAiScreen.test.tsx`
 - `packages/app/src/vsAi/VsAiScreen.tsx` - Playing against the Easy AI: a side picker, then the game screen for the human's side. Exports: PRACTICE_NOTE, VsAiGame, SidePicker, VsAiView, openSession, VsAiScreenProps, VsAiScreen.
@@ -304,12 +322,15 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/cards/future/ef-sae-002.test.ts` - ef-sae-002 Cable Cut in the Baltic: one test for each way its effect can play out.
 - `packages/content/package.json`
 - `packages/content/scenarios/first-deck-test.json`
+- `packages/content/scenarios/test-map.json`
 - `packages/content/schema/card.test.ts`
 - `packages/content/schema/card.ts` - The card schema: what one card file in packages/content/cards/ must hold (docs/architecture.md, section 4). Exports: CardStep, stepSchema, cardSchema.
 - `packages/content/schema/card.types.test.ts` - Type-level checks, run by `tsc` (the typecheck script): the card schema and the engine's types can't drift apart.
 - `packages/content/schema/cardSteps.test.ts` - The card schema's lasting steps: modifiers (#89), triggers (#90) and lasting markers (#141), at any depth; revealHand steps (#184); and discardFromHand steps (…
 - `packages/content/schema/index.test.ts`
 - `packages/content/schema/index.ts` - Content schemas, one per content folder of this package (cards/ is checked by schemas.cards, and so on). Exports: ContentIssue, ContentSchema, schemas.
+- `packages/content/schema/map.test.ts`
+- `packages/content/schema/map.ts` - The map a scenario can carry (docs/design/map-and-points.md, "Map" and "Influence"): regions, countries, the countries next to each home box, and starting infl… Exports: mapSchema.
 - `packages/content/schema/scenario.test.ts`
 - `packages/content/schema/scenario.ts` - The scenario schema: what one scenario file in packages/content/scenarios/ must hold (docs/architecture.md, section 4). Exports: scenarioSchema, Scenario.
 - `packages/content/schema/scenario.types.test.ts` - Type-level check, run by `tsc`: the scenario schema and the engine's Setup can't drift apart.
@@ -327,7 +348,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/src/future.test.ts`
 - `packages/content/src/futureFiles.ts` - The optional future cards (2025 to 2027), one JSON file each in cards/future/. Exports: FUTURE_CARDS.
 - `packages/content/src/index.test.ts`
-- `packages/content/src/index.ts` - Public entry point of the content package: the bundle of cards, map, scenarios and tutorial. Exports: DEFAULT_CONTINGENCY, scenarioSetup, ScenarioSetup.
+- `packages/content/src/index.ts` - Public entry point of the content package: the bundle of cards, map, scenarios and tutorial. Exports: DEFAULT_CONTINGENCY, scenarioSetup, ScenarioSetup, TEST_MAP_SCENARIO.
 - `packages/content/src/lastingTags.test.ts` - The lasting tags of the first deck (#202, owner 21 Oct): exactly the eight tags a later card reads are recorded for the rest of the game; every other marker st…
 - `packages/content/src/onceOnly.test.ts` - The six Ops 4 cards are once-only events (deck-plan.md, wish W6; #204; Defence of Kyiv, Owner question 52): flagged removeAfterEvent, with the template sentenc…
 - `packages/content/src/playCardBefore.test.ts` - The card test helper's `before` option (#202): real cards played for their events in earlier turns of the same game, so a card under test can read a lasting ta…
@@ -339,6 +360,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/src/test/playCard.test.ts` - The card test helper's own options: which side plays a neutral card, and the numbers drawn in order.
 - `packages/content/src/test/playCard.ts` - Test helper: plays one real card through the real engine and tells what happened, in a short story. Exports: YesAnswers, EarlierCard, PlayOptions, story, startCardGame, playCard, playCardDef.
 - `packages/content/src/test/playCardRival.test.ts` - The card test helper's ways for the rival to play the card under test, and its story lines for a hand shown and for a discard.
+- `packages/content/src/testMapScenario.test.ts`
+- `packages/content/src/testMapScenario.ts` - The TEST scenario with a made-up map, for tests and fuzz suites. Exports: TEST_MAP_SCENARIO.
 - `packages/content/tsconfig.json`
 
 ## packages/engine - Pure rules engine: game state, decisions, events and views. Imports nothing outside itself.
@@ -360,6 +383,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/copy.ts` - State is plain JSON, so a JSON round trip is a complete copy that shares nothing with the original. Exports: copyJson.
 - `packages/engine/src/createGame.test.ts`
 - `packages/engine/src/createGame.ts` - Exports: createGame.
+- `packages/engine/src/createGameMap.test.ts` - A game started with a map keeps it, and every country's influence, in the public compartment only.
 - `packages/engine/src/decisions.test.ts`
 - `packages/engine/src/decisions.ts` - Pending decisions: building them, finding the one a side must answer, and listing its legal answers. Exports: whoseCard, newDecision, newDiscardDecision, newGroup, pendingFor, legalAnswers.
 - `packages/engine/src/discard.property.test.ts` - Property test (#186): for random hands, counts and generator states, a discardFromHand takes exactly min(count, hand size) distinct cards from the hand, all of…
@@ -381,6 +405,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/knowledge.ts` - Knowledge: the rival's cards a side has been shown (docs/architecture.md, section 3), kept in that side's own private compartment while they stay in the rival'… Exports: revealHand, forgetCard.
 - `packages/engine/src/knowledgeTypes.ts` - The events of the steps that look at or take from a hand: revealHand (knowledge.ts) and discardFromHand (discard.ts). Exports: HandRevealedHidden, HandRevealed, CardsDiscarded.
 - `packages/engine/src/lastingTypes.ts` - The types of what a card leaves in force: hooks, durations, modifiers and triggers (modifiers.ts, triggers.ts). Exports: HookId, Duration, ModifierSpec, ModifierExpiry, ActiveModifier, TriggerFilter, ActiveTrigger.
+- `packages/engine/src/mapChecks.test.ts` - createGame refuses a bad map with invalidSetup and a message naming the problem: one test per refusal.
+- `packages/engine/src/mapChecks.ts` - The setup's map (docs/design/map-and-points.md, "Map" and "Influence"): checking it, and the public state it starts. Exports: mapError, mapState.
+- `packages/engine/src/mapTypes.ts` - The map's types (docs/design/map-and-points.md, "Map" and "Influence"). Exports: RegionId, CountryId, Region, Country, GameMap, InfluenceEntry, SetupMap.
 - `packages/engine/src/markers.test.ts` - Lasting markers (#141): a marker step with `lasting: true` keeps its label in state.public.markers until the game ends.
 - `packages/engine/src/markers.ts` - Lasting markers: named tags a card leaves in the public state until the game ends, which a later card's `has` condition tests. Exports: keepMarker, hasMarker.
 - `packages/engine/src/modifiers.test.ts` - Modifiers (#89): rule changes in public state, the opsValue hook, and their end at the turn's end.
@@ -410,6 +437,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/stepBudget.test.ts`
 - `packages/engine/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
 - `packages/engine/src/test/game.ts` - Test helpers: a started game, answers for it, and small programs for the stack. Exports: testCard, rulesetWith, ruleset, sideCard, withCards, makeSetup, setupPlus, startGame, startAtPlay, cardAnswer, playAnswer, orderAnswer, ….
+- `packages/engine/src/test/map.ts` - A small made-up map for engine tests: two regions, five countries in a ring with one cross link. Exports: testMap, mapSetup.
 - `packages/engine/src/triggerFilter.test.ts` - A trigger's filter and once (#189): a trigger that reacts only to one side's plays, or only while a lasting marker is set, and a trigger that fires at most onc…
 - `packages/engine/src/triggerFilterChecks.test.ts` - createGame's checks of a trigger's filter and once (#189): badTrigger, and the ruleset check that a has names a marker some card sets, which reads a trigger's…
 - `packages/engine/src/triggers.test.ts` - Triggers (#90): reactions a card leaves behind, fired at the cardPlayed and turnEnd hooks.
@@ -495,12 +523,14 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/inviteHandler.ts` - The HTTP side of the invite Edge Function (docs/architecture.md, Decision 5), as plain data in and out so it runs under vitest, the same way the submit handler… Exports: InviteHandlerDeps, InviteHandlerErrorCode, handleInvite.
 - `packages/server/src/inviteStore.test.ts`
 - `packages/server/src/inviteStore.ts` - The invite port behind private games (docs/architecture.md, Decision 5), and an in-memory store for tests. Exports: SideMode, Invite, StoredInvite, SaveResult, AcceptResult, InviteStore, MemoryInviteStore.
+- `packages/server/src/later.ts` - For in-memory ports that answer with a promise but have nothing to wait for. Exports: later.
 - `packages/server/src/mailMessages.test.ts`
 - `packages/server/src/mailMessages.ts` - The two emails online play sends (docs/sprint.md, O8): the sign-in code and the turn alert. Exports: signInCodeEmail, turnAlertEmail.
 - `packages/server/src/mailer.test.ts`
 - `packages/server/src/mailer.ts` - The mail port (docs/architecture.md, Decision 5, "Accounts and purchases"): sign-in codes and turn alerts go out through a paid email provider. Exports: Email, SendResult, Mailer, MemoryMailer.
 - `packages/server/src/matchRow.test.ts`
 - `packages/server/src/matchRow.ts` - The mapping between a `match` row (rows.ts, the SQL column names) and the host's `MatchRecord`. Exports: matchRowFor, recordFromRow.
+- `packages/server/src/memoryStores.rejects.test.ts` - O12, acceptance criterion 4: an in-memory store method runs its body inside the promise, so a failure in it reaches the caller as a rejected promise, never as…
 - `packages/server/src/migrations/acceptInviteClock.test.ts` - The accept_invite clock migration (supabase/migrations/20261026000000_accept_invite_clock.sql).
 - `packages/server/src/migrations/commitMatch.test.ts` - The commit_match migration (supabase/migrations/20261021000000_commit_match.sql) on the local Supabase stack.
 - `packages/server/src/migrations/localStack.ts` - Connects the migration test to the local Supabase stack (docs/sprint.md, lane "online": no hosted project). Exports: HOW_TO_START, StackKeys, stackKeys, client, whyUnavailable, freshId.
@@ -509,6 +539,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/migrations/notifyQueue.test.ts` - The notify_queue migration (supabase/migrations/20261024000000_notify_queue.sql).
 - `packages/server/src/migrations/notifyQueueWaitingSeq.test.ts` - The waiting_seq migration (supabase/migrations/20261025000000_notify_queue_waiting_seq.sql).
 - `packages/server/src/migrations/sqlRaw.d.ts` - A migration file read as text by Vitest's `?raw` import, for checks the client API cannot make.
+- `packages/server/src/migrations/sweepJobs.test.ts` - The scheduled-job migration (supabase/migrations/20261026000000_sweep_jobs.sql).
 - `packages/server/src/notifyStore.test.ts`
 - `packages/server/src/notifyStore.ts` - The turn alert queue (docs/architecture.md, Decision 5, `notify_queue` and "Scheduled jobs", Notifications: "Email only if the turn is still unseen after about… Exports: TURN_ALERT_DELAY_MS, TurnAlert, NotifyStore, alertsFrom, MemoryNotifyStore.
 - `packages/server/src/queueAlerts.ts` - Queues the turn alerts of a move that is already saved. Exports: queueAlerts, keepWaiting.
@@ -525,6 +556,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/seenHandler.stack.test.ts` - The seen Edge Function served by the local Supabase stack: a player's seen call marks their queued turn alert seen, so the sweep no longer finds it.
 - `packages/server/src/seenHandler.test.ts`
 - `packages/server/src/seenHandler.ts` - The HTTP side of the seen Edge Function (docs/architecture.md, Decision 5, Notifications: "Email only if the turn is still unseen after about 20 minutes"), as… Exports: SeenHandlerDeps, SeenErrorCode, handleSeen.
+- `packages/server/src/sideModeOf.test.ts` - O12, acceptance criterion 1: `sideModeOf` sorts its keys with an explicit compare function, and its results are unchanged.
 - `packages/server/src/store.test.ts`
 - `packages/server/src/store.ts` - The storage port behind `submit` (docs/architecture.md, Decision 5), and an in-memory store for tests. Exports: LoadedMatch, MatchWrite, CommitResult, MatchStore, MemoryStore.
 - `packages/server/src/submit.leaks.test.ts`
@@ -557,11 +589,17 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/sweepDeadlines.storage.test.ts`
 - `packages/server/src/sweepDeadlines.test.ts`
 - `packages/server/src/sweepDeadlines.ts` - The deadline sweep (docs/architecture.md, Decision 5, "Scheduled jobs", Deadlines): for every match past a deadline, apply its deadline rule through the host a… Exports: SweepResult, sweepDeadlines.
+- `packages/server/src/sweepEdge.stack.test.ts` - The sweep-deadlines Edge Function served by the local Supabase stack: called with the service role key, it finishes a first-deck match whose deadline has passe…
+- `packages/server/src/sweepEdge.sweeps.test.ts`
+- `packages/server/src/sweepEdge.test.ts`
+- `packages/server/src/sweepEdge.ts` - The sweep Edge Functions' handlers (docs/architecture.md, Decision 5, "Scheduled jobs"): `sweep-deadlines` runs `sweepDeadlines` and `sweep-turn-alerts` runs `… Exports: SweepAccess, SweepDeadlinesDeps, SweepTurnAlertsDeps, DEADLINE_STATUSES, TURN_ALERT_STATUSES, handleSweepDeadlines, handleSweepTurnAlerts, sweepDeadlinesFetchHandler, sweepTurnAlertsFetchHandler.
+- `packages/server/src/sweepTurnAlerts.recheck.test.ts` - O11c (#309): the sweep re-reads an alert's waitingSeq just before marking it stale, so a `keep` that lands after the sweep read the alert, but before it marks…
 - `packages/server/src/sweepTurnAlerts.test.ts`
 - `packages/server/src/sweepTurnAlerts.ts` - The turn alert sweep (docs/architecture.md, Decision 5, "Scheduled jobs", Notifications): email each player whose turn is still waiting and still unseen 20 min… Exports: TurnAlertDeps, TurnAlertResult, sweepTurnAlerts.
 - `packages/server/src/test/alerts.ts` - Test helpers for turn alerts: the test match in a MemoryStore, its first alerts queued in a MemoryNotifyStore, a MemoryMailer, and addresses for alice and bob. Exports: APP_URL, ADDRESSES, AlertWorld, withNotify, moveUntilNotified, alertWorld.
 - `packages/server/src/test/authEmail.ts` - Test helpers for the auth-email hook: a test secret, a send-email payload, a correctly signed hook request and a handler wired to a MemoryMailer and a recorded… Exports: TEST_SECRET, TEST_CODE, TEST_TOKEN_HASH, TEST_EMAIL, NOW_MS, NOW_SECONDS, payload, signedRequest, authEmailWorld.
 - `packages/server/src/test/deadlines.ts` - Test helpers for the deadline sweep: matches with deadlines in an in-memory store. Exports: DAY, rulesetFor, createdWithClock, insertMatch, insertSaeLate.
+- `packages/server/src/test/errors.test.ts` - O12, acceptance criterion 2: `shown` prints a plain-object cause by its fields, never "[object Object]".
 - `packages/server/src/test/errors.ts` - Test helpers for checking what a thrown storage error shows. Exports: shown, thrown.
 - `packages/server/src/test/functions.ts` - Test helpers for calling an Edge Function served by the local Supabase stack (`supabase functions serve`). Exports: SERVE_HINT, callFunction, whyFunctionUnavailable.
 - `packages/server/src/test/games.ts` - Test helper: whole games played through `submit`, calling back after every step with what is stored. Exports: Strategy, STRATEGIES, Step, playGame.
@@ -575,6 +613,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/test/stack.ts` - Test helpers for the SupabaseStore checks on the local Supabase stack (O3's localStack.ts finds it). Exports: onLocalStack, TestUser, makeUser, accessToken, freshMatchId, newGame, writeOf, putIn, Stored, storedRows, cleanUp.
 - `packages/server/src/test/stackGame.ts` - The shared setup for the tests on the local Supabase stack: a service-role client and two fresh test users made before the tests, and every test match and user… Exports: StackGame, stackGame, answered, expectStoredAs.
 - `packages/server/src/test/stores.ts` - Test helpers that wrap any MatchStore, for the in-memory and the Supabase store alike. Exports: loadTogether, recording.
+- `packages/server/src/test/sweeps.ts` - Test helpers for the sweep Edge Function handlers (sweepEdge.ts): one due match and one due turn alert, in in-memory stores, with distinctive ids, address and… Exports: SERVICE_KEY, PLAYERS, DEADLINE_MATCH, ALERT_MATCH, ADDRESS_OF, DEADLINE_AT, ALERT_AT, sweepRequest, DeadlineWorld, deadlineWorld, AlertSweepWorld, alertSweepWorld.
 - `packages/server/src/turnAlerts.keep.test.ts` - A turn alert stays live while its player is still waiting on the decision it is for (#267).
 - `packages/server/src/turnAlerts.queue.test.ts`
 - `packages/server/src/webhookSignature.test.ts`
@@ -588,6 +627,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/supabase/functions/seen/index.ts` - The `seen` Edge Function (docs/architecture.md, Decision 5, Notifications): a player's app says it has shown them a turn, so no email goes out for it.
 - `packages/server/supabase/functions/submit/deno.json`
 - `packages/server/supabase/functions/submit/index.ts` - The `submit` Edge Function (docs/architecture.md, Decision 5): the one place a client sends an answer or a resignation.
+- `packages/server/supabase/functions/sweep-deadlines/deno.json`
+- `packages/server/supabase/functions/sweep-deadlines/index.ts` - The `sweep-deadlines` Edge Function (docs/architecture.md, Decision 5, "Scheduled jobs"): the scheduled job calls it every minute to apply every passed deadlin…
+- `packages/server/supabase/functions/sweep-turn-alerts/deno.json`
+- `packages/server/supabase/functions/sweep-turn-alerts/index.ts` - The `sweep-turn-alerts` Edge Function (docs/architecture.md, Decision 5, "Scheduled jobs", Notifications): the scheduled job calls it every minute to email eac…
 - `packages/server/supabase/migrations/20261020000000_match_tables.sql` - The match tables and who may read them (docs/architecture.md, Decision 5).
 - `packages/server/supabase/migrations/20261021000000_commit_match.sql` - The one write of a submit (docs/architecture.md, Decision 5): one transaction, guarded by `where seq = expectedSeq`.
 - `packages/server/supabase/migrations/20261022000000_match_invite.sql` - Private game invites (docs/architecture.md, Decision 5).
@@ -595,6 +638,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/supabase/migrations/20261024000000_notify_queue.sql` - Turn alerts waiting to be emailed (docs/architecture.md, Decision 5, `notify_queue`: pending notifications).
 - `packages/server/supabase/migrations/20261025000000_notify_queue_waiting_seq.sql` - A turn alert stays live while its player is still waiting on that turn (#267).
 - `packages/server/supabase/migrations/20261026000000_accept_invite_clock.sql` - accept_invite as before (20261022000000_match_invite.sql), now also writing the match's deadline clock and next deadline (the columns 20261023000000_match_cloc…
+- `packages/server/supabase/migrations/20261026000000_sweep_jobs.sql` - The scheduled job (docs/architecture.md, Decision 5, "Scheduled jobs (every minute)"): every minute pg_cron calls the sweep-deadlines and sweep-turn-alerts Edg…
 - `packages/server/tsconfig.json`
 
 ## tests
@@ -747,9 +791,19 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `docs/design/map-and-points.md` - The map, influence, points and escalation: owner decisions (W7)
 - `docs/design/sides.md` - Sides
 - `docs/proposals/card-count-gap.md` - The LIO/SAE card-count gap and the missing Era 3 LIO Ops 4 card: options
+- `docs/proposals/card-rewording/README.md` - Card rules text once points have a use: wording rules
+- `docs/proposals/card-rewording/era-1.md` - Era 1 cards: rules text reworded now that points have a use
+- `docs/proposals/card-rewording/era-2.md` - Era 2 cards: rules text reworded now that points have a use
+- `docs/proposals/card-rewording/era-3.md` - Era 3 and future cards: rules text reworded now that points have a use
 - `docs/proposals/era-lengths.md` - Era lengths and turns per era: options
+- `docs/proposals/map-content/README.md` - The six-region map's content, and the order regions close at Escalation
+- `docs/proposals/map-content/option-1.md` - Option 1: even regions, six countries each
+- `docs/proposals/map-content/option-2.md` - Option 2: card places first, uneven regions
+- `docs/proposals/map-content/option-3.md` - Option 3: compact, five countries per region
+- `docs/proposals/missed-turn-ai.md` - How "the AI plays the missed turn" could work online: options
 - `docs/proposals/new-lio-cards.md` - New LIO cards: drafts for the owner's approval
 - `docs/proposals/special-abilities.md` - Special abilities for LIO and SAE: options
+- `docs/proposals/tech-race.md` - The tech race track: options
 - `docs/proposals/w7/1-map.md` - Topic 1: the map (regions, how many countries, adjacency)
 - `docs/proposals/w7/2-influence.md` - Topic 2: influence (placing it, and controlling a country)
 - `docs/proposals/w7/3-points-and-actions.md` - Topic 3: what points are spent on, and what a card's points award stands for

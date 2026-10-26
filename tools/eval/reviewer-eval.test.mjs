@@ -9,7 +9,7 @@ import { buildPrompt, hint, tokensOf, verdictOf } from "./reviewer-eval.mjs";
 const CASES = JSON.parse(readFileSync(path.join(import.meta.dirname, "reviewer-cases.json"), "utf8"));
 
 test("every case names a pull request, its issue, a kind and what happened later; bad ones say what to look for", () => {
-  assert.ok(CASES.length >= 6);
+  assert.ok(CASES.length >= 10);
   for (const c of CASES) {
     assert.match(c.id, /^[A-Z]\d+[a-z]?$/, c.id);
     assert.ok(Number.isInteger(c.pr) && Number.isInteger(c.issue), c.id);
@@ -17,6 +17,25 @@ test("every case names a pull request, its issue, a kind and what happened later
     if (c.kind.startsWith("bad")) assert.ok(c.lookFor, c.id);
   }
   assert.ok(CASES.filter((c) => c.kind === "clean").length >= 3);
+});
+
+test("each case's id and pull request appear once, so no two cases share a branch or a results file", () => {
+  for (const key of ["id", "pr"]) {
+    const seen = CASES.map((c) => c[key]);
+    assert.deepEqual(
+      seen.filter((v, i) => seen.indexOf(v) !== i),
+      [],
+      key,
+    );
+  }
+});
+
+test('every kind is "bad", "bad, borderline" or "clean"; a clean case has no lookFor; every lookFor is a valid pattern', () => {
+  for (const c of CASES) {
+    assert.ok(["bad", "bad, borderline", "clean"].includes(c.kind), `${c.id}: ${c.kind}`);
+    if (c.kind === "clean") assert.equal(c.lookFor, undefined, c.id);
+    if (c.lookFor !== undefined) assert.doesNotThrow(() => new RegExp(c.lookFor, "i"), c.id);
+  }
 });
 
 test("the prompt diffs the merged change against its parent and carries the spec and summary, not a way to fetch comments", () => {

@@ -16,3 +16,10 @@ secrets = "env(SEND_EMAIL_HOOK_SECRET)"
 # Auth calls the hook with a webhook signature, not a user token; the signature check in the function guards it.
 [functions.auth-email]
 verify_jwt = false
+
+# The scheduled job calls the sweeps with the service role key, which each handler checks itself (src/sweepEdge.ts).
+[functions.sweep-deadlines]
+verify_jwt = false
+
+[functions.sweep-turn-alerts]
+verify_jwt = false

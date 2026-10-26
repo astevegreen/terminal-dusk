@@ -4,6 +4,7 @@ import type { Viewer } from "@terminal-dusk/engine";
 import type { Frame, MatchRecord, MatchSecret } from "@terminal-dusk/host";
 import type { DeadlineStore } from "./deadlineStore.ts";
 import { dueIds } from "./deadlineStore.ts";
+import { later } from "./later.ts";
 import { matchRowFor } from "./matchRow.ts";
 import type { ReadStore, StoredRows } from "./read.ts";
 import { rowsFor } from "./rows.ts";
@@ -49,40 +50,50 @@ export class MemoryStore implements MatchStore, ReadStore, DeadlineStore {
     return found ? copy(found) : null;
   }
 
-  async load(matchId: string): Promise<LoadedMatch | null> {
-    const found = this.#matches.get(matchId);
-    return found ? copy({ record: found.record, secret: found.secret }) : null;
+  load(matchId: string): Promise<LoadedMatch | null> {
+    return later(() => {
+      const found = this.#matches.get(matchId);
+      return found ? copy({ record: found.record, secret: found.secret }) : null;
+    });
   }
 
-  async commit(matchId: string, expectedSeq: number, write: MatchWrite): Promise<CommitResult> {
-    const found = this.#matches.get(matchId);
-    const rows = this.#rows.get(matchId);
-    if (!found || !rows || found.record.seq !== expectedSeq) return "conflict";
-    const next = rowsFor(write);
-    this.#matches.set(matchId, copy(write));
-    this.#rows.set(matchId, { match: next.match, views: next.views, events: [...rows.events, ...next.events] });
-    return "saved";
+  commit(matchId: string, expectedSeq: number, write: MatchWrite): Promise<CommitResult> {
+    return later((): CommitResult => {
+      const found = this.#matches.get(matchId);
+      const rows = this.#rows.get(matchId);
+      if (!found || !rows || found.record.seq !== expectedSeq) return "conflict";
+      const next = rowsFor(write);
+      this.#matches.set(matchId, copy(write));
+      this.#rows.set(matchId, { match: next.match, views: next.views, events: [...rows.events, ...next.events] });
+      return "saved";
+    });
   }
 
-  async due(now: number): Promise<string[]> {
-    return dueIds(
-      [...this.#matches].map(([id, write]) => [id, write.record] as const),
-      now,
+  due(now: number): Promise<string[]> {
+    return later(() =>
+      dueIds(
+        [...this.#matches].map(([id, write]) => [id, write.record] as const),
+        now,
+      ),
     );
   }
 
-  async saveClock(matchId: string, expectedSeq: number, record: MatchRecord): Promise<CommitResult> {
-    const found = this.#matches.get(matchId);
-    const rows = this.#rows.get(matchId);
-    if (!found || !rows || found.record.seq !== expectedSeq) return "conflict";
-    this.#matches.set(matchId, { ...found, record: copy(record) });
-    this.#rows.set(matchId, { ...rows, match: matchRowFor(record) });
-    return "saved";
+  saveClock(matchId: string, expectedSeq: number, record: MatchRecord): Promise<CommitResult> {
+    return later((): CommitResult => {
+      const found = this.#matches.get(matchId);
+      const rows = this.#rows.get(matchId);
+      if (!found || !rows || found.record.seq !== expectedSeq) return "conflict";
+      this.#matches.set(matchId, { ...found, record: copy(record) });
+      this.#rows.set(matchId, { ...rows, match: matchRowFor(record) });
+      return "saved";
+    });
   }
 
   /** A copy of the match's readable rows, or `null`. It holds nothing from the secret. */
-  async rows(matchId: string): Promise<StoredRows | null> {
-    const found = this.#rows.get(matchId);
-    return found ? copy(found) : null;
+  rows(matchId: string): Promise<StoredRows | null> {
+    return later(() => {
+      const found = this.#rows.get(matchId);
+      return found ? copy(found) : null;
+    });
   }
 }

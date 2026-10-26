@@ -25,6 +25,8 @@ import type { CardsDiscarded, HandRevealed, HandRevealedHidden } from "./knowled
 export type { CardsDiscarded, HandRevealed, HandRevealedHidden } from "./knowledgeTypes.ts";
 import type { EraEntry } from "./setupTypes.ts";
 export type { EraEntry, Setup } from "./setupTypes.ts";
+import type { GameMap, InfluenceEntry } from "./mapTypes.ts";
+export type { Country, CountryId, GameMap, InfluenceEntry, Region, RegionId, SetupMap } from "./mapTypes.ts";
 
 export type Side = "lio" | "sae";
 /** Both sides, in the one order the engine always loops in. */
@@ -317,6 +319,10 @@ export type PublicState = {
   turnEndFired: boolean;
   /** The lasting markers' labels, in the order first set, each once. Never removed (markers.ts). */
   markers: string[];
+  /** The fixed map, when the setup gave one (mapTypes.ts). Never the starting influence. */
+  map?: GameMap;
+  /** Each country's live influence, one entry per country in the map's order; present exactly when `map` is. */
+  influence?: InfluenceEntry[];
 };
 /** A side's answer to its decision in a simultaneous group, kept secret until the other side's is in. */
 export type UnrevealedPick = { group: string; decisionId: string; value: AnswerValue };
