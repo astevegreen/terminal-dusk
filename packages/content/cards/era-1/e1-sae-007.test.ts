@@ -25,4 +25,33 @@ describeCard("e1-sae-007", "Taiwan Strait Crisis", [
       points:sae:2
     `,
   },
+  {
+    it: "on the map, when LIO says yes: Escalation rises 2 to 3 as the event's last step",
+    map: true,
+    yes: { lio: true },
+    story: `
+      points:lio:2
+      strait crisis
+      points:lio:2
+      mod:lio:-1:min1
+      escalation:2:3
+      points:lio:1
+      points:sae:2
+      escalation:3:2
+    `,
+  },
+  {
+    it: "on the map, when LIO says no: Escalation still rises 2 to 3 as the event's last step",
+    map: true,
+    yes: { lio: false },
+    story: `
+      points:lio:2
+      strait crisis
+      points:sae:3
+      escalation:2:3
+      points:lio:2
+      points:sae:2
+      escalation:3:2
+    `,
+  },
 ]);

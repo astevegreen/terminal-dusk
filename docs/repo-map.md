@@ -358,6 +358,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/src/era2Files.ts` - The Era 2 cards (2001 to 2008), one JSON file each in cards/era-2/. Exports: ERA_2_CARDS.
 - `packages/content/src/era3.test.ts`
 - `packages/content/src/era3Files.ts` - The Era 3 cards (2008 to 2025), one JSON file each in cards/era-3/. Exports: ERA_3_CARDS.
+- `packages/content/src/escalationCards.test.ts` - R18b (#345): the sixteen cards that move Escalation by 1 (map-and-points.md, "Cards that move it"), on top of what each already does.
 - `packages/content/src/firstDeck.ts` - What the game screens need of the first deck: the cards as engine rules, their names, and the TEST scenario. Exports: ERA_1_CARDS, cardDef, Card, ERA_2_CARDS, ERA_3_CARDS, FUTURE_CARDS, FIRST_DECK_CARDS, FIRST_DECK_RULESET, cardName, FIRST_DECK_SCENARIO, scenarioSetup.
 - `packages/content/src/firstDeckRules.ts` - The ruleset and card names of the first deck: Era 1, Era 2, Era 3 and the optional future cards. Exports: FIRST_DECK_CARDS, FIRST_DECK_RULESET, cardName.
 - `packages/content/src/firstDeckScenario.ts` - The TEST scenario for the first deck. Exports: FIRST_DECK_SCENARIO.

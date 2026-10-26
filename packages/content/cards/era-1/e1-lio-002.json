@@ -50,11 +50,15 @@
           "amount": 1
         }
       ]
+    },
+    {
+      "op": "escalate",
+      "by": -1
     }
   ],
   "text": {
     "name": "Budapest Memorandum",
-    "rules": "Record \"assurances given\". LIO spends 2 points. SAE chooses: Honour the assurances? If yes, record \"promise kept\", then SAE spends 1 point; if no, record \"hollow assurance\" for the rest of the game, then LIO spends 1 point.",
+    "rules": "Record \"assurances given\". LIO spends 2 points. SAE chooses: Honour the assurances? If yes, record \"promise kept\", then SAE spends 1 point; if no, record \"hollow assurance\" for the rest of the game, then LIO spends 1 point. Lower Escalation by 1.",
     "history": "On 5 December 1994 Ukraine, Kazakhstan and Belarus received security assurances from the United States, the United Kingdom and Russia in the Budapest Memorandum, in return for giving up Soviet nuclear weapons left on their territory. US Nunn-Lugar funding paid for much of the dismantling.",
     "art": "art/e1-lio-002"
   }

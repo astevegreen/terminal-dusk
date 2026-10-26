@@ -43,6 +43,41 @@ describeCard("e3-sae-004", "Full-Scale Invasion", [
     rival: "opening",
     story: invasionByLio("opening"),
   },
+  {
+    it: "on the map: Escalation rises 2 to 3 after the turn-end trigger is set, as the event's last step",
+    map: true,
+    story: `
+      points:lio:2
+      full-scale war
+      points:sae:3
+      mod:lio:-1:min1
+      triggerSet:turnEnd
+      escalation:2:3
+      points:lio:1
+      points:sae:2
+      triggerFired:turnEnd
+      points:lio:1
+      escalation:3:2
+    `,
+  },
+  {
+    it: "on the map, when LIO plays it for points: Escalation still rises 2 to 3",
+    map: true,
+    rival: "points",
+    story: `
+      full-scale war
+      points:sae:3
+      triggerSet:turnEnd
+      escalation:2:3
+      points:lio:4
+      points:sae:2
+      points:lio:2
+      points:sae:2
+      triggerFired:turnEnd
+      points:lio:1
+      escalation:3:2
+    `,
+  },
 ]);
 
 describeOnceOnly("e3-sae-004", "Full-Scale Invasion");

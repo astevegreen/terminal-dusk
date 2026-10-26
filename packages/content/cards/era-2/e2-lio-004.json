@@ -32,6 +32,10 @@
           "op": "spendPoints",
           "side": "sae",
           "amount": 1
+        },
+        {
+          "op": "escalate",
+          "by": 1
         }
       ],
       "else": [
@@ -45,7 +49,7 @@
   ],
   "text": {
     "name": "ABM Treaty Withdrawal",
-    "rules": "LIO chooses: Leave the treaty? If yes, record \"treaty gone\", then LIO spends 2 points, then SAE spends 1 point; if no, LIO spends 1 point.",
+    "rules": "LIO chooses: Leave the treaty? If yes, record \"treaty gone\", then LIO spends 2 points, then SAE spends 1 point, then raise Escalation by 1; if no, LIO spends 1 point.",
     "history": "The United States gave notice of withdrawal from the 1972 Anti-Ballistic Missile Treaty on 13 December 2001; the withdrawal took effect on 13 June 2002.",
     "art": "art/e2-lio-004"
   }
