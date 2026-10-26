@@ -1,4 +1,4 @@
-// The entitlement migration (supabase/migrations/20261026000000_entitlement.sql) on the local Supabase stack.
+// The entitlement migration (supabase/migrations/20261027000000_entitlement.sql) on the local Supabase stack.
 // `pnpm test:migrations` applies every migration to an empty database first. These checks prove the table's
 // columns and checks, that a signed-in user reads only their own rows, that a signed-out client reads nothing,
 // and that no client may insert, update or delete a row: only the service role writes them.
