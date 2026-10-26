@@ -152,6 +152,15 @@ describe("the leak check", () => {
     });
     expect(checkResponses([mk(otherText)], new Map([[SEQ, other]])).problems).toEqual([]);
 
+    // An unsorted order equals no public list, so it is a leak even inside a deck-shaped list.
+    const shuffled = structuredClone(secret);
+    shuffled.state.secret.contingency.sae = [4, 1, 6];
+    shuffled.state.public.contingency.sae = { cards: full, left: [1, 4, 6] };
+    const inDeckList = canonical({ contingency: { sae: { cards: full, left: [4, 1, 6] } } });
+    expect(checkResponses([mk(inDeckList)], new Map([[SEQ, shuffled]])).problems).toEqual([
+      `seq ${SEQ}, lio, /rest/v1/match_view: sae's Contingency order`,
+    ]);
+
     // The same order anywhere else in the body is still a leak.
     const leaked = canonical([{ seq: SEQ, frame: { contingency: decks, top: full } }]);
     expect(checkResponses([mk(leaked)], new Map([[SEQ, fresh]])).problems).toEqual([
