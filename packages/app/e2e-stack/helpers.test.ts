@@ -125,6 +125,40 @@ describe("the leak check", () => {
     expect(checkResponses([otherLeft], new Map([[SEQ, ordered]])).problems).toEqual(flagged);
   });
 
+  it("does not count a hidden order that matches any deck's public cards or left list (run 4 of the stack gate)", () => {
+    // At the start every deck's public lists are [1..6], so an untouched ascending order matches all six of them.
+    const fresh = structuredClone(secret);
+    const full = [1, 2, 3, 4, 5, 6];
+    fresh.state.secret.contingency.sae = [...full];
+    for (const deck of ["lio", "sae", "world"] as const)
+      fresh.state.public.contingency[deck] = { cards: full, left: full };
+    const mk = (text: string): Recorded => ({ side: "lio", url: url("/rest/v1/match_view"), text, atSeq: SEQ });
+    const decks = {
+      lio: { cards: full, left: full },
+      sae: { cards: full, left: full },
+      world: { cards: full, left: full },
+    };
+    expect(
+      checkResponses([mk(canonical([{ seq: SEQ, frame: { contingency: decks } }]))], new Map([[SEQ, fresh]])).problems,
+    ).toEqual([]);
+
+    // An order that equals only another deck's public left list is the same coincidence.
+    const other = structuredClone(secret);
+    other.state.secret.contingency.sae = [2, 5];
+    other.state.public.contingency.lio = { cards: full, left: [2, 5] };
+    other.state.public.contingency.sae = { cards: full, left: [2, 5, 6] };
+    const otherText = canonical({
+      contingency: { lio: { cards: full, left: [2, 5] }, sae: { cards: full, left: [2, 5, 6] } },
+    });
+    expect(checkResponses([mk(otherText)], new Map([[SEQ, other]])).problems).toEqual([]);
+
+    // The same order anywhere else in the body is still a leak.
+    const leaked = canonical([{ seq: SEQ, frame: { contingency: decks, top: full } }]);
+    expect(checkResponses([mk(leaked)], new Map([[SEQ, fresh]])).problems).toEqual([
+      `seq ${SEQ}, lio, /rest/v1/match_view: sae's Contingency order`,
+    ]);
+  });
+
   it("still counts a rival's picked card that also shows up outside the viewer's own knowledge list", () => {
     const card = secret.state.private.sae.hand[0] as string;
     const known = structuredClone(secret);

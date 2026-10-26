@@ -64,20 +64,23 @@ function deckOf(leak: string): "lio" | "sae" | "world" | null {
   return side === "lio" || side === "sae" ? side : null;
 }
 
+/** Every deck's public Contingency lists in a body: `"lio":{"cards":[...],"left":[...]` and the same for sae and world. */
+const PUBLIC_DECK_LISTS = /"(?:lio|sae|world)":\{"cards":\[[0-9,]*\],"left":\[[0-9,]*\]/g;
+
 /**
- * A Contingency order is not a leak where it only shows up as that deck's public `left` list: `left` is public and
- * sorted, so when the hidden draw order happens to be ascending too, `leaksFor`'s plain substring search matches it by
- * chance. Exempt only when the order equals the state's public `left` for that deck and the finding disappears
- * once that deck's public `left` list alone is taken out of the text (reported in the pull request).
+ * A Contingency order is not a leak where it only shows up as one of the decks' public lists: `cards` and `left` are
+ * public and sorted, so when the hidden draw order happens to be ascending too (at the start every deck's lists are
+ * the same six cards), `leaksFor`'s plain substring search matches it by chance (#380). Exempt only when the order
+ * equals one of the state's public lists and the finding disappears once every public deck list is taken out of the
+ * text (reported in the pull request).
  */
-function isPublicLeftList(leak: string, text: string, secret: MatchSecret, side: Side): boolean {
+function isPublicDeckList(leak: string, text: string, secret: MatchSecret, side: Side): boolean {
   const deck = deckOf(leak);
   if (deck === null) return false;
-  const left = secret.state.public.contingency[deck].left;
-  if (JSON.stringify(left) !== JSON.stringify(secret.state.secret.contingency[deck])) return false;
-  const stripped = text.replace(/"(lio|sae|world)":\{"cards":\[[0-9,]*\],"left":\[[0-9,]*\]/g, (whole, name: string) =>
-    name === deck ? whole.replace(/\[[0-9,]*\]$/, "[]") : whole,
-  );
+  const order = JSON.stringify(secret.state.secret.contingency[deck]);
+  const lists = Object.values(secret.state.public.contingency).flatMap((pub) => [pub.cards, pub.left]);
+  if (!lists.some((list) => JSON.stringify(list) === order)) return false;
+  const stripped = text.replace(PUBLIC_DECK_LISTS, (whole) => whole.replace(/\[[0-9,]*\]/g, "[]"));
   return !leaksFor(stripped, secret, side).includes(leak);
 }
 
@@ -93,7 +96,7 @@ function problemsIn(
     problems.push(`seq ${piece.seq}, ${where}: the rival's frame`);
   }
   for (const leak of leaksFor(piece.text, secret, side)) {
-    if (isOwnKnowledge(leak, piece.text, secret, side) || isPublicLeftList(leak, piece.text, secret, side)) continue;
+    if (isOwnKnowledge(leak, piece.text, secret, side) || isPublicDeckList(leak, piece.text, secret, side)) continue;
     problems.push(`seq ${piece.seq}, ${where}: ${withoutCards(leak)}`);
   }
   return problems;
