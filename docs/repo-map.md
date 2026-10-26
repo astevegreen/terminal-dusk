@@ -404,6 +404,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/drawStep.test.ts` - The drawContingency step (#65): a card's effect draws from a named side's Contingency deck, and a later step of the same card can read the number drawn.
 - `packages/engine/src/eras.test.ts` - A new era (#37): the setup's checks, its cards waiting in secret, and the shuffle into the draw pile only.
 - `packages/engine/src/eras.ts` - Eras after the first (docs/design/eras.md, "When a new era starts"). Exports: erasError, enterEra.
+- `packages/engine/src/escalateStep.test.ts` - R18a: the escalate step (docs/design/map-and-points.md, "Escalation").
+- `packages/engine/src/escalateStep.ts` - The escalate step (R18a; docs/design/map-and-points.md, "Escalation"): a card's event moves Escalation by `by`. Exports: runEscalate.
 - `packages/engine/src/escalation.test.ts` - R17a: the Escalation track (docs/design/map-and-points.md, "Escalation"): it starts at 2 in a game with a map, raiseEscalation and lowerEscalation move it with…
 - `packages/engine/src/escalation.ts` - The Escalation track (docs/design/map-and-points.md, "Escalation"): one shared public number from 0 to 6, in a game with a map only. Exports: ESCALATION_START, ESCALATION_MIN, ESCALATION_MAX, AFTER_CRISIS, raiseEscalation, lowerEscalation.
 - `packages/engine/src/escalationTypes.ts` - The Escalation track's types (docs/design/map-and-points.md, "Escalation"): one shared public number from 0 to 6. Exports: EscalationChanged, EscalationCrisis, EscalationEvent.
