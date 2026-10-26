@@ -160,9 +160,9 @@ describe("SupabaseInviteStore: a database error throws, shows no code, secret, s
       const { deps, invites } = inviteWorld();
       const broken = { ...deps, invites: failing };
       const failed = { ok: false, error: { code: "storageFailed" } };
-      expect(await createInvite(broken, { host: HOST, sides: { mode: "random" }, now: INVITE_NOW })).toMatchObject(
-        failed,
-      );
+      expect(
+        await createInvite(broken, { host: HOST, sides: { mode: "random" }, platform: "web", now: INVITE_NOW }),
+      ).toMatchObject(failed);
       expect(await previewInvite(broken, CODE)).toMatchObject(failed);
       expect(await joinInvite(broken, { code: CODE, player: JOINER, now: INVITE_NOW })).toMatchObject(failed);
 

@@ -3,6 +3,7 @@
 // calls O5a's createInvite, previewInvite or joinInvite, and turns the outcome into a JSON reply. The host and
 // joiner always come from sign-in, never from the body. It does not log.
 import type { Side } from "@terminal-dusk/engine";
+import type { Platform } from "@terminal-dusk/host";
 import { jsonObject, preflight, refusal as refusalReply, reply, signedIn } from "./http.ts";
 import type { Authenticate, HttpReply, HttpRequest } from "./http.ts";
 import { createInvite, joinInvite, previewInvite } from "./invite.ts";
@@ -19,6 +20,7 @@ export type InviteHandlerErrorCode =
 const STATUS: Partial<Record<InviteHandlerErrorCode, number>> = {
   illegalAnswer: 400,
   notSignedIn: 401,
+  notEntitled: 403,
   inviteNotFound: 404,
   methodNotAllowed: 405,
   ownInvite: 409,
@@ -26,9 +28,12 @@ const STATUS: Partial<Record<InviteHandlerErrorCode, number>> = {
   internalError: 500,
 };
 
-/** One well-formed request body. `sides` is checked by createInvite (a bad one is 422 `invalidInvite`). */
+/**
+ * One well-formed request body. `sides` and the value of `platform` are checked by createInvite (a bad one is
+ * 422 `invalidInvite`); `platform` must at least be a string.
+ */
 type Action =
-  | { action: "create"; sides: unknown }
+  | { action: "create"; sides: unknown; platform: string }
   | { action: "preview"; code: string }
   | { action: "join"; code: string; side: Side | undefined };
 
@@ -56,7 +61,9 @@ async function handle(deps: InviteHandlerDeps, request: HttpRequest): Promise<Ht
   switch (action.action) {
     case "create": {
       const sides = action.sides as SideMode;
-      return answer(await createInvite(deps, { host: player, sides, now: deps.now() }), ({ code }) => ({ code }));
+      const platform = action.platform as Platform;
+      const created = await createInvite(deps, { host: player, sides, platform, now: deps.now() });
+      return answer(created, ({ code }) => ({ code }));
     }
     case "preview":
       return answer(await previewInvite(deps, action.code), ({ sides }) => ({ sides }));
@@ -73,7 +80,9 @@ function parseBody(text: string): Action | null {
   const parsed = jsonObject(text);
   if (parsed === null) return null;
   const { action, code, side } = parsed;
-  if (action === "create") return { action, sides: parsed.sides };
+  if (action === "create") {
+    return typeof parsed.platform === "string" ? { action, sides: parsed.sides, platform: parsed.platform } : null;
+  }
   if (typeof code !== "string" || code.length === 0) return null;
   if (action === "preview") return { action, code };
   if (action !== "join") return null;

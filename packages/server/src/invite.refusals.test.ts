@@ -7,7 +7,7 @@ import { HOST, INVITE_NOW, inviteWorld, JOINER, sequence } from "./test/invites.
 const refused = (code: string) => ({ ok: false, error: expect.objectContaining({ code }) });
 
 async function codeFor(deps: InviteDeps, sides: SideMode): Promise<string> {
-  const made = await createInvite(deps, { host: HOST, sides, now: INVITE_NOW });
+  const made = await createInvite(deps, { host: HOST, sides, platform: "web", now: INVITE_NOW });
   if (!made.ok) throw new Error(made.error.code);
   return made.value.code;
 }
@@ -34,7 +34,7 @@ describe("createInvite refusals", () => {
   for (const [name, sides] of bad) {
     it(`a side mode that is ${name} gives invalidInvite and stores nothing`, async () => {
       const { deps, invites } = inviteWorld();
-      const made = await createInvite(deps, { host: HOST, sides: sides as SideMode, now: INVITE_NOW });
+      const made = await createInvite(deps, { host: HOST, sides: sides as SideMode, platform: "web", now: INVITE_NOW });
       expect(made).toEqual(refused("invalidInvite"));
       expect(await invites.find("CODE0001")).toBeNull();
     });
@@ -42,7 +42,7 @@ describe("createInvite refusals", () => {
 
   it("an empty host gives notSignedIn before anything is stored", async () => {
     const { deps, invites } = inviteWorld();
-    expect(await createInvite(deps, { host: "", sides: { mode: "random" }, now: INVITE_NOW })).toEqual(
+    expect(await createInvite(deps, { host: "", sides: { mode: "random" }, platform: "web", now: INVITE_NOW })).toEqual(
       refused("notSignedIn"),
     );
     expect(await invites.find("CODE0001")).toBeNull();
@@ -51,7 +51,9 @@ describe("createInvite refusals", () => {
   for (const now of [-1, 1.5, Number.NaN, "1" as unknown as number]) {
     it(`a time of ${String(now)} gives invalidTime before anything is stored`, async () => {
       const { deps, invites } = inviteWorld();
-      expect(await createInvite(deps, { host: HOST, sides: { mode: "random" }, now })).toEqual(refused("invalidTime"));
+      expect(await createInvite(deps, { host: HOST, sides: { mode: "random" }, platform: "web", now })).toEqual(
+        refused("invalidTime"),
+      );
       expect(await invites.find("CODE0001")).toBeNull();
     });
   }
@@ -59,37 +61,44 @@ describe("createInvite refusals", () => {
   it("checks the host first, then the time, then the side mode", async () => {
     const { deps } = inviteWorld();
     const sides = { mode: "nope" } as unknown as SideMode;
-    expect(await createInvite(deps, { host: "", sides, now: -1 })).toEqual(refused("notSignedIn"));
-    expect(await createInvite(deps, { host: HOST, sides, now: -1 })).toEqual(refused("invalidTime"));
+    expect(await createInvite(deps, { host: "", sides, platform: "web", now: -1 })).toEqual(refused("notSignedIn"));
+    expect(await createInvite(deps, { host: HOST, sides, platform: "web", now: -1 })).toEqual(refused("invalidTime"));
   });
 
   it("a code clash is retried with a new code, and the first invite is not overwritten", async () => {
-    const { deps, invites } = inviteWorld();
+    const { deps, invites, entitlements } = inviteWorld();
+    await entitlements.grant("other-olga", { platform: "web", source: "test" });
     const clashing = { ...deps, code: sequence(["TAKEN", "TAKEN", "FREE"]) };
-    await createInvite(clashing, { host: "other-olga", sides: { mode: "invitee" }, now: INVITE_NOW });
-    const made = await createInvite(clashing, { host: HOST, sides: { mode: "random" }, now: INVITE_NOW });
+    await createInvite(clashing, { host: "other-olga", sides: { mode: "invitee" }, platform: "web", now: INVITE_NOW });
+    const made = await createInvite(clashing, {
+      host: HOST,
+      sides: { mode: "random" },
+      platform: "web",
+      now: INVITE_NOW,
+    });
     expect(made).toEqual({ ok: true, value: { code: "FREE" } });
     expect(await invites.find("TAKEN")).toMatchObject({ host: "other-olga", sides: { mode: "invitee" } });
   });
 
   it("a clash on all 3 tries gives storageFailed", async () => {
-    const { deps } = inviteWorld();
+    const { deps, entitlements } = inviteWorld();
+    await entitlements.grant("other-olga", { platform: "web", source: "test" });
     const codes: string[] = [];
     const clashing = { ...deps, code: () => (codes.push("TAKEN"), "TAKEN") };
-    await createInvite(clashing, { host: "other-olga", sides: { mode: "invitee" }, now: INVITE_NOW });
+    await createInvite(clashing, { host: "other-olga", sides: { mode: "invitee" }, platform: "web", now: INVITE_NOW });
     codes.length = 0;
-    expect(await createInvite(clashing, { host: HOST, sides: { mode: "random" }, now: INVITE_NOW })).toEqual(
-      refused("storageFailed"),
-    );
+    expect(
+      await createInvite(clashing, { host: HOST, sides: { mode: "random" }, platform: "web", now: INVITE_NOW }),
+    ).toEqual(refused("storageFailed"));
     expect(codes).toHaveLength(3);
   });
 
   it("a store failure gives storageFailed and does not throw", async () => {
     const { deps } = inviteWorld();
     const broken = { ...deps, invites: brokenStore() };
-    expect(await createInvite(broken, { host: HOST, sides: { mode: "random" }, now: INVITE_NOW })).toEqual(
-      refused("storageFailed"),
-    );
+    expect(
+      await createInvite(broken, { host: HOST, sides: { mode: "random" }, platform: "web", now: INVITE_NOW }),
+    ).toEqual(refused("storageFailed"));
   });
 });
 
@@ -223,7 +232,10 @@ describe("the invite functions never change their inputs", () => {
   it("frozen requests and side modes are accepted", async () => {
     const world = inviteWorld();
     const sides = Object.freeze({ mode: "host", hostSide: "lio" } as const);
-    const made = await createInvite(world.deps, Object.freeze({ host: HOST, sides, now: INVITE_NOW }));
+    const made = await createInvite(
+      world.deps,
+      Object.freeze({ host: HOST, sides, platform: "web", now: INVITE_NOW } as const),
+    );
     if (!made.ok) throw new Error(made.error.code);
     const request = Object.freeze({ code: made.value.code, player: JOINER, now: INVITE_NOW + 1 });
     expect(await joinInvite(world.deps, request)).toMatchObject({ ok: true });

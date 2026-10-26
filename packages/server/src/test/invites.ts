@@ -2,6 +2,7 @@
 // ids, seeds and random sides, and submit deps that run the first deck.
 import type { Side } from "@terminal-dusk/engine";
 import { firstDeckRuleset } from "@terminal-dusk/host/first-deck";
+import { MemoryEntitlementStore } from "../entitlementStore.ts";
 import type { InviteDeps } from "../invite.ts";
 import { MemoryInviteStore } from "../inviteStore.ts";
 import { MemoryStore } from "../store.ts";
@@ -20,20 +21,26 @@ export const sequence = <T>(values: T[]) => {
 export type InviteWorld = {
   matches: MemoryStore;
   invites: MemoryInviteStore;
+  entitlements: MemoryEntitlementStore;
   deps: InviteDeps;
   submitDeps: SubmitDeps;
 };
 
-/** A fresh world. Codes are CODE0001, CODE0002...; match ids match-1, match-2...; seeds seed-1, seed-2... */
+/**
+ * A fresh world. Codes are CODE0001, CODE0002...; match ids match-1, match-2...; seeds seed-1, seed-2...
+ * HOST owns the full game on "web"; nobody else owns anything.
+ */
 export function inviteWorld(randomHostSide: Side = "lio"): InviteWorld {
   const matches = new MemoryStore();
   const invites = new MemoryInviteStore(matches);
+  const entitlements = new MemoryEntitlementStore([{ player: HOST, platform: "web", source: "test" }]);
   const counter = (prefix: string, width = 0) => {
     let n = 0;
     return () => `${prefix}${String(++n).padStart(width, "0")}`;
   };
   const deps: InviteDeps = {
     invites,
+    entitlements,
     code: counter("CODE", 4),
     matchId: counter("match-"),
     seed: counter("seed-"),
@@ -43,5 +50,5 @@ export function inviteWorld(randomHostSide: Side = "lio"): InviteWorld {
     store: matches,
     ruleset: (id) => (id === firstDeckRuleset.id ? firstDeckRuleset : undefined),
   };
-  return { matches, invites, deps, submitDeps };
+  return { matches, invites, entitlements, deps, submitDeps };
 }

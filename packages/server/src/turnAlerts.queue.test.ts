@@ -70,7 +70,12 @@ describe("joinInvite queues turn alerts for the new match", () => {
     const world = inviteWorld();
     const notify = new MemoryNotifyStore();
     const deps = { ...world.deps, notify };
-    const made = await createInvite(deps, { host: HOST, sides: { mode: "host", hostSide: "lio" }, now: INVITE_NOW });
+    const made = await createInvite(deps, {
+      host: HOST,
+      sides: { mode: "host", hostSide: "lio" },
+      platform: "web",
+      now: INVITE_NOW,
+    });
     if (!made.ok) throw new Error(`createInvite refused: ${made.error.code}`);
     const joined = await joinInvite(deps, { code: made.value.code, player: JOINER, now: INVITE_NOW + 1 });
     if (!joined.ok) throw new Error(`joinInvite refused: ${joined.error.code}`);
@@ -93,7 +98,12 @@ describe("joinInvite queues turn alerts for the new match", () => {
     const refused = await joinInvite({ ...world.deps, notify }, { code: "NOPE0000", player: JOINER, now: INVITE_NOW });
     expect(refused.ok).toBe(false);
     expect(await notify.due(INVITE_NOW + 10 * D)).toEqual([]);
-    const made = await createInvite(world.deps, { host: HOST, sides: { mode: "random" }, now: INVITE_NOW });
+    const made = await createInvite(world.deps, {
+      host: HOST,
+      sides: { mode: "random" },
+      platform: "web",
+      now: INVITE_NOW,
+    });
     if (!made.ok) throw new Error(`createInvite refused: ${made.error.code}`);
     const deps = { ...world.deps, notify: failingQueue };
     const joined = await joinInvite(deps, { code: made.value.code, player: JOINER, now: INVITE_NOW + 1 });

@@ -3,9 +3,10 @@
 // Plain TypeScript; the Edge Functions (a later task) wrap it. Nothing here logs codes or seeds.
 import { SIDES } from "@terminal-dusk/engine";
 import type { Seed, Side } from "@terminal-dusk/engine";
-import { hostCreate } from "@terminal-dusk/host";
-import type { HostEffect, HostError, PlayerId } from "@terminal-dusk/host";
+import { createOnlineRefusal, hostCreate, isPlatform } from "@terminal-dusk/host";
+import type { HostEffect, HostError, Platform, PlayerId } from "@terminal-dusk/host";
 import { firstDeckConfig, firstDeckRuleset } from "@terminal-dusk/host/first-deck";
+import type { EntitlementStore } from "./entitlementStore.ts";
 import { inviteCode } from "./inviteCode.ts";
 import type { InviteStore, SideMode } from "./inviteStore.ts";
 import type { NotifyStore } from "./notifyStore.ts";
@@ -15,11 +16,13 @@ import type { MatchWrite } from "./store.ts";
 /**
  * What the invite functions need: where invites (and the matches they make) live, and the random parts,
  * injected so tests are repeatable: a fresh match id, a fresh seed, the side the host gets in a random
- * invite, and the invite code (defaults to `inviteCode`, a secure random 8-character code). With `notify`,
- * a joined invite queues the new match's turn alerts there.
+ * invite, and the invite code (defaults to `inviteCode`, a secure random 8-character code). `entitlements` is
+ * read only when creating: joining and previewing never check them (docs/architecture.md, Decision 5). With
+ * `notify`, a joined invite queues the new match's turn alerts there.
  */
 export type InviteDeps = {
   invites: InviteStore;
+  entitlements: EntitlementStore;
   matchId: () => string;
   seed: () => Seed;
   randomHostSide: () => Side;
@@ -40,7 +43,8 @@ export type InviteErrorCode =
 export type InviteError = { code: InviteErrorCode | HostError["code"]; message?: string };
 export type InviteOutcome<T> = { ok: true; value: T } | { ok: false; error: InviteError };
 
-export type CreateInviteRequest = { host: PlayerId; sides: SideMode; now: number };
+/** `platform` is the platform the app says it is on; the host needs the full game there to create. */
+export type CreateInviteRequest = { host: PlayerId; sides: SideMode; platform: Platform; now: number };
 /** `side` is the side the joiner wants; only an "invitee chooses" invite takes one. `undefined` counts as not given. */
 export type JoinInviteRequest = { code: string; player: PlayerId; side?: Side | undefined; now: number };
 /**
@@ -52,17 +56,25 @@ export type JoinedInvite = { matchId: string; side: Side; effects: HostEffect[] 
 /** How many codes `createInvite` tries before giving up, when each one is already taken. */
 export const CODE_TRIES = 3;
 
-/** Stores a new, unused invite and returns its code. It never throws and never changes its inputs. */
+/**
+ * Stores a new, unused invite and returns its code. Checks run in this order: signed in, time, platform, side
+ * mode, then the host's entitlement for that platform (looked up only once the others pass). A refusal stores
+ * nothing. It never throws and never changes its inputs.
+ */
 export async function createInvite(
   deps: InviteDeps,
   request: CreateInviteRequest,
 ): Promise<InviteOutcome<{ code: string }>> {
   return guarded(async () => {
-    const { host, now } = request;
+    const { host, platform, now } = request;
     if (!isPlayer(host)) return refuse("notSignedIn", "Sign in to create an invite.");
     if (!isTime(now)) return refuse("invalidTime", "The time must be a whole number, 0 or more.");
+    if (!isPlatform(platform)) return refuse("invalidInvite", "The platform must be web, steam, ios or android.");
     const sides = sideModeOf(request.sides);
     if (sides === null) return refuse("invalidInvite", "The invite needs a side mode: random, host or invitee.");
+    const refused = createOnlineRefusal(await deps.entitlements.forPlayer(host), platform);
+    if (refused?.code === "notEntitled") return { ok: false, error: refused };
+    if (refused !== null) return refuse("storageFailed", "The host's entitlements could not be read.");
     for (let tries = 0; tries < CODE_TRIES; tries++) {
       const code = (deps.code ?? inviteCode)();
       const saved = await deps.invites.save({ code, host, sides, createdAt: now });

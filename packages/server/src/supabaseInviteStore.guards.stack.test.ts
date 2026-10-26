@@ -114,9 +114,9 @@ await onLocalStack("SupabaseInviteStore on the local Supabase stack: guards and 
 
     const storageFailed = { ok: false, error: { code: "storageFailed" } };
     const broken = stack.deps("lio", failing);
-    expect(await createInvite(broken, { host: stack.host.id, sides: { mode: "random" }, now: NOW })).toMatchObject(
-      storageFailed,
-    );
+    expect(
+      await createInvite(broken, { host: stack.host.id, sides: { mode: "random" }, platform: "web", now: NOW }),
+    ).toMatchObject(storageFailed);
     expect(await previewInvite(broken, code)).toMatchObject(storageFailed);
     expect(await joinInvite(broken, { code, player: stack.joiner.id, now: NOW })).toMatchObject(storageFailed);
     const acceptFails: InviteStore = {

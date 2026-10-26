@@ -25,7 +25,7 @@ describe("invite handler: no reply gives away a seed, the secret or the host's i
         replies.push(reply);
         return reply;
       };
-      const create = await send("token-host", { action: "create", sides: mode.sides });
+      const create = await send("token-host", { action: "create", sides: mode.sides, platform: "web" });
       const { code } = body(create) as { code: string };
       await send("token-joiner", { action: "preview", code });
       await send("token-host", { action: "join", code });

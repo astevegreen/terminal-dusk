@@ -9,15 +9,20 @@ describe("invites: no result gives away a seed, the secret or the host's id", ()
     it(`every value and error from createInvite, previewInvite and joinInvite is clean (${sides.mode})`, async () => {
       const world = inviteWorld();
       const { deps } = world;
-      const created = await createInvite(deps, { host: HOST, sides, now: INVITE_NOW });
+      const created = await createInvite(deps, { host: HOST, sides, platform: "web", now: INVITE_NOW });
       if (!created.ok) throw new Error(created.error.code);
       const { code } = created.value;
       const side = sides.mode === "invitee" ? "sae" : undefined;
       const results: unknown[] = [
         created,
-        await createInvite(deps, { host: "", sides, now: INVITE_NOW }),
-        await createInvite(deps, { host: HOST, sides, now: -1 }),
-        await createInvite(deps, { host: HOST, sides: { mode: "nope" } as unknown as SideMode, now: INVITE_NOW }),
+        await createInvite(deps, { host: "", sides, platform: "web", now: INVITE_NOW }),
+        await createInvite(deps, { host: HOST, sides, platform: "web", now: -1 }),
+        await createInvite(deps, {
+          host: HOST,
+          sides: { mode: "nope" } as unknown as SideMode,
+          platform: "web",
+          now: INVITE_NOW,
+        }),
         await previewInvite(deps, code),
         await previewInvite(deps, "NOSUCHCD"),
         await joinInvite(deps, { code, player: "", now: INVITE_NOW }),

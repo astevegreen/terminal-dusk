@@ -36,7 +36,7 @@ await onLocalStack("SupabaseInviteStore on the local Supabase stack: invites for
       const deps = stack.deps(mode.randomHostSide);
       const host = stack.host.id;
       const joiner = stack.joiner.id;
-      const made = await createInvite(deps, { host, sides: mode.sides, now: NOW });
+      const made = await createInvite(deps, { host, sides: mode.sides, platform: "web", now: NOW });
       if (!made.ok) throw new Error(`createInvite refused: ${made.error.code}`);
       const { code } = made.value;
       expect(await previewInvite(deps, code)).toEqual({ ok: true, value: { sides: mode.sides } });

@@ -520,6 +520,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/http.ts` - The plain-data HTTP pieces the Edge Function handlers share (docs/architecture.md, Decision 5): the request and reply shapes, the CORS headers, signing a calle… Exports: HttpRequest, HttpReply, Authenticate, CORS_HEADERS, preflight, signedIn, jsonObject, reply, refusal, isPlainObject.
 - `packages/server/src/index.test.ts`
 - `packages/server/src/index.ts` - Public entry point of the server package (docs/architecture.md, Decision 5). Exports: submit, ServerErrorCode, SubmitDeps, SubmitError, SubmitOutcome, SubmitRequest, MemoryStore, SupabaseStore, CommitResult, LoadedMatch, MatchStore, MatchWrite, ….
+- `packages/server/src/invite.entitlement.test.ts` - O9c: a free player cannot create a private game.
 - `packages/server/src/invite.leaks.test.ts`
 - `packages/server/src/invite.refusals.test.ts`
 - `packages/server/src/invite.test.ts`
@@ -528,6 +529,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/inviteCode.ts` - The default invite code: 8 characters drawn with the platform's secure random source, so a code is hard to guess. Exports: INVITE_CODE_ALPHABET, INVITE_CODE_LENGTH, inviteCode.
 - `packages/server/src/inviteEdge.test.ts`
 - `packages/server/src/inviteEdge.ts` - The glue between the runtime's fetch-style requests and `handleInvite`, and the secure random parts a live invite needs (a match id, a seed and the host's side… Exports: inviteFetchHandler, secureInviteRandom.
+- `packages/server/src/inviteHandler.entitlement.stack.test.ts` - O9c on the local Supabase stack: the served invite Edge Function refuses a create from a user with no entitlement row (403 notEntitled), and accepts it once th…
+- `packages/server/src/inviteHandler.entitlement.test.ts` - O9c through the invite handler: "create" must name the platform the app is on (a string), a free player gets 403 notEntitled with the host's plain-English mess…
 - `packages/server/src/inviteHandler.leaks.test.ts`
 - `packages/server/src/inviteHandler.modes.test.ts`
 - `packages/server/src/inviteHandler.stack.test.ts` - The invite Edge Function served by the local Supabase stack: two signed-in users create, preview and join an invite, the joiner reads their own frame (as thems…
@@ -620,7 +623,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/test/games.ts` - Test helper: whole games played through `submit`, calling back after every step with what is stored. Exports: Strategy, STRATEGIES, Step, playGame.
 - `packages/server/src/test/handler.ts` - Test helpers for the submit handler: a match in an in-memory store, fake sign-in by token, a store that counts its calls, and a logger that keeps every line. Exports: TOKENS, counting, HandlerWorld, handlerWorld, post, json.
 - `packages/server/src/test/inviteHandler.ts` - Test helpers for the invite handler: O5a's in-memory invite world behind a store that counts its calls, fake sign-in by token, a clock, and submit-handler deps… Exports: THIRD, INVITE_TOKENS, countingInvites, InviteHandlerWorld, inviteHandlerWorld, body.
-- `packages/server/src/test/inviteStack.ts` - The shared setup for the invite tests on the local Supabase stack: a service-role client and three fresh test users (a host and two joiners) made before the te… Exports: STACK_SEED, InviteStack, expectedStart, inviteStack.
+- `packages/server/src/test/inviteStack.ts` - The shared setup for the invite tests on the local Supabase stack: a service-role client and three fresh test users (a host with a "web" entitlement and two jo… Exports: STACK_SEED, InviteStack, expectedStart, inviteStack.
 - `packages/server/src/test/invites.ts` - Test helpers for invites: an in-memory invite store over O1's MemoryStore, with repeatable codes, match ids, seeds and random sides, and submit deps that run t… Exports: HOST, JOINER, INVITE_NOW, sequence, InviteWorld, inviteWorld.
 - `packages/server/src/test/leaks.ts` - Test helper for leak checks, copying the idea of the host's test/leaks.ts. Exports: leaksIn, leaksFor.
 - `packages/server/src/test/match.ts` - Test helpers: a small ruleset and a match in an in-memory store, copying the idea of the host's tests. Exports: SEED, NOW, MATCH, ruleset, makeConfig, created, setup, bodyFor, nextSide.
