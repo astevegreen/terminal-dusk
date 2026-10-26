@@ -521,8 +521,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/src/entitlement.test.ts`
 - `packages/host/src/entitlement.ts` - Who may create an online game (docs/architecture.md, Product calls: "Free players cannot create online games"). Exports: PLATFORMS, Platform, Entitlement, isPlatform, isEntitlement, createOnlineRefusal.
 - `packages/host/src/firstDeck.test.ts`
-- `packages/host/src/firstDeck.ts` - The first deck as a game the app can start: the ruleset, a match config, and card names. Exports: FIRST_DECK_NOTE, firstDeckRuleset, firstDeckCardName, firstDeckCardQuestion, firstDeckConfig.
+- `packages/host/src/firstDeck.ts` - The first deck as a game the app can start: the ruleset, a match config, and card names. Exports: FIRST_DECK_NOTE, firstDeckRuleset, firstDeckCardName, firstDeckCardQuestion, firstDeckTestMap, firstDeckConfig.
 - `packages/host/src/firstDeckQuestion.test.ts`
+- `packages/host/src/firstDeckTestMap.test.ts` - The test map as the host hands it to the app (issue #366): R14's TEST_MAP_SCENARIO through content's scenarioSetup.
 - `packages/host/src/frames.ts` - Shared by the host's entry points: building the three frames, and copying plain JSON. Exports: framesFor, copyJson.
 - `packages/host/src/hostAccept.ts` - The shared second half of every host call that moves a game: run the answer through the engine, then build the new record, secret, frames and effects. Exports: acceptAnswer, badTime.
 - `packages/host/src/hostArchive.test.ts`
