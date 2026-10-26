@@ -40,11 +40,51 @@
   gap: 4px 16px;
 }
 .game .game-map {
+  /* Placeholder side colours, not final: one per side and one for an uncontrolled country. */
+  --map-lio: #2b6cb0;
+  --map-sae: #c53030;
+  --map-none: #6b6b6b;
   grid-area: map;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  min-height: 0;
   border-style: dashed;
+}
+.game .map-region h3 {
+  margin: 2px 0;
+  font-size: 1em;
+}
+.game .map-region ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0 0 4px;
+  padding: 0;
+  list-style: none;
+}
+.game .map-badge {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  max-width: 100%;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #fff;
+  white-space: nowrap;
+}
+.game .map-badge-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.game .map-badge-net {
+  font-weight: bold;
+}
+.game .map-badge[data-control="lio"] {
+  background: var(--map-lio);
+}
+.game .map-badge[data-control="sae"] {
+  background: var(--map-sae);
+}
+.game .map-badge[data-control="none"] {
+  background: var(--map-none);
 }
 .game .game-hand {
   grid-area: hand;

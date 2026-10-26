@@ -65,6 +65,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/eventPresentation.ts` - How each EventKind is presented. Exports: EventPresentation, eventPresentation.
 - `packages/app/src/game/GameScreen.test.tsx`
 - `packages/app/src/game/GameScreen.tsx` - The game screen: one whole game drawn from one frame, laid out for a phone held sideways (844x390). Exports: GameScreenProps, GameScreen.
+- `packages/app/src/game/MapView.test.tsx` - The map zoomed out (issue #364): badges per country, grouped by region, net influence, controller colour.
+- `packages/app/src/game/MapView.tsx` - The map zoomed out (docs/architecture.md, Decision 6): one badge per country, grouped by region, each showing the country's net influence in its controller's c… Exports: netInfluence, MapView.
 - `packages/app/src/game/decisionFocus.test.tsx`
 - `packages/app/src/game/decisionFocus.tsx` - Keyboard play: when a new decision waits for the player, focus moves to its first choice button. Exports: shouldFocusDecision, FocusRoot, FIRST_CHOICE, applyDecisionFocus, FocusingGameScreen.
 - `packages/app/src/game/gameScreen.css`
