@@ -44,24 +44,40 @@ function piecesOf(response: Recorded): { seq: number; text: string; viewer?: unk
 }
 
 /**
- * A rival's unrevealed pick whose card the viewer's own knowledge lists (a card it was legitimately shown, such as by
- * a revealed hand) is not a leak: the card is in the viewer's own `knowledge`, in the frame's `mine`. `leaksFor`
- * exempts the viewer's own knowledge for the rival's hand cards but not for this finding (reported in the pull
- * request), and `src/transport/` is lane online's, so the exemption is made here, for exactly this finding.
+ * A rival's unrevealed pick whose card the viewer's own `knowledge` list shows is not a leak where that list is the
+ * only place the card appears: the card is one the viewer was legitimately shown (such as by a revealed hand).
+ * `leaksFor` exempts the viewer's own knowledge for the rival's hand cards but not for this finding (reported in the
+ * pull request), and `src/transport/` is lane online's, so the exemption is made here, bound to that one list: the
+ * finding is exempt only if it disappears once the `"knowledge":[...]` lists are taken out of the text.
  */
-function isOwnKnowledge(leak: string, knowledge: ReadonlySet<string>): boolean {
+function isOwnKnowledge(leak: string, text: string, secret: MatchSecret, side: Side): boolean {
   const card = /^(?:lio|sae)'s unrevealed pick card "(.*)"$/.exec(leak)?.[1];
-  return card !== undefined && knowledge.has(card);
+  if (card === undefined || !secret.state.private[side].knowledge.includes(card)) return false;
+  const stripped = text.replace(/"knowledge":\[[^\]]*\]/g, '"knowledge":[]');
+  return !leaksFor(stripped, secret, side).includes(leak);
+}
+
+/** The deck a Contingency order finding is about, or null. */
+function deckOf(leak: string): "lio" | "sae" | "world" | null {
+  if (leak === "the World deck's order") return "world";
+  const side = /^(lio|sae)'s Contingency order$/.exec(leak)?.[1];
+  return side === "lio" || side === "sae" ? side : null;
 }
 
 /**
- * A Contingency order that only shows up as a public `"left":[...]` list is not a leak: `left` is public and sorted,
- * so when the hidden draw order happens to be ascending too, `leaksFor`'s plain substring search matches it by
- * chance. Reported in the pull request; the check is made here, only for the order findings.
+ * A Contingency order is not a leak where it only shows up as that deck's public `left` list: `left` is public and
+ * sorted, so when the hidden draw order happens to be ascending too, `leaksFor`'s plain substring search matches it by
+ * chance. Exempt only when the order equals the state's public `left` for that deck and the finding disappears
+ * once that deck's public `left` list alone is taken out of the text (reported in the pull request).
  */
 function isPublicLeftList(leak: string, text: string, secret: MatchSecret, side: Side): boolean {
-  if (!/order$/.test(leak)) return false;
-  const stripped = text.replace(/"left":\[[0-9,]*\]/g, '"left":[]');
+  const deck = deckOf(leak);
+  if (deck === null) return false;
+  const left = secret.state.public.contingency[deck].left;
+  if (JSON.stringify(left) !== JSON.stringify(secret.state.secret.contingency[deck])) return false;
+  const stripped = text.replace(/"(lio|sae|world)":\{"cards":\[[0-9,]*\],"left":\[[0-9,]*\]/g, (whole, name: string) =>
+    name === deck ? whole.replace(/\[[0-9,]*\]$/, "[]") : whole,
+  );
   return !leaksFor(stripped, secret, side).includes(leak);
 }
 
@@ -91,9 +107,12 @@ export function checkResponses(
       if (piece.viewer !== undefined && piece.viewer !== response.side && piece.viewer !== "spectator") {
         problems.push(`seq ${piece.seq}, ${where}: the rival's frame`);
       }
-      const knowledge = new Set(secret.state.private[response.side].knowledge);
       for (const leak of leaksFor(piece.text, secret, response.side)) {
-        if (isOwnKnowledge(leak, knowledge) || isPublicLeftList(leak, piece.text, secret, response.side)) continue;
+        if (
+          isOwnKnowledge(leak, piece.text, secret, response.side) ||
+          isPublicLeftList(leak, piece.text, secret, response.side)
+        )
+          continue;
         problems.push(`seq ${piece.seq}, ${where}: ${withoutCards(leak)}`);
       }
     }

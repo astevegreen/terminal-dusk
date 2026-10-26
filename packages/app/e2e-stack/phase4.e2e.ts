@@ -35,7 +35,9 @@ const MAIL_HOW_TO_START =
 const keys = stackKeys();
 const mail = mailpitUrl(process.env);
 const unavailable = keys
-  ? ((await whyUnavailable(keys)) ?? (await whyMailUnavailable(keys, mail, MAIL_HOW_TO_START)))
+  ? ((await whyUnavailable(keys).then((why) =>
+      why === null ? null : `${why}. ${HOW_TO_START}. ${MAIL_HOW_TO_START}`,
+    )) ?? (await whyMailUnavailable(keys, mail, MAIL_HOW_TO_START)))
   : `no local Supabase keys in the environment. ${MAIL_HOW_TO_START}`;
 
 // An address unique to this run, so two runs never meet and the clean-up finds exactly this run's users.
@@ -192,23 +194,25 @@ test(TITLE, async ({ browser }) => {
     await pages[side].evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
   };
 
-  /** Presses the first enabled choice of the decision (the next one if the server refuses it) and waits to settle. */
+  /** Presses the first enabled choice of the decision and waits to settle; fails at once if the server refuses it. */
   const press = async (side: Side): Promise<void> => {
-    const page = pages[side];
-    const choices = page.getByTestId("decision").locator("button:enabled");
-    const count = await choices.count();
-    const refusals: string[] = [];
-    for (let i = 0; i < count; i++) {
-      const [reply] = await Promise.all([
-        page.waitForResponse((r) => r.url() === `${stack.url}/functions/v1/submit` && r.request().method() === "POST"),
-        choices.nth(i).click(),
-      ]);
-      const body = (await reply.json()) as { ok?: unknown; seq?: unknown; code?: unknown };
-      if (body.ok === true && typeof body.seq === "number") return settle(side, body.seq);
-      refusals.push(`${reply.status()} ${String(body.code)}`);
+    const [reply] = await Promise.all([
+      pages[side].waitForResponse(
+        (r) => r.url() === `${stack.url}/functions/v1/submit` && r.request().method() === "POST",
+      ),
+      pages[side].getByTestId("decision").locator("button:enabled").first().click(),
+    ]);
+    const raw = await reply.text();
+    let body: { ok?: unknown; seq?: unknown; code?: unknown } = {};
+    try {
+      body = JSON.parse(raw) as typeof body;
+    } catch {
+      // not JSON: reported below with the status and the raw text
     }
+    if (body.ok === true && typeof body.seq === "number") return settle(side, body.seq);
     throw new Error(
-      `the server refused all ${count} choices of the ${side} decision at step ${current}: ${refusals.join(", ")}`,
+      `the server refused the first choice of the ${side} decision at step ${current}: ` +
+        `status ${reply.status()}, code ${String(body.code)}, body ${raw.slice(0, 300)}`,
     );
   };
 

@@ -111,13 +111,34 @@ describe("the leak check", () => {
   it("does not count an ascending hidden order that only shows as the public left list, but does elsewhere", () => {
     const ordered = structuredClone(secret);
     ordered.state.secret.contingency.sae = [1, 4, 5, 6];
+    ordered.state.public.contingency.sae = { cards: [1, 2, 3, 4, 5, 6], left: [1, 4, 5, 6] };
     const mk = (text: string): Recorded => ({ side: "lio", url: url("/functions/v1/example"), text, atSeq: SEQ });
-    const publicLeft = mk(canonical({ contingency: { sae: { left: [1, 4, 5, 6] } } }));
+    const publicLeft = mk(canonical({ contingency: { sae: { cards: [1, 2, 3, 4, 5, 6], left: [1, 4, 5, 6] } } }));
     const real = mk(canonical({ contingency: { sae: { drawn: [1, 4, 5, 6] } } }));
+    const otherLeft = mk(
+      canonical({ contingency: { sae: { cards: [1, 2, 3, 4, 5, 6], left: [2] } }, x: { left: [1, 4, 5, 6] } }),
+    );
     expect(checkResponses([publicLeft], new Map([[SEQ, ordered]])).problems).toEqual([]);
-    expect(checkResponses([real], new Map([[SEQ, ordered]])).problems).toEqual([
-      `seq ${SEQ}, lio, /functions/v1/example: sae's Contingency order`,
-    ]);
+    const flagged = [`seq ${SEQ}, lio, /functions/v1/example: sae's Contingency order`];
+    expect(checkResponses([real], new Map([[SEQ, ordered]])).problems).toEqual(flagged);
+    // The same order under a "left" key that is not the deck's public list is still a leak.
+    expect(checkResponses([otherLeft], new Map([[SEQ, ordered]])).problems).toEqual(flagged);
+  });
+
+  it("still counts a rival's picked card that also shows up outside the viewer's own knowledge list", () => {
+    const card = secret.state.private.sae.hand[0] as string;
+    const known = structuredClone(secret);
+    known.state.private.sae.picks = [{ group: "g1", decisionId: "d1-sae", value: { kind: "chooseCard", card } }];
+    known.state.private.lio.knowledge = [card];
+    const body: Recorded = {
+      side: "lio",
+      url: url("/functions/v1/example"),
+      text: canonical({ mine: { knowledge: [card] }, elsewhere: [card] }),
+      atSeq: SEQ,
+    };
+    expect(checkResponses([body], new Map([[SEQ, known]])).problems).toContain(
+      `seq ${SEQ}, lio, /functions/v1/example: sae's unrevealed pick card`,
+    );
   });
 
   it("reads the step a match_view reply shows", () => {
