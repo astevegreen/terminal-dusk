@@ -10,10 +10,11 @@ import { lobbyRig, matchRow, startedRig } from "./test/lobbyRig.ts";
 import type { LobbyRig } from "./test/lobbyRig.ts";
 import { button, treeOf } from "./test/screenTree.ts";
 
-const page = (lobby: LobbySession): string =>
-  renderToString(<LobbyView snapshot={lobby.getSnapshot()} actions={lobby} onSignOut={() => {}} onBack={() => {}} />);
-const tree = (lobby: LobbySession) =>
-  treeOf(<LobbyView snapshot={lobby.getSnapshot()} actions={lobby} onSignOut={() => {}} onBack={() => {}} />);
+const view = (lobby: LobbySession) => (
+  <LobbyView snapshot={lobby.getSnapshot()} actions={lobby} onSignOut={() => {}} onBack={() => {}} onOpen={() => {}} />
+);
+const page = (lobby: LobbySession): string => renderToString(view(lobby));
+const tree = (lobby: LobbySession) => treeOf(view(lobby));
 const tapSized = (out: string, text: string): void =>
   expect(out).toMatch(new RegExp(`<button[^>]*min-width:44px[^>]*>${text}</button>`));
 const created = async (): Promise<LobbyRig> => {
@@ -190,7 +191,7 @@ describe("My games", () => {
         status: { kind: "over", winner: "lio", reason: "x" },
       }),
     ]);
-    const items = [...page(r.lobby).matchAll(/<li>([^<]*)<\/li>/g)].map((m) => m[1]);
+    const items = [...page(r.lobby).matchAll(/<li><span>([^<]*)<\/span>/g)].map((m) => m[1]);
     expect(items).toEqual([
       "You play LIO. Your game is on",
       "You play LIO. Game over: you won",

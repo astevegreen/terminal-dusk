@@ -8,11 +8,15 @@ import { createLobbySession } from "./lobbySession.ts";
 import { LobbyFlow, SignInFlow, lobbyOptions, onlineStep } from "./OnlineScreen.tsx";
 import type { OnlineSetup } from "./OnlineScreen.tsx";
 import { SignInView } from "./SignInView.tsx";
+import type { PlaySetup } from "./OnlineGameScreen.tsx";
+import { cardName, cardQuestion } from "../testMode/fixture.ts";
+import { fakeTimers } from "../transport/test/remoteGame.ts";
 import type { SignInSnapshot } from "./signIn.ts";
 import { LOBBY_URL, createFakeLobby } from "./test/fakeLobby.ts";
 import { STORED, rig, rigWith } from "./test/signInRig.ts";
 
 const idle = { busy: false, refusal: null } as const;
+const PLAY: PlaySetup = { clock: () => 0, timers: fakeTimers(), label: cardName, question: cardQuestion };
 
 function setup(copied: string[] = []): OnlineSetup & { fake: ReturnType<typeof createFakeLobby> } {
   const fake = createFakeLobby();
@@ -37,20 +41,20 @@ describe("onlineStep", () => {
     const online = setup();
     const onBack = () => {};
     const snapshot: SignInSnapshot = { kind: "signedIn", userId: "user-7", ...idle };
-    const step = onlineStep(snapshot, { online, signIn: r.signIn, onBack });
+    const step = onlineStep(snapshot, { online, signIn: r.signIn, play: PLAY, onBack });
     expect(isValidElement(step)).toBe(true);
     expect(step.type).toBe(LobbyFlow);
     expect(step.key).toBe("user-7");
-    expect(step.props).toEqual({ online, signIn: r.signIn, playerId: "user-7", onBack });
+    expect(step.props).toEqual({ online, signIn: r.signIn, play: PLAY, playerId: "user-7", onBack });
   });
   it("gives a different player a different key, so a fresh lobby", async () => {
     const r = await signedInRig();
-    const props = { online: setup(), signIn: r.signIn, onBack: () => {} };
+    const props = { online: setup(), signIn: r.signIn, play: PLAY, onBack: () => {} };
     const keys = ["user-1", "user-2"].map((userId) => onlineStep({ kind: "signedIn", userId, ...idle }, props).key);
     expect(keys).toEqual(["user-1", "user-2"]);
   });
   it("draws the sign-in steps when not signed in", () => {
-    const props = { online: setup(), signIn: rig().signIn, onBack: () => {} };
+    const props = { online: setup(), signIn: rig().signIn, play: PLAY, onBack: () => {} };
     const states: SignInSnapshot[] = [
       { kind: "loading", ...idle },
       { kind: "email", ...idle },
@@ -96,7 +100,7 @@ describe("lobbyOptions", () => {
 describe("SignInFlow", () => {
   it("shows the lobby in place of the Signed in placeholder once signed in", async () => {
     const r = await signedInRig();
-    const out = renderToString(<SignInFlow online={setup()} signIn={r.signIn} onBack={() => {}} />);
+    const out = renderToString(<SignInFlow online={setup()} signIn={r.signIn} play={PLAY} onBack={() => {}} />);
     for (const heading of ["New game", "Join a game", "My games"]) expect(out).toContain(`>${heading}</h2>`);
     expect(out).toContain("Sign out");
     expect(out).not.toContain("<p>Signed in</p>");
@@ -104,7 +108,7 @@ describe("SignInFlow", () => {
   it("shows the email step before signing in", async () => {
     const r = rig();
     await r.signIn.start();
-    const out = renderToString(<SignInFlow online={setup()} signIn={r.signIn} onBack={() => {}} />);
+    const out = renderToString(<SignInFlow online={setup()} signIn={r.signIn} play={PLAY} onBack={() => {}} />);
     expect(out).toContain('name="email"');
     expect(out).not.toContain("New game");
   });

@@ -14,6 +14,7 @@ import { App } from "./App.tsx";
 import type { VsAiGame } from "./vsAi/VsAiScreen.tsx";
 import type { OnlineSetup } from "./online/OnlineScreen.tsx";
 import { webStore } from "./platform/storage.ts";
+import { realTimers } from "./online/timers.ts";
 
 /** The game against the AI: the real first deck. Test mode keeps its own developer fixture. */
 const firstDeckGame: VsAiGame = {
@@ -55,6 +56,7 @@ createRoot(root).render(
       newSeed={newSeed}
       newAiSeed={newAiSeed}
       game={firstDeckGame}
+      timers={realTimers}
       {...(online ? { online } : {})}
     />
   </StrictMode>,

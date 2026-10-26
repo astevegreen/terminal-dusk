@@ -10,7 +10,13 @@ import { button, treeOf } from "./test/screenTree.ts";
 
 type Call = [string, ...unknown[]];
 
-function spy(): { actions: LobbyActions; calls: Call[]; signOut: () => void; back: () => void } {
+function spy(): {
+  actions: LobbyActions;
+  calls: Call[];
+  signOut: () => void;
+  back: () => void;
+  open: (matchId: string) => void;
+} {
   const calls: Call[] = [];
   const done = (...call: Call): Promise<void> => {
     calls.push(call);
@@ -27,7 +33,13 @@ function spy(): { actions: LobbyActions; calls: Call[]; signOut: () => void; bac
     codeChanged: () => void calls.push(["codeChanged"]),
     refresh: () => done("refresh"),
   };
-  return { actions, calls, signOut: () => calls.push(["signOut"]), back: () => calls.push(["back"]) };
+  return {
+    actions,
+    calls,
+    signOut: () => calls.push(["signOut"]),
+    back: () => calls.push(["back"]),
+    open: (matchId) => calls.push(["open", matchId]),
+  };
 }
 
 const BASE: LobbySnapshot = {
@@ -41,7 +53,7 @@ const WITH_CODE: LobbySnapshot = { ...BASE, create: { ...BASE.create, code: "ABC
 const ASKING: LobbySnapshot = { ...BASE, join: { ...BASE.join, askSide: "ABC123" } };
 
 const drawn = (snapshot: LobbySnapshot, s: ReturnType<typeof spy>) =>
-  treeOf(<LobbyView snapshot={snapshot} actions={s.actions} onSignOut={s.signOut} onBack={s.back} />);
+  treeOf(<LobbyView snapshot={snapshot} actions={s.actions} onSignOut={s.signOut} onBack={s.back} onOpen={s.open} />);
 
 const pressed = (snapshot: LobbySnapshot, text: string): Call[] => {
   const s = spy();
@@ -104,6 +116,19 @@ describe("Join a game", () => {
 describe("My games, Sign out and Back", () => {
   it("Refresh calls refresh", () => {
     expect(pressed(BASE, "Refresh")).toEqual([["refresh"]]);
+  });
+  it("each My games entry has an Open button that opens that game's match id", () => {
+    const s = spy();
+    const list = [game({ matchId: "m-1" }), game({ matchId: "m-2", mySide: "sae" })];
+    const opens = drawn({ ...BASE, games: { ...BASE.games, list } }, s).buttons.filter((b) => b.text === "Open");
+    expect(opens).toHaveLength(2);
+    for (const b of opens) expect(b.type).toBe("button");
+    opens[1]!.press();
+    opens[0]!.press();
+    expect(s.calls).toEqual([
+      ["open", "m-2"],
+      ["open", "m-1"],
+    ]);
   });
   it("Refresh is off while a read is in flight", () => {
     const t = drawn({ ...BASE, games: { ...BASE.games, busy: true } }, spy());

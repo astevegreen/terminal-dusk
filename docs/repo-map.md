@@ -70,11 +70,17 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/online/LobbyView.press.test.tsx` - Pressing the lobby screen's buttons, typing in its code field and submitting its form without a browser: each calls the right lobby session method.
 - `packages/app/src/online/LobbyView.test.tsx` - The lobby screen drawn from each lobby snapshot with renderToString.
 - `packages/app/src/online/LobbyView.tsx` - The online lobby drawn from a lobby snapshot (online/lobbySession.ts): New game, Join a game and My games, plus Sign out and Back. Exports: LobbyActions, JOIN_HINT, LobbyViewProps, LobbyView.
+- `packages/app/src/online/OnlineGameScreen.tsx` - The online game screen's wiring: makes A9a's online game session for one match id with the setup's Supabase project, the sign-in's token, the clock and the tim… Exports: PlaySetup, LOADING_SNAPSHOT, onlineGameOptions, openGame, OnlineGameFlowProps, OnlineGameFlow.
+- `packages/app/src/online/OnlineGameView.test.tsx` - The online game screen drawn from real online game snapshots (A9a's session on the fake Supabase, fake timers): the turn line, the deadline line, the board thr…
+- `packages/app/src/online/OnlineGameView.tsx` - One online game drawn from an online game snapshot (online/onlineGame.ts): the turn line, the deadline line, Back, and the board through the same GameScreen th… Exports: OnlineGameActions, OnlineGameViewProps, OnlineGameView.
+- `packages/app/src/online/OnlineScreen.game.test.tsx` - The wiring from the lobby to an online game: Open in My games and a successful join open the game for that match id, Back closes it and reads My games again, a…
 - `packages/app/src/online/OnlineScreen.lobby.test.tsx` - The wiring from sign-in to the lobby: once signed in the online screen draws the lobby for that player, built from the setup's endpoint, platform and copy func…
 - `packages/app/src/online/OnlineScreen.press.test.tsx` - Pressing the sign-in screen's buttons and submitting its forms without a browser: each calls the right thing.
 - `packages/app/src/online/OnlineScreen.test.tsx`
-- `packages/app/src/online/OnlineScreen.tsx` - The online screen (docs/architecture.md, Decision 7, "Guest mode": sign-in only when going online). Exports: OnlineSetup, lobbyOptions, LobbyFlow, onlineStep, SignInFlow, OnlineScreenProps, OnlineScreen.
+- `packages/app/src/online/OnlineScreen.tsx` - The online screen (docs/architecture.md, Decision 7, "Guest mode": sign-in only when going online). Exports: OnlineSetup, openingActions, backToLobby, lobbyOptions, lobbyStep, LobbyFlow, onlineStep, SignInFlow, OnlineScreenProps, OnlineScreen.
 - `packages/app/src/online/SignInView.tsx` - The sign-in screen drawn from a sign-in snapshot (online/signIn.ts): the email step, the code step and the signed-in step, each with a Back button home. Exports: NOT_SET_UP, REFUSAL_MESSAGE, SignInActions, SignInView.
+- `packages/app/src/online/gameText.test.ts` - The online game screen's words as tables: time left before a deadline, the extra-deadline note, whose turn.
+- `packages/app/src/online/gameText.ts` - The online game screen's words: whose turn it is, and how long the waiting side has before its deadline. Exports: timeLeft, deadlineText, turnText.
 - `packages/app/src/online/lobby.refusals.test.ts`
 - `packages/app/src/online/lobby.test.ts`
 - `packages/app/src/online/lobby.ts` - The online lobby's invite calls (docs/architecture.md, Decision 5): create a private game, preview an invite by its code, and join it, through the invite Edge… Exports: SideMode, NewGame, Joined, createGame, previewInvite, joinGame.
