@@ -9,6 +9,7 @@ import { eventsFor } from "./events.ts";
 import { seedHash } from "./sha256.ts";
 import { hiddenPart, reconstruct, viewFor } from "./views.ts";
 import { makeSetup, playAnswers, ruleset, rulesetWith } from "./test/game.ts";
+import { byCodeUnit } from "./test/sort.ts";
 import type { EraEntry, GameEvent, GameState, Setup } from "./types.ts";
 
 /** The test ruleset plus e1-e8, neutral cards for the eras. */
@@ -157,7 +158,9 @@ describe("at the start of the era's turn", () => {
   });
   it("the new draw pile holds exactly the old draw pile plus the era's cards, each once", () => {
     const { before, after } = intoTurn2(withEras([ERA_2]));
-    expect([...after.secret.deck].sort()).toEqual([...before.secret.deck, ...ERA_2.cards].sort());
+    expect(after.secret.deck.toSorted(byCodeUnit)).toEqual(
+      [...before.secret.deck, ...ERA_2.cards].toSorted(byCodeUnit),
+    );
   });
   it("the same seed gives the same order, and different seeds give different orders", () => {
     const orderFor = (seed: string) => intoTurn2(withEras([ERA_2]), seed).after.secret.deck.join(",");
@@ -172,8 +175,8 @@ describe("at the start of the era's turn", () => {
     const turn3 = playAnswers(after, TURN_1, rs);
     expect(turn3.public.turn).toBe(3);
     expect(turn3.secret.eras).toEqual([]);
-    expect(turn3.secret.deck.filter((card) => ERA_CARDS.includes(card)).sort()).toEqual(
-      [...ERA_2.cards, ...era3.cards].sort(),
+    expect(turn3.secret.deck.filter((card) => ERA_CARDS.includes(card)).toSorted(byCodeUnit)).toEqual(
+      [...ERA_2.cards, ...era3.cards].toSorted(byCodeUnit),
     );
   });
 });

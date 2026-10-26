@@ -4,6 +4,7 @@ import type { GameState, Setup } from "./index.ts";
 import { seedRng, shuffle } from "./rng.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
 import { makeSetup as baseSetup, ruleset as baseRuleset, testCard } from "./test/game.ts";
+import { byCodeUnit } from "./test/sort.ts";
 
 /** Nine cards, so a shuffled pile has 9! orders and two seeds giving the same one is vanishingly rare. */
 const PILE = ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9"];
@@ -39,7 +40,7 @@ describe("createGame", () => {
     expect(build("seed-1", PILE).secret.deck).toEqual(shuffle(seedRng("seed-1"), PILE).items);
   });
   it("the shuffled draw pile holds exactly the given card IDs, each once", () => {
-    expect([...build("seed-1", PILE).secret.deck].sort()).toEqual([...PILE].sort());
+    expect(build("seed-1", PILE).secret.deck.toSorted(byCodeUnit)).toEqual(PILE.toSorted(byCodeUnit));
   });
   it("the same seed always gives the same order", () => {
     expect(build("seed-7", PILE).secret.deck).toEqual(build("seed-7", PILE).secret.deck);
