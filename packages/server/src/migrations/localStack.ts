@@ -8,7 +8,14 @@ export const HOW_TO_START =
   '`export SEND_EMAIL_HOOK_SECRET="v1,whsec_$(openssl rand -base64 32)"`, then run ' +
   '`pnpm exec supabase start`, then `eval "$(pnpm exec supabase status -o env)"`, then `pnpm test:migrations`, ' +
   "which empties the local database, applies every migration (`supabase db reset`) and runs these checks. " +
-  "It waits its turn if another folder is using the stack (tools/stack-lock.mjs).";
+  "It waits its turn if another folder is using the stack (tools/stack-lock.mjs). " +
+  "To have sign-in codes land in the stack's mail catcher (Mailpit, web page http://127.0.0.1:54324), give the " +
+  "served functions a git-ignored env file, packages/server/supabase/functions/.env (`supabase functions serve` " +
+  "reads it, or pass `--env-file <file>`), with two lines: `LOCAL_MAIL_URL=http://host.docker.internal:54324` and " +
+  "`SEND_EMAIL_HOOK_SECRET=<the same value you exported for supabase start>`. The secret goes in that file too " +
+  "because the Edge Function runs in its own container, which reads only that file, not your shell. Also " +
+  "`export` the same SEND_EMAIL_HOOK_SECRET in the shell that runs `pnpm test:stack`, so the catcher test can " +
+  "sign its call. Never use a real address or secret, and nothing hosted reads that file.";
 // Why the test itself doesn't apply the migration: that needs a direct Postgres connection or a child process,
 // both Node APIs this package's tsconfig doesn't have (no Node types). The test:migrations script does it instead.
 
