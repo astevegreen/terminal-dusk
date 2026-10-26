@@ -4,7 +4,7 @@ import { DECKS, SIDES } from "@terminal-dusk/engine";
 import type { CardId, DeckId, EraId, PublicState, Side } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import type { ReactNode } from "react";
-import { MapView } from "./MapView.tsx";
+import { ZoomableMap } from "./ZoomableMap.tsx";
 
 export type Label = (card: CardId) => string;
 const DISCARD_SHOWN = 5;
@@ -57,11 +57,11 @@ export function StatusBar({ frame, era }: Readonly<{ frame: Frame; era: EraId | 
   );
 }
 
-/** The map, zoomed out. It is itself the scrolling element, so the keyboard can reach it. */
+/** The map, zoomed out or into one region. It is itself the scrolling element, so the keyboard can reach it. */
 export function MapArea({ frame }: Readonly<{ frame: Frame }>) {
   return (
     <Region id="map-area" title="Map" className="game-map" scrolls>
-      <MapView pub={frame.view.public} />
+      <ZoomableMap pub={frame.view.public} />
     </Region>
   );
 }

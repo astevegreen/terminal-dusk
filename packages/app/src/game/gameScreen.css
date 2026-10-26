@@ -77,13 +77,29 @@
 .game .map-badge-net {
   font-weight: bold;
 }
-.game .map-badge[data-control="lio"] {
+/* Zoomed into a region: a full box per country, in the same colour as its badge. */
+.game .map-box {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: #fff;
+}
+.game .map-box-name {
+  font-weight: bold;
+}
+.game .map-badge[data-control="lio"],
+.game .map-box[data-control="lio"] {
   background: var(--map-lio);
 }
-.game .map-badge[data-control="sae"] {
+.game .map-badge[data-control="sae"],
+.game .map-box[data-control="sae"] {
   background: var(--map-sae);
 }
-.game .map-badge[data-control="none"] {
+.game .map-badge[data-control="none"],
+.game .map-box[data-control="none"] {
   background: var(--map-none);
 }
 .game .game-hand {

@@ -73,11 +73,14 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/GameScreen.test.tsx`
 - `packages/app/src/game/GameScreen.tsx` - The game screen: one whole game drawn from one frame, laid out for a phone held sideways (844x390). Exports: GameScreenProps, GameScreen.
 - `packages/app/src/game/MapView.test.tsx` - The map zoomed out (issue #364): badges per country, grouped by region, net influence, controller colour.
-- `packages/app/src/game/MapView.tsx` - The map zoomed out (docs/architecture.md, Decision 6): one badge per country, grouped by region, each showing the country's net influence in its controller's c… Exports: netInfluence, MapView.
+- `packages/app/src/game/MapView.tsx` - The map (docs/architecture.md, Decision 6). Exports: Zoom, OnZoom, netInfluence, shownZoom, MapView.
+- `packages/app/src/game/MapZoom.test.tsx` - The map zoomed into a region (issue #365): region buttons, country boxes, "Whole map", zoom kept across frames.
+- `packages/app/src/game/ZoomableMap.tsx` - Holds the map's zoom as local UI state (docs/architecture.md, Decision 6) and draws MapView with it. Exports: ZoomableMap.
 - `packages/app/src/game/decisionFocus.test.tsx`
 - `packages/app/src/game/decisionFocus.tsx` - Keyboard play: when a new decision waits for the player, focus moves to its first choice button. Exports: shouldFocusDecision, FocusRoot, FIRST_CHOICE, applyDecisionFocus, FocusingGameScreen.
 - `packages/app/src/game/gameScreen.css`
 - `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, Hand, Opponent, Table, Contingency, Log.
+- `packages/app/src/game/test/mapFixture.ts` - Test helper: a hand-written two-region map, its influence, and test-mode frames with and without it. Exports: map, influence, baseFrame, withMap, withoutMap.
 - `packages/app/src/main.tsx` - Browser entry point: mounts the app into the #root element of index.html.
 - `packages/app/src/online/LobbyView.press.test.tsx` - Pressing the lobby screen's buttons, typing in its code field and submitting its form without a browser: each calls the right lobby session method.
 - `packages/app/src/online/LobbyView.test.tsx` - The lobby screen drawn from each lobby snapshot with renderToString.
