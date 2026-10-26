@@ -540,11 +540,12 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 - `packages/server/package.json`
 - `packages/server/src/authEmailEdge.test.ts`
-- `packages/server/src/authEmailEdge.ts` - The glue between the runtime's fetch-style requests and `handleAuthEmail`. Exports: authEmailFetchHandler, unconfiguredMailer.
+- `packages/server/src/authEmailEdge.ts` - The glue between the runtime's fetch-style requests and `handleAuthEmail`. Exports: authEmailFetchHandler, unconfiguredMailer, MailerName, LOCAL_TEST_SENDER, mailerFromEnv, startupLogLine.
 - `packages/server/src/authEmailHandler.leaks.test.ts`
 - `packages/server/src/authEmailHandler.stack.test.ts` - The auth-email Edge Function served by the local Supabase stack: an unsigned call is refused with 401.
 - `packages/server/src/authEmailHandler.test.ts`
 - `packages/server/src/authEmailHandler.ts` - Supabase Auth's "send email" hook (docs/architecture.md, Decision 5, "Accounts and purchases"): Auth calls the auth-email Edge Function with the player's addre… Exports: AuthEmailRequest, AuthEmailDeps, TIMESTAMP_TOLERANCE_MS, handleAuthEmail, hookError.
+- `packages/server/src/authEmailMailpit.stack.test.ts` - A sign-in code reaches the local stack's mail catcher (Mailpit): a correctly signed `magiclink` hook call to the served auth-email function answers 200, and th…
 - `packages/server/src/deadlineStore.test.ts`
 - `packages/server/src/deadlineStore.ts` - The storage port behind the deadline sweep (docs/architecture.md, Decision 5, "Scheduled jobs"). Exports: DeadlineStore, earliestDeadline, dueIds.
 - `packages/server/src/edge.ts` - The glue every Edge Function shares: turning the runtime's fetch-style requests into the plain-data requests the handlers take and back, and the Supabase sign-… Exports: FetchRequest, MakeResponse, serveFetch, supabaseAuthenticate.
@@ -572,6 +573,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/inviteStore.test.ts`
 - `packages/server/src/inviteStore.ts` - The invite port behind private games (docs/architecture.md, Decision 5), and an in-memory store for tests. Exports: SideMode, Invite, StoredInvite, SaveResult, AcceptResult, InviteStore, MemoryInviteStore.
 - `packages/server/src/later.ts` - For in-memory ports that answer with a promise but have nothing to wait for. Exports: later.
+- `packages/server/src/localMailer.test.ts`
+- `packages/server/src/localMailer.ts` - The local-stack adapter for the mail port: one POST to Mailpit's send API (`<url>/api/v1/send`) per email, so sign-in codes land in the local Supabase stack's… Exports: LocalMailerOptions, localMailer.
 - `packages/server/src/mailMessages.test.ts`
 - `packages/server/src/mailMessages.ts` - The two emails online play sends (docs/sprint.md, O8): the sign-in code and the turn alert. Exports: signInCodeEmail, turnAlertEmail.
 - `packages/server/src/mailer.test.ts`
