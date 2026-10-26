@@ -70,9 +70,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/online/LobbyView.press.test.tsx` - Pressing the lobby screen's buttons, typing in its code field and submitting its form without a browser: each calls the right lobby session method.
 - `packages/app/src/online/LobbyView.test.tsx` - The lobby screen drawn from each lobby snapshot with renderToString.
 - `packages/app/src/online/LobbyView.tsx` - The online lobby drawn from a lobby snapshot (online/lobbySession.ts): New game, Join a game and My games, plus Sign out and Back. Exports: LobbyActions, JOIN_HINT, LobbyViewProps, LobbyView.
+- `packages/app/src/online/OnlineScreen.lobby.test.tsx` - The wiring from sign-in to the lobby: once signed in the online screen draws the lobby for that player, built from the setup's endpoint, platform and copy func…
 - `packages/app/src/online/OnlineScreen.press.test.tsx` - Pressing the sign-in screen's buttons and submitting its forms without a browser: each calls the right thing.
 - `packages/app/src/online/OnlineScreen.test.tsx`
-- `packages/app/src/online/OnlineScreen.tsx` - The online screen (docs/architecture.md, Decision 7, "Guest mode": sign-in only when going online). Exports: OnlineSetup, OnlineScreenProps, OnlineScreen.
+- `packages/app/src/online/OnlineScreen.tsx` - The online screen (docs/architecture.md, Decision 7, "Guest mode": sign-in only when going online). Exports: OnlineSetup, lobbyOptions, LobbyFlow, onlineStep, SignInFlow, OnlineScreenProps, OnlineScreen.
 - `packages/app/src/online/SignInView.tsx` - The sign-in screen drawn from a sign-in snapshot (online/signIn.ts): the email step, the code step and the signed-in step, each with a Back button home. Exports: NOT_SET_UP, REFUSAL_MESSAGE, SignInActions, SignInView.
 - `packages/app/src/online/lobby.refusals.test.ts`
 - `packages/app/src/online/lobby.test.ts`

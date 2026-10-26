@@ -3,11 +3,12 @@
 // lobby session for that player and draws LobbyView. With no `online` setup (a build without the Supabase
 // settings) it shows the email step with Send code off.
 import { useEffect, useState, useSyncExternalStore } from "react";
+import type { ReactElement } from "react";
 import type { Platform } from "@terminal-dusk/host";
 import type { AuthEndpoint } from "../transport/emailAuth.ts";
 import type { KeyValueStore } from "../platform/storage.ts";
 import { createLobbySession } from "./lobbySession.ts";
-import type { LobbySession } from "./lobbySession.ts";
+import type { LobbyOptions, LobbySession } from "./lobbySession.ts";
 import { LobbyView } from "./LobbyView.tsx";
 import { createSignIn } from "./signIn.ts";
 import type { SignIn, SignInSnapshot } from "./signIn.ts";
@@ -33,34 +34,40 @@ function LobbyScreen({ lobby, signIn, onBack }: Readonly<{ lobby: LobbySession; 
   return <LobbyView snapshot={snapshot} actions={lobby} onSignOut={() => void signIn.signOut()} onBack={onBack} />;
 }
 
-function LobbyFlow({
-  online,
-  signIn,
-  playerId,
-  onBack,
-}: Readonly<{ online: OnlineSetup; signIn: SignIn; playerId: string; onBack: () => void }>) {
-  const [lobby] = useState(() =>
-    createLobbySession({
-      endpoint: online.auth,
-      playerId,
-      accessToken: () => signIn.accessToken(),
-      platform: online.platform,
-      copy: online.copy,
-    }),
-  );
+/** What the lobby session for `playerId` is built from: the setup's endpoint, platform and copy, and the sign-in's token. */
+export function lobbyOptions(online: OnlineSetup, signIn: SignIn, playerId: string): LobbyOptions {
+  return {
+    endpoint: online.auth,
+    playerId,
+    accessToken: () => signIn.accessToken(),
+    platform: online.platform,
+    copy: online.copy,
+  };
+}
+
+type FlowProps = { online: OnlineSetup; signIn: SignIn; onBack: () => void };
+
+export function LobbyFlow({ online, signIn, playerId, onBack }: Readonly<FlowProps & { playerId: string }>) {
+  const [lobby] = useState(() => createLobbySession(lobbyOptions(online, signIn, playerId)));
   return <LobbyScreen lobby={lobby} signIn={signIn} onBack={onBack} />;
 }
 
-function SignInFlow({ online, signIn, onBack }: Readonly<{ online: OnlineSetup; signIn: SignIn; onBack: () => void }>) {
-  const snapshot = useSyncExternalStore(signIn.subscribe, signIn.getSnapshot, signIn.getSnapshot);
-  // start() does nothing once it has begun, so React's development double effect reads the store once.
-  useEffect(() => void signIn.start(), [signIn]);
+/** What the online screen draws for one sign-in snapshot: the lobby once signed in, else the sign-in steps. */
+export function onlineStep(snapshot: SignInSnapshot, { online, signIn, onBack }: Readonly<FlowProps>): ReactElement {
   if (snapshot.kind === "signedIn")
     // Keyed by the player, so a different player signing in gets a fresh lobby.
     return (
       <LobbyFlow key={snapshot.userId} online={online} signIn={signIn} playerId={snapshot.userId} onBack={onBack} />
     );
   return <SignInView snapshot={snapshot} actions={signIn} onBack={onBack} />;
+}
+
+export function SignInFlow(props: Readonly<FlowProps>) {
+  const { signIn } = props;
+  const snapshot = useSyncExternalStore(signIn.subscribe, signIn.getSnapshot, signIn.getSnapshot);
+  // start() does nothing once it has begun, so React's development double effect reads the store once.
+  useEffect(() => void signIn.start(), [signIn]);
+  return onlineStep(snapshot, props);
 }
 
 function SetUpFlow({
