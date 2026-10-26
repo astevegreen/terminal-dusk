@@ -77,8 +77,9 @@ describe("GameScreen for a side", () => {
     }
     expect(out).toContain('<section aria-label="Your hand"');
   });
-  it("shows the map box with only the not-designed text", () => {
-    expect(out).toMatch(/data-testid="map-area"[^>]*><p>Map: not designed yet<\/p><\/section>/);
+  it("shows the Map area (MapView.test.tsx covers its badges)", () => {
+    expect(out).toContain('data-testid="map-area"');
+    expect(out).not.toContain("Map: not designed yet");
   });
 });
 
@@ -170,6 +171,7 @@ describe("screen-reader support", () => {
   });
   it("lets the keyboard reach each scrolling element, each with a name", () => {
     expect(out).toContain('<section aria-label="Your hand" data-testid="hand" class="game-hand" tabindex="0">');
+    expect(out).toContain('<section aria-label="Map" data-testid="map-area" class="game-map" tabindex="0">');
     expect(out).toContain('<ol aria-label="Log entries" tabindex="0">');
     expect(out).toContain('<div class="game-side" role="region" aria-label="Game details" tabindex="0">');
   });
