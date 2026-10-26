@@ -190,10 +190,33 @@ function DiscardCardsPrompt({ decision, hand, known, label, onAnswer }: Readonly
   );
 }
 
+/**
+ * A placing (R16a): one choice per country the decision lists, in its order, with the points left in the
+ * question. A country the side cannot afford now is refused by the transport, like any illegal pick.
+ */
+function PlaceInfluencePrompt({ decision, onAnswer }: Readonly<PromptProps>) {
+  const options = decision.options;
+  const points = "points" in options ? options.points : 0;
+  const countries = "countries" in options ? options.countries : [];
+  const choices: Choice[] = countries.map((country) => ({
+    text: `Place in ${country}`,
+    value: { kind: "placeInfluence", country },
+  }));
+  return (
+    <Choices
+      decision={decision}
+      question={`${decision.side}: place 1 influence (${points} point${points === 1 ? "" : "s"} left)`}
+      choices={choices}
+      onAnswer={onAnswer}
+    />
+  );
+}
+
 export const decisionPrompts: Record<DecisionKind, PromptComponent> = {
   yesNo: YesNoPrompt,
   chooseCard: ChooseCardPrompt,
   playCardAs: PlayCardAsPrompt,
   rivalEventOrder: RivalEventOrderPrompt,
   discardCards: DiscardCardsPrompt,
+  placeInfluence: PlaceInfluencePrompt,
 };

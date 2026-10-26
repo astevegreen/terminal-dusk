@@ -302,6 +302,7 @@ describe("each prompt is a group named by its question", () => {
     [decision("playCardAs", play), ["a"]],
     [decision("rivalEventOrder", {}, "lio"), []],
     [decision("discardCards", { from: "hand", count: 1 }), ["a"]],
+    [decision("placeInfluence", { points: 1, countries: ["alpha"] }), []],
   ];
   const answerable = (d: Decision, hand: string[]) => {
     const Prompt = decisionPrompts[d.kind];

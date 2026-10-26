@@ -30,8 +30,10 @@ import type { CardsDiscarded, HandRevealed, HandRevealedHidden } from "./knowled
 export type { CardsDiscarded, HandRevealed, HandRevealedHidden } from "./knowledgeTypes.ts";
 import type { EraEntry } from "./setupTypes.ts";
 export type { EraEntry, Setup } from "./setupTypes.ts";
-import type { GameMap, InfluenceEntry } from "./mapTypes.ts";
+import type { CountryId, GameMap, InfluenceEntry } from "./mapTypes.ts";
 export type { Country, CountryId, GameMap, InfluenceEntry, Region, RegionId, SetupMap } from "./mapTypes.ts";
+import type { InfluencePlaced, PlaceOptions, PointsSpent } from "./placingTypes.ts";
+export type { InfluencePlaced, PlaceOptions, PointsSpent } from "./placingTypes.ts";
 
 export type Side = "lio" | "sae";
 /** Both sides, in the one order the engine always loops in. */
@@ -111,11 +113,6 @@ export type CardDrawn = {
  * only for a lasting marker, whose label is kept in `markers` (PublicState) until the game ends.
  */
 export type MarkerEvent = { kind: "marker"; visibility: "public"; label: string; value?: VarValue; lasting?: true };
-/**
- * A `spendPoints` step ran: `side`, who played the card (even when it is the rival's card), spent
- * `amount` action points, the card's ops. TEMPORARY until the actions are designed: nothing else happens.
- */
-export type PointsSpent = { kind: "pointsSpent"; visibility: "public"; side: Side; amount: number };
 /** The draw pile ran out while a hand was refilling, so the discard pile's `cards` were shuffled into a new one. */
 export type DrawPileReshuffled = { kind: "drawPileReshuffled"; visibility: "public"; cards: number };
 /** A new era started: `cardsAdded` of its cards were shuffled into the draw pile. Never which cards. */
@@ -136,6 +133,7 @@ export type PublicEvent =
   | CardDrawnHidden
   | MarkerEvent
   | PointsSpent
+  | InfluencePlaced
   | EraStarted
   | DrawPileReshuffled
   | ContingencyDrawn
@@ -158,8 +156,10 @@ export type EventKind = GameEvent["kind"];
  * card from its hand for its event or its points. `rivalEventOrder`: having played a rival's card for
  * its points, that side says whether the card's event happens before or after the points. `discardCards`: a
  * side picks the cards a discardFromHand step discards, from its own hand or the rival's (discardChoice.ts).
+ * `placeInfluence`: a side spending points places one influence in a country (placing.ts).
  */
-export type DecisionKind = "yesNo" | "chooseCard" | "playCardAs" | "rivalEventOrder" | "discardCards";
+export type DecisionKind =
+  "yesNo" | "chooseCard" | "playCardAs" | "rivalEventOrder" | "discardCards" | "placeInfluence";
 /** What a played card is used for: its event, or its action points. */
 export type PlayUse = "event" | "points";
 /** The uses a play allows, by whose card it is: the player's own, the rival's, or neutral. */
@@ -168,13 +168,14 @@ export type PlayUses = { own: PlayUse[]; rival: PlayUse[]; neutral: PlayUse[] };
  * Declarative description of what is legal. Never lists hidden data such as card IDs from a hand. A
  * yes/no or a rivalEventOrder has none; the opening pick says "any card from your hand", neutral ones
  * too; a play says "a card from your hand" and the uses each kind of card allows; a discard pick says whose
- * hand, the picker's own or the rival's, and how many cards.
+ * hand, the picker's own or the rival's, and how many cards; a placing says the points left and the countries.
  */
 export type DecisionOptions =
   | Record<string, never>
   | { from: "hand" }
   | { from: "hand"; uses: PlayUses }
-  | { from: "hand" | "rivalHand"; count: number };
+  | { from: "hand" | "rivalHand"; count: number }
+  | PlaceOptions;
 export type Decision = {
   /** Unique within the game; answers quote it. */
   id: string;
@@ -194,7 +195,8 @@ export type AnswerValue =
   | { kind: "chooseCard"; card: CardId }
   | { kind: "playCardAs"; card: CardId; as: PlayUse }
   | { kind: "rivalEventOrder"; event: "before" | "after" }
-  | { kind: "discardCards"; cards: CardId[] };
+  | { kind: "discardCards"; cards: CardId[] }
+  | { kind: "placeInfluence"; country: CountryId };
 /** A timeout naming "both" is a simultaneous pick missed by both sides: a draw. */
 export type Answer =
   | { decisionId: string; side: Side; value: AnswerValue }
@@ -227,8 +229,8 @@ export type Condition =
  * One step of an effect program (docs/architecture.md, section 4). More kinds arrive with later tasks.
  * A card choice is only ever both sides at once: the turn's opening pick (turn.ts). Card effects may
  * not hold one (cardChecks.ts): a `choose` in an effect asks yes/no only, and the one other way an effect
- * asks a side to pick cards is a `discardFromHand` with `chosenBy`, to discard them. `spendPoints` is how a play for points spends them (turn.ts):
- * TEMPORARY until the actions are designed, it only emits a pointsSpent event. `drawContingency`
+ * asks a side to pick cards is a `discardFromHand` with `chosenBy`, to discard them. `spendPoints` is how a play
+ * for points spends them (turn.ts): `side` places influence with them, one placeInfluence decision a time (placing.ts). `drawContingency`
  * draws from `side`'s Contingency deck (an LIO or SAE card may name either deck) and
  * binds the number to `bind`, if given. `side` "player" is the side that played the card: a neutral
  * event's draws, and only theirs, name it (docs/design/contingency-deck.md, cardChecks.ts). A rival's

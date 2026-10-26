@@ -28,6 +28,10 @@ export const eventPresentation: EventPresentation = {
       event.value === undefined ? `Marker ${event.label}.` : `Marker ${event.label}: ${shown(event.value)}.`,
   },
   pointsSpent: { log: (event) => `${event.side} spent ${event.amount} points.` },
+  influencePlaced: {
+    log: (event) =>
+      `${event.side} placed 1 influence in ${event.country} for ${event.cost} point${event.cost === 1 ? "" : "s"}.`,
+  },
   drawPileReshuffled: {
     log: (event) => `The draw pile ran out: ${event.cards} discarded cards were shuffled into a new one.`,
   },
