@@ -67,14 +67,21 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/gameScreen.css`
 - `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, Hand, Opponent, Table, Contingency, Log.
 - `packages/app/src/main.tsx` - Browser entry point: mounts the app into the #root element of index.html.
+- `packages/app/src/online/LobbyView.press.test.tsx` - Pressing the lobby screen's buttons, typing in its code field and submitting its form without a browser: each calls the right lobby session method.
+- `packages/app/src/online/LobbyView.test.tsx` - The lobby screen drawn from each lobby snapshot with renderToString.
+- `packages/app/src/online/LobbyView.tsx` - The online lobby drawn from a lobby snapshot (online/lobbySession.ts): New game, Join a game and My games, plus Sign out and Back. Exports: LobbyActions, JOIN_HINT, LobbyViewProps, LobbyView.
+- `packages/app/src/online/OnlineScreen.lobby.test.tsx` - The wiring from sign-in to the lobby: once signed in the online screen draws the lobby for that player, built from the setup's endpoint, platform and copy func…
 - `packages/app/src/online/OnlineScreen.press.test.tsx` - Pressing the sign-in screen's buttons and submitting its forms without a browser: each calls the right thing.
 - `packages/app/src/online/OnlineScreen.test.tsx`
-- `packages/app/src/online/OnlineScreen.tsx` - The online screen (docs/architecture.md, Decision 7, "Guest mode": sign-in only when going online). Exports: OnlineSetup, OnlineScreenProps, OnlineScreen.
+- `packages/app/src/online/OnlineScreen.tsx` - The online screen (docs/architecture.md, Decision 7, "Guest mode": sign-in only when going online). Exports: OnlineSetup, lobbyOptions, LobbyFlow, onlineStep, SignInFlow, OnlineScreenProps, OnlineScreen.
 - `packages/app/src/online/SignInView.tsx` - The sign-in screen drawn from a sign-in snapshot (online/signIn.ts): the email step, the code step and the signed-in step, each with a Back button home. Exports: NOT_SET_UP, REFUSAL_MESSAGE, SignInActions, SignInView.
 - `packages/app/src/online/lobby.refusals.test.ts`
 - `packages/app/src/online/lobby.test.ts`
 - `packages/app/src/online/lobby.ts` - The online lobby's invite calls (docs/architecture.md, Decision 5): create a private game, preview an invite by its code, and join it, through the invite Edge… Exports: SideMode, NewGame, Joined, createGame, previewInvite, joinGame.
 - `packages/app/src/online/lobbyHttp.ts` - The lobby client's shared part (docs/architecture.md, Decision 5): one request over an injected `fetch` (like transport/remoteHttp.ts), and the one rule that t… Exports: LobbyEndpoint, SERVER_CODES, LobbyRefusal, LobbyResult, refuse, isObject, postFunction, getTable, outcome.
+- `packages/app/src/online/lobbySession.test.ts`
+- `packages/app/src/online/lobbySession.ts` - The state behind the online lobby (docs/architecture.md, Decision 5), built on the lobby client's calls (lobby.ts, myGames.ts): the New game choices, the invit… Exports: LobbySnapshot, LobbyOptions, LobbySession, DEFAULT_SIDES, DEFAULT_DEADLINE, createLobbySession.
+- `packages/app/src/online/lobbyText.ts` - The lobby's words: one plain message per refusal code, and how a game's side and result read on screen. Exports: LOBBY_REFUSAL, SIDE_NAME, gameLine.
 - `packages/app/src/online/matchClock.ts` - The online game's deadline (docs/architecture.md, Decision 5, "Deadlines"): reads the `clock` column of the match's `match` row (only that column, never the se… Exports: OnlineDeadline, ClockEndpoint, readClock, deadlineFor.
 - `packages/app/src/online/myGames.test.ts`
 - `packages/app/src/online/myGames.ts` - The signed-in player's games, for the lobby (docs/architecture.md, Decision 5): their `match` rows over Supabase's REST endpoint, never the `seed` column, newe… Exports: MyGame, MY_GAMES_COLUMNS, myGames.
@@ -86,8 +93,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/online/signIn.token.test.ts`
 - `packages/app/src/online/signIn.ts` - The state behind signing in by email code (docs/architecture.md, Decisions 5 and 7): asks for a code, trades it for a session through transport/emailAuth.ts, k… Exports: SESSION_KEY, SignInSnapshot, SignInOptions, SignIn, createSignIn.
 - `packages/app/src/online/test/fakeLobby.ts` - A fake server for the lobby client's tests: a fake `fetch` that records every request and answers with whatever the test queued, like transport/test/fakeAuth.t… Exports: LOBBY_URL, LOBBY_ANON_KEY, TOKEN, PLAYER, OTHER, LobbyRequest, LobbyAnswer, FakeLobby, createFakeLobby, refusalBody.
+- `packages/app/src/online/test/lobbyRig.ts` - A lobby session wired to the fake lobby server, for the tests. Exports: LobbyRig, lobbyRig, matchRow, startedRig, game.
 - `packages/app/src/online/test/onlineRig.ts` - The online game tests' rig: the remote transport's fake Supabase and fake timers (transport/test), with a small wrapper over the fake's fetch that answers the… Exports: NOW, ClockMode, isClockRead, onlineRig, poll, play, clockWith.
-- `packages/app/src/online/test/screenTree.ts` - Test helper: walks the element tree the sign-in screen draws and lets a test press its buttons and submit its forms with typed values, without a browser (like… Exports: TreeButton, TreeForm, Tree, treeOf, button.
+- `packages/app/src/online/test/screenTree.ts` - Test helper: walks the element tree the sign-in and lobby screens draw and lets a test press their buttons, type in their fields and submit their forms with ty… Exports: TreeButton, TreeForm, TreeInput, Tree, treeOf, button.
 - `packages/app/src/online/test/signInRig.ts` - A sign-in session wired to the fake Supabase Auth, a memory store and a hand-moved clock, for the tests. Exports: START, EMAIL, CODE, STORED, Rig, rig, rigWith, rigOnCode, settle, heldStore.
 - `packages/app/src/online/timers.test.ts`
 - `packages/app/src/online/timers.ts` - Real timers for createRemoteMatch's `setTimer`/`clearTimer` options, over `setTimeout`/`clearTimeout`. Exports: TimerHandle, setTimer, clearTimer, Timers, realTimers.

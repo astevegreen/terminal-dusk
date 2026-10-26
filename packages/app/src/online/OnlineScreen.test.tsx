@@ -181,7 +181,12 @@ describe("a build with no online play set up", () => {
     expect(button(treeOf(screen), "Send code").disabled).toBe(true);
   });
   it("shows the loading step before the stored session is read when it is set up", () => {
-    const online = { auth: { url: AUTH_URL, anonKey: AUTH_ANON_KEY, fetch: rig().fake.fetch }, store: memoryStore() };
+    const online = {
+      auth: { url: AUTH_URL, anonKey: AUTH_ANON_KEY, fetch: rig().fake.fetch },
+      store: memoryStore(),
+      platform: "web" as const,
+      copy: () => {},
+    };
     const out = renderToString(<OnlineScreen online={online} clock={() => 0} onBack={() => {}} />);
     expect(out).toContain("Loading");
     expect(out).not.toContain(NOT_SET_UP);
