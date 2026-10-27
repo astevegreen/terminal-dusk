@@ -8,7 +8,7 @@ import type { FetchLike } from "./remoteHttp.ts";
 import { createRemoteMatch } from "./remoteMatch.ts";
 import { ANON_KEY, createFakeSupabase, URL_BASE } from "./test/fakeSupabase.ts";
 import type { FakeSupabase } from "./test/fakeSupabase.ts";
-import { canonical, leaksFor } from "./test/leaks.ts";
+import { canonical, leaksFor } from "@terminal-dusk/host/test/secret-leaks";
 import { playRehearsalGame } from "./test/rehearsal.ts";
 import type { GameOptions, GameResult, GameRig, ServerSnapshot } from "./test/rehearsal.ts";
 import { rehearsalReport } from "./test/rehearsalReport.ts";

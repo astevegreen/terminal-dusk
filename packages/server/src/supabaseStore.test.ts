@@ -6,7 +6,7 @@ import { matchRowFor } from "./matchRow.ts";
 import { rowsFor } from "./rows.ts";
 import { SupabaseStore } from "./supabaseStore.ts";
 import { shown, thrown } from "./test/errors.ts";
-import { leaksIn } from "./test/leaks.ts";
+import { leaksIn } from "@terminal-dusk/host/test/secret-leaks";
 import { created, MATCH } from "./test/match.ts";
 
 type Answer = { data: unknown; error: { code?: string; message?: string; details?: string } | null };

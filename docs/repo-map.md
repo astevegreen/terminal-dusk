@@ -157,8 +157,6 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/transport/sessionToken.test.ts`
 - `packages/app/src/transport/test/fakeAuth.ts` - A fake Supabase Auth for the email-code client's tests: a fake `fetch` that records every request and answers with whatever the test queued, or a stock success… Exports: AUTH_URL, AUTH_ANON_KEY, AuthRequest, AuthAnswer, sessionBody, FakeAuth, createFakeAuth.
 - `packages/app/src/transport/test/fakeSupabase.ts` - A fake Supabase for the remote transport's tests: one match run by the real host, served over a fake `fetch`. Exports: URL_BASE, ANON_KEY, FakeRequest, FakeSupabase, createFakeSupabase.
-- `packages/app/src/transport/test/leaks.test.ts` - The rehearsal's leak check itself (#379, #380): a card the viewer was shown and a public deck list are not leaks where they only show up as what the viewer may…
-- `packages/app/src/transport/test/leaks.ts` - Test helper for the phase 4 rehearsal's leak checks, the same idea as the server's and the host's test/leaks.ts. Exports: canonical, leaksFor, withoutCards.
 - `packages/app/src/transport/test/localStack.ts` - The phase 4 rehearsal's link to the local Supabase stack (docs/sprint.md, lane "online": no hosted project). Exports: HOW_TO_START, StackKeys, stackKeys, whyUnavailable, StackUser, makeUser, grantWeb, openMatch, serverSnapshot, cleanUp.
 - `packages/app/src/transport/test/rehearsal.ts` - The phase 4 rehearsal (O13; docs/architecture.md, "Revised build order", phase 4): one Easy-vs-Easy game played through two real remote transports, one per sea… Exports: ServerSnapshot, GameRig, GameOptions, GameResult, playRehearsalGame.
 - `packages/app/src/transport/test/rehearsalReport.ts` - The phase 4 rehearsal's short report: what one run played and checked, and every problem it found, each with its match and seq. Exports: rehearsalReport.
@@ -569,6 +567,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/src/test/order.test.ts`
 - `packages/host/src/test/order.ts` - Compare function for sorting strings in UTF-16 code-unit order: the same order as a sort with no compare function, written out so the order is explicit. Exports: byCodeUnit.
 - `packages/host/src/test/play.ts` - Test helpers for playing a match through the host. Exports: started, submissionFor, nextSide, accept.
+- `packages/host/src/test/secretLeaks.test.ts` - The shared leak check itself (#379, #380, #396): a card the viewer was shown and a public deck list are not leaks where they only show up as what the viewer ma…
+- `packages/host/src/test/secretLeaks.ts` - Test helper for leak checks against a whole MatchSecret, shared by the app's and the server's tests through "@terminal-dusk/host/test/secret-leaks" (#396). Exports: canonical, leaksIn, leaksFor, withoutCards.
 - `packages/host/src/types.ts` - The match host's own types (docs/architecture.md, Decision 3). Exports: PlayerId, DeadlineRule, MatchDeadline, MatchConfig, MatchClock, MatchRecord, MatchSecret, Frame, Submission, HostEffect, HostResult, HostErrorCode, ….
 - `packages/host/tsconfig.json`
 
@@ -699,8 +699,6 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/test/inviteHandler.ts` - Test helpers for the invite handler: O5a's in-memory invite world behind a store that counts its calls, fake sign-in by token, a clock, and submit-handler deps… Exports: THIRD, INVITE_TOKENS, countingInvites, InviteHandlerWorld, inviteHandlerWorld, body.
 - `packages/server/src/test/inviteStack.ts` - The shared setup for the invite tests on the local Supabase stack: a service-role client and three fresh test users (a host with a "web" entitlement and two jo… Exports: STACK_SEED, InviteStack, expectedStart, inviteStack.
 - `packages/server/src/test/invites.ts` - Test helpers for invites: an in-memory invite store over O1's MemoryStore, with repeatable codes, match ids, seeds and random sides, and submit deps that run t… Exports: HOST, JOINER, INVITE_NOW, sequence, InviteWorld, inviteWorld.
-- `packages/server/src/test/leaks.test.ts` - The server's leak check itself (#379, #380): a card the viewer was shown and a public deck list are not leaks where they only show up as what the viewer may se…
-- `packages/server/src/test/leaks.ts` - Test helper for leak checks, copying the idea of the host's test/leaks.ts. Exports: leaksIn, leaksFor.
 - `packages/server/src/test/match.ts` - Test helpers: a small ruleset and a match in an in-memory store, copying the idea of the host's tests. Exports: SEED, NOW, MATCH, ruleset, makeConfig, created, setup, bodyFor, nextSide.
 - `packages/server/src/test/seen.ts` - Test helpers for the seen handler: "match-1" at seq 0 with its first turn alerts queued (alerts.ts), behind a match store and a notify store that record every… Exports: TOKEN_OF, recordingStore, recordingNotify, SeenWorld, seenWorld.
 - `packages/server/src/test/stack.ts` - Test helpers for the SupabaseStore checks on the local Supabase stack (O3's localStack.ts finds it). Exports: onLocalStack, TestUser, makeUser, accessToken, freshMatchId, newGame, writeOf, putIn, Stored, storedRows, cleanUp.

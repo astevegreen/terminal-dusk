@@ -6,7 +6,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./first-deck": "./src/firstDeck.ts"
+    "./first-deck": "./src/firstDeck.ts",
+    "./test/secret-leaks": "./src/test/secretLeaks.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",

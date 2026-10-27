@@ -2,7 +2,7 @@
 // message holds, which step each response is checked against, and that a leak is found and reported without its card.
 import { firstDeckConfig, firstDeckRuleset } from "@terminal-dusk/host/first-deck";
 import { describe, expect, it } from "vitest";
-import { canonical } from "../src/transport/test/leaks.ts";
+import { canonical } from "@terminal-dusk/host/test/secret-leaks";
 import { createFakeSupabase, URL_BASE } from "../src/transport/test/fakeSupabase.ts";
 import { checkResponses, frameSeqOf } from "./leakCheck.ts";
 import type { Recorded } from "./leakCheck.ts";
