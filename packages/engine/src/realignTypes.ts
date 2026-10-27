@@ -3,18 +3,23 @@
 import type { CountryId } from "./mapTypes.ts";
 import type { Side } from "./types.ts";
 
-/** An action on the menu a play's points may go to: placing influence or realigning. All of them go to one. */
-export type PointsAction = "place" | "realign";
+/**
+ * A choice on the menu a play's points may go to: placing influence or realigning, all of them to one. `pass`
+ * declines realigning when placing is impossible: the points are left unspent (owner, 26 Oct, #317 review).
+ */
+export type PointsAction = "place" | "realign" | "pass";
 
 /**
- * What a chooseAction decision allows: the `actions` the side can use its `points` on now, in menu order
- * (place, then realign). It is asked only when more than one is possible. All of it is public.
+ * What a chooseAction decision allows: the `actions` the side can pick now, in menu order (place, realign, pass).
+ * It is asked whenever realigning is possible, since realigning is never forced: with placing possible too the
+ * menu is place or realign; without it, realign or pass. All of it is public.
  */
 export type ActionOptions = { points: number; actions: PointsAction[] };
 
 /**
  * What a realign decision allows: `attempts` still to make (one per point), and `targets`, the countries where
- * the rival has influence now, in the map's order. Each attempt may pick a different one. All of it is public.
+ * the rival has influence now, in the map's order. Each attempt may pick a different one, or the side may stop
+ * and leave the attempts unmade (owner, 26 Oct, #317 review). All of it is public.
  */
 export type RealignOptions = { attempts: number; targets: CountryId[] };
 

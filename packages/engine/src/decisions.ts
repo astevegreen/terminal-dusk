@@ -151,7 +151,9 @@ export function legalAnswers(ruleset: Ruleset, state: GameState, side: Side): An
       const { options } = decision;
       if (!("targets" in options)) return [];
       const now = realignTargets(state.public, side);
-      return options.targets.filter((c) => now.includes(c)).map((country) => ({ kind: "realign", country }));
+      const countries = options.targets.filter((c) => now.includes(c));
+      // The side may always stop instead (owner, 26 Oct, #317 review): `country` null.
+      return [...countries, null].map((country) => ({ kind: "realign", country }));
     }
   }
 }

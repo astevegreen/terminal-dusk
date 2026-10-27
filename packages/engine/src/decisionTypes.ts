@@ -64,4 +64,5 @@ export type AnswerValue =
   | { kind: "discardCards"; cards: CardId[] }
   | { kind: "placeInfluence"; country: CountryId }
   | { kind: "chooseAction"; action: PointsAction }
-  | { kind: "realign"; country: CountryId };
+  /** `country` null: stop realigning, leaving the attempts left unmade. */
+  | { kind: "realign"; country: CountryId | null };

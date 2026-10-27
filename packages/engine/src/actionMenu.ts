@@ -1,8 +1,10 @@
 // The action menu (R16c, #317; docs/design/map-and-points.md, "Points and actions" and "Event points"). A
 // spendPoints step, from a card played for points or from a card's event, gives its side the card's ops (as
 // modified) to spend. All of them go to one action (owner, 26 Oct, #316): placing influence (placing.ts) or
-// realigning (realign.ts). The side picks the action in a chooseAction decision when both are possible; when only
-// one is, it starts at once, and when neither is, the points are lost and the program runs on.
+// realigning (realign.ts). Realigning is never forced (owner, 26 Oct, #317 review), so whenever it is possible the
+// side picks in a chooseAction decision: place or realign, or, when placing is impossible, realign or pass (the
+// points left unspent). Without realigning, placing starts at once; with neither, the points are lost and the
+// program runs on.
 import { newActionDecision } from "./decisions.ts";
 import { affordable, reachable, realignTargets } from "./influence.ts";
 import { opsValue } from "./modifiers.ts";
@@ -21,11 +23,12 @@ export function runSpendPoints(state: GameState, frame: Frame, step: SpendStep, 
   const amount = opsValue(state, { ops: step.amount }, step.side);
   events.push({ kind: "pointsSpent", visibility: "public", side: step.side, amount });
   const actions = possibleActions(state, step.side, amount);
-  if (actions.length > 1) {
-    state.public.pending = [newActionDecision(state.meta.seq, step.side, amount, actions)];
+  if (actions.includes("realign")) {
+    const menu: PointsAction[] = actions.includes("place") ? actions : [...actions, "pass"];
+    state.public.pending = [newActionDecision(state.meta.seq, step.side, amount, menu)];
     return "paused";
   }
-  return start(state, frame, step.side, amount, actions[0] ?? "place");
+  return start(state, frame, step.side, amount, actions[0] ?? "pass");
 }
 
 /**
@@ -70,9 +73,10 @@ function possibleActions(state: GameState, side: Side, points: number): PointsAc
 
 /**
  * Starts `action` for `side` with `points`: placing fixes the countries in reach now; realigning gives one
- * attempt per point. Either may find nothing to do and move the frame on.
+ * attempt per point. Either may find nothing to do and move the frame on. Passing spends nothing and moves the
+ * frame on.
  */
 function start(state: GameState, frame: Frame, side: Side, points: number, action: PointsAction): "ran" | "paused" {
-  if (action === "realign") return offerRealign(state, frame, side, points);
-  return offerPlacement(state, frame, side, points, reachable(state.public, side));
+  if (action === "place") return offerPlacement(state, frame, side, points, reachable(state.public, side));
+  return offerRealign(state, frame, side, action === "realign" ? points : 0);
 }

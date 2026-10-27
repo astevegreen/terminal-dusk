@@ -140,15 +140,22 @@ describe("spendPoints places influence (R16a)", () => {
     expect(done.state.public.pending.some((d) => d.kind === "placeInfluence")).toBe(false);
   });
 
-  it("with nothing affordable from the start, no placing is asked for: the points go to realigning (R16c)", () => {
-    // Before R16c nobody was asked here. SAE has influence in alpha, so a realignment is now possible.
-    const { state, events } = placing(
+  it("with nothing affordable from the start, no placing is asked for: realign or pass is offered (R16c)", () => {
+    // Before R16c nobody was asked here. SAE has influence in alpha, so a realignment is now possible, and it is
+    // offered, never forced (owner, 26 Oct, #317 review).
+    const { state, events } = startWith(
       [spend("lio", 1), { op: "marker", label: "after" }],
       ruleset,
       mapGame({ alpha: { sae: 2 } }),
     );
     expect(events.map((e) => e.kind)).toEqual(["pointsSpent"]);
-    expect(state.public.pending).toEqual([expect.objectContaining({ side: "lio", kind: "realign" })]);
+    expect(state.public.pending).toEqual([
+      expect.objectContaining({
+        side: "lio",
+        kind: "chooseAction",
+        options: { points: 1, actions: ["realign", "pass"] },
+      }),
+    ]);
   });
 
   it("with no action possible (no points), nobody is asked and the program runs on", () => {

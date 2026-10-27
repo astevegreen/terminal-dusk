@@ -5,7 +5,7 @@
 // SAE's echo and delta. Every Contingency card in a deck has the same number, so the draws are known.
 import { describe, expect, it } from "vitest";
 import { apply, legalAnswers } from "./index.ts";
-import type { AnswerValue, CountryId, GameEvent, GameState, Step } from "./index.ts";
+import type { AnswerValue, CountryId, GameEvent, GameState, PointsAction, Step } from "./index.ts";
 import { realignBonus } from "./realign.ts";
 import { startProgram } from "./stack.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
@@ -47,8 +47,8 @@ function answer(state: GameState, value: AnswerValue) {
   return { decisionId: d.id, side: d.side, value };
 }
 
-const realignIn = (state: GameState, country: CountryId) => answer(state, { kind: "realign", country });
-const pick = (state: GameState, action: "place" | "realign") => answer(state, { kind: "chooseAction", action });
+const realignIn = (state: GameState, country: CountryId | null) => answer(state, { kind: "realign", country });
+const pick = (state: GameState, action: PointsAction) => answer(state, { kind: "chooseAction", action });
 
 /** startWith `steps` on `state`, then "realign" picked on the action menu if it is offered. */
 function realigning(steps: Step[], state: GameState): { state: GameState; events: GameEvent[] } {
@@ -104,6 +104,42 @@ describe("the action menu (R16c)", () => {
     expect(state.public.pending[0]).toMatchObject({ kind: "placeInfluence", options: { points: 2 } });
   });
 
+  it("is offered even when placing is impossible, as realign or pass: realigning never starts on its own", () => {
+    // LIO has no influence: only alpha is in reach, and SAE controls it (2, stability 2), so 1 point buys nothing.
+    const { state } = startWith([spend("lio", 1)], ruleset, game(undefined, { alpha: { sae: 2 } }));
+    expect(state.public.pending).toEqual([
+      {
+        id: expect.any(String),
+        side: "lio",
+        kind: "chooseAction",
+        options: { points: 1, actions: ["realign", "pass"] },
+      },
+    ]);
+    expect(legalAnswers(ruleset, state, "lio")).toEqual([
+      { kind: "chooseAction", action: "realign" },
+      { kind: "chooseAction", action: "pass" },
+    ]);
+  });
+
+  it("passing leaves the points unspent: nothing is placed or realigned, and the program runs on", () => {
+    const start = startWith(
+      [spend("lio", 1), { op: "marker", label: "after" }],
+      ruleset,
+      game(undefined, { alpha: { sae: 2 } }),
+    ).state;
+    const done = applied(start, pick(start, "pass"));
+    expect(done.events.map((e) => e.kind)).toEqual(["marker"]);
+    expect(done.state.public.influence).toEqual(start.public.influence);
+    expect(done.state.public.stack).toEqual([]);
+    expect(done.state.public.pending.map((d) => d.kind)).toEqual(["playCardAs"]);
+  });
+
+  it("pass is not on the menu when placing is possible: declining realign there means placing", () => {
+    const start = startWith([spend("lio", 2)], ruleset, game()).state;
+    const r = apply(ruleset, start, pick(start, "pass"));
+    expect(r.ok ? "accepted" : r.error.code).toBe("illegalAnswer");
+  });
+
   it("an action not on the menu is refused as illegal", () => {
     const start = startWith([spend("lio", 2)], ruleset, game()).state;
     const r = apply(ruleset, start, answer(start, { kind: "chooseAction", action: "intervene" as "place" }));
@@ -112,14 +148,34 @@ describe("the action menu (R16c)", () => {
 });
 
 describe("realigning (R16c)", () => {
-  it("may target any country where the rival has influence, adjacent or not, in the map's order", () => {
+  it("may target any country where the rival has influence, adjacent or not, in the map's order, or stop", () => {
     // LIO has influence only in alpha; SAE in echo (not next to anything of LIO's) and foxtrot (no neighbours).
     const counts: Counts = { alpha: { lio: 2 }, echo: { sae: 1 }, foxtrot: { sae: 1 } };
     const { state } = realigning([spend("lio", 1)], game(undefined, counts));
     expect(legalAnswers(ruleset, state, "lio")).toEqual([
       { kind: "realign", country: "echo" },
       { kind: "realign", country: "foxtrot" },
+      { kind: "realign", country: null },
     ]);
+  });
+
+  it("the side may stop early: the attempts left are not made, and the play ends", () => {
+    const { state } = realigning([spend("lio", 3), { op: "marker", label: "after" }], game({ lio: 6, sae: 1 }));
+    const second = applied(state, realignIn(state, "echo"));
+    expect(second.state.public.pending[0]).toMatchObject({ kind: "realign", options: { attempts: 2 } });
+    const done = applied(second.state, realignIn(second.state, null));
+    expect(done.events.map((e) => e.kind)).toEqual(["marker"]);
+    expect(done.state.public.influence).toEqual(second.state.public.influence);
+    expect(done.state.public.stack).toEqual([]);
+    expect(done.state.public.pending.some((d) => d.kind === "realign")).toBe(false);
+  });
+
+  it("the side may stop before its first attempt: nothing is drawn or removed", () => {
+    const { state } = realigning([spend("lio", 2)], game());
+    const done = applied(state, realignIn(state, null));
+    expect(drawnDecks(done.events)).toEqual([]);
+    expect(done.state.public.influence).toEqual(state.public.influence);
+    expect(done.state.public.stack).toEqual([]);
   });
 
   it("a country where the rival has no influence is refused as illegal", () => {

@@ -57,6 +57,9 @@ What the reference rules mean for this game, as far as they reach:
      (stopping at 0). A tie changes nothing. A realignment does not need adjacency. A side whose home box touches
      the target also adds 1. Each point buys one attempt, and each attempt may target a different country. The
      formula, cost and home-box bonus are confirmed (owner, 26 Oct, #317, "approved as recommended").
+     Realigning is never forced: it is always a menu choice the side can decline, even when placing is impossible,
+     and a side that realigns may stop early instead of using every attempt (owner, 26 Oct, #317 review). Points
+     declined this way are not spent.
 3. **The fourth action is the tech race** (owner, 22 Oct: "let's go with (a) The track is the fourth action"). It
    takes the place of the reference game's extra track action: a side spends a card's points to move up the tech
    race track. The track itself (its branches, costs and what moving up gives) is its own topic, not designed yet.

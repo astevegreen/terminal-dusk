@@ -4,7 +4,8 @@
 // (contingency-deck.md, "Realignments"), and adds 1 per adjacent country it controls, 1 if it has more influence in
 // the country, and 1 if its home box touches it. The higher total removes the difference from the loser's
 // influence there, stopping at 0; a tie changes nothing (owner, 26 Oct, #317, "approved as recommended"). The side
-// picks each attempt's country in a realign decision (hard rule 4), and must go on while a country is left.
+// picks each attempt's country in a realign decision (hard rule 4), and may stop early instead (owner, 26 Oct,
+// #317 review): the attempts left are not made.
 import { drawContingency } from "./contingency.ts";
 import { newRealignDecision } from "./decisions.ts";
 import { controller, realignTargets, removeInfluence } from "./influence.ts";
@@ -45,9 +46,10 @@ export function offerRealign(state: GameState, frame: Frame, side: Side, attempt
 /**
  * Resumes the top frame, paused at a spendPoints step, with the country picked for a realignment (apply has
  * checked it against legalAnswers): the attempt is made, then the next one is asked for, or the frame moves on.
- * Anything else on top of the stack is a broken program.
+ * `country` null stops: the attempts left are not made and the frame moves on. Anything else on top of the stack
+ * is a broken program.
  */
-export function resumeRealign(state: GameState, country: CountryId, events: GameEvent[]): EngineError | null {
+export function resumeRealign(state: GameState, country: CountryId | null, events: GameEvent[]): EngineError | null {
   const frame = state.public.stack.at(-1);
   const step = frame?.steps[frame.next];
   const decision = state.public.pending[0];
@@ -55,6 +57,10 @@ export function resumeRealign(state: GameState, country: CountryId, events: Game
     return invalidProgram("The stack is not paused at a realignment.");
   }
   const side = decision.side;
+  if (country === null) {
+    offerRealign(state, frame, side, 0);
+    return null;
+  }
   if (!realignTargets(state.public, side).includes(country)) {
     return invalidProgram("The rival has no influence there to realign.");
   }

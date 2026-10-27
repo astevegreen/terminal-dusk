@@ -247,8 +247,10 @@ export function playCardDef(def: CardDef, options: PlayOptions = {}): string[] {
     } else if (d.kind === "rivalEventOrder") {
       step({ decisionId: d.id, side: d.side, value: { kind: "rivalEventOrder", event: "before" } });
     } else if (d.kind === "chooseAction") {
-      // Points always go to placing (R16c's action menu); the story leaves the choice out.
-      step({ decisionId: d.id, side: d.side, value: { kind: "chooseAction", action: "place" } });
+      // Points always go to placing, or are left unspent when placing is impossible (R16c's action menu); the
+      // story leaves the choice out.
+      const place = "actions" in d.options && d.options.actions.includes("place");
+      step({ decisionId: d.id, side: d.side, value: { kind: "chooseAction", action: place ? "place" : "pass" } });
     } else if (d.kind === "placeInfluence") {
       // Points are placed in the first country the side may place in (R16a); the story leaves the placings out.
       step({ decisionId: d.id, side: d.side, value: legalAnswers(ruleset, state, d.side)[0]! });

@@ -38,6 +38,23 @@ describe("the chooseAction prompt (R16c, #317)", () => {
     ]);
   });
 
+  it("offers leaving the points unspent when the menu lists pass (realign is never forced)", () => {
+    const sent: AnswerValue[] = [];
+    const decision: Decision = { ...menu("sae", 1), options: { points: 1, actions: ["realign", "pass"] } };
+    const buttons = buttonsOf(
+      createElement(
+        decisionPrompts.chooseAction,
+        props(decision, (v) => sent.push(v)),
+      ),
+    );
+    for (const b of buttons) b.click();
+    expect(buttons.map((b) => b.text)).toEqual(["Realign", "Leave the points unspent"]);
+    expect(sent).toEqual([
+      { kind: "chooseAction", action: "realign" },
+      { kind: "chooseAction", action: "pass" },
+    ]);
+  });
+
   it("says the points to spend in its question", () => {
     expect(renderToString(createElement(decisionPrompts.chooseAction, props(menu("sae", 3))))).toContain(
       "sae: spend 3 points on",
@@ -49,7 +66,7 @@ describe("the chooseAction prompt (R16c, #317)", () => {
 });
 
 describe("the realign prompt (R16c, #317)", () => {
-  it("has one button per country the decision lists, in order, that sends that country", () => {
+  it("has one button per country the decision lists, in order, that sends that country, then one to stop", () => {
     const sent: AnswerValue[] = [];
     const buttons = buttonsOf(
       createElement(
@@ -58,10 +75,11 @@ describe("the realign prompt (R16c, #317)", () => {
       ),
     );
     for (const b of buttons) b.click();
-    expect(buttons.map((b) => b.text)).toEqual(["Realign in charlie", "Realign in echo"]);
+    expect(buttons.map((b) => b.text)).toEqual(["Realign in charlie", "Realign in echo", "Stop realigning"]);
     expect(sent).toEqual([
       { kind: "realign", country: "charlie" },
       { kind: "realign", country: "echo" },
+      { kind: "realign", country: null },
     ]);
   });
 

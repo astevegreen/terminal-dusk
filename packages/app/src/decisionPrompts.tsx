@@ -213,7 +213,11 @@ function PlaceInfluencePrompt({ decision, onAnswer }: Readonly<PromptProps>) {
   );
 }
 
-const ACTION_TEXT: Record<PointsAction, string> = { place: "Place influence", realign: "Realign" };
+const ACTION_TEXT: Record<PointsAction, string> = {
+  place: "Place influence",
+  realign: "Realign",
+  pass: "Leave the points unspent",
+};
 
 /** The action menu (R16c): one choice per action the decision lists, with the points in the question. */
 function ChooseActionPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
@@ -234,15 +238,18 @@ function ChooseActionPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
   );
 }
 
-/** A realignment attempt (R16c): one choice per country the decision lists, with the attempts left in the question. */
+/**
+ * A realignment attempt (R16c): one choice per country the decision lists, then a choice to stop (the attempts
+ * left unmade), with the attempts left in the question.
+ */
 function RealignPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
   const options = decision.options;
   const attempts = "targets" in options ? options.attempts : 0;
   const targets = "targets" in options ? options.targets : [];
-  const choices: Choice[] = targets.map((country) => ({
-    text: `Realign in ${country}`,
-    value: { kind: "realign", country },
-  }));
+  const choices: Choice[] = [
+    ...targets.map((country): Choice => ({ text: `Realign in ${country}`, value: { kind: "realign", country } })),
+    { text: "Stop realigning", value: { kind: "realign", country: null } },
+  ];
   return (
     <Choices
       decision={decision}
