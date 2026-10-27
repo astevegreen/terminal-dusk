@@ -1,0 +1,1789 @@
+{
+  "setup": {
+    "turns": 2,
+    "playsPerTurn": 1,
+    "eras": {
+      "era-1": 1,
+      "era-2": 2,
+      "era-3": null,
+      "future": null
+    }
+  },
+  "games": 2,
+  "averageAnswers": 12,
+  "noWinner": true,
+  "sides": {
+    "lio": {
+      "wins": 0,
+      "losses": 0,
+      "draws": 2,
+      "reasons": {
+        "turnLimitReached": 2
+      }
+    },
+    "sae": {
+      "wins": 0,
+      "losses": 0,
+      "draws": 2,
+      "reasons": {
+        "turnLimitReached": 2
+      }
+    }
+  },
+  "cards": [
+    {
+      "id": "e1-lio-001",
+      "name": "Maastricht Treaty",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-lio-002",
+      "name": "Budapest Memorandum",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-lio-004",
+      "name": "NATO Enlargement 1999",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 1,
+        "gamesPlayedIn": 1,
+        "winShare": 0
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-lio-006",
+      "name": "Desert Storm Coalition",
+      "lio": {
+        "picks": 1,
+        "event": 1,
+        "points": 0,
+        "gamesPlayedIn": 2,
+        "winShare": 0
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-lio-010",
+      "name": "Arrest of Aldrich Ames",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-lio-011",
+      "name": "Dot-com Boom",
+      "lio": {
+        "picks": 1,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 1,
+        "winShare": 0
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-lio-012",
+      "name": "Partnership for Peace",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-lio-013",
+      "name": "Oslo Accords",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-lio-014",
+      "name": "End of the Soviet Union",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 2,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 2,
+        "winShare": 0
+      }
+    },
+    {
+      "id": "e1-sae-001",
+      "name": "Battle of Mogadishu",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 1,
+        "gamesPlayedIn": 1,
+        "winShare": 0
+      }
+    },
+    {
+      "id": "e1-sae-002",
+      "name": "Handover of Hong Kong",
+      "lio": {
+        "picks": 1,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 1,
+        "winShare": 0
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-sae-003",
+      "name": "Golden Shield",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-sae-004",
+      "name": "Second Chechen War",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-sae-005",
+      "name": "The Hanssen Leak",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-sae-006",
+      "name": "Shanghai Five",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 1,
+        "gamesPlayedIn": 1,
+        "winShare": 0
+      },
+      "sae": {
+        "picks": 0,
+        "event": 1,
+        "points": 0,
+        "gamesPlayedIn": 1,
+        "winShare": 0
+      }
+    },
+    {
+      "id": "e1-sae-007",
+      "name": "Taiwan Strait Crisis",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-sae-008",
+      "name": "Primakov's U-turn",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-sae-009",
+      "name": "Belgrade Embassy Bombing",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-sae-010",
+      "name": "Hainan Island Incident",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-sae-011",
+      "name": "Pristina Airport Dash",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-sae-012",
+      "name": "Shock Therapy Backlash",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 1,
+        "points": 0,
+        "gamesPlayedIn": 1,
+        "winShare": 0
+      }
+    },
+    {
+      "id": "e1-sae-013",
+      "name": "Cox Report",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 1,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 1,
+        "winShare": 0
+      }
+    },
+    {
+      "id": "e1-neu-001",
+      "name": "Rwandan Genocide",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-neu-002",
+      "name": "Asian Financial Crisis",
+      "lio": {
+        "picks": 1,
+        "event": 1,
+        "points": 0,
+        "gamesPlayedIn": 2,
+        "winShare": 0
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-neu-003",
+      "name": "Ruble Default",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-neu-004",
+      "name": "Test Ban Treaty",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-neu-006",
+      "name": "Al Jazeera Launches",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-neu-007",
+      "name": "First Crew on the ISS",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e1-neu-008",
+      "name": "Kyoto Protocol",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-lio-002",
+      "name": "Article 5 Invoked",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-lio-004",
+      "name": "ABM Treaty Withdrawal",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-lio-006",
+      "name": "Libya Disarms",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-lio-007",
+      "name": "Big Bang Enlargement 2004",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-lio-008",
+      "name": "Smartphones and Social Networks",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-lio-009",
+      "name": "Ana Montes Unmasked",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-lio-010",
+      "name": "PEPFAR",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-lio-011",
+      "name": "Cedar Revolution",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-lio-012",
+      "name": "Euro Cash",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-lio-013",
+      "name": "India-US Nuclear Deal",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-lio-014",
+      "name": "Fall of the Taliban",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-sae-001",
+      "name": "Invasion of Iraq",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-sae-002",
+      "name": "Curveball",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-sae-003",
+      "name": "Olympic Summer 2008",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-sae-004",
+      "name": "Estonian Cyberattacks 2007",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-sae-005",
+      "name": "Litvinenko Poisoning",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-sae-007",
+      "name": "North Korean Nuclear Test",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-sae-008",
+      "name": "Petrocaribe",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-sae-010",
+      "name": "Peace Mission 2005",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 1,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 1,
+        "winShare": 0
+      }
+    },
+    {
+      "id": "e2-sae-011",
+      "name": "Munich Speech 2007",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-sae-012",
+      "name": "Abu Ghraib",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-sae-013",
+      "name": "Chinese Anti-Satellite Test",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-neu-001",
+      "name": "China Joins the WTO",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-neu-002",
+      "name": "September 11",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-neu-003",
+      "name": "SARS",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-neu-004",
+      "name": "IPCC Report and Nobel 2007",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-neu-005",
+      "name": "Oil at $147",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-neu-006",
+      "name": "Natanz Revealed",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e2-neu-007",
+      "name": "Kosovo Declares Independence",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 1,
+        "gamesPlayedIn": 1,
+        "winShare": 0
+      }
+    },
+    {
+      "id": "e2-neu-008",
+      "name": "Sovereign Wealth Funds",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-lio-001",
+      "name": "Stuxnet",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-lio-002",
+      "name": "Neptune Spear",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-lio-003",
+      "name": "Ghost Stories",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-lio-006",
+      "name": "Chip Chokepoint",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-lio-009",
+      "name": "Nordic Accession",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-lio-010",
+      "name": "AUKUS",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-lio-011",
+      "name": "Private Constellation",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-lio-013",
+      "name": "Fall of the Assad Regime",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-lio-014",
+      "name": "Defence of Kyiv",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-lio-015",
+      "name": "Revolution of Dignity",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-lio-016",
+      "name": "Fall of the Caliphate",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-sae-001",
+      "name": "Global Financial Crisis",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-sae-002",
+      "name": "Belt and Road",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-sae-003",
+      "name": "Annexation of Crimea",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-sae-004",
+      "name": "Full-Scale Invasion",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-sae-005",
+      "name": "The Leaks",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-sae-007",
+      "name": "Rare Earth Squeeze",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-sae-008",
+      "name": "Syrian Intervention",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-sae-009",
+      "name": "Parallel Plumbing",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-sae-010",
+      "name": "Fall of Kabul",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-sae-011",
+      "name": "Hong Kong Security Law",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-sae-012",
+      "name": "Hypersonics on Parade",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-sae-013",
+      "name": "Eurozone Crisis",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-neu-001",
+      "name": "Arab Spring",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-neu-002",
+      "name": "COVID-19",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-neu-003",
+      "name": "Paris Agreement",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-neu-004",
+      "name": "Migration Crises",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-neu-005",
+      "name": "Populist Wave",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-neu-007",
+      "name": "AI Compute Race",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-neu-008",
+      "name": "Tariff Shock",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "e3-neu-009",
+      "name": "October 7 and Gaza",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "ef-lio-001",
+      "name": "Allied Drone Wall",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "ef-lio-002",
+      "name": "Undersea Cable Patrols",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "ef-sae-001",
+      "name": "Shadow Fleet",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "ef-sae-002",
+      "name": "Cable Cut in the Baltic",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "ef-neu-001",
+      "name": "Open-Weight Model Leak",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    },
+    {
+      "id": "ef-neu-002",
+      "name": "Heat Dome Summer",
+      "lio": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
+      }
+    }
+  ],
+  "byEra": [
+    {
+      "era": "era-1",
+      "leftOut": false,
+      "cards": 29,
+      "averageCardsUsed": 7,
+      "shareUsed": 0.241,
+      "averageUses": 7
+    },
+    {
+      "era": "era-2",
+      "leftOut": false,
+      "cards": 30,
+      "averageCardsUsed": 1,
+      "shareUsed": 0.033,
+      "averageUses": 1
+    },
+    {
+      "era": "era-3",
+      "leftOut": true
+    },
+    {
+      "era": "future",
+      "leftOut": true
+    }
+  ]
+}
