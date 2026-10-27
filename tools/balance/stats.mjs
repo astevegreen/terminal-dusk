@@ -1,6 +1,8 @@
 // The balance report's numbers, worked out from finished games only. A pure function: no games are played here,
 // so tests can feed it hand-made summaries. A summary is one game: { status, answers, log }, where `status` is the
 // final GameStatus, `answers` the number of answers given and `log` the answers (each with its side), oldest first.
+// A summary may also carry `map` (map-stats.mjs): when any game does, the report adds the map numbers under `map`.
+import { mapNumbers } from "./map-stats.mjs";
 
 export const SIDES = ["lio", "sae"];
 export const NO_WINNER_LINE =
@@ -49,6 +51,7 @@ export function balanceStats(summaries, { cards = [], nameOf = (id) => id, eras 
     }
   }
   const games = summaries.length;
+  const map = mapNumbers(summaries);
   return {
     games,
     averageAnswers: games === 0 ? 0 : round(answers / games, 2),
@@ -60,6 +63,7 @@ export function balanceStats(summaries, { cards = [], nameOf = (id) => id, eras 
       ...Object.fromEntries(SIDES.map((s) => [s, sideNumbers(bySide[s])])),
     })),
     ...(eras === undefined ? {} : { byEra: eraNumbers(summaries, eras) }),
+    ...(map === undefined ? {} : { map }),
   };
 }
 

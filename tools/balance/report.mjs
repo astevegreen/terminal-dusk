@@ -1,4 +1,5 @@
 // The balance report as text: the numbers from stats.mjs laid out as plain tables.
+import { ACTIONS } from "./map-stats.mjs";
 import { NO_WINNER_LINE, SIDES } from "./stats.mjs";
 
 const LABEL = { lio: "LIO", sae: "SAE" };
@@ -46,7 +47,24 @@ export function formatText(stats, title = "Balance report") {
   ]);
   lines.push(...table([header, ...rows]));
   if (stats.byEra !== undefined) lines.push("", ...eraLines(stats.byEra));
+  if (stats.map !== undefined) lines.push("", ...mapLines(stats.map));
   return `${lines.join("\n")}\n`;
+}
+
+/** The "Map" section, on a scenario with a map: one row per side. */
+function mapLines(map) {
+  const header = ["side", "influence", "countries controlled", ...ACTIONS.map((a) => `${a} points`)];
+  const rows = SIDES.map((s) => [
+    LABEL[s],
+    map[s].influence,
+    map[s].controlled,
+    ...ACTIONS.map((a) => map[s].spent[a]),
+  ]);
+  return [
+    "Map, per side (averages per game: influence on the map and countries controlled at game end; " +
+      "place, intervene, realign points: points spent on each action of the menu)",
+    ...table([header, ...rows]),
+  ];
 }
 
 /** The "By era" section: one row per era, or "left out" with no numbers. */
