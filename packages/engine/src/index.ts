@@ -10,6 +10,8 @@ export { DECKS, SIDES } from "./types.ts";
 export { verifyGame } from "./verifyGame.ts";
 export { hiddenPart, reconstruct, viewFor } from "./views.ts";
 export type {
+  ActionAnswer,
+  ActionOptions,
   ActiveModifier,
   ActiveTrigger,
   Answer,
@@ -54,6 +56,7 @@ export type {
   HookId,
   InfluenceEntry,
   InfluencePlaced,
+  Intervened,
   MarkerEvent,
   MetaState,
   ModifierEnded,

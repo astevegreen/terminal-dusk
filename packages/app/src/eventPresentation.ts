@@ -32,6 +32,12 @@ export const eventPresentation: EventPresentation = {
     log: (event) =>
       `${event.side} placed 1 influence in ${event.country} for ${event.cost} point${event.cost === 1 ? "" : "s"}.`,
   },
+  intervened: {
+    log: (event) =>
+      `${event.side} intervened in ${event.country}: draw ${event.draw} + ${event.points} point${event.points === 1 ? "" : "s"} - 2 x stability ` +
+      `${event.stability} = ${event.result}` +
+      (event.result > 0 ? `; removed ${event.removed} rival influence, added ${event.added} own.` : "; no change."),
+  },
   drawPileReshuffled: {
     log: (event) => `The draw pile ran out: ${event.cards} discarded cards were shuffled into a new one.`,
   },

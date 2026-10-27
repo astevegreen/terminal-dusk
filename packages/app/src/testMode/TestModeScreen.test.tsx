@@ -178,7 +178,15 @@ describe("a whole game through the prompts", () => {
       }
       if (!acted) throw new Error("nobody has a prompt");
     }
-    expect([...seen].sort(byCodeUnit)).toEqual(["chooseCard", "playCardAs", "rivalEventOrder", "yesNo"]);
+    // On the test map a play for points first asks for the action (R16b), and placing then asks for each placement.
+    expect([...seen].sort(byCodeUnit)).toEqual([
+      "chooseAction",
+      "chooseCard",
+      "placeInfluence",
+      "playCardAs",
+      "rivalEventOrder",
+      "yesNo",
+    ]);
     // A card really was played for its event, and it ended up in the discard pile.
     const eventPlays = accepted.flatMap((a) => (a.kind === "playCardAs" && a.as === "event" ? [a.card] : []));
     expect(eventPlays.length).toBeGreaterThan(0);

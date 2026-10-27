@@ -10,7 +10,7 @@ import { runEscalate } from "./escalateStep.ts";
 import { revealHand } from "./knowledge.ts";
 import { keepMarker } from "./markers.ts";
 import { startModifier } from "./modifiers.ts";
-import { resumePlacement, runSpendPoints } from "./placing.ts";
+import { resumeAction, resumePlacement, runSpendPoints } from "./placing.ts";
 import { halfAnswered } from "./simultaneous.ts";
 import type { Revealed } from "./simultaneous.ts";
 import { afterProgram, setTrigger } from "./triggers.ts";
@@ -106,7 +106,7 @@ export type Closing = { who: Side; value: AnswerValue } | { who: "both"; values:
 /**
  * Resumes a paused program once its `choose` is closed: binds the answer (for a pair, both answers
  * keyed by side), then runs on. A discard pick resumes its discardFromHand step (discardChoice.ts), and a
- * placing its spendPoints step, which may ask for the next placement (placing.ts).
+ * placing or an action choice its spendPoints step, which may ask for the next placement (placing.ts).
  * Edits `state`, a working copy, in place.
  */
 export function resumeStack(
@@ -118,8 +118,12 @@ export function resumeStack(
   if (closing.who !== "both" && closing.value.kind === "discardCards") {
     return resumeDiscard(state, closing.value.cards, events) ?? runStack(state, events, budget);
   }
-  if (closing.who !== "both" && closing.value.kind === "placeInfluence") {
-    const error = resumePlacement(state, closing.value.country, events);
+  if (closing.who !== "both" && (closing.value.kind === "placeInfluence" || closing.value.kind === "chooseAction")) {
+    const { value } = closing;
+    const error =
+      value.kind === "placeInfluence"
+        ? resumePlacement(state, value.country, events)
+        : resumeAction(state, value, events);
     if (error !== null || state.public.pending.length > 0) return error;
     return runStack(state, events, budget);
   }
