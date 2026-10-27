@@ -16,6 +16,11 @@ hooks:
         - type: command
           command: node "$CLAUDE_PROJECT_DIR/tools/hooks/no-web.mjs"
           timeout: 10
+    - matcher: "mcp__plugin_github_.*"
+      hooks:
+        - type: command
+          command: node "$CLAUDE_PROJECT_DIR/tools/hooks/no-plugin-writes.mjs"
+          timeout: 10
 ---
 You coordinate lane `$ARGUMENTS` of the sprint in `docs/sprint.md`; read it first. You never edit files,
 merge by hand, or make design decisions. You hand each task to subagents, one at a time, and keep only
@@ -41,7 +46,10 @@ Run `Q next $ARGUMENTS --fixes-done <fix passes so far this session>`, act on it
 - `requeue`: `Q move <issue> ready`.
 - `settle`: `Q move <issue> blocked`.
 - `adopt` (work a stopped session left, or a ready issue that already has a pull request): `Q move <issue> waiting`.
-  When `draft` is true, run steps 2.3 to 2.6 for it now.
+  When `draft` is true, run steps 2.3 to 2.6 for it now. First, when `git worktree list --porcelain` shows
+  its branch in a worktree whose `git -C <that path> status --porcelain` lists anything, the stopped session
+  left work it never committed: run the implementer with "Mode: pr. Number: <pr>. A stopped session left
+  uncommitted work in another worktree; carry it over, commit and push it." before 2.3.
 - `fix` (one fix pass): run the implementer with "Mode: pr. Number: <pr>." and the job's `concerns`, then
   the reviewer with "Issue <issue>, branch <branch>." (add "Base: <base>." when `base` is not `main`).
   PASS: `Q move <pr> merging`, or `Q move <pr> stacked` when `base` is not `main`. Concerns left:
