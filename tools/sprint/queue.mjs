@@ -5,8 +5,11 @@
 //   move <n> <state> [--note "…"] [--conflict] [--dry-run]   {"moved": n, "to": state, "ran": [...]}, or {"error", "do"}
 //   backlog <lane>                 {"ready": n, "target": n, "todo": [backlog IDs with no issue yet]}, for sprint-plan
 //   status [--need "…"]... [--write]   {"body": "…", "needsYou": [...], "newNeeds": [...]}; --write puts the body on the sprint log issue
-//   env                            {"environment_id": "env_…"}, the computer sessions start on (Machinery)
-//   window [start [hours] [--dry-run] | ids --supervisor <id> --archiver <id> | stop | archived]   {"state", "start", …}
+//   env                            {"environment_id": "env_…"}, the computer sessions start on, recorded by
+//                                  window start --environment (or a docs/sprint.md **Environment:** line)
+//   window [start [hours] [--environment <env_…>] [--dry-run] | ids [--supervisor|--archiver|--wake <id>] | stop | archived]
+//                                  {"state", "start", …, "stoppedBy"}; stop records stoppedBy "sprint-stop"
+//   wake [--resets-at <epoch s>]   {"wake", "arm", "runOnceAt", "reason"}: where the supervisor's wake goes (wake.mjs)
 //   started "<session title>" <trigger id>    records a trigger the supervisor created; sessions [--all] reads them
 //   night-shift                    {"active", "building", "reason"}: night-shift tasks still in flight
 //   resume - --last-event <ISO>   the end of a run's log on stdin; {"start", "after", "restartAt", "reason"}
@@ -23,7 +26,8 @@ import path from "node:path";
 import { report } from "../sonar.mjs";
 import { cueCommand, nightShiftWork, withLocalWindow } from "./cue.mjs";
 import { stateDir } from "./local-state.mjs";
-import { OWNER, SONAR_CHECK, backlog, hasWork, next, nextNight, status } from "./rules.mjs";
+import { OWNER, SONAR_CHECK, backlog, hasWork, next, nextNight } from "./rules.mjs";
+import { status } from "./status.mjs";
 import { planMove } from "./moves.mjs";
 import { readFixture, snapshotAt } from "./replay.mjs";
 import { readSprintDoc } from "./sprint-doc.mjs";
@@ -32,7 +36,7 @@ import { resumeAfter } from "./usage-limit.mjs";
 const ROOT = path.resolve(import.meta.dirname, "..", "..");
 const STOP = "Stop and report this error to the owner; don't fall back to the prose rules.";
 const USAGE =
-  'usage: queue.mjs has-work "<title>" [--started <k>] | next <lane|night> [--fixes-done <k>] | move <n> <state> [--note "…"] [--conflict] [--dry-run] | backlog <lane> | status [--need "…"] [--write] | env | window [start [hours] | ids | stop | archived] | started "<title>" <trigger id> | sessions [--all] | night-shift | resume - --last-event <ISO> (the log on stdin)';
+  'usage: queue.mjs has-work "<title>" [--started <k>] | next <lane|night> [--fixes-done <k>] | move <n> <state> [--note "…"] [--conflict] [--dry-run] | backlog <lane> | status [--need "…"] [--write] | env | window [start [hours] [--environment <env_…>] | ids [--supervisor|--archiver|--wake <trig_…>] | stop | archived] | wake [--resets-at <epoch s>] | started "<title>" <trigger id> | sessions [--all] | night-shift | resume - --last-event <ISO> (the log on stdin)';
 const SESSION_MB = 1536; // what one new session is counted as using before it shows in free memory
 
 export function runGh(args) {
@@ -229,7 +233,7 @@ export function main(
     if (argv[0] === "env") {
       if (!doc.environment)
         throw new Error(
-          "docs/sprint.md names no environment (Machinery, `**Environment:**`), so a new session has nowhere to run",
+          "no environment is on record: /sprint-start records it with `window start --environment <env_…>`, so a new session has nowhere to run",
         );
       return line({ environment_id: doc.environment });
     }

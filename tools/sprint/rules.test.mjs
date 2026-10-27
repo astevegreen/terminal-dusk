@@ -7,7 +7,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { HELD_CONFLICT, MEMORY_FLOOR_MB, backlog, hasWork, next, nextNight, status } from "./rules.mjs";
+import { HELD_CONFLICT, MEMORY_FLOOR_MB, backlog, hasWork, next, nextNight } from "./rules.mjs";
+import { status } from "./status.mjs";
 import { readFixture, snapshotAt } from "./replay.mjs";
 import { readSprintDoc, taskId } from "./sprint-doc.mjs";
 
@@ -90,7 +91,7 @@ test("October: with R8-R13 all blocked at 13:19 on 21 Oct, the rules lane builds
 test("October: O7b-O7e waited on O7a (#210), so the online lane had no work and the supervisor starts none", () => {
   const S = at("2026-10-22T01:20:00Z");
   assert.equal(next(S, DOC, "online"), null);
-  const r = hasWork(S, DOC, "Sprint lane: online");
+  const r = hasWork(S, DOC, "TD lane: online");
   assert.equal(r.start, false);
   assert.match(
     r.reason,
@@ -111,11 +112,11 @@ test("October: the supervisor's old test saw 4 ready online issues at 08:00 on 2
     ).length,
     4,
   );
-  assert.equal(hasWork(S, DOC, "Sprint lane: online").start, false);
+  assert.equal(hasWork(S, DOC, "TD lane: online").start, false);
 });
 
 test("October: lane online had work while no supervisor ran on 22 Oct (TD-P3)", () => {
-  assert.deepEqual(hasWork(at("2026-10-22T09:00:00Z"), DOC, "Sprint lane: online"), {
+  assert.deepEqual(hasWork(at("2026-10-22T09:00:00Z"), DOC, "TD lane: online"), {
     start: true,
     reason: "build #253: ready, and nothing it depends on is open",
   });
@@ -144,15 +145,15 @@ test("October: a stacked pull request (#177 on task/136) is never merged by the 
 
 test("October: a backlog ID is done when an issue for it or one of its parts exists; R1 is not R12", () => {
   const S = at("2026-10-21T02:00:00Z");
-  assert.deepEqual(hasWork(S, DOC, "Sprint plan: app"), { start: true, reason: "2 ready; not yet specified: A2" });
+  assert.deepEqual(hasWork(S, DOC, "TD plan: app"), { start: true, reason: "2 ready; not yet specified: A2" });
   const later = at("2026-10-21T08:00:00Z");
-  assert.deepEqual(hasWork(later, DOC, "Sprint plan: app"), { start: false, reason: "every backlog ID has an issue" });
+  assert.deepEqual(hasWork(later, DOC, "TD plan: app"), { start: false, reason: "every backlog ID has an issue" });
   const S2 = snap({
     issues: ["R2", "R3", "R4a", "R5", "R6", "R7", "R8", "R9", "R10", "R11", "R12", "R13"].map((id, i) =>
       issue(i + 1, [], { title: `[task] ${id}: x`, state: "CLOSED" }),
     ),
   });
-  assert.deepEqual(hasWork(S2, DOC, "Sprint plan: rules"), { start: true, reason: "0 ready; not yet specified: R1" });
+  assert.deepEqual(hasWork(S2, DOC, "TD plan: rules"), { start: true, reason: "0 ready; not yet specified: R1" });
 });
 
 test("October: the night shift leaves sprint nights to the lanes (TD-P17)", () => {
@@ -316,26 +317,26 @@ test("ready issues go in backlog order, parts in letter order, whatever their nu
 
 test("the supervisor starts nothing outside the window or under the memory floor, and rejects unknown titles", () => {
   const S = snap({ issues: [issue(5, ["lane:rules", "sprint-ready"])] });
-  assert.equal(hasWork(S, DOC, "Sprint lane: rules").start, true);
-  assert.deepEqual(hasWork({ ...S, freeMb: MEMORY_FLOOR_MB - 1 }, DOC, "Sprint lane: rules"), {
+  assert.equal(hasWork(S, DOC, "TD lane: rules").start, true);
+  assert.deepEqual(hasWork({ ...S, freeMb: MEMORY_FLOOR_MB - 1 }, DOC, "TD lane: rules"), {
     start: false,
     reason: "4095 MB free, under the 4096 MB floor",
   });
-  assert.deepEqual(hasWork({ ...S, now: new Date("2026-10-23T00:00:00Z") }, DOC, "Sprint lane: rules"), {
+  assert.deepEqual(hasWork({ ...S, now: new Date("2026-10-23T00:00:00Z") }, DOC, "TD lane: rules"), {
     start: false,
     reason: "outside the sprint window",
   });
   assert.equal(next({ ...S, now: new Date("2026-10-23T00:00:00Z") }, DOC, "rules"), null);
-  assert.throws(() => hasWork(S, DOC, "Sprint lane: everything"), /unknown session title/);
+  assert.throws(() => hasWork(S, DOC, "TD lane: everything"), /unknown session title/);
 });
 
 test("the status block names only new needs in newNeeds, and the supervisor's own lines join Needs you", () => {
   const S = snap({ issues: [issue(5, ["lane:rules", "blocked"])], prs: [pr(130, { reviewRequired: true })] });
-  const first = status(S, DOC, { need: ["Sprint lane: app is stuck"] });
+  const first = status(S, DOC, { need: ["TD lane: app is stuck"] });
   assert.deepEqual(first.needsYou, [
     "#5 [task] R5: x: blocked on a question",
     "#130 R130: waits for your approval",
-    "Sprint lane: app is stuck",
+    "TD lane: app is stuck",
   ]);
   assert.deepEqual(status(S, DOC, { oldBody: first.body }).newNeeds, []);
   assert.match(first.body, /- rules: 0 ready, 0 building, 0 held, 1 blocked, 0 merged since the window opened/);
@@ -509,4 +510,8 @@ test("the night shift builds a blocked issue the owner answered, but leaves spri
   const noQuestion = night(["blocked"]);
   noQuestion.issues[0].comments.shift();
   assert.equal(nextNight(noQuestion, DOC), null, "the owner's own note on an issue he blocked is no answer");
+});
+
+test("the old session titles are refused, so a stale caller is caught", () => {
+  assert.throws(() => hasWork(snap(), DOC, "Sprint lane: rules"), /use "TD lane: <lane>"/);
 });

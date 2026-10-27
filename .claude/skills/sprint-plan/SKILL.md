@@ -21,6 +21,10 @@ You turn the next backlog items of lane `$ARGUMENTS` in `docs/sprint.md` into is
 build. Owner permission 1 in that file approves the backlog, so you do not wait for the owner. You never edit
 files, write code, or invent game rules. `L` below is the label `lane:$ARGUMENTS`.
 
+Comment only with `gh issue comment` (or `gh pr comment`), signed in as the bot. Never use the GitHub plugin's
+tools to write: they sign in as the owner, so GitHub never notifies the owner and the queue could read the
+comment as the owner's answer.
+
 `node tools/sprint/queue.mjs backlog $ARGUMENTS` prints `ready` (the lane's open `sprint-ready` issues), `target`
 (3 while the window is open, 6 outside it: the planning day) and `todo` (its backlog IDs with no issue yet, in backlog order; an
 ID is done once an issue for it or one of its lettered parts exists). If it prints an `error` or no JSON, stop

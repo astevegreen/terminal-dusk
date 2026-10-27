@@ -24,6 +24,10 @@ held pull request the owner answered, "Depends on") and prints one line of JSON.
 move: do what its `do` says. Exit code 2, or no JSON at all: stop, and give the error in step 3. Never decide
 by hand instead.
 
+Comment only with `gh issue comment` (or `gh pr comment`), signed in as the bot. Never use the GitHub plugin's
+tools to write: they sign in as the owner, so GitHub never notifies the owner and the queue could read the
+comment as the owner's answer.
+
 First run `Q window`. When it says `open`, a sprint has this computer: comment "Night shift: standing down,
 the sprint's window is open until <end>" on issue #2 and stop.
 

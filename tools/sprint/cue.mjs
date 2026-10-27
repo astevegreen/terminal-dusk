@@ -4,11 +4,14 @@
 // night-shift work still in flight, so the night shift and the sprint's lanes never build at once.
 import { inWindow } from "./sprint-doc.mjs";
 import { readTriggers, readWindow, recordTrigger, writeWindow } from "./local-state.mjs";
+import { wakePlan } from "./wake.mjs";
 
 export const DEFAULT_HOURS = 38;
 export const MAX_HOURS = 96;
-const TITLE = /^Sprint (lane|plan): ([a-z]+)$/;
+const TITLE = /^TD (lane|plan): ([a-z]+)$/;
 const TRIGGER_ID = /^trig_\w+$/;
+const ENVIRONMENT_ID = /^env_\w+$/;
+const IDS = ["supervisor", "archiver", "wake"];
 
 const iso = (d) => new Date(d).toISOString().replace(/:\d{2}\.\d{3}Z$/, "Z");
 
@@ -39,17 +42,20 @@ export function newWindow(now, hours = DEFAULT_HOURS) {
 // docs/sprint.md's facts with this computer's window, when /sprint-start opened one, in place of its Window line.
 export function withLocalWindow(doc, dir) {
   const w = readWindow(dir);
-  if (!w) return { ...doc, supervisor: null, archiver: null };
+  if (!w) return { ...doc, supervisor: null, archiver: null, wake: null, stoppedBy: null };
   return {
     ...doc,
     window: { start: new Date(w.start), end: new Date(w.end) },
+    environment: w.environment ?? doc.environment,
     supervisor: w.supervisor ?? null,
     archiver: w.archiver ?? null,
+    wake: w.wake ?? null,
+    stoppedBy: w.stoppedBy ?? null,
   };
 }
 
-// Where now falls: "none" (no window yet), "before", "open" or "after"; with the lanes, the sprint log issue
-// and the scheduled tasks' ids.
+// Where now falls: "none" (no window yet), "before", "open" or "after"; with the lanes, the sprint log issue,
+// the scheduled tasks' ids, and "sprint-stop" in stoppedBy when /sprint-stop ended the window early.
 export function windowState(doc, now) {
   const w = doc.window;
   let state = "none";
@@ -64,6 +70,8 @@ export function windowState(doc, now) {
     log: doc.logIssue,
     supervisor: doc.supervisor ?? null,
     archiver: doc.archiver ?? null,
+    wake: doc.wake ?? null,
+    stoppedBy: doc.stoppedBy ?? null,
   };
 }
 
@@ -93,13 +101,13 @@ export function sessions(doc, dir, { all = false } = {}) {
     .filter((t) => new Date(t.at).getTime() >= since)
     .sort((a, b) => new Date(b.at) - new Date(a.at));
   if (all) return recent;
-  const titles = doc.lanes.flatMap((l) => [`Sprint lane: ${l}`, `Sprint plan: ${l}`]);
+  const titles = doc.lanes.flatMap((l) => [`TD lane: ${l}`, `TD plan: ${l}`]);
   return Object.fromEntries(titles.map((title) => [title, recent.find((t) => t.title === title)?.id ?? null]));
 }
 
 const refuse = (error, todo) => ({ code: 1, value: { error, do: todo } });
 
-// The cue's commands: { value, code } for `window …`, `started` and `sessions`; undefined for any other command.
+// The cue's commands: { value, code } for `window …`, `started`, `sessions` and `wake`; undefined for any other.
 // `window archived` is the archiver's last step: once it is off, the next `window start` may go ahead.
 export function cueCommand(argv, { doc, dir, now, option }) {
   const [cmd, sub, arg] = argv;
@@ -110,6 +118,9 @@ export function cueCommand(argv, { doc, dir, now, option }) {
   if (cmd === "window" && sub === "start") {
     needDir();
     const hours = arg && !arg.startsWith("--") ? arg : DEFAULT_HOURS;
+    const environment = option(argv, "--environment") ?? null;
+    if (environment !== null && !ENVIRONMENT_ID.test(environment))
+      throw new Error(`--environment "${environment}" is not an environment id`);
     const w = newWindow(now, hours);
     if (inWindow(doc, now))
       return refuse(`a window is already open, until ${iso(doc.window.end)}`, "Report it; /sprint-stop ends it.");
@@ -120,14 +131,16 @@ export function cueCommand(argv, { doc, dir, now, option }) {
         `the last window's archiver ${last.archiver} is still on record, so its sessions may still be running`,
         "RemoteTrigger get it. Disabled: run `window archived`, then start again. Enabled: report it; it switches itself off once none of them runs.",
       );
-    if (!argv.includes("--dry-run")) writeWindow(dir, w);
-    return { value: windowState({ ...doc, window: { start: new Date(w.start), end: new Date(w.end) } }, now) };
+    // The wake is one standing trigger: the supervisor moves it, so it carries over to the next window.
+    const next = { ...w, environment, supervisor: null, archiver: null, wake: last?.wake ?? null, stoppedBy: null };
+    if (!argv.includes("--dry-run")) writeWindow(dir, next);
+    return { value: windowState({ ...doc, ...next, window: { start: new Date(w.start), end: new Date(w.end) } }, now) };
   }
   if (cmd === "window" && sub === "ids") {
     needDir();
     const w = readWindow(dir);
     if (!w || !inWindow(doc, now)) return refuse("no window is open", "Run `window start` first.");
-    for (const name of ["supervisor", "archiver"]) {
+    for (const name of IDS) {
       const id = option(argv, `--${name}`);
       if (id === undefined) continue;
       if (!TRIGGER_ID.test(id)) throw new Error(`--${name} "${id}" is not a trigger id`);
@@ -140,7 +153,8 @@ export function cueCommand(argv, { doc, dir, now, option }) {
     needDir();
     const w = readWindow(dir);
     if (!w || !inWindow(doc, now)) return refuse("no window is open", "Nothing to stop; report it.");
-    writeWindow(dir, { ...w, end: new Date(Math.floor(now.getTime() / 60000) * 60000).toISOString() });
+    const end = new Date(Math.floor(now.getTime() / 60000) * 60000).toISOString();
+    writeWindow(dir, { ...w, end, stoppedBy: "sprint-stop" });
     return { value: windowState(withLocalWindow(doc, dir), now) };
   }
   if (cmd === "window" && sub === "archived") {
@@ -152,6 +166,7 @@ export function cueCommand(argv, { doc, dir, now, option }) {
   }
   if (cmd === "window")
     throw new Error(`unknown window command "${sub}": use window, window start, ids, stop or archived`);
+  if (cmd === "wake") return { value: wakePlan(readWindow(dir), now, option(argv, "--resets-at")) };
   if (cmd === "started") {
     needDir();
     const m = TITLE.exec(sub ?? "");

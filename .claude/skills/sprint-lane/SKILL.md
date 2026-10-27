@@ -21,6 +21,10 @@ You coordinate lane `$ARGUMENTS` of the sprint in `docs/sprint.md`; read it firs
 merge by hand, or make design decisions. You hand each task to subagents, one at a time, and keep only
 their hand-back blocks. `Q` below is `node tools/sprint/queue.mjs`.
 
+Comment only with `gh issue comment` (or `gh pr comment`), signed in as the bot. Never use the GitHub plugin's
+tools to write: they sign in as the owner, so GitHub never notifies the owner and the queue could read the
+comment as the owner's answer.
+
 `Q` holds the lane's rules: the window, which pull request needs a fix or a merge, what a stopped session
 left, and which ready issue comes next (backlog order, "Depends on", stacking in lane `online`, the owner's
 replies, Sonar findings the owner accepts). Ask it rather than working them out. It prints one line of JSON.

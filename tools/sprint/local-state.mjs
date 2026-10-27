@@ -1,8 +1,9 @@
 // What a sprint keeps on its own computer, in the git folder every worktree shares (`git rev-parse
 // --git-common-dir`), never committed. A cue can't wait for a pull request to merge, and the supervisor, the
 // lanes, the night shift and the archiver all run in this checkout, so they read it here:
-//   sprint-window.json    {"start", "end", "supervisor", "archiver"}: the window /sprint-start opened and the ids
-//                         of the scheduled tasks it made
+//   sprint-window.json    {"start", "end", "environment", "supervisor", "archiver", "wake", "stoppedBy"}: the
+//                         window /sprint-start opened, the environment it found, the ids of the scheduled tasks
+//                         (the wake is kept across windows), and "sprint-stop" when /sprint-stop ended it
 //   sprint-triggers.json  [{"title", "id", "at"}]: every lane or plan trigger the supervisor created, so it never
 //                         has to find them in RemoteTrigger's list, which shows only the newest 20
 import { spawnSync } from "node:child_process";
