@@ -5,12 +5,16 @@ import { DECKS, SIDES } from "@terminal-dusk/engine";
 import type { Side } from "@terminal-dusk/engine";
 import type { MatchSecret } from "../types.ts";
 
+/** Orders an object's entries by key, comparing the keys as plain strings. */
+function byKey([a]: [string, unknown], [b]: [string, unknown]): number {
+  if (a === b) return 0;
+  return a < b ? -1 : 1;
+}
+
 /** JSON with every object's keys sorted, so a database's key order never hides or fakes a difference. */
 export function canonical(value: unknown): string {
   return JSON.stringify(value, (_key, v: unknown) =>
-    typeof v === "object" && v !== null && !Array.isArray(v)
-      ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)))
-      : v,
+    typeof v === "object" && v !== null && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(byKey)) : v,
   );
 }
 
@@ -78,20 +82,28 @@ export function leaksFor(text: string, secret: MatchSecret, viewer: Side | "spec
   });
   // A rival's picked card is not given away where it only shows in the viewer's own knowledge list.
   const shown = withoutKnowledge(text, mine.knowledge);
-  for (const side of SIDES.filter((s) => s !== viewer)) {
-    const rival = state.private[side];
-    if (holds(text, rival)) found.push(`${side}'s private compartment`);
-    // The cards in it are the viewer's own, so the list is looked for under its field name. The viewer's own
-    // knowledge holds only the rival's cards, so it never matches a non-empty list of the viewer's.
-    if (rival.knowledge.length > 0 && text.includes(`"knowledge":${JSON.stringify(rival.knowledge)}`)) {
-      found.push(`${side}'s knowledge`);
-    }
-    for (const pick of rival.picks) {
-      const { value } = pick;
-      if (holds(text, value)) found.push(`${side}'s unrevealed pick`);
-      if ("card" in value && shown.includes(JSON.stringify(value.card))) {
-        found.push(`${side}'s unrevealed pick card ${JSON.stringify(value.card)}`);
-      }
+  for (const side of SIDES.filter((s) => s !== viewer)) found.push(...rivalLeaks(text, shown, side, secret));
+  return found;
+}
+
+/**
+ * What `text` gives away from rival `side`'s private compartment: the whole compartment, its knowledge and each
+ * unrevealed pick. `shown` is `text` without the viewer's own knowledge list, where a pick card may show.
+ */
+function rivalLeaks(text: string, shown: string, side: Side, secret: MatchSecret): string[] {
+  const rival = secret.state.private[side];
+  const found: string[] = [];
+  if (holds(text, rival)) found.push(`${side}'s private compartment`);
+  // The cards in it are the viewer's own, so the list is looked for under its field name. The viewer's own
+  // knowledge holds only the rival's cards, so it never matches a non-empty list of the viewer's.
+  if (rival.knowledge.length > 0 && text.includes(`"knowledge":${JSON.stringify(rival.knowledge)}`)) {
+    found.push(`${side}'s knowledge`);
+  }
+  for (const pick of rival.picks) {
+    const { value } = pick;
+    if (holds(text, value)) found.push(`${side}'s unrevealed pick`);
+    if ("card" in value && shown.includes(JSON.stringify(value.card))) {
+      found.push(`${side}'s unrevealed pick card ${JSON.stringify(value.card)}`);
     }
   }
   return found;
