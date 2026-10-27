@@ -1,0 +1,115 @@
+Balance report, first deck TEST scenario (placeholder numbers), base seed "fixture", 4 turns, 1 play per turn, era-1 on turn 1, era-2 on turn 2, era-3 on turn 3, future on turn 4: 3 games
+Average answers per game: 24
+
+Results by side
+side  wins  losses  draws  end reasons
+LIO   0     0       3      turnLimitReached 3
+SAE   0     0       3      turnLimitReached 3
+
+Every game ended with no winner (there is no victory rule yet), so win shares are left out.
+
+Cards, per side (picks: opening picks; event, points: plays; games: games played in; win: win share)
+id          name                             LIO picks  LIO event  LIO points  LIO games  SAE picks  SAE event  SAE points  SAE games
+e1-lio-001  Maastricht Treaty                0          0          0           0          0          0          1           1
+e1-lio-002  Budapest Memorandum              0          0          0           0          1          0          0           1
+e1-lio-004  NATO Enlargement 1999            1          0          1           2          1          0          0           1
+e1-lio-006  Desert Storm Coalition           2          1          0           3          0          0          0           0
+e1-lio-010  Arrest of Aldrich Ames           0          0          1           1          0          0          0           0
+e1-lio-011  Dot-com Boom                     1          0          0           1          0          0          0           0
+e1-lio-012  Partnership for Peace            0          0          0           0          0          0          0           0
+e1-lio-013  Oslo Accords                     0          0          0           0          0          0          0           0
+e1-lio-014  End of the Soviet Union          1          0          0           1          2          0          0           2
+e1-sae-001  Battle of Mogadishu              0          0          0           0          0          0          1           1
+e1-sae-002  Handover of Hong Kong            1          0          1           2          1          0          0           1
+e1-sae-003  Golden Shield                    0          0          0           0          0          0          0           0
+e1-sae-004  Second Chechen War               0          0          0           0          0          0          0           0
+e1-sae-005  The Hanssen Leak                 0          0          0           0          1          1          0           2
+e1-sae-006  Shanghai Five                    0          0          2           2          0          1          0           1
+e1-sae-007  Taiwan Strait Crisis             0          0          0           0          1          1          0           2
+e1-sae-008  Primakov's U-turn                0          0          0           0          0          0          0           0
+e1-sae-009  Belgrade Embassy Bombing         0          0          0           0          1          0          0           1
+e1-sae-010  Hainan Island Incident           0          0          0           0          0          0          0           0
+e1-sae-011  Pristina Airport Dash            0          0          0           0          0          0          0           0
+e1-sae-012  Shock Therapy Backlash           0          0          0           0          0          1          0           1
+e1-sae-013  Cox Report                       0          0          0           0          1          0          0           1
+e1-neu-001  Rwandan Genocide                 1          0          0           1          0          0          0           0
+e1-neu-002  Asian Financial Crisis           1          2          0           3          0          0          0           0
+e1-neu-003  Ruble Default                    0          0          0           0          0          0          0           0
+e1-neu-004  Test Ban Treaty                  0          0          0           0          0          0          0           0
+e1-neu-006  Al Jazeera Launches              0          0          0           0          0          0          0           0
+e1-neu-007  First Crew on the ISS            0          0          0           0          0          0          0           0
+e1-neu-008  Kyoto Protocol                   0          0          0           0          0          0          0           0
+e2-lio-002  Article 5 Invoked                0          0          0           0          0          0          0           0
+e2-lio-004  ABM Treaty Withdrawal            1          0          0           1          0          0          0           0
+e2-lio-006  Libya Disarms                    0          0          0           0          1          0          1           2
+e2-lio-007  Big Bang Enlargement 2004        0          0          0           0          0          0          0           0
+e2-lio-008  Smartphones and Social Networks  0          0          0           0          0          0          0           0
+e2-lio-009  Ana Montes Unmasked              0          0          0           0          0          0          0           0
+e2-lio-010  PEPFAR                           0          0          0           0          0          0          0           0
+e2-lio-011  Cedar Revolution                 0          1          0           1          0          0          0           0
+e2-lio-012  Euro Cash                        0          0          0           0          0          0          0           0
+e2-lio-013  India-US Nuclear Deal            0          0          0           0          0          0          0           0
+e2-lio-014  Fall of the Taliban              0          0          0           0          0          0          0           0
+e2-sae-001  Invasion of Iraq                 0          0          0           0          0          0          0           0
+e2-sae-002  Curveball                        0          0          0           0          1          0          0           1
+e2-sae-003  Olympic Summer 2008              0          0          0           0          0          0          0           0
+e2-sae-004  Estonian Cyberattacks 2007       0          0          0           0          0          0          0           0
+e2-sae-005  Litvinenko Poisoning             0          0          0           0          0          0          0           0
+e2-sae-007  North Korean Nuclear Test        1          0          0           1          0          0          0           0
+e2-sae-008  Petrocaribe                      0          0          0           0          0          0          0           0
+e2-sae-010  Peace Mission 2005               0          0          0           0          1          0          1           2
+e2-sae-011  Munich Speech 2007               0          0          0           0          0          0          0           0
+e2-sae-012  Abu Ghraib                       0          0          0           0          0          0          0           0
+e2-sae-013  Chinese Anti-Satellite Test      0          0          0           0          0          0          0           0
+e2-neu-001  China Joins the WTO              0          0          0           0          0          0          0           0
+e2-neu-002  September 11                     0          0          0           0          0          0          0           0
+e2-neu-003  SARS                             0          0          0           0          0          0          0           0
+e2-neu-004  IPCC Report and Nobel 2007       0          0          0           0          0          0          0           0
+e2-neu-005  Oil at $147                      0          1          0           1          0          0          0           0
+e2-neu-006  Natanz Revealed                  1          0          0           1          0          0          0           0
+e2-neu-007  Kosovo Declares Independence     0          0          0           0          0          1          1           2
+e2-neu-008  Sovereign Wealth Funds           0          0          0           0          0          0          0           0
+e3-lio-001  Stuxnet                          0          0          0           0          0          0          0           0
+e3-lio-002  Neptune Spear                    0          0          0           0          0          0          0           0
+e3-lio-003  Ghost Stories                    0          0          0           0          0          0          0           0
+e3-lio-006  Chip Chokepoint                  0          0          0           0          0          0          0           0
+e3-lio-009  Nordic Accession                 0          1          0           1          0          0          0           0
+e3-lio-010  AUKUS                            0          0          0           0          0          0          0           0
+e3-lio-011  Private Constellation            0          0          0           0          0          0          0           0
+e3-lio-013  Fall of the Assad Regime         0          0          0           0          0          0          0           0
+e3-lio-014  Defence of Kyiv                  0          0          0           0          0          0          0           0
+e3-lio-015  Revolution of Dignity            0          0          0           0          0          0          0           0
+e3-lio-016  Fall of the Caliphate            0          0          0           0          0          0          0           0
+e3-sae-001  Global Financial Crisis          0          0          0           0          0          1          0           1
+e3-sae-002  Belt and Road                    0          0          0           0          0          0          0           0
+e3-sae-003  Annexation of Crimea             0          0          0           0          0          0          0           0
+e3-sae-004  Full-Scale Invasion              1          0          0           1          0          0          0           0
+e3-sae-005  The Leaks                        0          0          0           0          0          0          0           0
+e3-sae-007  Rare Earth Squeeze               0          0          0           0          0          0          0           0
+e3-sae-008  Syrian Intervention              0          0          0           0          0          0          0           0
+e3-sae-009  Parallel Plumbing                0          0          0           0          0          0          0           0
+e3-sae-010  Fall of Kabul                    0          0          0           0          0          0          0           0
+e3-sae-011  Hong Kong Security Law           0          0          0           0          0          0          0           0
+e3-sae-012  Hypersonics on Parade            0          0          0           0          0          0          0           0
+e3-sae-013  Eurozone Crisis                  0          0          0           0          0          0          0           0
+e3-neu-001  Arab Spring                      0          0          0           0          0          0          0           0
+e3-neu-002  COVID-19                         0          0          1           1          0          0          0           0
+e3-neu-003  Paris Agreement                  0          0          0           0          0          0          0           0
+e3-neu-004  Migration Crises                 0          0          0           0          0          0          0           0
+e3-neu-005  Populist Wave                    0          0          0           0          0          0          0           0
+e3-neu-007  AI Compute Race                  0          0          0           0          0          0          0           0
+e3-neu-008  Tariff Shock                     0          0          0           0          0          0          0           0
+e3-neu-009  October 7 and Gaza               0          0          0           0          0          0          0           0
+ef-lio-001  Allied Drone Wall                0          0          0           0          0          0          0           0
+ef-lio-002  Undersea Cable Patrols           0          0          0           0          0          0          0           0
+ef-sae-001  Shadow Fleet                     0          0          0           0          0          0          0           0
+ef-sae-002  Cable Cut in the Baltic          0          0          0           0          0          0          0           0
+ef-neu-001  Open-Weight Model Leak           0          0          0           0          0          0          1           1
+ef-neu-002  Heat Dome Summer                 0          0          0           0          0          0          0           0
+
+By era (used per game: distinct cards of the era picked or played by either side, per game; share used: that out of the era's cards; uses per game: picks plus plays of its cards)
+era     cards  used per game  share used  uses per game
+era-1   29     10.33          0.356       10.33
+era-2   30     4              0.133       4
+era-3   31     1.33           0.043       1.33
+future  6      0.33           0.056       0.33
