@@ -43,47 +43,6 @@ function piecesOf(response: Recorded): { seq: number; text: string; viewer?: unk
   return [{ seq: response.atSeq, text: whole === null ? response.text : canonical(whole) }];
 }
 
-/**
- * A rival's unrevealed pick whose card the viewer's own `knowledge` list shows is not a leak where that list is the
- * only place the card appears: the card is one the viewer was legitimately shown (such as by a revealed hand).
- * `leaksFor` exempts the viewer's own knowledge for the rival's hand cards but not for this finding (reported in the
- * pull request), and `src/transport/` is lane online's, so the exemption is made here, bound to that one list: the
- * finding is exempt only if it disappears once the `"knowledge":[...]` lists are taken out of the text.
- */
-function isOwnKnowledge(leak: string, text: string, secret: MatchSecret, side: Side): boolean {
-  const card = /^(?:lio|sae)'s unrevealed pick card "(.*)"$/.exec(leak)?.[1];
-  if (card === undefined || !secret.state.private[side].knowledge.includes(card)) return false;
-  const stripped = text.replace(/"knowledge":\[[^\]]*\]/g, '"knowledge":[]');
-  return !leaksFor(stripped, secret, side).includes(leak);
-}
-
-/** The deck a Contingency order finding is about, or null. */
-function deckOf(leak: string): "lio" | "sae" | "world" | null {
-  if (leak === "the World deck's order") return "world";
-  const side = /^(lio|sae)'s Contingency order$/.exec(leak)?.[1];
-  return side === "lio" || side === "sae" ? side : null;
-}
-
-/** Every deck's public Contingency lists in a body: `"lio":{"cards":[...],"left":[...]` and the same for sae and world. */
-const PUBLIC_DECK_LISTS = /"(?:lio|sae|world)":\{"cards":\[[0-9,]*\],"left":\[[0-9,]*\]/g;
-
-/**
- * A Contingency order is not a leak where it only shows up as one of the decks' public lists: `cards` and `left` are
- * public and sorted, so when the hidden draw order happens to be ascending too (at the start every deck's lists are
- * the same six cards), `leaksFor`'s plain substring search matches it by chance (#380). Exempt only when the order
- * equals one of the state's public lists and the finding disappears once every public deck list is taken out of the
- * text (reported in the pull request).
- */
-function isPublicDeckList(leak: string, text: string, secret: MatchSecret, side: Side): boolean {
-  const deck = deckOf(leak);
-  if (deck === null) return false;
-  const order = JSON.stringify(secret.state.secret.contingency[deck]);
-  const lists = Object.values(secret.state.public.contingency).flatMap((pub) => [pub.cards, pub.left]);
-  if (!lists.some((list) => JSON.stringify(list) === order)) return false;
-  const stripped = text.replace(PUBLIC_DECK_LISTS, (whole) => whole.replace(/\[[0-9,]*\]/g, "[]"));
-  return !leaksFor(stripped, secret, side).includes(leak);
-}
-
 /** The problems in one piece of a response, checked against the secret of the piece's own step. */
 function problemsIn(
   piece: { seq: number; text: string; viewer?: unknown },
@@ -96,7 +55,6 @@ function problemsIn(
     problems.push(`seq ${piece.seq}, ${where}: the rival's frame`);
   }
   for (const leak of leaksFor(piece.text, secret, side)) {
-    if (isOwnKnowledge(leak, piece.text, secret, side) || isPublicDeckList(leak, piece.text, secret, side)) continue;
     problems.push(`seq ${piece.seq}, ${where}: ${withoutCards(leak)}`);
   }
   return problems;

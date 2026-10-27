@@ -15,11 +15,12 @@ function leaksIn(text: string, secret: MatchSecret): string[] {
   const found: string[] = [];
   if (text.includes(JSON.stringify(secret.seed))) found.push("the seed");
   if (text.includes(canonical(state.secret.rng))) found.push("the generator state");
+  const unlisted = withoutPublicLists(text, state);
   for (const deck of DECKS) {
     const order = state.secret.contingency[deck];
     const name = deck === "world" ? "the World deck's order" : `${deck}'s Contingency order`;
     // An empty deck has no order to give away, and "[]" would match any empty list.
-    if (order.length > 0 && text.includes(JSON.stringify(order))) found.push(name);
+    if (order.length > 0 && unlisted.includes(JSON.stringify(order))) found.push(name);
   }
   const hidden = [
     ...state.secret.deck,
@@ -28,6 +29,22 @@ function leaksIn(text: string, secret: MatchSecret): string[] {
   ];
   for (const card of hidden) if (text.includes(JSON.stringify(card))) found.push(`card ${JSON.stringify(card)}`);
   return found;
+}
+
+/**
+ * `text` with every deck's public `cards` and `left` lists, under the deck's name, emptied. They are public and
+ * sorted, so a hidden order that happens to be ascending can equal one of them by chance (#380).
+ */
+function withoutPublicLists(text: string, state: MatchSecret["state"]): string {
+  return DECKS.reduce((rest, deck) => {
+    const { cards, left } = state.public.contingency[deck];
+    return rest.replaceAll(`"${deck}":${JSON.stringify({ cards, left })}`, `"${deck}":{"cards":[],"left":[]}`);
+  }, text);
+}
+
+/** `text` with the viewer's own `knowledge` list emptied: the rival's cards it was legitimately shown (#379). */
+function withoutKnowledge(text: string, knowledge: readonly string[]): string {
+  return knowledge.length === 0 ? text : text.replaceAll(`"knowledge":${JSON.stringify(knowledge)}`, '"knowledge":[]');
 }
 
 /** JSON with every object's keys sorted, so a database's key order never hides or fakes a difference. */
@@ -54,6 +71,8 @@ export function leaksFor(text: string, secret: MatchSecret, viewer: Side): strin
     const card = /^card "(.*)"$/.exec(leak)?.[1];
     return card === undefined || !own.has(card);
   });
+  // A rival's picked card is not given away where it only shows in the viewer's own knowledge list.
+  const shown = withoutKnowledge(text, state.private[viewer].knowledge);
   for (const side of SIDES.filter((s) => s !== viewer)) {
     const rival = state.private[side];
     if (text.includes(canonical(rival))) found.push(`${side}'s private compartment`);
@@ -65,7 +84,7 @@ export function leaksFor(text: string, secret: MatchSecret, viewer: Side): strin
     for (const pick of rival.picks) {
       const { value } = pick;
       if (text.includes(canonical(value))) found.push(`${side}'s unrevealed pick`);
-      if ("card" in value && text.includes(JSON.stringify(value.card))) {
+      if ("card" in value && shown.includes(JSON.stringify(value.card))) {
         found.push(`${side}'s unrevealed pick card ${JSON.stringify(value.card)}`);
       }
     }
