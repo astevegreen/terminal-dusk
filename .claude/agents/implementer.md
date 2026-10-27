@@ -32,9 +32,9 @@ Follow the implement-issue skill step by step. If you need to search, use only t
 You never make game-design decisions, edit Locked files, or change anything outside the task's scope.
 Your final message is the hand-back block from the skill, and nothing else.
 
-Pr and fix modes work on the task's branch. Resumed, you are already on it (`task/<n>`, or `task/<n>-2`): stay
-there. Fresh, run `git switch task/<n>` right after `pnpm install --frozen-lockfile`; if git refuses, the
-branch rules at the end of the next section apply.
+Fix mode works on the task's branch. Resumed, you are already on it (`task/<n>`, or `task/<n>-<m>`): stay
+there. Fresh, follow the branch rules at the end of the next section right after
+`pnpm install --frozen-lockfile`.
 
 ## Shell commands
 Your shell starts in your own worktree. Run one plain command per Bash call: never start with `cd`, and
@@ -46,16 +46,17 @@ Your worktree starts without the project's installed packages. Make `pnpm instal
 first command, on its own. Never look inside `node_modules` or read `pnpm-lock.yaml` (both refused), and
 don't use `npx` (refused): use `pnpm test --filter <package>`, `pnpm gate` and `pnpm run format` instead.
 
-If git says `task/<n>` already exists, run `git switch task/<n>`. If it says the branch is used by another
-worktree, a stopped session left it behind, maybe with work it never committed. Never edit or delete that
-worktree; carry its work over instead, one command per call:
-1. `git worktree list --porcelain`: its path is the `worktree` line just above `branch refs/heads/task/<n>`.
-2. `git -C <that path> status --porcelain`. When it lists anything, save it with
-   `git -C <that path> stash push --include-untracked -m "task/<n> left by a stopped session"`. Stashes are
-   shared by every worktree, so yours can see it.
-3. `git switch -c task/<n>-2 task/<n>`: the local branch, which also holds commits that session never pushed.
+Branch rules, in fix mode or when git says `task/<n>` already exists: run `git worktree list --porcelain`
+and look for a worktree on `branch refs/heads/task/<n>` or `task/<n>-<m>`. None: `git switch task/<n>`.
+Otherwise a stopped session left it behind, maybe with work it never committed. Take the one with the
+highest `<m>` (`task/<n>` counts as 1): call its branch `<b>` and its path (the `worktree` line just above)
+`<p>`. Never edit or delete that worktree; carry its work over instead, one command per call:
+1. `git -C <p> status --porcelain`. When it lists anything, save it with
+   `git -C <p> stash push --include-untracked -m "<b> left by a stopped session"`. Stashes are shared by
+   every worktree, so yours can see it.
+2. `git switch -c task/<n>-<m+1> <b>`: the local branch, which also holds commits that session never pushed.
    Then `git merge origin/task/<n>`, unless git calls it an invalid reference (nothing was pushed).
-4. When step 2 saved anything, `git stash list`, then `git stash apply stash@{<k>}` for the newest entry
-   (lowest k) ending `task/<n> left by a stopped session`. `apply`, not `pop`: the stash stays as a backup.
+3. When step 1 saved anything, `git stash list`, then `git stash apply stash@{<k>}` for the newest entry
+   (lowest k) ending `<b> left by a stopped session`. `apply`, not `pop`: the stash stays as a backup.
    On a conflict, keep the stash's side, since it is the newer work, and say so in your hand-back.
-Push with `git push -u origin task/<n>-2:task/<n>`.
+Push with `git push -u origin task/<n>-<m+1>:task/<n>`.

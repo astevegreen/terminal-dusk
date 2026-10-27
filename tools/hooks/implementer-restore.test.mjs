@@ -16,11 +16,12 @@ const git = (cwd, ...args) => sh("git", ["-c", "user.name=t", "-c", "user.email=
 test("the implementer's steps name the commands this test runs", () => {
   for (const step of [
     "git worktree list --porcelain",
-    "git -C <that path> status --porcelain",
-    'git -C <that path> stash push --include-untracked -m "task/<n> left by a stopped session"',
-    "git switch -c task/<n>-2 task/<n>",
+    "git -C <p> status --porcelain",
+    'git -C <p> stash push --include-untracked -m "<b> left by a stopped session"',
+    "git switch -c task/<n>-<m+1> <b>",
     "git merge origin/task/<n>",
     "git stash apply stash@{<k>}",
+    "git push -u origin task/<n>-<m+1>:task/<n>",
   ]) {
     assert.ok(STEPS.includes(step), `implementer.md no longer says ${step}`);
   }

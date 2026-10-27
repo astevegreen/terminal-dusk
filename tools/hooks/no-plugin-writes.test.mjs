@@ -19,6 +19,7 @@ test("refuses the plugin's write tools, naming gh instead", () => {
     "pull_request_review_write",
     "push_files",
     "create_or_update_file",
+    "mark_all_notifications_read",
   ]) {
     const r = runHook("no-plugin-writes.mjs", plugin(verb));
     assert.equal(r.status, 0);
