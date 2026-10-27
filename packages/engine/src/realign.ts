@@ -53,7 +53,7 @@ export function resumeRealign(state: GameState, country: CountryId | null, event
   const frame = state.public.stack.at(-1);
   const step = frame?.steps[frame.next];
   const decision = state.public.pending[0];
-  if (!frame || step?.op !== "spendPoints" || decision?.kind !== "realign" || !("targets" in decision.options)) {
+  if (!frame || step?.op !== "spendPoints" || decision?.kind !== "realign" || !("attempts" in decision.options)) {
     return invalidProgram("The stack is not paused at a realignment.");
   }
   const side = decision.side;

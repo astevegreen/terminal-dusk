@@ -11,7 +11,7 @@ const menu = (side: Decision["side"], points: number): Decision => ({
   id: "d1",
   side,
   kind: "chooseAction",
-  options: { points, actions: ["place", "realign"] },
+  options: { points, actions: ["place", "realign"], targets: [] },
 });
 
 const realign = (side: Decision["side"], attempts: number, targets: string[]): Decision => ({
@@ -40,7 +40,7 @@ describe("the chooseAction prompt (R16c, #317)", () => {
 
   it("offers leaving the points unspent when the menu lists pass (realign is never forced)", () => {
     const sent: AnswerValue[] = [];
-    const decision: Decision = { ...menu("sae", 1), options: { points: 1, actions: ["realign", "pass"] } };
+    const decision: Decision = { ...menu("sae", 1), options: { points: 1, actions: ["realign", "pass"], targets: [] } };
     const buttons = buttonsOf(
       createElement(
         decisionPrompts.chooseAction,
@@ -57,10 +57,10 @@ describe("the chooseAction prompt (R16c, #317)", () => {
 
   it("says the points to spend in its question", () => {
     expect(renderToString(createElement(decisionPrompts.chooseAction, props(menu("sae", 3))))).toContain(
-      "sae: spend 3 points on",
+      "sae: spend all 3 points on one action",
     );
     expect(renderToString(createElement(decisionPrompts.chooseAction, props(menu("lio", 1))))).toContain(
-      "lio: spend 1 point on",
+      "lio: spend all 1 point on one action",
     );
   });
 });

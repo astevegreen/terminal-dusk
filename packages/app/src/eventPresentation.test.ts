@@ -18,6 +18,7 @@ describe("eventPresentation", () => {
       "handRevealed",
       "handRevealedHidden",
       "influencePlaced",
+      "intervened",
       "marker",
       "modifierEnded",
       "modifierStarted",
@@ -138,6 +139,15 @@ describe("eventPresentation", () => {
       removed: 0,
     });
     expect(line).toBe("sae realigned in charlie: lio 4, sae 4. A tie: nothing changed.");
+  });
+  it("logs an intervention with its draw, points, stability, result and the influence it moved (R16b)", () => {
+    const base = { kind: "intervened", visibility: "public", side: "lio", country: "echo", stability: 1 } as const;
+    expect(eventPresentation.intervened.log({ ...base, points: 2, draw: 4, result: 4, removed: 3, added: 1 })).toBe(
+      "lio intervened in echo: draw 4 + 2 points - 2 x stability 1 = 4; removed 3 rival influence, added 1 own.",
+    );
+    expect(eventPresentation.intervened.log({ ...base, points: 1, draw: 1, result: 0, removed: 0, added: 0 })).toBe(
+      "lio intervened in echo: draw 1 + 1 point - 2 x stability 1 = 0; no change.",
+    );
   });
   it("logs a reshuffled draw pile with how many cards it got back, never which", () => {
     const line = eventPresentation.drawPileReshuffled.log({

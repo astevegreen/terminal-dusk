@@ -6,7 +6,7 @@
 // A test can also play other real cards first (`before`), one per earlier turn of the same game, so the card under
 // test can read a lasting tag they recorded; their turns are left out of the story.
 import { apply, createGame, legalAnswers, seedHash } from "@terminal-dusk/engine";
-import type { Answer, CardDef, CardId, GameEvent, Ruleset, Side } from "@terminal-dusk/engine";
+import type { Answer, AnswerValue, CardDef, CardId, GameEvent, Ruleset, Side } from "@terminal-dusk/engine";
 import { cardDef } from "../era1.ts";
 import { FIRST_DECK_CARDS } from "../firstDeckRules.ts";
 import { scenarioSetup } from "../scenario.ts";
@@ -101,6 +101,7 @@ const firstDeckCard = (id: CardId) => {
 /** The side that plays a card for its event: its own side, or LIO for a neutral card. */
 const ownerOf = (id: CardId): Side => (firstDeckCard(id).affiliation === "sae" ? "sae" : "lio");
 const rivalOf = (side: Side): Side => (side === "lio" ? "sae" : "lio");
+const isRealign = (a: AnswerValue): boolean => a.kind === "chooseAction" && a.action === "realign";
 const earlier = (options: PlayOptions): EarlierCard[] =>
   (options.before ?? []).map((e) => (typeof e === "string" ? { card: e } : e));
 
@@ -247,10 +248,10 @@ export function playCardDef(def: CardDef, options: PlayOptions = {}): string[] {
     } else if (d.kind === "rivalEventOrder") {
       step({ decisionId: d.id, side: d.side, value: { kind: "rivalEventOrder", event: "before" } });
     } else if (d.kind === "chooseAction") {
-      // Points always go to placing, or are left unspent when placing is impossible (R16c's action menu); the
-      // story leaves the choice out.
-      const place = "actions" in d.options && d.options.actions.includes("place");
-      step({ decisionId: d.id, side: d.side, value: { kind: "chooseAction", action: place ? "place" : "pass" } });
+      // Points go to placing when it is possible (R16b), otherwise to the first intervention, or are left unspent;
+      // never to realigning (R16c). The story leaves the choice out.
+      const answers = legalAnswers(ruleset, state, d.side);
+      step({ decisionId: d.id, side: d.side, value: answers.find((a) => !isRealign(a))! });
     } else if (d.kind === "placeInfluence") {
       // Points are placed in the first country the side may place in (R16a); the story leaves the placings out.
       step({ decisionId: d.id, side: d.side, value: legalAnswers(ruleset, state, d.side)[0]! });

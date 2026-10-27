@@ -1,20 +1,7 @@
-// The types of the action menu and of realigning (R16c, #317; docs/design/map-and-points.md, "Points and actions").
-// types.ts re-exports them, so index.ts exports the same names.
+// The types of realigning (R16c, #317; docs/design/map-and-points.md, "Points and actions"). The action menu's
+// types are in placingTypes.ts. types.ts re-exports them, so index.ts exports the same names.
 import type { CountryId } from "./mapTypes.ts";
 import type { Side } from "./types.ts";
-
-/**
- * A choice on the menu a play's points may go to: placing influence or realigning, all of them to one. `pass`
- * declines realigning when placing is impossible: the points are left unspent (owner, 26 Oct, #317 review).
- */
-export type PointsAction = "place" | "realign" | "pass";
-
-/**
- * What a chooseAction decision allows: the `actions` the side can pick now, in menu order (place, realign, pass).
- * It is asked whenever realigning is possible, since realigning is never forced: with placing possible too the
- * menu is place or realign; without it, realign or pass. All of it is public.
- */
-export type ActionOptions = { points: number; actions: PointsAction[] };
 
 /**
  * What a realign decision allows: `attempts` still to make (one per point), and `targets`, the countries where

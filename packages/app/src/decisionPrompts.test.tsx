@@ -303,7 +303,7 @@ describe("each prompt is a group named by its question", () => {
     [decision("rivalEventOrder", {}, "lio"), []],
     [decision("discardCards", { from: "hand", count: 1 }), ["a"]],
     [decision("placeInfluence", { points: 1, countries: ["alpha"] }), []],
-    [decision("chooseAction", { points: 1, actions: ["place", "realign"] }), []],
+    [decision("chooseAction", { points: 1, actions: ["place", "intervene", "realign"], targets: ["alpha"] }), []],
     [decision("realign", { attempts: 1, targets: ["alpha"] }), []],
   ];
   const answerable = (d: Decision, hand: string[]) => {

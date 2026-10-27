@@ -32,12 +32,28 @@ import type { EraEntry } from "./setupTypes.ts";
 export type { EraEntry, Setup } from "./setupTypes.ts";
 import type { GameMap, InfluenceEntry } from "./mapTypes.ts";
 export type { Country, CountryId, GameMap, InfluenceEntry, Region, RegionId, SetupMap } from "./mapTypes.ts";
-import type { InfluencePlaced, PointsSpent } from "./placingTypes.ts";
-export type { InfluencePlaced, PlaceOptions, PointsSpent } from "./placingTypes.ts";
+import type { InfluencePlaced, Intervened, PointsSpent } from "./placingTypes.ts";
+export type {
+  ActionAnswer,
+  ActionOptions,
+  InfluencePlaced,
+  Intervened,
+  PlaceOptions,
+  PointsAction,
+  PointsSpent,
+} from "./placingTypes.ts";
 import type { Realigned } from "./realignTypes.ts";
-export type { ActionOptions, PointsAction, Realigned, RealignOptions } from "./realignTypes.ts";
+export type { Realigned, RealignOptions } from "./realignTypes.ts";
 import type { AnswerValue, Decision } from "./decisionTypes.ts";
-export type { AnswerValue, Decision, DecisionKind, DecisionOptions, PlayUse, PlayUses } from "./decisionTypes.ts";
+export type {
+  Answer,
+  AnswerValue,
+  Decision,
+  DecisionKind,
+  DecisionOptions,
+  PlayUse,
+  PlayUses,
+} from "./decisionTypes.ts";
 
 export type Side = "lio" | "sae";
 /** Both sides, in the one order the engine always loops in. */
@@ -138,6 +154,7 @@ export type PublicEvent =
   | MarkerEvent
   | PointsSpent
   | InfluencePlaced
+  | Intervened
   | Realigned
   | EraStarted
   | DrawPileReshuffled
@@ -155,12 +172,6 @@ export type PublicEvent =
  */
 export type GameEvent = CardDrawn | HandRevealed | PublicEvent;
 export type EventKind = GameEvent["kind"];
-
-/** A timeout naming "both" is a simultaneous pick missed by both sides: a draw. */
-export type Answer =
-  | { decisionId: string; side: Side; value: AnswerValue }
-  | { system: "timeout"; side: Side | "both" }
-  | { system: "resign" | "adjudicate"; side: Side };
 
 export type VarName = string;
 /** Both sides' yes/no answers to a simultaneous choice, keyed by side in SIDES order. */

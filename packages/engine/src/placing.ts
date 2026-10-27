@@ -1,9 +1,9 @@
 // Spending points on placing influence (R16a; docs/design/map-and-points.md, "Influence", "Points and actions" and
-// "Event points"). Once a spendPoints step's points go to placing (actionMenu.ts), which countries the side may
-// place in is fixed: influence placed earlier in the same play opens up no neighbours. Each influence costs 1, or
-// 2 in a country the rival controls at that moment. The side places one influence per placeInfluence decision
-// (hard rule 4), and must go on while a placement it can afford is left; points nothing can be bought with are
-// lost (owner, 26 Oct, #315 a).
+// "Event points"). Once a spendPoints step's points go to placing (the action menu, actionMenu.ts), which
+// countries the side may place in is fixed: influence placed earlier in the same play opens up no neighbours. Each
+// influence costs 1, or 2 in a country the rival controls at that moment. The side places one influence per
+// placeInfluence decision (hard rule 4), and must go on while a placement it can afford is left; points nothing
+// can be bought with are lost (owner, 26 Oct, #315 a).
 import { newPlaceDecision } from "./decisions.ts";
 import { addInfluence, affordable, costNow } from "./influence.ts";
 import type { CountryId, EngineError, Frame, GameEvent, GameState, Side } from "./types.ts";

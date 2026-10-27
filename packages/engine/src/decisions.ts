@@ -75,11 +75,17 @@ export function newPlaceDecision(seq: number, side: Side, points: number, countr
 }
 
 /**
- * A new action menu (R16c): `side` picks which of `actions` all its `points` go to. Its ID comes from `seq`, as
- * for newDecision.
+ * A new action menu (R16b, R16c): `side` picks which of `actions` all its `points` go to, an intervention going
+ * to one of `targets`. Its ID comes from `seq`, as for newDecision.
  */
-export function newActionDecision(seq: number, side: Side, points: number, actions: PointsAction[]): Decision {
-  return { id: `d${seq}`, side, kind: "chooseAction", options: { points, actions } };
+export function newActionDecision(
+  seq: number,
+  side: Side,
+  points: number,
+  actions: PointsAction[],
+  targets: CountryId[],
+): Decision {
+  return { id: `d${seq}`, side, kind: "chooseAction", options: { points, actions, targets } };
 }
 
 /**
@@ -145,11 +151,16 @@ export function legalAnswers(ruleset: Ruleset, state: GameState, side: Side): An
     case "chooseAction": {
       const { options } = decision;
       if (!("actions" in options)) return [];
-      return options.actions.map((action) => ({ kind: "chooseAction", action }));
+      // In menu order; an intervention is one answer per country open to it.
+      return options.actions.flatMap((action): AnswerValue[] =>
+        action === "intervene"
+          ? options.targets.map((country) => ({ kind: "chooseAction", action, country }))
+          : [{ kind: "chooseAction", action }],
+      );
     }
     case "realign": {
       const { options } = decision;
-      if (!("targets" in options)) return [];
+      if (!("attempts" in options)) return [];
       const now = realignTargets(state.public, side);
       const countries = options.targets.filter((c) => now.includes(c));
       // The side may always stop instead (owner, 26 Oct, #317 review): `country` null.

@@ -213,25 +213,33 @@ function PlaceInfluencePrompt({ decision, onAnswer }: Readonly<PromptProps>) {
   );
 }
 
-const ACTION_TEXT: Record<PointsAction, string> = {
+const ACTION_TEXT: Record<Exclude<PointsAction, "intervene">, string> = {
   place: "Place influence",
   realign: "Realign",
   pass: "Leave the points unspent",
 };
 
-/** The action menu (R16c): one choice per action the decision lists, with the points in the question. */
+/**
+ * The action menu (R16b, R16c): all the points go to one action. One choice per action the decision lists, in its
+ * order, except an intervention, which is one choice per country the decision lists for it.
+ */
 function ChooseActionPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
   const options = decision.options;
   const points = "actions" in options ? options.points : 0;
   const actions = "actions" in options ? options.actions : [];
-  const choices: Choice[] = actions.map((action) => ({
-    text: ACTION_TEXT[action],
-    value: { kind: "chooseAction", action },
-  }));
+  const targets = "actions" in options ? options.targets : [];
+  const choices: Choice[] = actions.flatMap((action): Choice[] =>
+    action === "intervene"
+      ? targets.map((country) => ({
+          text: `Intervene in ${country}`,
+          value: { kind: "chooseAction", action, country },
+        }))
+      : [{ text: ACTION_TEXT[action], value: { kind: "chooseAction", action } }],
+  );
   return (
     <Choices
       decision={decision}
-      question={`${decision.side}: spend ${points} point${points === 1 ? "" : "s"} on`}
+      question={`${decision.side}: spend all ${points} point${points === 1 ? "" : "s"} on one action`}
       choices={choices}
       onAnswer={onAnswer}
     />
@@ -244,8 +252,8 @@ function ChooseActionPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
  */
 function RealignPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
   const options = decision.options;
-  const attempts = "targets" in options ? options.attempts : 0;
-  const targets = "targets" in options ? options.targets : [];
+  const attempts = "attempts" in options ? options.attempts : 0;
+  const targets = "attempts" in options ? options.targets : [];
   const choices: Choice[] = [
     ...targets.map((country): Choice => ({ text: `Realign in ${country}`, value: { kind: "realign", country } })),
     { text: "Stop realigning", value: { kind: "realign", country: null } },

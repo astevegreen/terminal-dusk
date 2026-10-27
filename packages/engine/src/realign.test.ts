@@ -40,6 +40,9 @@ function game(draws: { lio: number; sae: number } = { lio: 3, sae: 3 }, counts?:
     : { ...state, public: { ...state.public, influence: mapGame(counts).public.influence! } };
 }
 
+/** `state` at Escalation 5, where every region is closed to interventions (R16b) but not to realigning. */
+const allClosed = (state: GameState): GameState => ({ ...state, public: { ...state.public, escalation: 5 } });
+
 /** The answer `value` to the decision `state` has open. */
 function answer(state: GameState, value: AnswerValue) {
   const d = state.public.pending[0];
@@ -48,7 +51,8 @@ function answer(state: GameState, value: AnswerValue) {
 }
 
 const realignIn = (state: GameState, country: CountryId | null) => answer(state, { kind: "realign", country });
-const pick = (state: GameState, action: PointsAction) => answer(state, { kind: "chooseAction", action });
+const pick = (state: GameState, action: Exclude<PointsAction, "intervene">) =>
+  answer(state, { kind: "chooseAction", action });
 
 /** startWith `steps` on `state`, then "realign" picked on the action menu if it is offered. */
 function realigning(steps: Step[], state: GameState): { state: GameState; events: GameEvent[] } {
@@ -67,7 +71,7 @@ const drawnDecks = (events: readonly GameEvent[]) =>
 const DELTA: Counts = { delta: { lio: 1, sae: 2 }, charlie: { lio: 3 }, echo: { sae: 1 } };
 
 describe("the action menu (R16c)", () => {
-  it("offers place and realign, in that order, when both are possible, with the points to spend", () => {
+  it("offers place, intervene (R16b) and realign, in that order, when all are possible, with the points to spend", () => {
     const { state, events } = startWith([spend("lio", 2)], ruleset, game());
     expect(events).toEqual([{ kind: "pointsSpent", visibility: "public", side: "lio", amount: 2 }]);
     expect(state.public.pending).toEqual([
@@ -75,11 +79,13 @@ describe("the action menu (R16c)", () => {
         id: expect.any(String),
         side: "lio",
         kind: "chooseAction",
-        options: { points: 2, actions: ["place", "realign"] },
+        options: { points: 2, actions: ["place", "intervene", "realign"], targets: ["charlie", "echo"] },
       },
     ]);
     expect(legalAnswers(ruleset, state, "lio")).toEqual([
       { kind: "chooseAction", action: "place" },
+      { kind: "chooseAction", action: "intervene", country: "charlie" },
+      { kind: "chooseAction", action: "intervene", country: "echo" },
       { kind: "chooseAction", action: "realign" },
     ]);
     expect(legalAnswers(ruleset, state, "sae")).toEqual([]);
@@ -104,15 +110,16 @@ describe("the action menu (R16c)", () => {
     expect(state.public.pending[0]).toMatchObject({ kind: "placeInfluence", options: { points: 2 } });
   });
 
-  it("is offered even when placing is impossible, as realign or pass: realigning never starts on its own", () => {
+  it("is offered even when placing and intervening are impossible, as realign or pass: never started on its own", () => {
     // LIO has no influence: only alpha is in reach, and SAE controls it (2, stability 2), so 1 point buys nothing.
-    const { state } = startWith([spend("lio", 1)], ruleset, game(undefined, { alpha: { sae: 2 } }));
+    // At Escalation 5 every region is closed to interventions (R16b); realigning does not look at that (R17 will).
+    const { state } = startWith([spend("lio", 1)], ruleset, allClosed(game(undefined, { alpha: { sae: 2 } })));
     expect(state.public.pending).toEqual([
       {
         id: expect.any(String),
         side: "lio",
         kind: "chooseAction",
-        options: { points: 1, actions: ["realign", "pass"] },
+        options: { points: 1, actions: ["realign", "pass"], targets: [] },
       },
     ]);
     expect(legalAnswers(ruleset, state, "lio")).toEqual([
@@ -125,7 +132,7 @@ describe("the action menu (R16c)", () => {
     const start = startWith(
       [spend("lio", 1), { op: "marker", label: "after" }],
       ruleset,
-      game(undefined, { alpha: { sae: 2 } }),
+      allClosed(game(undefined, { alpha: { sae: 2 } })),
     ).state;
     const done = applied(start, pick(start, "pass"));
     expect(done.events.map((e) => e.kind)).toEqual(["marker"]);
@@ -140,9 +147,17 @@ describe("the action menu (R16c)", () => {
     expect(r.ok ? "accepted" : r.error.code).toBe("illegalAnswer");
   });
 
+  it("pass is not on the menu when an intervention is possible: declining realign there means intervening", () => {
+    // As in the realign-or-pass case, but with regions open: SAE's alpha can take an intervention.
+    const start = startWith([spend("lio", 1)], ruleset, game(undefined, { alpha: { sae: 2 } })).state;
+    expect(start.public.pending[0]).toMatchObject({ options: { actions: ["intervene", "realign"] } });
+    const r = apply(ruleset, start, pick(start, "pass"));
+    expect(r.ok ? "accepted" : r.error.code).toBe("illegalAnswer");
+  });
+
   it("an action not on the menu is refused as illegal", () => {
     const start = startWith([spend("lio", 2)], ruleset, game()).state;
-    const r = apply(ruleset, start, answer(start, { kind: "chooseAction", action: "intervene" as "place" }));
+    const r = apply(ruleset, start, answer(start, { kind: "chooseAction", action: "surrender" as "place" }));
     expect(r.ok ? "accepted" : r.error.code).toBe("illegalAnswer");
   });
 });

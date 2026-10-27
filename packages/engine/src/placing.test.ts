@@ -1,7 +1,8 @@
 // R16a (#315): points spent on placing influence (docs/design/map-and-points.md, "Influence", "Points and actions",
 // "Event points"). Reach is fixed when the play starts, each influence costs 1 or 2 by control at that moment,
 // and every point is spent while a placement is affordable (owner, 26 Oct, #315 option a). Built on the test map
-// (test/map.ts): LIO's home box touches alpha, SAE's echo and delta.
+// (test/map.ts): LIO's home box touches alpha, SAE's echo and delta. Since R16b a side that could also intervene
+// first picks placing on the action menu (placeChosen below; intervening.test.ts covers the menu).
 import { describe, expect, it } from "vitest";
 import { apply, legalAnswers } from "./index.ts";
 import type { CountryId, GameEvent, GameState, Side, Step } from "./index.ts";
@@ -14,11 +15,30 @@ import {
   ruleset,
   sideCard,
   startGame,
-  startWith,
+  startWith as startProgramWith,
   withCards,
 } from "./test/game.ts";
 import { mapSetup } from "./test/map.ts";
 import { countOf, mapGame, spend } from "./test/mapGame.ts";
+
+type Played = { state: GameState; events: GameEvent[] };
+
+/**
+ * Picks placing on an open action menu when the menu offers it (R16b, R16c: with the rival's influence on the map
+ * the side first picks the one action all its points go to). These tests are about placing, so they pick it
+ * whenever it is there; it adds no events.
+ */
+function placeChosen(played: Played, rs = ruleset): Played {
+  const d = played.state.public.pending[0];
+  if (d?.kind !== "chooseAction" || !("actions" in d.options) || !d.options.actions.includes("place")) return played;
+  const value = { kind: "chooseAction" as const, action: "place" as const };
+  const next = applied(played.state, { decisionId: d.id, side: d.side, value }, rs);
+  return { state: next.state, events: [...played.events, ...next.events] };
+}
+
+/** startWith, then placing picked on the action menu (placeChosen). */
+const startWith = (steps: Step[], rs = ruleset, state?: GameState): Played =>
+  placeChosen(startProgramWith(steps, rs, state), rs);
 
 /** The answer placing in `country` for the placing `state` has open. */
 function place(state: GameState, country: CountryId) {
@@ -26,21 +46,6 @@ function place(state: GameState, country: CountryId) {
   if (d?.kind !== "placeInfluence") throw new Error(`no placing pending: ${JSON.stringify(state.public.pending)}`);
   return { decisionId: d.id, side: d.side, value: { kind: "placeInfluence" as const, country } };
 }
-
-/** `state` with the action menu, if `state` has it open, answered "place" (R16c); the events it caused added. */
-function choosePlace(played: { state: GameState; events: GameEvent[] }, rs = ruleset) {
-  const d = played.state.public.pending[0];
-  if (d?.kind !== "chooseAction") return played;
-  const next = applied(
-    played.state,
-    { decisionId: d.id, side: d.side, value: { kind: "chooseAction", action: "place" } },
-    rs,
-  );
-  return { state: next.state, events: [...played.events, ...next.events] };
-}
-
-/** startWith, then "place" picked on the action menu if it is offered (R16c): R16a's placing on its own. */
-const placing = (steps: Step[], rs = ruleset, state?: GameState) => choosePlace(startWith(steps, rs, state), rs);
 
 const legalCountries = (state: GameState, side: Side): string[] =>
   legalAnswers(ruleset, state, side).map((a) => (a.kind === "placeInfluence" ? a.country : `not a placing: ${a.kind}`));
@@ -51,7 +56,7 @@ const placed = (events: readonly GameEvent[]) =>
 describe("spendPoints places influence (R16a)", () => {
   it("asks its side to place, with the points to spend and the countries it can reach, in the map's order", () => {
     // LIO has 2 in alpha and 1 in charlie: alpha, bravo, charlie and delta (next to charlie) are in reach.
-    const { state, events } = placing([spend("lio", 2)], ruleset, mapGame());
+    const { state, events } = startWith([spend("lio", 2)], ruleset, mapGame());
     expect(events).toEqual([{ kind: "pointsSpent", visibility: "public", side: "lio", amount: 2 }]);
     expect(state.public.pending).toEqual([
       {
@@ -66,7 +71,7 @@ describe("spendPoints places influence (R16a)", () => {
   });
 
   it("each placement adds 1 influence for 1 point, and the side is asked again until its points are spent", () => {
-    const first = placing([spend("lio", 2)], ruleset, mapGame()).state;
+    const first = startWith([spend("lio", 2)], ruleset, mapGame()).state;
     const second = applied(first, place(first, "alpha"));
     expect(placed(second.events)).toEqual(["lio:alpha:1"]);
     expect(second.state.public.pending[0]).toMatchObject({ kind: "placeInfluence", options: { points: 1 } });
@@ -79,14 +84,14 @@ describe("spendPoints places influence (R16a)", () => {
   });
 
   it("may place more than once in the same country", () => {
-    let state = placing([spend("lio", 3)], ruleset, mapGame()).state;
+    let state = startWith([spend("lio", 3)], ruleset, mapGame()).state;
     for (let i = 0; i < 3; i++) state = accepted(state, place(state, "bravo"));
     expect(countOf(state, "bravo", "lio")).toBe(3);
   });
 
   it("reach is fixed when the play starts: influence placed earlier in the play does not open up its neighbours", () => {
     // LIO has only 2 in alpha: alpha, bravo and charlie are in reach, delta (next to charlie) is not.
-    const start = placing([spend("lio", 2)], ruleset, mapGame({ alpha: { lio: 2 }, echo: { sae: 3 } })).state;
+    const start = startWith([spend("lio", 2)], ruleset, mapGame({ alpha: { lio: 2 }, echo: { sae: 3 } })).state;
     expect(legalCountries(start, "lio")).toEqual(["alpha", "bravo", "charlie"]);
     const next = accepted(start, place(start, "charlie"));
     expect(countOf(next, "charlie", "lio")).toBe(1);
@@ -97,7 +102,7 @@ describe("spendPoints places influence (R16a)", () => {
   });
 
   it("a country outside the side's reach, or not on the map, is refused as illegal", () => {
-    const start = placing([spend("lio", 2)], ruleset, mapGame()).state;
+    const start = startWith([spend("lio", 2)], ruleset, mapGame()).state;
     for (const country of ["echo", "foxtrot", "nowhere"]) {
       const r = apply(ruleset, start, place(start, country));
       expect(r.ok ? "accepted" : r.error.code).toBe("illegalAnswer");
@@ -106,7 +111,7 @@ describe("spendPoints places influence (R16a)", () => {
 
   it("costs 2 points in a country the rival controls", () => {
     // SAE controls bravo (stability 1) with 1 influence there.
-    const start = placing([spend("lio", 2)], ruleset, mapGame({ alpha: { lio: 2 }, bravo: { sae: 1 } })).state;
+    const start = startWith([spend("lio", 2)], ruleset, mapGame({ alpha: { lio: 2 }, bravo: { sae: 1 } })).state;
     const done = applied(start, place(start, "bravo"));
     expect(placed(done.events)).toEqual(["lio:bravo:2"]);
     expect(done.state.public.stack).toEqual([]);
@@ -114,7 +119,7 @@ describe("spendPoints places influence (R16a)", () => {
 
   it("the cost follows control at each placement: once the rival's control is broken, the next one costs 1", () => {
     // LIO has no influence: only alpha (next to its home box) is in reach, and SAE controls it with 2 (stability 2).
-    const start = placing([spend("lio", 3)], ruleset, mapGame({ alpha: { sae: 2 } })).state;
+    const start = startWith([spend("lio", 3)], ruleset, mapGame({ alpha: { sae: 2 } })).state;
     expect(legalCountries(start, "lio")).toEqual(["alpha"]);
     const second = applied(start, place(start, "alpha"));
     expect(placed(second.events)).toEqual(["lio:alpha:2"]);
@@ -125,7 +130,7 @@ describe("spendPoints places influence (R16a)", () => {
   });
 
   it("every point is spent while a placement is affordable: the side is offered no way to stop early", () => {
-    const start = placing([spend("lio", 2)], ruleset, mapGame()).state;
+    const start = startWith([spend("lio", 2)], ruleset, mapGame()).state;
     const answers = legalAnswers(ruleset, start, "lio");
     expect(answers.length).toBeGreaterThan(0);
     expect(answers.every((a) => a.kind === "placeInfluence")).toBe(true);
@@ -133,7 +138,7 @@ describe("spendPoints places influence (R16a)", () => {
 
   it("a point left that no reachable country can be bought with is lost, and the play ends", () => {
     // SAE controls alpha with 4: after one placement (2 points) it still controls it, and 1 point cannot buy 2.
-    const start = placing([spend("lio", 3)], ruleset, mapGame({ alpha: { sae: 4 } })).state;
+    const start = startWith([spend("lio", 3)], ruleset, mapGame({ alpha: { sae: 4 } })).state;
     const done = applied(start, place(start, "alpha"));
     expect(countOf(done.state, "alpha", "lio")).toBe(1);
     expect(done.state.public.stack).toEqual([]);
@@ -141,25 +146,26 @@ describe("spendPoints places influence (R16a)", () => {
   });
 
   it("with nothing affordable from the start, no placing is asked for: realign or pass is offered (R16c)", () => {
-    // Before R16c nobody was asked here. SAE has influence in alpha, so a realignment is now possible, and it is
-    // offered, never forced (owner, 26 Oct, #317 review).
-    const { state, events } = startWith(
-      [spend("lio", 1), { op: "marker", label: "after" }],
-      ruleset,
-      mapGame({ alpha: { sae: 2 } }),
-    );
+    // Before R16c nobody was asked here. Since R16b SAE's influence in alpha would offer an intervention; at
+    // Escalation 5 every region is closed to them. Realigning does not look at closed regions (R17 will), so it is
+    // possible, and it is offered, never forced (owner, 26 Oct, #317 review).
+    const start = mapGame({ alpha: { sae: 2 } });
+    const { state, events } = startWith([spend("lio", 1), { op: "marker", label: "after" }], ruleset, {
+      ...start,
+      public: { ...start.public, escalation: 5 },
+    });
     expect(events.map((e) => e.kind)).toEqual(["pointsSpent"]);
     expect(state.public.pending).toEqual([
       expect.objectContaining({
         side: "lio",
         kind: "chooseAction",
-        options: { points: 1, actions: ["realign", "pass"] },
+        options: { points: 1, actions: ["realign", "pass"], targets: [] },
       }),
     ]);
   });
 
   it("with no action possible (no points), nobody is asked and the program runs on", () => {
-    const { state, events } = placing(
+    const { state, events } = startWith(
       [spend("lio", 0), { op: "marker", label: "after" }],
       ruleset,
       mapGame({ alpha: { sae: 2 } }),
@@ -169,16 +175,16 @@ describe("spendPoints places influence (R16a)", () => {
   });
 
   it("in a game without a map, spending points places nothing and asks nobody", () => {
-    const { state, events } = placing([spend("lio", 2), { op: "marker", label: "after" }]);
+    const { state, events } = startWith([spend("lio", 2), { op: "marker", label: "after" }]);
     expect(events.map((e) => e.kind)).toEqual(["pointsSpent", "marker"]);
     expect(state.public.stack).toEqual([]);
     expect("influence" in state.public).toBe(false);
   });
 
   it("an event giving both sides points asks each side in turn, LIO's placing then SAE's", () => {
-    const first = placing([spend("lio", 1), spend("sae", 1)], ruleset, mapGame()).state;
+    const first = startWith([spend("lio", 1), spend("sae", 1)], ruleset, mapGame()).state;
     expect(first.public.pending[0]).toMatchObject({ side: "lio", kind: "placeInfluence", options: { points: 1 } });
-    const second = choosePlace(applied(first, place(first, "alpha"))).state;
+    const second = placeChosen({ state: accepted(first, place(first, "alpha")), events: [] }).state;
     expect(second.public.pending[0]).toMatchObject({
       side: "sae",
       kind: "placeInfluence",
@@ -190,7 +196,7 @@ describe("spendPoints places influence (R16a)", () => {
   });
 
   it("never changes the state it is given (frozen input)", () => {
-    const start = deepFreeze(placing([spend("lio", 2)], ruleset, mapGame()).state);
+    const start = deepFreeze(startWith([spend("lio", 2)], ruleset, mapGame()).state);
     const next = accepted(start, place(start, "alpha"));
     expect(countOf(start, "alpha", "lio")).toBe(2);
     expect(countOf(next, "alpha", "lio")).toBe(3);
@@ -201,7 +207,7 @@ describe("a card played for its points places influence (R16a)", () => {
   it("asks the player to place the card's ops, then the game moves on to the next play", () => {
     const rs = withCards(sideCard("l3", 2));
     const atPlay = playAnswers(startGame(2, 1, rs, mapSetup()), 2, rs);
-    const asked = choosePlace(applied(atPlay, playAnswer(atPlay, "lio", "l3", "points"), rs), rs);
+    const asked = placeChosen(applied(atPlay, playAnswer(atPlay, "lio", "l3", "points"), rs), rs);
     expect(asked.events).toContainEqual({ kind: "pointsSpent", visibility: "public", side: "lio", amount: 2 });
     expect(asked.state.public.pending[0]).toMatchObject({
       side: "lio",
