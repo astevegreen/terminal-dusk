@@ -20,7 +20,7 @@ const mailpitUrl = (keys: StackKeys): string => {
   const set = env.MAILPIT_URL || env.INBUCKET_URL;
   if (set) return set.replace(/\/+$/, "");
   const host = /^https?:\/\/([^/:]+)/.exec(keys.url)?.[1] ?? "127.0.0.1";
-  return `http://${host}:54324`;
+  return `http://${host}:44324`;
 };
 
 async function why(keys: StackKeys): Promise<string | null> {

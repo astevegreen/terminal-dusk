@@ -5,7 +5,7 @@ import type { MailFetch } from "./resendMailer.ts";
 import { authEmailWorld, payload, signedRequest, TEST_CODE, TEST_EMAIL, TEST_SECRET } from "./test/authEmail.ts";
 import { handleAuthEmail } from "./authEmailHandler.ts";
 
-const URL = "http://host.docker.internal:54324";
+const URL = "http://host.docker.internal:44324";
 const EMAIL = { to: "player@example.test", subject: "Hello", text: "Body text 123456" };
 
 type Call = { url: string; init: { method: string; headers: Record<string, string>; body: string } };
