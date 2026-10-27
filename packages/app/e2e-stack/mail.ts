@@ -1,13 +1,13 @@
 // Reading sign-in codes from the local stack's mail catcher (Mailpit) for A10. The catcher's address comes from
-// MAILPIT_URL (or INBUCKET_URL), the names `supabase status -o env` prints, and is the Supabase CLI's local
-// default, http://127.0.0.1:54324, when neither is set. A code is never logged or kept: it is read, typed and dropped.
+// MAILPIT_URL (or INBUCKET_URL), the names `supabase status -o env` prints, and is the local stack's
+// port from config.toml, http://127.0.0.1:44324, when neither is set. A code is never logged or kept: it is read, typed and dropped.
 import type { StackKeys } from "../src/transport/test/localStack.ts";
 
 type Env = Record<string, string | undefined>;
 
 /** The mail catcher's address, with no trailing slash. */
 export function mailpitUrl(env: Env): string {
-  let url = env.MAILPIT_URL || env.INBUCKET_URL || "http://127.0.0.1:54324";
+  let url = env.MAILPIT_URL || env.INBUCKET_URL || "http://127.0.0.1:44324";
   while (url.endsWith("/")) url = url.slice(0, -1);
   return url;
 }

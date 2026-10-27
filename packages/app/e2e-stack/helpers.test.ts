@@ -21,8 +21,8 @@ const url = (path: string): string => `${URL_BASE}${path}`;
 const viewRows = (viewer: "lio" | "sae") => [{ viewer, seq: SEQ, frame: frames[viewer] }];
 
 describe("the mail catcher's address", () => {
-  it("is the Supabase CLI's local default when no variable is set", () => {
-    expect(mailpitUrl({})).toBe("http://127.0.0.1:54324");
+  it("is the local stack's port (config.toml) when no variable is set", () => {
+    expect(mailpitUrl({})).toBe("http://127.0.0.1:44324");
   });
   it("comes from MAILPIT_URL, then INBUCKET_URL, without a trailing slash", () => {
     expect(mailpitUrl({ MAILPIT_URL: "http://mail.test:1/", INBUCKET_URL: "http://other.test" })).toBe(

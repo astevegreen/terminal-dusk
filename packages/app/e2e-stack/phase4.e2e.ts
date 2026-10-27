@@ -7,7 +7,7 @@
 //   pnpm exec node ../../tools/stack-lock.mjs playwright test -c playwright.stack.config.ts
 // Needs the local stack (its keys in the environment, from `supabase status -o env`), the auth-email function served
 // with LOCAL_MAIL_URL and the stack's hook secret (#369), and the mail catcher. The catcher's address is MAILPIT_URL
-// (or INBUCKET_URL) when set, else the Supabase CLI's local default, http://127.0.0.1:54324. Without them the test skips
+// (or INBUCKET_URL) when set, else the local stack's port (config.toml), http://127.0.0.1:44324. Without them the test skips
 // with one line saying what is missing and how to start it; it never fails for a stopped stack.
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";

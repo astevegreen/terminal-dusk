@@ -2,6 +2,27 @@
 # There is no hosted project: no project ref, keys or secrets live here. Every other setting uses the CLI default.
 project_id = "terminal-dusk"
 
+# The ports sit at 443xx, not the CLI's 543xx defaults: Windows reserves TCP 54280-54379 for itself, so the stack
+# could not start there. Every other file that names a port (the mail catcher's address, the hook below) follows these.
+[api]
+port = 44321
+
+[db]
+port = 44322
+shadow_port = 44320
+
+[db.pooler]
+port = 44329
+
+[studio]
+port = 44323
+
+[local_smtp]
+port = 44324
+
+[analytics]
+port = 44327
+
 # Sign-in uses a 6-digit email code, not a magic link (docs/architecture.md, Decision 5).
 [auth.email]
 otp_length = 6
@@ -10,7 +31,7 @@ otp_length = 6
 # through the mail port. The secret is read from the environment (src/migrations/localStack.ts, HOW_TO_START).
 [auth.hook.send_email]
 enabled = true
-uri = "http://host.docker.internal:54321/functions/v1/auth-email"
+uri = "http://host.docker.internal:44321/functions/v1/auth-email"
 secrets = "env(SEND_EMAIL_HOOK_SECRET)"
 
 # Auth calls the hook with a webhook signature, not a user token; the signature check in the function guards it.
