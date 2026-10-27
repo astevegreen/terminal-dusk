@@ -15,6 +15,11 @@ hooks:
         - type: command
           command: node "$CLAUDE_PROJECT_DIR/tools/hooks/no-web.mjs"
           timeout: 10
+    - matcher: "mcp__plugin_github_.*"
+      hooks:
+        - type: command
+          command: node "$CLAUDE_PROJECT_DIR/tools/hooks/no-plugin-writes.mjs"
+          timeout: 10
 ---
 You end the sprint in `docs/sprint.md` now, in the main checkout. `Q` below is `node tools/sprint/queue.mjs`.
 Your last message starts with exactly one of `STOPPED terminal-dusk at <end>` or

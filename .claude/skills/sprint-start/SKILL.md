@@ -16,6 +16,11 @@ hooks:
         - type: command
           command: node "$CLAUDE_PROJECT_DIR/tools/hooks/no-web.mjs"
           timeout: 10
+    - matcher: "mcp__plugin_github_.*"
+      hooks:
+        - type: command
+          command: node "$CLAUDE_PROJECT_DIR/tools/hooks/no-plugin-writes.mjs"
+          timeout: 10
 ---
 You start the sprint in `docs/sprint.md` now. `$ARGUMENTS` holds the window's length in whole hours (38 when
 none is given) and may hold `--dry-run`. No one may be watching, so the checks below decide everything: start,

@@ -838,6 +838,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/hooks/gate.test.mjs`
 - `tools/hooks/handoff-nudge.mjs` - Stop and SessionStart hook for the /handoff skill (the notes themselves: tools/handoff-notes.mjs).
 - `tools/hooks/handoff-nudge.test.mjs`
+- `tools/hooks/implementer-restore.test.mjs` - The implementer's steps for a task branch a stopped session left in another worktree (after-sprint fix 2), run for real on a scratch repository: its uncommitte…
+- `tools/hooks/no-plugin-writes.mjs` - PreToolUse (mcp__plugin_github_.*) for the unattended sprint and night-shift sessions: the GitHub plugin signs in as the owner, so a comment it posts never not…
+- `tools/hooks/no-plugin-writes.test.mjs` - Tests for no-plugin-writes.mjs: the sprint's sessions read GitHub through the plugin but never write with it, and every unattended sprint skill wires the hook…
 - `tools/hooks/no-web.mjs` - PreToolUse (WebFetch) for the night shift: nobody is awake to judge a page, and web pages are the main route for prompt injection, so every fetch is blocked.
 - `tools/hooks/no-web.test.mjs`
 - `tools/hooks/quick-check.mjs` - PostToolUse (Edit|Write): fast checks on the one file just edited.

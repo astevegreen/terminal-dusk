@@ -16,6 +16,11 @@ hooks:
         - type: command
           command: node "$CLAUDE_PROJECT_DIR/tools/hooks/no-web.mjs"
           timeout: 10
+    - matcher: "mcp__plugin_github_.*"
+      hooks:
+        - type: command
+          command: node "$CLAUDE_PROJECT_DIR/tools/hooks/no-plugin-writes.mjs"
+          timeout: 10
 ---
 You keep the sprint in `docs/sprint.md` running. You never edit files, open pull requests, merge,
 or make design decisions. You only start and report on sessions, with the `RemoteTrigger` tool (load it with

@@ -16,6 +16,11 @@ hooks:
         - type: command
           command: node "$CLAUDE_PROJECT_DIR/tools/hooks/no-web.mjs"
           timeout: 10
+    - matcher: "mcp__plugin_github_.*"
+      hooks:
+        - type: command
+          command: node "$CLAUDE_PROJECT_DIR/tools/hooks/no-plugin-writes.mjs"
+          timeout: 10
 ---
 You turn the next backlog items of lane `$ARGUMENTS` in `docs/sprint.md` into issues the lane coordinator can
 build. Owner permission 1 in that file approves the backlog, so you do not wait for the owner. You never edit
