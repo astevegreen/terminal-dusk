@@ -198,7 +198,7 @@ env` prints it from there, and the supervisor starts sessions with it.
   TD sprint archiver. In the main checkout, use only Bash for `node tools/sprint/queue.mjs`, RemoteTrigger
   (list_runs and update) and archive_session; load them with ToolSearch if they are not listed.
   1. `node tools/sprint/queue.mjs window`, then `node tools/sprint/queue.mjs sessions --all`: the
-     supervisor's id and the ids of the triggers it started this sprint.
+     supervisor's and wake's ids (skip a null one) and the ids of the triggers it started this sprint.
   2. RemoteTrigger list_runs on each id. Archive each run that is not this session and is finished (not
      running, last event over 60 minutes ago) or stuck (running with no event in 60 minutes, or waiting
      for an answer for 30). Leave every other run.

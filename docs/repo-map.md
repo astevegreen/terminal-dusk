@@ -871,6 +871,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/sprint/rules.test.mjs` - Tests for the sprint queue's rules: October's sprint replayed from its recorded issues and pull requests, plus small made-up cases for the rules October's reco…
 - `tools/sprint/sprint-doc.mjs` - Reads what the sprint queue needs from docs/sprint.md: the window, the lanes, each lane's backlog IDs, the sprint log issue and the environment the sessions ru…
 - `tools/sprint/status.mjs` - The sprint log's status block (`queue.mjs status`): counts per lane, the last merge, free memory, and what needs the owner.
+- `tools/sprint/status.test.mjs` - Tests for status.mjs, the sprint log's status block, beyond what rules.test.mjs replays from October.
 - `tools/sprint/usage-limit.mjs` - When a session that stopped on a usage limit may be started again.
 - `tools/sprint/usage-limit.test.mjs` - Tests for usage-limit.mjs: when a session that stopped on a usage limit may start again.
 - `tools/sprint/wake.mjs` - While a usage limit is on, a scheduled supervisor run fails before it starts, so lanes it stopped would wait for the next hourly run.

@@ -512,27 +512,6 @@ test("the night shift builds a blocked issue the owner answered, but leaves spri
   assert.equal(nextNight(noQuestion, DOC), null, "the owner's own note on an issue he blocked is no answer");
 });
 
-// After-sprint fix 14: a lane issue with neither sprint-ready nor blocked is one no lane will build, and the owner
-// answering its question doesn't change that, so the status block names it instead of leaving it unseen.
-test("a lane issue with neither sprint-ready nor blocked, and nothing building it, joins Needs you", () => {
-  const S = snap({
-    issues: [
-      issue(7, ["lane:app"]),
-      issue(8, ["lane:app", "sprint-ready"]),
-      issue(9, ["lane:app", "spec-review"]),
-      issue(10, ["lane:app", "in-progress"]),
-      issue(30, ["lane:rules"]),
-      issue(11, ["lane:elsewhere"]),
-      issue(12, ["lane:app"], { state: "CLOSED" }),
-      issue(13, ["ready"]),
-    ],
-    prs: [pr(130)],
-  });
-  assert.deepEqual(status(S, DOC).needsYou, [
-    "#7 [task] R7: x: in lane app with neither sprint-ready nor blocked, so no lane builds it",
-  ]);
-});
-
 test("the old session titles are refused, so a stale caller is caught", () => {
   assert.throws(() => hasWork(snap(), DOC, "Sprint lane: rules"), /use "TD lane: <lane>"/);
 });
