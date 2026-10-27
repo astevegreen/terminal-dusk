@@ -65,9 +65,9 @@ function playAll(rules: typeof pointsRuleset, start: (seed: number) => TestState
           play.asked.push(asked.options.attempts);
           play.picks.push(value.country);
           if (value.country !== null) {
-            const event = events.find((e): e is Realigned => e.kind === "realigned");
-            if (event === undefined) throw new Error(`game ${seed}: an attempt made no realigned event`);
-            into.attempts.push({ ...asked, country: value.country, after, event });
+            const made = events.filter((e): e is Realigned => e.kind === "realigned");
+            if (made.length !== 1) throw new Error(`game ${seed}: an attempt made ${made.length} realigned events`);
+            into.attempts.push({ ...asked, country: value.country, after, event: made[0]! });
           }
         }
         // A play ends when a realign answer (or the menu's pick) leaves no attempt asked for.
