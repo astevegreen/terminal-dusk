@@ -27,6 +27,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/ai/src/guess.test.ts`
 - `packages/ai/src/guess.ts` - Guessing the cards a side cannot see, so the AI can rebuild a full state with `reconstruct`. Exports: guessHidden.
 - `packages/ai/src/index.ts` - Public entry point of the AI opponent (docs/architecture.md, Decision 8). Exports: easyAnswer, guessHidden, EASY_WEIGHTS, seededRandom, createEasyPlayer, createAiWorkerHandler, AiRequest, AiResponse, Weights.
+- `packages/ai/src/intervening.test.ts` - Easy answers the action menu's intervene (A11c, issue #371): one chooseAction answer per country open to an intervention (R16b).
 - `packages/ai/src/mapGames.test.ts` - Easy in games with a map, influence and the Escalation track (A11a, issue #359).
 - `packages/ai/src/markers.test.ts` - Easy on cards with lasting markers and `has` conditions (R4, issue #171).
 - `packages/ai/src/placing.test.ts` - Easy answers the action menu's place influence (A11b, issue #360): the menu, then one placeInfluence decision per influence (R16a).
