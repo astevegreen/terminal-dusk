@@ -37,6 +37,7 @@ function choose(state: GameState, value: AnswerValue) {
   return { decisionId: d.id, side: d.side, value };
 }
 const placeAction: AnswerValue = { kind: "chooseAction", action: "place" };
+const realignAction: AnswerValue = { kind: "chooseAction", action: "realign" };
 const interveneIn = (country: CountryId): AnswerValue => ({ kind: "chooseAction", action: "intervene", country });
 
 const intervened = (events: readonly GameEvent[]) => events.filter((e) => e.kind === "intervened");
@@ -55,10 +56,16 @@ describe("the action menu: placing or intervening (R16b)", () => {
         id: expect.any(String),
         side: "lio",
         kind: "chooseAction",
-        options: { points: 2, targets: ["charlie", "echo"] },
+        // Since R16c realigning is on the menu too, after the interventions.
+        options: { points: 2, actions: ["place", "intervene", "realign"], targets: ["charlie", "echo"] },
       },
     ]);
-    expect(legalAnswers(ruleset, state, "lio")).toEqual([placeAction, interveneIn("charlie"), interveneIn("echo")]);
+    expect(legalAnswers(ruleset, state, "lio")).toEqual([
+      placeAction,
+      interveneIn("charlie"),
+      interveneIn("echo"),
+      realignAction,
+    ]);
     expect(legalAnswers(ruleset, state, "sae")).toEqual([]);
   });
 
@@ -84,10 +91,11 @@ describe("the action menu: placing or intervening (R16b)", () => {
     expect(legalAnswers(ruleset, state, "lio")).toContainEqual(interveneIn("foxtrot"));
   });
 
-  it("offers only interventions when no placement is affordable, and refuses place", () => {
-    // SAE controls alpha (stability 2) with 2, LIO's only reach: 1 point cannot buy an influence there.
+  it("offers only interventions (and, since R16c, realigning) when no placement is affordable, and refuses place", () => {
+    // SAE controls alpha (stability 2) with 2, LIO's only reach: 1 point cannot buy an influence there. An
+    // intervention is possible, so the menu offers no pass (R16c).
     const { state } = startWith([spend("lio", 1)], ruleset, mapGame({ alpha: { sae: 2 } }));
-    expect(legalAnswers(ruleset, state, "lio")).toEqual([interveneIn("alpha")]);
+    expect(legalAnswers(ruleset, state, "lio")).toEqual([interveneIn("alpha"), realignAction]);
     const refused = apply(ruleset, state, choose(state, placeAction));
     expect(refused.ok ? "accepted" : refused.error.code).toBe("illegalAnswer");
   });

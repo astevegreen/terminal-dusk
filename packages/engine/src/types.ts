@@ -39,8 +39,11 @@ export type {
   InfluencePlaced,
   Intervened,
   PlaceOptions,
+  PointsAction,
   PointsSpent,
 } from "./placingTypes.ts";
+import type { Realigned } from "./realignTypes.ts";
+export type { Realigned, RealignOptions } from "./realignTypes.ts";
 import type { AnswerValue, Decision } from "./decisionTypes.ts";
 export type {
   Answer,
@@ -152,6 +155,7 @@ export type PublicEvent =
   | PointsSpent
   | InfluencePlaced
   | Intervened
+  | Realigned
   | EraStarted
   | DrawPileReshuffled
   | ContingencyDrawn
@@ -196,7 +200,8 @@ export type Condition =
  * A card choice is only ever both sides at once: the turn's opening pick (turn.ts). Card effects may
  * not hold one (cardChecks.ts): a `choose` in an effect asks yes/no only, and the one other way an effect
  * asks a side to pick cards is a `discardFromHand` with `chosenBy`, to discard them. `spendPoints` is how a play
- * for points spends them (turn.ts): `side` places influence with them, one placeInfluence decision a time (placing.ts). `drawContingency`
+ * for points spends them (turn.ts): `side` spends them all on one action of the menu (actionMenu.ts), placing influence one
+ * placeInfluence decision a time (placing.ts) or realigning one realign decision a time (realign.ts). `drawContingency`
  * draws from `side`'s Contingency deck (an LIO or SAE card may name either deck) and
  * binds the number to `bind`, if given. `side` "player" is the side that played the card: a neutral
  * event's draws, and only theirs, name it (docs/design/contingency-deck.md, cardChecks.ts). A rival's

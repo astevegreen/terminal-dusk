@@ -24,20 +24,21 @@ import { countOf, mapGame, spend } from "./test/mapGame.ts";
 type Played = { state: GameState; events: GameEvent[] };
 
 /**
- * Picks placing on an open action choice (R16b: with the rival's influence on the map the side first picks the
- * one action all its points go to). These tests are about placing, so they always pick it; it adds no events.
+ * Picks placing on an open action menu when the menu offers it (R16b, R16c: with the rival's influence on the map
+ * the side first picks the one action all its points go to). These tests are about placing, so they pick it
+ * whenever it is there; it adds no events.
  */
-function placeChosen(played: Played): Played {
+function placeChosen(played: Played, rs = ruleset): Played {
   const d = played.state.public.pending[0];
-  if (d?.kind !== "chooseAction") return played;
+  if (d?.kind !== "chooseAction" || !("actions" in d.options) || !d.options.actions.includes("place")) return played;
   const value = { kind: "chooseAction" as const, action: "place" as const };
-  const next = applied(played.state, { decisionId: d.id, side: d.side, value });
+  const next = applied(played.state, { decisionId: d.id, side: d.side, value }, rs);
   return { state: next.state, events: [...played.events, ...next.events] };
 }
 
-/** startWith, then placing picked on the action choice (placeChosen). */
+/** startWith, then placing picked on the action menu (placeChosen). */
 const startWith = (steps: Step[], rs = ruleset, state?: GameState): Played =>
-  placeChosen(startProgramWith(steps, rs, state));
+  placeChosen(startProgramWith(steps, rs, state), rs);
 
 /** The answer placing in `country` for the placing `state` has open. */
 function place(state: GameState, country: CountryId) {
@@ -144,13 +145,31 @@ describe("spendPoints places influence (R16a)", () => {
     expect(done.state.public.pending.some((d) => d.kind === "placeInfluence")).toBe(false);
   });
 
-  it("with nothing affordable from the start, nobody is asked and the program runs on", () => {
-    // Since R16b SAE's influence in alpha would offer an intervention; at Escalation 5 every region is closed to them.
+  it("with nothing affordable from the start, no placing is asked for: realign or pass is offered (R16c)", () => {
+    // Before R16c nobody was asked here. Since R16b SAE's influence in alpha would offer an intervention; at
+    // Escalation 5 every region is closed to them. Realigning does not look at closed regions (R17 will), so it is
+    // possible, and it is offered, never forced (owner, 26 Oct, #317 review).
     const start = mapGame({ alpha: { sae: 2 } });
     const { state, events } = startWith([spend("lio", 1), { op: "marker", label: "after" }], ruleset, {
       ...start,
       public: { ...start.public, escalation: 5 },
     });
+    expect(events.map((e) => e.kind)).toEqual(["pointsSpent"]);
+    expect(state.public.pending).toEqual([
+      expect.objectContaining({
+        side: "lio",
+        kind: "chooseAction",
+        options: { points: 1, actions: ["realign", "pass"], targets: [] },
+      }),
+    ]);
+  });
+
+  it("with no action possible (no points), nobody is asked and the program runs on", () => {
+    const { state, events } = startWith(
+      [spend("lio", 0), { op: "marker", label: "after" }],
+      ruleset,
+      mapGame({ alpha: { sae: 2 } }),
+    );
     expect(events.map((e) => e.kind)).toEqual(["pointsSpent", "marker"]);
     expect(state.public.stack).toEqual([]);
   });
@@ -188,7 +207,7 @@ describe("a card played for its points places influence (R16a)", () => {
   it("asks the player to place the card's ops, then the game moves on to the next play", () => {
     const rs = withCards(sideCard("l3", 2));
     const atPlay = playAnswers(startGame(2, 1, rs, mapSetup()), 2, rs);
-    const asked = placeChosen(applied(atPlay, playAnswer(atPlay, "lio", "l3", "points"), rs));
+    const asked = placeChosen(applied(atPlay, playAnswer(atPlay, "lio", "l3", "points"), rs), rs);
     expect(asked.events).toContainEqual({ kind: "pointsSpent", visibility: "public", side: "lio", amount: 2 });
     expect(asked.state.public.pending[0]).toMatchObject({
       side: "lio",

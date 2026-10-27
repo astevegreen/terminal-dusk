@@ -65,6 +65,15 @@ export function affordable(
   return countries.filter((id) => lookup(state, id) !== null && costNow(state, side, id) <= points);
 }
 
+/**
+ * The countries `side` may realign in as the state is now, in the map's order: those where the rival has
+ * influence (docs/design/map-and-points.md, "Points and actions"). A realignment needs no adjacency.
+ */
+export function realignTargets(state: PublicState, side: Side): CountryId[] {
+  const rival = otherSide(side);
+  return (state.influence ?? []).filter((e) => e[rival] > 0).map((e) => e.country);
+}
+
 /** What one influence costs `side` in `country` now, reach aside: 2 if the rival controls it, otherwise 1. */
 export function costNow(state: PublicState, side: Side, country: CountryId): 1 | 2 {
   return controller(state, country) === otherSide(side) ? 2 : 1;

@@ -1,6 +1,6 @@
-// The types of spending points on the action menu: placing influence (R16a) and intervening (R16b)
-// (docs/design/map-and-points.md, "Influence" and "Points and actions"). types.ts re-exports them, so index.ts
-// exports the same names.
+// The types of spending points on the action menu: placing influence (R16a), intervening (R16b) and the menu
+// itself, which also offers realigning (R16c; its own types are in realignTypes.ts) (docs/design/map-and-points.md,
+// "Influence" and "Points and actions"). types.ts re-exports them, so index.ts exports the same names.
 import type { CountryId } from "./mapTypes.ts";
 import type { Side } from "./types.ts";
 
@@ -12,15 +12,24 @@ import type { Side } from "./types.ts";
 export type PlaceOptions = { points: number; countries: CountryId[] };
 
 /**
- * What a chooseAction decision allows (R16b): all `points` go to one action (owner, 26 Oct, #316): placing
- * influence, or one intervention in one of `targets`, the countries where the rival has influence and whose
- * region Escalation has not closed, in the map's order. Placing is offered while a placement is affordable.
+ * A choice on the action menu. All of a play's points go to one action (owner, 26 Oct, #316): placing influence,
+ * one intervention, or realigning. `pass` declines realigning when neither placing nor an intervention is
+ * possible: the points are left unspent, since realigning is never forced (owner, 26 Oct, #317 review).
  */
-export type ActionOptions = { points: number; targets: CountryId[] };
+export type PointsAction = "place" | "intervene" | "realign" | "pass";
 
-/** The answer to a chooseAction decision: place the points as influence, or intervene in `country`. */
+/**
+ * What a chooseAction decision allows: `actions`, the choices the side has now with its `points`, in menu order
+ * (place, intervene, realign, pass), and `targets`, the countries open to an intervention (the rival has influence
+ * there and Escalation has not closed its region), in the map's order; empty when "intervene" is not offered.
+ * Placing is offered while a placement is affordable. All of it is public.
+ */
+export type ActionOptions = { points: number; actions: PointsAction[]; targets: CountryId[] };
+
+/** The answer to a chooseAction decision: an action, and for an intervention the country it goes to. */
 export type ActionAnswer =
-  { kind: "chooseAction"; action: "place" } | { kind: "chooseAction"; action: "intervene"; country: CountryId };
+  | { kind: "chooseAction"; action: Exclude<PointsAction, "intervene"> }
+  | { kind: "chooseAction"; action: "intervene"; country: CountryId };
 
 /**
  * A `spendPoints` step started: `side`, who played the card (even when it is the rival's card), spends `amount`

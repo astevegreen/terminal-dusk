@@ -32,6 +32,11 @@ export const eventPresentation: EventPresentation = {
     log: (event) =>
       `${event.side} placed 1 influence in ${event.country} for ${event.cost} point${event.cost === 1 ? "" : "s"}.`,
   },
+  realigned: {
+    log: (event) =>
+      `${event.side} realigned in ${event.country}: lio ${event.totals.lio}, sae ${event.totals.sae}. ` +
+      (event.loser === null ? "A tie: nothing changed." : `${event.loser} lost ${event.removed} influence.`),
+  },
   intervened: {
     log: (event) =>
       `${event.side} intervened in ${event.country}: draw ${event.draw} + ${event.points} point${event.points === 1 ? "" : "s"} - 2 x stability ` +

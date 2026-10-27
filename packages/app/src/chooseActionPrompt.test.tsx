@@ -11,7 +11,7 @@ const choosing = (side: Decision["side"], points: number, targets: string[]): De
   id: "d1",
   side,
   kind: "chooseAction",
-  options: { points, targets },
+  options: { points, actions: ["place", "intervene"], targets },
 });
 
 describe("the chooseAction prompt (R16b, #316)", () => {

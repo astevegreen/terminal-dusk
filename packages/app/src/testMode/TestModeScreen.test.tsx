@@ -178,12 +178,14 @@ describe("a whole game through the prompts", () => {
       }
       if (!acted) throw new Error("nobody has a prompt");
     }
-    // On the test map a play for points first asks for the action (R16b), and placing then asks for each placement.
+    // On the test map a play for points opens the action menu (R16b, R16c): LIO, pressing the last button, realigns;
+    // SAE, pressing the first, places influence. So both actions' prompts are played too.
     expect([...seen].sort(byCodeUnit)).toEqual([
       "chooseAction",
       "chooseCard",
       "placeInfluence",
       "playCardAs",
+      "realign",
       "rivalEventOrder",
       "yesNo",
     ]);
