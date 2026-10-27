@@ -22,6 +22,7 @@ port = 44324
 
 [analytics]
 port = 44327
+vector_port = 44328
 
 # Sign-in uses a 6-digit email code, not a magic link (docs/architecture.md, Decision 5).
 [auth.email]
