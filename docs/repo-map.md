@@ -870,8 +870,11 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/sprint/rules.mjs` - The sprint queue's rules as pure functions of a snapshot: open issues and pull requests with their labels, comments and checks, plus docs/sprint.md.
 - `tools/sprint/rules.test.mjs` - Tests for the sprint queue's rules: October's sprint replayed from its recorded issues and pull requests, plus small made-up cases for the rules October's reco…
 - `tools/sprint/sprint-doc.mjs` - Reads what the sprint queue needs from docs/sprint.md: the window, the lanes, each lane's backlog IDs, the sprint log issue and the environment the sessions ru…
+- `tools/sprint/status.mjs` - The sprint log's status block (`queue.mjs status`): counts per lane, the last merge, free memory, and what needs the owner.
 - `tools/sprint/usage-limit.mjs` - When a session that stopped on a usage limit may be started again.
 - `tools/sprint/usage-limit.test.mjs` - Tests for usage-limit.mjs: when a session that stopped on a usage limit may start again.
+- `tools/sprint/wake.mjs` - While a usage limit is on, a scheduled supervisor run fails before it starts, so lanes it stopped would wait for the next hourly run.
+- `tools/sprint/wake.test.mjs` - Tests for the supervisor's wake after a usage limit (wake.mjs, after-sprint fix 1), through `queue.mjs wake` and `window ids --wake`: when it is armed, when th…
 - `tools/stack-lock-command.mjs` - How stack-lock.mjs runs its command: in a shell, as one group of programs that can be stopped together, so a stopped run never leaves part of its command on th…
 - `tools/stack-lock.mjs` - Runs a command while holding the computer's one local Supabase stack, so two folders never use it at once: a `supabase db reset` from one would empty the datab…
 - `tools/stack-lock.test.mjs` - stack-lock.mjs lets one folder at a time use the computer's local Supabase stack.
@@ -938,7 +941,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `.claude/skills/sprint-start/SKILL.md` - Cue the sprint in docs/sprint.md now - check the computer, open the window, make the supervisor and the archiver. Run only as /sprint-start [hours] [--dry-run].
 - `.claude/skills/sprint-status/SKILL.md` - Short sprint status, read from the sprint log's status block. Use when the owner asks how the sprint is going, whether it is running, or what waits on them.
 - `.claude/skills/sprint-stop/SKILL.md` - End the sprint's window now and switch its supervisor off; sessions already running finish their task. Run only as /sprint-stop.
-- `.claude/skills/sprint-supervisor/SKILL.md` - Hourly supervisor for the sprint in docs/sprint.md. Starts and restarts the lane and plan sessions. Run only from the "Sprint supervisor" scheduled task.
+- `.claude/skills/sprint-supervisor/SKILL.md` - Hourly supervisor for the sprint in docs/sprint.md. Starts and restarts the lane and plan sessions. Run only from the "TD sprint supervisor" scheduled task or…
 - `.claude/skills/triage/SKILL.md` - Turn the week's playtest feedback into design questions and bug issues. Run as /triage.
 
 ## .github

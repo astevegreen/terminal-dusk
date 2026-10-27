@@ -129,7 +129,7 @@ test("env names the computer from docs/sprint.md without asking GitHub, and stop
   for (const docText of [DOC_TEXT, placeholder]) {
     const r = main(["env"], { gh, docText });
     assert.equal(r.code, 2);
-    assert.match(JSON.parse(r.out).error, /names no environment/);
+    assert.match(JSON.parse(r.out).error, /no environment is on record/);
   }
 });
 
@@ -139,7 +139,7 @@ test("the command line answers from a recorded sprint with --fixture and --at", 
     [
       path.join(import.meta.dirname, "queue.mjs"),
       "has-work",
-      "Sprint lane: online",
+      "TD lane: online",
       "--fixture",
       path.join(FIXTURES, "october.jsonl"),
       "--doc",
@@ -159,7 +159,7 @@ test("the command line answers from a recorded sprint with --fixture and --at", 
 test("status --write puts the status block on the sprint log issue named in docs/sprint.md", () => {
   const { gh, calls } = fakeGh();
   const doc = DOC_TEXT.replace("sprint log, issue `#<n>`", "sprint log, issue `#300`");
-  const r = main(["status", "--write", "--need", "Sprint lane: app is stuck"], {
+  const r = main(["status", "--write", "--need", "TD lane: app is stuck"], {
     gh,
     docText: doc,
     now: NOW,
@@ -169,7 +169,7 @@ test("status --write puts the status block on the sprint log issue named in docs
   const edit = calls.find((c) => c[0] === "issue" && c[1] === "edit");
   assert.deepEqual(edit.slice(0, 4), ["issue", "edit", "300", "--body"]);
   assert.match(edit[4], /Free memory: 9000 MB/);
-  assert.deepEqual(JSON.parse(r.out).newNeeds, ["Sprint lane: app is stuck"]);
+  assert.deepEqual(JSON.parse(r.out).newNeeds, ["TD lane: app is stuck"]);
   assert.equal(main(["status", "--write"], { gh, docText: DOC_TEXT, now: NOW }).code, 2, "no log issue named");
 });
 

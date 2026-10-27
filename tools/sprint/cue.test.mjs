@@ -85,31 +85,28 @@ test("the night shift gets nothing while this computer's window is open, and wor
 
 test("the supervisor's triggers are found by recorded id, the newest per title, never from RemoteTrigger's list", () => {
   const dir = fresh();
-  assert.equal(run(["started", "Sprint lane: rules", "trig_01Old"], { dir }).code, 1, "no window, no sessions");
+  assert.equal(run(["started", "TD lane: rules", "trig_01Old"], { dir }).code, 1, "no window, no sessions");
   run(["window", "start"], { dir });
-  run(["started", "Sprint lane: rules", "trig_01First"], { dir, now: later(1) });
-  run(["started", "Sprint plan: app", "trig_01Plan"], { dir, now: later(1) });
-  run(["started", "Sprint lane: rules", "trig_01Second"], { dir, now: later(2) });
+  run(["started", "TD lane: rules", "trig_01First"], { dir, now: later(1) });
+  run(["started", "TD plan: app", "trig_01Plan"], { dir, now: later(1) });
+  run(["started", "TD lane: rules", "trig_01Second"], { dir, now: later(2) });
   assert.deepEqual(run(["sessions"], { dir, now: later(3) }).json, {
-    "Sprint lane: rules": "trig_01Second",
-    "Sprint plan: rules": null,
-    "Sprint lane: app": null,
-    "Sprint plan: app": "trig_01Plan",
-    "Sprint lane: online": null,
-    "Sprint plan: online": null,
-    "Sprint lane: research": null,
-    "Sprint plan: research": null,
+    "TD lane: rules": "trig_01Second",
+    "TD plan: rules": null,
+    "TD lane: app": null,
+    "TD plan: app": "trig_01Plan",
+    "TD lane: online": null,
+    "TD plan: online": null,
+    "TD lane: research": null,
+    "TD plan: research": null,
   });
   assert.deepEqual(
     run(["sessions", "--all"], { dir, now: later(3) }).json.map((t) => t.id),
     ["trig_01Second", "trig_01First", "trig_01Plan"],
     "the archiver's list, newest first",
   );
-  assert.match(
-    run(["started", "Sprint lane: everything", "trig_01X"], { dir }).json.error,
-    /not a sprint session title/,
-  );
-  assert.match(run(["started", "Sprint lane: rules", "42"], { dir }).json.error, /not a trigger id/);
+  assert.match(run(["started", "TD lane: everything", "trig_01X"], { dir }).json.error, /not a sprint session title/);
+  assert.match(run(["started", "TD lane: rules", "42"], { dir }).json.error, /not a trigger id/);
 });
 
 test("night-shift names the night shift's tasks in flight; lane tasks are the sprint's own", () => {
@@ -139,7 +136,7 @@ test("has-work keeps 1.5 GB back for each session the supervisor already started
     run(
       [
         "has-work",
-        "Sprint lane: online",
+        "TD lane: online",
         "--fixture",
         path.join(FIXTURES, "october.jsonl"),
         "--at",
@@ -168,4 +165,27 @@ test("resume reads a run's usage-limit error from stdin without loading GitHub, 
   });
   assert.equal(run(["resume", "-"], { gh }, () => text).code, 2, "no last event");
   assert.equal(run(["resume", text, "--last-event", "2026-10-21T02:11:00Z"], at).code, 2, "the log goes on stdin");
+});
+
+test("window start records the environment /sprint-start found, and env prints it ahead of any doc line", () => {
+  const dir = fresh();
+  assert.equal(run(["env"], { dir }).code, 2, "nothing on record yet");
+  assert.equal(run(["window", "start", "--environment", "env 1"], { dir }).code, 2, "not an environment id");
+  run(["window", "start", "12", "--environment", "env_01Found"], { dir });
+  assert.deepEqual(run(["env"], { dir }).json, { environment_id: "env_01Found" });
+  const withLine = DOC_TEXT.replace("## Machinery\n", "## Machinery\n\n- **Environment:** `env_01Old` (old)\n");
+  const r = main(["env"], { docText: withLine, now: CUE, dir });
+  assert.deepEqual(JSON.parse(r.out), { environment_id: "env_01Found" }, "the window's own beats a stale doc line");
+});
+
+test("window stop records that /sprint-stop ended it; a window that runs out, or a new one, does not", () => {
+  const dir = fresh();
+  run(["window", "start", "2"], { dir });
+  assert.equal(run(["window"], { dir }).json.stoppedBy, null);
+  assert.equal(run(["window"], { dir, now: later(3) }).json.stoppedBy, null, "ran out on its own");
+  run(["window", "start", "4"], { dir, now: later(3) });
+  const stopped = run(["window", "stop"], { dir, now: later(4) }).json;
+  assert.deepEqual([stopped.state, stopped.stoppedBy], ["after", "sprint-stop"]);
+  assert.equal(run(["window"], { dir, now: later(9) }).json.stoppedBy, "sprint-stop");
+  assert.equal(run(["window", "start"], { dir, now: later(9) }).json.stoppedBy, null, "a new window starts clean");
 });

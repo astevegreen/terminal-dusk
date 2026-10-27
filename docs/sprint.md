@@ -167,27 +167,35 @@ A proposal lays out two or three options with trade-offs and decides nothing. It
   `DRY-RUN FAIL terminal-dusk: <items>`. `/sprint-stop` ends the window now and switches the supervisor off;
   the archiver switches itself off once no sprint session is left running. A new `/sprint-start` waits until
   it has.
-- **Environment:** `env_01Qq41L677xykRpHYXs2FnXL`: the computer every sprint session runs on. `queue.mjs env`
-  reads it from here, and the supervisor starts sessions with it. Environment ids change when the sprint moves
-  to another computer, so this line is the only place that names it.
-- **Supervisor:** "Sprint supervisor", made by `/sprint-start` with the remote `create_trigger` tool, runs
-  `.claude/skills/sprint-supervisor` in a fresh session at minute 2 of every hour. Its id is kept with the
-  window (`queue.mjs window` prints it), and after the window it switches itself off by that id. A trigger made
-  with `create_trigger` can be changed by any agent later; one made through the HTTP API only by its own runs or
-  the owner.
-- It starts `Sprint lane: <lane>` sessions (`.claude/skills/sprint-lane`) and `Sprint plan: <lane>` sessions
+- **Environment:** the computer every sprint session runs on. `/sprint-start` looks it up in
+  `list_environments` at every start (the active bridge environment for this checkout) and records it with the
+  window (`window start --environment`), since the id changes whenever the bridge is set up again. `queue.mjs
+env` prints it from there, and the supervisor starts sessions with it.
+- **Supervisor:** "TD sprint supervisor", made by `/sprint-start` with the remote `create_trigger` tool and no
+  connectors, runs `.claude/skills/sprint-supervisor` in a fresh session at minute 2 of every hour. Its id is
+  kept with the window (`queue.mjs window` prints it), and after the window it switches itself off by that id
+  with `update_trigger`. A trigger made with `create_trigger` can be changed by any agent later; one made
+  through the HTTP API (`RemoteTrigger`) only by `RemoteTrigger`.
+- **Wake:** "TD sprint supervisor wake", one standing one-shot of the supervisor. While a usage limit is on,
+  scheduled runs fail, so every supervisor run moves the wake to 2 minutes after the reset `get_session` reports
+  (`queue.mjs wake`), unless the hourly run at minute 2 comes within 15 minutes of it. Its id is kept with the
+  window and carried into the next one.
+- **Bridge slots:** each sprint session holds one of the bridge's slots until its process ends. Every
+  supervisor run ends the processes of finished and stuck sessions (idle or working with no event for 60
+  minutes) with `node C:/Antigravity/sprints/free-bridge-slots.mjs reap TD --stuck-min 60`, its step 2b.
+- It starts `TD lane: <lane>` sessions (`.claude/skills/sprint-lane`) and `TD plan: <lane>` sessions
   (`.claude/skills/sprint-plan`), records each trigger's id (`queue.mjs started`) and finds them again by that
   id (`queue.mjs sessions`), never in `RemoteTrigger list`, which shows only the account's newest 20. It
   restarts any that stopped; after a usage limit, at 2 minutes past the reset the error names
   (`queue.mjs resume` gives that time as `restartAt`).
-- **Archiver:** "Sprint archiver", made by `/sprint-start`, posts into one session at minute 50 of every hour:
+- **Archiver:** "TD sprint archiver", made by `/sprint-start`, posts into one session at minute 50 of every hour:
   its own session on Haiku 5.5 (`claude-haiku-5-5`), made with `create_session`, or the start session when
   that fails (the cue says which). `list_sessions` leaves out the sessions triggers start, so it works from the
   ids the supervisor recorded. Every run lands in the same conversation and re-reads the ones before it (YODC's
   archiver used 12.9 M tokens in 25 hours in October), so its prompt is short, and an archive can be undone
   (`unarchive_session`). Exactly this prompt:
   ```
-  Sprint archiver. In the main checkout, use only Bash for `node tools/sprint/queue.mjs`, RemoteTrigger
+  TD sprint archiver. In the main checkout, use only Bash for `node tools/sprint/queue.mjs`, RemoteTrigger
   (list_runs and update) and archive_session; load them with ToolSearch if they are not listed.
   1. `node tools/sprint/queue.mjs window`, then `node tools/sprint/queue.mjs sessions --all`: the
      supervisor's id and the ids of the triggers it started this sprint.
@@ -249,8 +257,8 @@ The owner, before the cue:
 names what is short:
 
 5. The main checkout is on `main`, clean and up to date, with this file and `tools/sprint/cue.mjs` on it.
-6. The Environment id in Machinery is listed by `list_environments`, and `queue.mjs env` prints it.
-   (October's laptop id had disappeared by 24 Oct.)
+6. Exactly one active bridge environment for this checkout is listed by `list_environments`; it is recorded
+   with the window. (October's laptop id had disappeared by 24 Oct.)
 7. No window is open already.
 8. At least 30 GB of free disk and 8 GB of free memory; fewer than 10 sessions on the rc host.
 9. Docker is running and the local Supabase stack starts, so the online lane's stack tests run (in October they
@@ -261,7 +269,9 @@ A test that times out during the window is rerun once before anyone blames the c
 
 ## Turning it off
 
-- Stop: `/sprint-stop` ends the window now and switches the supervisor off. Running sessions finish their
-  current task, and the archiver switches itself off once none is left.
+- Stop: `/sprint-stop` ends the window now (recorded as `stoppedBy: sprint-stop`, so the supervisor reports
+  "Sprint stopped by /sprint-stop" rather than a fault) and switches the supervisor and its wake off with
+  `update_trigger`. Running sessions finish their current task, and the archiver switches itself off once none
+  is left.
 - Afterwards: one pull request deletes this file, `.claude/skills/sprint-*`, the sprint lines in the `implement-issue`
   and `night-shift` skills and the `reviewer` agent, and deletes the `lane:*` and `sprint-ready` labels.

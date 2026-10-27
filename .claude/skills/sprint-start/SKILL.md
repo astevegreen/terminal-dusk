@@ -42,8 +42,12 @@ In the main checkout:
    `git pull --ff-only` (in a dry run, `git fetch origin main`, and say so when `HEAD` is behind `origin/main`).
    Then `tools/sprint/cue.mjs` exists. Reasons: `the main checkout is on <branch>`, `the main checkout has
    uncommitted changes`, `the sprint machinery is not on main yet (#289)`.
-2. **Environment:** `Q env` prints an `environment_id`, and `list_environments` (claude-code-remote; load the
-   remote tools with ToolSearch) lists it. Reason: Q's error, or `environment <id> is not listed`.
+2. **Environment:** call `list_environments` (claude-code-remote; load the remote tools with ToolSearch) at
+   every start, since the id changes when the bridge is set up again. The sprint's environment is the one with
+   `kind` `bridge`, `state` `active`, and a `name` containing `:C:\Antigravity\terminal-dusk:` (this checkout).
+   Exactly one must match; step 3 records its `environment_id` with the window, and `Q env` reads it from there.
+   Reasons: `no active bridge environment for C:\Antigravity\terminal-dusk; start claude rc here`, or
+   `<n> bridge environments match: <their ids>`.
 3. **No window open:** `Q window` does not say `open`. Reason: `a window is already open, until <end>`.
 
 ## 2. What is short
@@ -54,7 +58,7 @@ Each of these is a line in step 6, never a refusal:
 - 10 or more sessions in this project's environment are not archived: "archive some on the rc host". Count them
   with `list_sessions` (`mine: true`, `limit: 10`, since each session is about 2,000 characters; while `has_more`
   and fewer than 10 are counted, call it again with `after_id` set to the last response's `last_id`, up to 5
-  pages): only those whose `environment_id` is the one `Q env` printed and whose `session_status` is not
+  pages): only those whose `environment_id` is the one step 1.2 found and whose `session_status` is not
   `SESSION_STATUS_ARCHIVED`. Other projects' sprints share the computer, and their sessions are theirs to archive.
 - The local Supabase stack: `docker info --format "{{.ServerVersion}}"` succeeds, and
   `pnpm --filter @terminal-dusk/server exec supabase status > /dev/null 2>&1` exits 0. When it doesn't (and
@@ -64,30 +68,35 @@ Each of these is a line in step 6, never a refusal:
 - `Q night-shift`: when `active`, its `reason`.
 
 ## 3. Open the window
-`Q window start <hours>`, adding `--dry-run` in a dry run. When it refuses because the last window's archiver
+`Q window start <hours> --environment <the environment_id from step 1.2>`, adding `--dry-run` in a dry run. When it refuses because the last window's archiver
 is still on record, `RemoteTrigger` `get` that id (load RemoteTrigger with ToolSearch). Disabled: in a dry run
 this check passes, so note "a real start clears the last archiver" and go to step 6; otherwise run
-`Q window archived`, then `Q window start <hours>` again. Enabled: its sessions may still be running, so refuse
+`Q window archived`, then the same `Q window start` again. Enabled: its sessions may still be running, so refuse
 with the `error`. Any other exit 1 or 2: refuse with its `error` (a dry run puts it on the FAIL line). From here
 on, a dry run stops: give its report (step 6).
 
 ## 4. The scheduled tasks
-1. **Supervisor:** `create_trigger` with name `Sprint supervisor`, cron_expression `2 * * * *`, prompt
-   `/sprint-supervisor`, create_new_session_on_fire `true`, environment_id from `Q env`, connectors `[]` and
-   initiation `human_request`. Then `Q window ids --supervisor <its trig_ id>`. When the create fails, run
+1. **Supervisor:** `create_trigger` with name `TD sprint supervisor`, cron_expression `2 * * * *`, prompt
+   `/sprint-supervisor`, create_new_session_on_fire `true`, environment_id from `Q env` and initiation
+   `human_request`. Pass no `connectors`: the org refuses them there, and the bridge session already has the
+   claude-code-remote tools the supervisor needs for its wake. `create_trigger`, not `RemoteTrigger`, so that
+   `/sprint-stop` and the supervisor itself can switch it off with `update_trigger`. Then
+   `Q window ids --supervisor <its trig_ id>`. Any wake left from the last window stays on record: the
+   supervisor moves it. When the create fails, run
    `Q window stop` and refuse: `could not create the supervisor: <error>`.
-2. **Archiver:** `create_session` with title `Sprint archiver`, model `claude-haiku-5-5` and the same
+2. **Archiver:** `create_session` with title `TD sprint archiver`, model `claude-haiku-5-5` and the same
    environment_id, and no prompt. When that fails, the archiver uses this session instead: `get_session` with no
-   id gives its id. Then `create_trigger` with name `Sprint archiver`, cron_expression `50 * * * *`,
+   id gives its id. Then `create_trigger` with name `TD sprint archiver`, cron_expression `50 * * * *`,
    persistent_session_id that session, initiation `human_request`, and as prompt the archiver prompt in
    `docs/sprint.md` (Machinery), copied exactly. Then `Q window ids --archiver <its trig_ id>`. When the trigger
    create fails, the sprint still starts: "no archiver, so finished sessions pile up; archive by hand".
 
 ## 5. Go
 `fire_trigger` the supervisor, so the lanes start now rather than at minute 2. Then
-`gh issue comment <log from Q window> --body "<the step 6 lines>"`.
+`gh issue comment <log from Q window> --body "<the step 6 lines>"`. Comment only with `gh issue comment`,
+signed in as the bot; never with the GitHub plugin's tools, which sign in as the owner.
 
 ## 6. Report
-After the first line: the window in Eastern (`eastern` from `Q window`); the supervisor's and the archiver's ids
+After the first line: the window in Eastern (`eastern` from `Q window`); the environment; the supervisor's and the archiver's ids
 and the session the archiver posts into (say "this session; leave it open" when it is this one); the night
 shift's task in flight; and each item from step 2.

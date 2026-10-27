@@ -19,10 +19,10 @@ const PLAN_TARGET = 3; // a plan session tops its lane up to this many ready iss
 const PLANNING_DAY_TARGET = 6; // outside the window, the planning day specs each lane's first six
 const NIGHT_STOP = [3 * 60 + 30, 17 * 60]; // the night shift stops between 03:30 and 17:00 local time
 
-const has = (item, label) => item.labels.includes(label);
+export const has = (item, label) => item.labels.includes(label);
 const ms = (s) => new Date(s).getTime();
-const byNumber = (a, b) => a.number - b.number;
-const laneOf = (item) => item.labels.find((l) => l.startsWith("lane:"))?.slice(5) ?? null;
+export const byNumber = (a, b) => a.number - b.number;
+export const laneOf = (item) => item.labels.find((l) => l.startsWith("lane:"))?.slice(5) ?? null;
 
 // --- Comments: whose words count -------------------------------------------------------------------
 
@@ -103,7 +103,7 @@ export function waitsOnlyForOwner(pr, S) {
 }
 
 // sprint-lane step 1, and night-shift step 1 (held only).
-function prJob(pr, S, fixesLeft, { heldOnly = false } = {}) {
+export function prJob(pr, S, fixesLeft, { heldOnly = false } = {}) {
   const job = { pr: pr.number, issue: pr.closes[0] ?? null, branch: pr.head, base: pr.base };
   const fix = (concerns, reason) => (fixesLeft > 0 ? { mode: "fix", ...job, concerns, reason } : null);
   if (has(pr, "held")) {
@@ -217,7 +217,7 @@ function backlogKey(issue, doc, lane) {
 }
 const compareKeys = (a, b) => a[0] - b[0] || (a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0) || a[2] - b[2];
 
-const openWith = (S, ...labels) => S.issues.filter((i) => i.state === "OPEN" && labels.every((l) => has(i, l)));
+export const openWith = (S, ...labels) => S.issues.filter((i) => i.state === "OPEN" && labels.every((l) => has(i, l)));
 
 // --- The commands -----------------------------------------------------------------------------------
 
@@ -275,10 +275,10 @@ export function backlog(S, doc, lane) {
 
 // Whether the supervisor should start the session with this title.
 export function hasWork(S, doc, title) {
-  const m = /^Sprint (lane|plan): ([a-z]+)$/.exec(title);
+  const m = /^TD (lane|plan): ([a-z]+)$/.exec(title);
   if (!m || !doc.lanes.includes(m[2]))
     throw new Error(
-      `unknown session title "${title}": use "Sprint lane: <lane>" or "Sprint plan: <lane>" with a lane from docs/sprint.md (${doc.lanes.join(", ")})`,
+      `unknown session title "${title}": use "TD lane: <lane>" or "TD plan: <lane>" with a lane from docs/sprint.md (${doc.lanes.join(", ")})`,
     );
   const [, kind, lane] = m;
   if (!inWindow(doc, S.now)) return { start: false, reason: "outside the sprint window" };
@@ -306,46 +306,4 @@ export function hasWork(S, doc, title) {
   if (ready >= PLAN_TARGET) return { start: false, reason: `${ready} ready issues already` };
   if (!todo.length) return { start: false, reason: "every backlog ID has an issue" };
   return { start: true, reason: `${ready} ready; not yet specified: ${todo.join(", ")}` };
-}
-
-// The status block: counts per lane, the last merge, free memory and what needs the owner.
-export function status(S, doc, { merged = [], lastMain = null, need = [], oldBody = "" } = {}) {
-  const lines = [`Updated ${new Date(S.now).toISOString().slice(0, 16)}Z`, ""];
-  for (const lane of doc.lanes) {
-    const L = `lane:${lane}`;
-    const count = (...labels) => openWith(S, L, ...labels).length;
-    const held = S.prs.filter((p) => p.state === "OPEN" && has(p, L) && has(p, "held")).length;
-    const landed = merged.filter((p) => has(p, L)).length;
-    lines.push(
-      `- ${lane}: ${openWith(S, L, "sprint-ready").filter((i) => !has(i, "blocked")).length} ready, ${count("in-progress")} building, ${held} held, ${count("blocked")} blocked, ${landed} merged since the window opened`,
-    );
-  }
-  if (lastMain)
-    lines.push(
-      "",
-      `Last merge to main: #${lastMain.number} ${lastMain.title} (${lastMain.mergedAt}); CI: ${lastMain.ci ?? "unknown"}`,
-    );
-  lines.push(`Free memory: ${S.freeMb} MB`);
-  const needs = [
-    ...S.issues
-      .filter((i) => i.state === "OPEN" && laneOf(i) && has(i, "blocked") && !ownerAnswer(i, S))
-      .sort(byNumber)
-      .map((i) => `#${i.number} ${i.title}: blocked on a question`),
-    ...S.prs
-      .filter((p) => p.state === "OPEN" && p.reviewRequired)
-      .sort(byNumber)
-      .map((p) => `#${p.number} ${p.title}: waits for your approval`),
-    ...S.prs
-      .filter((p) => p.state === "OPEN" && has(p, "held") && !prJob(p, S, 1))
-      .sort(byNumber)
-      .map((p) => `#${p.number} ${p.title}: held; its last comment says why`),
-    ...need,
-  ];
-  lines.push("", "## Needs you", ...(needs.length ? needs.map((n) => `- ${n}`) : ["- nothing"]));
-  const before = new Set(
-    String(oldBody)
-      .split(/\r?\n/)
-      .map((l) => l.trim()),
-  );
-  return { body: lines.join("\n"), needsYou: needs, newNeeds: needs.filter((n) => !before.has(`- ${n}`)) };
 }
