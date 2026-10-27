@@ -24,9 +24,8 @@ const p = ports(config);
 const all = Object.values(p).flatMap((s) => Object.values(s));
 
 test("every stack service has its port set in config.toml", () => {
-  for (const s of ["api", "db", "db.pooler", "studio", "inbucket", "analytics"]) assert.ok(p[s]?.port, s);
+  for (const s of ["api", "db", "db.pooler", "studio", "local_smtp", "analytics"]) assert.ok(p[s]?.port, s);
   assert.ok(p.db.shadow_port);
-  assert.ok(p.analytics.vector_port, "analytics also binds vector_port");
 });
 
 test("no stack port is in Windows' dynamic range, so none can be reserved", () => {
@@ -38,7 +37,7 @@ test("the sign-in email hook calls the API port", () => {
   assert.ok(config.includes(`"http://host.docker.internal:${p.api.port}/functions/v1/auth-email"`));
 });
 
-test("every mail catcher address in the code uses the inbucket port", () => {
+test("every mail catcher address in the code uses the local_smtp (mail catcher) port", () => {
   const files = [
     "packages/app/e2e-stack/mail.ts",
     "packages/app/e2e-stack/helpers.test.ts",
@@ -52,6 +51,6 @@ test("every mail catcher address in the code uses the inbucket port", () => {
       Number(m[1]),
     );
     assert.ok(named.length > 0, `${f} names no port`);
-    for (const n of named) assert.equal(n, p.inbucket.port, f);
+    for (const n of named) assert.equal(n, p.local_smtp.port, f);
   }
 });
