@@ -1,5 +1,5 @@
 // The score track and Escalation on screen (A15, #448): test mode's map has scoring, so the region shows there at
-// a phone held upright, held sideways and at desktop size, with no sideways scroll; the six-region map has none.
+// a phone held upright, held sideways and at desktop size, with no sideways scroll; the six-region map's too (R24).
 // Set TRACKS_SHOTS to a folder to save a screenshot at each size.
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
@@ -35,11 +35,17 @@ for (const size of SIZES) {
   });
 }
 
-test("the six-region map has no scoring, so no score track or Escalation shows", async ({ page }) => {
+// R24 (#458): the six-region map has its own scoring now, 20 steps to each end, starting in the middle.
+test("the six-region map shows its 20-step score track, starting even, with no sideways scroll", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 667 });
   await page.goto("/");
   await page.getByRole("button", { name: "Play the six-region map" }).click();
   await page.getByRole("button", { name: "Play as LIO" }).click();
   await expect(page.getByTestId("decision")).toBeVisible();
-  await expect(page.getByTestId("tracks")).toHaveCount(0);
+  const tracks = page.getByTestId("tracks");
+  await expect(tracks.getByRole("meter", { name: "Score track" })).toHaveAttribute("aria-valuemax", "20");
+  await expect(tracks).toContainText("Score: even");
+  await expect(tracks).toContainText("LIO wins at -20");
+  await expect(tracks).toContainText("SAE wins at +20");
+  expect(await noSideScroll(page)).toBe(true);
 });

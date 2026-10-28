@@ -61,10 +61,16 @@ const scoring = (end, start, amounts) => ({
 });
 const FLAT = { present: 1, ahead: 3, all: 5 };
 const RUN = { scenario: "six-region", turns: 10, plays: 2, eras: { "era-2": 4, "era-3": 6, future: null } };
+/** The six-region config with its map's own scoring (R24, #458) taken off, for the no-scoring cases. */
+function unscored(config) {
+  const map = { ...config.setup.map };
+  delete map.scoring;
+  return { ...config, setup: { ...config.setup, map } };
+}
 
 test("numbers can give the map scoring, and refuse scoring that does not fit", () => {
   const map = scenarioConfig("six-region").setup.map;
-  assert.equal(map.scoring, undefined, "the scenario itself has none");
+  assert.notDeepEqual(map.scoring, scoring(20, 0, FLAT), "the scenario's own scoring is not the one given");
   const applied = applyNumbers(scenarioConfig("six-region"), { scoring: scoring(20, 0, FLAT) }).setup.map;
   assert.deepEqual(applied.scoring, scoring(20, 0, FLAT));
   const one = scoring(20, 0, FLAT);
@@ -98,7 +104,11 @@ test("a real scored game ends with a track position, and its regions' points add
   for (const era of order) assert.ok(eras.filter((e) => e === era).length <= 6, `${era} scores each region once`);
   const moved = game.score.rows.reduce((n, r) => n + r.sae - r.lio, 0);
   if (game.score.how !== "trackEnd") assert.equal(game.score.final, moved, "no clamping, so the points add up");
-  assert.equal(playBalanceGame("x13", 0, scenarioConfig("six-region")).score, null, "no scoring, no score numbers");
+  assert.equal(
+    playBalanceGame("x13", 0, unscored(scenarioConfig("six-region"))).score,
+    null,
+    "no scoring, no score numbers",
+  );
 });
 
 test("a run with scoring reports the score section, the text and the JSON from the same numbers", () => {
@@ -110,7 +120,7 @@ test("a run with scoring reports the score section, the text and the JSON from t
   assert.match(text, /Score track \(positive favours SAE; starts at 0\)/);
   assert.match(text, /Score per era/);
   assert.match(text, /Score per region[\s\S]*decided share/);
-  const plain = runBalance({ ...RUN, games: 2, seed: "x13" });
+  const plain = runBalance({ ...RUN, scenario: "first-deck", games: 2, seed: "x13" });
   assert.equal(plain.score, undefined);
   assert.doesNotMatch(formatText(plain, "T"), /Score track/);
 });

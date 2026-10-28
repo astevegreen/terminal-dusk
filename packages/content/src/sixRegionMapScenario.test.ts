@@ -1,5 +1,5 @@
 // #422: the six-region map as scenario data (docs/design/map-and-points.md, "Map"; owner, 28 Oct: option 2 of
-// docs/proposals/map-content/, H1, Crimea its own box, closing order C1, scoring order S1).
+// docs/proposals/map-content/, H1, Crimea its own box, closing order C1, scoring order S1); its numbers (R24, #458).
 import { createGame, seedHash } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { ERA_1_CARDS } from "./era1.ts";
@@ -11,6 +11,130 @@ import { SIX_REGION_MAP_SCENARIO } from "./sixRegionMapScenario.ts";
 const map = SIX_REGION_MAP_SCENARIO.map!;
 const byId = new Map(map.countries.map((c) => [c.id, c]));
 const neighboursOf = (id: string): readonly string[] => byId.get(id)?.neighbours ?? [];
+
+// Option A of docs/proposals/map-numbers/option-a-history.md, as the owner chose it on 28 Oct (R24, #458).
+const STABILITY: Record<string, number> = {
+  // Eastern Europe and Central Asia
+  estonia: 3,
+  belarus: 3,
+  ukraine: 2,
+  crimea: 2,
+  georgia: 1,
+  azerbaijan: 2,
+  kazakhstan: 3,
+  kyrgyzstan: 1,
+  tajikistan: 1,
+  // East and South Asia
+  japan: 4,
+  "south-korea": 3,
+  "north-korea": 4,
+  taiwan: 3,
+  india: 3,
+  pakistan: 2,
+  afghanistan: 1,
+  australia: 4,
+  // Europe
+  "united-kingdom": 4,
+  france: 4,
+  germany: 4,
+  italy: 3,
+  poland: 3,
+  finland: 4,
+  serbia: 2,
+  greece: 3,
+  // Middle East and North Africa
+  turkey: 3,
+  libya: 1,
+  israel: 4,
+  lebanon: 1,
+  syria: 2,
+  iraq: 1,
+  iran: 3,
+  "saudi-arabia": 3,
+  // Sub-Saharan Africa
+  nigeria: 1,
+  rwanda: 1,
+  somalia: 1,
+  "south-africa": 3,
+  // The Americas
+  canada: 4,
+  mexico: 2,
+  cuba: 3,
+  venezuela: 2,
+  brazil: 2,
+};
+const ERA_1 = [
+  "ukraine",
+  "georgia",
+  "kazakhstan",
+  "germany",
+  "poland",
+  "serbia",
+  "iraq",
+  "iran",
+  "israel",
+  "rwanda",
+  "nigeria",
+  "south-africa",
+  "japan",
+  "north-korea",
+  "taiwan",
+  "india",
+  "mexico",
+  "cuba",
+  "brazil",
+];
+const ERA_2 = [
+  "ukraine",
+  "georgia",
+  "kyrgyzstan",
+  "germany",
+  "france",
+  "poland",
+  "iraq",
+  "iran",
+  "lebanon",
+  "saudi-arabia",
+  "nigeria",
+  "somalia",
+  "south-africa",
+  "north-korea",
+  "india",
+  "pakistan",
+  "afghanistan",
+  "mexico",
+  "venezuela",
+  "brazil",
+];
+const ERA_3 = [
+  "ukraine",
+  "crimea",
+  "belarus",
+  "kazakhstan",
+  "germany",
+  "poland",
+  "greece",
+  "turkey",
+  "libya",
+  "syria",
+  "iran",
+  "nigeria",
+  "south-africa",
+  "japan",
+  "taiwan",
+  "india",
+  "mexico",
+  "venezuela",
+  "brazil",
+];
+const AMOUNTS = [
+  { region: "eastern-europe-central-asia", present: 2, ahead: 5, all: 8 },
+  { region: "east-south-asia", present: 2, ahead: 5, all: 8 },
+  { region: "europe", present: 2, ahead: 5, all: 8 },
+  { region: "middle-east-north-africa", present: 2, ahead: 4, all: 6 },
+  { region: "sub-saharan-africa", present: 1, ahead: 3, all: 4 },
+  { region: "americas", present: 1, ahead: 3, all: 5 },
+];
 
 /** Every country a side can reach by stepping from country to neighbouring country, starting next to its home box. */
 function reachableFrom(start: readonly string[]): Set<string> {
@@ -32,9 +156,9 @@ describe("the six-region map scenario (#422)", () => {
     expect(exported).toBe(SIX_REGION_MAP_SCENARIO);
   });
 
-  it("says in its name that its numbers are placeholders", () => {
+  it("says in its name which numbers are still placeholders: turns, plays and hand size", () => {
     expect(SIX_REGION_MAP_SCENARIO.id).toBe("six-region-map");
-    expect(SIX_REGION_MAP_SCENARIO.name).toMatch(/placeholder/);
+    expect(SIX_REGION_MAP_SCENARIO.name).toMatch(/placeholder turns, plays and hand size/);
   });
 
   it("lists the six regions in the scoring order S1", () => {
@@ -58,30 +182,27 @@ describe("the six-region map scenario (#422)", () => {
     expect(perRegion).toEqual([9, 8, 8, 8, 4, 5]);
   });
 
-  it("has option 2's 17 battlegrounds in every era, three per region and two in Sub-Saharan Africa", () => {
+  // R24 (#458; owner, 28 Oct: "A, tune later"): option A of docs/proposals/map-numbers/, until the balance pass.
+  it("has option A's stabilities, 106 in all", () => {
+    expect(Object.fromEntries(map.countries.map((c) => [c.id, c.stability]))).toEqual(STABILITY);
+    expect(map.countries.reduce((sum, c) => sum + c.stability, 0)).toBe(106);
+  });
+
+  // R24 (owner, 28 Oct: "A, move with history"): each era its own list; the future era keeps Era 3's.
+  it("has option A's battleground lists: 19, 20 and 19, and the future era keeps Era 3's", () => {
     expect(map.battlegrounds.map((b) => b.era)).toEqual(["era-1", "era-2", "era-3", "future"]);
-    for (const { countries } of map.battlegrounds) expect(countries).toEqual(map.battlegrounds[0]!.countries);
-    expect(map.battlegrounds[0]!.countries.toSorted()).toEqual(
-      [
-        "germany",
-        "poland",
-        "serbia",
-        "ukraine",
-        "georgia",
-        "kazakhstan",
-        "syria",
-        "iraq",
-        "iran",
-        "nigeria",
-        "south-africa",
-        "japan",
-        "taiwan",
-        "india",
-        "mexico",
-        "venezuela",
-        "brazil",
-      ].toSorted(),
+    const lists = [ERA_1, ERA_2, ERA_3, ERA_3];
+    map.battlegrounds.forEach(({ era, countries }, i) =>
+      expect(countries.toSorted(), era).toEqual(lists[i]!.toSorted()),
     );
+    expect(map.battlegrounds.map((b) => b.countries.length)).toEqual([19, 20, 19, 19]);
+    expect(map.battlegrounds[3]!.countries).toEqual(map.battlegrounds[2]!.countries);
+  });
+
+  // R24 (owner, 28 Oct: "Weighted, 20, middle"): option A's amounts, 20 steps each way, starting in the middle.
+  it("scores with option A's weighted amounts on a 20-step track that starts in the middle", () => {
+    expect(map.scoring).toEqual({ track: { end: 20, start: 0 }, regions: AMOUNTS });
+    expect(map.scoring!.regions.map((r) => r.region)).toEqual(map.regions.map((r) => r.id));
   });
 
   it("lists every link at both ends", () => {
@@ -93,7 +214,10 @@ describe("the six-region map scenario (#422)", () => {
   it("makes Crimea its own box next to Ukraine, Turkey and the SAE box, with Turkey listing Crimea back", () => {
     const crimea = byId.get("crimea");
     expect(crimea).toMatchObject({ name: "Crimea", region: "eastern-europe-central-asia" });
-    expect(map.battlegrounds.some((b) => b.countries.includes("crimea"))).toBe(false);
+    expect(map.battlegrounds.filter((b) => b.countries.includes("crimea")).map((b) => b.era)).toEqual([
+      "era-3",
+      "future",
+    ]);
     expect(crimea?.neighbours.toSorted()).toEqual(["turkey", "ukraine"]);
     expect(neighboursOf("turkey")).toContain("crimea");
     expect(neighboursOf("ukraine")).toContain("crimea");
@@ -130,12 +254,14 @@ describe("the six-region map scenario (#422)", () => {
     expect(reachableFrom(map.homeBox.sae).size).toBe(42);
   });
 
+  // R24 (owner, 28 Oct: "LIO 3 / SAE 1"): Taiwan LIO-controlled; Crimea an SAE foothold, not control.
   it("starts Taiwan with LIO in control and Crimea with SAE influence, and every other country empty", () => {
     expect(map.startingInfluence).toEqual([
       { country: "taiwan", lio: 3, sae: 0 },
       { country: "crimea", lio: 0, sae: 1 },
     ]);
     expect(byId.get("taiwan")?.stability).toBe(3);
+    expect(byId.get("crimea")?.stability).toBe(2);
   });
 
   it("starts a game with the Era 1 cards as the host does: the engine accepts the map", () => {

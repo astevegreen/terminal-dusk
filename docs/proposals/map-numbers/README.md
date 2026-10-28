@@ -1,5 +1,8 @@
 Proposal, not a rule
 
+Answered by the owner on 28 October 2026: option A, with the track starting in the middle. The decision is in
+`docs/design/map-and-points.md` ("Map numbers") and the map data (R24, #458).
+
 # The six-region map's numbers
 
 Research lane X12 (#438). The owner's 28 October answers settled the six-region map's countries, its neighbours,
