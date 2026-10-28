@@ -53,7 +53,7 @@ describe("GameScreen for a side", () => {
   const lio = frameFor("lio");
   const out = html(withPublic(lio, { discard: ["t1", "t2"], inPlay: ["t3"] }), { log: ["first", "second"] });
   it("shows the viewer, the turn line and the plays", () => {
-    expectAll(out, ["You play LIO", "Turn 1 of 2", "Plays made: 0 of 2", "Your decision"]);
+    expectAll(out, ["You play LIO", "Turn 1 of 2", "Plays this turn: 0 of 4", "Your decision"]);
   });
   it("shows the hand by name in the frame's order and the opponent's count", () => {
     expectAll(out, ["<li>Test card 1</li><li>Test card 2</li><li>Test card 3</li>", "SAE holds 7 cards"]);
