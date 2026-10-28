@@ -1,10 +1,11 @@
-// Tests for CI's dependency check: the new-dependency report and failing only on a new high or critical advisory.
+// Tests for CI's dependency check: the new-dependency report, failing on a new high or critical advisory, and failing
+// when the audit gave no answer on a change that touches dependencies.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { advisories, catalog, depChanges, manifests, newAdvisories, report } from "./deps-report.mjs";
+import { advisories, catalog, depChanges, lockfileChanged, manifests, newAdvisories, report } from "./deps-report.mjs";
 
 function tree(files) {
   const root = mkdtempSync(path.join(os.tmpdir(), "deps-report-"));
@@ -83,10 +84,31 @@ test("an advisory main already has never fails an unrelated pull request", () =>
   assert.match(r.text, /No new high or critical advisory\./);
 });
 
-test("an audit that got no answer warns and passes: a machine failure retries next run", () => {
+test("an audit that got no answer fails a change that touches dependencies: nothing else checks what came in", () => {
   const changes = { added: [{ key: "package.json dependencies x", to: "^1.0.0" }], removed: [], changed: [] };
-  const r = report({ changes, base: null, head: advisories(auditJson()) });
+  for (const [base, head] of [[null, advisories(auditJson())], [advisories(auditJson()), null], [null, null]]) {
+    const r = report({ changes, base, head });
+    assert.equal(r.fail, true);
+    assert.match(r.text, /- added: package.json dependencies x \^1\.0\.0/);
+    assert.match(r.text, /Failed: pnpm audit gave no answer/);
+  }
+  const lockOnly = report({ changes: { added: [], removed: [], changed: [], lockfile: true }, base: null, head: null });
+  assert.equal(lockOnly.fail, true, "a lockfile-only change is a dependency change too");
+  assert.match(lockOnly.text, /- pnpm-lock\.yaml changed/);
+});
+
+test("an audit that got no answer only warns on a change that touches no dependency", () => {
+  const r = report({ changes: { added: [], removed: [], changed: [], lockfile: false }, base: null, head: null });
   assert.equal(r.fail, false);
-  assert.match(r.text, /- added: package.json dependencies x \^1\.0\.0/);
+  assert.match(r.text, /No dependency added, removed or changed\./);
   assert.match(r.text, /Warning: pnpm audit gave no answer/);
+});
+
+test("lockfileChanged compares the two checkouts' pnpm-lock.yaml, ignoring line endings", () => {
+  const a = tree({ "pnpm-lock.yaml": "lockfileVersion: '9.0'\nx: 1\n" });
+  const same = tree({ "pnpm-lock.yaml": "lockfileVersion: '9.0'\r\nx: 1\r\n" });
+  const moved = tree({ "pnpm-lock.yaml": "lockfileVersion: '9.0'\nx: 2\n" });
+  assert.equal(lockfileChanged(a, same), false);
+  assert.equal(lockfileChanged(a, moved), true);
+  assert.equal(lockfileChanged(a, tree({})), true, "a lockfile added or removed");
 });

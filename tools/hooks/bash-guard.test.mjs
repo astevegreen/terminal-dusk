@@ -92,6 +92,20 @@ test("read-only mode runs the reviewer's usual inspection commands, and nothing 
   }
 });
 
+test("unattended, no shell command writes or deletes a CI workflow: it runs with the repo's secrets once pushed", () => {
+  for (const bad of ["cp evil.yml .github/workflows/ci.yml", "echo x > .github/workflows/new.yml", "rm .github/workflows/nightly.yml",
+    "sed -i s/a/b/ .github/workflows/ci.yml", "git status && tee .github/workflows/ci.yml < x", "Set-Content .GITHUB/Workflows/ci.yml 'x'"]) {
+    if (bad.includes(".GITHUB") && process.platform !== "win32") continue;
+    const r = guard(bad, ["--unattended"]);
+    assert.ok(denied(r), `${bad}: ${r.stdout || "nothing"}`);
+    assert.match(r.json.hookSpecificOutput.permissionDecisionReason, /\.github\/workflows\/ is Locked.*Blocked: needs a day session/);
+  }
+  for (const ok of ["echo x > CLAUDE.md", "cat .github/workflows/ci.yml", "echo x > .github/ISSUE_TEMPLATE/task.yml"])
+    assert.equal(guard(ok, ["--unattended"]).stdout, "", ok);
+  // By day the owner is in the session: a workflow edit goes through, and the rail audit checks it at pull-request time.
+  assert.equal(guard("cp ci.yml .github/workflows/ci.yml").stdout, "");
+});
+
 test("unattended mode lets the sprint skills ask the queue script", () => {
   for (const ok of ["node tools/sprint/queue.mjs next rules --fixes-done 1", "node tools/sprint/queue.mjs has-work \"Sprint lane: rules\"",
     "node tools/sprint/queue.mjs move 230 held --note \"1. [minor] summary out of date; see review\" --conflict", "node tools/sprint/queue.mjs status --need \"Sprint lane: app is stuck\""]) {

@@ -5,10 +5,17 @@ import path from "node:path";
 
 // Locked paths, relative to the repository (or worktree) root: the guards, hooks and gates that govern an agent's
 // own session (settings and the agents' and skills' front matter wire them). A lane or night run never edits them,
-// and no shell command writes them. Everything else, CLAUDE.md, GEMINI.md, docs and workflows included, no longer
-// waits for the owner (owner's policy, 28 Oct 2026, P6): CI, the reviewer and agy's rail audit check it. Keep in
-// sync with CLAUDE.md "Never".
+// and no shell command writes them. Everything else, CLAUDE.md, GEMINI.md and docs included, no longer waits for
+// the owner (owner's policy, 28 Oct 2026, P6): CI, the reviewer and agy's rail audit check it. Keep in sync with
+// CLAUDE.md "Never".
 export const LOCKED = [".claude/", "tools/hooks/", "tools/gates/", "tools/git-hooks/"];
+
+// Locked for unattended sessions only (night runs and sprint lanes: the implementer's file-lock, bash-guard
+// --unattended). A workflow runs with the repository's secrets (CLOUDFLARE_API_TOKEN, SONAR_TOKEN) as soon as its
+// branch is pushed, before the rail audit at pull-request time, and the owner keeps the secrets. A lane that needs
+// one changed is blocked for a day session; an interactive day session may edit workflows, and the rail audit
+// checks them at pull-request time.
+export const UNATTENDED_LOCKED = [".github/workflows/"];
 
 // Claude Code keeps its own worktrees under .claude/worktrees/; files there belong to the worktree.
 const NOT_LOCKED = [".claude/worktrees/"];
@@ -67,15 +74,17 @@ export function repoRootFor(target, fallback) {
   return root ? canonical(root) : null;
 }
 
-// Returns the locked entry `file` falls under, or null.
-export function lockedEntry(file, cwd) {
+// Returns the locked entry `file` falls under, or null. unattended: also the paths Locked only for unattended
+// sessions (UNATTENDED_LOCKED).
+export function lockedEntry(file, cwd, { unattended = false } = {}) {
   if (!file) return null;
   const abs = canonical(path.resolve(cwd ?? process.cwd(), file));
   const root = repoRootFor(abs, cwd ?? process.cwd());
   const rel = fold(toPosix(path.relative(root, abs)));
   if (rel.startsWith("../") || path.isAbsolute(rel)) return null;
   if (NOT_LOCKED.some((n) => rel.startsWith(fold(n)))) return null;
-  return LOCKED.find((l) => (l.endsWith("/") ? rel.startsWith(fold(l)) : rel === fold(l))) ?? null;
+  const locked = unattended ? [...LOCKED, ...UNATTENDED_LOCKED] : LOCKED;
+  return locked.find((l) => (l.endsWith("/") ? rel.startsWith(fold(l)) : rel === fold(l))) ?? null;
 }
 
 // Print a PreToolUse permission decision ("allow", "ask" or "deny") and stop the hook.

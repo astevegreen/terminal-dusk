@@ -125,8 +125,8 @@ jobs:
         run: pnpm exec supabase stop --no-backup || true
 
   # Dependencies replaced the owner's review of package.json and the lockfile: a report of every dependency added,
-  # removed or changed (in the job summary), and `pnpm audit`, failing only on a high or critical advisory the base
-  # didn't have (tools/gates/deps-report.mjs).
+  # removed or changed (in the job summary), and `pnpm audit`, failing on a high or critical advisory the base
+  # didn't have, or when it gives no answer on a change that touches dependencies (tools/gates/deps-report.mjs).
   deps:
     runs-on: ubuntu-latest
     timeout-minutes: 10

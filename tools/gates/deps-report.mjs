@@ -4,7 +4,8 @@
 //     pnpm catalog, written to the job summary so a reader sees what came in and from where;
 //   - `pnpm audit` on both: it fails only on a high or critical advisory the base didn't have, so an advisory
 //     published upstream for a package main already uses never blocks unrelated pull requests. An audit that
-//     can't reach the registry is a machine failure: it warns and passes, and the next run checks again.
+//     can't reach the registry fails when the change touches dependencies (a manifest, the catalog or the
+//     lockfile), since nothing else checks what came in; on any other change it warns and passes.
 // Usage: node tools/gates/deps-report.mjs --base <base checkout> [--head <dir>]   (exit 1 on a new advisory)
 import { spawnSync } from "node:child_process";
 import { appendFileSync, existsSync, readFileSync, readdirSync } from "node:fs";
@@ -83,16 +84,39 @@ export function newAdvisories(base, head) {
   return head.filter((a) => FAIL_LEVELS.includes(a.severity) && !before.has(a.key));
 }
 
+// True when the two checkouts' pnpm-lock.yaml differ: a dependency moved even if no manifest did.
+export function lockfileChanged(baseRoot, headRoot) {
+  const read = (root) => {
+    const file = path.join(root, "pnpm-lock.yaml");
+    return existsSync(file) ? readFileSync(file, "utf8").replace(/\r\n/g, "\n") : null;
+  };
+  return read(baseRoot) !== read(headRoot);
+}
+
+// changes: depChanges() plus lockfile (true when pnpm-lock.yaml changed); base, head: advisories(), or null when
+// pnpm audit gave no answer.
 export function report({ changes, base, head }) {
   const lines = ["## Dependencies", ""];
-  const { added, removed, changed } = changes;
-  if (!added.length && !removed.length && !changed.length) lines.push("No dependency added, removed or changed.");
+  const { added, removed, changed, lockfile = false } = changes;
+  const touched = added.length > 0 || removed.length > 0 || changed.length > 0 || lockfile;
+  if (!touched) lines.push("No dependency added, removed or changed.");
   for (const a of added) lines.push(`- added: ${a.key} ${a.to}`);
   for (const r of removed) lines.push(`- removed: ${r.key} ${r.from}`);
   for (const c of changed) lines.push(`- changed: ${c.key} ${c.from} -> ${c.to}`);
+  if (lockfile) lines.push("- pnpm-lock.yaml changed");
   lines.push("", "## pnpm audit", "");
   if (!head || !base) {
-    lines.push("Warning: pnpm audit gave no answer (registry unreachable?), so no advisory was compared this run.");
+    if (touched) {
+      lines.push(
+        "Failed: pnpm audit gave no answer (registry unreachable?), and this change touches dependencies, so what " +
+          "came in was not checked for advisories. Run the job again once the registry answers.",
+      );
+      return { text: lines.join("\n"), fail: true };
+    }
+    lines.push(
+      "Warning: pnpm audit gave no answer (registry unreachable?), so no advisory was compared this run. This change " +
+        "touches no dependency, so it passes.",
+    );
     return { text: lines.join("\n"), fail: false };
   }
   const fresh = newAdvisories(base, head);
@@ -121,7 +145,7 @@ if (import.meta.main) {
     process.exit(2);
   }
   const r = report({
-    changes: depChanges(manifests(baseDir), manifests(headDir)),
+    changes: { ...depChanges(manifests(baseDir), manifests(headDir)), lockfile: lockfileChanged(baseDir, headDir) },
     base: audit(baseDir),
     head: audit(headDir),
   });

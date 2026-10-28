@@ -50,7 +50,8 @@ The owner is not a programmer: explain every change in plain English, and prove 
 ## Never
 - Weaken, skip or delete a test to get green, or change gate scripts, test configs or hooks to pass.
 - Edit `.claude/`, `tools/hooks/`, `tools/gates/` or `tools/git-hooks/` in a night run or sprint lane: they are the
-  guards and hooks of your own session. By day, edits to `.claude/settings*.json` and `tools/hooks/` ask the owner.
+  guards and hooks of your own session. Nor `.github/workflows/`: a workflow runs with the repository's secrets as
+  soon as it is pushed. By day, edits to `.claude/settings*.json` and `tools/hooks/` ask the owner.
 - Push to `main`, force-push, or rewrite history.
 - Put secrets, the RNG seed or hidden cards anywhere a client, log or test snapshot can see them.
 - Use names, art or text from Twilight Struggle, or likenesses of real people.
@@ -59,8 +60,9 @@ The owner is not a programmer: explain every change in plain English, and prove 
 By day, after opening a pull request, nothing waits for the owner's review: CI, the reviewer and agy decide, and
 `git revert` is the safety net.
 1. Run the `reviewer` agent and `node tools/gemini-audit.mjs pr <n>` (agy's second look, plus a deep rail audit
-   when the diff touches hooks, gates, git hooks, workflows, `.claude/settings*.json`, CODEOWNERS or the audit).
-   Fix their [blocker]s once, then run both again. The audit prints a `verdict`.
+   when the diff touches hooks, gates, git hooks, workflows, `.claude/settings*.json`, CODEOWNERS, the audit,
+   GEMINI.md or the root `package.json`). Fix their [blocker]s once, then run both again. The audit prints a
+   `verdict`.
 2. `merge`, and no reviewer [blocker] left: `gh pr ready <n>` and `gh pr merge <n> --auto --squash`. [minor]
    concerns and agy's notes never hold: comment them, or open a follow-up issue when one is real work.
 3. A [blocker] left: `gh pr ready <n>`, label it `held`, comment the blockers. Verdict `hold` (the rail audit says

@@ -1,7 +1,8 @@
 // PreToolUse (Bash): catch disguised versions of denied commands anywhere in a command line.
 // Permission rules only match prefixes; this checks every part of a chained command.
 // With --read-only (the reviewer), only a short list of inspection commands may run.
-// With --unattended (the night shift), owner-only gh commands and skipping git's hooks are blocked.
+// With --unattended (night runs and sprint lanes), owner-only gh commands, skipping git's hooks and shell writes to CI
+// workflows (which run with the repository's secrets once pushed) are blocked too.
 // By day, gh auth and gh secret are `ask` rules, and this hook lets gh api reads and gh repo view
 // through but asks the owner about anything else under gh api or gh repo, and before git's hooks
 // are skipped in any spelling the `ask` rules' prefixes miss (git commit -anm, --no-verif).
@@ -11,6 +12,10 @@ import { segments } from "./shell-words.mjs";
 
 const READ_ONLY = process.argv.includes("--read-only");
 const UNATTENDED = process.argv.includes("--unattended");
+// Unattended, CI workflows are Locked too (shared.mjs, UNATTENDED_LOCKED); a task that needs one waits for a day session.
+const DAY_SESSION = UNATTENDED
+  ? " If the task needs it, comment `Blocked: needs a day session: <why>` on the issue and hand back STATUS: BLOCKED."
+  : "";
 const OWNER_ONLY_GH = new Set(["api", "repo", "auth", "secret"]);
 const input = await readInput();
 const command = String(input.tool_input?.command ?? "");
@@ -227,8 +232,8 @@ function check(seg) {
     const recursive = args.some((a) => /^-[a-zA-Z]*[rR]/.test(a) || /^--recursive$/i.test(a) || /^-recurse$/i.test(a) || /^\/s$/i.test(a));
     const targets = args.filter((a) => !a.startsWith("-") && !/^\/[a-z]$/i.test(a));
     if (recursive && targets.some(outside)) return "recursive delete outside the current worktree is not allowed.";
-    const locked = targets.map((t) => lockedEntry(t, cwd)).find(Boolean);
-    if (locked) return `${locked} is Locked; deleting it is not allowed.`;
+    const locked = targets.map((t) => lockedEntry(t, cwd, { unattended: UNATTENDED })).find(Boolean);
+    if (locked) return `${locked} is Locked; deleting it is not allowed.${DAY_SESSION}`;
   }
   const writeTargets = [...seg.redirects];
   if (name === "tee") writeTargets.push(...args.filter((a) => !a.startsWith("-")));
@@ -236,8 +241,8 @@ function check(seg) {
   if (COPIERS.has(name)) writeTargets.push(...args.filter((a) => !a.startsWith("-")).slice(-1));
   if (name === "sed" && args.some((a) => /^-[a-zA-Z]*i/.test(a) || a.startsWith("--in-place")))
     writeTargets.push(...args.filter((a) => !a.startsWith("-")).slice(1));
-  const locked = writeTargets.filter((t) => t && !/^(\/dev\/null|nul|\$null)$/i.test(t)).map((t) => lockedEntry(t, cwd)).find(Boolean);
-  if (locked) return `${locked} is Locked; writing to it from the shell is not allowed.`;
+  const locked = writeTargets.filter((t) => t && !/^(\/dev\/null|nul|\$null)$/i.test(t)).map((t) => lockedEntry(t, cwd, { unattended: UNATTENDED })).find(Boolean);
+  if (locked) return `${locked} is Locked; writing to it from the shell is not allowed.${DAY_SESSION}`;
   if (all.some((a) => isEnvFile(a)) && seg.redirects.some(isEnvFile)) return ".env files hold secrets and must not be touched.";
   return null;
 }

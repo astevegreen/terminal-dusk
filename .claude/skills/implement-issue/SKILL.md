@@ -22,7 +22,7 @@ Task: $ARGUMENTS (in a night run, the mode and number are in your prompt instead
   on the issue `Blocked: Design question: <one question>` with `Recommendation: <your answer and why>` on its own
   line (the owner's next comment, on the issue or on the Decisions issue naming it, is read as the answer only
   after one), add the `blocked` label, and hand back STATUS: BLOCKED. The daily Decisions digest asks the owner.
-- A Locked file (a guard, hook or gate of your own session), in a night run or sprint lane: comment
+- A Locked file (a guard, hook or gate of your own session, or a CI workflow), in a night run or sprint lane: comment
   `Blocked: needs a day session: <why>`, add `blocked`, and hand back STATUS: BLOCKED.
 
 ## 3. Build

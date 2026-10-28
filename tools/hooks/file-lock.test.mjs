@@ -21,9 +21,22 @@ test("refuses Write as well as Edit", () => {
   assert.ok(denied(edit(".claude/settings.json", repo, "Write")));
 });
 
-// P6: instructions, docs and workflows no longer wait for the owner; CI, the reviewer and agy's rail audit check them.
+// A workflow runs with the repository's secrets as soon as its branch is pushed, before the rail audit, and the
+// implementer only runs unattended: a lane that needs one changed is blocked for a day session.
+for (const file of [".github/workflows/ci.yml", ".github/workflows/new-job.yml"]) {
+  test(`refuses edits to the CI workflow ${file}, for a day session`, () => {
+    const r = edit(file, repo, "Write");
+    assert.ok(denied(r), r.stdout);
+    const why = r.json.hookSpecificOutput.permissionDecisionReason;
+    assert.match(why, /Locked file \(\.github\/workflows\/\)/);
+    assert.match(why, /secrets/);
+    assert.match(why, /Blocked: needs a day session/);
+  });
+}
+
+// P6: instructions and docs no longer wait for the owner; CI, the reviewer and agy's rail audit check them.
 for (const file of ["packages/engine/src/apply.ts", "docs/design/coups.md", "tools/repo-map.mjs", "docs/architecture-notes.md",
-  "CLAUDE.md", "GEMINI.md", "docs/architecture.md", ".github/workflows/ci.yml"]) {
+  "CLAUDE.md", "GEMINI.md", "docs/architecture.md", ".github/ISSUE_TEMPLATE/task.yml"]) {
   test(`allows edits to ${file}`, () => {
     const r = edit(file);
     assert.equal(r.status, 0);
