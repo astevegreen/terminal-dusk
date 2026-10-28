@@ -18,6 +18,7 @@ import {
   pickDepth,
 } from "./gemini/agy.mjs";
 import { RAIL_MODELS, decide, railHits, readVerdict, reusableVerdict, verdictMarker } from "./gemini/rails.mjs";
+import { collaborators, fromFork, trustedComment, trustedIssue } from "./github-trust.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const MARKER = "<!-- gemini-audit -->";
@@ -92,11 +93,20 @@ function issueText(n, ghRun = gh) {
   return `# #${i.number} ${i.title}\n\n${i.body}\n`;
 }
 
+// The open issue a collaborator opened under this title: anyone can open an issue of the same name.
+export function pinnedIssueOf(issues, title, team) {
+  return issues.find((i) => i.title === title && trustedIssue(i, team))?.number;
+}
+
 function pinnedIssue(title) {
-  const found = JSON.parse(
-    gh("issue", "list", "--state", "open", "--search", `"${title}" in:title`, "--json", "number,title"),
-  ).find((i) => i.title === title);
-  if (found) return found.number;
+  // A wide page, so strangers' issues of the same title can't push the collaborator's off it.
+  const search = ["--search", `"${title}" in:title`, "--json", "number,title,author"];
+  const found = pinnedIssueOf(
+    JSON.parse(gh("issue", "list", "--state", "open", "--limit", "500", ...search)),
+    title,
+    collaborators((args) => gh(...args)),
+  );
+  if (found) return found;
   if (DRY) return 0;
   const url = gh(
     "issue",
@@ -141,7 +151,11 @@ function prMaterial(pr, diff, ghRun) {
 // verdict this script already posted for the same commit is reused, unless it was a retry (rails.mjs,
 // reusableVerdict). io stands in for gh, agy, the comment and the signed-in login in the tests.
 export function auditPr(number, io = { gh, ask: askGemini, post, me: signedIn }) {
-  const pr = JSON.parse(io.gh("pr", "view", String(number), "--json", "number,body,headRefOid,comments"));
+  const pr = JSON.parse(
+    io.gh("pr", "view", String(number), "--json", "number,body,headRefOid,isCrossRepository,comments"),
+  );
+  // The repository is public: a stranger's diff and description never reach agy, and get no verdict.
+  if (fromFork(pr)) throw new Error(`pull request #${pr.number} is from a fork, so it is not audited`);
   // Who this script posts as is asked only when a comment carries a verdict, so a first audit costs no extra call.
   const marked = pr.comments.some((c) => readVerdict(c.body));
   const old = marked ? reusableVerdict(pr.comments, pr.headRefOid, io.me()) : null;
@@ -172,15 +186,21 @@ export function auditPr(number, io = { gh, ask: askGemini, post, me: signedIn })
   return { pr: pr.number, ...verdict, rails: hits.map((h) => h.file) };
 }
 
-// Every open pull request without an audit yet, or whose newest audit could not run (verdict retry), one JSON line
-// each.
-function prs() {
-  const open = JSON.parse(gh("pr", "list", "--state", "open", "--json", "number,comments"));
+// The open pull requests from this repository's own branches without an audit yet, or whose newest audit could not
+// run (verdict retry). A fork's pull request is never due, and only a collaborator's comment is an audit.
+export function duePrs(open) {
   const due = (p) => {
-    const audits = p.comments.filter((c) => c.body.includes(MARKER));
+    const audits = p.comments.filter((c) => trustedComment(c) && c.body.includes(MARKER));
     return !audits.length || readVerdict(audits.at(-1).body)?.verdict === "retry";
   };
-  for (const pr of open.filter(due)) {
+  return open.filter((p) => !fromFork(p) && due(p));
+}
+
+// Every due pull request, one JSON line each.
+function prs() {
+  // The sprint queue's page size, so fork pull requests can't push this repository's own off it.
+  const open = gh("pr", "list", "--state", "open", "--limit", "300", "--json", "number,isCrossRepository,comments");
+  for (const pr of duePrs(JSON.parse(open))) {
     try {
       console.log(JSON.stringify(auditPr(pr.number)));
     } catch (err) {

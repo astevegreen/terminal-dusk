@@ -50,3 +50,9 @@ test("a green nightly run closes the open failure issue", () => {
   assert.match(nightly, /- name: Close the failure issue after a green run\n\s+if: success\(\)/);
   assert.match(nightly, /gh issue close "\$number"/);
 });
+
+test("the nightly run comments on and closes only the failure issue it opened: anyone can open one of that title", () => {
+  const lists = read("nightly.yml").match(/gh issue list.*(?:\\\r?\n.*)*/g) ?? [];
+  assert.equal(lists.length, 2, "one list to comment on the issue, one to close it");
+  for (const list of lists) assert.match(list, /--author app\/github-actions\b/);
+});

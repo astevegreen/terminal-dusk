@@ -47,8 +47,9 @@ jobs:
         run: |
           title="Nightly run failed"
           body="@astevegreen the nightly gate or 10,000-game fuzz failed on main. Details: $RUN_URL"
-          number=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$title\" in:title" \
-            --json number --jq '.[0].number // empty')
+          # Only an issue this workflow opened: the repository is public, and anyone can open one with this title.
+          number=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --author app/github-actions \
+            --search "\"$title\" in:title" --json number --jq '.[0].number // empty')
           if [ -n "$number" ]; then
             gh issue comment "$number" --repo "$GITHUB_REPOSITORY" --body "$body"
           else
@@ -62,8 +63,8 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           title="Nightly run failed"
-          for number in $(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$title\" in:title" \
-            --json number,title --jq ".[] | select(.title == \"$title\") | .number"); do
+          for number in $(gh issue list --repo "$GITHUB_REPOSITORY" --state open --author app/github-actions \
+            --search "\"$title\" in:title" --json number,title --jq ".[] | select(.title == \"$title\") | .number"); do
             gh issue close "$number" --repo "$GITHUB_REPOSITORY" --reason completed \
               --comment "The nightly gate and 10,000-game fuzz passed on main: $RUN_URL"
           done

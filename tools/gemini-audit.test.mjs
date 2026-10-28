@@ -4,7 +4,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
-import { auditPr } from "./gemini-audit.mjs";
+import { auditPr, duePrs, pinnedIssueOf } from "./gemini-audit.mjs";
 import { ARGON, FLASH, OPUS, SONNET } from "./gemini/agy.mjs";
 import { verdictMarker } from "./gemini/rails.mjs";
 
@@ -36,12 +36,12 @@ const marked = (login, v, sha = SHA) => ({
 });
 
 // answers: the reply to each prompt, or an Error when agy can't answer it.
-function fake({ comments = [], diff = diffOf("packages/app/src/x.ts"), answers = {} } = {}) {
+function fake({ comments = [], diff = diffOf("packages/app/src/x.ts"), answers = {}, fork = false } = {}) {
   const calls = { ask: [], post: [], me: 0 };
   const io = {
     gh: (...args) => {
       if (args[0] === "pr" && args[1] === "view")
-        return JSON.stringify({ number: 7, body: "", headRefOid: SHA, comments });
+        return JSON.stringify({ number: 7, body: "", headRefOid: SHA, isCrossRepository: fork, comments });
       if (args[0] === "pr" && args[1] === "diff") return diff;
       throw new Error(`unexpected gh ${args.join(" ")}`);
     },
@@ -114,4 +114,36 @@ test("auditPr: agy's review can't run on a change that touches no rail, so it re
   const r = auditPr(7, io);
   assert.equal(r.verdict, "retry");
   assert.match(calls.post[0].body, /Gemini audit skipped: agy is not installed/);
+});
+
+// --- the repository is public: what strangers write never reaches agy --------------------------------------------
+
+test("auditPr refuses a fork's pull request before agy sees it, and posts nothing", () => {
+  const { io, calls } = fake({ fork: true });
+  assert.throws(() => auditPr(7, io), /#7 is from a fork, so it is not audited/);
+  assert.deepEqual([calls.ask.length, calls.post.length], [0, 0]);
+});
+
+test("prs audits only this repository's own pull requests", () => {
+  const pr = (number, isCrossRepository) => ({ number, isCrossRepository, comments: [] });
+  assert.deepEqual(
+    duePrs([pr(1, false), pr(2, true), pr(3, undefined)]).map((p) => p.number),
+    [1],
+  );
+  // Only a collaborator's audit comment counts: a stranger can't mark a pull request as already audited.
+  const audited = (number, authorAssociation) => ({
+    ...pr(number, false),
+    comments: [{ authorAssociation, body: "<!-- gemini-audit -->\n**Gemini audit: pull request**" }],
+  });
+  assert.deepEqual(
+    duePrs([audited(4, "NONE"), audited(5, "COLLABORATOR")]).map((p) => p.number),
+    [4],
+  );
+});
+
+test("the weekly and narrative audits post on the issue a collaborator opened, not a stranger's of the same name", () => {
+  const team = new Set([ME, "greenbeanbot"]);
+  const issue = (number, login) => ({ number, title: "Gemini weekly audit", author: { login } });
+  assert.equal(pinnedIssueOf([issue(9, "stranger"), issue(4, "greenbeanbot")], "Gemini weekly audit", team), 4);
+  assert.equal(pinnedIssueOf([issue(9, "stranger")], "Gemini weekly audit", team), undefined, "so it opens its own");
 });

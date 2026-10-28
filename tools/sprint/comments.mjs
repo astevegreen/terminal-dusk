@@ -1,5 +1,6 @@
 // Whose words count in the sprint queue's comments: the agents' own, the owner's, and the owner's answers on the
-// Decisions issue (owner's policy of 28 Oct 2026, P5). Split from rules.mjs, which reads them.
+// Decisions issue (owner's policy of 28 Oct 2026, P5). Split from rules.mjs, which reads them. A stranger's comment
+// never gets here: queue.mjs keeps only the owner's and collaborators' (tools/github-trust.mjs).
 
 export const ms = (s) => new Date(s).getTime();
 // The standing issue that batches design questions for the owner, at most one digest a day (P5, decisions.mjs).
