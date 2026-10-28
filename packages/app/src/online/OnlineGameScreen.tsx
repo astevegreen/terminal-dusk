@@ -65,7 +65,7 @@ export function openGame(start: () => OnlineGame, show: (game: OnlineGame) => vo
 
 type ShownProps = { play: PlaySetup; onBack: () => void };
 
-function Shown({ game, play, onBack }: Readonly<ShownProps & { game: OnlineGame }>) {
+export function Shown({ game, play, onBack }: Readonly<ShownProps & { game: OnlineGame }>) {
   const snapshot = useSyncExternalStore(game.subscribe, game.getSnapshot, game.getSnapshot);
   return (
     <OnlineGameView
