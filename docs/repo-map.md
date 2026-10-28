@@ -931,7 +931,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## .claude
 
 - `.claude/agents/Explore.md` - Fast read-only codebase search. Use to find files, symbols, usages or where something lives. Returns paths and short excerpts, never whole files.
-- `.claude/agents/implementer.md` - Builds one GitHub issue or fixes one pull request, with tests, in its own worktree. Used by the night shift.
+- `.claude/agents/implementer.md` - Builds one GitHub issue or fixes one pull request, with tests, in its own worktree. Only for night-shift and sprint-lane runs, never for interactive work.
 - `.claude/agents/reviewer.md` - Read-only review of one task's diff against its spec and the architecture rules. Returns PASS or a numbered list of concerns.
 - `.claude/rules/app.md` - App and shell rules
 - `.claude/rules/content.md` - Content rules

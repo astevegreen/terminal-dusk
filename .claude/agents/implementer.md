@@ -1,6 +1,6 @@
 ---
 name: implementer
-description: Builds one GitHub issue or fixes one pull request, with tests, in its own worktree. Used by the night shift.
+description: Builds one GitHub issue or fixes one pull request, with tests, in its own worktree. Only for night-shift and sprint-lane runs, never for interactive work.
 tools: Read, Edit, Write, Bash, Grep, Glob, Agent
 disallowedTools: WebFetch, WebSearch
 model: sonnet
