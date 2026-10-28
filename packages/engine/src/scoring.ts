@@ -5,7 +5,7 @@
 // era, the side the track leans towards wins. The amounts and the track's size are scenario data (MapScoring).
 import { isBattleground } from "./battlegrounds.ts";
 import { controller } from "./influence.ts";
-import { otherSide } from "./types.ts";
+import { otherSide, SIDES } from "./types.ts";
 import type { GameEvent, GameMap, GameState, PublicState, RegionAmounts, Side } from "./types.ts";
 
 /** What each controlled battleground in a scoring region adds, beyond its level (owner: "yes, +1 each"). */
@@ -48,30 +48,42 @@ export function eraEnds(state: GameState): boolean {
 }
 
 /**
+ * Moves the score track by `delta` (towards SAE when positive), stopping at its ends, with a scoreChanged event when
+ * it moves. Reaching a side's end wins the game for that side at once (reason "trackEnd"): nothing is left pending,
+ * no program runs on and no simultaneous pick waits. Returns true when the game ended. Does nothing on a map without
+ * scoring. Edits `state`, apply's working copy, in place.
+ */
+export function moveScore(state: GameState, delta: number, events: GameEvent[]): boolean {
+  const pub = state.public;
+  const scoring = pub.map?.scoring;
+  if (scoring === undefined || pub.score === undefined) return false;
+  const { end } = scoring.track;
+  const from = pub.score;
+  const to = Math.max(-end, Math.min(end, from + delta));
+  if (to === from) return false;
+  pub.score = to;
+  events.push({ kind: "scoreChanged", visibility: "public", from, to });
+  const winner = atEnd(to, end);
+  if (winner === null) return false;
+  pub.pending = [];
+  pub.stack.length = 0; // In place: runStack's loop holds this same array, so it stops after the current step.
+  for (const side of SIDES) state.private[side].picks = [];
+  pub.status = { kind: "over", winner, reason: "trackEnd" };
+  return true;
+}
+
+/**
  * Scores every region in order and moves the track, if the map has scoring and the turn ending now is its era's last.
- * A track end ends the game at once (no pending decisions, reason "trackEnd") and the regions after it don't score.
- * Edits `state`, apply's working copy, in place.
+ * A track end ends the game at once (moveScore) and the regions after it don't score. Edits `state`, apply's working
+ * copy, in place.
  */
 export function scoreEra(state: GameState, events: GameEvent[]): void {
   const pub = state.public;
-  const scoring = pub.map?.scoring;
-  if (scoring === undefined || pub.score === undefined || !eraEnds(state)) return;
-  const { end } = scoring.track;
-  let from = pub.score;
-  for (const amounts of scoring.regions) {
+  if (pub.map?.scoring === undefined || pub.score === undefined || !eraEnds(state)) return;
+  for (const amounts of pub.map.scoring.regions) {
     const points = regionScore(pub, amounts);
     events.push({ kind: "regionScored", visibility: "public", region: amounts.region, ...points });
-    const to = Math.max(-end, Math.min(end, from + points.sae - points.lio));
-    if (to === from) continue;
-    pub.score = to;
-    events.push({ kind: "scoreChanged", visibility: "public", from, to });
-    const winner = atEnd(to, end);
-    if (winner !== null) {
-      pub.pending = [];
-      pub.status = { kind: "over", winner, reason: "trackEnd" };
-      return;
-    }
-    from = to;
+    if (moveScore(state, points.sae - points.lio, events)) return;
   }
 }
 

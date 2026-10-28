@@ -466,6 +466,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/createGame.test.ts`
 - `packages/engine/src/createGame.ts` - Exports: createGame.
 - `packages/engine/src/createGameMap.test.ts` - A game started with a map keeps it, and every country's influence, in the public compartment only.
+- `packages/engine/src/crisisScore.test.ts` - R22: a crisis moves the score track (docs/design/map-and-points.md, "Crisis at 6" and "Scoring").
 - `packages/engine/src/decisionTypes.ts` - The types of pending decisions and their answers (hard rule 4: every wait for a player is a Decision). Exports: DecisionKind, PlayUse, PlayUses, DecisionOptions, Decision, AnswerValue, Answer.
 - `packages/engine/src/decisions.test.ts`
 - `packages/engine/src/decisions.ts` - Pending decisions: building them, finding the one a side must answer, and listing its legal answers. Exports: whoseCard, newDecision, newDiscardDecision, newPlaceDecision, newActionDecision, newRealignDecision, newGroup, pendingFor, legalAnswers.
@@ -526,7 +527,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/revealHand.test.ts` - The revealHand step (#184): shows one side's hand to the other, kept in the peeking side's knowledge.
 - `packages/engine/src/rng.test.ts`
 - `packages/engine/src/rng.ts` - Seeded random numbers for the rules engine. Exports: RngState, seedRng, hashSeed, nextInt, shuffle.
-- `packages/engine/src/scoring.ts` - Era-end region scoring (docs/design/map-and-points.md, "Scoring"). Exports: BATTLEGROUND_POINT, RegionPoints, regionScore, eraEnds, scoreEra, leader, scoreState, scoringError.
+- `packages/engine/src/scoring.ts` - Era-end region scoring (docs/design/map-and-points.md, "Scoring"). Exports: BATTLEGROUND_POINT, RegionPoints, regionScore, eraEnds, moveScore, scoreEra, leader, scoreState, scoringError.
 - `packages/engine/src/scoringChecks.test.ts` - R21: createGame checks the map's scoring data (scoring.ts, scoringError).
 - `packages/engine/src/scoringTypes.ts` - Era-end region scoring's types (docs/design/map-and-points.md, "Scoring"): the map's scoring data and the score track's events. Exports: RegionAmounts, MapScoring, RegionScored, ScoreChanged, ScoreEvent.
 - `packages/engine/src/setupTypes.ts` - The setup's types: what createGame starts a game from. Exports: EraEntry, Setup.
