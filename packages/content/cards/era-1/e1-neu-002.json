@@ -130,7 +130,7 @@
   ],
   "text": {
     "name": "Asian Financial Crisis",
-    "rules": "Record \"contagion\". Each side chooses: Bail out your partners? Then draw from the Contingency deck of the side that played this card. If LIO says yes, LIO spends 2 points on one action, then until the end of this turn, each time LIO spends points, it spends 1 fewer, never below 1; otherwise, if the result is 3 or more, at the end of this turn, SAE spends 1 point on actions. If SAE says yes, SAE spends 2 points on one action, then until the end of this turn, each time SAE spends points, it spends 1 fewer, never below 1; otherwise, if the result is 3 or more, at the end of this turn, LIO spends 1 point on actions.",
+    "rules": "Record \"contagion\". Each side chooses: Bail out your partners? Then draw from the Contingency deck of the side that played this card. If LIO says yes, LIO spends 2 points on one action, then until the end of this turn, each time LIO spends points, it spends 1 fewer, never below 1; otherwise, if the result is 3 or more, at the end of this turn, SAE spends 1 point placing influence. If SAE says yes, SAE spends 2 points on one action, then until the end of this turn, each time SAE spends points, it spends 1 fewer, never below 1; otherwise, if the result is 3 or more, at the end of this turn, LIO spends 1 point placing influence.",
     "history": "Thailand floated the baht on 2 July 1997 and the crisis spread to Indonesia, South Korea and beyond; IMF-led rescue packages for the three countries together exceeded $100 billion.",
     "art": "art/e1-neu-002"
   }

@@ -74,7 +74,7 @@
   ],
   "text": {
     "name": "Hong Kong Security Law",
-    "rules": "Record \"promise ended\". If \"one country, two systems\" has been recorded this game, SAE spends 3 points on one action; otherwise, SAE spends 2 points on one action. LIO chooses: Impose sanctions? If yes, LIO spends 1 point on actions, then at the end of this turn, SAE spends 1 point on actions; if no, record \"no sanctions\".",
+    "rules": "Record \"promise ended\". If \"one country, two systems\" has been recorded this game, SAE spends 3 points on one action; otherwise, SAE spends 2 points on one action. LIO chooses: Impose sanctions? If yes, LIO spends 1 point on actions, then at the end of this turn, SAE spends 1 point placing influence; if no, record \"no sanctions\".",
     "history": "China's national security law for Hong Kong was passed and took effect on 30 June 2020, criminalising secession, subversion, terrorism and collusion with foreign forces.",
     "art": "art/e3-sae-011"
   }

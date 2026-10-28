@@ -30,7 +30,7 @@
   ],
   "text": {
     "name": "IPCC Report and Nobel 2007",
-    "rules": "Record \"climate consensus\". At the end of this turn, LIO spends 1 point on actions, then SAE spends 1 point on actions.",
+    "rules": "Record \"climate consensus\". At the end of this turn, LIO spends 1 point placing influence, then SAE spends 1 point placing influence.",
     "history": "The IPCC's Fourth Assessment Report in 2007 called warming unequivocal and very likely human-caused; the panel shared the 2007 Nobel Peace Prize, announced on 12 October 2007.",
     "art": "art/e2-neu-004"
   }

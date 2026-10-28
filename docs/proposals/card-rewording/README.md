@@ -88,6 +88,7 @@ Each has a short name. Card entries name it instead of repeating the wordings. N
   - **Split-one:** _LIO spends 2 points on one action._ (all on placing influence, or all on one intervention, or
     all on realigning). For 1 point the two read the same, so only spends of 2 or more change.
 - **Turn-end** ("Event points": how a 1-point turn-end payment is spent). Applies to `on turnEnd { spend side 1 }`.
+  **Decided: Turn-end-place** (owner, 28 Oct: "Yes, build it"; built in #426, cards reworded after it).
   - **Turn-end-any:** _At the end of this turn, LIO spends 1 point on actions._
   - **Turn-end-place:** _At the end of this turn, LIO spends 1 point placing influence._
   - The amount can be 2 when an Ops swing is still in force at turn end (owner question 35); the wording holds.
@@ -136,5 +137,6 @@ whether **only the gap** between the sides counts (reading **Gap**) or **each si
      it turns out, so a 1-point intervention at turn end becomes a cheap way to push the track up just before it
      falls.
    - **Recommend Turn-end-place:** it removes that lever and is quick to play at the end of a turn.
+   - **Decided: Turn-end-place** (owner, 28 Oct, #426).
 5. **Tech: may event points go to the tech race?** **Tech-yes** or **Tech-no**. Waits on the tech race topic
    (X7). **Recommend** writing _on actions_ now, which needs no rewording if the answer is yes.

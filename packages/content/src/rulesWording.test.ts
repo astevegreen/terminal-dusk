@@ -1,24 +1,47 @@
 // #418: the reworded card rules text (docs/proposals/card-rewording/, approved by the owner on 28 Oct). Every card's
-// text says that points go to an action, states each Escalation move, and uses the clearer Ops-swing wording.
+// text says that points go to an action (or, at turn end, to placing influence: #426), states each Escalation move,
+// and uses the clearer Ops-swing wording.
 import { describe, expect, it } from "vitest";
 import { FIRST_DECK_CARDS } from "./firstDeckRules.ts";
 
 const rules = (card: (typeof FIRST_DECK_CARDS)[number]): string => card.text.rules;
 const effectJson = (card: (typeof FIRST_DECK_CARDS)[number]): string => JSON.stringify(card.effect);
 
+/** How many spendPoints steps sit inside a turnEnd trigger anywhere in `value` (a card's effect). */
+function turnEndSpends(value: unknown, atTurnEnd = false): number {
+  if (Array.isArray(value)) return value.reduce((n: number, v) => n + turnEndSpends(v, atTurnEnd), 0);
+  if (value === null || typeof value !== "object") return 0;
+  const step = value as { op?: unknown; hook?: unknown };
+  const inside = atTurnEnd || (step.op === "trigger" && step.hook === "turnEnd");
+  const own = step.op === "spendPoints" && atTurnEnd ? 1 : 0;
+  return Object.values(value).reduce((n: number, v) => n + turnEndSpends(v, inside), own);
+}
+
 describe("the cards' rules text after the rewording", () => {
   it("covers all 96 cards of the first deck", () => {
     expect(FIRST_DECK_CARDS).toHaveLength(96);
   });
 
-  it("says where every spent point goes: 'on actions' for 1 point, 'on one action' for 2 or more", () => {
+  it("says where every spent point goes: 'on actions' for 1, 'on one action' for 2 or more, or 'placing influence'", () => {
     for (const card of FIRST_DECK_CARDS) {
-      const spends = [...rules(card).matchAll(/spends (\d+) points?(.{0,14})/g)];
+      const spends = [...rules(card).matchAll(/spends (\d+) points?(.{0,18})/g)];
       for (const [whole, amount, after] of spends) {
         const expected = Number(amount) >= 2 ? " on one action" : " on actions";
-        expect(after?.startsWith(expected), `${card.id}: "${whole}"`).toBe(true);
+        const said = after?.startsWith(expected) === true || after?.startsWith(" placing influence") === true;
+        expect(said, `${card.id}: "${whole}"`).toBe(true);
       }
     }
+  });
+
+  it("says 'placing influence' for exactly the spends at the end of the turn (Turn-end-place, #426)", () => {
+    let turnEndCards = 0;
+    for (const card of FIRST_DECK_CARDS) {
+      // "N point(s)", not "spends N point(s)": e2-lio-007 reads "spends 2 points placing influence, or 1 point ...".
+      const placing = [...rules(card).matchAll(/\d+ points? placing influence/g)].length;
+      expect(placing, card.id).toBe(turnEndSpends(card.effect));
+      if (placing > 0) turnEndCards++;
+    }
+    expect(turnEndCards).toBeGreaterThan(0);
   });
 
   it("a card with a spendPoints step says so, and a card without one does not", () => {
