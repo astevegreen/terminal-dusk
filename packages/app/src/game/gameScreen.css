@@ -126,6 +126,25 @@
   max-height: 90px;
   overflow-y: auto;
 }
+/* No map: the map box shrinks to its "No map in this game" line, and the hand and details get the room. */
+.game.game-no-map {
+  grid-template-rows: auto auto minmax(220px, 1fr);
+}
+/* A phone held upright: one column, so the map, the hand and the details each get the whole width. */
+@media (max-width: 599px) {
+  .game {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(220px, auto) auto auto;
+    grid-template-areas:
+      "status"
+      "map"
+      "hand"
+      "side";
+  }
+  .game.game-no-map {
+    grid-template-rows: auto auto auto auto;
+  }
+}
 @media (min-width: 1000px) {
   .game {
     font-size: 16px;

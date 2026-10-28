@@ -202,7 +202,7 @@ describe("the online game session's setup", () => {
     );
     expect(out).toContain('<p role="status">Loading the game</p>');
     expect(out).toMatch(/<button[^>]*min-width:44px[^>]*>Back<\/button>/);
-    expect(out).not.toContain('class="game"');
+    expect(out).not.toMatch(/class="game[ "]/);
     expect(timers.waiting()).toEqual([]);
   });
 });

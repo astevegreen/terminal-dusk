@@ -67,7 +67,7 @@ describe("the game screen against the AI", () => {
   });
   it("draws the game screen inside the wrapper that moves focus to each new decision", () => {
     const { session } = start({ hold: true });
-    expect(view(session)).toContain('<div><div class="game">');
+    expect(view(session)).toContain('<div><div class="game game-no-map">');
   });
   it("shows Game over and a New game button at the end", async () => {
     const { session, standIn } = start();

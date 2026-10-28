@@ -58,6 +58,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e/game.e2e.ts`
 - `packages/app/e2e/keyboard.e2e.ts`
 - `packages/app/e2e/map.e2e.ts`
+- `packages/app/e2e/narrow.e2e.ts` - The game screen on a phone held upright (375x667), found in the phase 3 gate playtest of 28 Oct: the details column and the log were squeezed, and a game with…
 - `packages/app/e2e/online.e2e.ts`
 - `packages/app/e2e/replay.e2e.ts`
 - `packages/app/e2e/server.test.ts` - The Playwright run's own port (server.ts): a free one, kept for the run's workers, never a server already running.

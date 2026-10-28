@@ -113,7 +113,7 @@ describe("loading", () => {
   it("shows only the turn line and Back, never GameScreen", () => {
     expect(shown(LOADING_SNAPSHOT, null)).toBeNull();
     const out = page(LOADING_SNAPSHOT);
-    expect(out).not.toContain('class="game"');
+    expect(out).not.toMatch(/class="game[ "]/);
     expect(treeOf(view(LOADING_SNAPSHOT, null)).buttons.map((b) => b.text)).toEqual(["Back"]);
   });
   it("shows no GameScreen while turn is loading even with a frame", async () => {
@@ -135,7 +135,8 @@ describe("the board", () => {
     expect(props.era).toBe(s.era);
     expect(props.label).toBe(cardName);
     expect(props.question).toBe(cardQuestion);
-    expect(page(s)).toContain('class="game"');
+    // The online rig's game has no map, so the board carries the no-map class (#412).
+    expect(page(s)).toContain('<div class="game game-no-map">');
   });
   it("passes onAnswer only on your move, and it answers through the session", async () => {
     const r = await started();
