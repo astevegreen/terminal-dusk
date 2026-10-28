@@ -74,9 +74,10 @@ Run `Q next night --fixes-done <held pull requests fixed so far tonight>`, act o
    - a reviewer [blocker] or verdict `fix`, before this task's fix pass: step 3.4, then 3.1 again.
    - verdict `hold` (the rail audit says it loosens a check, guard, gate, hook or required review):
      `Q move <pr> held --rail --note "<its why>"`. It waits for the owner.
-   - verdict `retry` (the rail audit couldn't run): leave the pull request as it is and stop (step 4); tomorrow's
-     night shift adopts it. A machine failure never waits for the owner.
-   - a [blocker] still left after the fix pass: `Q move <pr> held --note "<the blockers>"`.
+   - verdict `retry` (agy's review or the rail audit couldn't run): leave the pull request as it is and stop (step
+     4); tomorrow's night shift adopts it. A machine failure never waits for the owner.
+   - a [blocker] still left after the fix pass: `Q move <pr> held --blocker --note "<the blockers>"` (agy's verdict
+     lists its blockers without the tag). A refused hold never means merge: do what its `do` says.
    - otherwise: `Q move <pr> merging`, adding `--note "<the [minor] concerns and agy's notes>"` when there are any:
      they never hold. A [minor] that is real work also becomes a follow-up issue (`gh issue create`, labelled
      `spec-review`).

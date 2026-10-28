@@ -133,7 +133,8 @@ test("a stacked pull request can't be merged into its dependency's branch; it st
 
 test("a hold needs its concerns; --conflict marks a conflict-only hold that the lane retries", () => {
   const S = snap([issue(30, ["lane:rules"])], [pr(130)]);
-  assert.match(planMove(S, 130, "held").do, /--note "<the concerns>"/);
+  assert.match(planMove(S, 130, "held").do, /held --blocker --note "<the blockers>"/);
+  assert.match(planMove(S, 130, "held", { conflict: true }).do, /held --conflict --note "<the conflict>"/);
   const { steps } = planMove(S, 130, "held", { note: "packages/x.ts", conflict: true });
   assert.deepEqual(steps.at(-1), ["pr", "comment", "130", "--body", `${HELD_CONFLICT} packages/x.ts`]);
   assert.deepEqual(steps[0], ["pr", "edit", "130", "--add-label", "lane:rules", "--add-label", "held"]);

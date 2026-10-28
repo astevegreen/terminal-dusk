@@ -1,12 +1,13 @@
 // Tests for the owner's policy of 28 Oct 2026 in the queue (rules.mjs, moves.mjs, status.mjs, decisions.mjs):
 // P1 only a [blocker] holds, P2 a machine failure retries by itself, P4 a rail-audit hold waits for the owner,
-// P5 design questions go to the daily Decisions digest and the owner may answer there.
+// P3 agy's blockers hold, P5 design questions go to the daily Decisions digest and the owner may answer there.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { DECISIONS, HELD_RAIL, MACHINE, hasWork, next, nextNight, ownerAnswer } from "./rules.mjs";
 import { planMove } from "./moves.mjs";
+import { decide } from "../gemini/rails.mjs";
 import { status } from "./status.mjs";
 import { DIGEST, digest } from "./decisions.mjs";
 import { main } from "./queue.mjs";
@@ -97,11 +98,12 @@ test("P1: the night shift merges a held pull request whose hold was only [minor]
   assert.equal(nextNight(night, DOC).mode, "merge");
 });
 
-test("P1: a hold needs a [blocker]; [minor] concerns are refused and sent to merging with a note", () => {
+test("P1: a hold needs a [blocker] or --blocker; a refused hold never points at merging", () => {
   const S = snap({ issues: [issue(30, ["lane:rules"])], prs: [pr(130)] });
   const refused = planMove(S, 130, "held", { note: "1. [minor] a.ts:1 naming" });
-  assert.match(refused.error, /only a \[blocker\] holds/);
-  assert.equal(refused.do, 'Run: node tools/sprint/queue.mjs move 130 merging --note "<the minor concerns>"');
+  assert.match(refused.error, /a hold needs a \[blocker\]/);
+  assert.match(refused.do, /move 130 held --blocker --note "<the blockers>"/);
+  assert.doesNotMatch(refused.do, /merg/i);
   assert.deepEqual(planMove(S, 130, "held", { note: "1. [blocker] a.ts:1 wrong" }).steps.at(-1), [
     "pr",
     "comment",
@@ -109,6 +111,31 @@ test("P1: a hold needs a [blocker]; [minor] concerns are refused and sent to mer
     "--body",
     "Held: 1. [blocker] a.ts:1 wrong",
   ]);
+});
+
+test("P3: agy's blockers, as `gemini-audit pr` prints them (without the tag), hold the pull request", () => {
+  const verdict = decide({
+    review: { ok: true, response: "1. [blocker] a.ts:1 leaks the seed\n- [note] b.ts:2 risk" },
+  });
+  assert.equal(verdict.verdict, "fix");
+  const note = verdict.blockers.join("\n");
+  assert.equal(note, "a.ts:1 leaks the seed");
+  const S = snap({ issues: [issue(30, ["lane:rules"])], prs: [pr(130)] });
+  const untagged = planMove(S, 130, "held", { note });
+  assert.ok(untagged.error, "an untagged hold is refused, so the lane is told to add --blocker");
+  assert.doesNotMatch(untagged.do, /merg/i);
+  const { steps } = planMove(S, 130, "held", { note, blocker: true });
+  assert.deepEqual(steps.at(-1), ["pr", "comment", "130", "--body", "Held: [blocker] a.ts:1 leaks the seed"]);
+  assert.ok(!steps.some((s) => s[1] === "merge"));
+  const held = snap({ prs: [heldWith(steps.at(-1)[4])] });
+  assert.equal(next(held, DOC, "rules"), null, "the hold stays: nothing merges it");
+  const night = (body) => ({
+    ...snap({ prs: [heldWith(body, ["held"])] }),
+    now: new Date("2026-10-23T07:10:00Z"),
+    localMinutes: 3 * 60 + 10,
+  });
+  assert.equal(nextNight(night("Held: [minor] x"), DOC).mode, "merge", "the night shift would merge a minor hold");
+  assert.equal(nextNight(night(steps.at(-1)[4]), DOC), null, "but not agy's blockers");
 });
 
 test("P1: merging with a note comments the minor concerns before auto-merge, and drops held", () => {
@@ -192,6 +219,34 @@ test("P5: only the owner's own comment there, newer than the question, answers; 
   assert.equal(answerTo5(comment(OWNER, "2026-10-21T10:00:00Z", "#5 yes")).body, "#5 yes");
 });
 
+test("P5: only a line starting with #n answers it; a mention of #n later in a line answers nothing", () => {
+  const S = (body) => {
+    const s = snap({
+      issues: [blocked(5), blocked(6), decisionsIssue([comment(OWNER, "2026-10-21T10:00:00Z", body)])],
+    });
+    return [ownerAnswer(s.issues[0], s), ownerAnswer(s.issues[1], s)];
+  };
+  const [to5, to6] = S("#6 no, the defender wins. I need to think more about #5.");
+  assert.equal(to5, null, "#5 is only mentioned, not answered");
+  assert.equal(to6.body, "#6 no, the defender wins. I need to think more about #5.");
+  const [listed5, listed6] = S("Answers:\n- #5 take the recommendation\n  2. #6 no, see #5");
+  assert.equal(listed5.body, "- #5 take the recommendation");
+  assert.equal(listed6.body, "2. #6 no, see #5");
+  assert.equal(S("re #5: thinking about it")[0], null, "#5 must start the line");
+});
+
+test("P5: a digest posted under the owner's account answers none of the questions it lists", () => {
+  const posted = digest(snap({ issues: [blocked(5), blocked(6)] })).body;
+  const S = snap({
+    issues: [blocked(5), blocked(6), decisionsIssue([comment(OWNER, "2026-10-21T10:00:00Z", posted)])],
+  });
+  assert.equal(ownerAnswer(S.issues[0], S), null);
+  assert.equal(ownerAnswer(S.issues[1], S), null);
+  const listing = `${DIGEST}\n#5 x\n#6 y`;
+  const T = snap({ issues: [blocked(5), decisionsIssue([comment(OWNER, "2026-10-21T10:00:00Z", listing)])] });
+  assert.equal(ownerAnswer(T.issues[0], T), null, "even when its lines start with the numbers");
+});
+
 test("P5: a question needs the owner, but only the daily digest pings: never the hourly status", () => {
   const S = snap({ issues: [blocked(5)] });
   const s = status(S, DOC);
@@ -214,15 +269,34 @@ test("P5: the digest lists every open question with one mention, marks the new o
 });
 
 test("P5: at most one digest a day, and only when a question is new since the last one", () => {
-  const last = (at, numbers) =>
-    comment(BOT, at, `${DIGEST}\n@astevegreen …\n\n${numbers.map((n) => `### #${n} x`).join("\n")}`);
+  const last = (at, numbers, author = BOT) =>
+    comment(author, at, `${DIGEST}\n@astevegreen …\n\n${numbers.map((n) => `### #${n} x`).join("\n")}`);
   const S = (comments, issues = [blocked(5), blocked(6)]) => snap({ issues: [...issues, decisionsIssue(comments)] });
   assert.match(digest(S([last("2026-10-21T06:00:00Z", [5])])).reason, /the next may go 24 hours after it/);
   assert.equal(digest(S([last("2026-10-20T11:00:00Z", [5])])).post, true);
-  assert.equal(digest(S([last("2026-10-19T11:00:00Z", [5, 6])])).reason, "every open question was in the last digest");
+  assert.equal(
+    digest(S([last("2026-10-21T09:30:00Z", [5, 6])], [blocked(5), blocked(6)])).reason,
+    "every open question was asked before the last digest went out",
+  );
   assert.equal(digest(snap()).reason, "no design question waits for the owner");
   const answered = S([comment(OWNER, "2026-10-21T10:00:00Z", "#5 yes\n#6 no")]);
   assert.equal(digest(answered).post, false, "answered questions are not asked again");
+});
+
+test("P5: a second question on an issue the last digest listed is new, and goes in the next digest", () => {
+  const listed5 = comment(BOT, "2026-10-20T08:00:00Z", `${DIGEST}\n@astevegreen …\n\n### #5 x`);
+  const again = blocked(5, "2026-10-20T10:00:00Z", "Blocked: Design question: and who scores the tie?");
+  const d = digest(snap({ issues: [again, decisionsIssue([listed5])] }));
+  assert.equal(d.post, true);
+  assert.deepEqual(d.fresh, [5]);
+  assert.match(d.body, /### #5 \[task\] R5: x \(new\)\nDesign question: and who scores the tie\?/);
+});
+
+test("P5: a digest posted under the owner's account still counts as the last digest for the 24-hour limit", () => {
+  const mine = comment(OWNER, "2026-10-21T06:00:00Z", `${DIGEST}\n@astevegreen …\n\n### #5 x`);
+  const d = digest(snap({ issues: [blocked(5, "2026-10-21T07:00:00Z"), decisionsIssue([mine])] }));
+  assert.equal(d.post, false);
+  assert.match(d.reason, /the last digest went out at 2026-10-21T06:00:00Z/);
 });
 
 test("queue digest creates the Decisions issue the first time, then comments the digest on it", () => {

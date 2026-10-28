@@ -21,19 +21,31 @@ export function ownerReply(item, owner) {
   return o && (!s || ms(o.createdAt) > ms(s.createdAt)) ? o : null;
 }
 
-const names = (n) => new RegExp(String.raw`#${n}(?!\d)`);
-const leadingNumber = (line) => /^\W*#(\d+)/.exec(line)?.[1];
-// An owner comment on the Decisions issue, newer than the question, that names #<n>. One comment may answer several
-// issues: each gets the lines from the one naming it to the next line that starts with another issue number.
+// The Decisions digest starts every comment with this (decisions.mjs). gh may be signed in as the owner, so a
+// digest can carry the owner's name: it is never an answer, whoever posted it.
+export const DIGEST = "<!-- decisions-digest -->";
+export const isDigest = (c) => c.body.startsWith(DIGEST);
+
+// A line that answers #<n> starts with #<n>, maybe after spaces or a list marker ("- ", "* ", "1. "). A mention
+// later in a line answers nothing: "#6 no. I need to think more about #5." answers #6 only.
+const LEAD = String.raw`^[ \t]*(?:[-*+][ \t]+|\d+[.)][ \t]+)?#`;
+const answers = (n) => new RegExp(String.raw`${LEAD}${n}(?!\d)`, "m");
+const leadingNumber = (line) => new RegExp(String.raw`${LEAD}(\d+)`).exec(line)?.[1];
+// An owner comment on the Decisions issue, newer than the question, with a line starting #<n>. One comment may
+// answer several issues: each gets the lines from the one starting with its number to the next line that starts
+// with another issue number.
 export function decisionsAnswer(issue, ask, S) {
   const d = S.issues.find((i) => i.state === "OPEN" && i.title === DECISIONS);
   const n = issue.number;
   const c =
     d &&
-    newest(d.comments, (x) => x.author === S.owner && ms(x.createdAt) > ms(ask.createdAt) && names(n).test(x.body));
+    newest(
+      d.comments,
+      (x) => x.author === S.owner && !isDigest(x) && ms(x.createdAt) > ms(ask.createdAt) && answers(n).test(x.body),
+    );
   if (!c) return null;
   const lines = c.body.split(/\r?\n/);
-  const from = lines.findIndex((l) => names(n).test(l));
+  const from = lines.findIndex((l) => answers(n).test(l));
   const next = lines.findIndex((l, k) => k > from && leadingNumber(l) && Number(leadingNumber(l)) !== n);
   return {
     ...c,

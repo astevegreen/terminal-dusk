@@ -87,7 +87,7 @@ function issueMove(S, issue, state, { note }) {
   return { steps };
 }
 
-function prMove(S, pr, state, { note, conflict, rail }) {
+function prMove(S, pr, state, { note, conflict, rail, blocker }) {
   const n = String(pr.number);
   const lane = laneOf(pr) ?? laneOf(index(S).get(pr.closes[0]) ?? { labels: [] });
   if (pr.state !== "OPEN")
@@ -114,16 +114,21 @@ function prMove(S, pr, state, { note, conflict, rail }) {
     // A code-owned change waits for the owner; asking for the review gives the owner a review button.
     if (pr.reviewRequired && !pr.reviewers?.includes(OWNER)) steps.push(["pr", "edit", n, "--add-reviewer", OWNER]);
   } else if (state === "held") {
+    let flag = "--blocker";
+    if (conflict) flag = "--conflict";
+    else if (rail) flag = "--rail";
     if (!note)
       return refuse(
         "a hold needs the concerns",
-        `Run: node tools/sprint/queue.mjs move ${n} held --note "<the concerns>"${conflict ? " --conflict" : ""}`,
+        `Run: node tools/sprint/queue.mjs move ${n} held ${flag} --note "<${conflict ? "the conflict" : "the blockers"}>"`,
       );
-    // P1: only a [blocker], a merge conflict or a loosened rail (P4) holds; [minor] concerns merge with a note.
-    if (!conflict && !rail && !/\[blocker\]/i.test(note))
+    // P1: only a [blocker], a merge conflict or a loosened rail (P4) holds. agy's verdict lists its blockers without
+    // the [blocker] tag, so --blocker says they are blockers. A refused hold leaves the pull request as it is: a
+    // blocker must never merge because its tag was lost on the way here.
+    if (!conflict && !rail && !blocker && !/\[blocker\]/i.test(note))
       return refuse(
-        "only a [blocker] holds a pull request: [minor] concerns merge with a note (or a follow-up issue)",
-        `Run: node tools/sprint/queue.mjs move ${n} merging --note "<the minor concerns>"`,
+        "a hold needs a [blocker]: the note names none and --blocker was not given",
+        `If these are blockers (the reviewer's [blocker]s, or the blockers in agy's verdict), run: node tools/sprint/queue.mjs move ${n} held --blocker --note "<the blockers>". Leave the pull request as it is until then.`,
       );
     if (pr.isDraft && pr.base === "main") steps.push(["pr", "ready", n]);
     steps.push([
@@ -132,7 +137,7 @@ function prMove(S, pr, state, { note, conflict, rail }) {
       n,
       ...[...addLabels, ...(has(pr, "held") ? [] : ["held"])].flatMap((l) => ["--add-label", l]),
     ]);
-    let body = `Held: ${note}`;
+    let body = `Held: ${blocker && !/\[blocker\]/i.test(note) ? `[blocker] ${note}` : note}`;
     if (conflict) body = `${HELD_CONFLICT} ${note}`;
     else if (rail) body = `${HELD_RAIL} ${note}`;
     steps.push(["pr", "comment", n, "--body", body]);

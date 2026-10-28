@@ -811,7 +811,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/gates/content-check.test.mjs`
 - `tools/gates/count-reporter.mjs` - node:test reporter for test-count.mjs: one JSON line per test that ran (suites left out), with its file, its name and whether it was skipped or todo.
 - `tools/gates/deps-report.mjs` - CI's dependency check (the `deps` job), which replaced the owner's review of package.json and the lockfile (owner's policy, 28 Oct 2026).
-- `tools/gates/deps-report.test.mjs` - Tests for CI's dependency check: the new-dependency report and failing only on a new high or critical advisory.
+- `tools/gates/deps-report.test.mjs` - Tests for CI's dependency check: the new-dependency report, failing on a new high or critical advisory, and failing when the audit gave no answer on a change t…
 - `tools/gates/gate.mjs` - `pnpm gate`: check only what changed, stage by stage, stopping at the first failure.
 - `tools/gates/gate.test.mjs`
 - `tools/gates/skipped-tests.mjs` - Fails when any test is skipped, marked todo or focused with only, so every test always runs.
@@ -822,7 +822,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/gates/test-count.test.mjs`
 - `tools/gates/workflows.test.mjs` - The CI workflow's shape that merges depend on (owner's policy, 28 Oct 2026): the required "gate" job passes only when every other Linux job passed, so e2e, the…
 - `tools/gemini-audit.mjs` - Hands Gemini (agy, headless) read-only material and posts its answer to GitHub itself.
-- `tools/gemini-audit.test.mjs` - The audit script's command line.
+- `tools/gemini-audit.test.mjs` - The audit script: its command line (these runs stop before any gh or agy call), and auditPr with gh, agy and the comment stood in for.
 - `tools/gemini/agy.mjs` - How the audits talk to agy: which model reviews what, what every prompt starts with, and how a reply is read.
 - `tools/gemini/agy.test.mjs`
 - `tools/gemini/prompts/narrative.md`

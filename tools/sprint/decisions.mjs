@@ -5,9 +5,20 @@
 // come here: an Opus architect decides them on their issue ("Decision (architect): …").
 // The owner answers on that issue, one line per question starting with its number, or on the question's own
 // issue; rules.mjs (ownerAnswer) reads both. Pure: queue.mjs posts what this plans.
-import { BLOCKED, DECISIONS, OWNER, byNumber, has, newest, newestSprint, ownerAnswer } from "./rules.mjs";
+import {
+  BLOCKED,
+  DECISIONS,
+  DIGEST,
+  OWNER,
+  byNumber,
+  has,
+  isDigest,
+  newest,
+  newestSprint,
+  ownerAnswer,
+} from "./rules.mjs";
 
-export const DIGEST = "<!-- decisions-digest -->";
+export { DIGEST } from "./rules.mjs";
 export const DIGEST_EVERY_MS = 24 * 60 * 60_000;
 const MAX_QUESTION = 900; // characters of each question shown in the digest
 
@@ -44,16 +55,18 @@ export function digest(S) {
   const owner = S.owner ?? OWNER;
   const qs = openQuestions(S);
   const d = S.issues.find((i) => i.state === "OPEN" && i.title === DECISIONS) ?? null;
-  const last = d ? newest(d.comments, (c) => c.author !== owner && c.body.startsWith(DIGEST)) : null;
-  const listed = new Set([...(last?.body ?? "").matchAll(/^### #(\d+)/gm)].map((m) => Number(m[1])));
-  const fresh = qs.filter((q) => !listed.has(q.issue.number));
+  // The last digest, by its marker, whoever posted it: gh may be signed in as the owner.
+  const last = d ? newest(d.comments, isDigest) : null;
+  // New means asked after the last digest went out, so a second question on an issue already listed counts too.
+  const fresh = qs.filter((q) => !last || ms(q.ask.createdAt) > ms(last.createdAt));
   const base = {
     issue: d?.number ?? null,
     questions: qs.map((q) => q.issue.number),
     fresh: fresh.map((q) => q.issue.number),
   };
   if (!qs.length) return { ...base, post: false, reason: "no design question waits for the owner" };
-  if (!fresh.length) return { ...base, post: false, reason: "every open question was in the last digest" };
+  if (!fresh.length)
+    return { ...base, post: false, reason: "every open question was asked before the last digest went out" };
   if (last && ms(S.now) - ms(last.createdAt) < DIGEST_EVERY_MS)
     return {
       ...base,

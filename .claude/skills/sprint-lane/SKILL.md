@@ -81,9 +81,10 @@ Run `Q next $ARGUMENTS --fixes-done <fix passes so far this session>`, act on it
    - a reviewer [blocker] or verdict `fix`, before this task's fix pass: step 3.4, then 3.1 again.
    - verdict `hold` (the rail audit says it loosens a check, guard, gate, hook or required review):
      `Q move <pr> held --rail --note "<its why>"`. It waits for the owner.
-   - verdict `retry` (the rail audit couldn't run): leave the pull request as it is, and stop this session (step
-     4): the next one adopts it and audits again. A machine failure never waits for the owner.
-   - a [blocker] still left after the fix pass: `Q move <pr> held --note "<the blockers>"`.
+   - verdict `retry` (agy's review or the rail audit couldn't run): leave the pull request as it is, and stop this
+     session (step 4): the next one adopts it and audits again. A machine failure never waits for the owner.
+   - a [blocker] still left after the fix pass: `Q move <pr> held --blocker --note "<the blockers>"` (agy's verdict
+     lists its blockers without the tag). A refused hold never means merge: do what its `do` says.
    - otherwise: `Q move <pr> merging`, or `Q move <pr> stacked` when `base` is not `main` (it stays a draft
      titled `[stacked on #<dep pr>]`, so nobody can merge it into `task/<dep>`; once GitHub moves it onto `main`,
      `next` returns it as a merge). Add `--note "<the [minor] concerns and agy's notes>"` when there are any:

@@ -5,7 +5,7 @@
 import { inWindow, taskId } from "./sprint-doc.mjs";
 import { decisionsAnswer, isSprint, ms, newest, ownerReply } from "./comments.mjs";
 
-export { DECISIONS, decisionsAnswer, newest, newestSprint, ownerReply } from "./comments.mjs";
+export { DECISIONS, DIGEST, decisionsAnswer, isDigest, newest, newestSprint, ownerReply } from "./comments.mjs";
 
 export const OWNER = "astevegreen";
 export const MEMORY_FLOOR_MB = 4096;

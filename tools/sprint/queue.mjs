@@ -2,7 +2,7 @@
 // the night shift instead of each applying its own prose copy. Prints one line of JSON:
 //   has-work "<session title>" [--started <k>]   {"start": bool, "reason": "…"}; k sessions this run already started
 //   next <lane|night> [--fixes-done <k>]   the next job, or null
-//   move <n> <state> [--note "…"] [--conflict | --rail] [--dry-run]   {"moved": n, "to": state, "ran": [...]}, or {"error", "do"}
+//   move <n> <state> [--note "…"] [--conflict | --rail | --blocker] [--dry-run]   {"moved": n, "to": state, "ran": [...]}, or {"error", "do"}
 //   digest [--dry-run]             {"post", "posted", "reason", "issue", "questions", "fresh"}: the daily Decisions
 //                                  digest of design questions (decisions.mjs); posts it when one is due
 //   backlog <lane>                 {"ready": n, "target": n, "todo": [backlog IDs with no issue yet]}, for sprint-plan
@@ -39,7 +39,7 @@ import { resumeAfter } from "./usage-limit.mjs";
 const ROOT = path.resolve(import.meta.dirname, "..", "..");
 const STOP = "Stop and report this error to the owner; don't fall back to the prose rules.";
 const USAGE =
-  'usage: queue.mjs has-work "<title>" [--started <k>] | next <lane|night> [--fixes-done <k>] | move <n> <state> [--note "…"] [--conflict | --rail] [--dry-run] | digest [--dry-run] | backlog <lane> | status [--need "…"] [--write] | env | window [start [hours] [--environment <env_…>] | ids [--supervisor|--archiver|--wake <trig_…>] | stop | archived] | wake [--resets-at <epoch s>] | started "<title>" <trigger id> | sessions [--all] | night-shift | resume - --last-event <ISO> (the log on stdin)';
+  'usage: queue.mjs has-work "<title>" [--started <k>] | next <lane|night> [--fixes-done <k>] | move <n> <state> [--note "…"] [--conflict | --rail | --blocker] [--dry-run] | digest [--dry-run] | backlog <lane> | status [--need "…"] [--write] | env | window [start [hours] [--environment <env_…>] | ids [--supervisor|--archiver|--wake <trig_…>] | stop | archived] | wake [--resets-at <epoch s>] | started "<title>" <trigger id> | sessions [--all] | night-shift | resume - --last-event <ISO> (the log on stdin)';
 const SESSION_MB = 1536; // what one new session is counted as using before it shows in free memory
 
 export function runGh(args) {
@@ -307,6 +307,7 @@ export function main(
         note: option(argv, "--note"),
         conflict: argv.includes("--conflict"),
         rail: argv.includes("--rail"),
+        blocker: argv.includes("--blocker"),
       };
       const plan = planMove(S, a1, a2, opts);
       if (plan.error) return line(plan, 1);
