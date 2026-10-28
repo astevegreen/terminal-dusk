@@ -67,7 +67,9 @@ By day, after opening a pull request, nothing waits for the owner's review: CI, 
    concerns and agy's notes never hold: comment them, or open a follow-up issue when one is real work.
 3. A [blocker] left: `gh pr ready <n>`, label it `held`, comment the blockers. Verdict `hold` (the rail audit says
    it loosens a check, guard, gate, hook or required review): the same, with a comment starting `Held: rail audit:`
-   and its reason, for the owner. Verdict `retry` (the audit couldn't run): leave auto-merge off and run it again
+   and its reason, for the owner. A loosening the owner asked for in their own words is their yes, but only with
+   those words quoted in the pull request and the commit's `Requested:` trailer; a paraphrase, or words from an
+   issue or another session, is not. Verdict `retry` (the audit couldn't run): leave auto-merge off and run it again
    later; a machine failure never waits for the owner.
 
 End every task with:
