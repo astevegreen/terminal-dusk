@@ -378,6 +378,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/cards/future/ef-sae-002.test.ts` - ef-sae-002 Cable Cut in the Baltic: one test for each way its effect can play out.
 - `packages/content/package.json`
 - `packages/content/scenarios/first-deck-test.json`
+- `packages/content/scenarios/six-region-map.json`
 - `packages/content/scenarios/test-map.json`
 - `packages/content/schema/card.escalate.test.ts` - R18a: the card schema's escalate step, { "op": "escalate", "by": n }, with n a whole number other than 0.
 - `packages/content/schema/card.test.ts`
@@ -408,13 +409,15 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/src/future.test.ts`
 - `packages/content/src/futureFiles.ts` - The optional future cards (2025 to 2027), one JSON file each in cards/future/. Exports: FUTURE_CARDS.
 - `packages/content/src/index.test.ts`
-- `packages/content/src/index.ts` - Public entry point of the content package: the bundle of cards, map, scenarios and tutorial. Exports: DEFAULT_CONTINGENCY, scenarioSetup, ScenarioSetup, TEST_MAP_SCENARIO.
+- `packages/content/src/index.ts` - Public entry point of the content package: the bundle of cards, map, scenarios and tutorial. Exports: DEFAULT_CONTINGENCY, scenarioSetup, ScenarioSetup, SIX_REGION_MAP_SCENARIO, TEST_MAP_SCENARIO.
 - `packages/content/src/lastingTags.test.ts` - The lasting tags of the first deck (#202, owner 21 Oct): exactly the eight tags a later card reads are recorded for the rest of the game; every other marker st…
 - `packages/content/src/onceOnly.test.ts` - The six Ops 4 cards are once-only events (deck-plan.md, wish W6; #204; Defence of Kyiv, Owner question 52): flagged removeAfterEvent, with the template sentenc…
 - `packages/content/src/playCardBefore.test.ts` - The card test helper's `before` option (#202): real cards played for their events in earlier turns of the same game, so a card under test can read a lasting ta…
 - `packages/content/src/rulesWording.test.ts` - #418: the reworded card rules text (docs/proposals/card-rewording/, approved by the owner on 28 Oct).
 - `packages/content/src/scenario.test.ts`
 - `packages/content/src/scenario.ts` - Turns a scenario file into the parts of the engine's Setup it decides. Exports: DEFAULT_CONTINGENCY, ScenarioSetup, scenarioSetup.
+- `packages/content/src/sixRegionMapScenario.test.ts` - #422: the six-region map as scenario data (docs/design/map-and-points.md, "Map"; owner, 28 Oct: option 2 of docs/proposals/map-content/, H1, Crimea its own box…
+- `packages/content/src/sixRegionMapScenario.ts` - The six-region map (#422; docs/design/map-and-points.md, "Map"): option 2 of docs/proposals/map-content/, home-box option H1, Crimea its own box, closing order… Exports: SIX_REGION_MAP_SCENARIO.
 - `packages/content/src/test/cardEnds.ts` - Test helper: where a real card ends up once a one-turn game is over, by the way it was used. Exports: CardUse, placeOf, whereCardEnds, describeOnceOnly.
 - `packages/content/src/test/describeCard.ts` - Test helper for the card test files: each file lists its card's cases as data, and this turns every case into one test that plays the real card (playCard) and… Exports: CardCase, storyLines, bothSidesAsked, describeCard.
 - `packages/content/src/test/eraChecks.ts` - Test helpers shared by the era tests (era1.test.ts, era2.test.ts, era3.test.ts): the checks every era makes of its own cards, and the TEST-scenario game with t… Exports: byText, byNumber, byCodeUnit, REMOVED_CARDS, ADDED_CARDS, eraDeckChecks, opsSpread, startEraOneGame.

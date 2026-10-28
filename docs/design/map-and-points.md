@@ -28,6 +28,8 @@ Not yet built. Numbers marked "open" are for the owner to set.
 - **Region contents** (owner, 28 Oct, chosen in chat: option 2): the countries, regions and links of
   `docs/proposals/map-content/option-2.md`, 41 countries plus Crimea. Open (scenario data): each country's
   stability, and each era's battleground list; the proposal's numbers are placeholders.
+  The data is `packages/content/scenarios/six-region-map.json` (#422), with those placeholders, Crimea's stability
+  2 like Ukraine's, and Taiwan LIO 3 and Crimea SAE 1 as placeholder starting influence (owner, 28 Oct).
 
 ## Influence (proposal topic 2, option A)
 
