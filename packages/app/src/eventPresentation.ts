@@ -25,6 +25,10 @@ const shown = (value: VarValue): string =>
 const deckText = (deck: DeckId): string =>
   deck === "world" ? "the World deck" : `the ${SIDE_NAME[deck]} Contingency deck`;
 
+/** A deck at the start of a sentence, a side's deck by its owner: "SAE's Contingency deck". */
+const ownedDeckText = (deck: DeckId): string =>
+  deck === "world" ? "The World deck" : SIDE_NAME[deck] + "'s Contingency deck";
+
 /** Cards by name, in order, or "no cards". */
 const cardList = (cards: string[], names: GameNames): string => cards.map(names.card).join(", ") || "no cards";
 
@@ -58,10 +62,7 @@ export const eventPresentation: EventPresentation = {
     log: (event, names) => `${names.era(event.era)} started: ${event.cardsAdded} cards shuffled into the draw pile.`,
   },
   contingencyDrawn: { log: (event) => `A contingency was drawn from ${deckText(event.deck)}: ${event.value}.` },
-  contingencyDeckReshuffled: {
-    log: (event) =>
-      `${event.deck === "world" ? "The World deck" : `${SIDE_NAME[event.deck]}'s Contingency deck`} was shuffled back together.`,
-  },
+  contingencyDeckReshuffled: { log: (event) => `${ownedDeckText(event.deck)} was shuffled back together.` },
   modifierStarted: {
     log: (event, names) => `${names.card(event.source)}: ${modifierText(event.mod)}, until the end of the turn.`,
   },
