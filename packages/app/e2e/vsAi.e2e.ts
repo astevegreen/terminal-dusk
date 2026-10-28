@@ -59,3 +59,23 @@ test("play against the AI: pick LIO and tap through a whole game against the wor
   await page.getByRole("button", { name: "New game" }).click();
   await expect(page.getByRole("button", { name: "Play as SAE" })).toBeVisible();
 });
+
+test("against the AI, the side picker says who each side is and each card in the hand shows its rules", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Play against the AI" }).click();
+  await expect(page.getByText("LIO (Liberal International Order): The US-led bloc of real states.")).toBeVisible();
+  await expect(
+    page.getByText("SAE (Strategic Authoritarian Entente): Russia and China as one unified side."),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Play as LIO" }).click();
+  await expect(page.getByTestId("status-bar")).toContainText("You play LIO (Liberal International Order)");
+  const cards = page.getByTestId("hand").getByRole("listitem");
+  await expect(cards.first()).toBeVisible();
+  const count = await cards.count();
+  // Every card has its rules text from its card file under its name, so no card shows a name alone.
+  await expect(page.getByTestId("hand").locator(".hand-card-rules")).toHaveCount(count);
+  for (const text of await page.getByTestId("hand").locator(".hand-card-rules").allInnerTexts())
+    expect(text.trim().length).toBeGreaterThan(10);
+});

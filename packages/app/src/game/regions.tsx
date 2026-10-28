@@ -4,8 +4,8 @@ import { DECKS, SIDES } from "@terminal-dusk/engine";
 import type { CardId, DeckId, EraId, PublicState, Side } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import type { ReactNode } from "react";
-import { eraText, gameOverText, playsText } from "../displayText.ts";
-import type { Label } from "../displayText.ts";
+import { eraText, gameOverText, playsText, sideFullName } from "../displayText.ts";
+import type { CardRules, Label } from "../displayText.ts";
 import { ZoomableMap } from "./ZoomableMap.tsx";
 
 export type { Label } from "../displayText.ts";
@@ -35,7 +35,7 @@ const names = (cards: CardId[], label: Label): string => (cards.length === 0 ? "
 const holds = (frame: Frame, side: Side): string => `${upper(side)} holds ${frame.view.counts.hands[side]} cards`;
 
 function viewerText(frame: Frame): string {
-  return frame.viewer === "spectator" ? "Spectating" : `You play ${upper(frame.viewer)}`;
+  return frame.viewer === "spectator" ? "Spectating" : `You play ${sideFullName(frame.viewer)}`;
 }
 
 function statusText(frame: Frame): string {
@@ -68,14 +68,26 @@ export function MapArea({ frame }: Readonly<{ frame: Frame }>) {
   );
 }
 
-export function Hand({ frame, label }: Readonly<{ frame: Frame; label: Label }>) {
+/** One card in the hand: its name, with its rules text on its own line when the game has rules text for it. */
+function HandCard({ card, label, rules }: Readonly<{ card: CardId; label: Label; rules: CardRules | undefined }>) {
+  const text = rules?.(card);
+  if (text === undefined) return <li>{label(card)}</li>;
+  return (
+    <li>
+      <span className="hand-card-name">{label(card)}</span>
+      <span className="hand-card-rules">{text}</span>
+    </li>
+  );
+}
+
+export function Hand({ frame, label, rules }: Readonly<{ frame: Frame; label: Label; rules?: CardRules | undefined }>) {
   const { mine } = frame.view;
   return (
     <Region id="hand" title="Your hand" className="game-hand" scrolls>
       {mine ? (
         <ol>
           {mine.hand.map((card) => (
-            <li key={card}>{label(card)}</li>
+            <HandCard key={card} card={card} label={label} rules={rules} />
           ))}
         </ol>
       ) : (

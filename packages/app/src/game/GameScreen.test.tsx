@@ -58,6 +58,15 @@ describe("GameScreen for a side", () => {
   it("shows the hand by name in the frame's order and the opponent's count", () => {
     expectAll(out, ["<li>Test card 1</li><li>Test card 2</li><li>Test card 3</li>", "SAE holds 7 cards"]);
   });
+  it("shows each card's rules text under its name when the game has rules text (#414)", () => {
+    const rules = (card: string): string | undefined => (card === "t2" ? undefined : `Rules of ${card}.`);
+    const withRules = html(lio, { rules });
+    expectAll(withRules, [
+      '<li><span class="hand-card-name">Test card 1</span><span class="hand-card-rules">Rules of t1.</span></li>',
+      "<li>Test card 2</li>",
+      '<li><span class="hand-card-name">Test card 3</span><span class="hand-card-rules">Rules of t3.</span></li>',
+    ]);
+  });
   it("shows the table, with the cards in play and the discard pile", () => {
     expectAll(out, ["In play: Test card 3", "Discard pile: 2 cards. Last 5, newest first: Test card 2, Test card 1"]);
   });
@@ -181,7 +190,7 @@ describe("screen-reader support", () => {
     );
     expect(html(over("sae"))).toContain('<span role="status">Game over: SAE, turns ran out</span>');
     expect(out.match(/role="status"/g)).toHaveLength(1);
-    expect(out).toContain("<span>You play LIO</span>");
+    expect(out).toContain("<span>You play LIO (Liberal International Order)</span>");
   });
   it("announces the refusal as an alert, keeping its <output> and its Refused: text", () => {
     expect(html(frameFor("lio"), { refusal: "stale_seq" })).toContain(

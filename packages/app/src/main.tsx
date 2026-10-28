@@ -6,6 +6,7 @@ import {
   FIRST_DECK_NOTE,
   firstDeckCardName,
   firstDeckCardQuestion,
+  firstDeckCardRules,
   firstDeckConfig,
   firstDeckRuleset,
 } from "@terminal-dusk/host/first-deck";
@@ -22,6 +23,7 @@ const firstDeckGame: VsAiGame = {
   makeMatch: (seed, clock) => createLocalMatch(firstDeckRuleset, firstDeckConfig(), seed, clock),
   cardName: firstDeckCardName,
   cardQuestion: firstDeckCardQuestion,
+  cardRules: firstDeckCardRules,
   cardAffiliation: (id) => firstDeckRuleset.cards.find((card) => card.id === id)?.affiliation,
   note: FIRST_DECK_NOTE,
 };

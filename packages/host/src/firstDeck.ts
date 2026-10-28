@@ -1,4 +1,4 @@
-// The first deck as a game the app can start: the ruleset, a match config, and card names.
+// The first deck as a game the app can start: the ruleset, a match config, and card names and rules text.
 // The app may not import content (docs/architecture.md), so this is the route from the real cards to the screens.
 // There is no separate deal: both hands start empty and every Era 1 card starts in the draw pile, which the engine
 // shuffles with the match seed. The turn 1 refill then deals each side its first hand (docs/design/core-loop.md,
@@ -41,6 +41,11 @@ const QUESTIONS = new Map<CardId, string | undefined>(
  * question is the rules text"). Undefined for a card that asks nothing or an unknown id. Display data only.
  */
 export const firstDeckCardQuestion = (id: CardId): string | undefined => QUESTIONS.get(id);
+
+const RULES = new Map<CardId, string>(FIRST_DECK_CARDS.map((card) => [card.id, card.text.rules]));
+
+/** A first-deck card's rules text as its card file has it, shown under its name; undefined for an unknown id. */
+export const firstDeckCardRules = (id: CardId): string | undefined => RULES.get(id);
 
 /**
  * A fresh copy of R14's test map, starting influence included: TEST_MAP_SCENARIO through content's scenarioSetup.

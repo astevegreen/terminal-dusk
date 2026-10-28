@@ -35,6 +35,15 @@ describe("the way in", () => {
     expect(out).toMatch(/min-width:44px[^>]*>Play as SAE<\/button>/);
     expect(out).toContain("Practice game with developer test cards");
   });
+  it("says under each button who the side is (docs/design/sides.md, #414)", () => {
+    const out = renderToString(<SidePicker onPick={() => {}} />);
+    expect(out).toContain(
+      "Play as LIO</button><p>LIO (Liberal International Order): The US-led bloc of real states.</p>",
+    );
+    expect(out).toContain(
+      "Play as SAE</button><p>SAE (Strategic Authoritarian Entente): Russia and China as one unified side.</p>",
+    );
+  });
 });
 
 describe("the game screen against the AI", () => {
@@ -45,6 +54,16 @@ describe("the game screen against the AI", () => {
     expect(out).toContain("LIO: pick an opening card");
     expect(out).toContain("<button");
     expect(out).not.toContain("New game");
+  });
+  it("shows the rules text of each card in the hand when the game gives it, and names only when not (#414)", () => {
+    const { session } = start({ hold: true });
+    const snapshot = session.getSnapshot();
+    const hand = snapshot.frame?.view.mine?.hand ?? [];
+    expect(hand.length).toBeGreaterThan(0);
+    const rules = (id: string): string => `Rules of ${id}.`;
+    const out = renderToString(<VsAiView snapshot={snapshot} session={session} onNewGame={() => {}} rules={rules} />);
+    for (const id of hand) expect(out).toContain(`<span class="hand-card-rules">Rules of ${id}.</span>`);
+    expect(view(session)).not.toContain("hand-card-rules");
   });
   it("draws the game screen inside the wrapper that moves focus to each new decision", () => {
     const { session } = start({ hold: true });

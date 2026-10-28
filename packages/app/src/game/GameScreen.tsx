@@ -7,6 +7,7 @@ import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
 import "./gameScreen.css";
 import { Contingency, Hand, Log, MapArea, Opponent, Region, StatusBar, Table } from "./regions.tsx";
 import type { Label } from "./regions.tsx";
+import type { CardRules } from "../displayText.ts";
 
 export type GameScreenProps = {
   frame: Frame;
@@ -19,6 +20,8 @@ export type GameScreenProps = {
   question: CardQuestion;
   /** Whose each card is, so the prompt offers only the plays a card allows. Display data only. */
   affiliation: CardAffiliation;
+  /** A card's rules text, shown under its name in the hand; left out, the hand shows names only. Display data only. */
+  rules?: CardRules | undefined;
   /** Present: the waiting decision can be answered. Absent: it is shown read-only. */
   onAnswer?: ((value: AnswerValue) => void) | undefined;
   refusal?: string | null | undefined;
@@ -31,7 +34,7 @@ function DecisionRegion({
   affiliation,
   onAnswer,
   refusal,
-}: Readonly<Omit<GameScreenProps, "log" | "era">>) {
+}: Readonly<Omit<GameScreenProps, "log" | "era" | "rules">>) {
   const stack = frame.view.public.stack;
   const hand = frame.view.mine?.hand ?? [];
   const known = frame.view.mine?.knowledge ?? [];
@@ -69,6 +72,7 @@ export function GameScreen({
   label,
   question,
   affiliation,
+  rules,
   onAnswer,
   refusal,
 }: Readonly<GameScreenProps>) {
@@ -76,7 +80,7 @@ export function GameScreen({
     <div className="game">
       <StatusBar frame={frame} era={era} />
       <MapArea frame={frame} />
-      <Hand frame={frame} label={label} />
+      <Hand frame={frame} label={label} rules={rules} />
       {/* It scrolls, so the keyboard can reach it; a div with a role, as a section would pick up the boxed style. */}
       <div className="game-side" role="region" aria-label="Game details" tabIndex={0}>
         <Opponent frame={frame} />

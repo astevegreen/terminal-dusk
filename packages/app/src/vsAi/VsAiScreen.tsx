@@ -1,11 +1,14 @@
 // Playing against the Easy AI: a side picker, then the game screen for the human's side. The AI runs in a
 // Web Worker (createWorkerAi) unless a test passes another opponent. Seeds and the clock come from main.tsx.
+import { SIDES } from "@terminal-dusk/engine";
 import type { CardId, Ruleset, Side } from "@terminal-dusk/engine";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { FocusingGameScreen } from "../game/decisionFocus.tsx";
 import { ReplayScreen } from "../replay/ReplayScreen.tsx";
 import type { ReplayRecording } from "../replay/recording.ts";
 import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
+import { SIDE_NAME, SIDE_WHO, sideFullName } from "../displayText.ts";
+import type { CardRules } from "../displayText.ts";
 import { cardAffiliation as fixtureAffiliation, cardName, cardQuestion } from "../testMode/fixture.ts";
 import type { MakeAi } from "./aiOpponent.ts";
 import { createVsAiSession } from "./session.ts";
@@ -25,6 +28,8 @@ export type VsAiGame = {
   cardQuestion: CardQuestion;
   /** Whose each card is, so a prompt offers only the plays the card allows. */
   cardAffiliation: CardAffiliation;
+  /** A card's rules text, shown under its name in the hand; left out, the hand shows names only. */
+  cardRules?: CardRules | undefined;
   note: string;
 };
 
@@ -36,12 +41,14 @@ export function SidePicker({
     <main>
       <h1>Play against the AI</h1>
       <p>{note}</p>
-      <button type="button" style={TAP} onClick={() => onPick("lio")}>
-        Play as LIO
-      </button>
-      <button type="button" style={TAP} onClick={() => onPick("sae")}>
-        Play as SAE
-      </button>
+      {SIDES.map((side) => (
+        <div key={side}>
+          <button type="button" style={TAP} onClick={() => onPick(side)}>
+            {`Play as ${SIDE_NAME[side]}`}
+          </button>
+          <p>{`${sideFullName(side)}: ${SIDE_WHO[side]}`}</p>
+        </div>
+      ))}
     </main>
   );
 }
@@ -55,6 +62,7 @@ export function VsAiView({
   label = cardName,
   question = cardQuestion,
   affiliation = fixtureAffiliation,
+  rules,
 }: Readonly<{
   snapshot: VsAiSnapshot;
   session: VsAiSession;
@@ -63,6 +71,8 @@ export function VsAiView({
   label?: ((id: CardId) => string) | undefined;
   question?: CardQuestion | undefined;
   affiliation?: CardAffiliation | undefined;
+  /** A card's rules text for the hand; left out, as for the developer fixture, the hand shows names only. */
+  rules?: CardRules | undefined;
 }>) {
   const [watching, setWatching] = useState<ReplayRecording | null>(null);
   const { frame } = snapshot;
@@ -88,6 +98,7 @@ export function VsAiView({
           label={label}
           question={question}
           affiliation={affiliation}
+          rules={rules}
           onAnswer={(value) => void session.answer(value)}
           refusal={snapshot.refusal}
         />
@@ -133,6 +144,7 @@ function Game({
       label={game?.cardName}
       question={game?.cardQuestion}
       affiliation={game?.cardAffiliation}
+      rules={game?.cardRules}
     />
   );
 }

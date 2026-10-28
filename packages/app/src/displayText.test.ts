@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SIDE_NAME, eraText, gameOverText, playsText, reasonText } from "./displayText.ts";
+import { SIDE_NAME, SIDE_WHO, eraText, gameOverText, playsText, reasonText, sideFullName } from "./displayText.ts";
 
 describe("the words the game screens share", () => {
   it("counts the plays this turn out of both sides' plays together, since each side makes playsPerTurn (#410)", () => {
@@ -9,6 +9,11 @@ describe("the words the game screens share", () => {
   });
   it("names the sides LIO and SAE", () => {
     expect(SIDE_NAME).toEqual({ lio: "LIO", sae: "SAE" });
+  });
+  it("spells out each side and says who it is, in the words of docs/design/sides.md (#414)", () => {
+    expect(sideFullName("lio")).toBe("LIO (Liberal International Order)");
+    expect(sideFullName("sae")).toBe("SAE (Strategic Authoritarian Entente)");
+    expect(SIDE_WHO).toEqual({ lio: "The US-led bloc of real states.", sae: "Russia and China as one unified side." });
   });
   it("names each first-deck era by its number and years, and the future cards by theirs (docs/design/eras.md)", () => {
     expect(eraText("era-1")).toBe("Era 1 (1991–2001)");
