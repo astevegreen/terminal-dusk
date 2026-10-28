@@ -1,25 +1,21 @@
-// .github/CODEOWNERS must keep the fences, database migrations and dependency files waiting for the owner.
+// .github/CODEOWNERS names no path, so no change waits for the owner's review (owner's policy, 28 Oct 2026).
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { LOCKED } from "./shared.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..", "..");
-const lines = readFileSync(path.join(ROOT, ".github/CODEOWNERS"), "utf8").split(/\r?\n/).filter((l) => l.trim() && !l.startsWith("#"));
-const owned = new Map(lines.map((l) => l.trim().split(/\s+/)).map(([p, ...owners]) => [p, owners]));
+const text = readFileSync(path.join(ROOT, ".github/CODEOWNERS"), "utf8");
+const entries = text.split(/\r?\n/).filter((l) => l.trim() && !l.trim().startsWith("#"));
 
-test("every Locked path is code-owned", () => {
-  for (const entry of LOCKED) assert.ok(owned.has(`/${entry}`), `/${entry} is missing from CODEOWNERS`);
+test("CODEOWNERS lists no path, so GitHub's code-owner review never waits for the owner", () => {
+  assert.deepEqual(entries, [], "a CODEOWNERS entry makes every change to that path wait for the owner again");
 });
 
-test("database migrations, golden replays, dependencies and tool settings are code-owned", () => {
-  for (const p of [
-    "/packages/server/supabase/migrations/", "/tests/golden/", "/tools/git-hooks/", "**/package.json", "/pnpm-lock.yaml",
-    "/pnpm-workspace.yaml", "**/tsconfig*.json", "**/vitest.config.*", "**/vite.config.*", "/eslint.config.*",
-  ]) assert.ok(owned.has(p), `${p} is missing from CODEOWNERS`);
+test("CODEOWNERS says why it is empty", () => {
+  assert.match(text, /No path waits for the owner's review/);
 });
 
-test("every entry names the owner", () => {
-  for (const [p, owners] of owned) assert.deepEqual(owners, ["@astevegreen"], p);
+test("CODEOWNERS names what holds a loosened rail instead of the owner's review", () => {
+  assert.match(text, /held for the owner by agy's rail audit/);
 });
