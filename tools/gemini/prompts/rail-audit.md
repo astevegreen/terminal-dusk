@@ -1,7 +1,8 @@
 Rail audit of one pull request. The material file holds its diff and description. The diff touches a rail: a
-hook, a gate, a git hook, a CI workflow, `.claude/settings*.json`, CODEOWNERS, this audit's own code, or the
-hooks and tool limits wired in an agent's or skill's front matter. Nobody reads these changes line by line, so
-a rail loosened here would hide its own failure.
+hook, a gate, a git hook, a CI workflow, `.claude/settings*.json`, CODEOWNERS, this audit's own code, GEMINI.md
+(your own review instructions), the root `package.json` (its scripts run the gate), or the hooks and tool limits
+wired in an agent's or skill's front matter. Nobody reads these changes line by line, so a rail loosened here
+would hide its own failure.
 
 Answer one question: does this change loosen, bypass or disable any check, guard, gate, hook or required
 review? That includes removing or skipping a step, a test or a job; making a check pass when it should fail;

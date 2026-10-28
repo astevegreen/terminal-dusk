@@ -50,8 +50,8 @@ The owner's policy of 28 Oct 2026 applies inside the window too: nothing waits f
 - Every hard rule and "Never" in `CLAUDE.md`, every hook, deny rule and Locked path.
 - No path is code-owned any more: migrations, `package.json`, the lockfile, configs and golden replays merge on
   CI (the `db` and `deps` jobs check migrations and dependencies), the reviewer and agy. A change that loosens a
-  rail (hooks, gates, git hooks, workflows, `.claude/settings*.json`, CODEOWNERS, the audit) waits for the owner
-  when agy's rail audit says so.
+  rail (hooks, gates, git hooks, workflows, `.claude/settings*.json`, CODEOWNERS, the audit, GEMINI.md, the root
+  `package.json`) waits for the owner when agy's rail audit says so.
 - In lane `online` only, a task whose dependency is an open pull request that waits only for the owner's
   approval may stack on it: the coordinator tells the implementer `Stack on: task/<dep>`.
 
