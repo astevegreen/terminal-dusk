@@ -209,8 +209,9 @@ describe("the fuzz games move flagged cards out of play every way", () => {
       expect(counts.rivalPoints).toBeGreaterThan(0);
       expect(counts.reshuffle).toBeGreaterThan(0);
       expect(counts.wrong).toBe(0);
-      // The same limit as filtered.test.ts's 200 games: vitest's 5 s default is too short when every fuzz file runs at once.
     },
-    GAMES * 100,
+    // Measured 28 Oct 2026: about 13 s for the 200 games with the whole fuzz folder running in parallel, about 65 ms a game.
+    // The limit is 300 ms per game, as vitest's 5 s default is far too short.
+    GAMES * 300,
   );
 });
