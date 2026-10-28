@@ -105,6 +105,9 @@ jobs:
         working-directory: packages/server
         run: |
           export SEND_EMAIL_HOOK_SECRET="v1,whsec_$(openssl rand -base64 32)"
+          # The served Edge Functions read only this git-ignored file, not the shell (src/migrations/localStack.ts).
+          printf 'LOCAL_MAIL_URL=http://host.docker.internal:44324\nSEND_EMAIL_HOOK_SECRET=%s\n' "$SEND_EMAIL_HOOK_SECRET" \
+            > supabase/functions/.env
           pnpm exec supabase start
           set -a
           eval "$(pnpm exec supabase status -o env)"
