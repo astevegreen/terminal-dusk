@@ -1,10 +1,12 @@
 // The map (docs/architecture.md, Decision 6). Zoomed out: one badge per country, grouped by region, each
 // showing the country's net influence in its controller's colour, under a button per region that zooms in.
 // Zoomed into a region: that region's countries as full boxes with stability and both sides' influence. It reads
-// only the frame's public map and influence; who controls a country comes from the engine's `controller`.
+// only the frame's public map and influence; who controls a country comes from the engine's `controller`. Both
+// views start with the two home boxes, which are not countries and cannot be tapped (A14, #439).
 // No hooks: the zoom comes in as props (ZoomableMap.tsx holds it), so tests can walk it without a browser.
-import { controller } from "@terminal-dusk/engine";
+import { SIDES, controller } from "@terminal-dusk/engine";
 import type { Country, GameMap, InfluenceEntry, PublicState, Region, RegionId } from "@terminal-dusk/engine";
+import { SIDE_NAME } from "../displayText.ts";
 
 /** The tap-target size used across the app (App.tsx): at least 44 by 44 CSS px. */
 const TAP = { minHeight: 44, minWidth: 44 } as const;
@@ -75,7 +77,20 @@ function Stat({ label, value }: Readonly<{ label: string; value: number }>) {
   );
 }
 
-function CountryBox({ pub, country }: Readonly<{ pub: PublicState; country: Country }>) {
+/** The two home boxes, one per side, in its colour. Home boxes are not countries: no influence, no stability. */
+function HomeBoxes() {
+  return (
+    <ul className="map-homes" aria-label="Home boxes">
+      {SIDES.map((side) => (
+        <li key={side} className="map-home" data-home={side}>
+          {`${SIDE_NAME[side]} home box`}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function CountryBox({ pub, map, country }: Readonly<{ pub: PublicState; map: GameMap; country: Country }>) {
   const { lio, sae } = influenceOf(pub.influence, country);
   return (
     <li className="map-box" data-country={country.id} data-control={controlOf(pub, country)} style={TAP}>
@@ -83,6 +98,9 @@ function CountryBox({ pub, country }: Readonly<{ pub: PublicState; country: Coun
       <Stat label="Stability" value={country.stability} />
       <Stat label="LIO" value={lio} />
       <Stat label="SAE" value={sae} />
+      {SIDES.filter((side) => map.homeBox[side].includes(country.id)).map((side) => (
+        <span key={side} className="map-box-home">{`Next to ${SIDE_NAME[side]} home`}</span>
+      ))}
     </li>
   );
 }
@@ -99,10 +117,11 @@ function ZoomedRegion({
       <button type="button" style={TAP} onClick={() => onZoom(null)}>
         Whole map
       </button>
+      <HomeBoxes />
       <h3 id={headingId}>{region.name}</h3>
       <ul aria-labelledby={headingId}>
         {countriesIn(map, region).map((c) => (
-          <CountryBox key={c.id} pub={pub} country={c} />
+          <CountryBox key={c.id} pub={pub} map={map} country={c} />
         ))}
       </ul>
     </div>
@@ -110,8 +129,8 @@ function ZoomedRegion({
 }
 
 /**
- * The map at the given zoom: the whole map's badges region by region in the map's order, or one region's
- * boxes. A zoom naming a region the map lacks draws the whole map. No map: a line saying so, and no zoom.
+ * The map at the given zoom, under the home boxes: the whole map's badges region by region in the map's order, or
+ * one region's boxes. A zoom naming a region the map lacks draws the whole map. No map: a line saying so, and no zoom.
  */
 export function MapView({ pub, zoom, onZoom }: Readonly<{ pub: PublicState; zoom: Zoom; onZoom: OnZoom }>) {
   const { map } = pub;
@@ -121,6 +140,7 @@ export function MapView({ pub, zoom, onZoom }: Readonly<{ pub: PublicState; zoom
   if (zoomed) return <ZoomedRegion pub={pub} map={map} region={zoomed} onZoom={onZoom} />;
   return (
     <>
+      <HomeBoxes />
       {map.regions.map((region) => (
         <RegionGroup key={region.id} pub={pub} map={map} region={region} onZoom={onZoom} />
       ))}

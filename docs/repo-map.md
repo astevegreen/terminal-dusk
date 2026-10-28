@@ -64,7 +64,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e/replay.e2e.ts`
 - `packages/app/e2e/server.test.ts` - The Playwright run's own port (server.ts): a free one, kept for the run's workers, never a server already running.
 - `packages/app/e2e/server.ts` - Where the Playwright smoke tests serve the app (playwright.config.ts). Exports: e2ePort, e2eServer.
-- `packages/app/e2e/sixRegionMap.e2e.ts` - The six-region map against the AI (A14, #439): 6 regions and 42 boxes and Crimea in its own box, on a phone held upright (375x667) and at the project's own siz…
+- `packages/app/e2e/sixRegionMap.e2e.ts` - The six-region map against the AI (A14, #439): 6 regions and 42 boxes, Crimea in its own box, and the two home boxes, readable and tappable on a phone held upr…
 - `packages/app/e2e/testMode.e2e.ts`
 - `packages/app/e2e/vsAi.e2e.ts`
 - `packages/app/e2e/vsAiReplay.e2e.ts`
@@ -91,6 +91,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/decisionFocus.tsx` - Keyboard play: when a new decision waits for the player, focus moves to its first choice button. Exports: shouldFocusDecision, FocusRoot, FIRST_CHOICE, applyDecisionFocus, FocusingGameScreen.
 - `packages/app/src/game/gameScreen.css`
 - `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, HandCard, Hand, Opponent, Table, Contingency, Log.
+- `packages/app/src/game/sixRegionMapView.test.tsx` - The real six-region map on screen (A14, issue #439): 6 region buttons and 42 badges zoomed out, each region's boxes zoomed in, Crimea's own box, and both home…
 - `packages/app/src/game/test/mapFixture.ts` - Test helper: a hand-written two-region map, its influence, and test-mode frames with and without it. Exports: map, influence, baseFrame, withMap, withoutMap.
 - `packages/app/src/main.tsx` - Browser entry point: mounts the app into the #root element of index.html.
 - `packages/app/src/online/LobbyView.press.test.tsx` - Pressing the lobby screen's buttons, typing in its code field and submitting its form without a browser: each calls the right lobby session method.
