@@ -48,6 +48,30 @@ function press(index: number, name: string): number | null {
   return went;
 }
 
+describe("card rules text in the replay (#417)", () => {
+  const withRules = (rules?: (card: string) => string | undefined): string =>
+    renderToString(
+      <ReplayView
+        recording={recording}
+        label={cardName}
+        question={cardQuestion}
+        affiliation={cardAffiliation}
+        {...(rules ? { rules } : {})}
+        onClose={() => {}}
+        index={0}
+        onGo={() => {}}
+      />,
+    );
+  it("shows each card's rules text under its name in both hands", () => {
+    const out = withRules((card) => `RULES-OF-${card}`);
+    const first = recording.frames[0]!.view.sides.lio.hand[0]!;
+    expect(out).toContain(`RULES-OF-${first}`);
+  });
+  it("shows names only when no rules text is given", () => {
+    expect(withRules()).not.toContain("RULES-OF-");
+  });
+});
+
 describe("the replay viewer on a finished fixture game", () => {
   it("starts at Step 1 with First and Back disabled and Next and Last enabled", () => {
     const out = html(0);

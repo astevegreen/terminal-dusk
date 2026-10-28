@@ -124,6 +124,28 @@ describe("loading", () => {
   });
 });
 
+describe("card rules text (#417)", () => {
+  const rules = (card: string): string | undefined => `RULES-OF-${card}`;
+  it("is handed to GameScreen, so the hand shows each card's rules", async () => {
+    const r = await started();
+    await play(r);
+    const s = r.game.getSnapshot();
+    const el = gameScreenIn(
+      OnlineGameView({
+        snapshot: s,
+        game: r.game,
+        label: cardName,
+        question: cardQuestion,
+        affiliation: cardAffiliation,
+        rules,
+        onBack: () => {},
+      }),
+    );
+    expect(el!.props.rules).toBe(rules);
+    expect(shown(s, r.game)!.props.rules).toBeUndefined();
+  });
+});
+
 describe("the board", () => {
   it("is drawn through GameScreen with the session's log, era and frame, and the game's label and question", async () => {
     const r = await started();

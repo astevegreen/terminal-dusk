@@ -4,6 +4,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import type { CardId } from "@terminal-dusk/engine";
 import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
+import type { CardRules } from "../displayText.ts";
 import { createOnlineGame } from "./onlineGame.ts";
 import type { OnlineGame, OnlineGameOptions, OnlineGameSnapshot } from "./onlineGame.ts";
 import { OnlineGameView } from "./OnlineGameView.tsx";
@@ -17,6 +18,7 @@ export type PlaySetup = {
   timers: Timers;
   label: (id: CardId) => string;
   question: CardQuestion;
+  rules?: CardRules | undefined;
   affiliation: CardAffiliation;
 };
 
@@ -71,6 +73,7 @@ function Shown({ game, play, onBack }: Readonly<ShownProps & { game: OnlineGame 
       game={game}
       label={play.label}
       question={play.question}
+      rules={play.rules}
       affiliation={play.affiliation}
       onBack={onBack}
     />
@@ -96,6 +99,7 @@ export function OnlineGameFlow({ auth, signIn, playerId, matchId, play, onBack }
         game={null}
         label={play.label}
         question={play.question}
+        rules={play.rules}
         affiliation={play.affiliation}
         onBack={onBack}
       />
