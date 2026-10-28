@@ -821,6 +821,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/reveals.test.ts` - The fuzz suite and the revealHand step of R6a (#185): the fuzz cards show hands at the top level, inside an if and in both kinds of reaction, and the fuzz game…
 - `tests/fuzz/reveals.ts` - TEST-ONLY FIXTURES, never game content: the `revealHand` steps (R6a) the fuzz cards run. Exports: REVEAL, RevealWhere, revealStep, revealOf, revealTriggerOf, announcedReveal.
 - `tests/fuzz/testMap.ts` - The content test map (TEST_MAP_SCENARIO) in the fuzz games, with a battleground list for each random era (#429). Exports: onTestMap.
+- `tests/fuzz/trackEnd.test.ts` - Games that end at a score track's end (R23).
 - `tests/fuzz/turnEndSpend.test.ts` - Turn-end-place (#426): random games on the content test map whose cards leave turn-end payments behind, played with every check on every step.
 - `tests/golden/__snapshots__/refill.test.ts.snap`
 - `tests/golden/refill.test.ts` - Golden replay of refilling hands (docs/design/core-loop.md, "Refilling hands").
@@ -845,6 +846,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/balance/run.mjs` - `node tools/balance/run.mjs [--scenario <first-deck|test-map|six-region>] [--games <n>] [--seed <base>] [--turns <n>] [--plays <n>] [--era <id>@<turn|off>] [--…
 - `tools/balance/run.test.mjs` - Real balance runs: a few first-deck games through the match host, and the command line around them.
 - `tools/balance/scenario.test.mjs` - The --scenario option (X11, #331): the first-deck report as it was, the test map run with its map numbers and its smoke-check heading, refusals, and a player t…
+- `tools/balance/score-stats.mjs` - The score numbers of the balance report, on a map with scoring (R21: docs/design/map-and-points.md, "Scoring").
+- `tools/balance/score-stats.test.mjs` - The score numbers from hand-made summaries (swing, how games end, deciding region), then real games end to end with a numbers file that gives the six-region ma…
 - `tools/balance/stats.mjs` - The balance report's numbers, worked out from finished games only.
 - `tools/balance/stats.test.mjs` - The report numbers from hand-made game summaries, so wins and win shares can be checked before any victory rule exists.
 - `tools/balance/tiers.test.mjs` - The per-side AI tier options --lio-tier and --sae-tier (A16, issue #455): parsing, refusals, and a small seeded run.

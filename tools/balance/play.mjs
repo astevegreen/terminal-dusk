@@ -7,6 +7,7 @@ import { hostCreate, hostSubmit } from "@terminal-dusk/host";
 import { firstDeckConfig, firstDeckRuleset } from "@terminal-dusk/host/first-deck";
 import { mapSummary } from "./map-stats.mjs";
 import { regionLevels } from "./region-stats.mjs";
+import { scoreSummary } from "./score-stats.mjs";
 
 export const SIDES = ["lio", "sae"];
 /** The AI tiers a side can play as, by name. */
@@ -22,7 +23,8 @@ export const matchSeed = (base, i) => `${base}-${i}`;
 /**
  * Game `i` of a run: its summary (final status, answer count, answer log, `map`, the map numbers from
  * map-stats.mjs or null when the game has no map, and `eraEnds`, region-stats.mjs's levels at each era's end, in
- * order, empty when the game has no map). Throws on any refusal, and when a player throws or gives no
+ * order, empty when the game has no map, and `score`, score-stats.mjs's numbers or null when the map has no scoring).
+ * Throws on any refusal, and when a player throws or gives no
  * answer. `config` is the run's match config (see config.mjs); by default the first-deck TEST scenario as it is.
  * `createPlayer(ruleset, side, seed)` makes each side's player; by default the Easy AI. `tiers` (optional,
  * { lio, sae } of TIERS names) picks each side's tier instead; `createPlayer` wins over it. The summary's `crises`
@@ -36,6 +38,7 @@ export function playBalanceGame(base, i, config = firstDeckConfig(), { createPla
   let { record, secret, frames } = created.value;
   const publicEvents = [...frames.spectator.events];
   const eras = eraEndTracker(frames.spectator.view.public);
+  const scores = scoreTracker(frames.spectator.view.public);
   const players = {
     lio: (createPlayer ?? TIERS[tiers.lio ?? "easy"])(firstDeckRuleset, "lio", 2 * i),
     sae: (createPlayer ?? TIERS[tiers.sae ?? "easy"])(firstDeckRuleset, "sae", 2 * i + 1),
@@ -56,6 +59,7 @@ export function playBalanceGame(base, i, config = firstDeckConfig(), { createPla
       if (!out.ok) throw fail(`the host refused ${side}'s answer ${JSON.stringify(value)}: ${describe(out.error)}`);
       ({ record, secret, frames } = out.value);
       publicEvents.push(...frames.spectator.events);
+      scores.observe(frames.spectator);
       eras.observe(frames.spectator);
       submissions += 1;
       answered = true;
@@ -66,7 +70,8 @@ export function playBalanceGame(base, i, config = firstDeckConfig(), { createPla
   const eraEnds = eras.finish(frames.spectator.view.public);
   const crises = { lio: 0, sae: 0 };
   for (const event of publicEvents) if (event.kind === "escalationCrisis") crises[event.side] += 1;
-  return { status: record.status, answers: submissions, log: secret.log, map, eraEnds, crises };
+  const score = scoreSummary(scores.start, frames.spectator.view.public.score, record.status, scores.rows);
+  return { status: record.status, answers: submissions, log: secret.log, map, eraEnds, score, crises };
 }
 
 /**
@@ -86,6 +91,26 @@ function eraEndTracker(start) {
     finish(pub) {
       if (era !== undefined) eraEnds.push({ era, ...regionLevels(pub, era) });
       return eraEnds;
+    },
+  };
+}
+
+/**
+ * Records each region that scores (the regionScored events) with the era it scored for, and the score track's start.
+ * An era scores on its last turn, before the next era's cards come in, so a step's scoring belongs to the era the
+ * public view had before that step. Without scoring on the map there is no start and no rows.
+ */
+function scoreTracker(start) {
+  const rows = [];
+  let era = start.era;
+  return {
+    start: start.score,
+    rows,
+    observe(spectator) {
+      for (const event of spectator.events) {
+        if (event.kind === "regionScored") rows.push({ era, region: event.region, lio: event.lio, sae: event.sae });
+      }
+      era = spectator.view.public.era;
     },
   };
 }

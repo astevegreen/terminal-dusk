@@ -3,8 +3,10 @@
 // final GameStatus, `answers` the number of answers given and `log` the answers (each with its side), oldest first.
 // A summary may also carry `map` (map-stats.mjs): when any game does, the report adds the map numbers under `map`.
 // And `eraEnds` (region-stats.mjs): when any game has one, the report adds the region levels under `eraEnds`.
+// And `score` (score-stats.mjs): when any game has a score track, the report adds the score numbers under `score`.
 import { mapNumbers } from "./map-stats.mjs";
 import { eraEndNumbers } from "./region-stats.mjs";
+import { scoreNumbers } from "./score-stats.mjs";
 
 export const SIDES = ["lio", "sae"];
 export const NO_WINNER_LINE =
@@ -55,6 +57,7 @@ export function balanceStats(summaries, { cards = [], nameOf = (id) => id, eras 
   const games = summaries.length;
   const map = mapNumbers(summaries);
   const eraEnds = eraEndNumbers(summaries);
+  const score = scoreNumbers(summaries);
   return {
     games,
     averageAnswers: games === 0 ? 0 : round(answers / games, 2),
@@ -68,6 +71,7 @@ export function balanceStats(summaries, { cards = [], nameOf = (id) => id, eras 
     ...(eras === undefined ? {} : { byEra: eraNumbers(summaries, eras) }),
     ...(map === undefined ? {} : { map }),
     ...(eraEnds === undefined ? {} : { eraEnds }),
+    ...(score === undefined ? {} : { score }),
   };
 }
 

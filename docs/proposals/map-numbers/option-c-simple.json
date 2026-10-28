@@ -81,5 +81,16 @@
   "startingInfluence": [
     { "country": "taiwan", "lio": 3, "sae": 0 },
     { "country": "crimea", "lio": 0, "sae": 1 }
-  ]
+  ],
+  "scoring": {
+    "track": { "end": 20, "start": 0 },
+    "regions": [
+      { "region": "eastern-europe-central-asia", "present": 1, "ahead": 3, "all": 5 },
+      { "region": "east-south-asia", "present": 1, "ahead": 3, "all": 5 },
+      { "region": "europe", "present": 1, "ahead": 3, "all": 5 },
+      { "region": "middle-east-north-africa", "present": 1, "ahead": 3, "all": 5 },
+      { "region": "sub-saharan-africa", "present": 1, "ahead": 3, "all": 5 },
+      { "region": "americas", "present": 1, "ahead": 3, "all": 5 }
+    ]
+  }
 }
