@@ -31,7 +31,11 @@ test("collaborators reads every page of the repository's collaborator list", () 
 test("an issue counts only when a collaborator or this repository's own workflow opened it", () => {
   const team = new Set(["astevegreen", "greenbeanbot"]);
   assert.equal(trustedIssue({ author: { login: "greenbeanbot" } }, team), true);
-  assert.equal(trustedIssue({ author: { login: "app/github-actions" } }, team), true, "nightly.yml's failure issue");
-  assert.equal(trustedIssue({ author: { login: "stranger" } }, team), false);
+  // nightly.yml's failure issue: gh's JSON names the workflow app/github-actions, the REST API github-actions[bot].
+  assert.equal(trustedIssue({ author: { login: "app/github-actions" } }, team), true, "gh's form");
+  assert.equal(trustedIssue({ author: { login: "github-actions[bot]" } }, team), true, "the REST form");
+  // A person's login can hold neither "/" nor "[", so only the bracketed or prefixed form is the workflow.
+  for (const login of ["github-actions", "app-github-actions", "stranger"])
+    assert.equal(trustedIssue({ author: { login } }, team), false, login);
   assert.equal(trustedIssue({}, team), false, "no author fails closed");
 });

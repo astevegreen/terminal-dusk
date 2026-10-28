@@ -4,9 +4,10 @@
 
 // GitHub's authorAssociation for the repository's owner and for people given write access to it.
 const TRUSTED = new Set(["OWNER", "COLLABORATOR"]);
-// The login gh shows for an issue this repository's own workflows opened (nightly.yml). A fork's workflow runs
-// with a read-only token, so it can't open one.
-const WORKFLOWS = "app/github-actions";
+// The login of an issue this repository's own workflows opened (nightly.yml): gh's JSON shows app/github-actions,
+// the REST API github-actions[bot]. No person can sign up as either, and a fork's workflow runs with a read-only
+// token, so it can't open one.
+const WORKFLOWS = new Set(["app/github-actions", "github-actions[bot]"]);
 
 export const trustedComment = (c) => TRUSTED.has(c.authorAssociation);
 
@@ -27,5 +28,5 @@ export function collaborators(gh) {
 // An issue a collaborator or this repository's own workflow opened. team is collaborators()'s set.
 export function trustedIssue(issue, team) {
   const login = issue.author?.login ?? "";
-  return team.has(login) || login === WORKFLOWS;
+  return team.has(login) || WORKFLOWS.has(login);
 }
