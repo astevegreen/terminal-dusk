@@ -260,4 +260,4 @@ and checks every branch. The rules text of each file is written from the JSON an
   tests play each neutral card as the neutral card it is.
 - **Ops swings: "points spent", not "plays for points".** An opsValue modifier changes every point spent while it lasts
   (including points spent by other effects), not only points from playing a card for points. The rules text
-  says "points spent by <side> count N more". See Owner question 28.
+  says "each time <side> spends points, it spends N more" (or "fewer"). See Owner question 28.
