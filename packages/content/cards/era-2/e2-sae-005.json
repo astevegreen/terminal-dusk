@@ -58,7 +58,7 @@
   ],
   "text": {
     "name": "Litvinenko Poisoning",
-    "rules": "Record \"polonium\". SAE spends 1 point on actions. LIO chooses: Expel diplomats? If yes, LIO spends 1 point on actions, then at the end of this turn, SAE spends 1 point on actions; if no, record \"unanswered\".",
+    "rules": "Record \"polonium\". SAE spends 1 point on actions. LIO chooses: Expel diplomats? If yes, LIO spends 1 point on actions, then at the end of this turn, SAE spends 1 point placing influence; if no, record \"unanswered\".",
     "history": "Former Russian officer Alexander Litvinenko fell ill in London on 1 November 2006 and died on 23 November from polonium-210 poisoning; in 2021 the European Court of Human Rights found Russia responsible.",
     "art": "art/e2-sae-005"
   }

@@ -66,7 +66,7 @@
   ],
   "text": {
     "name": "End of the Soviet Union",
-    "rules": "Record \"red flag lowered\". LIO spends 2 points on one action. SAE chooses: Hold the new states in a commonwealth? If yes, SAE spends 1 point on actions, then until the end of this turn, each time SAE spends points, it spends 1 fewer, never below 1; if no, at the end of this turn, LIO spends 1 point on actions.",
+    "rules": "Record \"red flag lowered\". LIO spends 2 points on one action. SAE chooses: Hold the new states in a commonwealth? If yes, SAE spends 1 point on actions, then until the end of this turn, each time SAE spends points, it spends 1 fewer, never below 1; if no, at the end of this turn, LIO spends 1 point placing influence.",
     "history": "The Soviet Union recognised the independence of Estonia, Latvia and Lithuania on 6 September 1991. On 8 December the leaders of Russia, Ukraine and Belarus agreed to dissolve the Union and found the Commonwealth of Independent States; the Soviet president resigned on 25 December 1991 and the Union ended the next day.",
     "art": "art/e1-lio-014"
   }

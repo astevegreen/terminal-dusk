@@ -30,7 +30,7 @@
   ],
   "text": {
     "name": "Allied Drone Wall",
-    "rules": "Record \"sensors along the frontier\". LIO spends 1 point on actions. At the end of this turn, LIO spends 1 point on actions.",
+    "rules": "Record \"sensors along the frontier\". LIO spends 1 point on actions. At the end of this turn, LIO spends 1 point placing influence.",
     "history": "From 2024 NATO's eastern members announced joint plans for drone and sensor defences along the alliance's eastern frontier.",
     "art": "art/ef-lio-001"
   }
