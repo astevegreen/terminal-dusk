@@ -26,7 +26,7 @@ async function expectHandUnscrolled(page: Page): Promise<void> {
   expect(scrollHeight).toBeLessThanOrEqual(clientHeight);
 }
 
-test("against the AI on a desktop: the whole hand shows, with no scroll inside the hand box", async ({ page }) => {
+test("against the AI: the whole hand shows, with no scroll inside the hand box", async ({ page }) => {
   await startVsAi(page);
   await expectHandUnscrolled(page);
 });
@@ -55,6 +55,7 @@ test.describe("on a phone held upright", () => {
     await page.getByRole("button", { name: "Test mode" }).click();
     await expect(page.getByTestId("decision")).toBeVisible();
     await checkUpright(page);
+    await expectHandUnscrolled(page);
     expect((await box(page.getByTestId("map-area"))).height).toBeGreaterThanOrEqual(150);
   });
 
