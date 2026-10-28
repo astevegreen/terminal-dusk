@@ -33,8 +33,11 @@ const ownedDeckText = (deck: DeckId): string =>
 const cardList = (cards: string[], names: GameNames): string => cards.map(names.card).join(", ") || "no cards";
 
 /** A score track value in words: "LIO 3", "SAE 2" or "even". */
-const scoreText = (score: number): string =>
-  score === 0 ? "even" : `${SIDE_NAME[score < 0 ? "lio" : "sae"]} ${Math.abs(score)}`;
+function scoreText(score: number): string {
+  if (score === 0) return "even";
+  const side = score < 0 ? "lio" : "sae";
+  return `${SIDE_NAME[side]} ${Math.abs(score)}`;
+}
 
 export const eventPresentation: EventPresentation = {
   cardDrawn: { log: (event, names) => `${SIDE_NAME[event.side]} drew ${names.card(event.card)}.` },

@@ -1,8 +1,10 @@
 // The map a scenario can carry (docs/design/map-and-points.md, "Map", "Influence" and "Escalation"): regions, their
-// closing order, countries, each era's battlegrounds, the countries next to each home box, and starting influence. It has the shape of the engine's SetupMap and refuses
+// closing order, countries, each era's battlegrounds, the countries next to each home box, starting influence and
+// scoring. It has the shape of the engine's SetupMap and refuses
 // what the engine's createGame refuses in a map (mapChecks.ts), each problem at its path.
 // scenario.types.test.ts checks it against the engine's type.
 import * as z from "zod";
+import { checkScoring, scoringSchema } from "./mapScoring.ts";
 
 const name = z.string().min(1);
 
@@ -28,6 +30,7 @@ type MapShape = {
   battlegrounds: readonly { era: string; countries: readonly string[] }[];
   homeBox: { lio: readonly string[]; sae: readonly string[] };
   startingInfluence: readonly { country: string }[];
+  scoring?: { track: { end: number; start: number }; regions: readonly { region: string }[] };
 };
 
 /** Region ids are not repeated, and each region holds at least one country. */
@@ -157,6 +160,7 @@ function checkMap(map: MapShape, ctx: z.RefinementCtx): void {
     checkBattlegrounds,
     checkHomeBox,
     checkInfluence,
+    checkScoring,
   ];
   for (const check of checks) check(map, ctx);
 }
@@ -165,7 +169,8 @@ function checkMap(map: MapShape, ctx: z.RefinementCtx): void {
  * A scenario's map. No other fields are allowed at any level. A country left out of startingInfluence starts at 0.
  * `closingOrder` names the three regions that close as Escalation reaches 3, 4 and 5, one per threshold, in that
  * order (docs/design/map-and-points.md, "Thresholds close regions"). `battlegrounds` holds one list per era, matched by
- * the era's name; lists for eras the scenario does not use are allowed and never read.
+ * the era's name; lists for eras the scenario does not use are allowed and never read. `scoring` is optional: a map
+ * without it never scores (mapScoring.ts).
  */
 export const mapSchema = z
   .strictObject({
@@ -175,5 +180,6 @@ export const mapSchema = z
     battlegrounds: z.array(battlegroundList),
     homeBox: z.strictObject({ lio: z.array(name), sae: z.array(name) }),
     startingInfluence: z.array(influenceEntry),
+    scoring: scoringSchema.exactOptional(),
   })
   .superRefine(checkMap);

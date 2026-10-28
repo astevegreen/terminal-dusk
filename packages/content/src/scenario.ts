@@ -14,9 +14,9 @@ export type ScenarioSetup = Pick<
 
 type ScenarioMap = NonNullable<Scenario["map"]>;
 
-/** A fresh copy of the scenario's map: no array or object is shared with the scenario. */
+/** A fresh copy of the scenario's map: no array or object is shared with the scenario. `scoring` only when it has one. */
 function copyMap(map: ScenarioMap): NonNullable<Setup["map"]> {
-  return {
+  const copy: NonNullable<Setup["map"]> = {
     regions: map.regions.map(({ id, name }) => ({ id, name })),
     closingOrder: [...map.closingOrder],
     countries: map.countries.map(({ id, name, region, stability, neighbours }) => ({
@@ -30,6 +30,14 @@ function copyMap(map: ScenarioMap): NonNullable<Setup["map"]> {
     homeBox: { lio: [...map.homeBox.lio], sae: [...map.homeBox.sae] },
     startingInfluence: map.startingInfluence.map(({ country, lio, sae }) => ({ country, lio, sae })),
   };
+  if (map.scoring !== undefined) {
+    const { track, regions } = map.scoring;
+    copy.scoring = {
+      track: { end: track.end, start: track.start },
+      regions: regions.map(({ region, present, ahead, all }) => ({ region, present, ahead, all })),
+    };
+  }
+  return copy;
 }
 
 /**

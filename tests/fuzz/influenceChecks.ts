@@ -71,12 +71,19 @@ export function checkInfluence(setup: Setup, state: GameState): void {
     return;
   }
   checkEra(setup, pub);
-  const { regions, closingOrder, countries: mapCountries, battlegrounds, homeBox } = setup.map;
+  const { regions, closingOrder, countries: mapCountries, battlegrounds, homeBox, scoring } = setup.map;
   const closing = JSON.stringify(pub.map?.closingOrder);
   if (closing !== JSON.stringify(closingOrder)) {
     throw new Error(`the closing order ${closing} is not the setup's closingOrder ${JSON.stringify(closingOrder)}`);
   }
-  const fixed = { regions, closingOrder, countries: mapCountries, battlegrounds, homeBox };
+  const fixed = {
+    regions,
+    closingOrder,
+    countries: mapCountries,
+    battlegrounds,
+    homeBox,
+    ...(scoring === undefined ? {} : { scoring }),
+  };
   if (canonical(pub.map) !== canonical(fixed)) {
     throw new Error(`the map ${canonical(pub.map)} is not the setup's map ${canonical(fixed)}`);
   }

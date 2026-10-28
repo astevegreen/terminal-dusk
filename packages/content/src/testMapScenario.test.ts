@@ -43,6 +43,10 @@ describe("the test map scenario", () => {
     expect(new Set(map.closingOrder).size).toBe(3);
     for (const id of map.closingOrder) expect(ids).toContain(id);
   });
+  it("has made-up scoring: every region once, a track of 20 each way starting even", () => {
+    expect(map.scoring?.track).toEqual({ end: 20, start: 0 });
+    expect(map.scoring?.regions.map((r) => r.region)).toEqual(map.regions.map((r) => r.id));
+  });
   it("gives each side some starting influence", () => {
     expect(map.startingInfluence.some((e) => e.lio > 0)).toBe(true);
     expect(map.startingInfluence.some((e) => e.sae > 0)).toBe(true);
@@ -52,6 +56,11 @@ describe("the test map scenario", () => {
 describe("scenarioSetup with a map", () => {
   it("passes the map through", () => {
     expect(scenarioSetup(TEST_MAP_SCENARIO).map).toEqual(map);
+  });
+  it("leaves scoring out of the map when the scenario's map has none", () => {
+    const scenario = JSON.parse(JSON.stringify(TEST_MAP_SCENARIO)) as Scenario;
+    delete scenario.map!.scoring;
+    expect("scoring" in scenarioSetup(scenario).map!).toBe(false);
   });
   it("leaves map out when the scenario has none", () => {
     const noMap: Scenario = { ...TEST_MAP_SCENARIO };
@@ -72,6 +81,9 @@ describe("scenarioSetup with a map", () => {
     got.homeBox.sae[0] = "x";
     got.startingInfluence[0]!.lio = 9;
     got.startingInfluence.push({ country: "x", lio: 1, sae: 1 });
+    got.scoring!.track.end = 9;
+    got.scoring!.regions[0]!.all = 9;
+    got.scoring!.regions.pop();
     expect(scenario).toEqual(before);
   });
   it("starts a game from test-map.json with the map and starting influence in the public state", () => {
@@ -100,6 +112,8 @@ describe("scenarioSetup with a map", () => {
     expect(pub.map?.closingOrder).toEqual(map.closingOrder);
     expect(pub.map?.countries).toEqual(map.countries);
     expect(pub.map?.homeBox).toEqual(map.homeBox);
+    expect(pub.map?.scoring).toEqual(map.scoring);
+    expect(pub.score).toBe(0);
     expect(pub.influence).toHaveLength(12);
     expect(pub.influence?.find((e) => e.country === "test-a1")).toEqual({ country: "test-a1", lio: 2, sae: 0 });
     expect(pub.influence?.find((e) => e.country === "test-c1")).toEqual({ country: "test-c1", lio: 1, sae: 1 });
