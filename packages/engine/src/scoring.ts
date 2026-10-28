@@ -88,6 +88,27 @@ export function scoreState(map: GameMap): { score?: number } {
 
 const isWhole = (v: unknown, min: number): boolean => Number.isInteger(v) && (v as number) >= min;
 
+/** Why the score track is unusable, or null: its end is a whole number of 1 or more, its start strictly inside. */
+function trackError(track: unknown): string | null {
+  if (typeof track !== "object" || track === null) return "The map's scoring needs a track { end, start }.";
+  const { end, start } = track as Record<string, unknown>;
+  if (!isWhole(end, 1)) return "The score track's end must be a whole number, 1 or more.";
+  if (!Number.isInteger(start) || Math.abs(start as number) >= (end as number)) {
+    return `The score track's start must be a whole number strictly between -${String(end)} and ${String(end)}.`;
+  }
+  return null;
+}
+
+/** Why one scoring region is unusable, or null: a known region not `seen` before, with whole amounts of 0 or more. */
+function regionError(entry: unknown, known: ReadonlySet<string>, seen: ReadonlySet<unknown>): string | null {
+  if (typeof entry !== "object" || entry === null) return "Each scoring region must be an object.";
+  const { region, ...amounts } = entry as Record<string, unknown>;
+  if (!known.has(region as string)) return `The map's scoring names unknown region ${String(region)}.`;
+  if (seen.has(region)) return `The map's scoring names region ${String(region)} twice.`;
+  const level = (["present", "ahead", "all"] as const).find((l) => !isWhole(amounts[l], 0));
+  return level === undefined ? null : `Region ${String(region)}'s ${level} amount must be a whole number, 0 or more.`;
+}
+
 /**
  * Why the map's scoring is unusable, or null. A map without scoring is fine. Run after the map's shape and ids are
  * checked. Never throws on bad input.
@@ -97,26 +118,15 @@ export function scoringError(map: GameMap): string | null {
   if (scoring === undefined) return null;
   if (typeof scoring !== "object" || scoring === null) return "The map's scoring must be an object.";
   const { track, regions } = scoring as Record<string, unknown>;
-  if (typeof track !== "object" || track === null) return "The map's scoring needs a track { end, start }.";
-  const { end, start } = track as Record<string, unknown>;
-  if (!isWhole(end, 1)) return "The score track's end must be a whole number, 1 or more.";
-  if (!Number.isInteger(start) || Math.abs(start as number) >= (end as number)) {
-    return `The score track's start must be a whole number strictly between -${String(end)} and ${String(end)}.`;
-  }
+  const bad = trackError(track);
+  if (bad !== null) return bad;
   if (!Array.isArray(regions)) return "The map's scoring regions must be a list.";
   const known = new Set(map.regions.map((r) => r.id));
   const seen = new Set<unknown>();
   for (const entry of regions as unknown[]) {
-    if (typeof entry !== "object" || entry === null) return "Each scoring region must be an object.";
-    const { region, ...amounts } = entry as Record<string, unknown>;
-    if (!known.has(region as string)) return `The map's scoring names unknown region ${String(region)}.`;
-    if (seen.has(region)) return `The map's scoring names region ${String(region)} twice.`;
-    seen.add(region);
-    for (const level of ["present", "ahead", "all"] as const) {
-      if (!isWhole(amounts[level], 0)) {
-        return `Region ${String(region)}'s ${level} amount must be a whole number, 0 or more.`;
-      }
-    }
+    const error = regionError(entry, known, seen);
+    if (error !== null) return error;
+    seen.add((entry as Record<string, unknown>).region);
   }
   const missing = map.regions.find((r) => !seen.has(r.id));
   return missing === undefined ? null : `The map's scoring does not name region ${missing.id}.`;

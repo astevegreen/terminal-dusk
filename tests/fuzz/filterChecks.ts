@@ -204,7 +204,8 @@ export function checkTriggerFilters(
 ): FilterCounts {
   const counts = noCounts();
   const status = after.public.status;
-  if (status.kind === "over" && status.reason !== "turnLimitReached") return counts;
+  // A game that ends at the score track's end (R21) ends in endTurn too, after the turnEnd hook, like the last turn.
+  if (status.kind === "over" && status.reason !== "turnLimitReached" && status.reason !== "trackEnd") return counts;
   const play = finishedPlay(before, after);
   let turnEnd = turnEndHappened(before, after);
   const list: Entry[] = before.public.triggers.map((t) => ({

@@ -1,6 +1,6 @@
 {
   "id": "test-map",
-  "name": "TEST scenario with a made-up test map (test data, not the game's map; placeholder numbers: 4 turns, 1 play each, hands of 2)",
+  "name": "TEST scenario with a made-up test map (test data, not the game's map; placeholder numbers: 4 turns, 1 play each, hands of 2, made-up scoring)",
   "turns": 4,
   "playsPerTurn": 1,
   "handSize": 2,
@@ -114,6 +114,17 @@
       { "country": "test-c1", "lio": 1, "sae": 1 },
       { "country": "test-e1", "lio": 0, "sae": 2 },
       { "country": "test-f1", "lio": 0, "sae": 1 }
-    ]
+    ],
+    "scoring": {
+      "track": { "end": 20, "start": 0 },
+      "regions": [
+        { "region": "test-a", "present": 1, "ahead": 3, "all": 5 },
+        { "region": "test-b", "present": 1, "ahead": 2, "all": 4 },
+        { "region": "test-c", "present": 2, "ahead": 4, "all": 6 },
+        { "region": "test-d", "present": 1, "ahead": 2, "all": 3 },
+        { "region": "test-e", "present": 1, "ahead": 3, "all": 5 },
+        { "region": "test-f", "present": 2, "ahead": 3, "all": 4 }
+      ]
+    }
   }
 }

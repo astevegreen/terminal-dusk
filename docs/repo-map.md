@@ -394,6 +394,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/schema/index.ts` - Content schemas, one per content folder of this package (cards/ is checked by schemas.cards, and so on). Exports: ContentIssue, ContentSchema, schemas.
 - `packages/content/schema/map.test.ts`
 - `packages/content/schema/map.ts` - The map a scenario can carry (docs/design/map-and-points.md, "Map", "Influence" and "Escalation"): regions, their closing order, countries, each era's battlegr… Exports: mapSchema.
+- `packages/content/schema/mapScoring.test.ts` - A scenario map's scoring (R21, #437): the score track and each region's amounts are scenario data, refused at their path when the engine's createGame would ref…
+- `packages/content/schema/mapScoring.ts` - A map's scoring (docs/design/map-and-points.md, "Scoring"): the score track's end and start, and what each region is worth at an era's end. Exports: scoringSchema, checkScoring.
 - `packages/content/schema/scenario.test.ts`
 - `packages/content/schema/scenario.ts` - The scenario schema: what one scenario file in packages/content/scenarios/ must hold (docs/architecture.md, section 4). Exports: scenarioSchema, Scenario.
 - `packages/content/schema/scenario.types.test.ts` - Type-level check, run by `tsc`: the scenario schema and the engine's Setup can't drift apart.
