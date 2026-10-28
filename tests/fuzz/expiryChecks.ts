@@ -12,13 +12,18 @@ export function checkModifiers(state: GameState): void {
 
 /**
  * Triggers end with the turn they were set in (#90), as modifiers do; and while a play is open, this turn's
- * turnEnd hook has not fired yet. Runs on finished games too.
+ * turnEnd hook has not fired yet; and once it has, points are only spent placing influence (Turn-end-place, #426):
+ * no action menu, so no intervention, and no realignment is asked. Runs on finished games too.
  */
 export function checkTriggers(state: GameState): void {
   checkEndsThisTurn(state, "triggers", state.public.triggers);
   const { pending, turnEndFired } = state.public;
   if (turnEndFired && pending.some((d) => d.kind === "playCardAs")) {
     throw new Error("a play is open, but this turn's turnEnd hook has already fired");
+  }
+  const offAction = pending.find((d) => d.kind === "chooseAction" || d.kind === "realign");
+  if (turnEndFired && offAction) {
+    throw new Error(`turn-end points may only place influence, but a ${offAction.kind} decision is open`);
   }
 }
 

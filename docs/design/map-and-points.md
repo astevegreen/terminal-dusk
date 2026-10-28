@@ -84,7 +84,11 @@ What the reference rules mean for this game, as far as they reach:
   point, in turn. The side answers a pending Decision; the points are not stored anywhere.
 - Owner questions 7, 19, 28, 44, 45 and 46 are no longer waiting on this topic. Their answers still need checking
   against real placements, and the rules text of every card is reworded in one pass (question 7).
-- Open: how a turn-end payment ("pay again at turn end") is split when it is 1 point (placing only, or any action).
+- **A turn-end payment only places influence** ("pay again at turn end"; owner, 28 Oct: "Yes, build it", the
+  Turn-end-place reading, #426). Points a card spends once the turn's last play has finished go straight to
+  placing: no intervention and no realignment, whatever the amount (an Ops swing still in force can make it 2).
+  With no placement affordable they are lost. An intervention in a battleground raises Escalation however it turns
+  out, so this removes a cheap push on the track just before it falls. Spends during the turn are unchanged.
 - Open (tech race topic): whether event points may also be spent on the tech race.
 
 ## Escalation (proposal topic 4, option B)

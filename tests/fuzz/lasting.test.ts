@@ -118,4 +118,15 @@ describe("checkTriggers", () => {
     });
     expect(() => checkTriggers(opened)).toThrow(/turnEnd hook has already fired/);
   });
+  it("catches an action menu or a realignment asked after the turnEnd hook has fired (#426)", () => {
+    const asked: GameState["public"]["pending"] = [
+      { id: "d9", side: "lio", kind: "chooseAction", options: { points: 1, actions: ["place"], targets: [] } },
+      { id: "d9", side: "lio", kind: "realign", options: { attempts: 1, targets: [] } },
+    ];
+    for (const decision of asked) {
+      const atTurnEnd = withPublic(started(), { turnEndFired: true, pending: [decision] });
+      expect(() => checkTriggers(atTurnEnd)).toThrow(/turn-end points may only place influence/);
+      expect(() => checkTriggers(withPublic(atTurnEnd, { turnEndFired: false }))).not.toThrow();
+    }
+  });
 });

@@ -529,6 +529,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/triggers.ts` - Triggers (docs/architecture.md, section 4): reactions a card leaves behind, kept in public state and run only at fixed hook points. Exports: setTrigger, afterProgram, fireTurnEnd, endTurnTriggers, badTrigger.
 - `packages/engine/src/turn.test.ts` - The turn structure (#35): secret opening cards, their events in order, then alternating plays.
 - `packages/engine/src/turn.ts` - The turn structure (docs/design/core-loop.md). Exports: startTurn, afterAnswer.
+- `packages/engine/src/turnEndSpend.test.ts` - Turn-end-place (#426; docs/design/map-and-points.md, "Event points"): points a turnEnd trigger spends may only place influence (owner, 28 Oct).
 - `packages/engine/src/types.test.ts`
 - `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: DECKS, ContingencyDeck, ContingencyDeckReshuffled, ContingencyDrawn, DeckId, EscalationChanged, EscalationCrisis, EscalationEvent, ActiveModifier, ActiveTrigger, Duration, HookId, ….
 - `packages/engine/src/verifyGame.test.ts`
@@ -787,6 +788,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/removedChecks.ts` - The fuzz checks of the removed pile (R8a; #205) and of the turn-start refill, each comparing the state after a step with the state before it. Exports: checkRemoved, checkRefilled.
 - `tests/fuzz/reveals.test.ts` - The fuzz suite and the revealHand step of R6a (#185): the fuzz cards show hands at the top level, inside an if and in both kinds of reaction, and the fuzz game…
 - `tests/fuzz/reveals.ts` - TEST-ONLY FIXTURES, never game content: the `revealHand` steps (R6a) the fuzz cards run. Exports: REVEAL, RevealWhere, revealStep, revealOf, revealTriggerOf, announcedReveal.
+- `tests/fuzz/turnEndSpend.test.ts` - Turn-end-place (#426): random games on the content test map whose cards leave turn-end payments behind, played with every check on every step.
 - `tests/golden/__snapshots__/refill.test.ts.snap`
 - `tests/golden/refill.test.ts` - Golden replay of refilling hands (docs/design/core-loop.md, "Refilling hands").
 - `tests/tsconfig.json` - Type-checks the cross-package suites in tests/; tools/gates/suites.mjs runs it before the suites themselves.
