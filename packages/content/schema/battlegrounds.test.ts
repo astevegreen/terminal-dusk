@@ -43,6 +43,9 @@ describe("a scenario map's battleground lists", () => {
       ["map", "battlegrounds", n, "era"],
     ]);
   });
+  it("refuses, without throwing, a map with no battleground lists", () => {
+    expect(paths((s) => delete (s.map as { battlegrounds?: Lists }).battlegrounds)).toEqual([["map", "battlegrounds"]]);
+  });
   it("refuses a list with an empty era name, or with other fields", () => {
     expect(paths((s) => (era1(s).era = ""))).toContainEqual(["map", "battlegrounds", 0, "era"]);
     expect(paths((s) => Object.assign(era1(s), { size: 1 }))).toEqual([["map", "battlegrounds", 0]]);
