@@ -3,7 +3,7 @@
 // checks the result when the host starts a game (battleground lists per era, known countries).
 import { readFileSync } from "node:fs";
 
-const KEYS = ["name", "stability", "battlegrounds", "startingInfluence"];
+const KEYS = ["name", "stability", "battlegrounds", "startingInfluence", "scoring"];
 const WHOLE = (n, min) => Number.isInteger(n) && n >= min;
 const isObject = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
 
@@ -27,7 +27,9 @@ export function readNumbers(file) {
  * - `name`: a line of text for the report title;
  * - `stability`: country id -> whole number from 1 up;
  * - `battlegrounds`: era id -> country ids, each once; only eras the map has a list for;
- * - `startingInfluence`: [{ country, lio, sae }], each country once, whole numbers from 0 up.
+ * - `startingInfluence`: [{ country, lio, sae }], each country once, whole numbers from 0 up;
+ * - `scoring`: { track: { end, start }, regions: [{ region, present, ahead, all }] } as the engine's MapScoring, which
+ *   gives a map with no scoring its score track and region amounts for this run (regions score in the list's order).
  */
 export function numbersError(numbers, map) {
   if (!isObject(numbers)) return "The numbers file must hold one JSON object.";
@@ -40,6 +42,7 @@ export function numbersError(numbers, map) {
     [numbers.stability, () => stabilityError(numbers.stability, known)],
     [numbers.battlegrounds, () => battlegroundsError(numbers.battlegrounds, map, known)],
     [numbers.startingInfluence, () => influenceError(numbers.startingInfluence, known)],
+    [numbers.scoring, () => scoringProblem(numbers.scoring, map)],
   ];
   for (const [part, check] of checks) {
     const error = part === undefined ? null : check();
@@ -87,9 +90,37 @@ function influenceError(entries, known) {
   return null;
 }
 
+/** Why `scoring` is not a usable score track and set of region amounts for `map`, or null (the engine checks again). */
+function scoringProblem(scoring, map) {
+  if (!isObject(scoring)) return '"scoring" must be { track, regions }.';
+  const extra = Object.keys(scoring).find((key) => key !== "track" && key !== "regions");
+  if (extra !== undefined) return `"scoring" has another key "${extra}"; the keys are track, regions.`;
+  const { track, regions } = scoring;
+  if (
+    !isObject(track) ||
+    !WHOLE(track.end, 1) ||
+    !Number.isInteger(track.start) ||
+    Math.abs(track.start) >= track.end
+  ) {
+    return '"scoring" needs a track { end, start }: end a whole number from 1 up, start a whole number strictly between -end and end.';
+  }
+  if (!Array.isArray(regions)) return '"scoring" needs a list of regions.';
+  const known = new Set(map.regions.map((r) => r.id));
+  const seen = new Set();
+  for (const entry of regions) {
+    if (!isObject(entry) || !known.has(entry.region)) return `"scoring" names unknown region "${entry?.region}".`;
+    if (seen.has(entry.region)) return `"scoring" names region ${entry.region} twice.`;
+    seen.add(entry.region);
+    const level = ["present", "ahead", "all"].find((l) => !WHOLE(entry[l], 0));
+    if (level !== undefined) return `The ${level} amount of ${entry.region} must be a whole number from 0 up.`;
+  }
+  const missing = map.regions.find((r) => !seen.has(r.id));
+  return missing === undefined ? null : `"scoring" does not name region ${missing.id}.`;
+}
+
 /**
  * `config` with `numbers` laid over its map: named stabilities replace the map's, named eras' battleground lists
- * replace theirs, and a starting influence list replaces the whole of the map's. What is not named stays. Throws
+ * replace theirs, scoring (when given) becomes the map's scoring, and a starting influence list replaces the whole of the map's. What is not named stays. Throws
  * when the numbers do not fit (numbersError) or the config has no map. `config` itself is not changed.
  */
 export function applyNumbers(config, numbers) {
@@ -106,6 +137,7 @@ export function applyNumbers(config, numbers) {
       era: list.era,
       countries: [...(battlegrounds[list.era] ?? list.countries)],
     })),
+    ...(numbers.scoring === undefined ? {} : { scoring: structuredClone(numbers.scoring) }),
     startingInfluence: (numbers.startingInfluence ?? map.startingInfluence).map(({ country, lio, sae }) => ({
       country,
       lio,

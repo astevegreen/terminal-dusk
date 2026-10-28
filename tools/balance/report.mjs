@@ -1,6 +1,7 @@
 // The balance report as text: the numbers from stats.mjs laid out as plain tables.
 import { ACTIONS } from "./map-stats.mjs";
 import { LEVELS } from "./region-stats.mjs";
+import { HOWS } from "./score-stats.mjs";
 import { NO_WINNER_LINE, SIDES } from "./stats.mjs";
 
 const LABEL = { lio: "LIO", sae: "SAE" };
@@ -50,7 +51,42 @@ export function formatText(stats, title = "Balance report") {
   if (stats.byEra !== undefined) lines.push("", ...eraLines(stats.byEra));
   if (stats.map !== undefined) lines.push("", ...mapLines(stats.map));
   if (stats.eraEnds !== undefined) lines.push("", ...eraEndLines(stats.eraEnds));
+  if (stats.score !== undefined) lines.push("", ...scoreLines(stats.score));
   return `${lines.join("\n")}\n`;
+}
+
+const HOW_LABEL = { trackEnd: "track end", ahead: "ahead after the last era", even: "even track (a draw)" };
+
+/** The "Score" section, on a map with scoring: where the track ended, how games ended, swings, deciding regions. */
+function scoreLines(score) {
+  const { final, results } = score;
+  return [
+    `Score track (positive favours SAE; starts at ${score.start}): ends at ${final.average} on average, ` +
+      `from ${final.min} to ${final.max}; ${score.games} games`,
+    ...table([
+      ["how the game ended", "games", "share", "LIO wins", "SAE wins"],
+      ...HOWS.map((h) => [
+        HOW_LABEL[h],
+        results[h].games,
+        results[h].share,
+        results[h].lio ?? "-",
+        results[h].sae ?? "-",
+      ]),
+    ]),
+    "",
+    "Score per era (averages over the games that scored it: points each side got, net swing = SAE minus LIO)",
+    ...table([
+      ["era", "games", "LIO points", "SAE points", "swing"],
+      ...score.perEra.map((e) => [e.era, e.games, e.lio, e.sae, e.swing]),
+    ]),
+    "",
+    "Score per region (the same, and how many games the region decided: it pushed the track over its end, or moved " +
+      "it most towards the winner)",
+    ...table([
+      ["region", "games", "LIO points", "SAE points", "swing", "decided", "decided share"],
+      ...score.perRegion.map((r) => [r.region, r.games, r.lio, r.sae, r.swing, r.decided, r.decidedShare]),
+    ]),
+  ];
 }
 
 /** The "Map" section, on a scenario with a map: one row per side. */
@@ -83,8 +119,8 @@ function eraEndLines(eraEnds) {
   );
   return [
     "Era ends, per side (averages per game, when the next era starts or the game ends: countries and battlegrounds " +
-      "controlled, with the ending era's battleground list; regions at each level, the highest only. Control only: " +
-      "scoring is not built, so no amounts and no score)",
+      "controlled, with the ending era's battleground list; regions at each level, the highest only. This " +
+      "section is control only: amounts and the score are in the Score section, when the map has scoring)",
     ...table([header, ...rows]),
   ];
 }

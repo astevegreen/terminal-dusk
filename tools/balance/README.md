@@ -23,8 +23,9 @@ node tools/balance/run.mjs --scenario six-region   # the six-region map (package
   and its first line says so.
 - `six-region` plays the whole first deck on the six-region map scenario, with that scenario's own numbers, map,
   battleground lists and starting influence, and the first deck's eras (the map scenario has a battleground list for
-  each era but no cards of its own). There is no scoring and no victory rule yet, so its report is a smoke check of
-  influence and control, not a verdict on balance, and its first line says so.
+  each era but no cards of its own). The scenario itself has no scoring, so by default its report is a smoke check
+  of influence and control; a `--numbers` file with a `scoring` block adds the score track and the Score section.
+  Either way it is not a verdict on balance, and its first line says so.
 - Any other value is refused with the allowed values and the usage line, and no game is played.
 
 ## How to run it
@@ -84,7 +85,16 @@ Every pick and play counts, so a card played twice in one game counts twice (but
   - **regions present**, **regions ahead**, **regions every BG**: in how many regions it reached that level, by the
     scoring rules' definitions (docs/design/map-and-points.md, "Scoring"). A side counts only its highest level in
     each region; in a region with no battlegrounds that era, ahead counts countries only.
-    This is control only: scoring is not built, so the report shows no amounts and no score.
+    This section is control only: the amounts and the score are in the Score section below.
+- **Score** (only on a map with scoring, which `--numbers` can give; the JSON's `score`): the real engine scores
+  every region at each era's end, so this section reports what that did over the games:
+  - **Score track**: the start, and where the track ended (average, lowest, highest; positive favours SAE);
+  - **how the game ended**: a side reached its track end, the side ahead after the last era won, or an even track
+    (counted as a draw here: the tech-race tie-break cannot be measured yet), with each side's wins;
+  - **Score per era** and **Score per region**: the points each side got on average and the net swing (SAE minus
+    LIO), over the games that scored it; the region table also counts the games the region **decided** (it pushed
+    the track over its end, or moved it most towards the winner) and their share.
+    A crisis does not move the score in these runs. The tool reads only public frames, as the app does.
 
 Averages are rounded to 2 decimal places and shares to 3. These numbers come from Easy AI games of a TEST
 scenario with no victory rule, so they show how the cards flow through a game, not whether the design is good.
@@ -129,7 +139,11 @@ not change. It needs a scenario with a map (`test-map` or `six-region`). Every p
   "name": "shown in the report's first line",
   "stability": { "taiwan": 3 },
   "battlegrounds": { "era-1": ["ukraine", "taiwan"] },
-  "startingInfluence": [{ "country": "taiwan", "lio": 3, "sae": 0 }]
+  "startingInfluence": [{ "country": "taiwan", "lio": 3, "sae": 0 }],
+  "scoring": {
+    "track": { "end": 15, "start": 0 },
+    "regions": [{ "region": "europe", "present": 2, "ahead": 4, "all": 6 }]
+  }
 }
 ```
 
@@ -137,5 +151,9 @@ not change. It needs a scenario with a map (`test-map` or `six-region`). Every p
 - `battlegrounds`: the named eras take these lists (each country once); the others keep theirs. Only eras the map
   has a list for can be named.
 - `startingInfluence`: replaces the map's whole starting influence list (whole numbers, 0 or more, each country once).
+- `scoring`: the map's whole scoring (replaces any it has): `track.end` (whole number, 1 or more), `track.start`
+  (a whole number inside the track; negative leans to LIO, whose end is `-end`) and one entry for every region of
+  the map, once each, with `present`, `ahead` and `all` amounts (whole numbers, 0 or more). Regions score in the
+  map's own order. The report then gains the Score section.
 - A file that cannot be read, is not JSON, has another key or names an unknown country is refused with the reason,
   and no game is played.

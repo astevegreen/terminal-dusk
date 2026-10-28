@@ -1,6 +1,6 @@
 // Region levels at each era's end, on a scenario with a map. They count control only: the level each side reaches
 // in each region by the definitions in docs/design/map-and-points.md ("Scoring", "How a region scores"), with no
-// amounts and no score track, because scoring is not built yet. Control comes from the engine's own `controller`;
+// amounts and no score track (those are score-stats.mjs). Control comes from the engine's own `controller`;
 // the battlegrounds are the list of the era that is ending. Read from the public view only (hard rule 2).
 import { controller } from "@terminal-dusk/engine";
 
