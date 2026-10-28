@@ -144,6 +144,8 @@ Every run, `Q status --write` (in dry-run, without `--write`), adding `--need "<
 for each stuck session and `--need "<title>: never started"` for each that never started. It rewrites the
 sprint log issue's body: the status block, with the lane counts, the last merge to `main` and its CI result,
 free memory, and "Needs you". It prints `body`, `needsYou` and `newNeeds` (the items the old body lacked).
+Questions are in "Needs you" but never in `newNeeds`: design questions reach the owner only through the Decisions
+digest, at most once a day. So every run (not in dry-run) also runs `Q digest`, which posts it when one is due.
 
 ## 5. Report
 **Comment** on the sprint log issue, under 15 lines for the owner's phone, when either holds:

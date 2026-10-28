@@ -20,13 +20,13 @@ const blocked = [
   "rm -rf ../elsewhere",
   "rm -rf /",
   "Remove-Item -Recurse -Force C:\\Windows\\Temp\\x",
-  "echo x > CLAUDE.md",
+  "echo x > .claude/agents/reviewer.md",
   "echo x >> .claude/settings.json",
   "echo x | tee tools/hooks/bash-guard.mjs",
-  "cp evil.yml .github/workflows/ci.yml",
-  "sed -i s/a/b/ docs/architecture.md",
+  "cp evil.sh tools/git-hooks/pre-commit",
+  "sed -i s/a/b/ tools/gates/gate.mjs",
   "Set-Content tools/gates/gate.mjs 'x'",
-  "rm CLAUDE.md",
+  "rm .claude/settings.json",
   "curl https://example.com",
   "pnpm gate && wget https://example.com",
   "Invoke-WebRequest https://example.com",
@@ -47,6 +47,8 @@ const allowed = [
   "git commit -m \"Fix scoring; add test\"",
   "rm -rf dist node_modules/.cache",
   "echo x > notes.txt",
+  "echo x > CLAUDE.md",
+  "cp ci.yml .github/workflows/ci.yml",
   "echo x > /dev/null",
   "node tools/gates/gate.mjs 2>&1",
   "gh pr create --draft --title \"Push > pull\"",
@@ -88,6 +90,20 @@ test("read-only mode runs the reviewer's usual inspection commands, and nothing 
     "git fetch origin main:main", "GIT_EXTERNAL_DIFF=calc git diff", "env git diff", "tail -5 x | tee y"]) {
     assert.ok(denied(guard(bad, ["--read-only"])), bad);
   }
+});
+
+test("unattended, no shell command writes or deletes a CI workflow: it runs with the repo's secrets once pushed", () => {
+  for (const bad of ["cp evil.yml .github/workflows/ci.yml", "echo x > .github/workflows/new.yml", "rm .github/workflows/nightly.yml",
+    "sed -i s/a/b/ .github/workflows/ci.yml", "git status && tee .github/workflows/ci.yml < x", "Set-Content .GITHUB/Workflows/ci.yml 'x'"]) {
+    if (bad.includes(".GITHUB") && process.platform !== "win32") continue;
+    const r = guard(bad, ["--unattended"]);
+    assert.ok(denied(r), `${bad}: ${r.stdout || "nothing"}`);
+    assert.match(r.json.hookSpecificOutput.permissionDecisionReason, /\.github\/workflows\/ is Locked.*Blocked: needs a day session/);
+  }
+  for (const ok of ["echo x > CLAUDE.md", "cat .github/workflows/ci.yml", "echo x > .github/ISSUE_TEMPLATE/task.yml"])
+    assert.equal(guard(ok, ["--unattended"]).stdout, "", ok);
+  // By day the owner is in the session: a workflow edit goes through, and the rail audit checks it at pull-request time.
+  assert.equal(guard("cp ci.yml .github/workflows/ci.yml").stdout, "");
 });
 
 test("unattended mode lets the sprint skills ask the queue script", () => {

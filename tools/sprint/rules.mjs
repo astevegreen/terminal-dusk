@@ -3,6 +3,9 @@
 // nothing here calls gh. Every rule the sprint-supervisor, sprint-lane and night-shift skills used to spell
 // out in prose lives here once, so the supervisor's "has work" and the lane's "what next" can't drift apart.
 import { inWindow, taskId } from "./sprint-doc.mjs";
+import { decisionsAnswer, isSprint, ms, newest, ownerReply } from "./comments.mjs";
+
+export { DECISIONS, DIGEST, decisionsAnswer, isDigest, newest, newestSprint, ownerReply } from "./comments.mjs";
 
 export const OWNER = "astevegreen";
 export const MEMORY_FLOOR_MB = 4096;
@@ -12,32 +15,41 @@ export const SONAR_CHECK = "SonarCloud Code Analysis";
 export const ACCEPTED_SONAR = [/^Do not add `then` to an object\b/, /^Remove this redundant type alias\b/];
 // `move <pr> held --conflict` starts its comment with this; the lane retries such a hold once main moves on.
 export const HELD_CONFLICT = "Held: merge conflict with main only.";
+// `move <pr> held --rail` starts its comment with this: agy's rail audit says the change loosens a rail (P4).
+export const HELD_RAIL = "Held: rail audit:";
 // Every agent comment that blocks an issue on a question starts with this; the owner's next comment answers it.
 export const BLOCKED = "Blocked:";
+// `move <n> ready --note` starts its comment with this: a machine failure (a time-out, out of memory, host load, an
+// Actions or billing outage) stopped the task, not the change. It retries by itself after an hour (P2).
+export const MACHINE = "Machine failure:";
+export const RETRY_AFTER_MIN = 60;
 export const FIX_PASSES = 2; // per lane or night-shift session
 const PLAN_TARGET = 3; // a plan session tops its lane up to this many ready issues
 const PLANNING_DAY_TARGET = 6; // outside the window, the planning day specs each lane's first six
 const NIGHT_STOP = [3 * 60 + 30, 17 * 60]; // the night shift stops between 03:30 and 17:00 local time
 
 export const has = (item, label) => item.labels.includes(label);
-const ms = (s) => new Date(s).getTime();
 export const byNumber = (a, b) => a.number - b.number;
 export const laneOf = (item) => item.labels.find((l) => l.startsWith("lane:"))?.slice(5) ?? null;
 
-// --- Comments: whose words count -------------------------------------------------------------------
+// --- Holds and retries (who counts as speaking is in comments.mjs) ----------------------------------
 
-const isAudit = (c) => c.body.startsWith("<!-- gemini-audit -->");
-// A sprint or night-shift comment: anything the agents' account wrote except a Gemini audit or Sonar's own.
-const isSprint = (c, owner) => c.author !== owner && !isAudit(c) && !/sonar/i.test(c.author);
-const newest = (comments, keep) =>
-  comments.filter(keep).reduce((a, c) => (!a || ms(c.createdAt) >= ms(a.createdAt) ? c : a), null);
+// Why a pull request is held, from the newest sprint comment starting "Held:": "conflict", "rail", "blocker", or
+// "minor" when it names [minor] concerns and no [blocker]. P1: only a [blocker] holds, so a minor hold is released
+// and the pull request merges; its concerns are already on it as a note. Any other hold comment, or none, holds.
+export function holdKind(pr, S) {
+  const h = newest(pr.comments, (c) => isSprint(c, S.owner) && c.body.startsWith("Held:"));
+  if (!h) return "unknown";
+  if (h.body.startsWith(HELD_CONFLICT)) return "conflict";
+  if (h.body.startsWith(HELD_RAIL)) return "rail";
+  if (/\[blocker\]/i.test(h.body)) return "blocker";
+  return /\[minor\]/i.test(h.body) ? "minor" : "unknown";
+}
 
-// The owner's own comment, newer than the last sprint comment. An answer the agents relayed doesn't count:
-// only the owner's GitHub account speaks for the owner.
-export function ownerReply(item, owner) {
-  const o = newest(item.comments, (c) => c.author === owner);
-  const s = newest(item.comments, (c) => isSprint(c, owner));
-  return o && (!s || ms(o.createdAt) > ms(s.createdAt)) ? o : null;
+// A ready issue whose last try hit a machine failure waits an hour, so a busy computer isn't hit again at once.
+export function machineWait(issue, S) {
+  const c = newest(issue.comments, (x) => isSprint(x, S.owner));
+  return Boolean(c?.body.startsWith(MACHINE) && ms(S.now) - ms(c.createdAt) < RETRY_AFTER_MIN * 60_000);
 }
 
 function conflictRetry(pr, S) {
@@ -106,14 +118,15 @@ export function waitsOnlyForOwner(pr, S) {
 export function prJob(pr, S, fixesLeft, { heldOnly = false } = {}) {
   const job = { pr: pr.number, issue: pr.closes[0] ?? null, branch: pr.head, base: pr.base };
   const fix = (concerns, reason) => (fixesLeft > 0 ? { mode: "fix", ...job, concerns, reason } : null);
+  const minor = has(pr, "held") && holdKind(pr, S) === "minor";
   if (has(pr, "held")) {
     const reply = ownerReply(pr, S.owner);
     if (reply) return fix(reply.body.slice(0, 1500), "held, and the owner replied");
     if (!heldOnly && conflictRetry(pr, S))
       return fix("Merge conflict with main.", "held only for a merge conflict, and main has moved on since");
-    return null;
+    if (!minor) return null;
   }
-  if (heldOnly) return null;
+  if (heldOnly && !minor) return null;
   const c = checkState(pr, S);
   const conflict = pr.mergeable === "CONFLICTING";
   if (c.requiredFailed.length || conflict || c.otherFailed.length || c.sonarOpen.length) {
@@ -130,6 +143,7 @@ export function prJob(pr, S, fixesLeft, { heldOnly = false } = {}) {
   if (!c.requiredGreen) return null;
   if (pr.isDraft && pr.title.startsWith("[stacked on"))
     return { mode: "merge", ...job, reason: "its dependency merged, so GitHub moved it onto main" };
+  if (minor) return { mode: "merge", ...job, reason: "held only for [minor] concerns, which merge with a note (P1)" };
   if (!pr.isDraft && !pr.autoMerge) return { mode: "merge", ...job, reason: "checks green, auto-merge not yet on" };
   return null;
 }
@@ -184,14 +198,15 @@ function buildJob(issue, S, lane) {
 }
 
 // The owner's answer to the question an agent asked on a blocked issue: the newest sprint comment starts with
-// "Blocked:" (the implementer's question, or `move blocked --note`), and the owner commented after it. The issue
-// is work again, and the answer is part of its spec. Any other newest sprint comment ("Re-queued", "Unblocked", a
-// plan audit note) asks nothing, so an issue the owner blocked himself, or the plan blocked with its question in
-// the body, stays blocked whatever the owner writes.
+// "Blocked:" (the implementer's question, or `move blocked --note`), and the owner commented after it, on the
+// issue or on the Decisions issue naming it. The issue is work again, and the answer is part of its spec. Any
+// other newest sprint comment ("Re-queued", "Unblocked", a plan audit note) asks nothing, so an issue the owner
+// blocked himself, or the plan blocked with its question in the body, stays blocked whatever the owner writes.
 export function ownerAnswer(issue, S) {
   if (!has(issue, "blocked")) return null;
   const ask = newest(issue.comments, (c) => isSprint(c, S.owner));
-  return ask?.body.startsWith(BLOCKED) ? ownerReply(issue, S.owner) : null;
+  if (!ask?.body.startsWith(BLOCKED)) return null;
+  return ownerReply(issue, S.owner) ?? decisionsAnswer(issue, ask, S);
 }
 
 // A blocked issue the owner answered, or a ready one: build it, or adopt the pull request a ready one already has.
@@ -233,7 +248,7 @@ export function next(S, doc, lane, { fixesDone = 0 } = {}) {
   if (stale) return staleJob(stale, S);
   const order = (list) => list.sort((a, b) => compareKeys(backlogKey(a, doc, lane), backlogKey(b, doc, lane)));
   const answered = order(openWith(S, L, "blocked").filter((i) => ownerAnswer(i, S)));
-  const ready = order(openWith(S, L, "sprint-ready").filter((i) => !has(i, "blocked")));
+  const ready = order(openWith(S, L, "sprint-ready").filter((i) => !has(i, "blocked") && !machineWait(i, S)));
   for (const issue of [...answered, ...ready]) {
     const job = issueJob(issue, S, lane);
     if (job) return job;
@@ -251,7 +266,7 @@ export function nextNight(S, doc, { fixesDone = 0 } = {}) {
     if (job) return job;
   }
   const answered = openWith(S, "blocked").filter((i) => !laneOf(i) && !has(i, "in-progress") && ownerAnswer(i, S));
-  const ready = openWith(S, "ready").filter((i) => !has(i, "blocked") && !has(i, "in-progress"));
+  const ready = openWith(S, "ready").filter((i) => !has(i, "blocked") && !has(i, "in-progress") && !machineWait(i, S));
   for (const issue of [...answered.sort(byNumber), ...ready.sort(byNumber)]) {
     const job = issueJob(issue, S, null);
     if (job) return job;
@@ -287,7 +302,14 @@ export function hasWork(S, doc, title) {
   if (kind === "lane") {
     const job = next(S, doc, lane);
     if (job) return { start: true, reason: `${job.mode} ${job.pr ? `#${job.pr}` : `#${job.issue}`}: ${job.reason}` };
-    const waiting = openWith(S, `lane:${lane}`, "sprint-ready").filter((i) => !has(i, "blocked"));
+    const ready = openWith(S, `lane:${lane}`, "sprint-ready").filter((i) => !has(i, "blocked"));
+    const retrying = ready.filter((i) => machineWait(i, S));
+    const waiting = ready.filter((i) => !machineWait(i, S));
+    if (retrying.length && !waiting.length)
+      return {
+        start: false,
+        reason: `${retrying.map((i) => `#${i.number}`).join(" ")} retries after a machine failure, an hour after it`,
+      };
     return {
       start: false,
       reason: waiting.length

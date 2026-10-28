@@ -1,8 +1,9 @@
 // Tests for the web, gh and git-hook rules in .claude/settings.json, the night shift's web block and the agents' own tool limits.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
+import { LOCKED, UNATTENDED_LOCKED } from "./shared.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..", "..");
 const read = (file) => readFileSync(path.join(ROOT, file), "utf8");
@@ -59,6 +60,32 @@ test("skipping git hooks always asks the owner, in Bash and in PowerShell", () =
   }
 });
 
+// P6: what takes effect before any audit runs is guarded where it is written. Settings and the hooks they wire act on
+// the session itself, so by day their edits ask the owner. CI workflows act once pushed, with the repository's
+// secrets, which the owner keeps: an unattended session can't write them at all (file-lock, bash-guard --unattended),
+// while a day session, with the owner there, may, and the rail audit checks them at pull-request time.
+test("edits ask the owner by day only for settings and the hooks they wire (P6)", () => {
+  const { ask } = permissions();
+  const edits = ask.filter((r) => r.startsWith("Edit("));
+  assert.deepEqual(edits, ["Edit(/.claude/settings.json)", "Edit(/.claude/settings.local.json)", "Edit(/tools/hooks/**)"]);
+  const wired = [...JSON.stringify(JSON.parse(read(".claude/settings.json")).hooks).matchAll(/CLAUDE_PROJECT_DIR\}\/([^"]+)/g)];
+  assert.ok(wired.length > 0);
+  for (const [, script] of wired)
+    assert.ok(script.startsWith("tools/hooks/"), `${script} is wired by settings.json but not covered by Edit(/tools/hooks/**)`);
+});
+
+test("CI workflows, which run with the repository's secrets once pushed, are Locked for unattended sessions (P6)", () => {
+  assert.ok(UNATTENDED_LOCKED.includes(".github/workflows/"), "an unattended lane could push a workflow that reads the secrets");
+  assert.ok(!LOCKED.includes(".github/workflows/"), "by day the owner is in the session; the rail audit checks workflows");
+  const workflows = readdirSync(path.join(ROOT, ".github", "workflows"));
+  const usesSecrets = workflows.filter((f) => /\$\{\{\s*secrets\./.test(read(`.github/workflows/${f}`)));
+  assert.ok(usesSecrets.length > 0, "no workflow reads a secret: this test no longer says why workflows are Locked");
+  // The unattended sessions run the guard that enforces it.
+  assert.match(read(".claude/agents/implementer.md"), /tools\/hooks\/file-lock\.mjs"/);
+  for (const file of [".claude/agents/implementer.md", ".claude/skills/sprint-lane/SKILL.md", ".claude/skills/night-shift/SKILL.md"])
+    assert.match(read(file), /tools\/hooks\/bash-guard\.mjs" --unattended/, file);
+});
+
 test("marking a pull request ready and turning on auto-merge run without asking", () => {
   const { allow } = permissions();
   for (const rule of ["Bash(gh pr ready *)", "Bash(gh pr merge * --auto --squash)"]) assert.ok(allow.includes(rule), `${rule} is missing`);
@@ -72,7 +99,7 @@ test("the handoff hook runs when a turn ends and when a session starts or is cle
   assert.deepEqual(starts, ["startup|clear"]);
 });
 
-for (const agent of ["implementer", "reviewer"]) {
+for (const agent of ["implementer", "reviewer", "architect"]) {
   test(`the ${agent} agent can't use the web at all`, () => {
     const tools = disallowedTools(agent);
     assert.ok(tools.includes("WebSearch") && tools.includes("WebFetch"), `disallowedTools: ${tools.join(", ")}`);
