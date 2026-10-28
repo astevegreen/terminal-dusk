@@ -1,6 +1,6 @@
 {
   "id": "six-region-map",
-  "name": "Six-region map (option 2, H1, Crimea its own box, closing order C1; placeholder stabilities, battlegrounds the same for every era, starting influence, turns, plays and hand size)",
+  "name": "Six-region map (option 2, H1, Crimea its own box, closing order C1; map-numbers option A as the owner chose it on 28 Oct, track starting in the middle; placeholder turns, plays and hand size)",
   "turns": 4,
   "playsPerTurn": 1,
   "handSize": 8,
@@ -45,7 +45,7 @@
         "id": "belarus",
         "name": "Belarus",
         "region": "eastern-europe-central-asia",
-        "stability": 2,
+        "stability": 3,
         "neighbours": ["poland", "estonia", "ukraine"]
       },
       {
@@ -66,7 +66,7 @@
         "id": "georgia",
         "name": "Georgia",
         "region": "eastern-europe-central-asia",
-        "stability": 2,
+        "stability": 1,
         "neighbours": ["ukraine", "turkey", "azerbaijan"]
       },
       {
@@ -80,7 +80,7 @@
         "id": "kazakhstan",
         "name": "Kazakhstan",
         "region": "eastern-europe-central-asia",
-        "stability": 2,
+        "stability": 3,
         "neighbours": ["azerbaijan", "kyrgyzstan"]
       },
       {
@@ -115,7 +115,7 @@
         "id": "north-korea",
         "name": "North Korea",
         "region": "east-south-asia",
-        "stability": 3,
+        "stability": 4,
         "neighbours": ["south-korea"]
       },
       {
@@ -206,7 +206,7 @@
         "id": "greece",
         "name": "Greece",
         "region": "europe",
-        "stability": 2,
+        "stability": 3,
         "neighbours": ["italy", "serbia", "turkey"]
       },
       {
@@ -248,14 +248,14 @@
         "id": "iraq",
         "name": "Iraq",
         "region": "middle-east-north-africa",
-        "stability": 2,
+        "stability": 1,
         "neighbours": ["turkey", "syria", "iran", "saudi-arabia"]
       },
       {
         "id": "iran",
         "name": "Iran",
         "region": "middle-east-north-africa",
-        "stability": 2,
+        "stability": 3,
         "neighbours": ["turkey", "azerbaijan", "iraq", "saudi-arabia", "afghanistan", "pakistan"]
       },
       {
@@ -336,19 +336,21 @@
           "ukraine",
           "georgia",
           "kazakhstan",
-          "japan",
-          "taiwan",
-          "india",
           "germany",
           "poland",
           "serbia",
-          "syria",
           "iraq",
           "iran",
+          "israel",
+          "rwanda",
           "nigeria",
           "south-africa",
+          "japan",
+          "north-korea",
+          "taiwan",
+          "india",
           "mexico",
-          "venezuela",
+          "cuba",
           "brazil"
         ]
       },
@@ -357,18 +359,21 @@
         "countries": [
           "ukraine",
           "georgia",
-          "kazakhstan",
-          "japan",
-          "taiwan",
-          "india",
+          "kyrgyzstan",
           "germany",
+          "france",
           "poland",
-          "serbia",
-          "syria",
           "iraq",
           "iran",
+          "lebanon",
+          "saudi-arabia",
           "nigeria",
+          "somalia",
           "south-africa",
+          "north-korea",
+          "india",
+          "pakistan",
+          "afghanistan",
           "mexico",
           "venezuela",
           "brazil"
@@ -378,19 +383,21 @@
         "era": "era-3",
         "countries": [
           "ukraine",
-          "georgia",
+          "crimea",
+          "belarus",
           "kazakhstan",
-          "japan",
-          "taiwan",
-          "india",
           "germany",
           "poland",
-          "serbia",
+          "greece",
+          "turkey",
+          "libya",
           "syria",
-          "iraq",
           "iran",
           "nigeria",
           "south-africa",
+          "japan",
+          "taiwan",
+          "india",
           "mexico",
           "venezuela",
           "brazil"
@@ -400,19 +407,21 @@
         "era": "future",
         "countries": [
           "ukraine",
-          "georgia",
+          "crimea",
+          "belarus",
           "kazakhstan",
-          "japan",
-          "taiwan",
-          "india",
           "germany",
           "poland",
-          "serbia",
+          "greece",
+          "turkey",
+          "libya",
           "syria",
-          "iraq",
           "iran",
           "nigeria",
           "south-africa",
+          "japan",
+          "taiwan",
+          "india",
           "mexico",
           "venezuela",
           "brazil"
@@ -452,6 +461,50 @@
         "lio": 0,
         "sae": 1
       }
-    ]
+    ],
+    "scoring": {
+      "track": {
+        "end": 20,
+        "start": 0
+      },
+      "regions": [
+        {
+          "region": "eastern-europe-central-asia",
+          "present": 2,
+          "ahead": 5,
+          "all": 8
+        },
+        {
+          "region": "east-south-asia",
+          "present": 2,
+          "ahead": 5,
+          "all": 8
+        },
+        {
+          "region": "europe",
+          "present": 2,
+          "ahead": 5,
+          "all": 8
+        },
+        {
+          "region": "middle-east-north-africa",
+          "present": 2,
+          "ahead": 4,
+          "all": 6
+        },
+        {
+          "region": "sub-saharan-africa",
+          "present": 1,
+          "ahead": 3,
+          "all": 4
+        },
+        {
+          "region": "americas",
+          "present": 1,
+          "ahead": 3,
+          "all": 5
+        }
+      ]
+    }
   }
 }

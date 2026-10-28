@@ -5,7 +5,8 @@ Decided by the owner on 20 October 2026, in answer to the W7 proposal pack (`doc
 game's own words. The reference game is named by the owner only as the model for topic 3; none of its names, art or
 text are used here. Updated on 22 October 2026 with the owner's answers from the escalation design dialogue: the
 Escalation section, the Intervene action (formerly the coup) and the fourth action. Updated on 28 October 2026
-with the owner's scoring answers (Scoring section, and battlegrounds by era in the Map section).
+with the owner's scoring answers (Scoring section, and battlegrounds by era in the Map section), and later that day
+with the six-region map's numbers (Map section's "Map numbers", R24, #458).
 
 Not yet built. Numbers marked "open" are for the owner to set.
 
@@ -15,8 +16,8 @@ Not yet built. Numbers marked "open" are for the owner to set.
   between eras.
 - **Battlegrounds change by era** (owner, 28 Oct: "battlegrounds change between eras"; "each era has its own
   list"). Each era has its own list of battleground countries, set in the scenario. An era's list counts for its
-  interventions, Escalation and scoring; when the next era enters, its list takes over. Open: the lists (scenario
-  data, with the region contents).
+  interventions, Escalation and scoring; when the next era enters, its list takes over. The lists are in "Map
+  numbers" below.
 - **Home box.** Russia and China are both part of the SAE home box; the United States is the LIO home box. Home
   boxes are not countries for placing or control. Countries next to a home box count as next to that side's
   influence. Russia's and China's borders decide which countries touch the SAE box (owner, 28 Oct, chosen in chat: H1): every
@@ -26,10 +27,41 @@ Not yet built. Numbers marked "open" are for the owner to set.
 - **Crimea** starts as the history of 1991 says (owner), and is its own box on the map, not part of Ukraine
   (owner, 28 Oct).
 - **Region contents** (owner, 28 Oct, chosen in chat: option 2): the countries, regions and links of
-  `docs/proposals/map-content/option-2.md`, 41 countries plus Crimea. Open (scenario data): each country's
-  stability, and each era's battleground list; the proposal's numbers are placeholders.
-  The data is `packages/content/scenarios/six-region-map.json` (#422), with those placeholders, Crimea's stability
-  2 like Ukraine's, and Taiwan LIO 3 and Crimea SAE 1 as placeholder starting influence (owner, 28 Oct).
+  `docs/proposals/map-content/option-2.md`, 41 countries plus Crimea. The data is
+  `packages/content/scenarios/six-region-map.json` (#422), with Crimea's stability 2 like Ukraine's (owner, 28 Oct).
+
+### Map numbers
+
+Decided by the owner on 28 October 2026, in chat, answering the questions of `docs/proposals/map-numbers/README.md`
+(X12, #438; smoke runs X13, #446). The numbers are option A of that proposal
+(`docs/proposals/map-numbers/option-a-history.md`), except where the track starts. They are in
+`packages/content/scenarios/six-region-map.json` (R24, #458).
+
+- **Stabilities** (owner: "A, tune later"). Option A's: the placeholders of map-content option 2 with seven
+  changes (Greece 3, Belarus 3, Georgia 1, Kazakhstan 3, Iraq 1, Iran 3, North Korea 4), 106 in all. A balance pass
+  sets the final numbers once the Medium AI exists; until then these stand.
+- **Battlegrounds by era** (owner: "A, move with history"). Option A's lists: Era 1 has 19, Era 2 has 20, Era 3
+  has 19. The future era of the 2025-2027 scenario keeps Era 3's list.
+
+| Region                          | Era 1 (1991-2001)                 | Era 2 (2001-2008)                         | Era 3 (2008-2025) and the future era |
+| ------------------------------- | --------------------------------- | ----------------------------------------- | ------------------------------------ |
+| Eastern Europe and Central Asia | Ukraine, Georgia, Kazakhstan      | Ukraine, Georgia, Kyrgyzstan              | Ukraine, Crimea, Belarus, Kazakhstan |
+| East and South Asia             | Japan, North Korea, Taiwan, India | North Korea, India, Pakistan, Afghanistan | Japan, Taiwan, India                 |
+| Europe                          | Germany, Poland, Serbia           | Germany, France, Poland                   | Germany, Poland, Greece              |
+| Middle East and North Africa    | Iraq, Iran, Israel                | Iraq, Iran, Lebanon, Saudi Arabia         | Turkey, Libya, Syria, Iran           |
+| Sub-Saharan Africa              | Rwanda, Nigeria, South Africa     | Nigeria, Somalia, South Africa            | Nigeria, South Africa                |
+| The Americas                    | Mexico, Cuba, Brazil              | Mexico, Venezuela, Brazil                 | Mexico, Venezuela, Brazil            |
+
+- **Region amounts** (owner: "Weighted"). Option A's, weighted by region: present / ahead / every battleground
+  is 2 / 5 / 8 in Eastern Europe and Central Asia, East and South Asia and Europe (the three that can close), 2 / 4 /
+  6 in the Middle East and North Africa, 1 / 3 / 4 in Sub-Saharan Africa and 1 / 3 / 5 in the Americas.
+- **Score track** (owner: "20, middle"). 20 steps from the middle to each side's end, and the track **starts in
+  the middle**, not option A's 2 steps towards LIO.
+- **Taiwan and Crimea at the start** (owner: "LIO 3 / SAE 1"). Taiwan LIO 3, which controls it at stability 3;
+  Crimea SAE 1, a foothold without control at stability 2. Every other country starts empty.
+- Open: the balance pass on the stabilities (above), and the tech race tie-break on an even track (Scoring
+  section). Turns, plays per turn and hand size in the scenario are still the first deck's placeholders (era
+  lengths).
 
 ## Influence (proposal topic 2, option A)
 
@@ -179,8 +211,8 @@ Decided by the owner on 28 October 2026, choosing between the options in `docs/p
 - **An even track at the end** (owner: "tie-break based on whoever is further ahead on the technology track …
   If that is also a tie, then it's a draw"). The side further ahead on the tech race track wins; if that is
   also even, the game is a draw.
-- Open: the track's length and where it starts, the amounts for present, ahead and holding every battleground
-  per region (scenario data, with the region contents); how "further ahead" on
+- The six-region map's track (20 steps to each end, starting in the middle) and its amounts per region are in the
+  Map section's "Map numbers" (owner, 28 Oct). Open: how "further ahead" on
   the tech race is measured (tech race topic); when the 2025-2027 scenario (eras.md) has its final scoring and
   win check.
 
@@ -188,11 +220,12 @@ Decided by the owner on 28 October 2026, choosing between the options in `docs/p
 
 1. The tech race track: its branches, costs and what moving up gives, and its links to Escalation and
    Credibility.
-2. Answered 28 Oct: scoring, as above. Its numbers wait on the stabilities and battleground lists (question 3).
+2. Answered 28 Oct: scoring, as above, and its numbers for the six-region map (Map section's "Map numbers").
 3. Answered 28 Oct: the six-region map's content is option 2 of `docs/proposals/map-content/`, with H1, Crimea
-   as its own box, and closing order C1; the order regions score in is S1 (Scoring section). Still open: each
-   country's stability, each era's battleground list, who sets the real stabilities (owner or a balance pass), Taiwan's and Crimea's starting
-   influence numbers, whether Kosovo and the Palestinian territories get a box (option 2 gives neither one), and
+   as its own box, and closing order C1; the order regions score in is S1 (Scoring section). Its numbers too
+   (Map section's "Map numbers"): option A's stabilities and battleground lists, weighted amounts, a 20-step track
+   from the middle, Taiwan LIO 3 and Crimea SAE 1; a balance pass sets the final stabilities once the Medium AI
+   exists ("A, tune later"). Still open: whether Kosovo and the Palestinian territories get a box (option 2 gives neither one), and
    whether every country must be reachable from both home boxes and long sea links are acceptable (option 2's tables
    assume yes; its Reach section shows the result).
 4. Answered 26 Oct: the intervention and realign formulas stand as written (#316, #317).
