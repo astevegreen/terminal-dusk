@@ -2,7 +2,7 @@ Proposal, not a rule
 
 # The six-region map's content, and the order regions close at Escalation
 
-**Decided 28 Oct (owner, chosen in chat): option 2, H1, Crimea as its own box, closing order C1. Questions 5 to 10 below are not answered yet; see `docs/design/map-and-points.md`, "Map" and "Owner's remaining questions".** The text below is the original proposal, which recommends nothing.
+**Decided 28 Oct (owner, chosen in chat): option 2, H1, Crimea as its own box, closing order C1, and the order regions score in, S1 (the closing order's own list). Questions 5 to 10 below are not answered yet; see `docs/design/map-and-points.md`, "Map" and "Owner's remaining questions".** The text below is the original proposal, which recommends nothing.
 
 Sprint backlog X6. This proposal lays out options for owner question 3 in `docs/design/map-and-points.md`:
 the countries in each region, their adjacency, stabilities and battlegrounds, and which regions close at
