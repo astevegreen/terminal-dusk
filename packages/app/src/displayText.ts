@@ -1,13 +1,36 @@
 // The words the game screens share: side names and who each side is, era names, why a game ended, and what the log calls cards and
 // eras. Display data only; era names come from the first deck through the host (the app may not import content).
-import type { CardId, EraId, GameStatus, Side } from "@terminal-dusk/engine";
+import type { CardId, EraId, GameStatus, PublicState, RegionId, Side } from "@terminal-dusk/engine";
 import { firstDeckEraName } from "@terminal-dusk/host/first-deck";
 
 /** A card's shown name. */
 export type Label = (card: CardId) => string;
 
 /** What a log line calls a card and an era. */
-export type GameNames = { card: Label; era: (era: EraId) => string };
+export type GameNames = { card: Label; era: (era: EraId) => string; region: (region: RegionId) => string };
+
+/** A region's shown name from the frame's map; an id the map lacks (or a game with no map) shows as it is. */
+export const regionNamer =
+  (pub: PublicState): GameNames["region"] =>
+  (id) =>
+    pub.map?.regions.find((r) => r.id === id)?.name ?? id;
+
+/** The score track's value in words: "LIO 3", "SAE 2" or "even". Negative leans LIO. */
+export function scoreText(score: number): string {
+  if (score === 0) return "even";
+  return `${score < 0 ? "LIO" : "SAE"} ${Math.abs(score)}`;
+}
+
+/** Escalation's level names (docs/design/map-and-points.md), by level 0 to 6. */
+export const ESCALATION_NAME: readonly string[] = [
+  "Durable Peace",
+  "Stable Peace",
+  "Unstable Peace",
+  "Confrontation",
+  "Show of Force",
+  "Brink",
+  "Crisis",
+];
 
 /** A card's rules text, shown under its name in the hand; undefined when the game has none for it. */
 export type CardRules = (card: CardId) => string | undefined;
@@ -40,6 +63,7 @@ export const playsText = ({ playsMade, playsPerTurn }: { playsMade: number; play
 /** Why a game ended, in words, for each reason the engine gives (apply.ts, turn.ts). */
 const REASON_TEXT: Record<string, string> = {
   turnLimitReached: "the last turn ended",
+  trackEnd: "the score track reached its end",
   resigned: "the other side resigned",
   timeout: "time ran out",
 };

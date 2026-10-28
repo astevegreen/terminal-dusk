@@ -26,6 +26,7 @@ describe("the words the game screens share", () => {
   });
   it("says why a game ended in words, for each reason the engine gives", () => {
     expect(reasonText("turnLimitReached")).toBe("the last turn ended");
+    expect(reasonText("trackEnd")).toBe("the score track reached its end");
     expect(reasonText("resigned")).toBe("the other side resigned");
     expect(reasonText("timeout")).toBe("time ran out");
   });

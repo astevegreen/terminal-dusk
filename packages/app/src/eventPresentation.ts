@@ -1,7 +1,7 @@
 // How each EventKind is presented. A new kind without an entry here fails the type check (hard rule 9).
 import { SIDES } from "@terminal-dusk/engine";
 import type { DeckId, EventKind, GameEvent, HookId, ModifierSpec, VarValue } from "@terminal-dusk/engine";
-import { SIDE_NAME } from "./displayText.ts";
+import { SIDE_NAME, scoreText } from "./displayText.ts";
 import type { GameNames } from "./displayText.ts";
 
 /** One game-log line per event, naming cards and eras by `names` and sides as LIO and SAE. */
@@ -31,13 +31,6 @@ const ownedDeckText = (deck: DeckId): string =>
 
 /** Cards by name, in order, or "no cards". */
 const cardList = (cards: string[], names: GameNames): string => cards.map(names.card).join(", ") || "no cards";
-
-/** A score track value in words: "LIO 3", "SAE 2" or "even". */
-function scoreText(score: number): string {
-  if (score === 0) return "even";
-  const side = score < 0 ? "lio" : "sae";
-  return `${SIDE_NAME[side]} ${Math.abs(score)}`;
-}
 
 export const eventPresentation: EventPresentation = {
   cardDrawn: { log: (event, names) => `${SIDE_NAME[event.side]} drew ${names.card(event.card)}.` },
@@ -90,8 +83,10 @@ export const eventPresentation: EventPresentation = {
   escalationCrisis: {
     log: (event) => `Crisis: ${SIDE_NAME[event.side]} draws ${event.value}; Escalation drops to 3.`,
   },
-  regionScored: { log: (event) => `${event.region} scored: LIO ${event.lio}, SAE ${event.sae}.` },
-  scoreChanged: { log: (event) => `The score track moves to ${scoreText(event.to)}.` },
+  regionScored: {
+    log: (event, names) => `Era scoring, ${names.region(event.region)}: LIO ${event.lio}, SAE ${event.sae}.`,
+  },
+  scoreChanged: { log: (event) => `The score track moves from ${scoreText(event.from)} to ${scoreText(event.to)}.` },
 };
 
 /** A modifier in words, such as "ops values for both sides -1, minimum 1". */

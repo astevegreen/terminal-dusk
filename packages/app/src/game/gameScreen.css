@@ -3,9 +3,10 @@
   box-sizing: border-box;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
-  grid-template-rows: auto minmax(220px, 1fr) auto;
+  grid-template-rows: auto auto minmax(220px, 1fr) auto;
   grid-template-areas:
     "status status"
+    "tracks tracks"
     "map side"
     "hand side";
   gap: 4px;
@@ -38,6 +39,38 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px 16px;
+}
+/* The score track and Escalation, in a full-width row under the status bar (A15). */
+.game .game-tracks {
+  grid-area: tracks;
+}
+.game .track-score {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+.game .track-bar {
+  position: relative;
+  flex: 1 1 120px;
+  height: 12px;
+  border: 1px solid #999;
+  background: linear-gradient(to right, #ddd 49.5%, #000 49.5%, #000 50.5%, #ddd 50.5%);
+}
+.game .track-marker {
+  position: absolute;
+  top: -4px;
+  width: 6px;
+  height: 18px;
+  margin-left: -3px;
+  background: #000;
+  border: 1px solid #fff;
+}
+.game .track-value {
+  font-weight: bold;
+}
+.game .track-escalation {
+  margin: 4px 0 0;
 }
 .game .game-map {
   /* Placeholder side colours, not final: one per side and one for an uncontrolled country. */
@@ -160,21 +193,22 @@
 }
 /* No map: the map box shrinks to its "No map in this game" line, and the hand and details get the room. */
 .game.game-no-map {
-  grid-template-rows: auto auto minmax(220px, 1fr);
+  grid-template-rows: auto auto auto minmax(220px, 1fr);
 }
 /* A phone held upright: one column, so the map, the hand and the details each get the whole width. */
 @media (max-width: 599px) {
   .game {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(220px, auto) auto auto;
+    grid-template-rows: auto auto minmax(220px, auto) auto auto;
     grid-template-areas:
       "status"
+      "tracks"
       "map"
       "hand"
       "side";
   }
   .game.game-no-map {
-    grid-template-rows: auto auto auto auto;
+    grid-template-rows: auto auto auto auto auto;
   }
 }
 @media (min-width: 1000px) {

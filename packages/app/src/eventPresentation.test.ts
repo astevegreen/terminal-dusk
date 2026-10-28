@@ -8,6 +8,7 @@ import { byCodeUnit } from "./test/order.ts";
 const NAMES: GameNames = {
   card: (id) => `Card ${id.toUpperCase()}`,
   era: (era) => (era === "era2" ? "Era 2 (2001–2008)" : era),
+  region: (id) => (id === "europe" ? "Europe" : id),
 };
 const say = (event: GameEvent): string => logLine(event, NAMES);
 
@@ -281,15 +282,17 @@ describe("eventPresentation", () => {
   });
   it("logs a regionScored with the region and each side's points", () => {
     expect(say({ kind: "regionScored", visibility: "public", region: "europe", lio: 5, sae: 1 })).toBe(
-      "europe scored: LIO 5, SAE 1.",
+      "Era scoring, Europe: LIO 5, SAE 1.",
     );
   });
   it.each([
-    [-3, "LIO 3"],
-    [2, "SAE 2"],
-    [0, "even"],
-  ])("logs a scoreChanged to %i as the side the track leans towards and by how much", (to, text) => {
-    expect(say({ kind: "scoreChanged", visibility: "public", from: 1, to })).toBe(`The score track moves to ${text}.`);
+    [-3, "SAE 1", "LIO 3"],
+    [2, "SAE 1", "SAE 2"],
+    [0, "SAE 1", "even"],
+  ])("logs a scoreChanged to %i as from and to, each as the side the track leans towards", (to, was, text) => {
+    expect(say({ kind: "scoreChanged", visibility: "public", from: 1, to })).toBe(
+      `The score track moves from ${was} to ${text}.`,
+    );
   });
   it.each([
     ["triggerSet", "cardPlayed", "Card C4 set a reaction whenever a card is played this turn."],

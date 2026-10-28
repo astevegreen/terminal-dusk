@@ -1,7 +1,7 @@
 // The state behind the test-mode screen: one local match, the viewer being looked at, that viewer's latest
 // frame and game log, and the last refusal. It holds display data only; the rules stay in the host.
 import type { AnswerValue, EraId, GameEvent, Viewer } from "@terminal-dusk/engine";
-import { eraText } from "../displayText.ts";
+import { eraText, regionNamer } from "../displayText.ts";
 import type { GameNames } from "../displayText.ts";
 import type { Frame } from "@terminal-dusk/host";
 import { logLine } from "../eventPresentation.ts";
@@ -39,8 +39,11 @@ export type TestSession = {
 };
 
 /** The test mode's log names the fixture's cards. */
-const FIXTURE_NAMES: GameNames = { card: cardName, era: eraText };
-const line = (event: GameEvent): string => logLine(event, FIXTURE_NAMES);
+const FIXTURE_NAMES: Omit<GameNames, "region"> = { card: cardName, era: eraText };
+const lineFor =
+  (frame: Frame) =>
+  (event: GameEvent): string =>
+    logLine(event, { ...FIXTURE_NAMES, region: regionNamer(frame.view.public) });
 
 export function createTestSession(clock: () => number, startSeed: string = DEFAULT_SEED): TestSession {
   const listeners = new Set<() => void>();
@@ -67,7 +70,7 @@ export function createTestSession(clock: () => number, startSeed: string = DEFAU
   const onFrame = (viewer: Viewer, frame: Frame): void => {
     // A frame with the seq already logged (the one a new subscription starts with) adds no lines.
     if (frame.seq > lastSeq[viewer]) {
-      logs[viewer] = [...logs[viewer], ...frame.events.map(line)];
+      logs[viewer] = [...logs[viewer], ...frame.events.map(lineFor(frame))];
       lastSeq[viewer] = frame.seq;
       for (const event of frame.events) if (event.kind === "eraStarted") eras[viewer] = event.era;
     }
