@@ -1,7 +1,8 @@
 // Test helpers for map games (A11a, issue #359; A11b, #360): small rulesets whose cards move Escalation or spend
-// event points, dealt with the test map, and first-deck games with the real cards on the test map.
+// event points, dealt with the test map, and first-deck games with the real cards on the test map or the six-region
+// map (A14, issue #439).
 import { FIRST_DECK_RULESET, FIRST_DECK_SCENARIO, ERA_1_CARDS, scenarioSetup } from "@terminal-dusk/content/first-deck";
-import { TEST_MAP_SCENARIO } from "@terminal-dusk/content";
+import { SIX_REGION_MAP_SCENARIO, TEST_MAP_SCENARIO } from "@terminal-dusk/content";
 import { createGame, seedHash } from "@terminal-dusk/engine";
 import type { Ruleset, Setup, Step } from "@terminal-dusk/engine";
 import { dealGame, ninetyCards } from "./testGames.ts";
@@ -65,16 +66,20 @@ export function newPointsMapGame(seed: number, turns = 4): TestState {
 }
 
 /** A first-deck game from `seed` set up as the host sets one up (firstDeckConfig), plus the test map. */
-export function newFirstDeckMapGame(seed: number): TestState {
+export function newFirstDeckMapGame(seed: number, map: NonNullable<Setup["map"]> = testMap()): TestState {
   const name = `ai-first-deck-${seed}`;
   const setup: Setup = {
     seedHash: seedHash(name),
     hands: { lio: [], sae: [] },
     deck: ERA_1_CARDS.map((card) => card.id),
     ...scenarioSetup(FIRST_DECK_SCENARIO),
-    map: testMap(),
+    map,
   };
   const made = createGame(FIRST_DECK_RULESET, setup, name);
   if (!made.ok) throw new Error(`createGame refused: ${made.error.code}`);
   return made.value.state;
 }
+
+/** A first-deck game from `seed` on a fresh copy of the six-region map, starting influence included. */
+export const newSixRegionMapGame = (seed: number): TestState =>
+  newFirstDeckMapGame(seed, scenarioSetup(SIX_REGION_MAP_SCENARIO).map!);
