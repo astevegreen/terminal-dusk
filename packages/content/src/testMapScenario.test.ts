@@ -24,10 +24,12 @@ describe("the test map scenario", () => {
     expect(map.countries).toHaveLength(12);
     for (const c of [...map.regions, ...map.countries]) expect(c.name).toMatch(/^Test /);
   });
-  it("has stabilities from 1 to 3 and a battleground in each region", () => {
+  it("has stabilities from 1 to 3 and, in every era, a battleground in each region", () => {
     expect(new Set(map.countries.map((c) => c.stability))).toEqual(new Set([1, 2, 3]));
     for (const r of map.regions) {
-      expect(map.countries.some((c) => c.region === r.id && c.battleground)).toBe(true);
+      for (const { countries } of map.battlegrounds) {
+        expect(map.countries.some((c) => c.region === r.id && countries.includes(c.id))).toBe(true);
+      }
     }
   });
   it("has a country next to each home box and one next to both", () => {

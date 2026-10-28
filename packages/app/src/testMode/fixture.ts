@@ -75,5 +75,5 @@ export const fixtureConfig: MatchConfig = {
  */
 export const testModeConfig = (): MatchConfig => ({
   ...fixtureConfig,
-  setup: { ...fixtureConfig.setup, map: firstDeckTestMap() },
+  setup: { ...fixtureConfig.setup, firstEra: "era-1", map: firstDeckTestMap() },
 });

@@ -1,19 +1,17 @@
 // The Escalation check (escalationChecks.ts, R17a) catches what it should. The map fuzz suite (influence.test.ts)
 // runs it, with every other check, on every step of its games.
-import { scenarioSetup, TEST_MAP_SCENARIO } from "@terminal-dusk/content";
 import { createGame } from "@terminal-dusk/engine";
 import type { GameEvent, GameState, PublicState, Setup } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { checkEscalation } from "./escalationChecks.ts";
 import { randomGame, ruleset } from "./play.ts";
 import { seededRng } from "./random.ts";
-
-const testMap = (): NonNullable<Setup["map"]> => scenarioSetup(TEST_MAP_SCENARIO).map!;
+import { onTestMap } from "./testMap.ts";
 
 /** The state createGame makes from fuzz game 1's setup, with the test map unless `withMap` is false. */
 function started(withMap = true): { setup: Setup; state: GameState } {
   const { setup: base, seed } = randomGame(seededRng(1), 1);
-  const setup = withMap ? { ...base, map: testMap() } : base;
+  const setup = withMap ? onTestMap(base) : base;
   const r = createGame(ruleset, setup, seed);
   if (!r.ok) throw new Error(`createGame failed: ${r.error.code}`);
   return { setup, state: r.value.state };

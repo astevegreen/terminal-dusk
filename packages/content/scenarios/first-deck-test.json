@@ -4,6 +4,7 @@
   "turns": 4,
   "playsPerTurn": 1,
   "handSize": 8,
+  "firstEra": "era-1",
   "eras": [
     {
       "era": "era-2",

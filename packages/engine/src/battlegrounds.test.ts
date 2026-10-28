@@ -9,9 +9,9 @@ import { makeSetup, playAnswers, ruleset, rulesetWith } from "./test/game.ts";
 import { mapSetup, testMap } from "./test/map.ts";
 import type { EngineError, GameState, Setup, SetupMap } from "./types.ts";
 
-/** The test ruleset plus e1, a card of era-2. */
-const base = rulesetWith([...ruleset.cards.map((card) => card.id), "e1"]);
-const rs = { ...base, cards: base.cards.map((card) => (card.id === "e1" ? { ...card, era: "era-2" } : card)) };
+/** The test ruleset plus e1 and e2, cards of era-2. */
+const base = rulesetWith([...ruleset.cards.map((card) => card.id), "e1", "e2"]);
+const rs = { ...base, cards: base.cards.map((card) => (card.id.startsWith("e") ? { ...card, era: "era-2" } : card)) };
 
 /** The test map with a second list: era-2's only battleground is foxtrot. */
 const twoEraMap = (): SetupMap => ({
@@ -87,20 +87,24 @@ describe("the setup's battleground lists", () => {
   });
 });
 
-describe("two eras may not share a name", () => {
-  it("refuses a later era named like the first", () => {
-    const setup = { ...twoEraSetup(), firstEra: "era-2", map: { ...twoEraMap() } };
-    expect(refusal(setup)).toMatchObject({ code: "invalidSetup", message: /Two eras are named era-2/ });
+describe("two eras with one name", () => {
+  const twice = (): Setup => ({
+    ...twoEraSetup(),
+    eras: [
+      { era: "era-2", turn: 2, cards: ["e1"] },
+      { era: "era-2", turn: 3, cards: ["e2"] },
+    ],
   });
-  it("refuses two later eras with the same name", () => {
-    const setup = {
-      ...twoEraSetup(),
-      eras: [
-        { era: "era-2", turn: 2, cards: ["e1"] },
-        { era: "era-2", turn: 3, cards: ["e1"] },
-      ],
-    };
-    expect(refusal(setup)).toMatchObject({ code: "invalidSetup", message: /Two eras are named era-2/ });
+  it("are accepted: the engine matches lists by name, and the content schema keeps a scenario's names apart", () => {
+    expect(refusal(twice())).toBeNull();
+    expect(refusal({ ...twoEraSetup(), firstEra: "era-2" })).toBeNull();
+  });
+  it("share their battleground list: the game stays in that era as the second enters", () => {
+    const s = playAnswers(start(twice()), 8, rs);
+    expect(s.public.turn).toBe(3);
+    expect(s.public.era).toBe("era-2");
+    const now = s.public.map!.countries.filter((c) => isBattleground(s.public, c.id)).map((c) => c.id);
+    expect(now).toEqual(["foxtrot"]);
   });
 });
 

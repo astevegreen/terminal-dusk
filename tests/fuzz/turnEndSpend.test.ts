@@ -1,13 +1,13 @@
 // Turn-end-place (#426): random games on the content test map whose cards leave turn-end payments behind, played
 // with every check on every step. checkTriggers (expiryChecks.ts) fails a game that asks for an action menu or a
 // realignment once the turnEnd hook has fired; this suite makes sure such payments really happen and get placed.
-import { scenarioSetup, TEST_MAP_SCENARIO } from "@terminal-dusk/content";
 import type { Ruleset, Side, Step } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { deepFreeze } from "./deepFreeze.ts";
 import { gameCount, playGame, randomChooser, randomGame, ruleset } from "./play.ts";
 import type { Chooser } from "./play.ts";
 import { seededRng } from "./random.ts";
+import { onTestMap } from "./testMap.ts";
 
 // tests/ has no Node type definitions; this is the one Node global the suite reads.
 declare const process: { readonly env: Readonly<Record<string, string | undefined>> };
@@ -42,11 +42,9 @@ describe("turn-end payment fuzz games (#426)", () => {
         if (state.public.turnEndFired && asked) placedAtTurnEnd++;
         return random(state);
       };
-      const map = scenarioSetup(TEST_MAP_SCENARIO).map!;
-      const { final } = playGame(paymentRuleset, `Turn-end payment game ${game}`, { ...setup, map }, seed, counting);
+      const { final } = playGame(paymentRuleset, `Turn-end payment game ${game}`, onTestMap(setup), seed, counting);
       expect(final.public.status.kind).toBe("over");
     }
     expect(placedAtTurnEnd).toBeGreaterThan(0);
-  }, // The same limit as influence.test.ts's map games, also capped at 200.
-  120_000);
+  }, 120_000); // The same limit as influence.test.ts's map games, also capped at 200.
 });

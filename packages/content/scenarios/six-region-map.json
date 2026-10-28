@@ -4,6 +4,7 @@
   "turns": 4,
   "playsPerTurn": 1,
   "handSize": 8,
+  "firstEra": "era-1",
   "map": {
     "regions": [
       {
@@ -38,7 +39,6 @@
         "name": "Estonia",
         "region": "eastern-europe-central-asia",
         "stability": 3,
-        "battleground": false,
         "neighbours": ["poland", "finland", "belarus"]
       },
       {
@@ -46,7 +46,6 @@
         "name": "Belarus",
         "region": "eastern-europe-central-asia",
         "stability": 2,
-        "battleground": false,
         "neighbours": ["poland", "estonia", "ukraine"]
       },
       {
@@ -54,7 +53,6 @@
         "name": "Ukraine",
         "region": "eastern-europe-central-asia",
         "stability": 2,
-        "battleground": true,
         "neighbours": ["poland", "belarus", "serbia", "georgia", "turkey", "crimea"]
       },
       {
@@ -62,7 +60,6 @@
         "name": "Crimea",
         "region": "eastern-europe-central-asia",
         "stability": 2,
-        "battleground": false,
         "neighbours": ["ukraine", "turkey"]
       },
       {
@@ -70,7 +67,6 @@
         "name": "Georgia",
         "region": "eastern-europe-central-asia",
         "stability": 2,
-        "battleground": true,
         "neighbours": ["ukraine", "turkey", "azerbaijan"]
       },
       {
@@ -78,7 +74,6 @@
         "name": "Azerbaijan",
         "region": "eastern-europe-central-asia",
         "stability": 2,
-        "battleground": false,
         "neighbours": ["georgia", "turkey", "iran", "kazakhstan"]
       },
       {
@@ -86,7 +81,6 @@
         "name": "Kazakhstan",
         "region": "eastern-europe-central-asia",
         "stability": 2,
-        "battleground": true,
         "neighbours": ["azerbaijan", "kyrgyzstan"]
       },
       {
@@ -94,7 +88,6 @@
         "name": "Kyrgyzstan",
         "region": "eastern-europe-central-asia",
         "stability": 1,
-        "battleground": false,
         "neighbours": ["kazakhstan", "tajikistan"]
       },
       {
@@ -102,7 +95,6 @@
         "name": "Tajikistan",
         "region": "eastern-europe-central-asia",
         "stability": 1,
-        "battleground": false,
         "neighbours": ["kyrgyzstan", "afghanistan"]
       },
       {
@@ -110,7 +102,6 @@
         "name": "Japan",
         "region": "east-south-asia",
         "stability": 4,
-        "battleground": true,
         "neighbours": ["south-korea", "taiwan"]
       },
       {
@@ -118,7 +109,6 @@
         "name": "South Korea",
         "region": "east-south-asia",
         "stability": 3,
-        "battleground": false,
         "neighbours": ["japan", "north-korea"]
       },
       {
@@ -126,7 +116,6 @@
         "name": "North Korea",
         "region": "east-south-asia",
         "stability": 3,
-        "battleground": false,
         "neighbours": ["south-korea"]
       },
       {
@@ -134,7 +123,6 @@
         "name": "Taiwan",
         "region": "east-south-asia",
         "stability": 3,
-        "battleground": true,
         "neighbours": ["japan", "australia"]
       },
       {
@@ -142,7 +130,6 @@
         "name": "India",
         "region": "east-south-asia",
         "stability": 3,
-        "battleground": true,
         "neighbours": ["pakistan", "australia"]
       },
       {
@@ -150,7 +137,6 @@
         "name": "Pakistan",
         "region": "east-south-asia",
         "stability": 2,
-        "battleground": false,
         "neighbours": ["india", "afghanistan", "iran"]
       },
       {
@@ -158,7 +144,6 @@
         "name": "Afghanistan",
         "region": "east-south-asia",
         "stability": 1,
-        "battleground": false,
         "neighbours": ["pakistan", "tajikistan", "iran"]
       },
       {
@@ -166,7 +151,6 @@
         "name": "Australia",
         "region": "east-south-asia",
         "stability": 4,
-        "battleground": false,
         "neighbours": ["taiwan", "india"]
       },
       {
@@ -174,7 +158,6 @@
         "name": "United Kingdom",
         "region": "europe",
         "stability": 4,
-        "battleground": false,
         "neighbours": ["france", "canada"]
       },
       {
@@ -182,7 +165,6 @@
         "name": "France",
         "region": "europe",
         "stability": 4,
-        "battleground": false,
         "neighbours": ["united-kingdom", "germany", "italy"]
       },
       {
@@ -190,7 +172,6 @@
         "name": "Germany",
         "region": "europe",
         "stability": 4,
-        "battleground": true,
         "neighbours": ["france", "italy", "poland", "serbia"]
       },
       {
@@ -198,7 +179,6 @@
         "name": "Italy",
         "region": "europe",
         "stability": 3,
-        "battleground": false,
         "neighbours": ["france", "germany", "serbia", "greece", "libya"]
       },
       {
@@ -206,7 +186,6 @@
         "name": "Poland",
         "region": "europe",
         "stability": 3,
-        "battleground": true,
         "neighbours": ["germany", "estonia", "belarus", "ukraine"]
       },
       {
@@ -214,7 +193,6 @@
         "name": "Finland",
         "region": "europe",
         "stability": 4,
-        "battleground": false,
         "neighbours": ["estonia"]
       },
       {
@@ -222,7 +200,6 @@
         "name": "Serbia",
         "region": "europe",
         "stability": 2,
-        "battleground": true,
         "neighbours": ["germany", "italy", "greece", "ukraine"]
       },
       {
@@ -230,7 +207,6 @@
         "name": "Greece",
         "region": "europe",
         "stability": 2,
-        "battleground": false,
         "neighbours": ["italy", "serbia", "turkey"]
       },
       {
@@ -238,7 +214,6 @@
         "name": "Turkey",
         "region": "middle-east-north-africa",
         "stability": 3,
-        "battleground": false,
         "neighbours": ["greece", "ukraine", "georgia", "azerbaijan", "syria", "iraq", "iran", "crimea"]
       },
       {
@@ -246,7 +221,6 @@
         "name": "Libya",
         "region": "middle-east-north-africa",
         "stability": 1,
-        "battleground": false,
         "neighbours": ["italy", "israel", "nigeria"]
       },
       {
@@ -254,7 +228,6 @@
         "name": "Israel",
         "region": "middle-east-north-africa",
         "stability": 4,
-        "battleground": false,
         "neighbours": ["libya", "lebanon", "syria", "saudi-arabia"]
       },
       {
@@ -262,7 +235,6 @@
         "name": "Lebanon",
         "region": "middle-east-north-africa",
         "stability": 1,
-        "battleground": false,
         "neighbours": ["israel", "syria"]
       },
       {
@@ -270,7 +242,6 @@
         "name": "Syria",
         "region": "middle-east-north-africa",
         "stability": 2,
-        "battleground": true,
         "neighbours": ["turkey", "israel", "lebanon", "iraq"]
       },
       {
@@ -278,7 +249,6 @@
         "name": "Iraq",
         "region": "middle-east-north-africa",
         "stability": 2,
-        "battleground": true,
         "neighbours": ["turkey", "syria", "iran", "saudi-arabia"]
       },
       {
@@ -286,7 +256,6 @@
         "name": "Iran",
         "region": "middle-east-north-africa",
         "stability": 2,
-        "battleground": true,
         "neighbours": ["turkey", "azerbaijan", "iraq", "saudi-arabia", "afghanistan", "pakistan"]
       },
       {
@@ -294,7 +263,6 @@
         "name": "Saudi Arabia",
         "region": "middle-east-north-africa",
         "stability": 3,
-        "battleground": false,
         "neighbours": ["israel", "iraq", "iran", "somalia"]
       },
       {
@@ -302,7 +270,6 @@
         "name": "Nigeria",
         "region": "sub-saharan-africa",
         "stability": 1,
-        "battleground": true,
         "neighbours": ["libya", "rwanda", "south-africa", "brazil"]
       },
       {
@@ -310,7 +277,6 @@
         "name": "Rwanda",
         "region": "sub-saharan-africa",
         "stability": 1,
-        "battleground": false,
         "neighbours": ["nigeria", "somalia", "south-africa"]
       },
       {
@@ -318,7 +284,6 @@
         "name": "Somalia",
         "region": "sub-saharan-africa",
         "stability": 1,
-        "battleground": false,
         "neighbours": ["rwanda", "saudi-arabia"]
       },
       {
@@ -326,7 +291,6 @@
         "name": "South Africa",
         "region": "sub-saharan-africa",
         "stability": 3,
-        "battleground": true,
         "neighbours": ["nigeria", "rwanda"]
       },
       {
@@ -334,7 +298,6 @@
         "name": "Canada",
         "region": "americas",
         "stability": 4,
-        "battleground": false,
         "neighbours": ["united-kingdom"]
       },
       {
@@ -342,7 +305,6 @@
         "name": "Mexico",
         "region": "americas",
         "stability": 2,
-        "battleground": true,
         "neighbours": ["cuba", "venezuela"]
       },
       {
@@ -350,7 +312,6 @@
         "name": "Cuba",
         "region": "americas",
         "stability": 3,
-        "battleground": false,
         "neighbours": ["mexico", "venezuela"]
       },
       {
@@ -358,7 +319,6 @@
         "name": "Venezuela",
         "region": "americas",
         "stability": 2,
-        "battleground": true,
         "neighbours": ["mexico", "cuba", "brazil"]
       },
       {
@@ -366,8 +326,97 @@
         "name": "Brazil",
         "region": "americas",
         "stability": 2,
-        "battleground": true,
         "neighbours": ["venezuela", "nigeria"]
+      }
+    ],
+    "battlegrounds": [
+      {
+        "era": "era-1",
+        "countries": [
+          "ukraine",
+          "georgia",
+          "kazakhstan",
+          "japan",
+          "taiwan",
+          "india",
+          "germany",
+          "poland",
+          "serbia",
+          "syria",
+          "iraq",
+          "iran",
+          "nigeria",
+          "south-africa",
+          "mexico",
+          "venezuela",
+          "brazil"
+        ]
+      },
+      {
+        "era": "era-2",
+        "countries": [
+          "ukraine",
+          "georgia",
+          "kazakhstan",
+          "japan",
+          "taiwan",
+          "india",
+          "germany",
+          "poland",
+          "serbia",
+          "syria",
+          "iraq",
+          "iran",
+          "nigeria",
+          "south-africa",
+          "mexico",
+          "venezuela",
+          "brazil"
+        ]
+      },
+      {
+        "era": "era-3",
+        "countries": [
+          "ukraine",
+          "georgia",
+          "kazakhstan",
+          "japan",
+          "taiwan",
+          "india",
+          "germany",
+          "poland",
+          "serbia",
+          "syria",
+          "iraq",
+          "iran",
+          "nigeria",
+          "south-africa",
+          "mexico",
+          "venezuela",
+          "brazil"
+        ]
+      },
+      {
+        "era": "future",
+        "countries": [
+          "ukraine",
+          "georgia",
+          "kazakhstan",
+          "japan",
+          "taiwan",
+          "india",
+          "germany",
+          "poland",
+          "serbia",
+          "syria",
+          "iraq",
+          "iran",
+          "nigeria",
+          "south-africa",
+          "mexico",
+          "venezuela",
+          "brazil"
+        ]
       }
     ],
     "homeBox": {

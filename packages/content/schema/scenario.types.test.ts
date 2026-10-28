@@ -13,6 +13,7 @@ describe("scenario schema types", () => {
       Pick<Setup, "turns" | "playsPerTurn" | "handSize">
     >();
     expectTypeOf<NonNullable<Scenario["eras"]>>().toExtend<NonNullable<Setup["eras"]>>();
+    expectTypeOf<NonNullable<Scenario["firstEra"]>>().toExtend<NonNullable<Setup["firstEra"]>>();
     expectTypeOf<NonNullable<NonNullable<Scenario["contingency"]>["lio"]>>().toEqualTypeOf<
       Setup["contingency"]["lio"]
     >();
@@ -30,7 +31,7 @@ describe("scenario schema types", () => {
 
   it("makes scenarioSetup return exactly those Setup fields", () => {
     expectTypeOf<ScenarioSetup>().toEqualTypeOf<
-      Pick<Setup, "turns" | "playsPerTurn" | "handSize" | "eras" | "contingency" | "map">
+      Pick<Setup, "turns" | "playsPerTurn" | "handSize" | "firstEra" | "eras" | "contingency" | "map">
     >();
   });
 });

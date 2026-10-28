@@ -10,6 +10,9 @@ import type { TestState } from "./testGames.ts";
 /** A fresh copy of the test map, starting influence included. */
 export const testMap = (): NonNullable<Setup["map"]> => scenarioSetup(TEST_MAP_SCENARIO).map!;
 
+/** The test map scenario's first era and a fresh copy of its map, for dealGame. */
+const onTestMap = (): Pick<Setup, "firstEra" | "map"> => ({ firstEra: TEST_MAP_SCENARIO.firstEra!, map: testMap() });
+
 /**
  * Card i's effect, by i % 6: 0 raises Escalation by 1, 1 raises it by 2, 2 lowers it by 1, 3 asks LIO a yes/no and
  * then raises it by 1 (so a state can pause mid-card), and 4 and 5 do nothing.
@@ -37,7 +40,7 @@ export const escalationRuleset = ninetyCards("ai-escalation-test", "x", effectOf
 
 /** A game of escalationRuleset from `seed` on the test map, dealt by dealGame. Four turns by default. */
 export function newMapGame(seed: number, turns = 4): TestState {
-  return dealGame(escalationRuleset, "ai-map", seed, turns, { map: testMap() });
+  return dealGame(escalationRuleset, "ai-map", seed, turns, onTestMap());
 }
 
 /**
@@ -58,7 +61,7 @@ export const pointsRuleset: Ruleset = (() => {
 
 /** A game of pointsRuleset from `seed` on the test map, dealt by dealGame. Four turns by default. */
 export function newPointsMapGame(seed: number, turns = 4): TestState {
-  return dealGame(pointsRuleset, "ai-points", seed, turns, { map: testMap() });
+  return dealGame(pointsRuleset, "ai-points", seed, turns, onTestMap());
 }
 
 /** A first-deck game from `seed` set up as the host sets one up (firstDeckConfig), plus the test map. */
