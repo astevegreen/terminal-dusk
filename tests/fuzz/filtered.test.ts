@@ -78,6 +78,8 @@ describe("filtered and once triggers in fuzz games", () => {
       expect(total.onceFired).toBeGreaterThan(0);
       expect(total.onceEndedUnfired).toBeGreaterThan(0);
     },
-    GAMES * 100,
+    // Measured 28 Oct 2026: about 25 ms per game alone, about 100 ms with the whole fuzz folder running in parallel.
+    // The limit is 500 ms per game, five times the busy figure.
+    GAMES * 500,
   );
 });
