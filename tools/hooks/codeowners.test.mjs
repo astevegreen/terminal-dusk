@@ -12,7 +12,10 @@ test("CODEOWNERS lists no path, so GitHub's code-owner review never waits for th
   assert.deepEqual(entries, [], "a CODEOWNERS entry makes every change to that path wait for the owner again");
 });
 
-test("CODEOWNERS says why it is empty and what holds a loosened rail instead", () => {
+test("CODEOWNERS says why it is empty", () => {
   assert.match(text, /No path waits for the owner's review/);
-  assert.match(text, /rail audit/);
+});
+
+test("CODEOWNERS names what holds a loosened rail instead of the owner's review", () => {
+  assert.match(text, /held for the owner by agy's rail audit/);
 });
