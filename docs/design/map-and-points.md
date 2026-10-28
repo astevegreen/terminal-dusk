@@ -19,13 +19,13 @@ Not yet built. Numbers marked "open" are for the owner to set.
   data, with the region contents).
 - **Home box.** Russia and China are both part of the SAE home box; the United States is the LIO home box. Home
   boxes are not countries for placing or control. Countries next to a home box count as next to that side's
-  influence. Russia's and China's borders decide which countries touch the SAE box (owner, 28 Oct: "H1"): every
+  influence. Russia's and China's borders decide which countries touch the SAE box (owner, 28 Oct, chosen in chat: H1): every
   country on the board that borders Russia or China by land or a short sea crossing touches it.
 - **Hong Kong** is part of China.
 - **Taiwan** starts LIO-aligned.
 - **Crimea** starts as the history of 1991 says (owner), and is its own box on the map, not part of Ukraine
   (owner, 28 Oct).
-- **Region contents** (owner, 28 Oct: "Option 2"): the countries, regions and links of
+- **Region contents** (owner, 28 Oct, chosen in chat: option 2): the countries, regions and links of
   `docs/proposals/map-content/option-2.md`, 41 countries plus Crimea. Open (scenario data): each country's
   stability, and each era's battleground list; the proposal's numbers are placeholders.
 
@@ -114,7 +114,7 @@ on scoring's numbers, the map and the tech race.
 - **Falls** by 1 at the end of each turn (owner, 22 Oct; was "at each era's start") and through card events.
 - **Thresholds close regions** (owner, 22 Oct). At 3 one region is closed to interventions and realignments, at 4 a
   second, at 5 a third; a region closed at 3 stays closed at 4 and 5. Below 3 nothing is closed. Placing influence
-  is never blocked. Order (owner, 28 Oct: "C1"): Eastern Europe and Central Asia closes at 3, East and South Asia at 4,
+  is never blocked. Order (owner, 28 Oct, chosen in chat: C1): Eastern Europe and Central Asia closes at 3, East and South Asia at 4,
   Europe at 5.
 - **Crisis at 6** (owner, 22 Oct). Whoever caused it draws one card from its own Contingency deck and loses that
   many points of score. Escalation then drops back to 3 and play goes on.
@@ -182,7 +182,10 @@ Decided by the owner on 28 October 2026, choosing between the options in `docs/p
    Credibility.
 2. Answered 28 Oct: scoring, as above. Its numbers wait on the stabilities and battleground lists (question 3).
 3. Answered 28 Oct: the six-region map's content is option 2 of `docs/proposals/map-content/`, with H1, Crimea
-   as its own box, and closing order C1. Still open: each country's stability, each era's battleground list, and
-   the order regions score in.
+   as its own box, and closing order C1. Still open: each country's stability, each era's battleground list, the
+   order regions score in, who sets the real stabilities (owner or a balance pass), Taiwan's and Crimea's starting
+   influence numbers, whether Kosovo and the Palestinian territories get a box (option 2 gives neither one), and
+   whether every country must be reachable from both home boxes and long sea links are acceptable (option 2's tables
+   assume yes; its Reach section shows the result).
 4. Answered 26 Oct: the intervention and realign formulas stand as written (#316, #317).
 5. Credibility's numbers, once plays per turn and scoring's numbers are known.
