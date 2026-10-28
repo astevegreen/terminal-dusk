@@ -130,6 +130,15 @@ test("prs audits only this repository's own pull requests", () => {
     duePrs([pr(1, false), pr(2, true), pr(3, undefined)]).map((p) => p.number),
     [1],
   );
+  // Only a collaborator's audit comment counts: a stranger can't mark a pull request as already audited.
+  const audited = (number, authorAssociation) => ({
+    ...pr(number, false),
+    comments: [{ authorAssociation, body: "<!-- gemini-audit -->\n**Gemini audit: pull request**" }],
+  });
+  assert.deepEqual(
+    duePrs([audited(4, "NONE"), audited(5, "COLLABORATOR")]).map((p) => p.number),
+    [4],
+  );
 });
 
 test("the weekly and narrative audits post on the issue a collaborator opened, not a stranger's of the same name", () => {
