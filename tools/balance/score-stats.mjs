@@ -67,6 +67,32 @@ function swings(summaries, keyOf) {
   }));
 }
 
+/** For each way a game can end: how many games, their share, and each side's wins (none for an even track). */
+function resultsByHow(games, share) {
+  const results = {};
+  for (const how of HOWS) {
+    const ofHow = games.filter((g) => g.score.how === how);
+    results[how] = { games: ofHow.length, share: share(ofHow.length) };
+    if (how === "even") continue;
+    for (const side of SIDES) results[how][side] = ofHow.filter((g) => g.score.winner === side).length;
+  }
+  return results;
+}
+
+/** How many games each region decided. */
+function decidedCounts(games) {
+  const decided = new Map();
+  for (const g of games) {
+    if (g.score.decider !== null) decided.set(g.score.decider, (decided.get(g.score.decider) ?? 0) + 1);
+  }
+  return decided;
+}
+
+/** The values of `pick(row)` over every scored row, in the order first seen. */
+function firstSeen(games, pick) {
+  return [...new Set(games.flatMap((g) => g.score.rows.map(pick)))];
+}
+
 /**
  * The report's score numbers for `summaries` (each with its `score` from scoreSummary): where the track ended, how
  * games ended and who won, the average swing (SAE points minus LIO points, so positive favours SAE) per era and per
@@ -78,21 +104,10 @@ export function scoreNumbers(summaries) {
   const n = games.length;
   const share = (count) => round(count / n, 3);
   const finals = games.map((g) => g.score.final);
-  const results = {};
-  for (const how of HOWS) {
-    const ofHow = games.filter((g) => g.score.how === how);
-    results[how] = { games: ofHow.length, share: share(ofHow.length) };
-    if (how !== "even")
-      for (const side of SIDES) results[how][side] = ofHow.filter((g) => g.score.winner === side).length;
-  }
-  const decided = new Map();
-  for (const g of games)
-    if (g.score.decider !== null) decided.set(g.score.decider, (decided.get(g.score.decider) ?? 0) + 1);
-  const regionOrder = [];
-  for (const g of games)
-    for (const row of g.score.rows) if (!regionOrder.includes(row.region)) regionOrder.push(row.region);
-  const eraOrder = [];
-  for (const g of games) for (const row of g.score.rows) if (!eraOrder.includes(row.era)) eraOrder.push(row.era);
+  const results = resultsByHow(games, share);
+  const decided = decidedCounts(games);
+  const regionOrder = firstSeen(games, (row) => row.region);
+  const eraOrder = firstSeen(games, (row) => row.era);
   const sorted = (rows, order) => order.map((key) => rows.find((r) => r.key === key)).filter(Boolean);
   return {
     games: n,
