@@ -33,14 +33,29 @@ const scoreChanges = (events: readonly GameEvent[]) => events.filter((e) => e.ki
 const order = (events: readonly GameEvent[]) =>
   events.filter((e) => ["escalationChanged", "escalationCrisis", "scoreChanged"].includes(e.kind)).map((e) => e.kind);
 
-/** `causer` plays its own card c9 (effect `effect`) for its event, with Escalation at 5 and the track at `score`. */
-function crisisBy(causer: Side, effect: Step[], score?: number, scoring = true) {
+/** `state` with `value` moved to the top of `side`'s Contingency deck: the same cards, so `left` stays right. */
+function onTop(state: GameState, side: Side, value: number): GameState {
+  const deck = state.secret.contingency[side];
+  const rest = [...deck];
+  rest.splice(rest.indexOf(value), 1);
+  return {
+    ...state,
+    secret: { ...state.secret, contingency: { ...state.secret.contingency, [side]: [value, ...rest] } },
+  };
+}
+
+/**
+ * `causer` plays its own card c9 (effect `effect`) for its event, with Escalation at 5, the track at `score` and,
+ * when given, `top` the next card of its Contingency deck.
+ */
+function crisisBy(causer: Side, effect: Step[], score?: number, scoring = true, top?: number) {
   const id = causer === "lio" ? "l9" : "s9";
   const rs: Ruleset = withCards(sideCard(id, 2, effect));
   const opened = openWith(startGame(2, 1, rs, setupFor({ [causer]: [id] }, scoring)), "l1", "s1", rs).state;
   const before =
     causer === "lio" ? opened : placeAll(applied(opened, playAnswer(opened, "lio", "l2", "points"), rs), rs).state;
-  const start = at(before, 5, score);
+  const placed = at(before, 5, score);
+  const start = top === undefined ? placed : onTop(placed, causer, top);
   const drawn = start.secret.contingency[causer][0]!;
   return { rs, before: start, drawn, after: applied(start, playAnswer(start, causer, id, "event"), rs) };
 }
@@ -78,7 +93,8 @@ describe("a crisis on a map with scoring", () => {
   });
 
   it("the track stops at the rival's end, and the rival wins at once (trackEnd)", () => {
-    const { after } = crisisBy("sae", [raise], -9);
+    const { drawn, after } = crisisBy("sae", [raise], -9, true, 4);
+    expect(drawn).toBe(4); // -9 - 4 would pass the end: the stop is what holds the track at -10
     expect(after.state.public.score).toBe(-10);
     expect(scoreChanges(after.events)).toEqual([{ kind: "scoreChanged", visibility: "public", from: -9, to: -10 }]);
     expect(after.state.public.status).toEqual({ kind: "over", winner: "lio", reason: "trackEnd" });
@@ -93,7 +109,8 @@ describe("a crisis on a map with scoring", () => {
   });
 
   it("reaching SAE's end ends the game for SAE when LIO caused the crisis", () => {
-    const { after } = crisisBy("lio", [raise], 9);
+    const { drawn, after } = crisisBy("lio", [raise], 9, true, 4);
+    expect(drawn).toBe(4); // 9 + 4 would pass the end
     expect(after.state.public.score).toBe(10);
     expect(after.state.public.status).toEqual({ kind: "over", winner: "sae", reason: "trackEnd" });
   });
