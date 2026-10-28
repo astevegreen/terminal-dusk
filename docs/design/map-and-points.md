@@ -4,13 +4,19 @@ Decided by the owner on 20 October 2026, in answer to the W7 proposal pack (`doc
 151). Where the owner said "apply the same rules as the reference game", this file spells the rules out in this
 game's own words. The reference game is named by the owner only as the model for topic 3; none of its names, art or
 text are used here. Updated on 22 October 2026 with the owner's answers from the escalation design dialogue: the
-Escalation section, the Intervene action (formerly the coup) and the fourth action.
+Escalation section, the Intervene action (formerly the coup) and the fourth action. Updated on 28 October 2026
+with the owner's scoring answers (Scoring section, and battlegrounds by era in the Map section).
 
-Not yet built. Numbers marked "open" are for the owner to set. Scoring is not decided (last section).
+Not yet built. Numbers marked "open" are for the owner to set.
 
 ## Map (proposal topic 1)
 
-- **Six regions.** One map for the whole game, 1991 to 2025. It does not change between eras.
+- **Six regions.** One map for the whole game, 1991 to 2025. Its countries, regions and borders do not change
+  between eras.
+- **Battlegrounds change by era** (owner, 28 Oct: "battlegrounds change between eras"; "each era has its own
+  list"). Each era has its own list of battleground countries, set in the scenario. An era's list counts for its
+  interventions, Escalation and scoring; when the next era enters, its list takes over. Open: the lists (scenario
+  data, with the region contents).
 - **Home box.** Russia and China are both part of the SAE home box; the United States is the LIO home box. Home
   boxes are not countries for placing or control. Countries next to a home box count as next to that side's
   influence. Open: whether Russia's and China's borders are only artwork or also decide which countries touch
@@ -138,14 +144,34 @@ on scoring, the map and the tech race.
 
 ## Scoring (proposal topic 5)
 
-Not decided. The owner will consider it further. Depends on the event-points question above. Escalation's crisis
-and the credibility gap both need a score track.
+Decided by the owner on 28 October 2026, choosing between the options in `docs/proposals/w7/5-scoring.md`
+(option B, every region scores at each era's end, with no scoring cards).
+
+- **When** (owner: "every era's end"). At the end of each era's last turn every region scores, in a fixed order.
+  The base game scores three times. There are no scoring cards, so "how scoring cards are played" has no answer
+  to give.
+- **How a region scores.** A side is **present** in a region if it controls at least one country there, **ahead**
+  if it controls more countries and more battlegrounds there than the rival, and **holds every battleground** if
+  it controls all of the region's battlegrounds. Each level scores a fixed amount for that region. The region's
+  battlegrounds are those on the list of the era that is ending (Map section).
+- **Battlegrounds score on their own** (owner: "yes, +1 each"). Each battleground a side controls in a scoring
+  region adds 1, beyond counting towards ahead and holding every battleground.
+- **One shared score track** from LIO's end to SAE's end. A whole number that stops at its ends. Escalation's
+  crisis moves it against the side that caused the crisis, and a credibility gap moves it towards the rival.
+- **How the game is won** (owner: "track end, or ahead in 2025"). A side that reaches its end of the track wins
+  at once. Otherwise, after the final era scores at the end of 2025, the side the track leans towards wins.
+- **An even track at the end** (owner: "tie-break based on whoever is further ahead on the technology track …
+  If that is also a tie, then it's a draw"). The side further ahead on the tech race track wins; if that is
+  also even, the game is a draw.
+- Open: the track's length and where it starts, the amounts for present, ahead and holding every battleground
+  per region, and the order regions score in (scenario data, with the region contents); how "further ahead" on
+  the tech race is measured (tech race topic); whether the 2025-2027 scenario scores again at the end of 2027.
 
 ## Owner's remaining questions
 
 1. The tech race track: its branches, costs and what moving up gives, and its links to Escalation and
    Credibility.
-2. Scoring, as above.
+2. Answered 28 Oct: scoring, as above. Its numbers wait on the region contents (question 3).
 3. Country and region content for the six-region map, including which regions close at Escalation's thresholds,
    and in what order.
 4. Answered 26 Oct: the intervention and realign formulas stand as written (#316, #317).
