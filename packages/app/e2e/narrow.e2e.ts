@@ -18,6 +18,19 @@ test("at this project's size, a game with no map gives its map box only a line",
   expect((await box(page.getByTestId("map-area"))).height).toBeLessThanOrEqual(40);
 });
 
+/** The hand shows every card in full: its box does not scroll inside itself (#416). */
+async function expectHandUnscrolled(page: Page): Promise<void> {
+  const hand = page.getByTestId("hand");
+  await expect(hand).toBeVisible();
+  const [scrollHeight, clientHeight] = await hand.evaluate((el) => [el.scrollHeight, el.clientHeight] as const);
+  expect(scrollHeight).toBeLessThanOrEqual(clientHeight);
+}
+
+test("against the AI on a desktop: the whole hand shows, with no scroll inside the hand box", async ({ page }) => {
+  await startVsAi(page);
+  await expectHandUnscrolled(page);
+});
+
 test.describe("on a phone held upright", () => {
   test.use({ viewport: { width: 375, height: 667 } });
 
@@ -48,6 +61,7 @@ test.describe("on a phone held upright", () => {
   test("against the AI: one column, and the map box with no map takes only a line", async ({ page }) => {
     await startVsAi(page);
     await checkUpright(page);
+    await expectHandUnscrolled(page);
     expect((await box(page.getByTestId("map-area"))).height).toBeLessThanOrEqual(40);
   });
 });

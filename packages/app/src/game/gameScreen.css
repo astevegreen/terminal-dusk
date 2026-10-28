@@ -104,7 +104,6 @@
 }
 .game .game-hand {
   grid-area: hand;
-  max-height: 120px;
 }
 /* A card with rules text: its name in bold, the rules on their own line under it. */
 .game .hand-card-name {
