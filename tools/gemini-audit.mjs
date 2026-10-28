@@ -10,12 +10,11 @@ import path from "node:path";
 import {
   DEEP_PATHS,
   ORDER,
-  TIMEOUT,
   askFirstAvailable,
+  askModel,
   buildPrompt,
   byLine,
   diffStats,
-  parseReply,
   pickDepth,
 } from "./gemini/agy.mjs";
 import { RAIL_MODELS, decide, railHits, readVerdict, reusableVerdict, verdictMarker } from "./gemini/rails.mjs";
@@ -70,20 +69,7 @@ function askGemini(promptName, material, what, { deepPaths = DEEP_PATHS, models 
   const prompt = buildPrompt(text, file);
   const pick = pickDepth(what, deepPaths);
   const answer = askFirstAvailable(models ?? ORDER[pick.depth], (model) =>
-    parseReply(
-      run("agy", [
-        "-p",
-        prompt,
-        "--output-format",
-        "json",
-        "--model",
-        model,
-        "--print-timeout",
-        TIMEOUT,
-        "--add-dir",
-        tmpDir(),
-      ]),
-    ),
+    askModel((args) => run("agy", args), prompt, model, ["--add-dir", tmpDir()]),
   );
   return { ...answer, ...pick };
 }

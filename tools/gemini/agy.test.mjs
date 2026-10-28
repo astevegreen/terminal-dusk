@@ -12,6 +12,7 @@ import {
   SONNET,
   TIMEOUT,
   askFirstAvailable,
+  askModel,
   buildPrompt,
   byLine,
   diffStats,
@@ -287,6 +288,51 @@ test("an empty answer after a blocked command says so plainly", () => {
   assert.throws(() => parseReply(r), {
     message: "the model gave no answer after trying something it is not allowed to do (RunCommand)",
   });
+});
+
+// The reply agy gave on 2026-10-28 when a model ran a command: success, no answer, the refusal named.
+const REFUSED = {
+  conversation_id: "c-1",
+  status: "SUCCESS",
+  response: "",
+  denied_actions: [{ action: "command", display_name: "RunCommand" }],
+};
+const runs = (...replies) => {
+  const asked = [];
+  const run = (args) => {
+    asked.push(args);
+    return reply(replies[asked.length - 1]);
+  };
+  return { run, asked };
+};
+
+test("a run cut off for a refused command is resumed once, in the same conversation, for its answer", () => {
+  // On 2026-10-28 Opus ended a rail audit on `echo blocked`, after reading all of the material.
+  const { run, asked } = runs(REFUSED, { status: "SUCCESS", response: "LOOSENS: no\n" });
+  assert.equal(askModel(run, "Audit this.", OPUS, ["--add-dir", "C:/tmp"]), "LOOSENS: no");
+  assert.deepEqual(asked[0], [
+    "-p",
+    "Audit this.",
+    "--output-format",
+    "json",
+    "--model",
+    OPUS,
+    "--print-timeout",
+    "10m",
+    "--add-dir",
+    "C:/tmp",
+  ]);
+  assert.deepEqual(asked[1].slice(-4), ["--add-dir", "C:/tmp", "--conversation", "c-1"]);
+  assert.match(asked[1][1], /^Your command was refused/);
+});
+
+test("a resumed run that tries a command again is passed on, and no other failure is resumed", () => {
+  const twice = runs(REFUSED, REFUSED, REFUSED);
+  assert.throws(() => askModel(twice.run, "Audit this.", OPUS), /not allowed to do \(RunCommand\)/);
+  assert.equal(twice.asked.length, 2);
+  const quota = runs({ status: "ERROR", error: QUOTA });
+  assert.throws(() => askModel(quota.run, "Audit this.", OPUS), { message: QUOTA });
+  assert.equal(quota.asked.length, 1);
 });
 
 test("a run cut off by the time limit is reported as unfinished, even if it printed part of an answer", () => {
