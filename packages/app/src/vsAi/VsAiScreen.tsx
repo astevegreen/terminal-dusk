@@ -83,6 +83,7 @@ export function VsAiView({
         label={label}
         question={question}
         affiliation={affiliation}
+        rules={rules}
         onClose={() => setWatching(null)}
       />
     );

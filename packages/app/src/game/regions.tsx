@@ -69,7 +69,11 @@ export function MapArea({ frame }: Readonly<{ frame: Frame }>) {
 }
 
 /** One card in the hand: its name, with its rules text on its own line when the game has rules text for it. */
-function HandCard({ card, label, rules }: Readonly<{ card: CardId; label: Label; rules: CardRules | undefined }>) {
+export function HandCard({
+  card,
+  label,
+  rules,
+}: Readonly<{ card: CardId; label: Label; rules: CardRules | undefined }>) {
   const text = rules?.(card);
   if (text === undefined) return <li>{label(card)}</li>;
   return (

@@ -25,6 +25,7 @@ describe("the online route", () => {
     makeMatch: (seed, clock) => createLocalMatch(firstDeckRuleset, firstDeckConfig(), seed, clock),
     cardName: firstDeckCardName,
     cardQuestion: firstDeckCardQuestion,
+    cardRules: () => "rules",
     cardAffiliation: () => undefined,
     note: FIRST_DECK_NOTE,
   };
@@ -36,6 +37,7 @@ describe("the online route", () => {
     expect(route.type).toBe(OnlineScreen);
     expect(route.props.label).toBe(firstDeckCardName);
     expect(route.props.question).toBe(firstDeckCardQuestion);
+    expect(route.props.rules).toBe(game.cardRules);
     expect(route.props.clock).toBe(clock);
     expect(route.props.timers).toBe(timers);
     expect(route.props.onBack).toBe(onBack);
@@ -44,5 +46,6 @@ describe("the online route", () => {
     const route = onlineRoute({ clock: () => 0, timers: fakeTimers() }, () => {});
     expect(route.props.label).toBeUndefined();
     expect(route.props.question).toBeUndefined();
+    expect(route.props.rules).toBeUndefined();
   });
 });

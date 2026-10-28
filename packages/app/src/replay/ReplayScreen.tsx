@@ -8,7 +8,8 @@ import { decisionPrompts } from "../decisionPrompts.tsx";
 import { eraText, gameOverText, playsText } from "../displayText.ts";
 import { logLine } from "../eventPresentation.ts";
 import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
-import { Contingency, Log, Region, Table } from "../game/regions.tsx";
+import type { CardRules } from "../displayText.ts";
+import { Contingency, HandCard, Log, Region, Table } from "../game/regions.tsx";
 import type { Label } from "../game/regions.tsx";
 import type { ReplayRecording } from "./recording.ts";
 import "./replayScreen.css";
@@ -19,6 +20,8 @@ export type ReplayScreenProps = {
   /** A card's yes/no question, for the read-only prompts. Display data only. */
   question: CardQuestion;
   affiliation: CardAffiliation;
+  /** A card's rules text, shown under its name in both hands; left out, the hands show names only. */
+  rules?: CardRules | undefined;
   onClose: () => void;
 };
 
@@ -64,7 +67,7 @@ function Controls({
   );
 }
 
-function Hands({ frame, label }: Readonly<{ frame: ReplayFrame; label: Label }>) {
+function Hands({ frame, label, rules }: Readonly<{ frame: ReplayFrame; label: Label; rules: CardRules | undefined }>) {
   return (
     <Region id="hands" title="Both hands" className="replay-hands">
       {SIDES.map((side: Side) => (
@@ -72,7 +75,7 @@ function Hands({ frame, label }: Readonly<{ frame: ReplayFrame; label: Label }>)
           <h2>{`${side.toUpperCase()} hand`}</h2>
           <ol>
             {frame.view.sides[side].hand.map((card) => (
-              <li key={card}>{label(card)}</li>
+              <HandCard key={card} card={card} label={label} rules={rules} />
             ))}
           </ol>
         </div>
@@ -120,6 +123,7 @@ export function ReplayView({
   label,
   question,
   affiliation,
+  rules,
   onClose,
   index,
   onGo,
@@ -143,7 +147,7 @@ export function ReplayView({
         <span>{atLast ? finalText(recording.status) : "Game active"}</span>
         {atLast && <span>{`Seed checked: ${recording.seedHash}`}</span>}
       </Region>
-      <Hands frame={frame} label={label} />
+      <Hands frame={frame} label={label} rules={rules} />
       <div className="replay-side">
         <Table pub={pub} label={label} />
         <Contingency pub={pub} />

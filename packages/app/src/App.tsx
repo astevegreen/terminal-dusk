@@ -34,7 +34,7 @@ export function App({ clock, newSeed, newAiSeed, game, online, timers = realTime
   return <Home onPick={setScreen} />;
 }
 
-/** The online screen as the app opens it: with the game's card names and questions and the app's timers. */
+/** The online screen as the app opens it: with the game's card names, questions and rules text and the app's timers. */
 export function onlineRoute(
   {
     clock,
@@ -51,6 +51,7 @@ export function onlineRoute(
       timers={timers}
       label={game?.cardName}
       question={game?.cardQuestion}
+      rules={game?.cardRules}
       affiliation={game?.cardAffiliation}
       onBack={onBack}
     />
