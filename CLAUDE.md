@@ -37,23 +37,36 @@ The owner is not a programmer: explain every change in plain English, and prove 
 - Keep files under about 350 lines; split by responsibility.
 - Stay inside the task's scope. Mention other problems in your summary instead of fixing them.
 - No new dependency without a reason in your summary.
-- If the spec is unclear, contradicts docs/architecture.md, or needs a game-design choice: stop and ask.
-  In a night run, comment the question on the issue, starting `Blocked:`, and label it `blocked`. Never invent game rules.
+- Never ask the owner a technical question: how to build or structure it, APIs, tooling, tests, naming, placement,
+  performance, refactors, or an architecture-doc update that changes no numbered Decision. Run the `architect`
+  agent, comment its answer on the issue as `Decision (architect): …`, and go on.
+- Ask only design questions: game rules, cards, balance, a new mechanic, or a change to a numbered Decision in
+  `docs/architecture.md`, each with your recommendation. With the owner in the session, ask in chat. In a night run
+  or sprint lane, comment `Blocked: Design question: …` and `Recommendation: …` on the issue, label it `blocked`
+  and take other work; the daily Decisions digest asks the owner. Never invent game rules.
 - When compacting, keep word for word: the issue or pull request number and branch, the files changed, each
   `pnpm gate` or test run with its result, and any question waiting on the owner.
 
 ## Never
 - Weaken, skip or delete a test to get green, or change gate scripts, test configs or hooks to pass.
-- Edit `.claude/`, `CLAUDE.md`, `GEMINI.md`, `.github/`, `docs/architecture.md`, `tools/hooks/` or `tools/gates/`
-  unless the owner asked for it in this session.
+- Edit `.claude/`, `tools/hooks/`, `tools/gates/` or `tools/git-hooks/` in a night run or sprint lane: they are the
+  guards and hooks of your own session. By day, edits to `.claude/settings*.json` and `tools/hooks/` ask the owner.
 - Push to `main`, force-push, or rewrite history.
 - Put secrets, the RNG seed or hidden cards anywhere a client, log or test snapshot can see them.
 - Use names, art or text from Twilight Struggle, or likenesses of real people.
 
 ## Finishing
-By day, after opening a pull request: run the `reviewer` agent, fix its concerns once, then on PASS run
-`gh pr ready <n>` and `gh pr merge <n> --auto --squash`. GitHub merges once CI is green and,
-for code-owned files, once the owner approves. Concerns left: `gh pr ready <n>`, label it `held`, comment them.
+By day, after opening a pull request, nothing waits for the owner's review: CI, the reviewer and agy decide, and
+`git revert` is the safety net.
+1. Run the `reviewer` agent and `node tools/gemini-audit.mjs pr <n>` (agy's second look, plus a deep rail audit
+   when the diff touches hooks, gates, git hooks, workflows, `.claude/settings*.json`, CODEOWNERS or the audit).
+   Fix their [blocker]s once, then run both again. The audit prints a `verdict`.
+2. `merge`, and no reviewer [blocker] left: `gh pr ready <n>` and `gh pr merge <n> --auto --squash`. [minor]
+   concerns and agy's notes never hold: comment them, or open a follow-up issue when one is real work.
+3. A [blocker] left: `gh pr ready <n>`, label it `held`, comment the blockers. Verdict `hold` (the rail audit says
+   it loosens a check, guard, gate, hook or required review): the same, with a comment starting `Held: rail audit:`
+   and its reason, for the owner. Verdict `retry` (the audit couldn't run): leave auto-merge off and run it again
+   later; a machine failure never waits for the owner.
 
 End every task with:
 - **What changed** - the behaviour, in plain English, one bullet per change the owner would notice

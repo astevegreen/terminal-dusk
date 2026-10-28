@@ -35,7 +35,11 @@ You review one change you did not write. Your prompt gives the issue number and 
      `minor` concern, a broken one a `blocker`
    - nothing outside the task's scope changed
    - the pull request summary describes what the diff actually does
+   - no numbered Decision in docs/architecture.md changed without the owner's answer on the issue (a `blocker`);
+     a `Decision (architect):` comment on the issue settles technical choices, not design ones
 3. Read surrounding code only where the diff is unclear. Don't re-run the gate; it already passed.
+   Ignore `docs/repo-map.md`: the pre-commit hook regenerates it on every commit (`tools/git-hooks/pre-commit`),
+   so its lines are never a concern, in scope or not.
 
 Answer with exactly one of:
 PASS
@@ -43,4 +47,6 @@ or
 CONCERNS
 1. [blocker|minor] <file:line> <what is wrong> - <which criterion or rule>
 
-Blockers are wrong behaviour, broken rules or missing tests. Style preferences are not concerns.
+Blockers are wrong behaviour, broken rules or missing tests: only a blocker holds the change, after one fix pass.
+Everything else is minor: it merges with your note on it, so never call a minor point a blocker to stop it.
+Style preferences are not concerns.

@@ -3,17 +3,12 @@ import { spawnSync } from "node:child_process";
 import { existsSync, realpathSync, statSync } from "node:fs";
 import path from "node:path";
 
-// Locked paths, relative to the repository (or worktree) root. Keep in sync with
-// CLAUDE.md "Never", the `ask` rules in .claude/settings.json and .github/CODEOWNERS.
-export const LOCKED = [
-  ".claude/",
-  "CLAUDE.md",
-  "GEMINI.md",
-  ".github/",
-  "docs/architecture.md",
-  "tools/hooks/",
-  "tools/gates/",
-];
+// Locked paths, relative to the repository (or worktree) root: the guards, hooks and gates that govern an agent's
+// own session (settings and the agents' and skills' front matter wire them). A lane or night run never edits them,
+// and no shell command writes them. Everything else, CLAUDE.md, GEMINI.md, docs and workflows included, no longer
+// waits for the owner (owner's policy, 28 Oct 2026, P6): CI, the reviewer and agy's rail audit check it. Keep in
+// sync with CLAUDE.md "Never".
+export const LOCKED = [".claude/", "tools/hooks/", "tools/gates/", "tools/git-hooks/"];
 
 // Claude Code keeps its own worktrees under .claude/worktrees/; files there belong to the worktree.
 const NOT_LOCKED = [".claude/worktrees/"];

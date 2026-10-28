@@ -15,8 +15,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Required status check for main (branch protection): keep the job name "gate".
-  gate:
+  # The full gate, the test count and the fuzz. Its result reaches main through the "gate" job at the end.
+  checks:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -65,8 +65,7 @@ jobs:
 
   # The app's Playwright smoke tests (packages/app/e2e) at both sizes in playwright.config.ts, phone and desktop, so a
   # layout break (sideways scroll, buttons under 44 px) fails the pull request. Runs on every pull request, not only
-  # ones that touch packages/app: the app renders what the engine and host produce, and a job that always runs can be
-  # made a required check.
+  # ones that touch packages/app: the app renders what the engine and host produce. It gates merges through "gate".
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -86,6 +85,68 @@ jobs:
       - name: Playwright smoke tests
         run: pnpm --filter @terminal-dusk/app test:e2e
 
+  # Every migration applied to an empty database on a local Supabase stack, then the migration tests (which hold the
+  # row-level security checks) and the other stack tests. There is no hosted project, so this replaced the owner's
+  # review of migrations (owner's policy, 28 Oct 2026). The hook secret is a fresh random test value, never a real one.
+  db:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Start the local Supabase stack, apply every migration and run the stack tests
+        working-directory: packages/server
+        run: |
+          export SEND_EMAIL_HOOK_SECRET="v1,whsec_$(openssl rand -base64 32)"
+          # The served Edge Functions read only this git-ignored file, not the shell (src/migrations/localStack.ts).
+          printf 'LOCAL_MAIL_URL=http://host.docker.internal:44324\nSEND_EMAIL_HOOK_SECRET=%s\n' "$SEND_EMAIL_HOOK_SECRET" \
+            > supabase/functions/.env
+          pnpm exec supabase start
+          set -a
+          eval "$(pnpm exec supabase status -o env)"
+          set +a
+          # Without the keys the stack tests would only say they did not run, and pass: fail instead.
+          if [ -z "$API_URL" ] || [ -z "${ANON_KEY:-$PUBLISHABLE_KEY}" ] || [ -z "${SERVICE_ROLE_KEY:-$SECRET_KEY}" ]; then
+            echo "supabase status gave no URL or keys, so the stack tests would not run"
+            exit 1
+          fi
+          pnpm test:migrations
+          pnpm test:stack
+      - name: Stop the stack
+        if: always()
+        working-directory: packages/server
+        run: pnpm exec supabase stop --no-backup || true
+
+  # Dependencies replaced the owner's review of package.json and the lockfile: a report of every dependency added,
+  # removed or changed (in the job summary), and `pnpm audit`, failing only on a high or critical advisory the base
+  # didn't have (tools/gates/deps-report.mjs).
+  deps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Dependency report and new advisories
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ -z "$BASE_SHA" ] || ! git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null; then BASE_SHA=$(git rev-parse HEAD~1); fi
+          git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA"
+          node tools/gates/deps-report.mjs --base "$RUNNER_TEMP/base"
+
   # The hooks, the git hooks and the local gate run on the owner's Windows PC, so the tool tests run on Windows too.
   tools-windows:
     runs-on: windows-latest
@@ -100,3 +161,24 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Tool tests
         run: node --test "tools/**/*.test.mjs"
+
+  # Required status check for main (the ruleset): keep the job name "gate". It passes only when every job it needs
+  # passed, so e2e, the database and the dependency check gate merges without a ruleset change. `!cancelled()` makes it
+  # run, and fail, when one of them failed: a skipped required job would count as passing.
+  gate:
+    needs: [checks, e2e, db, deps]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Every check passed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          failed=$(echo "$RESULTS" | jq -r 'to_entries[] | select(.value.result != "success") | "\(.key): \(.value.result)"')
+          if [ -n "$failed" ]; then
+            echo "Not every check passed; the failed job's own log says why:"
+            echo "$failed"
+            exit 1
+          fi
+          echo "checks, e2e, db and deps all passed."

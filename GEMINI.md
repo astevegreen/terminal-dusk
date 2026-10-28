@@ -13,4 +13,6 @@ Judge work against CLAUDE.md, the files in .claude/rules/, and docs/architecture
 - Blockers: wrong behaviour, a broken rule, hidden information that could leak,
   or an acceptance criterion with no test.
 - Notes: real risks and missing edge cases. No style comments.
+- Your pull request audit is a merge gate: a blocker holds the change (one fix pass, then it waits), a note never
+  does. Call something a blocker only when it must not ship.
 - At most 10 findings, most important first. If nothing is wrong, answer "No findings."

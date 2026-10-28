@@ -10,7 +10,7 @@ The daily loop has three parts:
 
 - **Evening (you):** a design or spec session, then add `ready` to the issues to build.
 - **Night (machines):** the night shift builds `ready` issues; CI and Gemini check each pull request.
-- **Morning (you):** read the night-shift summary, answer held and blocked items, merge, and play the preview.
+- **Morning (you):** read the night-shift summary and the Decisions digest, answer the design questions, look at any rail hold, and play the preview.
 
 Only those three steps need you. Everything between them is automated and gated, and playtest feedback closes the loop into the next design session.
 
@@ -94,15 +94,15 @@ Every piece of work is a GitHub issue written as a spec, sized to finish in one 
 
 **Labels move an issue through the pipeline**
 
-| Label         | Meaning                                                          | Set by                       |
-| ------------- | ---------------------------------------------------------------- | ---------------------------- |
-| `needs-spec`  | An idea, not ready to build                                      | You or Claude                |
-| `spec-review` | Spec written; waiting for Gemini's audit                         | Claude (`plan-tasks` skill)  |
-| `ready`       | Approved for the night shift                                     | You                          |
-| `in-progress` | Picked up tonight                                                | Night shift                  |
-| `blocked`     | Gates failed or the spec was unclear; a report is attached       | Night shift                  |
-| `held`        | Pull request waits for you (design question or reviewer concern) | Night shift                  |
-| `auto-merge`  | Safe to merge when every gate is green                           | Claude, from the task's area |
+| Label         | Meaning                                                                                     | Set by                       |
+| ------------- | ------------------------------------------------------------------------------------------- | ---------------------------- |
+| `needs-spec`  | An idea, not ready to build                                                                 | You or Claude                |
+| `spec-review` | Spec written; waiting for Gemini's audit                                                    | Claude (`plan-tasks` skill)  |
+| `ready`       | Approved for the night shift                                                                | You                          |
+| `in-progress` | Picked up tonight                                                                           | Night shift                  |
+| `blocked`     | A design question waits for you (in the daily Decisions digest), or a day session is needed | Night shift                  |
+| `held`        | A [blocker] left after the fix pass, or agy's rail audit says it loosens a rail             | Night shift                  |
+| `auto-merge`  | Safe to merge when every gate is green                                                      | Claude, from the task's area |
 
 **From decision to merged code**
 
@@ -110,9 +110,9 @@ Every piece of work is a GitHub issue written as a spec, sized to finish in one 
 2. An `agy` job asks Gemini to audit the new specs for gaps, contradictions with `docs/architecture.md`, and missing edge cases. It comments on each issue.
 3. You skim the comments, ask Claude to fold in the valid ones, and add `ready`.
 4. The night shift builds `ready` issues one at a time and opens a pull request for each.
-5. CI and Gemini check each pull request. Green `auto-merge` pull requests merge themselves; anything else is labelled `held`.
+5. CI, the reviewer and Gemini (agy) check each pull request. It merges itself unless a [blocker] is left or the rail audit says it loosens a rail; then it is labelled `held`.
 
-**What auto-merges.** Anything the reviewer passed merges itself once CI is green, whether a night run or a day session opened it. Three kinds of change wait for you: the agents' own rules (`.claude/`, `CLAUDE.md`, `GEMINI.md`, `.github/`, `docs/architecture.md`, `tools/hooks/`, `tools/gates/`, `tools/git-hooks/`), database migrations and golden replays, and new dependencies or tool settings. So does anything the reviewer flagged (`held`). You judge them by their plain-English summary and the preview build, not the code. Engine rules, view filtering, the server write path and schemas no longer wait for you: tests, the fuzz run, golden replays and the reviewer guard them, and you were approving them from the summary anyway. GitHub enforces this: the agents work through a separate bot account, `.github/CODEOWNERS` lists you as owner of the paths that wait, and branch protection on `main` requires your approval for those and green `gate` and `tools-windows` checks for everything. Without that protection, auto-merge would merge a pull request before CI finished.
+**What auto-merges.** Since 28 Oct 2026, everything: nothing waits for your review. You don't read code, and 43 of your 46 code-owner approvals had nothing to say, so CI, the reviewer agent and agy's second look decide, and `git revert` is the safety net. Only a [blocker] (from the reviewer or agy) left after one fix pass holds a pull request; [minor] concerns and agy's notes merge as a note on it. The one change that waits for you is one that loosens a rail: a change to the hooks, gates, git hooks, CI workflows, `.claude/settings*.json`, CODEOWNERS or the audit itself gets a deep agy audit asking whether it loosens, bypasses or disables any check, and a yes holds it for you with the reason (`tools/gemini/rails.mjs`). CI gates merges: the required `gate` check passes only when the full gate, the e2e smoke tests, the migrations and stack tests on a local Supabase (`db`) and the dependency report with `pnpm audit` (`deps`) all pass. `.github/CODEOWNERS` lists no path, and the ruleset on `main` still requires green `gate` and `tools-windows` checks; without that, auto-merge would merge a pull request before CI finished. You still decide product and design (game rules, cards, balance, mechanics, scope), money, identity and the outside world (billing, secrets, the gh account, visibility, the rulesets, the sprint cue), and anything destructive.
 
 **Bugs** use a short bug form: what you did, what happened, what should have happened, and the match ID shown in the game. Because the engine is deterministic, Claude can rebuild the exact game from that ID and turn it into a permanent regression test.
 
@@ -184,14 +184,14 @@ CLI-only traps:
 2. Write failing tests from the acceptance criteria first, then implement until they pass.
 3. The gate hook runs the full local gate and won't let the work finish while anything is red (details in Quality gates).
 4. A separate `reviewer` subagent (Opus, read-only, fresh context) compares the diff with the spec and the architecture rules, and returns pass or a list of concerns.
-5. Fix the concerns once. Anything still open becomes `held`, with the concerns in the pull request.
-6. If the spec is unclear or contradicts the architecture, stop, ask the question on the issue and mark it `blocked`. Never make a design decision at night.
+5. Fix the [blocker]s once (the reviewer's and agy's). A [blocker] still open becomes `held`; [minor] concerns go on the pull request as a note and it merges.
+6. A technical question goes to the `architect` agent, whose decision is recorded on the issue. A design question is asked on the issue (`Blocked: Design question:`, with a recommendation) and the issue marked `blocked`; the daily Decisions digest brings it to you. Never make a design decision at night.
 7. Open the pull request with a fixed template: behaviour change in plain English, tests added, anything uncertain.
 
 **Safety for unattended runs**
 
 - **Auto mode** lets a classifier approve routine actions instead of you. In the desktop task you pick it in the task's permission picker. On the CLI, `--permission-prompts none` also refuses anything that would otherwise need a prompt. Claude Code's own docs say auto mode doesn't guarantee safety, so the deny rules below are the real fence.
-- **Deny rules** in `.claude/settings.json` apply to both options: no `curl` or `wget`, no reading `.env` files, no `git push --force`, no pushing to `main`, no `git reset --hard`. Hooks add the rest. The implementer's file-lock hook blocks edits to Locked paths (`.claude/`, `.github/`, `docs/architecture.md` and the others in `tools/hooks/shared.mjs`), and bash-guard blocks disguised versions of the shell rules and the owner-only `gh` commands. No web pages at night, because they are the main route for prompt injection: the night-shift skill's `no-web` hook blocks the coordinator, and the implementer and reviewer can't use the web at all. Golden replays and the other code-owned paths still wait for your approval on GitHub. An agent can't loosen its own rules or skip a test.
+- **Deny rules** in `.claude/settings.json` apply to both options: no `curl` or `wget`, no reading `.env` files, no `git push --force`, no pushing to `main`, no `git reset --hard`. Hooks add the rest. The implementer's file-lock hook blocks edits to Locked paths, the guards and hooks of its own session (`.claude/`, `tools/hooks/`, `tools/gates/`, `tools/git-hooks/`, in `tools/hooks/shared.mjs`), and bash-guard blocks disguised versions of the shell rules and the owner-only `gh` commands. No web pages at night, because they are the main route for prompt injection: the night-shift skill's `no-web` hook blocks the coordinator, and the implementer and reviewer can't use the web at all. A change that loosens a rail waits for you when agy's rail audit says so. An agent can't loosen its own rules or skip a test.
 - **Library docs** come through the Context7 connector, which is read-only, instead of the open web.
 - **Worktrees and branches** keep every task isolated and reversible; nothing reaches `main` except through CI.
 - **Native Windows has no command sandbox** (Claude Code's sandbox runs on macOS, Linux and WSL2). That's acceptable with the fences above. If you later want a hard sandbox, run night shifts in WSL2: the desktop app can run sessions there (without plugins), and the CLI script runs unchanged.
@@ -207,7 +207,7 @@ CLI-only traps:
 Day sessions follow the same pipeline as the night shift, so you only step in for the decisions that are yours.
 
 - **Few prompts.** Routine work runs without asking: tests, the gate, git, pull requests, web searches and web pages, and read-only `gh api` and `gh repo view` calls. You still get a prompt for edits to Locked files, `gh auth`, `gh secret`, and any `gh api` or `gh repo` call that could change GitHub (bash-guard decides which those are).
-- **Pull requests finish themselves.** After opening one, the session runs the reviewer agent and fixes its concerns once. On a pass it turns on auto-merge, and GitHub merges when CI is green. Code-owned changes wait for your approval on GitHub; anything the reviewer still doubts is labelled `held` with the concerns in a comment.
+- **Pull requests finish themselves.** After opening one, the session runs the reviewer agent and `node tools/gemini-audit.mjs pr <n>` and fixes their [blocker]s once. Then it turns on auto-merge, and GitHub merges when CI is green. Only a [blocker] still left, or a rail the change loosens, is labelled `held` with the reason in a comment.
 - **One worktree per parallel session.** Two sessions in the same folder test each other's half-finished work, and the Stop hook's gate fails for both. When you run more than one at a time, start each in its own worktree: the **worktree** option when you start a session in the desktop app, or `claude --worktree <name>` on the CLI. A single session can stay in the main folder.
 
 **From your phone.** In the desktop app, turn on **Connect new sessions to Remote Control**. Your sessions then appear in the Claude mobile app, where you can steer them, and Dispatch (included with Max) starts new ones from your phone. CLI alternative: `claude remote-control --spawn worktree` gives each phone-started session its own worktree.
@@ -292,7 +292,7 @@ Five layers check every change, cheapest first, so most problems are caught befo
 
 **How the Stop hook works.** When Claude tries to finish, the hook runs the full local gate. If anything fails, it returns the trimmed failure output and Claude must keep working. Claude Code lets a session through after eight blocks in a row, so a truly stuck task still ends, and the night-shift coordinator then marks it `blocked`.
 
-**Tests can't be weakened quietly.** A CI check fails if the number of tests drops or any test is marked skip, unless the pull request is labelled `held` with a reason. Golden replays change only when a rules change is intended, and those pull requests always wait for you.
+**Tests can't be weakened quietly.** A CI check fails if the number of tests drops or any test is marked skip, unless the pull request is labelled `held` with a reason. Golden replays change only when a rules change is intended; the reviewer checks the change says so.
 
 **CI minutes.** A private repo on GitHub Free gets 2,000 Linux minutes a month, which comfortably covers this. If you outgrow it, register your always-on PC as a self-hosted runner, which is currently free; GitHub postponed a planned fee indefinitely.
 
@@ -382,7 +382,7 @@ tools/
   repomap.ts                  regenerates docs/repo-map.md
   night-shift.ts              the CLI alternative to the scheduled task (option B)
 .github/
-  CODEOWNERS                  you own every Locked and Held path
+  CODEOWNERS                  empty: no path waits for your review
   ISSUE_TEMPLATE/             task and bug forms
   pull_request_template.md
   workflows/                  ci.yml, nightly.yml, preview.yml
@@ -405,17 +405,17 @@ The desktop app keeps scheduled tasks outside the repo, in `~/.claude/scheduled-
 
 Your attention goes to three short slots a day; machines fill the rest. Times are suggestions in Eastern time.
 
-| When                        | Who                   | What                                                                                                                                                         | Your time |
-| --------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- |
-| 11:00 pm–3:30 am            | Night shift           | Held pull requests first, then `ready` issues, one at a time                                                                                                 | None      |
-| 4 am                        | Nightly CI            | Full gate and 10,000-game fuzz on `main` (08:00 UTC; an hour earlier in winter)                                                                              | None      |
-| 4:30 am                     | Gemini                | Audits each new pull request                                                                                                                                 | None      |
-| 6:00–6:30 am, on your phone | You                   | Read the "Night shift" summary in the GitHub app. Answer questions on `held` and `blocked` items in plain words. Merge held pull requests you're happy with. | 10–15 min |
-| After the morning merges    | CI                    | Deploys the nightly preview                                                                                                                                  | None      |
-| Daytime, optional           | You                   | Play the preview for five minutes if something visible changed; file a bug from your phone if needed                                                         | 0–10 min  |
-| Evening                     | You and Claude (Opus) | One of: a design session, a spec session (`plan-tasks`), or a fix session through Remote Control                                                             | ~1 hour   |
-| Evening, after specs        | Gemini                | Audits new specs                                                                                                                                             | None      |
-| Before bed                  | You                   | Skim spec audits, ask Claude to fold in the valid points, add `ready` to 2–6 issues                                                                          | 5–10 min  |
+| When                        | Who                   | What                                                                                                                                                                                        | Your time |
+| --------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 11:00 pm–3:30 am            | Night shift           | Held pull requests first, then `ready` issues, one at a time                                                                                                                                | None      |
+| 4 am                        | Nightly CI            | Full gate and 10,000-game fuzz on `main` (08:00 UTC; an hour earlier in winter)                                                                                                             | None      |
+| 4:30 am                     | Gemini                | Audits each new pull request                                                                                                                                                                | None      |
+| 6:00–6:30 am, on your phone | You                   | Read the "Night shift" summary and the Decisions digest in the GitHub app. Answer the design questions in plain words (or accept the recommendations). Merge a rail hold you're happy with. | 10–15 min |
+| After the morning merges    | CI                    | Deploys the nightly preview                                                                                                                                                                 | None      |
+| Daytime, optional           | You                   | Play the preview for five minutes if something visible changed; file a bug from your phone if needed                                                                                        | 0–10 min  |
+| Evening                     | You and Claude (Opus) | One of: a design session, a spec session (`plan-tasks`), or a fix session through Remote Control                                                                                            | ~1 hour   |
+| Evening, after specs        | Gemini                | Audits new specs                                                                                                                                                                            | None      |
+| Before bed                  | You                   | Skim spec audits, ask Claude to fold in the valid points, add `ready` to 2–6 issues                                                                                                         | 5–10 min  |
 
 **Weekly (weekend)**
 

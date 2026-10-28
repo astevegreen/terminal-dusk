@@ -1,7 +1,17 @@
 // `queue.mjs move <n> <state>`: the label changes and standard comment for each change of state, planned as
 // gh commands from a snapshot. A change the sprint doesn't allow comes back as { error, do }, where `do` is a
 // line the coordinator can act on. Nothing here runs gh; queue.mjs runs the planned commands in order.
-import { BLOCKED, HELD_CONFLICT, OWNER, index, ownerAnswer, taskPr } from "./rules.mjs";
+import {
+  BLOCKED,
+  HELD_CONFLICT,
+  HELD_RAIL,
+  MACHINE,
+  OWNER,
+  RETRY_AFTER_MIN,
+  index,
+  ownerAnswer,
+  taskPr,
+} from "./rules.mjs";
 
 const ISSUE_STATES = ["building", "ready", "blocked", "waiting"];
 const PR_STATES = ["merging", "held", "stacked"];
@@ -53,13 +63,11 @@ function issueMove(S, issue, state, { note }) {
         `Run: node tools/sprint/queue.mjs move ${n} waiting`,
       );
     steps.push(["issue", "edit", n, "--remove-label", "in-progress", "--add-label", readyLabel]);
-    steps.push([
-      "issue",
-      "comment",
-      n,
-      "--body",
-      `Re-queued by the ${lane ? "sprint" : "night shift"}: the previous ${lane ? "lane " : ""}session stopped.`,
-    ]);
+    // With a note, a machine failure stopped the task: it is tried again after an hour, never left for the owner (P2).
+    const body = note
+      ? `${MACHINE} ${note.startsWith(MACHINE) ? note.slice(MACHINE.length).trim() : note} It retries by itself after ${RETRY_AFTER_MIN} minutes.`
+      : `Re-queued by the ${lane ? "sprint" : "night shift"}: the previous ${lane ? "lane " : ""}session stopped.`;
+    steps.push(["issue", "comment", n, "--body", body]);
   } else if (state === "blocked") {
     steps.push([
       "issue",
@@ -79,7 +87,7 @@ function issueMove(S, issue, state, { note }) {
   return { steps };
 }
 
-function prMove(S, pr, state, { note, conflict }) {
+function prMove(S, pr, state, { note, conflict, rail }) {
   const n = String(pr.number);
   const lane = laneOf(pr) ?? laneOf(index(S).get(pr.closes[0]) ?? { labels: [] });
   if (pr.state !== "OPEN")
@@ -100,6 +108,8 @@ function prMove(S, pr, state, { note, conflict }) {
       ...(has(pr, "held") ? ["--remove-label", "held"] : []),
     ];
     if (edit.length) steps.push(["pr", "edit", n, ...edit]);
+    // P1: [minor] concerns and agy's notes merge with the change, as a note on it.
+    if (note) steps.push(["pr", "comment", n, "--body", `Merging with notes (they hold nothing): ${note}`]);
     steps.push(["pr", "merge", n, "--auto", "--squash"]);
     // A code-owned change waits for the owner; asking for the review gives the owner a review button.
     if (pr.reviewRequired && !pr.reviewers?.includes(OWNER)) steps.push(["pr", "edit", n, "--add-reviewer", OWNER]);
@@ -109,6 +119,12 @@ function prMove(S, pr, state, { note, conflict }) {
         "a hold needs the concerns",
         `Run: node tools/sprint/queue.mjs move ${n} held --note "<the concerns>"${conflict ? " --conflict" : ""}`,
       );
+    // P1: only a [blocker], a merge conflict or a loosened rail (P4) holds; [minor] concerns merge with a note.
+    if (!conflict && !rail && !/\[blocker\]/i.test(note))
+      return refuse(
+        "only a [blocker] holds a pull request: [minor] concerns merge with a note (or a follow-up issue)",
+        `Run: node tools/sprint/queue.mjs move ${n} merging --note "<the minor concerns>"`,
+      );
     if (pr.isDraft && pr.base === "main") steps.push(["pr", "ready", n]);
     steps.push([
       "pr",
@@ -116,7 +132,10 @@ function prMove(S, pr, state, { note, conflict }) {
       n,
       ...[...addLabels, ...(has(pr, "held") ? [] : ["held"])].flatMap((l) => ["--add-label", l]),
     ]);
-    steps.push(["pr", "comment", n, "--body", conflict ? `${HELD_CONFLICT} ${note}` : `Held: ${note}`]);
+    let body = `Held: ${note}`;
+    if (conflict) body = `${HELD_CONFLICT} ${note}`;
+    else if (rail) body = `${HELD_RAIL} ${note}`;
+    steps.push(["pr", "comment", n, "--body", body]);
   } else {
     if (pr.base === "main")
       return refuse(`pull request #${n} is on main, not stacked`, `Run: node tools/sprint/queue.mjs move ${n} merging`);

@@ -33,24 +33,27 @@ Inside the window this file overrides `docs/workflow.md`, the `night-shift` and 
 7. Card design notes in `docs/design/cards/` may be corrected where they contradict a decision already recorded
    there or in `docs/design/` (R19). Each correction is listed under "Unsure" in its pull request.
 
-## What still stops a task (unchanged)
+## What still stops a task
+
+The owner's policy of 28 Oct 2026 applies inside the window too: nothing waits for the owner's review, only a
+[blocker] holds a pull request, a machine failure retries by itself, and technical questions are decided by the
+`architect` agent and recorded on the issue (`Decision (architect): …`), never asked.
 
 - Never invent game rules. A task that needs a design choice not written in `docs/design/`,
   `docs/design/cards/`, `docs/architecture.md` or this file: comment one question on the issue, starting
-  `Blocked:` (only then does the owner's next comment count as the answer), label it `blocked`, and move to the
-  next task. Open design points include: the real map's countries, regions, adjacency, stabilities and
+  `Blocked: Design question:`, with a `Recommendation:` line (only then does the owner's next comment, on the issue
+  or on the "Decisions for the owner" issue naming it, count as the answer), label it `blocked`, and move to the
+  next task. `node tools/sprint/queue.mjs digest` batches the questions on that issue, at most once a day. Open design points include: the real map's countries, regions, adjacency, stabilities and
   battlegrounds; scoring; the tech race track; the sides' special abilities; era lengths and plays per turn;
   how the AI plays a missed online turn; whose bonuses apply to a draw from the rival's deck; and every number
   `map-and-points.md` marks "open". (The intervention and realign formulas were confirmed on 26 Oct.)
 - Every hard rule and "Never" in `CLAUDE.md`, every hook, deny rule and Locked path.
-- Code-owned paths (`.github/CODEOWNERS`: migrations, `package.json`, lockfile, configs, golden replays) still
-  need the owner's approval on GitHub. The owner checks about twice a day while the window is open, morning
-  and evening Eastern.
-  Keep such changes in as few, small pull requests as possible, open them early, and build other work so it
-  does not wait for them. R16 changes the golden replays; O11 adds a migration.
+- No path is code-owned any more: migrations, `package.json`, the lockfile, configs and golden replays merge on
+  CI (the `db` and `deps` jobs check migrations and dependencies), the reviewer and agy. A change that loosens a
+  rail (hooks, gates, git hooks, workflows, `.claude/settings*.json`, CODEOWNERS, the audit) waits for the owner
+  when agy's rail audit says so.
 - In lane `online` only, a task whose dependency is an open pull request that waits only for the owner's
-  approval may stack on it: the coordinator tells the implementer `Stack on: task/<dep>`. In lane `rules`, put
-  R16's golden-replay change where later tasks don't depend on it, so the lane keeps building while it waits.
+  approval may stack on it: the coordinator tells the implementer `Stack on: task/<dep>`.
 
 ## Lanes
 
@@ -128,7 +131,7 @@ runs their checks) in packages/server, or `pnpm test:stack` in packages/app (O13
 `supabase db reset` or `pnpm test` with the stack's keys. All three scripts wait their turn (`tools/stack-lock.mjs`, up to 8 minutes), so a reset never empties the database under
 another folder's tests.
 
-- **O9** carries over: #283 (O9b, a migration: the owner's approval) and #284 (O9c, waits on #283).
+- **O9** carries over: #283 (O9b, a migration) and #284 (O9c, waits on #283).
 - **O10** `accept_invite` writes the game's clock and next deadline (#260).
 - **O11** The schedule: Edge Functions that run `sweepDeadlines` and `sweepTurnAlerts`, and the job that calls
   them (a migration). Whether the sweep re-checks an alert before marking it stale (#273) is a planning-day

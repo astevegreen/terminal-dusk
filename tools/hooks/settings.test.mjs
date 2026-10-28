@@ -59,6 +59,16 @@ test("skipping git hooks always asks the owner, in Bash and in PowerShell", () =
   }
 });
 
+test("edits ask the owner only where they take effect before any audit runs: settings and the hooks they wire (P6)", () => {
+  const { ask } = permissions();
+  const edits = ask.filter((r) => r.startsWith("Edit("));
+  assert.deepEqual(edits, ["Edit(/.claude/settings.json)", "Edit(/.claude/settings.local.json)", "Edit(/tools/hooks/**)"]);
+  const wired = [...JSON.stringify(JSON.parse(read(".claude/settings.json")).hooks).matchAll(/CLAUDE_PROJECT_DIR\}\/([^"]+)/g)];
+  assert.ok(wired.length > 0);
+  for (const [, script] of wired)
+    assert.ok(script.startsWith("tools/hooks/"), `${script} is wired by settings.json but not covered by Edit(/tools/hooks/**)`);
+});
+
 test("marking a pull request ready and turning on auto-merge run without asking", () => {
   const { allow } = permissions();
   for (const rule of ["Bash(gh pr ready *)", "Bash(gh pr merge * --auto --squash)"]) assert.ok(allow.includes(rule), `${rule} is missing`);
@@ -72,7 +82,7 @@ test("the handoff hook runs when a turn ends and when a session starts or is cle
   assert.deepEqual(starts, ["startup|clear"]);
 });
 
-for (const agent of ["implementer", "reviewer"]) {
+for (const agent of ["implementer", "reviewer", "architect"]) {
   test(`the ${agent} agent can't use the web at all`, () => {
     const tools = disallowedTools(agent);
     assert.ok(tools.includes("WebSearch") && tools.includes("WebFetch"), `disallowedTools: ${tools.join(", ")}`);

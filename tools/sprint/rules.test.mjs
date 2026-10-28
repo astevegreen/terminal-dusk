@@ -83,7 +83,9 @@ test("October: with R8-R13 all blocked at 13:19 on 21 Oct, the rules lane builds
   });
   const { needsYou } = status(S, DOC);
   assert.deepEqual(
-    needsYou.filter((n) => n.endsWith("blocked on a question")).map((n) => n.split(" ")[0]),
+    needsYou
+      .filter((n) => n.endsWith("blocked on a question (in the daily Decisions digest)"))
+      .map((n) => n.split(" ")[0]),
     ["#199", "#200", "#201", "#202", "#203", "#204"],
   );
 });
@@ -174,7 +176,7 @@ test("October: the night shift leaves sprint nights to the lanes (TD-P17)", () =
 
 test("a held pull request is retried only when the owner's own account replied; an answer the agents relayed doesn't count", () => {
   const held = (comments) => snap({ prs: [pr(130, { labels: ["lane:rules", "held"], comments })] });
-  const hold = comment("greenbeanbot", "2026-10-21T09:00:00Z", "Held: 1. [minor] the summary is out of date");
+  const hold = comment("greenbeanbot", "2026-10-21T09:00:00Z", "Held: 1. [blocker] the summary is out of date");
   assert.equal(
     next(
       held([hold, comment("greenbeanbot", "2026-10-21T10:00:00Z", "Owner's answer (21 Oct, in chat): fix it")]),
@@ -218,7 +220,7 @@ test("a pull request held only for a merge conflict is retried once main has mov
     "main hasn't changed",
   );
   assert.equal(
-    next(held("Held: 1. [minor] a merge conflict and a missing test", "2026-10-21T11:00:00Z"), DOC, "rules"),
+    next(held("Held: 1. [blocker] a merge conflict and a missing test", "2026-10-21T11:00:00Z"), DOC, "rules"),
     null,
   );
 });
@@ -334,7 +336,7 @@ test("the status block names only new needs in newNeeds, and the supervisor's ow
   const S = snap({ issues: [issue(5, ["lane:rules", "blocked"])], prs: [pr(130, { reviewRequired: true })] });
   const first = status(S, DOC, { need: ["TD lane: app is stuck"] });
   assert.deepEqual(first.needsYou, [
-    "#5 [task] R5: x: blocked on a question",
+    "#5 [task] R5: x: blocked on a question (in the daily Decisions digest)",
     "#130 R130: waits for your approval",
     "TD lane: app is stuck",
   ]);
@@ -448,7 +450,9 @@ test("October: O8g (#258) was blocked by the plan with its question in the body;
   done.labels = [];
   assert.equal(next(S, DOC, "online").issue, 256, "the lane builds O8f (#256), not O8g");
   assert.ok(
-    status(S, DOC).needsYou.includes(`#258 ${S.issues.find((i) => i.number === 258).title}: blocked on a question`),
+    status(S, DOC).needsYou.includes(
+      `#258 ${S.issues.find((i) => i.number === 258).title}: blocked on a question (in the daily Decisions digest)`,
+    ),
   );
   // Had the implementer blocked it with a question comment, the same answer would bring it back with the answer.
   const o8g = S.issues.find((i) => i.number === 258);
