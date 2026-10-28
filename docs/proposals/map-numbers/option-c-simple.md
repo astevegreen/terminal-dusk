@@ -83,4 +83,4 @@ Unchanged from the map data.
 - **Smoke run:** the same games as the placeholders, to the decimal (LIO 20.23 influence and 3.67 countries,
   SAE 9.66 and 1.81): stability and starting influence are unchanged, and battlegrounds do not change play yet
   (Escalation rising for a battleground is not built, and the Easy AI does not aim at them). Only the era-end
-  battleground counts differ, in Era 2.
+  battleground counts differ, in Eras 2 and 3.

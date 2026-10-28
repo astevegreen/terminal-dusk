@@ -36,26 +36,38 @@ export function numbersError(numbers, map) {
   if (numbers.name !== undefined && typeof numbers.name !== "string") return '"name" must be text.';
   const ids = new Set(map.countries.map((c) => c.id));
   const known = (id, where) => (ids.has(id) ? null : `${where} names unknown country "${id}".`);
-  if (numbers.stability !== undefined) {
-    if (!isObject(numbers.stability)) return '"stability" must map country ids to whole numbers.';
-    for (const [id, value] of Object.entries(numbers.stability)) {
-      const error = known(id, '"stability"');
-      if (error !== null) return error;
-      if (!WHOLE(value, 1)) return `The stability of ${id} must be a whole number from 1 up, not ${value}.`;
-    }
+  const checks = [
+    [numbers.stability, () => stabilityError(numbers.stability, known)],
+    [numbers.battlegrounds, () => battlegroundsError(numbers.battlegrounds, map, known)],
+    [numbers.startingInfluence, () => influenceError(numbers.startingInfluence, known)],
+  ];
+  for (const [part, check] of checks) {
+    const error = part === undefined ? null : check();
+    if (error !== null) return error;
   }
-  if (numbers.battlegrounds !== undefined) {
-    if (!isObject(numbers.battlegrounds)) return '"battlegrounds" must map era ids to lists of country ids.';
-    const eras = new Set(map.battlegrounds.map((list) => list.era));
-    for (const [era, list] of Object.entries(numbers.battlegrounds)) {
-      if (!eras.has(era)) return `"battlegrounds" names era ${era}, which the map has no list for.`;
-      if (!Array.isArray(list)) return `Era ${era}'s battlegrounds must be a list of country ids.`;
-      if (new Set(list).size !== list.length) return `Era ${era}'s battlegrounds name a country twice.`;
-      const error = list.map((id) => known(id, `Era ${era}'s battlegrounds`)).find((e) => e !== null);
-      if (error !== undefined) return error;
-    }
+  return null;
+}
+
+function stabilityError(stability, known) {
+  if (!isObject(stability)) return '"stability" must map country ids to whole numbers.';
+  for (const [id, value] of Object.entries(stability)) {
+    const error = known(id, '"stability"');
+    if (error !== null) return error;
+    if (!WHOLE(value, 1)) return `The stability of ${id} must be a whole number from 1 up, not ${value}.`;
   }
-  if (numbers.startingInfluence !== undefined) return influenceError(numbers.startingInfluence, known);
+  return null;
+}
+
+function battlegroundsError(battlegrounds, map, known) {
+  if (!isObject(battlegrounds)) return '"battlegrounds" must map era ids to lists of country ids.';
+  const eras = new Set(map.battlegrounds.map((list) => list.era));
+  for (const [era, list] of Object.entries(battlegrounds)) {
+    if (!eras.has(era)) return `"battlegrounds" names era ${era}, which the map has no list for.`;
+    if (!Array.isArray(list)) return `Era ${era}'s battlegrounds must be a list of country ids.`;
+    if (new Set(list).size !== list.length) return `Era ${era}'s battlegrounds name a country twice.`;
+    const error = list.map((id) => known(id, `Era ${era}'s battlegrounds`)).find((e) => e !== null);
+    if (error !== undefined) return error;
+  }
   return null;
 }
 

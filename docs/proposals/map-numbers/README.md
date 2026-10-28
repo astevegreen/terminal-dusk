@@ -110,8 +110,9 @@ of the six regions. "Every BG" is left out: its average was 0.05 regions or less
 - **Battleground lists do not change play yet.** C plays exactly the games the placeholders do: Escalation rising
   for a battleground is not built, and the Easy AI does not aim at battlegrounds. So the lists change only what is
   counted at an era's end. Once battlegrounds raise Escalation and the AI weighs them, all of this will move.
-- **A's Era 2 is SAE's best era** in any option (0.9 battlegrounds and ahead in 0.53 regions), from the cheap
-  Central Asian, Afghan and Gulf battlegrounds near the SAE box.
+- **A's Era 2 is SAE's best era** in any option (0.9 battlegrounds and ahead in 0.53 regions), : its list puts
+  battlegrounds on cheap countries next to the SAE box (Georgia, Kyrgyzstan and Afghanistan at stability 1,
+  Pakistan at 2).
 
 ### How to rerun them
 

@@ -16,7 +16,7 @@ export const USAGE =
   "[--games <positive whole number>] [--seed <base>] [--turns <positive whole number>] " +
   "[--plays <positive whole number>] [--era <era id>@<positive whole number or off>]... [--numbers <file>] [--json]";
 const DEFAULTS = { games: 200, seed: "balance", json: false };
-const VALUED = ["--scenario", "--games", "--seed", "--turns", "--plays", "--era", "--numbers"];
+const VALUED = new Set(["--scenario", "--games", "--seed", "--turns", "--plays", "--era", "--numbers"]);
 const WHOLE = /^[1-9]\d*$/;
 const refuse = (message) => new Error(`${message}\n${USAGE}`);
 
@@ -43,7 +43,7 @@ export function parseArgs(argv) {
       options.json = true;
       continue;
     }
-    if (!VALUED.includes(arg)) throw refuse(`Unknown argument "${arg}".`);
+    if (!VALUED.has(arg)) throw refuse(`Unknown argument "${arg}".`);
     const value = argv[++i];
     if (value === undefined) throw refuse(`${arg} needs a value.`);
     if (arg === "--seed") options.seed = value;

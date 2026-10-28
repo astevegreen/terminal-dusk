@@ -31,10 +31,7 @@ export function playBalanceGame(base, i, config = firstDeckConfig(), { createPla
   if (!created.ok) throw fail(`the host refused to start it: ${describe(created.error)}`);
   let { record, secret, frames } = created.value;
   const publicEvents = [...frames.spectator.events];
-  const eraEnds = [];
-  // The era being played, tracked only on a scenario with a map (the region levels need one).
-  const start = frames.spectator.view.public;
-  let era = start.map === undefined || start.map === null ? undefined : start.era;
+  const eras = eraEndTracker(frames.spectator.view.public);
   const players = {
     lio: createPlayer(firstDeckRuleset, "lio", 2 * i),
     sae: createPlayer(firstDeckRuleset, "sae", 2 * i + 1),
@@ -55,19 +52,36 @@ export function playBalanceGame(base, i, config = firstDeckConfig(), { createPla
       if (!out.ok) throw fail(`the host refused ${side}'s answer ${JSON.stringify(value)}: ${describe(out.error)}`);
       ({ record, secret, frames } = out.value);
       publicEvents.push(...frames.spectator.events);
-      // An era ends when the next one starts: the map as it stands then, judged by the ending era's battlegrounds.
-      if (era !== undefined && frames.spectator.events.some((event) => event.kind === "eraStarted")) {
-        eraEnds.push({ era, ...regionLevels(frames.spectator.view.public, era) });
-        era = frames.spectator.view.public.era;
-      }
+      eras.observe(frames.spectator);
       submissions += 1;
       answered = true;
     }
     if (!answered) throw fail("the game is not over but no side has a decision");
   }
   const map = mapSummary(frames.spectator.view.public, publicEvents);
-  if (era !== undefined) eraEnds.push({ era, ...regionLevels(frames.spectator.view.public, era) });
+  const eraEnds = eras.finish(frames.spectator.view.public);
   return { status: record.status, answers: submissions, log: secret.log, map, eraEnds };
+}
+
+/**
+ * Records region-stats.mjs's levels at each era's end, from the spectator's frames. An era ends when the next one
+ * starts: the map as it stands then, judged by the ending era's battlegrounds. Tracked only on a scenario with a
+ * map (the region levels need one); otherwise `finish` returns an empty list.
+ */
+function eraEndTracker(start) {
+  const eraEnds = [];
+  let era = start.map === undefined || start.map === null ? undefined : start.era;
+  return {
+    observe(spectator) {
+      if (era === undefined || !spectator.events.some((event) => event.kind === "eraStarted")) return;
+      eraEnds.push({ era, ...regionLevels(spectator.view.public, era) });
+      era = spectator.view.public.era;
+    },
+    finish(pub) {
+      if (era !== undefined) eraEnds.push({ era, ...regionLevels(pub, era) });
+      return eraEnds;
+    },
+  };
 }
 
 /** The player's answer to `view`; a player that throws or answers nothing ends the game with `fail`'s error. */

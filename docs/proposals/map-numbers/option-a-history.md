@@ -90,6 +90,7 @@ Ukraine but leaned towards Russia.
 - **Smoke run:** SAE ends with more influence than on the placeholders (11.2 against 9.66 a game), LIO with about
   the same (20.26 against 20.23). LIO still controls about twice as many countries (3.5 against 1.84).
 - **Against:** the 2-step start for LIO is a thumb on the scale that only a scored game can test.
-- **Against:** Georgia, Iraq and Afghanistan at stability 1 are cheap to take, and two of them are battlegrounds in
-  Era 2. Easy targets next to the SAE box may make Era 2 lopsided.
+- **Against:** Georgia, Iraq and Afghanistan at stability 1 are cheap to take, and all three are battlegrounds in
+  Era 2, with Kyrgyzstan (also 1). Georgia, Kyrgyzstan and Afghanistan touch the SAE box, so these easy targets
+  may make Era 2 lopsided.
 - **Unknown until scoring exists:** whether 20 steps is a long enough track when an era can move it by up to 58.
