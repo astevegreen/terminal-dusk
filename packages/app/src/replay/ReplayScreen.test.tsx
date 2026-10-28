@@ -89,9 +89,12 @@ describe("the replay viewer on a finished fixture game", () => {
       const pub = recording.frames[i]!.view.public;
       const out = html(i);
       expect(out).toContain(`Turn ${pub.turn} of ${pub.turns}`);
-      expect(out).toContain(`Plays made: ${pub.playsMade} of ${pub.playsPerTurn}`);
+      expect(out).toContain(`Plays this turn: ${pub.playsMade} of ${2 * pub.playsPerTurn}`);
+      expect(pub.playsMade).toBeLessThanOrEqual(2 * pub.playsPerTurn);
       expect(out).toContain(`Step ${i + 1} of ${recording.frames.length}`);
     }
+    // The step that used to read "Plays made: 2 of 1" (#410): more plays than one side's allowance.
+    expect(recording.frames.some((f) => f.view.public.playsMade > f.view.public.playsPerTurn)).toBe(true);
     const grows = recording.frames.findIndex((f, i) => i > 0 && f.events.length > 0);
     expect(grows).toBeGreaterThan(0);
     const newLine = logLine(recording.frames[grows]!.events[0]!, NAMES);

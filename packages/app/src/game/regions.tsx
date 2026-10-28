@@ -4,7 +4,7 @@ import { DECKS, SIDES } from "@terminal-dusk/engine";
 import type { CardId, DeckId, EraId, PublicState, Side } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import type { ReactNode } from "react";
-import { eraText, gameOverText } from "../displayText.ts";
+import { eraText, gameOverText, playsText } from "../displayText.ts";
 import type { Label } from "../displayText.ts";
 import { ZoomableMap } from "./ZoomableMap.tsx";
 
@@ -51,7 +51,7 @@ export function StatusBar({ frame, era }: Readonly<{ frame: Frame; era: EraId | 
     <Region id="status-bar" title="Status" className="game-status">
       <span>{viewerText(frame)}</span>
       <span>{`Turn ${pub.turn} of ${pub.turns}`}</span>
-      <span>{`Plays made: ${pub.playsMade} of ${pub.playsPerTurn}`}</span>
+      <span>{playsText(pub)}</span>
       <span>{era === null ? "Era not shown yet" : eraText(era)}</span>
       {/* Only the state text is a polite live region, so its change is announced and the rest is not. */}
       <span role="status">{statusText(frame)}</span>

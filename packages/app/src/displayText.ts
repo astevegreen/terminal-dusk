@@ -14,6 +14,13 @@ export const SIDE_NAME: Record<Side, string> = { lio: "LIO", sae: "SAE" };
 /** An era's shown name, such as "Era 2 (2001–2008)"; an id with no name shows as it is. */
 export const eraText = (era: EraId): string => firstDeckEraName(era);
 
+/**
+ * "Plays this turn: 2 of 2". The frame's `playsMade` counts both sides' plays together, and each side makes
+ * `playsPerTurn`, so the turn's total is twice that (#410).
+ */
+export const playsText = ({ playsMade, playsPerTurn }: { playsMade: number; playsPerTurn: number }): string =>
+  `Plays this turn: ${playsMade} of ${2 * playsPerTurn}`;
+
 /** Why a game ended, in words, for each reason the engine gives (apply.ts, turn.ts). */
 const REASON_TEXT: Record<string, string> = {
   turnLimitReached: "the last turn ended",

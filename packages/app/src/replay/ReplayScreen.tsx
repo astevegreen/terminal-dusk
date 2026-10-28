@@ -5,7 +5,7 @@ import type { CardId, EraId, GameStatus, Side } from "@terminal-dusk/engine";
 import type { ReplayFrame } from "@terminal-dusk/host";
 import { useState } from "react";
 import { decisionPrompts } from "../decisionPrompts.tsx";
-import { eraText, gameOverText } from "../displayText.ts";
+import { eraText, gameOverText, playsText } from "../displayText.ts";
 import { logLine } from "../eventPresentation.ts";
 import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
 import { Contingency, Log, Region, Table } from "../game/regions.tsx";
@@ -138,7 +138,7 @@ export function ReplayView({
       <Controls index={index} count={frames.length} onGo={onGo} onClose={onClose} />
       <Region id="status-bar" title="Status" className="replay-status">
         <span>{`Turn ${pub.turn} of ${pub.turns}`}</span>
-        <span>{`Plays made: ${pub.playsMade} of ${pub.playsPerTurn}`}</span>
+        <span>{playsText(pub)}</span>
         <span>{era === null ? "Era not shown yet" : eraText(era)}</span>
         <span>{atLast ? finalText(recording.status) : "Game active"}</span>
         {atLast && <span>{`Seed checked: ${recording.seedHash}`}</span>}

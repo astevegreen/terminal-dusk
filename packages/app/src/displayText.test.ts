@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { SIDE_NAME, eraText, gameOverText, reasonText } from "./displayText.ts";
+import { SIDE_NAME, eraText, gameOverText, playsText, reasonText } from "./displayText.ts";
 
 describe("the words the game screens share", () => {
+  it("counts the plays this turn out of both sides' plays together, since each side makes playsPerTurn (#410)", () => {
+    expect(playsText({ playsMade: 0, playsPerTurn: 1 })).toBe("Plays this turn: 0 of 2");
+    expect(playsText({ playsMade: 2, playsPerTurn: 1 })).toBe("Plays this turn: 2 of 2");
+    expect(playsText({ playsMade: 3, playsPerTurn: 2 })).toBe("Plays this turn: 3 of 4");
+  });
   it("names the sides LIO and SAE", () => {
     expect(SIDE_NAME).toEqual({ lio: "LIO", sae: "SAE" });
   });
