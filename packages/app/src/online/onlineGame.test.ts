@@ -49,7 +49,9 @@ describe("createOnlineGame: frames, log and turn", () => {
       await play(r);
       await poll(r); // a poll with nothing new adds nothing
     }
-    const expected = watched.frames.flatMap((f) => f.events).map((e) => logLine(e, { card: cardName, era: eraText }));
+    const expected = watched.frames
+      .flatMap((f) => f.events)
+      .map((e) => logLine(e, { card: cardName, era: eraText, region: (id) => id }));
     expect(expected.length).toBeGreaterThan(0);
     expect(r.game.getSnapshot().log).toEqual(expected);
     expect(r.game.getSnapshot().era).toBe("late");

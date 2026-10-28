@@ -7,6 +7,7 @@ import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
 import "./gameScreen.css";
 import { Contingency, Hand, Log, MapArea, Opponent, Region, StatusBar, Table } from "./regions.tsx";
 import type { Label } from "./regions.tsx";
+import { Tracks } from "./tracks.tsx";
 import type { CardRules } from "../displayText.ts";
 
 export type GameScreenProps = {
@@ -80,6 +81,7 @@ export function GameScreen({
     // A game with no map gives its map box only its one line (gameScreen.css).
     <div className={frame.view.public.map === undefined ? "game game-no-map" : "game"}>
       <StatusBar frame={frame} era={era} />
+      <Tracks pub={frame.view.public} />
       <MapArea frame={frame} />
       <Hand frame={frame} label={label} rules={rules} />
       {/* It scrolls, so the keyboard can reach it; a div with a role, as a section would pick up the boxed style. */}

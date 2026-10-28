@@ -3,7 +3,7 @@
 // only; the rules stay in the host, and the AI sees only its own side's view.
 import type { AnswerValue, CardId, EraId, Ruleset, Seed, Side } from "@terminal-dusk/engine";
 import type { Frame, HostError } from "@terminal-dusk/host";
-import { eraText } from "../displayText.ts";
+import { eraText, regionNamer } from "../displayText.ts";
 import type { GameNames } from "../displayText.ts";
 import { logLine } from "../eventPresentation.ts";
 import { cardName, fixtureConfig, fixtureRuleset } from "../testMode/fixture.ts";
@@ -99,7 +99,7 @@ export function createVsAiSession(options: VsAiOptions): VsAiSession {
   let lastSeq = -1;
   const asked = new Set<string>();
   let aiFrame: Frame | null = null;
-  const names: GameNames = { card: options.label ?? cardName, era: eraText };
+  const names: Omit<GameNames, "region"> = { card: options.label ?? cardName, era: eraText };
 
   const stopAi = (): void => {
     if (aiStopped) return;
@@ -111,7 +111,10 @@ export function createVsAiSession(options: VsAiOptions): VsAiSession {
     // A frame with the seq already logged (the one a subscription starts with) adds no lines.
     let { log, era } = snapshot;
     if (frame.seq > lastSeq) {
-      log = [...log, ...frame.events.map((event) => logLine(event, names))];
+      log = [
+        ...log,
+        ...frame.events.map((event) => logLine(event, { ...names, region: regionNamer(frame.view.public) })),
+      ];
       lastSeq = frame.seq;
       for (const event of frame.events) if (event.kind === "eraStarted") era = event.era;
     }

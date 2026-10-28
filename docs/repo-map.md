@@ -66,6 +66,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e/server.ts` - Where the Playwright smoke tests serve the app (playwright.config.ts). Exports: e2ePort, e2eServer.
 - `packages/app/e2e/sixRegionMap.e2e.ts` - The six-region map against the AI (A14, #439): 6 regions and 42 boxes, Crimea in its own box, and the two home boxes, readable and tappable on a phone held upr…
 - `packages/app/e2e/testMode.e2e.ts`
+- `packages/app/e2e/tracks.e2e.ts` - The score track and Escalation on screen (A15, #448): test mode's map has scoring, so the region shows there at a phone held upright, held sideways and at desk…
 - `packages/app/e2e/vsAi.e2e.ts`
 - `packages/app/e2e/vsAiReplay.e2e.ts`
 - `packages/app/index.html`
@@ -78,7 +79,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/decisionPrompts.test.tsx`
 - `packages/app/src/decisionPrompts.tsx` - One prompt component per DecisionKind. Exports: CardQuestion, CardAffiliation, PromptProps, PromptComponent, askingCard, decisionPrompts.
 - `packages/app/src/displayText.test.ts`
-- `packages/app/src/displayText.ts` - The words the game screens share: side names and who each side is, era names, why a game ended, and what the log calls cards and eras. Exports: Label, GameNames, CardRules, SIDE_NAME, SIDE_WHO, sideFullName, eraText, playsText, reasonText, gameOverText.
+- `packages/app/src/displayText.ts` - The words the game screens share: side names and who each side is, era names, why a game ended, and what the log calls cards and eras. Exports: Label, GameNames, regionNamer, scoreText, ESCALATION_NAME, CardRules, SIDE_NAME, SIDE_WHO, sideFullName, eraText, playsText, reasonText, ….
 - `packages/app/src/eventPresentation.test.ts`
 - `packages/app/src/eventPresentation.ts` - How each EventKind is presented. Exports: EventPresentation, eventPresentation, logLine.
 - `packages/app/src/game/GameScreen.test.tsx`
@@ -93,6 +94,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, HandCard, Hand, Opponent, Table, Contingency, Log.
 - `packages/app/src/game/sixRegionMapView.test.tsx` - The real six-region map on screen (A14, issue #439): 6 region buttons and 42 badges zoomed out, each region's boxes zoomed in, Crimea's own box, and both home…
 - `packages/app/src/game/test/mapFixture.ts` - Test helper: a hand-written two-region map, its influence, and test-mode frames with and without it. Exports: map, influence, baseFrame, withMap, withoutMap.
+- `packages/app/src/game/tracks.test.tsx` - The score track and Escalation on screen (A15, issue #448): drawn from the frame's public state, and only on a map that has scoring.
+- `packages/app/src/game/tracks.tsx` - The score track and the Escalation track, drawn from the frame's public state alone (docs/architecture.md, Decision 6; A15, issue #448). Exports: Tracks.
 - `packages/app/src/main.tsx` - Browser entry point: mounts the app into the #root element of index.html.
 - `packages/app/src/online/LobbyView.press.test.tsx` - Pressing the lobby screen's buttons, typing in its code field and submitting its form without a browser: each calls the right lobby session method.
 - `packages/app/src/online/LobbyView.test.tsx` - The lobby screen drawn from each lobby snapshot with renderToString.
@@ -567,7 +570,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/src/entitlement.test.ts`
 - `packages/host/src/entitlement.ts` - Who may create an online game (docs/architecture.md, Product calls: "Free players cannot create online games"). Exports: PLATFORMS, Platform, Entitlement, isPlatform, isEntitlement, createOnlineRefusal.
 - `packages/host/src/firstDeck.test.ts`
-- `packages/host/src/firstDeck.ts` - The first deck as a game the app can start: the ruleset, a match config, and card names and rules text. Exports: FIRST_DECK_NOTE, SIX_REGION_MAP_NOTE, firstDeckRuleset, firstDeckCardName, firstDeckEraName, firstDeckCardQuestion, firstDeckCardRules, firstDeckTestMap, firstDeckConfig, sixRegionMapConfig.
+- `packages/host/src/firstDeck.ts` - The first deck as a game the app can start: the ruleset, a match config, and card names and rules text. Exports: FIRST_DECK_NOTE, SIX_REGION_MAP_NOTE, firstDeckRuleset, firstDeckCardName, firstDeckEraName, firstDeckCardQuestion, firstDeckCardRules, firstDeckTestMap, firstDeckConfig, sixRegionMapConfig, closedRegions.
 - `packages/host/src/firstDeckQuestion.test.ts`
 - `packages/host/src/firstDeckRules.test.ts`
 - `packages/host/src/firstDeckTestMap.test.ts` - The test map as the host hands it to the app (issue #366): R14's TEST_MAP_SCENARIO through content's scenarioSetup.

@@ -37,7 +37,7 @@ const view = (index: number, onGo: (i: number) => void = () => {}, onClose: () =
 const html = (index: number): string => renderToString(view(index));
 const disabled = (out: string, name: string): boolean =>
   new RegExp(`<button[^>]*disabled=""[^>]*>${name}</button>`).test(out);
-const NAMES = { card: cardName, era: eraText };
+const NAMES = { card: cardName, era: eraText, region: (id: string) => id };
 const lines = (upTo: number): string[] =>
   recording.frames.slice(0, upTo + 1).flatMap((f) => f.events.map((e) => logLine(e, NAMES)));
 /** Presses the named button of the viewer at `index` and returns the step it asked to go to (or null). */

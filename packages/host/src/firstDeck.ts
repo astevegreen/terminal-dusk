@@ -83,3 +83,7 @@ export function sixRegionMapConfig(): MatchConfig {
   const config = firstDeckConfig();
   return { ...config, matchId: "six-region-map", setup: { ...config.setup, map: mapOf(SIX_REGION_MAP_SCENARIO) } };
 }
+
+// The engine's pure helper for which regions Escalation has closed, for the app's Escalation display (A15): the engine's
+// own comment says the app may call it on a view's public part, and the app's boundary check lets it import the host.
+export { closedRegions } from "@terminal-dusk/engine";
