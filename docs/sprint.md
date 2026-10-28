@@ -24,7 +24,8 @@ Inside the window this file overrides `docs/workflow.md`, the `night-shift` and 
 1. The backlog below is an approved task list. `sprint-plan` writes and creates its specs without asking.
 2. Claude applies the valid Gemini audit points itself and adds `sprint-ready` to sprint issues
    (the desktop night shift reads only `ready` and skips `lane:*` pull requests, so it leaves sprint work alone).
-3. Implementer and reviewer run on Opus for every task.
+3. Implementer and reviewer run on Opus for every sprint task. Outside a sprint, the "Model and effort defaults"
+   table in `docs/workflow.md` applies: the implementer runs on Sonnet unless the issue is labelled `model:opus`.
 4. No hour limit and no cap on the sprint's tasks: a lane session stops after 6 and the supervisor starts a
    fresh one the next hour. Up to four lanes run at once, one coordinator per lane.
 5. Phase 4 (online play) continues before the phase 3 gate in the build order of `docs/architecture.md`.
