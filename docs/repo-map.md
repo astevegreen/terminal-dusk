@@ -70,6 +70,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e/vsAi.e2e.ts`
 - `packages/app/e2e/vsAiReplay.e2e.ts`
 - `packages/app/e2e/watch.e2e.ts`
+- `packages/app/e2e/watchStack.e2e.ts`
 - `packages/app/index.html`
 - `packages/app/package.json`
 - `packages/app/playwright.config.ts` - Playwright smoke tests (`pnpm test:e2e`), kept apart from Vitest: their files end in .e2e.ts. Exports: default.
@@ -717,6 +718,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/supabaseStore.deadlines.test.ts` - SupabaseStore's DeadlineStore side (due, saveClock) and the clock on load, against a stand-in client, so these run without the local stack.
 - `packages/server/src/supabaseStore.games.stack.test.ts` - Whole games played through `submit` with a SupabaseStore on the local Supabase stack.
 - `packages/server/src/supabaseStore.guards.stack.test.ts` - SupabaseStore's guards on the local Supabase stack: the seq check in the commit_match SQL function, unknown matches, a missing secret row and database errors,…
+- `packages/server/src/supabaseStore.spectator.stack.test.ts` - What a signed-out watcher (O14, #454) can read from the local Supabase stack under real row-level security: after every step of a whole game, only the spectato…
 - `packages/server/src/supabaseStore.test.ts` - SupabaseStore against a stand-in client, so these run without the local stack.
 - `packages/server/src/supabaseStore.ts` - The Supabase side of the storage port (docs/architecture.md, Decision 5). Exports: StorageError, SupabaseStore.
 - `packages/server/src/sweepDeadlines.storage.test.ts`

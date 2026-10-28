@@ -42,7 +42,10 @@ await onLocalStack("a signed-out watcher on the local Supabase stack", (keys) =>
 
     // Nothing the watcher was given holds a hand, the deck, the seed, the generator state or the move log.
     const text = JSON.stringify({ match, views, events });
-    expect(leaksFor(text, write.secret, "spectator")).toEqual([]);
+    // The one exception is by design (Decision 2): once the game is over, `match.seed` is the revealed seed.
+    const over = write.record.status.kind !== "active";
+    expect(leaksFor(text, write.secret, "spectator")).toEqual(over ? ["the seed"] : []);
+    expect((match as { seed: unknown }[])[0]!.seed).toBe(over ? write.secret.seed : null);
     if (write.secret.log.length > 0) expect(text).not.toContain(JSON.stringify(write.secret.log));
   }
 
