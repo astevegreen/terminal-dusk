@@ -301,23 +301,24 @@ test("P5: a digest posted under the owner's account still counts as the last dig
 
 test("queue digest creates the Decisions issue the first time, then comments the digest on it", () => {
   const calls = [];
+  const bot = { author: { login: BOT }, authorAssociation: "COLLABORATOR" };
   const issues = [
     {
       number: 5,
       title: "[task] R5: x",
+      author: bot.author,
       labels: [{ name: "lane:rules" }, { name: "blocked" }],
       body: "",
-      comments: [{ author: { login: BOT }, createdAt: "2026-10-21T09:00:00Z", body: ASK }],
+      comments: [{ ...bot, createdAt: "2026-10-21T09:00:00Z", body: ASK }],
     },
   ];
   const gh = (args) => {
     calls.push(args);
     const key = args.join(" ");
     if (key.startsWith("issue list --state open")) return JSON.stringify(issues);
-    if (key.startsWith("issue list --state all"))
-      return JSON.stringify([{ number: 5, title: "[task] R5: x", state: "OPEN" }]);
+    if (key.startsWith("issue list --state all")) return JSON.stringify([{ ...issues[0], state: "OPEN" }]);
     if (key.startsWith("pr list")) return "[]";
-    if (key.startsWith("api ")) return "2026-10-21T11:00:00Z\n";
+    if (key.startsWith("api ")) return key.includes("/collaborators") ? `${BOT}\n` : "2026-10-21T11:00:00Z\n";
     if (key.startsWith("issue create")) return "https://github.com/o/r/issues/401\n";
     return "";
   };

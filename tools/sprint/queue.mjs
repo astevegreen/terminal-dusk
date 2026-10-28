@@ -25,6 +25,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { collaborators, fromFork, trustedComment, trustedIssue } from "../github-trust.mjs";
 import { report } from "../sonar.mjs";
 import { cueCommand, nightShiftWork, withLocalWindow } from "./cue.mjs";
 import { stateDir } from "./local-state.mjs";
@@ -59,10 +60,12 @@ function checkOf(c) {
   return { name, state: ["SUCCESS", "NEUTRAL", "SKIPPED"].includes(raw) ? "SUCCESS" : "PENDING" };
 }
 const commentsOf = (cs = []) =>
-  cs.map((c) => ({ author: c.author?.login ?? "", createdAt: c.createdAt, body: c.body ?? "" }));
+  cs.filter(trustedComment).map((c) => ({ author: c.author?.login ?? "", createdAt: c.createdAt, body: c.body ?? "" }));
 const depsOf = (body) => /###\s*Depends on\s*\r?\n+([\s\S]*?)(\r?\n###|$)/i.exec(body ?? "")?.[1].trim() ?? null;
 
-// GitHub's state as a snapshot for rules.mjs: open items in full, closed ones by number and title.
+// GitHub's state as a snapshot for rules.mjs: open items in full, closed ones by number and title. The repository
+// is public, so only what collaborators wrote is read (github-trust.mjs): a stranger's issue keeps its number and
+// state but nothing they wrote, a fork's pull request is left out, and so is a stranger's comment.
 export function loadSnapshot({
   gh = runGh,
   now = new Date(),
@@ -78,9 +81,9 @@ export function loadSnapshot({
     "--limit",
     "500",
     "--json",
-    "number,title,labels,body,comments",
+    "number,title,author,labels,body,comments",
   ]);
-  const allIssues = json(["issue", "list", "--state", "all", "--limit", "2000", "--json", "number,title,state"]);
+  const allIssues = json(["issue", "list", "--state", "all", "--limit", "2000", "--json", "number,title,state,author"]);
   const openPrs = json([
     "pr",
     "list",
@@ -89,7 +92,7 @@ export function loadSnapshot({
     "--limit",
     "300",
     "--json",
-    "number,title,isDraft,headRefName,baseRefName,labels,mergeable,statusCheckRollup,autoMergeRequest,closingIssuesReferences,comments,reviewRequests",
+    "number,title,isDraft,isCrossRepository,headRefName,baseRefName,labels,mergeable,statusCheckRollup,autoMergeRequest,closingIssuesReferences,comments,reviewRequests",
   ]);
   const allPrs = json([
     "pr",
@@ -99,16 +102,19 @@ export function loadSnapshot({
     "--limit",
     "2000",
     "--json",
-    "number,state,headRefName,baseRefName,closingIssuesReferences",
+    "number,state,isCrossRepository,headRefName,baseRefName,closingIssuesReferences",
   ]);
   const awaitingOwner = new Set(
     json(["pr", "list", "--state", "open", "--search", "review:required", "--json", "number"]).map((p) => p.number),
   );
   const mainChangedAt = gh(["api", "repos/{owner}/{repo}/commits/main", "--jq", ".commit.committer.date"]).trim();
+  const team = collaborators(gh);
 
-  const open = new Map(openIssues.map((i) => [i.number, i]));
+  const open = new Map(openIssues.filter((i) => trustedIssue(i, team)).map((i) => [i.number, i]));
   const issues = allIssues.map((i) => {
     const o = open.get(i.number);
+    if (!trustedIssue(i, team))
+      return { number: i.number, title: "", state: i.state, labels: [], deps: null, comments: [] };
     return {
       number: i.number,
       title: i.title,
@@ -118,26 +124,28 @@ export function loadSnapshot({
       comments: commentsOf(o?.comments),
     };
   });
-  const full = new Map(openPrs.map((p) => [p.number, p]));
-  const prs = allPrs.map((p) => {
-    const o = full.get(p.number);
-    return {
-      number: p.number,
-      title: o?.title ?? "",
-      state: o ? "OPEN" : p.state,
-      isDraft: Boolean(o?.isDraft),
-      head: p.headRefName,
-      base: p.baseRefName,
-      labels: (o?.labels ?? []).map((l) => l.name),
-      mergeable: o?.mergeable ?? "UNKNOWN",
-      autoMerge: Boolean(o?.autoMergeRequest),
-      checks: (o?.statusCheckRollup ?? []).map(checkOf),
-      closes: (p.closingIssuesReferences ?? []).map((r) => r.number),
-      reviewRequired: awaitingOwner.has(p.number),
-      reviewers: (o?.reviewRequests ?? []).map((r) => r.login),
-      comments: commentsOf(o?.comments),
-    };
-  });
+  const full = new Map(openPrs.filter((p) => !fromFork(p)).map((p) => [p.number, p]));
+  const prs = allPrs
+    .filter((p) => !fromFork(p))
+    .map((p) => {
+      const o = full.get(p.number);
+      return {
+        number: p.number,
+        title: o?.title ?? "",
+        state: o ? "OPEN" : p.state,
+        isDraft: Boolean(o?.isDraft),
+        head: p.headRefName,
+        base: p.baseRefName,
+        labels: (o?.labels ?? []).map((l) => l.name),
+        mergeable: o?.mergeable ?? "UNKNOWN",
+        autoMerge: Boolean(o?.autoMergeRequest),
+        checks: (o?.statusCheckRollup ?? []).map(checkOf),
+        closes: (p.closingIssuesReferences ?? []).map((r) => r.number),
+        reviewRequired: awaitingOwner.has(p.number),
+        reviewers: (o?.reviewRequests ?? []).map((r) => r.login),
+        comments: commentsOf(o?.comments),
+      };
+    });
   // Sonar's findings only for pull requests whose Sonar check failed (tools/sonar.mjs, read through GitHub).
   const sonar = {};
   for (const p of prs.filter((x) => x.checks.some((c) => c.name === SONAR_CHECK && c.state === "FAILURE"))) {

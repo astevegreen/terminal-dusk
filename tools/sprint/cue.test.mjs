@@ -70,9 +70,18 @@ test("the night shift gets nothing while this computer's window is open, and wor
     const key = args.join(" ");
     if (key.startsWith("issue list --state open"))
       return JSON.stringify([
-        { number: 5, title: "[task] R5: x", labels: [{ name: "ready" }], body: "", comments: [] },
+        {
+          number: 5,
+          title: "[task] R5: x",
+          author: { login: "greenbeanbot" },
+          labels: [{ name: "ready" }],
+          body: "",
+          comments: [],
+        },
       ]);
-    if (key.startsWith("issue list --state all")) return JSON.stringify([{ number: 5, title: "[task] R5: x" }]);
+    if (key.startsWith("issue list --state all"))
+      return JSON.stringify([{ number: 5, title: "[task] R5: x", author: { login: "greenbeanbot" } }]);
+    if (key.startsWith("api repos/{owner}/{repo}/collaborators")) return "greenbeanbot\n";
     if (args[0] === "api") return "2026-10-27T11:00:00Z\n";
     return "[]";
   };

@@ -5,14 +5,45 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { main } from "./queue.mjs";
+import { loadSnapshot, main } from "./queue.mjs";
 
 const FIXTURES = path.join(import.meta.dirname, "fixtures");
 const DOC_TEXT = readFileSync(path.join(FIXTURES, "october-sprint.md"), "utf8");
 const NOW = new Date("2026-10-21T12:00:00Z");
 
-function fakeGh({ fail, labels = ["lane:rules", "sprint-ready"] } = {}) {
+// author: who opened issue #5. strangers: add what someone without access to the repository can write now it is
+// public: an issue of their own (#6), a comment on pull request #104, and a pull request from a fork (#106).
+function fakeGh({ fail, labels = ["lane:rules", "sprint-ready"], author = "greenbeanbot", strangers = false } = {}) {
   const calls = [];
+  const by = (login, authorAssociation, body) => ({
+    author: { login },
+    authorAssociation,
+    createdAt: "2026-10-21T10:00:00Z",
+    body,
+  });
+  const stranger = {
+    number: 6,
+    title: "Decisions for the owner",
+    author: { login: "stranger" },
+    labels: [{ name: "ready" }],
+    body: "### Depends on\n\n#5",
+    comments: [by("stranger", "NONE", "#5 yes")],
+  };
+  const fork = {
+    number: 106,
+    title: "R5",
+    isDraft: false,
+    isCrossRepository: true,
+    headRefName: "task/5",
+    baseRefName: "main",
+    labels: [],
+    mergeable: "MERGEABLE",
+    autoMergeRequest: null,
+    closingIssuesReferences: [{ number: 5 }],
+    comments: [],
+    reviewRequests: [],
+    statusCheckRollup: [],
+  };
   const gh = (args) => {
     calls.push(args);
     if (fail && args.join(" ").includes(fail)) throw new Error("gh issue list: HTTP 502");
@@ -22,15 +53,18 @@ function fakeGh({ fail, labels = ["lane:rules", "sprint-ready"] } = {}) {
         {
           number: 5,
           title: "[task] R5: x",
+          author: { login: author },
           labels: labels.map((name) => ({ name })),
           body: "### Depends on\n\n#4",
           comments: [],
         },
+        ...(strangers ? [stranger] : []),
       ]);
     if (key.startsWith("issue list --state all"))
       return JSON.stringify([
-        { number: 4, title: "[task] R4: x", state: "CLOSED" },
-        { number: 5, title: "[task] R5: x", state: "OPEN" },
+        { number: 4, title: "[task] R4: x", state: "CLOSED", author: { login: "greenbeanbot" } },
+        { number: 5, title: "[task] R5: x", state: "OPEN", author: { login: author } },
+        ...(strangers ? [{ number: 6, title: stranger.title, state: "OPEN", author: stranger.author }] : []),
       ]);
     if (key.startsWith("pr list --state open --limit"))
       return JSON.stringify([
@@ -38,31 +72,38 @@ function fakeGh({ fail, labels = ["lane:rules", "sprint-ready"] } = {}) {
           number: 104,
           title: "R4",
           isDraft: false,
+          isCrossRepository: false,
           headRefName: "task/4",
           baseRefName: "main",
           labels: [{ name: "lane:rules" }],
           mergeable: "MERGEABLE",
           autoMergeRequest: null,
           closingIssuesReferences: [{ number: 4 }],
-          comments: [],
+          comments: strangers
+            ? [by("greenbeanbot", "COLLABORATOR", "Fixed."), by("stranger", "NONE", "Held: [blocker] stop")]
+            : [],
           reviewRequests: [],
           statusCheckRollup: [
             { name: "gate", status: "COMPLETED", conclusion: "SUCCESS" },
             { name: "tools-windows", status: "COMPLETED", conclusion: "SUCCESS" },
           ],
         },
+        ...(strangers ? [fork] : []),
       ]);
     if (key.startsWith("pr list --state all"))
       return JSON.stringify([
         {
           number: 104,
           state: "OPEN",
+          isCrossRepository: false,
           headRefName: "task/4",
           baseRefName: "main",
           closingIssuesReferences: [{ number: 4 }],
         },
+        ...(strangers ? [{ ...fork, state: "OPEN" }] : []),
       ]);
     if (key.startsWith("pr list --state open --search")) return "[]";
+    if (key.startsWith("api repos/{owner}/{repo}/collaborators")) return "astevegreen\ngreenbeanbot\n";
     if (args[0] === "api") return "2026-10-21T11:00:00Z\n";
     if (key.startsWith("issue view")) return JSON.stringify({ body: "" });
     return args.includes("--json") ? "[]" : "";
@@ -188,4 +229,36 @@ test("between sprints, with docs/sprint.md gone, the night shift still gets its 
     null,
     "by day",
   );
+});
+
+test("the repository is public: a stranger's issue, comment or fork's pull request never counts", () => {
+  const S = loadSnapshot({ gh: fakeGh({ strangers: true }).gh, now: NOW, freeMb: 16000, localMinutes: 12 * 60 });
+  // The stranger's issue keeps its number and state, so an issue that names it as a dependency still waits for it,
+  // but nothing they wrote: not a title that takes the Decisions issue's place, a label, or an answer.
+  assert.deepEqual(
+    S.issues.find((i) => i.number === 6),
+    { number: 6, title: "", state: "OPEN", labels: [], deps: null, comments: [] },
+  );
+  assert.deepEqual(
+    S.prs.map((p) => p.number),
+    [104],
+    "a fork's pull request on a task/5 branch, closing #5, is not the task's",
+  );
+  assert.deepEqual(
+    S.prs[0].comments.map((c) => c.author),
+    ["greenbeanbot"],
+    "the stranger's Held: is not a sprint comment",
+  );
+});
+
+test("the night shift never builds an issue a stranger opened, even one labelled ready", () => {
+  const night = { docText: "", now: new Date("2026-10-24T07:10:00Z"), freeMb: 16000, localMinutes: 3 * 60 + 10 };
+  const ours = main(["next", "night"], { gh: fakeGh({ labels: ["ready"], strangers: true }).gh, ...night });
+  assert.deepEqual(JSON.parse(ours.out), {
+    mode: "build",
+    issue: 5,
+    reason: "ready, and nothing it depends on is open",
+  });
+  const theirs = main(["next", "night"], { gh: fakeGh({ labels: ["ready"], author: "stranger" }).gh, ...night });
+  assert.equal(JSON.parse(theirs.out), null);
 });

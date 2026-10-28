@@ -12,6 +12,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `CLAUDE.md` - Terminal Dusk
 - `GEMINI.md` - Terminal Dusk - Gemini's role
 - `README.md` - terminal-dusk
+- `SECURITY.md` - Security
 - `eslint.config.js` - ESLint for the whole repository: each package's `lint` script and the edit-time quick check use it.
 - `package.json`
 - `pnpm-lock.yaml`
@@ -834,6 +835,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/gemini/rails.test.mjs` - Tests for agy's merge gate: which diffs touch a rail, how findings and the rail answer are read, and the verdict.
 - `tools/git-hooks/pre-commit` - Git pre-commit hook: formats the staged files with Prettier, then refreshes docs/repo-map.md.
 - `tools/git-hooks/pre-commit.test.mjs`
+- `tools/github-trust.mjs` - Whose words on GitHub the tools read.
+- `tools/github-trust.test.mjs` - Whose words on GitHub the tools read, now the repository is public (github-trust.mjs).
 - `tools/handoff-notes.mjs` - Handoff notes for the /handoff skill.
 - `tools/handoff-notes.test.mjs`
 - `tools/hooks/bash-guard.mjs` - PreToolUse (Bash): catch disguised versions of denied commands anywhere in a command line.
