@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { matchRowFor } from "./matchRow.ts";
 import { SupabaseStore } from "./supabaseStore.ts";
 import { shown, thrown } from "./test/errors.ts";
-import { leaksIn } from "./test/leaks.ts";
+import { leaksIn } from "@terminal-dusk/host/test/secret-leaks";
 import { createdWithClock, DAY } from "./test/deadlines.ts";
 import { MATCH, NOW } from "./test/match.ts";
 

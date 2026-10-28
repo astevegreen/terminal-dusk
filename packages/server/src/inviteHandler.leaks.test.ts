@@ -6,7 +6,7 @@ import type { SideMode } from "./inviteStore.ts";
 import { post } from "./test/handler.ts";
 import { body, inviteHandlerWorld } from "./test/inviteHandler.ts";
 import { HOST } from "./test/invites.ts";
-import { leaksIn } from "./test/leaks.ts";
+import { leaksIn } from "@terminal-dusk/host/test/secret-leaks";
 
 const MODES: { sides: SideMode; side?: Side }[] = [
   { sides: { mode: "random" } },

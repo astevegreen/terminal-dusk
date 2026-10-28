@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createInvite, joinInvite, previewInvite } from "./invite.ts";
 import type { SideMode } from "./inviteStore.ts";
-import { leaksIn } from "./test/leaks.ts";
+import { leaksIn } from "@terminal-dusk/host/test/secret-leaks";
 import { HOST, INVITE_NOW, inviteWorld, JOINER } from "./test/invites.ts";
 
 describe("invites: no result gives away a seed, the secret or the host's id", () => {

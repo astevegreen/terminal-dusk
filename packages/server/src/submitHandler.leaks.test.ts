@@ -5,7 +5,7 @@ import { handleSubmit } from "./submitHandler.ts";
 import type { HttpReply, HttpRequest, SubmitHandlerDeps } from "./submitHandler.ts";
 import { handlerWorld, json, post } from "./test/handler.ts";
 import type { HandlerWorld } from "./test/handler.ts";
-import { leaksIn } from "./test/leaks.ts";
+import { leaksIn } from "@terminal-dusk/host/test/secret-leaks";
 import { bodyFor, MATCH, nextSide, NOW, SEED } from "./test/match.ts";
 
 const TOKEN_OF = { alice: "token-alice", bob: "token-bob" } as Record<string, string>;

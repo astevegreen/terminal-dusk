@@ -8,7 +8,7 @@ import { client, freshId } from "./migrations/localStack.ts";
 import { SupabaseInviteStore } from "./supabaseInviteStore.ts";
 import { shown, thrown } from "./test/errors.ts";
 import { expectedStart, inviteStack, STACK_SEED } from "./test/inviteStack.ts";
-import { leaksIn } from "./test/leaks.ts";
+import { leaksIn } from "@terminal-dusk/host/test/secret-leaks";
 import { onLocalStack, storedRows, writeOf } from "./test/stack.ts";
 
 const NOW = 1_700_000_000_000;

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { readMatch } from "./read.ts";
 import type { Caller } from "./read.ts";
 import { playGame, STRATEGIES } from "./test/games.ts";
-import { leaksFor } from "./test/leaks.ts";
+import { leaksFor } from "@terminal-dusk/host/test/secret-leaks";
 import { created, MATCH, NOW } from "./test/match.ts";
 import { MemoryStore } from "./store.ts";
 import { sweepDeadlines } from "./sweepDeadlines.ts";

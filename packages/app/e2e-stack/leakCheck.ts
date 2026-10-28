@@ -3,7 +3,7 @@
 // proves it (helpers.test.ts). Reports name the kind of leak and the step, never a card (`withoutCards`).
 import type { Side } from "@terminal-dusk/engine";
 import type { MatchSecret } from "@terminal-dusk/host";
-import { canonical, leaksFor, withoutCards } from "../src/transport/test/leaks.ts";
+import { canonical, leaksFor, withoutCards } from "@terminal-dusk/host/test/secret-leaks";
 
 /** One response the stack sent a browser: its body, and the server's step when it arrived. */
 export type Recorded = { side: Side; url: string; text: string; atSeq: number };

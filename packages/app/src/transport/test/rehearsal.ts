@@ -8,7 +8,7 @@ import type { Ruleset, Side } from "@terminal-dusk/engine";
 import type { Frame, MatchSecret } from "@terminal-dusk/host";
 import type { MatchTransport } from "../matchTransport.ts";
 import type { FetchLike } from "../remoteHttp.ts";
-import { canonical, leaksFor, withoutCards } from "./leaks.ts";
+import { canonical, leaksFor, withoutCards } from "@terminal-dusk/host/test/secret-leaks";
 
 /** What the server holds after the latest step, read past the client read rules (the service role). */
 export type ServerSnapshot = {

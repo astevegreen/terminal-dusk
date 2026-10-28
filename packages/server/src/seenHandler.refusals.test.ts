@@ -4,7 +4,7 @@ import type { NotifyStore } from "./notifyStore.ts";
 import { handleSeen } from "./seenHandler.ts";
 import type { MatchStore } from "./store.ts";
 import { json, post } from "./test/handler.ts";
-import { leaksIn } from "./test/leaks.ts";
+import { leaksIn } from "@terminal-dusk/host/test/secret-leaks";
 import { MATCH, SEED } from "./test/match.ts";
 import { seenWorld } from "./test/seen.ts";
 import type { SeenWorld } from "./test/seen.ts";

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { MatchStore } from "./store.ts";
 import { submit } from "./submit.ts";
 import type { SubmitDeps, SubmitOutcome } from "./submit.ts";
-import { leaksIn } from "./test/leaks.ts";
+import { leaksIn } from "@terminal-dusk/host/test/secret-leaks";
 import { bodyFor, MATCH, nextSide, NOW, setup } from "./test/match.ts";
 
 const broken = (part: "load" | "commit", inner: MatchStore): MatchStore => ({

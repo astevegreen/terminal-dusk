@@ -9,7 +9,7 @@ import type { MatchWrite } from "./store.ts";
 import { submit } from "./submit.ts";
 import { SupabaseStore } from "./supabaseStore.ts";
 import { shown, thrown } from "./test/errors.ts";
-import { leaksIn } from "./test/leaks.ts";
+import { leaksIn } from "@terminal-dusk/host/test/secret-leaks";
 import { bodyFor, NOW, ruleset } from "./test/match.ts";
 import { freshMatchId, onLocalStack, storedRows, writeOf } from "./test/stack.ts";
 import { answered, expectStoredAs, stackGame } from "./test/stackGame.ts";
