@@ -33,7 +33,7 @@ These product decisions and stack choices are fixed inputs to the design. Every 
 
 **Product decisions (yours)**
 
-- Strictly two players; hidden hands and shuffles; no dice: each side draws from its own Contingency deck instead (owner, 16 and 17 Oct; rules in docs/design/contingency-deck.md); follows Twilight Struggle closely with some twists.
+- Strictly two players; hidden hands and shuffles; no dice: each side draws from its own Contingency deck instead (owner, 16 and 17 Oct; rules in docs/design/contingency-deck.md).
 - Asynchronous online play with variable turn deadlines, plus single-player against an AI with several difficulty levels.
 - Sign-in only for online play. Public ranked matchmaking and invite-a-friend games.
 - Spectating, shareable replays, an interactive tutorial, music and sound effects. English at launch.
@@ -67,13 +67,13 @@ These product decisions and stack choices are fixed inputs to the design. Every 
 
 The engine is a pure TypeScript package: it takes a game state and an answer, and returns a new state plus a list of events. It never reads the clock, the network or a random function, so the same inputs always produce the same game. Every point where the game waits for a person is a **pending decision**, and every input is an answer to one.
 
-**Why.** Twilight Struggle-style cards stop halfway to ask the other player something. Code that resolves a whole card in one go cannot pause for an online reply that arrives two days later. Making every wait an explicit decision handles interrupts, mid-card choices and normal turn actions with one mechanism.
+**Why.** Cards in card-driven strategy games often stop halfway to ask the other player something. Code that resolves a whole card in one go cannot pause for an online reply that arrives two days later. Making every wait an explicit decision handles interrupts, mid-card choices and normal turn actions with one mechanism.
 
 **How it works**
 
 - A **resolution stack** holds the steps still to run. The engine runs steps until one needs a choice, records that decision, and stops.
 - The answer resumes the stack exactly where it stopped. Ordinary turn actions ("play this card for ops or event") are pending decisions too.
-- **Simultaneous decisions**, such as a headline phase where both sides pick a card in secret, are a group of pending decisions. The first answer stays hidden from the other side until both are in. Neither review raised this, but Twilight Struggle's headline phase needs it.
+- **Simultaneous decisions**, such as a headline phase where both sides pick a card in secret, are a group of pending decisions. The first answer stays hidden from the other side until both are in. Neither review raised this, but any secret pick by both sides at once needs it.
 - **System actions** (timeout, resignation, adjudication) go through the same path, so the move log is always complete.
 - The engine has **no clock**. The match host (Decision 3) tracks time and submits a Timeout action when a deadline passes.
 - Each answer produces **events** (influence placed, contingency drawn, card drawn), each tagged with who may see it. The UI animates them, the game log prints them, sounds play from them and the tutorial reacts to them.
