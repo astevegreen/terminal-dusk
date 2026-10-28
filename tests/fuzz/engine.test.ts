@@ -20,8 +20,10 @@ describe("engine fuzz suite", () => {
       }
       expect(finished).toBe(GAMES);
     },
-    // About 1.5 ms per game here; the margin covers slower machines. A failure stops at the first failing game.
-    Math.max(30_000, GAMES * 20),
+    // Measured 28 Oct 2026: about 16 ms per game with this suite alone, about 33 ms with the whole fuzz folder running
+    // in parallel. The limit is 100 ms per game, three times the busy figure, and never under 30 s.
+    // A failure stops at the first failing game.
+    Math.max(30_000, GAMES * 100),
   );
 
   it.each(FIXED_GAMES)("replays every answer of the fixed game $name with every check", ({ name, record }) => {

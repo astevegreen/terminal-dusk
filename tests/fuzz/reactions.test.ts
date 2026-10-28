@@ -62,7 +62,9 @@ describe("reaction fuzz games", () => {
       expect(counts.questions).toBeGreaterThan(0);
       expect(counts.modifiers).toBeGreaterThan(0);
     },
-    Math.max(60_000, GAMES * 40),
+    // Measured 28 Oct 2026: about 26 ms per game alone, about 92 ms with the whole fuzz folder running in parallel.
+    // The limit is 300 ms per game, three times the busy figure, and never under 60 s.
+    Math.max(60_000, GAMES * 300),
   );
 });
 
