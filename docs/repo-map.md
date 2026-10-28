@@ -810,6 +810,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/gates/content-check.mjs` - `pnpm content:check [files...]`: validates content JSON against the schemas in packages/content/schema/.
 - `tools/gates/content-check.test.mjs`
 - `tools/gates/count-reporter.mjs` - node:test reporter for test-count.mjs: one JSON line per test that ran (suites left out), with its file, its name and whether it was skipped or todo.
+- `tools/gates/deps-report.mjs` - CI's dependency check (the `deps` job), which replaced the owner's review of package.json and the lockfile (owner's policy, 28 Oct 2026).
+- `tools/gates/deps-report.test.mjs` - Tests for CI's dependency check: the new-dependency report and failing only on a new high or critical advisory.
 - `tools/gates/gate.mjs` - `pnpm gate`: check only what changed, stage by stage, stopping at the first failure.
 - `tools/gates/gate.test.mjs`
 - `tools/gates/skipped-tests.mjs` - Fails when any test is skipped, marked todo or focused with only, so every test always runs.
@@ -818,13 +820,18 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/gates/suites.test.mjs`
 - `tools/gates/test-count.mjs` - Counts the tests by running them: Vitest in each package and in tests/, node:test in tools/.
 - `tools/gates/test-count.test.mjs`
+- `tools/gates/workflows.test.mjs` - The CI workflow's shape that merges depend on (owner's policy, 28 Oct 2026): the required "gate" job passes only when every other Linux job passed, so e2e, the…
 - `tools/gemini-audit.mjs` - Hands Gemini (agy, headless) read-only material and posts its answer to GitHub itself.
+- `tools/gemini-audit.test.mjs` - The audit script's command line.
 - `tools/gemini/agy.mjs` - How the audits talk to agy: which model reviews what, what every prompt starts with, and how a reply is read.
 - `tools/gemini/agy.test.mjs`
 - `tools/gemini/prompts/narrative.md`
 - `tools/gemini/prompts/pr-audit.md`
+- `tools/gemini/prompts/rail-audit.md`
 - `tools/gemini/prompts/spec-audit.md`
 - `tools/gemini/prompts/weekly-audit.md`
+- `tools/gemini/rails.mjs` - agy's second look as a merge gate (owner's policy, 28 Oct 2026): which changes touch a rail, how a review's findings and the rail audit's answer are read, and…
+- `tools/gemini/rails.test.mjs` - Tests for agy's merge gate: which diffs touch a rail, how findings and the rail answer are read, and the verdict.
 - `tools/git-hooks/pre-commit` - Git pre-commit hook: formats the staged files with Prettier, then refreshes docs/repo-map.md.
 - `tools/git-hooks/pre-commit.test.mjs`
 - `tools/handoff-notes.mjs` - Handoff notes for the /handoff skill.
@@ -863,13 +870,16 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/sonar-mirror.test.mjs`
 - `tools/sonar.mjs` - `node tools/sonar.mjs <pr|main>`: SonarCloud's findings on a pull request or on main, read through GitHub.
 - `tools/sonar.test.mjs`
+- `tools/sprint/comments.mjs` - Whose words count in the sprint queue's comments: the agents' own, the owner's, and the owner's answers on the Decisions issue (owner's policy of 28 Oct 2026,…
 - `tools/sprint/cue.mjs` - The sprint's cue: `/sprint-start [hours]` opens the window when it runs, instead of on dates fixed at planning, and `/sprint-stop` closes it.
 - `tools/sprint/cue.test.mjs` - Tests for the sprint's cue (cue.mjs, local-state.mjs) through `queue.mjs`: the window /sprint-start opens on this computer, the night shift standing down insid…
+- `tools/sprint/decisions.mjs` - The Decisions digest (`queue.mjs digest`, owner's policy of 28 Oct 2026, P5).
 - `tools/sprint/fixtures/october-sprint.md` - Sprint: 20–22 October 2026
 - `tools/sprint/fixtures/october.jsonl`
 - `tools/sprint/local-state.mjs` - What a sprint keeps on its own computer, in the git folder every worktree shares (`git rev-parse --git-common-dir`), never committed.
 - `tools/sprint/moves.mjs` - `queue.mjs move <n> <state>`: the label changes and standard comment for each change of state, planned as gh commands from a snapshot.
 - `tools/sprint/moves.test.mjs` - Tests for the sprint's label moves (moves.mjs): which gh commands each move plans, and which moves are refused with what to do instead.
+- `tools/sprint/policy.test.mjs` - Tests for the owner's policy of 28 Oct 2026 in the queue (rules.mjs, moves.mjs, status.mjs, decisions.mjs): P1 only a [blocker] holds, P2 a machine failure ret…
 - `tools/sprint/queue.mjs` - `node tools/sprint/queue.mjs <command>`: the sprint's queue rules, asked by the supervisor, the lanes and the night shift instead of each applying its own pros…
 - `tools/sprint/queue.test.mjs` - Tests for `node tools/sprint/queue.mjs`: loading GitHub's state through gh, and the command line's one line of JSON.
 - `tools/sprint/replay.mjs` - Rebuilds a queue snapshot at any moment of a recorded sprint, from a fixture of issues and pull requests with their timelines (tools/sprint/fixtures/october.js…
@@ -929,6 +939,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## .claude
 
 - `.claude/agents/Explore.md` - Fast read-only codebase search. Use to find files, symbols, usages or where something lives. Returns paths and short excerpts, never whole files.
+- `.claude/agents/architect.md` - Decides one technical question on a task (how to build it, structure, APIs, tooling, tests, naming, placement, performance, refactors) so it never waits for th…
 - `.claude/agents/implementer.md` - Builds one GitHub issue or fixes one pull request, with tests, in its own worktree. Only for night-shift and sprint-lane runs, never for interactive work.
 - `.claude/agents/reviewer.md` - Read-only review of one task's diff against its spec and the architecture rules. Returns PASS or a numbered list of concerns.
 - `.claude/rules/app.md` - App and shell rules

@@ -1,11 +1,14 @@
 // Hands Gemini (agy, headless) read-only material and posts its answer to GitHub itself.
 // Gemini never gets GitHub access or write permission; a failed run posts one "skipped" line.
-// Usage: node tools/gemini-audit.mjs specs <issue numbers...> | prs | weekly | narrative [--dry-run]
+// Usage: node tools/gemini-audit.mjs specs <issue numbers...> | pr <n> | prs | weekly | narrative [--dry-run]
+// `pr <n>` is the merge gate (tools/gemini/rails.mjs): it audits one pull request, adds the rail audit when the
+// diff touches a rail, posts both, and prints one line of JSON with the verdict (merge, fix, hold or retry).
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
+  DEEP_PATHS,
   ORDER,
   TIMEOUT,
   askFirstAvailable,
@@ -15,10 +18,12 @@ import {
   parseReply,
   pickDepth,
 } from "./gemini/agy.mjs";
+import { decide, railHits, readVerdict, verdictMarker } from "./gemini/rails.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const MARKER = "<!-- gemini-audit -->";
 const MAX_DIFF = 200_000;
+const USAGE = "usage: node tools/gemini-audit.mjs specs <n...> | pr <n> | prs | weekly | narrative [--dry-run]";
 const PINNED = { weekly: "Gemini weekly audit", narrative: "How the code is organised" };
 
 const argv = process.argv.slice(2);
@@ -44,9 +49,9 @@ function gh(...args) {
   return r.stdout;
 }
 
-// what: what is reviewed, for pickDepth. Returns { model, response, passed, depth, why }, so the comment can say
-// which model answered and why it was chosen.
-function askGemini(promptName, material, what) {
+// what: what is reviewed, for pickDepth; deepPaths: extra path prefixes that make it a deep review. Returns
+// { model, response, passed, depth, why }, so the comment can say which model answered and why it was chosen.
+function askGemini(promptName, material, what, deepPaths = DEEP_PATHS) {
   const text = readFileSync(path.join(ROOT, "tools", "gemini", "prompts", `${promptName}.md`), "utf8");
   let file;
   if (material) {
@@ -54,7 +59,7 @@ function askGemini(promptName, material, what) {
     writeFileSync(file, material);
   }
   const prompt = buildPrompt(text, file);
-  const pick = pickDepth(what);
+  const pick = pickDepth(what, deepPaths);
   const answer = askFirstAvailable(ORDER[pick.depth], (model) =>
     parseReply(
       run("agy", [
@@ -128,17 +133,59 @@ function specs() {
   }
 }
 
+// The task spec, description and diff of pull request `pr`, as one material file.
+function prMaterial(pr, diff) {
+  const linked = /\b(?:closes|fixes|resolves)\s+#(\d+)/i.exec(pr.body ?? "")?.[1];
+  const spec = linked ? issueText(linked) : 'No linked task spec (no "Closes #n" in the pull request).\n';
+  const cut =
+    diff.length > MAX_DIFF ? `${diff.slice(0, MAX_DIFF)}\n... (diff truncated; read the rest from disk)\n` : diff;
+  return `# Task spec\n\n${spec}\n# Pull request #${pr.number}\n\n${pr.body ?? ""}\n\n# Diff\n\n\`\`\`diff\n${cut}\`\`\`\n`;
+}
+
+// The merge gate for one pull request: agy's review, plus the deep rail audit when the diff touches a rail. A
+// verdict already posted for the same commit is reused, unless it was a retry.
+function auditPr(number) {
+  const pr = JSON.parse(gh("pr", "view", String(number), "--json", "number,body,headRefOid,comments"));
+  const old = pr.comments
+    .map((c) => readVerdict(c.body))
+    .filter((v) => v?.sha === pr.headRefOid)
+    .at(-1);
+  if (old && old.verdict !== "retry") return { pr: pr.number, ...old, reused: true };
+  const diff = gh("pr", "diff", String(number));
+  const what = { kind: "change", ...diffStats(diff) };
+  const hits = railHits(diff);
+  const material = prMaterial(pr, diff);
+  const ask = (prompt, deepPaths) => {
+    try {
+      return { ok: true, ...askGemini(prompt, material, what, deepPaths) };
+    } catch (err) {
+      return { ok: false, error: err.message };
+    }
+  };
+  const review = ask("pr-audit");
+  const rail = hits.length
+    ? ask(
+        "rail-audit",
+        hits.map((h) => h.file),
+      )
+    : null;
+  const verdict = { sha: pr.headRefOid, ...decide({ review, rail, hits }) };
+  const parts = [verdictMarker(verdict), review.ok ? report("pull request", review) : skipped(new Error(review.error))];
+  if (rail) {
+    const label = `rail audit (${hits.map((h) => h.file).join(", ")})`;
+    parts.push(rail.ok ? report(label, rail) : `Gemini ${label} skipped: ${rail.error}`);
+  }
+  parts.push(`**Verdict: ${verdict.verdict}**: ${verdict.why}.`);
+  post("pr", pr.number, parts.join("\n\n"));
+  return { pr: pr.number, ...verdict, rails: hits.map((h) => h.file) };
+}
+
+// Every open pull request without an audit yet, one JSON line each.
 function prs() {
-  const open = JSON.parse(gh("pr", "list", "--state", "open", "--json", "number,body,comments"));
+  const open = JSON.parse(gh("pr", "list", "--state", "open", "--json", "number,comments"));
   for (const pr of open.filter((p) => !p.comments.some((c) => c.body.includes(MARKER)))) {
     try {
-      const linked = /\b(?:closes|fixes|resolves)\s+#(\d+)/i.exec(pr.body ?? "")?.[1];
-      let diff = gh("pr", "diff", String(pr.number));
-      const what = { kind: "change", ...diffStats(diff) };
-      if (diff.length > MAX_DIFF) diff = `${diff.slice(0, MAX_DIFF)}\n... (diff truncated; read the rest from disk)\n`;
-      const spec = linked ? issueText(linked) : 'No linked task spec (no "Closes #n" in the pull request).\n';
-      const material = `# Task spec\n\n${spec}\n# Pull request #${pr.number}\n\n${pr.body ?? ""}\n\n# Diff\n\n\`\`\`diff\n${diff}\`\`\`\n`;
-      post("pr", pr.number, report("pull request", askGemini("pr-audit", material, what)));
+      console.log(JSON.stringify(auditPr(pr.number)));
     } catch (err) {
       post("pr", pr.number, skipped(err));
     }
@@ -164,10 +211,11 @@ function repoWide(promptName, label) {
 
 try {
   if (mode === "specs") specs();
+  else if (mode === "pr" && /^\d+$/.test(numbers[0] ?? "")) console.log(JSON.stringify(auditPr(Number(numbers[0]))));
   else if (mode === "prs") prs();
   else if (mode === "weekly") repoWide("weekly-audit", "weekly");
   else if (mode === "narrative") repoWide("narrative", "how the code is organised,");
-  else throw new Error("usage: node tools/gemini-audit.mjs specs <n...> | prs | weekly | narrative [--dry-run]");
+  else throw new Error(USAGE);
 } catch (err) {
   console.error(err.message);
   process.exitCode = 1;

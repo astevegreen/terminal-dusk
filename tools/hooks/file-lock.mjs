@@ -8,8 +8,8 @@ const entry = lockedEntry(file, input.cwd);
 
 if (entry) {
   deny(
-    `${file} is a Locked file (${entry}): night runs never edit configuration or gates. ` +
-      "If the task needs this change, stop: comment the question on the issue, add the `blocked` label " +
-      "and hand back STATUS: BLOCKED.",
+    `${file} is a Locked file (${entry}): a lane or night run never edits the guards, hooks or gates that govern ` +
+      "its own session. If the task needs this change, stop: comment `Blocked: needs a day session: <why>` on the " +
+      "issue, add the `blocked` label and hand back STATUS: BLOCKED.",
   );
 }

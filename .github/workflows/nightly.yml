@@ -5,7 +5,8 @@ name: Nightly
 # (it stops at 03:30), before the morning review.
 #
 # GitHub emails scheduled-run failures only to whoever last edited the schedule, which is the bot. So a failure also
-# opens (or comments on) a "Nightly run failed" issue assigned to the owner, and GitHub notifies them of that.
+# opens (or comments on) a "Nightly run failed" issue assigned to the owner, and GitHub notifies them of that. A green
+# run closes that issue again.
 on:
   schedule:
     - cron: "0 8 * * *"
@@ -53,3 +54,16 @@ jobs:
           else
             gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "$body" --assignee astevegreen --label bug
           fi
+      # A green night closes the failure issue, so an open one always means main is failing now.
+      - name: Close the failure issue after a green run
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Nightly run failed"
+          for number in $(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$title\" in:title" \
+            --json number,title --jq ".[] | select(.title == \"$title\") | .number"); do
+            gh issue close "$number" --repo "$GITHUB_REPOSITORY" --reason completed \
+              --comment "The nightly gate and 10,000-game fuzz passed on main: $RUN_URL"
+          done

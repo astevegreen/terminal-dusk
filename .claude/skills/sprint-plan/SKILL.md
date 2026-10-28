@@ -66,12 +66,14 @@ Create each issue with the task form fields: Goal, Read first (exact paths and s
 acceptance criteria back once and remove any two that contradict each other.
 Size each for one fresh session: about 300 changed lines at most, one package where possible. Split bigger
 items into `<ID>a`, `<ID>b` and so on, each provable on its own, with "Depends on" between them.
-Name a code-owned path (`.github/CODEOWNERS`) in the Goal when the task must touch one. Label each `L`.
+Name a Locked path (`tools/hooks/shared.mjs`) in the Goal when the task must touch one: a lane can't, so it needs
+a day session. Label each `L`.
 
 ## 4. Audit
 Run `node tools/gemini-audit.mjs specs <issue numbers>`. It prints nothing; read its findings from each
 issue's comments. For each point: apply it by editing the issue body when it is valid and inside the backlog
-item; otherwise comment why not. A point that needs a design choice makes the issue `blocked` (step 2).
+item; otherwise comment why not. A point that needs a design choice makes the issue `blocked` (step 2). A technical
+point is never a question: decide it with the `architect` agent and write the decision into the spec.
 If the audit fails, comment that on the issue and continue.
 
 ## 5. Release
