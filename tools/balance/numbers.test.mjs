@@ -110,7 +110,7 @@ test("--numbers reads a file, names it in the heading, and changes the games; ba
     withNumbers.stdout.split("\n")[0],
     /six-region map with the first deck .*, numbers "all stable", base seed/,
   );
-  assert.match(plain.stdout.split("\n")[0], /^Balance report, six-region map with the first deck \(no scoring/);
+  assert.match(plain.stdout.split("\n")[0], /^Balance report, six-region map with the first deck \(a smoke check/);
   assert.notEqual(withNumbers.stdout, plain.stdout);
   assert.equal(parseArgs([...SIX, "--numbers", file]).numbersFile, file);
   // Refusals: no map scenario, a missing file, a file that is not JSON, numbers that do not fit.
@@ -135,7 +135,7 @@ test("the six-region report adds the era-end region levels, the same numbers as 
   const text = balance(...SIX, "--games", "2", "--seed", "ends").stdout.split("\n");
   const at = text.findIndex((line) => line.startsWith("Era ends, per side"));
   assert.ok(at > 0);
-  assert.match(text[at], /Control only: scoring is not built, so no amounts and no score/);
+  assert.match(text[at], /section is control only: amounts and the score are in the Score section/);
   const lio = stats.eraEnds[0].lio;
   const expected = ["era-1", "LIO", lio.countries, lio.battlegrounds, ...Object.values(lio.levels)].map(String);
   assert.deepEqual(text[at + 2].split(/\s{2,}/), expected);

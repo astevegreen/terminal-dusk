@@ -17,7 +17,8 @@ until the owner picks and it is promoted into `docs/design/`.
 
 Each option also has a `.json` file with its stabilities, battleground lists and starting influence, in the form
 the balance tool reads (`tools/balance/README.md`, "Trying other map numbers"). The amounts and the track are in
-the option files only: scoring is not built yet, so no tool reads them.
+the option files' `scoring` block too, which the balance tool lays over the map for a run (see "Scoring smoke
+runs" below).
 
 ## The questions this answers
 
@@ -123,8 +124,119 @@ node tools/balance/run.mjs --scenario six-region --games 100 --seed x12 --turns 
 node tools/balance/run.mjs --scenario six-region --games 100 --seed x12 --turns 10 --plays 2 --era era-2@4 --era era-3@6 --era future@off --numbers docs/proposals/map-numbers/option-c-simple.json
 ```
 
-The same command always prints the same report. Each takes a few seconds on an idle PC. Once scoring is built, the
-same runs with scoring on would give the first numbers on the amounts and the track.
+The same command always prints the same report. Each takes a few seconds on an idle PC. The next section runs them
+again with each option's scoring on.
+
+## Scoring smoke runs (X13, #446)
+
+Research lane X13 (#446). The runs above measured control only, because scoring was not built. Era-end region scoring
+has since merged (R21), so these runs play the same games through the real engine with each option's amounts and
+track, and count what the score does. Still a proposal: nothing here recommends an option or becomes a rule.
+
+### In plain English
+
+These are Easy AI games, so they show what the numbers do to a game, not what good players would do. Read the
+differences between options more than the exact figures.
+
+- **Options A and C lean LIO; B leans SAE.** LIO wins 73 of 100 games on A and 75 on C; on B, SAE wins 55 and LIO
+  39, with 6 draws. This follows the control runs above: B's stabilities were built to offset the SAE box's reach,
+  and with the Easy AI they more than cancel it. No option is level; B is the only one that tilts towards SAE.
+- **Most games go to the final count.** The side ahead after 2025 wins 63 games on A, 78 on B and 79 on C. A side
+  reaches the end of the track and wins at once in 36 games on A, 21 on C and 16 on B. Nearly all of A's and C's
+  track-end wins are LIO's (32 of 36, and 21 of 21).
+- **Two regions decide most games under A and C.** East and South Asia and Eastern Europe and Central Asia decide
+  79 of A's 99 decided games and 65 of C's 100. Europe, the Middle East and North Africa and Sub-Saharan Africa each
+  decide fewer than 10 games in 100 on every option. B spreads it over three regions: Eastern Europe and Central
+  Asia 28, East and South Asia 30 and the Americas 26 of its 94 decided games. Europe's average swing is close to zero on
+  every option (about 0.1 either way), so its amounts barely matter in these runs.
+- **The swing grows with the eras on B, and holds steady on A and C.** On B the score hardly moves in Era 1 (average
+  swing +0.09 towards SAE) and builds to +1.07 in Era 3. On A and C LIO gains in every era.
+- **The track.** 15 steps (B) ended 16% of games early; 20 steps ended 36% (A) and 21% (C). Most track ends come
+  late: only 10 of A's 100 games ended before Era 3 scored, 3 of C's and 1 of B's. A's start 2 steps towards LIO does
+  not show up: A and C lean LIO about equally (73 and 75 wins), though they differ in more than the start.
+
+Pointers for the questions at the end, as findings and not advice: for question 3 (amounts), weighted amounts (A)
+and flat ones (C) end up putting the game in the same two regions here, because the Easy AI scores in those two
+and little elsewhere. For question 4 (the track), the track end was reached in one game in three to one in six,
+mostly in the last era. For question 1 (stabilities), B is the only set that changes who leads, and it changes it
+past even.
+
+### What these runs assume
+
+- **Same games as the control runs.** Era-lengths option A (`docs/proposals/era-lengths.md`): 10 turns, Era 2 on
+  turn 4, Era 3 on turn 6, 2 plays per turn, the future cards left out. 100 games for each option, base seed `x12`.
+  Eras score at the end of turns 3, 5 and 10.
+- **Nothing was left unset.** Each option gives the track's length, its start and the amounts for every region, so
+  the runs used exactly those numbers: A 20 steps starting at -2 (2 towards LIO, whose end is the negative one),
+  B 15 steps from 0, C 20 steps from 0. Regions score in the map's own order (the scoring order S1). The
+  placeholders were not run: the scenario has no scoring, and option C's stabilities and starting influence are the
+  placeholders' (only its battleground lists differ).
+- **An even track at the end is a draw in these runs.** The rule says the tech race breaks the tie, but it cannot be
+  measured yet, so those games count as draws.
+- **A crisis does not move the score yet.** R22 is being built in another session; these runs see only era-end
+  scoring.
+- **Easy AI.** It does not aim at battlegrounds or weigh the score. Everything above can move once better players or
+  a scoring-aware AI play.
+
+### Where the track ended, and how games ended
+
+Positive favours SAE. "Track end" means a side reached its end and won at once; "ahead" is the side ahead after the
+last era.
+
+| Numbers            | Final track, average (lowest to highest) | Track end: LIO / SAE | Ahead after the last era: LIO / SAE | Even track (draw) |
+| ------------------ | ---------------------------------------- | -------------------- | ----------------------------------- | ----------------- |
+| A: history-led     | -7.82 (-20 to 20)                        | 32 / 4               | 41 / 22                             | 1                 |
+| B: balance-led     | 1.7 (-15 to 15)                          | 5 / 11               | 34 / 44                             | 6                 |
+| C: simple and flat | -7.59 (-20 to 15)                        | 21 / 0               | 54 / 25                             | 0                 |
+
+Wins in total: A LIO 73, SAE 26; B LIO 39, SAE 55; C LIO 75, SAE 25. The rest are draws.
+
+### Swing per era
+
+Average points each side scored in the era, over the games that reached its scoring, and the net swing (SAE minus
+LIO, so positive moves the track towards SAE). A game that ends on a track end stops scoring, so later eras have
+fewer games.
+
+| Numbers            | Era | Games | LIO points | SAE points | Swing |
+| ------------------ | --- | ----- | ---------- | ---------- | ----- |
+| A: history-led     | 1   | 100   | 5.98       | 2.67       | -3.31 |
+|                    | 2   | 99    | 5.34       | 4.24       | -1.1  |
+|                    | 3   | 90    | 6.09       | 4.12       | -1.97 |
+| B: balance-led     | 1   | 100   | 1.86       | 1.95       | 0.09  |
+|                    | 2   | 100   | 2.3        | 2.96       | 0.66  |
+|                    | 3   | 99    | 3.32       | 4.39       | 1.07  |
+| C: simple and flat | 1   | 100   | 4.08       | 1.61       | -2.47 |
+|                    | 2   | 100   | 4.78       | 2.48       | -2.3  |
+|                    | 3   | 97    | 5.89       | 2.71       | -3.18 |
+
+### Swing per region, and which region decides
+
+The swing is the average per game over the whole game (all eras added), SAE minus LIO. "Decided" counts games where
+the region pushed the track over its end or, for games that went to the final count, moved the track most towards
+the winner over the game. A draw has no deciding region.
+
+| Region                          | A swing | A decided | B swing | B decided | C swing | C decided |
+| ------------------------------- | ------- | --------- | ------- | --------- | ------- | --------- |
+| Eastern Europe and Central Asia | 0.96    | 34        | 2.09    | 28        | -0.49   | 33        |
+| East and South Asia             | -5.55   | 45        | -0.55   | 30        | -4.95   | 32        |
+| Europe                          | 0.1     | 3         | 0.02    | 5         | -0.11   | 7         |
+| Middle East and North Africa    | -0.33   | 5         | 0.29    | 5         | -0.89   | 7         |
+| Sub-Saharan Africa              | -0.15   | 1         | 0.07    | 0         | -0.15   | 1         |
+| The Americas                    | -1.2    | 11        | -0.11   | 26        | -1.65   | 20        |
+
+East and South Asia is LIO's best region under A and C (about 5 points a game towards LIO); under B it is nearly
+level.
+
+### How to rerun them
+
+The same commands as the control runs, with `scoring` now in each option's file. The report has a Score section, and
+`--json` gives the same numbers under `score`.
+
+```
+node tools/balance/run.mjs --scenario six-region --games 100 --seed x12 --turns 10 --plays 2 --era era-2@4 --era era-3@6 --era future@off --numbers docs/proposals/map-numbers/option-a-history.json
+node tools/balance/run.mjs --scenario six-region --games 100 --seed x12 --turns 10 --plays 2 --era era-2@4 --era era-3@6 --era future@off --numbers docs/proposals/map-numbers/option-b-balance.json
+node tools/balance/run.mjs --scenario six-region --games 100 --seed x12 --turns 10 --plays 2 --era era-2@4 --era era-3@6 --era future@off --numbers docs/proposals/map-numbers/option-c-simple.json
+```
 
 ## Mixing options
 

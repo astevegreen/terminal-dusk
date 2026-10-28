@@ -93,8 +93,8 @@ const SCENARIO_TITLES = {
   "first-deck": "first deck TEST scenario (placeholder numbers)",
   "test-map": "test-map scenario (a made-up test map, not the game's map: a smoke check, not a verdict on balance)",
   "six-region":
-    "six-region map with the first deck (no scoring and no victory rule yet: a smoke check of influence and " +
-    "control, not a verdict on balance)",
+    "six-region map with the first deck (a smoke check of influence and control, and of the score track when a " +
+    "numbers file gives the map scoring: not a verdict on balance)",
 };
 
 /**
