@@ -15,8 +15,9 @@ Task: $ARGUMENTS (in a night run, the mode and number are in your prompt instead
 ## 2. Stop early when
 - the spec is unclear or contradicts docs/architecture.md
 - the task needs a game-design choice, a Locked file, or a step type the spec didn't ask for
-Then comment one specific question on the issue, starting `Blocked:` (the owner's next comment is read as the
-answer only after one), add the `blocked` label, and hand back STATUS: BLOCKED.
+By day, ask the owner and wait. In a night run or sprint lane, comment one specific question on the issue, starting
+`Blocked:` (the owner's next comment is read as the answer only after one), add the `blocked` label, and hand back
+STATUS: BLOCKED.
 
 ## 3. Build
 - New work: branch `task/<n>` from `origin/main`. Sprint only (`docs/sprint.md`): when your prompt says
@@ -35,7 +36,8 @@ answer only after one), add the `blocked` label, and hand back STATUS: BLOCKED.
   PASS: `gh pr ready <pr>` and `gh pr merge <pr> --auto --squash`. GitHub merges once CI is green,
   and waits for the owner's approval when the change touches a code-owned file.
   Concerns left: `gh pr ready <pr>`, add the `held` label, and comment the concerns on the pull request.
-- Your final message, exactly:
+- Your final message: by day, CLAUDE.md's closing format (What changed, Tests, Unsure about). In a night run or
+  sprint lane, exactly:
 STATUS: DONE | BLOCKED | GATE-FAILED
 PR: <number or none>
 WHAT CHANGED: plain-English bullets, one per change the owner would notice
