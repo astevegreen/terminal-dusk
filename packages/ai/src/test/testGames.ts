@@ -36,7 +36,7 @@ export function dealGame(
   name: string,
   seed: number,
   turns: number,
-  extra: Pick<Setup, "map"> = {},
+  extra: Pick<Setup, "firstEra" | "map"> = {},
 ): TestState {
   const random = seededRandom(seed);
   const ids = rules.cards.map((card) => card.id);

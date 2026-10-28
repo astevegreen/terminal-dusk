@@ -1,6 +1,6 @@
 // The scenario schema: what one scenario file in packages/content/scenarios/ must hold (docs/architecture.md,
-// section 4). Part 1 covers the length of the game, plays per turn, the hand size, later eras and Contingency
-// decks. Part 2 adds the map (map.ts).
+// section 4). Part 1 covers the length of the game, plays per turn, the hand size, the first era's name, later eras
+// and Contingency decks. Part 2 adds the map (map.ts).
 // It refuses what the engine's createGame would refuse in those fields; scenario.types.test.ts checks it
 // against the engine's Setup.
 import * as z from "zod";
@@ -57,6 +57,41 @@ function checkHandSize(scenario: { playsPerTurn: number; handSize: number }, ctx
   }
 }
 
+type EraShape = {
+  firstEra?: string | undefined;
+  eras?: readonly { era: string }[] | undefined;
+  map?: { battlegrounds: readonly { era: string }[] } | undefined;
+};
+
+/**
+ * The eras' names: none shared with another era or the first era. A scenario with a map names its first era, and
+ * the map has a battleground list for each of the scenario's eras (docs/design/map-and-points.md, "Map").
+ */
+function checkEraNames(scenario: EraShape, ctx: z.RefinementCtx): void {
+  const names = new Set<string>(scenario.firstEra === undefined ? [] : [scenario.firstEra]);
+  (scenario.eras ?? []).forEach((entry, i) => {
+    if (names.has(entry.era)) {
+      ctx.addIssue({ code: "custom", path: ["eras", i, "era"], message: `Two eras are named ${entry.era}.` });
+    }
+    names.add(entry.era);
+  });
+  if (scenario.map === undefined) return;
+  if (scenario.firstEra === undefined) {
+    ctx.addIssue({ code: "custom", path: ["firstEra"], message: "A scenario with a map must name its first era." });
+    return;
+  }
+  const listed = new Set(scenario.map.battlegrounds.map((list) => list.era));
+  for (const era of names) {
+    if (!listed.has(era)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["map", "battlegrounds"],
+        message: `The map has no battleground list for era ${era}.`,
+      });
+    }
+  }
+}
+
 /** A scenario file. No other fields are allowed; a field written as undefined is refused, not read as left out. */
 export const scenarioSchema = z
   .strictObject({
@@ -65,6 +100,7 @@ export const scenarioSchema = z
     turns: z.int().min(1),
     playsPerTurn: z.int().min(1),
     handSize: z.int().min(1),
+    firstEra: name.exactOptional(),
     eras: z.array(eraEntry).exactOptional(),
     contingency: z
       .strictObject({ lio: deck.exactOptional(), sae: deck.exactOptional(), world: deck.exactOptional() })
@@ -72,6 +108,7 @@ export const scenarioSchema = z
     map: mapSchema.exactOptional(),
   })
   .superRefine(checkEras)
+  .superRefine(checkEraNames)
   .superRefine(checkHandSize);
 
 /** A scenario as it reads from its file. */

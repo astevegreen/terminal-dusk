@@ -74,8 +74,11 @@ export function createGame(
       triggers: [],
       turnEndFired: false,
       markers: [],
-      // Only a setup with a map adds the map, influence and Escalation, so a game without one starts exactly as before.
-      ...(setup.map === undefined ? {} : { ...mapState(setup.map), escalation: ESCALATION_START }),
+      // Only a setup with a map adds the map, influence, Escalation and the era, so a game without one starts exactly
+      // as before. mapError has made sure a setup with a map names its first era.
+      ...(setup.map === undefined
+        ? {}
+        : { ...mapState(setup.map), escalation: ESCALATION_START, era: setup.firstEra! }),
     },
     private: {
       lio: { hand: [...setup.hands.lio], picks: [], knowledge: [] },

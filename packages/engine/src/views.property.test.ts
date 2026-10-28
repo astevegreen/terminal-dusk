@@ -122,7 +122,7 @@ const gameArb: fc.Arbitrary<Game> = fc
       // The smallest hand size: the dealt hands never drop below it, so this test's games draw no cards.
       handSize: 1 + playsPerTurn,
       contingency: { lio: lioDeck, sae: saeDeck, world: worldDeck },
-      ...(map === null ? {} : { map }),
+      ...(map === null ? {} : { firstEra: "era-1", map }),
     };
     return { setup, seed: `seed-${seed}-x`, moves };
   });

@@ -3,7 +3,10 @@ import raw from "../scenarios/test-map.json" with { type: "json" };
 import { mapSchema } from "./map.ts";
 import { scenarioSchema } from "./scenario.ts";
 
-/** A small valid map: three regions, three countries in a line, x-y-z, and v on its own; closing order r2, r3, r1. */
+/**
+ * A small valid map: three regions, three countries in a line, x-y-z, and v on its own; closing order r2, r3, r1;
+ * era-1's battlegrounds x and z.
+ */
 const validMap = () => ({
   regions: [
     { id: "r1", name: "Region 1" },
@@ -12,11 +15,12 @@ const validMap = () => ({
   ],
   closingOrder: ["r2", "r3", "r1"],
   countries: [
-    { id: "x", name: "X", region: "r1", stability: 1, battleground: true, neighbours: ["y"] },
-    { id: "y", name: "Y", region: "r1", stability: 2, battleground: false, neighbours: ["x", "z"] },
-    { id: "z", name: "Z", region: "r2", stability: 3, battleground: true, neighbours: ["y"] },
-    { id: "v", name: "V", region: "r3", stability: 1, battleground: false, neighbours: [] as string[] },
+    { id: "x", name: "X", region: "r1", stability: 1, neighbours: ["y"] },
+    { id: "y", name: "Y", region: "r1", stability: 2, neighbours: ["x", "z"] },
+    { id: "z", name: "Z", region: "r2", stability: 3, neighbours: ["y"] },
+    { id: "v", name: "V", region: "r3", stability: 1, neighbours: [] as string[] },
   ],
+  battlegrounds: [{ era: "era-1", countries: ["x", "z"] }],
   homeBox: { lio: ["x"], sae: ["z", "y"] },
   startingInfluence: [
     { country: "x", lio: 2, sae: 0 },
@@ -32,7 +36,7 @@ const paths = (change: (m: MapData) => void): unknown[][] => {
   const r = mapSchema.safeParse(m);
   return r.success ? [] : r.error.issues.map((i) => [...i.path]);
 };
-const base = { id: "s1", name: "Test", turns: 4, playsPerTurn: 2, handSize: 3 };
+const base = { id: "s1", name: "Test", turns: 4, playsPerTurn: 2, handSize: 3, firstEra: "era-1" };
 
 describe("map schema", () => {
   it("accepts a valid map, and a scenario carrying it", () => {
@@ -62,7 +66,7 @@ describe("map schema", () => {
     expect(paths((m) => (m.regions[0]!.name = ""))).toEqual([["regions", 0, "name"]]);
   });
   it("refuses an empty country id", () => {
-    const blank = { id: "", name: "W", region: "r1", stability: 1, battleground: false, neighbours: [] };
+    const blank = { id: "", name: "W", region: "r1", stability: 1, neighbours: [] };
     expect(paths((m) => m.countries.push(blank))).toEqual([["countries", 4, "id"]]);
   });
   it("refuses an empty country name", () => {
@@ -114,7 +118,7 @@ describe("map schema", () => {
   it("refuses a closingOrder with more than 3 region ids", () => {
     const fourth = (m: MapData) => {
       m.regions.push({ id: "r4", name: "Region 4" });
-      m.countries.push({ id: "w", name: "W", region: "r4", stability: 1, battleground: false, neighbours: [] });
+      m.countries.push({ id: "w", name: "W", region: "r4", stability: 1, neighbours: [] });
       m.closingOrder.push("r4");
     };
     expect(paths(fourth)).toEqual([["closingOrder"]]);

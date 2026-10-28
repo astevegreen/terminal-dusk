@@ -24,10 +24,23 @@ function canonical(value: unknown): string {
   return JSON.stringify(value);
 }
 
-/** A game started without a map never has `map` or `influence`. */
+/** A game started without a map never has `map`, `influence` or `era`. */
 function checkNoMap(pub: PublicState): void {
-  for (const field of ["map", "influence"] as const) {
+  for (const field of ["map", "influence", "era"] as const) {
     if (field in pub) throw new Error(`the game was started without a map, but its state has \`${field}\``);
+  }
+}
+
+/**
+ * The era a game with a map is in (#429): the setup's first era, until each later era enters at the start of its
+ * turn. Worked out from the setup alone. The map must have that era's battleground list.
+ */
+function checkEra(setup: Setup, pub: PublicState): void {
+  const entered = (setup.eras ?? []).filter((entry) => entry.turn <= pub.turn).sort((a, b) => a.turn - b.turn);
+  const expected = entered.at(-1)?.era ?? setup.firstEra;
+  if (pub.era !== expected) throw new Error(`the game is in era ${String(pub.era)}, not ${String(expected)}`);
+  if (!pub.map?.battlegrounds.some((list) => list.era === pub.era)) {
+    throw new Error(`the map has no battleground list for the current era ${String(pub.era)}`);
   }
 }
 
@@ -46,7 +59,7 @@ function checkEntry(entry: InfluenceEntry): void {
 }
 
 /**
- * A game started without a map never has `map` or `influence`. With a map: its closing order is the setup's
+ * A game started without a map never has `map`, `influence` or `era`. With a map: the era is checkEra's; its closing order is the setup's
  * `closingOrder`, in the same order; `state.public.map` is the setup's map without its starting influence,
  * unchanged; `influence` has exactly one entry per map country, in the map's
  * country order, each with only `country`, `lio` and `sae`; and every count is a whole number, 0 or more.
@@ -57,12 +70,13 @@ export function checkInfluence(setup: Setup, state: GameState): void {
     checkNoMap(pub);
     return;
   }
-  const { regions, closingOrder, countries: mapCountries, homeBox } = setup.map;
+  checkEra(setup, pub);
+  const { regions, closingOrder, countries: mapCountries, battlegrounds, homeBox } = setup.map;
   const closing = JSON.stringify(pub.map?.closingOrder);
   if (closing !== JSON.stringify(closingOrder)) {
     throw new Error(`the closing order ${closing} is not the setup's closingOrder ${JSON.stringify(closingOrder)}`);
   }
-  const fixed = { regions, closingOrder, countries: mapCountries, homeBox };
+  const fixed = { regions, closingOrder, countries: mapCountries, battlegrounds, homeBox };
   if (canonical(pub.map) !== canonical(fixed)) {
     throw new Error(`the map ${canonical(pub.map)} is not the setup's map ${canonical(fixed)}`);
   }

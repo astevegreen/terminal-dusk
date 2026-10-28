@@ -58,9 +58,10 @@ describe("the six-region map scenario (#422)", () => {
     expect(perRegion).toEqual([9, 8, 8, 8, 4, 5]);
   });
 
-  it("has option 2's 17 battlegrounds, three per region and two in Sub-Saharan Africa", () => {
-    const battlegrounds = map.countries.filter((c) => c.battleground).map((c) => c.id);
-    expect(battlegrounds.toSorted()).toEqual(
+  it("has option 2's 17 battlegrounds in every era, three per region and two in Sub-Saharan Africa", () => {
+    expect(map.battlegrounds.map((b) => b.era)).toEqual(["era-1", "era-2", "era-3", "future"]);
+    for (const { countries } of map.battlegrounds) expect(countries).toEqual(map.battlegrounds[0]!.countries);
+    expect(map.battlegrounds[0]!.countries.toSorted()).toEqual(
       [
         "germany",
         "poland",
@@ -91,7 +92,8 @@ describe("the six-region map scenario (#422)", () => {
 
   it("makes Crimea its own box next to Ukraine, Turkey and the SAE box, with Turkey listing Crimea back", () => {
     const crimea = byId.get("crimea");
-    expect(crimea).toMatchObject({ name: "Crimea", region: "eastern-europe-central-asia", battleground: false });
+    expect(crimea).toMatchObject({ name: "Crimea", region: "eastern-europe-central-asia" });
+    expect(map.battlegrounds.some((b) => b.countries.includes("crimea"))).toBe(false);
     expect(crimea?.neighbours.toSorted()).toEqual(["turkey", "ukraine"]);
     expect(neighboursOf("turkey")).toContain("crimea");
     expect(neighboursOf("ukraine")).toContain("crimea");

@@ -1,5 +1,5 @@
 // The map a scenario can carry (docs/design/map-and-points.md, "Map", "Influence" and "Escalation"): regions, their
-// closing order, countries, the countries next to each home box, and starting influence. It has the shape of the engine's SetupMap and refuses
+// closing order, countries, each era's battlegrounds, the countries next to each home box, and starting influence. It has the shape of the engine's SetupMap and refuses
 // what the engine's createGame refuses in a map (mapChecks.ts), each problem at its path.
 // scenario.types.test.ts checks it against the engine's type.
 import * as z from "zod";
@@ -13,9 +13,11 @@ const country = z.strictObject({
   name,
   region: name,
   stability: z.int().min(1),
-  battleground: z.boolean(),
   neighbours: z.array(name),
 });
+
+/** One era's battleground countries, matched to the era by its name. It may be empty. */
+const battlegroundList = z.strictObject({ era: name, countries: z.array(name) });
 
 const influenceEntry = z.strictObject({ country: name, lio: z.int().min(0), sae: z.int().min(0) });
 
@@ -23,6 +25,7 @@ type MapShape = {
   regions: readonly { id: string }[];
   closingOrder: readonly string[];
   countries: readonly { id: string; region: string; neighbours: readonly string[] }[];
+  battlegrounds: readonly { era: string; countries: readonly string[] }[];
   homeBox: { lio: readonly string[]; sae: readonly string[] };
   startingInfluence: readonly { country: string }[];
 };
@@ -106,6 +109,28 @@ function checkHomeBox(map: MapShape, ctx: z.RefinementCtx): void {
   }
 }
 
+/**
+ * No era has two battleground lists, and each list names known countries, each once. Which eras need a list is
+ * checked by the scenario, which knows its eras (scenario.ts).
+ */
+function checkBattlegrounds(map: MapShape, ctx: z.RefinementCtx): void {
+  const ids = new Set(map.countries.map((c) => c.id));
+  const eras = new Set<string>();
+  map.battlegrounds.forEach((list, i) => {
+    if (eras.has(list.era)) {
+      ctx.addIssue({ code: "custom", path: ["battlegrounds", i, "era"], message: `Era ${list.era} has two lists.` });
+    }
+    eras.add(list.era);
+    const seen = new Set<string>();
+    list.countries.forEach((id, j) => {
+      const path = ["battlegrounds", i, "countries", j];
+      if (!ids.has(id)) ctx.addIssue({ code: "custom", path, message: `Unknown country ${id}.` });
+      else if (seen.has(id)) ctx.addIssue({ code: "custom", path, message: `${id} is listed twice.` });
+      seen.add(id);
+    });
+  });
+}
+
 /** Each starting-influence entry names a known country not already listed. Amounts are checked by their schema. */
 function checkInfluence(map: MapShape, ctx: z.RefinementCtx): void {
   const ids = new Set(map.countries.map((c) => c.id));
@@ -124,20 +149,30 @@ function checkInfluence(map: MapShape, ctx: z.RefinementCtx): void {
  */
 function checkMap(map: MapShape, ctx: z.RefinementCtx): void {
   if (map.regions.length === 0 || map.countries.length === 0) return;
-  const checks = [checkRegions, checkClosingOrder, checkCountries, checkAdjacency, checkHomeBox, checkInfluence];
+  const checks = [
+    checkRegions,
+    checkClosingOrder,
+    checkCountries,
+    checkAdjacency,
+    checkBattlegrounds,
+    checkHomeBox,
+    checkInfluence,
+  ];
   for (const check of checks) check(map, ctx);
 }
 
 /**
  * A scenario's map. No other fields are allowed at any level. A country left out of startingInfluence starts at 0.
  * `closingOrder` names the three regions that close as Escalation reaches 3, 4 and 5, one per threshold, in that
- * order (docs/design/map-and-points.md, "Thresholds close regions").
+ * order (docs/design/map-and-points.md, "Thresholds close regions"). `battlegrounds` holds one list per era, matched by
+ * the era's name; lists for eras the scenario does not use are allowed and never read.
  */
 export const mapSchema = z
   .strictObject({
     regions: z.array(region).min(1),
     closingOrder: z.array(name).length(3),
     countries: z.array(country).min(1),
+    battlegrounds: z.array(battlegroundList),
     homeBox: z.strictObject({ lio: z.array(name), sae: z.array(name) }),
     startingInfluence: z.array(influenceEntry),
   })

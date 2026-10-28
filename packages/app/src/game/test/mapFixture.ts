@@ -8,7 +8,6 @@ const country = (id: string, name: string, region: string, stability: number): C
   name,
   region,
   stability,
-  battleground: false,
   neighbours: [],
 });
 
@@ -25,6 +24,7 @@ export const map: GameMap = {
     country("e2", "Dunmoor", "east", 2),
     country("w3", "Elmhaven", "west", 2),
   ],
+  battlegrounds: [{ era: "era-1", countries: [] }],
   homeBox: { lio: ["w1"], sae: ["e1"] },
   // Escalation is 0 below, so no region is closed and the Map area never reads this.
   closingOrder: [],
@@ -48,7 +48,7 @@ export const baseFrame = (): Frame => {
 
 export const withMap = (frame: Frame, entries: InfluenceEntry[] = influence): Frame => ({
   ...frame,
-  view: { ...frame.view, public: { ...frame.view.public, map, influence: entries, escalation: 0 } },
+  view: { ...frame.view, public: { ...frame.view.public, map, influence: entries, escalation: 0, era: "era-1" } },
 });
 
 export const withoutMap = (frame: Frame): Frame => {
@@ -56,5 +56,6 @@ export const withoutMap = (frame: Frame): Frame => {
   delete pub.map;
   delete pub.influence;
   delete pub.escalation;
+  delete pub.era;
   return { ...frame, view: { ...frame.view, public: pub } };
 };

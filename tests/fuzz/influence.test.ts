@@ -9,6 +9,7 @@ import { checkInfluence } from "./checks.ts";
 import { gameCount, playGame, randomChooser, randomGame, ruleset } from "./play.ts";
 import type { Played } from "./play.ts";
 import { seededRng } from "./random.ts";
+import { onTestMap } from "./testMap.ts";
 
 // tests/ has no Node type definitions; this is the one Node global the suite reads.
 declare const process: { readonly env: Readonly<Record<string, string | undefined>> };
@@ -24,13 +25,13 @@ function playMapGame(game: number): Played {
   const rng = seededRng(game);
   const { setup, seed } = randomGame(rng, game);
   const label = `Map game ${game} (playMapGame(${game}) plays it again)`;
-  return playGame(ruleset, label, { ...setup, map: testMap() }, seed, randomChooser(ruleset, rng));
+  return playGame(ruleset, label, onTestMap(setup), seed, randomChooser(ruleset, rng));
 }
 
 /** The state createGame makes from fuzz game 1's setup, with the test map unless `withMap` is false. */
 function started(withMap = true): { setup: Setup; state: GameState } {
   const { setup: base, seed } = randomGame(seededRng(1), 1);
-  const setup = withMap ? { ...base, map: testMap() } : base;
+  const setup = withMap ? onTestMap(base) : base;
   const r = createGame(ruleset, setup, seed);
   if (!r.ok) throw new Error(`createGame failed: ${r.error.code}`);
   return { setup, state: r.value.state };
@@ -94,19 +95,33 @@ describe("the influence check", () => {
     const withMap = started();
     expect(() => checkInfluence(setup, withPublic(state, { map: withMap.state.public.map! }))).toThrow(/`map`/);
     expect(() => checkInfluence(setup, withPublic(state, { influence: [] }))).toThrow(/`influence`/);
+    expect(() => checkInfluence(setup, withPublic(state, { era: "era-1" }))).toThrow(/`era`/);
+  });
+
+  it("fails a game with a map in another era than the setup's, or in an era the map has no list for", () => {
+    const { setup, state } = started();
+    expect(state.public.era).toBe("era-1");
+    expect(() => checkInfluence(setup, withPublic(state, { era: "era-2" }))).toThrow(/in era era-2, not era-1/);
+    const noLists = { ...setup, map: { ...setup.map!, battlegrounds: [] } };
+    const map = { ...state.public.map!, battlegrounds: [] };
+    expect(() => checkInfluence(noLists, withPublic(state, { map }))).toThrow(/no battleground list for .* era-1/);
   });
 });
 
 describe("random games with the content test map", () => {
   it(`plays ${GAMES} random games with TEST_MAP_SCENARIO's map to the end, and every check holds at every step`, () => {
     let finished = 0;
+    let laterEra = 0;
     for (let game = 1; game <= GAMES; game++) {
       const { final, record } = playMapGame(game);
+      if (final.public.era !== record.setup.firstEra) laterEra++;
       expect(final.public.influence!.map((e) => e.country)).toEqual(testMap().countries.map((c) => c.id));
       // Escalation starts at 2 and falls by 1 at the end of every turn, the last included (R17a).
       expect(final.public.escalation).toBe(Math.max(0, 2 - record.setup.turns));
       if (final.public.status.kind === "over") finished++;
     }
     expect(finished).toBe(GAMES);
+    // Some games end in a later era, so the era check also runs after an era has entered.
+    expect(laterEra).toBeGreaterThan(0);
   }, 120_000);
 });

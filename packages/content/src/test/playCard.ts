@@ -165,7 +165,7 @@ function startCardGameDef(def: CardDef, options: PlayOptions, holder: "owner" | 
       playsPerTurn: 2,
       handSize: 3,
       contingency: { lio: deckOf, sae: deckOf, world: deckOf },
-      ...(options.map === true ? { map: scenarioSetup(TEST_MAP_SCENARIO).map! } : {}),
+      ...(options.map === true ? { firstEra: "era-1", map: scenarioSetup(TEST_MAP_SCENARIO).map! } : {}),
     },
     "card-test",
   );
