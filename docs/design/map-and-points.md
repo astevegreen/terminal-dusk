@@ -153,7 +153,7 @@ Decided by the owner on 28 October 2026, choosing between the options in `docs/p
 - **When** (owner: "every era's end"). At the end of each era's last turn every region scores, in a fixed order.
   The order (owner, 28 Oct, chosen in chat: S1) is the closing order's own list: Eastern Europe and Central Asia,
   East and South Asia, Europe, then the three regions that never close, Middle East and North Africa, Sub-Saharan
-  Africa, the Americas. The scenario sets it as data, so a balance pass can change it. The base game scores three times. There are no scoring cards, so "how scoring cards are played" has no answer
+  Africa, the Americas. The scenario sets it as data. The base game scores three times. There are no scoring cards, so "how scoring cards are played" has no answer
   to give.
 - **How a region scores.** A side is **present** in a region if it controls at least one country there, **ahead**
   if it controls more countries and more battlegrounds there than the rival, and **holds every battleground** if
