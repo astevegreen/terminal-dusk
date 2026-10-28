@@ -1,4 +1,4 @@
-// The words the game screens share: side names, era names, why a game ended, and what the log calls cards and
+// The words the game screens share: side names and who each side is, era names, why a game ended, and what the log calls cards and
 // eras. Display data only; era names come from the first deck through the host (the app may not import content).
 import type { CardId, EraId, GameStatus, Side } from "@terminal-dusk/engine";
 import { firstDeckEraName } from "@terminal-dusk/host/first-deck";
@@ -9,7 +9,23 @@ export type Label = (card: CardId) => string;
 /** What a log line calls a card and an era. */
 export type GameNames = { card: Label; era: (era: EraId) => string };
 
+/** A card's rules text, shown under its name in the hand; undefined when the game has none for it. */
+export type CardRules = (card: CardId) => string | undefined;
+
 export const SIDE_NAME: Record<Side, string> = { lio: "LIO", sae: "SAE" };
+
+/** Each side spelled out and who it is, in the words of docs/design/sides.md. */
+const SIDE_SPELLED: Record<Side, string> = {
+  lio: "Liberal International Order",
+  sae: "Strategic Authoritarian Entente",
+};
+export const SIDE_WHO: Record<Side, string> = {
+  lio: "The US-led bloc of real states.",
+  sae: "Russia and China as one unified side.",
+};
+
+/** "LIO (Liberal International Order)". */
+export const sideFullName = (side: Side): string => `${SIDE_NAME[side]} (${SIDE_SPELLED[side]})`;
 
 /** An era's shown name, such as "Era 2 (2001–2008)"; an id with no name shows as it is. */
 export const eraText = (era: EraId): string => firstDeckEraName(era);

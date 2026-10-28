@@ -106,6 +106,14 @@
   grid-area: hand;
   max-height: 120px;
 }
+/* A card with rules text: its name in bold, the rules on their own line under it. */
+.game .hand-card-name {
+  font-weight: bold;
+}
+.game .hand-card-rules {
+  display: block;
+  margin-bottom: 4px;
+}
 .game .game-side {
   grid-area: side;
   display: flex;
