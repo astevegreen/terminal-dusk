@@ -94,3 +94,23 @@ describe("boardValue", () => {
     expect(gain(2)).toBeGreaterThan(gain(0));
   });
 });
+
+describe("boardValue, the later weight", () => {
+  it("counts progress in a country on a later era's battleground list more when the later weight is higher", () => {
+    const pub = viewFor(newMapGame(1), "lio").public;
+    const map = pub.map!;
+    const inNow = new Set(map.battlegrounds.flatMap((l) => l.countries));
+    const target = map.countries.find((c) => !inNow.has(c.id))!;
+    const withLater = {
+      ...pub,
+      map: { ...map, battlegrounds: [...map.battlegrounds, { era: "later-era", countries: [target.id] }] },
+    };
+    const influence = pub.influence!.map((e) => (e.country === target.id ? { ...e, lio: e.lio + 1 } : e));
+    const gain = (later: number): number => {
+      const weights = { ...MEDIUM_WEIGHTS, region: 0, later };
+      return boardValue({ ...withLater, influence }, "lio", weights) - boardValue(withLater, "lio", weights);
+    };
+    expect(gain(0)).toBeGreaterThan(0);
+    expect(gain(1)).toBeGreaterThan(gain(0));
+  });
+});

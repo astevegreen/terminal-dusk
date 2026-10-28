@@ -40,3 +40,10 @@ test("the same seed and tiers give the same run", () => {
   const options = { scenario: "test-map", games: 3, seed: "tiers-same", tiers: { sae: "medium" } };
   assert.deepEqual(runBalance(options), runBalance(options));
 });
+
+test("Medium as SAE causes no crisis either, on the test map and the six-region map", () => {
+  for (const scenario of ["test-map", "six-region"]) {
+    const stats = runBalance({ scenario, games: 4, seed: "tiers-sae", tiers: { lio: "easy", sae: "medium" } });
+    assert.equal(stats.crises.sae, 0, scenario);
+  }
+});
