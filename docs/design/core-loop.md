@@ -88,6 +88,6 @@ change it in Notion and promote again.
 
 - The tech race track, and the full list of actions and their costs.
 - How many cards each player plays per turn, and how a turn ends.
-- How scoring cards are played.
-- Scoring (its own topic page). The Escalation track (formerly the tension track) is decided in
-  docs/design/map-and-points.md, except the parts that wait on scoring, the map and the tech race.
+- Scoring's numbers. When regions score and how the game is won are decided in docs/design/map-and-points.md
+  (owner, 28 Oct): every region scores at each era's end, and there are no scoring cards. The Escalation track
+  (formerly the tension track) is decided there too, except the parts that wait on scoring's numbers, the map and the tech race.
