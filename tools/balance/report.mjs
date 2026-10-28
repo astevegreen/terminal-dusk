@@ -1,5 +1,6 @@
 // The balance report as text: the numbers from stats.mjs laid out as plain tables.
 import { ACTIONS } from "./map-stats.mjs";
+import { LEVELS } from "./region-stats.mjs";
 import { NO_WINNER_LINE, SIDES } from "./stats.mjs";
 
 const LABEL = { lio: "LIO", sae: "SAE" };
@@ -48,6 +49,7 @@ export function formatText(stats, title = "Balance report") {
   lines.push(...table([header, ...rows]));
   if (stats.byEra !== undefined) lines.push("", ...eraLines(stats.byEra));
   if (stats.map !== undefined) lines.push("", ...mapLines(stats.map));
+  if (stats.eraEnds !== undefined) lines.push("", ...eraEndLines(stats.eraEnds));
   return `${lines.join("\n")}\n`;
 }
 
@@ -66,6 +68,28 @@ function mapLines(map) {
     ...table([header, ...rows]),
   ];
 }
+
+/** The "Era ends" section, on a scenario with a map: one row per era end and side. */
+function eraEndLines(eraEnds) {
+  const header = ["era", "side", "countries", "battlegrounds", ...LEVELS.map((l) => `regions ${LEVEL_LABEL[l]}`)];
+  const rows = eraEnds.flatMap((end) =>
+    SIDES.map((s) => [
+      end.era,
+      LABEL[s],
+      end[s].countries,
+      end[s].battlegrounds,
+      ...LEVELS.map((l) => end[s].levels[l]),
+    ]),
+  );
+  return [
+    "Era ends, per side (averages per game, when the next era starts or the game ends: countries and battlegrounds " +
+      "controlled, with the ending era's battleground list; regions at each level, the highest only. Control only: " +
+      "scoring is not built, so no amounts and no score)",
+    ...table([header, ...rows]),
+  ];
+}
+
+const LEVEL_LABEL = { present: "present", ahead: "ahead", everyBattleground: "every BG" };
 
 /** The "By era" section: one row per era, or "left out" with no numbers. */
 function eraLines(byEra) {

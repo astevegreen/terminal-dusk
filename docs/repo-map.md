@@ -804,16 +804,20 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## tools
 
 - `tools/balance/README.md` - Balance tool
-- `tools/balance/config.mjs` - The run's match config: the chosen scenario (the first-deck TEST scenario, or the test map scenario with the first deck's Era 1 cards), with the turns, plays p…
+- `tools/balance/config.mjs` - The run's match config: the chosen scenario (the first-deck TEST scenario, the test map scenario with the first deck's Era 1 cards, or the six-region map with…
 - `tools/balance/era-stats.test.mjs` - The "By era" numbers from hand-made game summaries: distinct cards used per game, their share of the era, and picks plus plays per game, including a card both…
 - `tools/balance/fixtures/first-deck-3-games.txt`
 - `tools/balance/fixtures/first-deck-short.json`
 - `tools/balance/map-stats.mjs` - The map numbers of the balance report, on a scenario with a map.
 - `tools/balance/map-stats.test.mjs` - The map numbers from a hand-made public view and events: influence, control through the engine's controller, points per action from the public events, and the…
+- `tools/balance/numbers.mjs` - A numbers file (--numbers): a proposal's stabilities, battleground lists and starting influence, laid over a map scenario's own for one run.
+- `tools/balance/numbers.test.mjs` - The --numbers option (X12, #438): a numbers file's stabilities, battleground lists and starting influence laid over a map scenario for one run, its refusals, a…
 - `tools/balance/options.test.mjs` - The run options --turns, --plays and --era: parsing, refusals, the host's own refusals, the report title, and a small seeded run with fewer turns and two eras…
 - `tools/balance/play.mjs` - Plays one seeded Easy-vs-Easy game of the first deck through the match host, as a real match would run.
+- `tools/balance/region-stats.mjs` - Region levels at each era's end, on a scenario with a map.
+- `tools/balance/region-stats.test.mjs` - The region levels at each era's end (X12, #438): the highest level per side and region, with control from the engine and the battlegrounds of the era that is e…
 - `tools/balance/report.mjs` - The balance report as text: the numbers from stats.mjs laid out as plain tables.
-- `tools/balance/run.mjs` - `node tools/balance/run.mjs [--scenario <first-deck|test-map>] [--games <n>] [--seed <base>] [--turns <n>] [--plays <n>] [--era <id>@<turn|off>] [--json]`: pla…
+- `tools/balance/run.mjs` - `node tools/balance/run.mjs [--scenario <first-deck|test-map|six-region>] [--games <n>] [--seed <base>] [--turns <n>] [--plays <n>] [--era <id>@<turn|off>] [--…
 - `tools/balance/run.test.mjs` - Real balance runs: a few first-deck games through the match host, and the command line around them.
 - `tools/balance/scenario.test.mjs` - The --scenario option (X11, #331): the first-deck report as it was, the test map run with its map numbers and its smoke-check heading, refusals, and a player t…
 - `tools/balance/stats.mjs` - The balance report's numbers, worked out from finished games only.
@@ -943,6 +947,13 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `docs/proposals/map-content/option-1.md` - Option 1: even regions, six countries each
 - `docs/proposals/map-content/option-2.md` - Option 2: card places first, uneven regions
 - `docs/proposals/map-content/option-3.md` - Option 3: compact, five countries per region
+- `docs/proposals/map-numbers/README.md` - The six-region map's numbers
+- `docs/proposals/map-numbers/option-a-history.json`
+- `docs/proposals/map-numbers/option-a-history.md` - Option A: history-led
+- `docs/proposals/map-numbers/option-b-balance.json`
+- `docs/proposals/map-numbers/option-b-balance.md` - Option B: balance-led
+- `docs/proposals/map-numbers/option-c-simple.json`
+- `docs/proposals/map-numbers/option-c-simple.md` - Option C: simple and flat
 - `docs/proposals/missed-turn-ai.md` - How "the AI plays the missed turn" could work online: options
 - `docs/proposals/new-lio-cards.md` - New LIO cards: drafts for the owner's approval
 - `docs/proposals/special-abilities.md` - Special abilities for LIO and SAE: options

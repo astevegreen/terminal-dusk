@@ -1,20 +1,22 @@
-// `node tools/balance/run.mjs [--scenario <first-deck|test-map>] [--games <n>] [--seed <base>] [--turns <n>]
-// [--plays <n>] [--era <id>@<turn|off>] [--json]`: plays n seeded Easy-vs-Easy games of the chosen scenario (by
-// default the first-deck TEST scenario) and prints results by side, per-card statistics, per-era card use and, on
-// a scenario with a map, the map numbers. See tools/balance/README.md.
+// `node tools/balance/run.mjs [--scenario <first-deck|test-map|six-region>] [--games <n>] [--seed <base>]
+// [--turns <n>] [--plays <n>] [--era <id>@<turn|off>] [--numbers <file>] [--json]`: plays n seeded Easy-vs-Easy
+// games of the chosen scenario (by default the first-deck TEST scenario) and prints results by side, per-card
+// statistics, per-era card use and, on a scenario with a map, the map numbers and the region levels at each era's
+// end. See tools/balance/README.md.
 import { firstDeckCardName, firstDeckRuleset } from "@terminal-dusk/host/first-deck";
 import { balanceConfig, DEFAULT_SCENARIO, describeSetup, eraCards, eraIdsOf, FIRST_ERA } from "./config.mjs";
 import { SCENARIOS, setupNumbers } from "./config.mjs";
+import { readNumbers } from "./numbers.mjs";
 import { playBalanceGame } from "./play.mjs";
 import { formatText } from "./report.mjs";
 import { balanceStats } from "./stats.mjs";
 
 export const USAGE =
-  "Usage: node tools/balance/run.mjs [--scenario <first-deck or test-map>] [--games <positive whole number>] " +
-  "[--seed <base>] [--turns <positive whole number>] [--plays <positive whole number>] " +
-  "[--era <era id>@<positive whole number or off>]... [--json]";
+  "Usage: node tools/balance/run.mjs [--scenario <first-deck, test-map or six-region>] " +
+  "[--games <positive whole number>] [--seed <base>] [--turns <positive whole number>] " +
+  "[--plays <positive whole number>] [--era <era id>@<positive whole number or off>]... [--numbers <file>] [--json]";
 const DEFAULTS = { games: 200, seed: "balance", json: false };
-const VALUED = ["--scenario", "--games", "--seed", "--turns", "--plays", "--era"];
+const VALUED = ["--scenario", "--games", "--seed", "--turns", "--plays", "--era", "--numbers"];
 const WHOLE = /^[1-9]\d*$/;
 const refuse = (message) => new Error(`${message}\n${USAGE}`);
 
@@ -45,6 +47,7 @@ export function parseArgs(argv) {
     const value = argv[++i];
     if (value === undefined) throw refuse(`${arg} needs a value.`);
     if (arg === "--seed") options.seed = value;
+    else if (arg === "--numbers") options.numbersFile = value;
     else if (arg === "--era") eraValues.push(value);
     else if (arg === "--scenario") {
       if (!SCENARIOS.includes(value)) {
@@ -60,15 +63,20 @@ export function parseArgs(argv) {
     const [era, turn] = parseEra(value, options.eras, options.scenario ?? DEFAULT_SCENARIO);
     options.eras[era] = turn;
   }
+  if (options.numbersFile !== undefined && (options.scenario ?? DEFAULT_SCENARIO) === DEFAULT_SCENARIO) {
+    throw refuse("--numbers needs a scenario with a map: --scenario test-map or --scenario six-region.");
+  }
   return options;
 }
 
 /**
  * Plays the run's games and returns the report numbers, with the turns, plays per turn and era arrival turns
- * actually used under `setup`. `createPlayer` (optional) replaces the Easy AI, for tests.
+ * actually used under `setup`. `numbers` (optional) is a numbers file's content (numbers.mjs). `createPlayer`
+ * (optional) replaces the Easy AI, for tests.
  */
-export function runBalance({ scenario = DEFAULT_SCENARIO, games, seed, turns, plays, eras }, { createPlayer } = {}) {
-  const config = balanceConfig({ scenario, turns, plays, eras });
+export function runBalance(options, { createPlayer } = {}) {
+  const { scenario = DEFAULT_SCENARIO, games, seed, turns, plays, eras, numbers } = options;
+  const config = balanceConfig({ scenario, turns, plays, eras, numbers });
   const setup = setupNumbers(config, scenario);
   const summaries = Array.from({ length: games }, (_, i) => playBalanceGame(seed, i, config, { createPlayer }));
   // One row per card of the scenario's eras (every first-deck card on first-deck; Era 1's on the test map).
@@ -81,13 +89,21 @@ export function runBalance({ scenario = DEFAULT_SCENARIO, games, seed, turns, pl
   return { setup, ...stats };
 }
 
-/** The report's first line, before the game count: the scenario, the base seed and the setup used. */
-export function reportTitle(scenario, seed, setup) {
-  const what =
-    scenario === "test-map"
-      ? "test-map scenario (a made-up test map, not the game's map: a smoke check, not a verdict on balance)"
-      : "first deck TEST scenario (placeholder numbers)";
-  return `Balance report, ${what}, base seed "${seed}", ${describeSetup(setup)}`;
+const SCENARIO_TITLES = {
+  "first-deck": "first deck TEST scenario (placeholder numbers)",
+  "test-map": "test-map scenario (a made-up test map, not the game's map: a smoke check, not a verdict on balance)",
+  "six-region":
+    "six-region map with the first deck (no scoring and no victory rule yet: a smoke check of influence and " +
+    "control, not a verdict on balance)",
+};
+
+/**
+ * The report's first line, before the game count: the scenario, the numbers file's name when the run had one, the
+ * base seed and the setup used.
+ */
+export function reportTitle(scenario, seed, setup, numbersName) {
+  const numbers = numbersName === undefined ? "" : `, numbers "${numbersName}"`;
+  return `Balance report, ${SCENARIO_TITLES[scenario]}${numbers}, base seed "${seed}", ${describeSetup(setup)}`;
 }
 
 if (import.meta.main) {
@@ -99,8 +115,11 @@ if (import.meta.main) {
     process.exit(1);
   }
   try {
-    const stats = runBalance(options);
-    const title = reportTitle(options.scenario ?? DEFAULT_SCENARIO, options.seed, stats.setup);
+    const { numbersFile, ...rest } = options;
+    const numbers = numbersFile === undefined ? undefined : readNumbers(numbersFile);
+    const stats = runBalance({ ...rest, numbers });
+    const numbersName = numbers === undefined ? undefined : (numbers.name ?? numbersFile);
+    const title = reportTitle(options.scenario ?? DEFAULT_SCENARIO, options.seed, stats.setup, numbersName);
     process.stdout.write(options.json ? `${JSON.stringify(stats, null, 2)}\n` : formatText(stats, title));
   } catch (err) {
     process.stderr.write(`${err.message}\n`);

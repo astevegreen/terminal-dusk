@@ -1,0 +1,144 @@
+Proposal, not a rule
+
+# The six-region map's numbers
+
+Research lane X12 (#438). The owner's 28 October answers settled the six-region map's countries, its neighbours,
+the closing order and how a region scores, but left its numbers open (`docs/design/map-and-points.md`, "Owner's
+remaining questions" 3, and the Scoring section's "Open" line). This proposal lays out three complete sets of those
+numbers, with trade-offs and a smoke run of each. It decides nothing and recommends nothing; nothing here is a rule
+until the owner picks and it is promoted into `docs/design/`.
+
+| File                                       | What it holds                                                                                                           |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| This README                                | The questions, what every option shares, the comparison, the smoke runs, how to rerun them, the questions for the owner |
+| [option-a-history.md](option-a-history.md) | Option A: history-led. Stabilities and battlegrounds follow the period; the frontier regions score most                 |
+| [option-b-balance.md](option-b-balance.md) | Option B: balance-led. Offsets the SAE box's reach; 2 battlegrounds a region; even amounts                              |
+| [option-c-simple.md](option-c-simple.md)   | Option C: simple and flat. Keeps the placeholders; a few battleground swaps; even amounts                               |
+
+Each option also has a `.json` file with its stabilities, battleground lists and starting influence, in the form
+the balance tool reads (`tools/balance/README.md`, "Trying other map numbers"). The amounts and the track are in
+the option files only: scoring is not built yet, so no tool reads them.
+
+## The questions this answers
+
+1. Each country's stability (42 countries).
+2. Each era's battleground list: Era 1, Era 2, Era 3, and the list for the future era of the 2025-2027 scenario.
+3. For each region, the amounts for present, ahead and holding every battleground.
+4. The score track's length, and where it starts.
+5. Taiwan's and Crimea's starting influence.
+
+## Settled, and not reopened here
+
+- The countries, regions, neighbours and home boxes of map-content option 2, with H1 and Crimea as its own box.
+- The closing order C1 and scoring order S1: Eastern Europe and Central Asia, East and South Asia, Europe close at
+  Escalation 3, 4 and 5; those three then the Middle East and North Africa, Sub-Saharan Africa and the Americas
+  score in that order.
+- How a region scores (map-and-points.md, "Scoring"): present, ahead, every battleground; the highest level only,
+  plus 1 per battleground; each region moves the one track by the difference; reaching an end wins at once; the
+  side ahead after 2025 wins, then the tech race, then a draw.
+- Taiwan starts LIO-aligned; Crimea starts as the history of 1991 says.
+
+## The options side by side
+
+|                                                           | A: history-led                                                                                                   | B: balance-led                  | C: simple and flat                  |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------- | ----------------------------------- |
+| Stabilities changed (of 42)                               | 7                                                                                                                | 22                              | 0                                   |
+| Countries at stability 1 / 2 / 3 / 4                      | 10 / 9 / 14 / 9                                                                                                  | 2 / 18 / 21 / 1                 | 8 / 15 / 11 / 8                     |
+| SAE box's 17 neighbours, total stability                  | 42                                                                                                               | 46                              | 40                                  |
+| LIO box's 3 neighbours, total stability                   | 9                                                                                                                | 7                               | 9                                   |
+| Battlegrounds, Era 1 / 2 / 3                              | 19 / 20 / 19                                                                                                     | 12 / 12 / 12                    | 17 / 17 / 17                        |
+| Battlegrounds per region                                  | 2 to 4, varies by era                                                                                            | 2 everywhere                    | 3 (Sub-Saharan Africa 2)            |
+| Amounts (present / ahead / every BG)                      | 2/5/8 in the three closing regions, 2/4/6 Middle East and North Africa, 1/3/4 Sub-Saharan Africa, 1/3/5 Americas | 2/4/6 everywhere                | 1/3/5 everywhere                    |
+| Track (steps from the middle to each end)                 | 20                                                                                                               | 15                              | 20                                  |
+| Track start                                               | 2 towards LIO                                                                                                    | the middle                      | the middle                          |
+| Largest one-era move (one side everything, rival nothing) | 58, 59, 58                                                                                                       | 48                              | 47                                  |
+| Taiwan at the start                                       | LIO 3, controlled (stability 3)                                                                                  | LIO 2, controlled (stability 2) | LIO 3, controlled (stability 3)     |
+| Crimea at the start                                       | SAE 1, not controlled (stability 2)                                                                              | SAE 2, controlled (stability 2) | SAE 1, not controlled (stability 2) |
+
+The placeholders in `six-region-map.json` have 17 battlegrounds, the same list in every era, Taiwan LIO 3 and
+Crimea SAE 1; option C keeps all of that for Era 1.
+
+## Smoke runs
+
+**What these measure, and what they do not.** Scoring and the victory rule are being built in parallel, so the
+balance tool cannot score a region or move a track. These runs measure **influence and control only**: how much
+influence each side has on the map, how many countries and battlegrounds it controls, and in how many regions it
+would reach each scoring level at each era's end. They say nothing about who would win. Every game ends at the turn
+limit as a draw. They are Easy AI games, so they show how the numbers shape play, not what good players would do.
+
+**The assumption about turns.** Era lengths are not decided either. The runs use era-lengths option A
+(`docs/proposals/era-lengths.md`): 10 turns, Era 2 entering on turn 4 and Era 3 on turn 6, with 2 plays per turn
+and the future cards left out. 100 games for each set of numbers, base seed `x12`.
+
+### At the game's end (averages per game)
+
+| Numbers            | LIO influence | SAE influence | LIO countries | SAE countries |
+| ------------------ | ------------- | ------------- | ------------- | ------------- |
+| Placeholders       | 20.23         | 9.66          | 3.67          | 1.81          |
+| A: history-led     | 20.26         | 11.2          | 3.5           | 1.84          |
+| B: balance-led     | 9.96          | 15.04         | 1.52          | 2.2           |
+| C: simple and flat | 20.23         | 9.66          | 3.67          | 1.81          |
+
+### At each era's end (averages per game)
+
+Battlegrounds are counted on the list of the era that is ending. "Regions" counts the highest level reached in each
+of the six regions. "Every BG" is left out: its average was 0.05 regions or less for every side, era and option.
+
+| Numbers            | Era | LIO BGs | SAE BGs | LIO regions present / ahead | SAE regions present / ahead |
+| ------------------ | --- | ------- | ------- | --------------------------- | --------------------------- |
+| Placeholders       | 1   | 1.03    | 0.3     | 0.62 / 0.81                 | 0.62 / 0.23                 |
+|                    | 2   | 1.11    | 0.54    | 0.8 / 0.84                  | 0.62 / 0.36                 |
+|                    | 3   | 1.73    | 0.66    | 1.07 / 1.27                 | 0.91 / 0.41                 |
+| A: history-led     | 1   | 1.13    | 0.33    | 0.51 / 0.87                 | 0.55 / 0.28                 |
+|                    | 2   | 1.04    | 0.9     | 0.83 / 0.72                 | 0.47 / 0.53                 |
+|                    | 3   | 1.53    | 0.67    | 1.01 / 1.1                  | 0.92 / 0.42                 |
+| B: balance-led     | 1   | 0.1     | 0.13    | 0.72 / 0.08                 | 0.69 / 0.11                 |
+|                    | 2   | 0.16    | 0.28    | 0.78 / 0.15                 | 0.86 / 0.23                 |
+|                    | 3   | 0.48    | 0.63    | 0.88 / 0.28                 | 1.21 / 0.4                  |
+| C: simple and flat | 1   | 1.03    | 0.3     | 0.62 / 0.81                 | 0.62 / 0.23                 |
+|                    | 2   | 1.38    | 0.72    | 0.76 / 0.88                 | 0.59 / 0.39                 |
+|                    | 3   | 1.81    | 0.66    | 1.07 / 1.27                 | 0.91 / 0.41                 |
+
+### What stands out
+
+- **Very little is controlled.** At most about 4 countries of 42 for either side at the end, and under 2
+  battlegrounds. With these numbers and the Easy AI, most regions score nothing or only "present" for one side,
+  and holding every battleground almost never happens. The largest possible one-era moves in the table above are
+  far from what these games reach.
+- **LIO leads on the placeholders, A and C** (about twice SAE's control). B is the only option that turns it
+  round, and turns it further than even: SAE ends ahead.
+- **Battleground lists do not change play yet.** C plays exactly the games the placeholders do: Escalation rising
+  for a battleground is not built, and the Easy AI does not aim at battlegrounds. So the lists change only what is
+  counted at an era's end. Once battlegrounds raise Escalation and the AI weighs them, all of this will move.
+- **A's Era 2 is SAE's best era** in any option (0.9 battlegrounds and ahead in 0.53 regions), from the cheap
+  Central Asian, Afghan and Gulf battlegrounds near the SAE box.
+
+### How to rerun them
+
+```
+node tools/balance/run.mjs --scenario six-region --games 100 --seed x12 --turns 10 --plays 2 --era era-2@4 --era era-3@6 --era future@off
+node tools/balance/run.mjs --scenario six-region --games 100 --seed x12 --turns 10 --plays 2 --era era-2@4 --era era-3@6 --era future@off --numbers docs/proposals/map-numbers/option-a-history.json
+node tools/balance/run.mjs --scenario six-region --games 100 --seed x12 --turns 10 --plays 2 --era era-2@4 --era era-3@6 --era future@off --numbers docs/proposals/map-numbers/option-b-balance.json
+node tools/balance/run.mjs --scenario six-region --games 100 --seed x12 --turns 10 --plays 2 --era era-2@4 --era era-3@6 --era future@off --numbers docs/proposals/map-numbers/option-c-simple.json
+```
+
+The same command always prints the same report. Each takes a few seconds on an idle PC. Once scoring is built, the
+same runs with scoring on would give the first numbers on the amounts and the track.
+
+## Mixing options
+
+The five questions are close to independent. A stability set from one option, battleground lists from another and
+amounts or a track from a third all fit together; the JSON files are split the same way. The one link is the
+track's start: B's middle start assumes B's symmetric Taiwan and Crimea, and A's start towards LIO assumes A's.
+
+## Questions for the owner
+
+1. Which stabilities: A (history), B (offset the SAE box's reach), C (the placeholders), or a mix?
+2. Which battleground lists: A (2 to 4 a region, moving with the news), B (2 a region), or C (the placeholders,
+   with a few swaps)?
+3. Which amounts: weighted by region (A) or the same everywhere (B or C)?
+4. The track: 15 or 20 steps to each end, and does it start in the middle or towards LIO?
+5. Taiwan and Crimea at the start: LIO 3 and SAE 1 (Crimea not controlled), or LIO 2 and SAE 2 (each side controls
+   one)?
+6. Still open from map-and-points.md: who sets the real stabilities, the owner or a balance pass once scoring
+   exists. Any of these options can be the starting point for that pass.

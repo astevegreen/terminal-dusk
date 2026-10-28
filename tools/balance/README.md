@@ -12,6 +12,7 @@ report is a tool for later, not a verdict on the design.
 ```
 node tools/balance/run.mjs --scenario first-deck   # the first-deck TEST scenario (the same as no --scenario)
 node tools/balance/run.mjs --scenario test-map     # the made-up test map (packages/content/scenarios/test-map.json)
+node tools/balance/run.mjs --scenario six-region   # the six-region map (packages/content/scenarios/six-region-map.json)
 ```
 
 - `first-deck` (the default) prints exactly the report the tool printed before `--scenario` existed.
@@ -20,6 +21,10 @@ node tools/balance/run.mjs --scenario test-map     # the made-up test map (packa
   cards play and only their rows are listed. The test map is test data, not the game's map, and there is still no
   victory rule: its report is a smoke check that the action menu works across whole games, not a verdict on balance,
   and its first line says so.
+- `six-region` plays the whole first deck on the six-region map scenario, with that scenario's own numbers, map,
+  battleground lists and starting influence, and the first deck's eras (the map scenario has a battleground list for
+  each era but no cards of its own). There is no scoring and no victory rule yet, so its report is a smoke check of
+  influence and control, not a verdict on balance, and its first line says so.
 - Any other value is refused with the allowed values and the usage line, and no game is played.
 
 ## How to run it
@@ -72,12 +77,21 @@ Every pick and play counts, so a card played twice in one game counts twice (but
     control), an intervention counts the points put into it, and each realignment attempt counts 1. Points a side
     could not use (or chose not to, by passing or stopping a realignment early) count nowhere.
 
+- **Era ends, per side** (only on a scenario with a map; the JSON's `eraEnds`): one row per era and side, taken when
+  the next era starts and when the game ends, with the battleground list of the era that is ending. Averages per
+  game, over the games that reached that era's end, of
+  - **countries** and **battlegrounds**: how many it controlled on the whole map;
+  - **regions present**, **regions ahead**, **regions every BG**: in how many regions it reached that level, by the
+    scoring rules' definitions (docs/design/map-and-points.md, "Scoring"). A side counts only its highest level in
+    each region; in a region with no battlegrounds that era, ahead counts countries only.
+    This is control only: scoring is not built, so the report shows no amounts and no score.
+
 Averages are rounded to 2 decimal places and shares to 3. These numbers come from Easy AI games of a TEST
 scenario with no victory rule, so they show how the cards flow through a game, not whether the design is good.
 
 ## Other turn counts, plays per turn and era arrival turns
 
-These options change only this run's games, on either scenario. No scenario file, card, or game rule changes, and
+These options change only this run's games, on any scenario. No scenario file, card, or game rule changes, and
 the hand size stays the scenario's (8 on first-deck, 2 on test-map, where the host therefore refuses `--plays 2`).
 The era ids are the chosen scenario's: on `test-map`, which has only era-1, every `--era` is refused.
 
@@ -100,3 +114,28 @@ node tools/balance/run.mjs --turns 2 --era era-3@off --era future@off  # 2 turns
 
 The report's first line states the turns, plays per turn and each era's arrival turn (or "left out") that the run
 used; `--json` has the same numbers under `setup`.
+
+## Trying other map numbers
+
+```
+node tools/balance/run.mjs --scenario six-region --numbers docs/proposals/map-numbers/option-a-history.json
+```
+
+`--numbers <file>` lays a JSON file's numbers over the chosen map scenario for this run only; the scenario file does
+not change. It needs a scenario with a map (`test-map` or `six-region`). Every part of the file is optional:
+
+```json
+{
+  "name": "shown in the report's first line",
+  "stability": { "taiwan": 3 },
+  "battlegrounds": { "era-1": ["ukraine", "taiwan"] },
+  "startingInfluence": [{ "country": "taiwan", "lio": 3, "sae": 0 }]
+}
+```
+
+- `stability`: the named countries take these stabilities (whole numbers, 1 or more); the others keep theirs.
+- `battlegrounds`: the named eras take these lists (each country once); the others keep theirs. Only eras the map
+  has a list for can be named.
+- `startingInfluence`: replaces the map's whole starting influence list (whole numbers, 0 or more, each country once).
+- A file that cannot be read, is not JSON, has another key or names an unknown country is refused with the reason,
+  and no game is played.
