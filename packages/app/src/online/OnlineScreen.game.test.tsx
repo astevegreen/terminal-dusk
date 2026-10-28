@@ -165,6 +165,7 @@ describe("the online game session's setup", () => {
     expect(options).toMatchObject({ url: URL_BASE, anonKey: ANON_KEY, matchId: config.matchId, playerId: "alice" });
     expect(options.fetch).toBe(auth.fetch);
     expect(options.now).toBe(p.clock);
+    expect(options.label).toBe(p.label);
     expect(options.timers).toBe(timers);
     expect(await options.accessToken()).toBe("token-alice");
     const game = createOnlineGame(options);

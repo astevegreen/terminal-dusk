@@ -46,6 +46,7 @@ export function onlineGameOptions(
     accessToken: () => signIn.accessToken(),
     fetch: auth.fetch,
     now: play.clock,
+    label: play.label,
     timers: play.timers,
   };
 }

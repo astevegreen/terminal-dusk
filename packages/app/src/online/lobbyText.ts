@@ -16,7 +16,7 @@ export const LOBBY_REFUSAL: Record<LobbyRefusal, string> = {
   network: "Cannot reach the server. Check your connection and try again.",
 };
 
-export const SIDE_NAME: Record<Side, string> = { lio: "LIO", sae: "SAE" };
+export { SIDE_NAME } from "../displayText.ts";
 
 /** "Your game is on", or "Game over" with a win, loss or draw for `mySide`. */
 export function gameLine(status: GameStatus, mySide: Side): string {

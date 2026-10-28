@@ -5,10 +5,11 @@ import type { CardId, EraId, GameStatus, Side } from "@terminal-dusk/engine";
 import type { ReplayFrame } from "@terminal-dusk/host";
 import { useState } from "react";
 import { decisionPrompts } from "../decisionPrompts.tsx";
+import { eraText, gameOverText } from "../displayText.ts";
+import { logLine } from "../eventPresentation.ts";
 import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
 import { Contingency, Log, Region, Table } from "../game/regions.tsx";
 import type { Label } from "../game/regions.tsx";
-import { logLine } from "../testMode/session.ts";
 import type { ReplayRecording } from "./recording.ts";
 import "./replayScreen.css";
 
@@ -31,8 +32,7 @@ function eraAt(frames: readonly ReplayFrame[], index: number): EraId | null {
   return null;
 }
 
-const finalText = (status: GameStatus): string =>
-  status.kind === "over" ? `Game over: ${status.winner ?? "no winner"}, ${status.reason}` : "Game active";
+const finalText = (status: GameStatus): string => (status.kind === "over" ? gameOverText(status) : "Game active");
 
 function Controls({
   index,
@@ -129,7 +129,9 @@ export function ReplayView({
   if (!frame) return <p role="alert">This replay has no frames.</p>;
   const pub = frame.view.public;
   const atLast = index === frames.length - 1;
-  const log = frames.slice(0, index + 1).flatMap((f) => f.events.map(logLine));
+  const log = frames
+    .slice(0, index + 1)
+    .flatMap((f) => f.events.map((event) => logLine(event, { card: label, era: eraText })));
   const era = eraAt(frames, index);
   return (
     <div className="replay">
@@ -137,7 +139,7 @@ export function ReplayView({
       <Region id="status-bar" title="Status" className="replay-status">
         <span>{`Turn ${pub.turn} of ${pub.turns}`}</span>
         <span>{`Plays made: ${pub.playsMade} of ${pub.playsPerTurn}`}</span>
-        <span>{era === null ? "Era not shown yet" : `Era: ${era}`}</span>
+        <span>{era === null ? "Era not shown yet" : eraText(era)}</span>
         <span>{atLast ? finalText(recording.status) : "Game active"}</span>
         {atLast && <span>{`Seed checked: ${recording.seedHash}`}</span>}
       </Region>

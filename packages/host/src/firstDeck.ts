@@ -5,6 +5,7 @@
 // "Refilling hands").
 import {
   ERA_1_CARDS,
+  ERA_NAMES,
   FIRST_DECK_CARDS,
   FIRST_DECK_RULESET,
   FIRST_DECK_SCENARIO,
@@ -12,13 +13,16 @@ import {
   scenarioSetup,
 } from "@terminal-dusk/content/first-deck";
 import { TEST_MAP_SCENARIO } from "@terminal-dusk/content";
-import type { CardId, Ruleset, Setup } from "@terminal-dusk/engine";
+import type { CardId, EraId, Ruleset, Setup } from "@terminal-dusk/engine";
 import type { MatchConfig } from "./types.ts";
 
 export const FIRST_DECK_NOTE =
   "First deck, Eras 1 to 3 and the future cards (TEST scenario with placeholder numbers; they join on turns 2, 3 and 4)";
 export const firstDeckRuleset: Ruleset = FIRST_DECK_RULESET;
 export { cardName as firstDeckCardName };
+
+/** An era's shown name, such as "Era 2 (2001–2008)"; an id the deck has no name for comes back as it is. */
+export const firstDeckEraName = (era: EraId): string => (Object.hasOwn(ERA_NAMES, era) ? (ERA_NAMES[era] ?? era) : era);
 
 const ASKS = "chooses: ";
 /** The question in a card's rules text: after "chooses: ", up to and including the first "?". */

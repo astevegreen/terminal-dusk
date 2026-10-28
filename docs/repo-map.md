@@ -73,8 +73,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/chooseActionPrompt.test.tsx` - The chooseAction prompt (R16b, #316): all the points go to one action, placing or one intervention.
 - `packages/app/src/decisionPrompts.test.tsx`
 - `packages/app/src/decisionPrompts.tsx` - One prompt component per DecisionKind. Exports: CardQuestion, CardAffiliation, PromptProps, PromptComponent, askingCard, decisionPrompts.
+- `packages/app/src/displayText.test.ts`
+- `packages/app/src/displayText.ts` - The words the game screens share: side names, era names, why a game ended, and what the log calls cards and eras. Exports: Label, GameNames, SIDE_NAME, eraText, reasonText, gameOverText.
 - `packages/app/src/eventPresentation.test.ts`
-- `packages/app/src/eventPresentation.ts` - How each EventKind is presented. Exports: EventPresentation, eventPresentation.
+- `packages/app/src/eventPresentation.ts` - How each EventKind is presented. Exports: EventPresentation, eventPresentation, logLine.
 - `packages/app/src/game/GameScreen.test.tsx`
 - `packages/app/src/game/GameScreen.tsx` - The game screen: one whole game drawn from one frame, laid out for a phone held sideways (844x390). Exports: GameScreenProps, GameScreen.
 - `packages/app/src/game/MapView.test.tsx` - The map zoomed out (issue #364): badges per country, grouped by region, net influence, controller colour.
@@ -141,7 +143,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/testMode/TestModeScreen.tsx` - Test mode (docs/architecture.md, Decision 3): the Local transport with a switch to view the game as LIO, as SAE or as a spectator. Exports: TestModeView, TestModeScreen.
 - `packages/app/src/testMode/fixture.ts` - DEVELOPER FIXTURE for test mode. Exports: DEFAULT_SEED, cardName, cardQuestion, fixtureRuleset, cardAffiliation, fixtureConfig, testModeConfig.
 - `packages/app/src/testMode/promptTree.ts` - Test helper: finds the buttons a prompt would draw and lets a test press them, without a browser. Exports: Button, buttonsOf.
-- `packages/app/src/testMode/session.ts` - The state behind the test-mode screen: one local match, the viewer being looked at, that viewer's latest frame and game log, and the last refusal. Exports: Snapshot, TestSession, logLine, createTestSession.
+- `packages/app/src/testMode/session.ts` - The state behind the test-mode screen: one local match, the viewer being looked at, that viewer's latest frame and game log, and the last refusal. Exports: Snapshot, TestSession, createTestSession.
 - `packages/app/src/testMode/sessionEra.test.ts` - The era in the test-mode session: kept per viewer next to the log, reset by restart.
 - `packages/app/src/testMode/testModeMap.test.tsx` - Test mode plays on R14's test map (issue #366): the first frame carries the map and influence, and the screen draws the map's badges for LIO, SAE and the spect…
 - `packages/app/src/transport/emailAuth.test.ts`
@@ -395,8 +397,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/src/era2Files.ts` - The Era 2 cards (2001 to 2008), one JSON file each in cards/era-2/. Exports: ERA_2_CARDS.
 - `packages/content/src/era3.test.ts`
 - `packages/content/src/era3Files.ts` - The Era 3 cards (2008 to 2025), one JSON file each in cards/era-3/. Exports: ERA_3_CARDS.
+- `packages/content/src/eraNames.test.ts`
+- `packages/content/src/eraNames.ts` - The eras' shown names: each era's number and years, and the future cards' years (docs/design/eras.md). Exports: ERA_NAMES.
 - `packages/content/src/escalationCards.test.ts` - R18b (#345): the sixteen cards that move Escalation by 1 (map-and-points.md, "Cards that move it"), on top of what each already does.
-- `packages/content/src/firstDeck.ts` - What the game screens need of the first deck: the cards as engine rules, their names, and the TEST scenario. Exports: ERA_1_CARDS, cardDef, Card, ERA_2_CARDS, ERA_3_CARDS, FUTURE_CARDS, FIRST_DECK_CARDS, FIRST_DECK_RULESET, cardName, FIRST_DECK_SCENARIO, scenarioSetup.
+- `packages/content/src/firstDeck.ts` - What the game screens need of the first deck: the cards as engine rules, their names, the era names and the TEST scenario. Exports: ERA_1_CARDS, cardDef, Card, ERA_2_CARDS, ERA_3_CARDS, FUTURE_CARDS, FIRST_DECK_CARDS, FIRST_DECK_RULESET, cardName, FIRST_DECK_SCENARIO, ERA_NAMES, scenarioSetup.
 - `packages/content/src/firstDeckRules.ts` - The ruleset and card names of the first deck: Era 1, Era 2, Era 3 and the optional future cards. Exports: FIRST_DECK_CARDS, FIRST_DECK_RULESET, cardName.
 - `packages/content/src/firstDeckScenario.ts` - The TEST scenario for the first deck. Exports: FIRST_DECK_SCENARIO.
 - `packages/content/src/future.test.ts`
@@ -541,7 +545,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/src/entitlement.test.ts`
 - `packages/host/src/entitlement.ts` - Who may create an online game (docs/architecture.md, Product calls: "Free players cannot create online games"). Exports: PLATFORMS, Platform, Entitlement, isPlatform, isEntitlement, createOnlineRefusal.
 - `packages/host/src/firstDeck.test.ts`
-- `packages/host/src/firstDeck.ts` - The first deck as a game the app can start: the ruleset, a match config, and card names. Exports: FIRST_DECK_NOTE, firstDeckRuleset, firstDeckCardName, firstDeckCardQuestion, firstDeckTestMap, firstDeckConfig.
+- `packages/host/src/firstDeck.ts` - The first deck as a game the app can start: the ruleset, a match config, and card names. Exports: FIRST_DECK_NOTE, firstDeckRuleset, firstDeckCardName, firstDeckEraName, firstDeckCardQuestion, firstDeckTestMap, firstDeckConfig.
 - `packages/host/src/firstDeckQuestion.test.ts`
 - `packages/host/src/firstDeckTestMap.test.ts` - The test map as the host hands it to the app (issue #366): R14's TEST_MAP_SCENARIO through content's scenarioSetup.
 - `packages/host/src/frames.ts` - Shared by the host's entry points: building the three frames, and copying plain JSON. Exports: framesFor, copyJson.

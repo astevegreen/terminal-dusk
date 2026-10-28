@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { logLine } from "../testMode/session.ts";
+import { eraText } from "../displayText.ts";
+import { logLine } from "../eventPresentation.ts";
+import { cardName } from "../testMode/fixture.ts";
 import { nextMove, POLL_MS, settle, watch } from "../transport/test/remoteGame.ts";
 import type { Frame } from "@terminal-dusk/host";
 import { turnOf } from "./onlineGame.ts";
@@ -47,7 +49,7 @@ describe("createOnlineGame: frames, log and turn", () => {
       await play(r);
       await poll(r); // a poll with nothing new adds nothing
     }
-    const expected = watched.frames.flatMap((f) => f.events).map(logLine);
+    const expected = watched.frames.flatMap((f) => f.events).map((e) => logLine(e, { card: cardName, era: eraText }));
     expect(expected.length).toBeGreaterThan(0);
     expect(r.game.getSnapshot().log).toEqual(expected);
     expect(r.game.getSnapshot().era).toBe("late");

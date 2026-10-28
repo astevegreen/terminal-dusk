@@ -35,13 +35,13 @@ describe("the placeInfluence prompt (R16a, #315)", () => {
     const html = renderToString(
       createElement(decisionPrompts.placeInfluence, props(placing("lio", 2, ["alpha", "bravo"]))),
     );
-    expect(html).toContain("lio: place 1 influence (2 points left)");
+    expect(html).toContain("LIO: place 1 influence (2 points left)");
     expect(html).toContain("<li>Place in alpha</li><li>Place in bravo</li>");
     expect(html).not.toContain("<button");
   });
 
   it("says 1 point, not 1 points, when one is left", () => {
     const html = renderToString(createElement(decisionPrompts.placeInfluence, props(placing("sae", 1, ["alpha"]))));
-    expect(html).toContain("sae: place 1 influence (1 point left)");
+    expect(html).toContain("SAE: place 1 influence (1 point left)");
   });
 });

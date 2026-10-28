@@ -39,7 +39,7 @@ describe("the game screen against the AI", () => {
     const { session } = start({ hold: true });
     const out = view(session);
     expect(out).toContain("You play LIO");
-    expect(out).toContain("lio: pick an opening card");
+    expect(out).toContain("LIO: pick an opening card");
     expect(out).toContain("<button");
     expect(out).not.toContain("New game");
   });

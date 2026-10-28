@@ -14,6 +14,7 @@ import type {
   Side,
 } from "@terminal-dusk/engine";
 import type { ComponentType } from "react";
+import { SIDE_NAME } from "./displayText.ts";
 
 /** A card's yes/no question, from its rules text, or undefined when it has none. Display data only. */
 export type CardQuestion = (card: CardId) => string | undefined;
@@ -90,8 +91,8 @@ function yesNoText({ decision, label, stack, question }: Readonly<PromptProps>):
   const card = askingCard(stack);
   const asked = card === undefined ? undefined : question(card);
   return card === undefined || asked === undefined
-    ? `${decision.side}: yes or no?`
-    : `${decision.side}, ${label(card)}: ${asked}`;
+    ? `${SIDE_NAME[decision.side]}: yes or no?`
+    : `${SIDE_NAME[decision.side]}, ${label(card)}: ${asked}`;
 }
 
 function YesNoPrompt(props: Readonly<PromptProps>) {
@@ -108,7 +109,7 @@ function ChooseCardPrompt({ decision, hand, label, onAnswer }: Readonly<PromptPr
   return (
     <Choices
       decision={decision}
-      question={`${decision.side}: pick an opening card`}
+      question={`${SIDE_NAME[decision.side]}: pick an opening card`}
       choices={choices}
       onAnswer={onAnswer}
     />
@@ -139,7 +140,7 @@ function PlayCardAsPrompt({ decision, hand, label, affiliation, onAnswer }: Read
   return (
     <Choices
       decision={decision}
-      question={`${decision.side}: play a card for its event or its points`}
+      question={`${SIDE_NAME[decision.side]}: play a card for its event or its points`}
       choices={choices}
       onAnswer={onAnswer}
     />
@@ -154,7 +155,7 @@ function RivalEventOrderPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
   return (
     <Choices
       decision={decision}
-      question={`${decision.side}: the rival's event happens before or after your points?`}
+      question={`${SIDE_NAME[decision.side]}: the rival's event happens before or after your points?`}
       choices={choices}
       onAnswer={onAnswer}
     />
@@ -184,7 +185,7 @@ function DiscardCardsPrompt({ decision, hand, known, label, onAnswer }: Readonly
   return (
     <Choices
       decision={decision}
-      question={`${decision.side}: discard ${count} card${count === 1 ? "" : "s"} from ${whose}`}
+      question={`${SIDE_NAME[decision.side]}: discard ${count} card${count === 1 ? "" : "s"} from ${whose}`}
       choices={choices}
       onAnswer={onAnswer}
     />
@@ -206,7 +207,7 @@ function PlaceInfluencePrompt({ decision, onAnswer }: Readonly<PromptProps>) {
   return (
     <Choices
       decision={decision}
-      question={`${decision.side}: place 1 influence (${points} point${points === 1 ? "" : "s"} left)`}
+      question={`${SIDE_NAME[decision.side]}: place 1 influence (${points} point${points === 1 ? "" : "s"} left)`}
       choices={choices}
       onAnswer={onAnswer}
     />
@@ -239,7 +240,7 @@ function ChooseActionPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
   return (
     <Choices
       decision={decision}
-      question={`${decision.side}: spend all ${points} point${points === 1 ? "" : "s"} on one action`}
+      question={`${SIDE_NAME[decision.side]}: spend all ${points} point${points === 1 ? "" : "s"} on one action`}
       choices={choices}
       onAnswer={onAnswer}
     />
@@ -261,7 +262,7 @@ function RealignPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
   return (
     <Choices
       decision={decision}
-      question={`${decision.side}: realign (${attempts} attempt${attempts === 1 ? "" : "s"} left)`}
+      question={`${SIDE_NAME[decision.side]}: realign (${attempts} attempt${attempts === 1 ? "" : "s"} left)`}
       choices={choices}
       onAnswer={onAnswer}
     />

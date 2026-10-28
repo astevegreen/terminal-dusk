@@ -1,10 +1,12 @@
 // The state behind a game against the AI: one local match on the developer fixture, the human's latest frame
 // and log, and the AI side's frames, which the session answers through the AI opponent. It holds display data
 // only; the rules stay in the host, and the AI sees only its own side's view.
-import type { AnswerValue, EraId, Ruleset, Seed, Side } from "@terminal-dusk/engine";
+import type { AnswerValue, CardId, EraId, Ruleset, Seed, Side } from "@terminal-dusk/engine";
 import type { Frame, HostError } from "@terminal-dusk/host";
-import { fixtureConfig, fixtureRuleset } from "../testMode/fixture.ts";
-import { logLine } from "../testMode/session.ts";
+import { eraText } from "../displayText.ts";
+import type { GameNames } from "../displayText.ts";
+import { logLine } from "../eventPresentation.ts";
+import { cardName, fixtureConfig, fixtureRuleset } from "../testMode/fixture.ts";
 import { toRecording } from "../replay/recording.ts";
 import type { ReplayRecording } from "../replay/recording.ts";
 import { createLocalMatch } from "../transport/localMatch.ts";
@@ -37,6 +39,8 @@ export type VsAiOptions = {
   ruleset?: Ruleset;
   /** Makes the match; the developer fixture when left out. Tests use it to watch the transports. */
   makeMatch?: (seed: Seed, clock: () => number) => { ok: true; value: LocalMatch } | { ok: false; error: HostError };
+  /** How the log names cards; the developer fixture's names when left out. Must fit what makeMatch makes. */
+  label?: (id: CardId) => string;
 };
 
 export type VsAiSession = {
@@ -95,6 +99,7 @@ export function createVsAiSession(options: VsAiOptions): VsAiSession {
   let lastSeq = -1;
   const asked = new Set<string>();
   let aiFrame: Frame | null = null;
+  const names: GameNames = { card: options.label ?? cardName, era: eraText };
 
   const stopAi = (): void => {
     if (aiStopped) return;
@@ -106,7 +111,7 @@ export function createVsAiSession(options: VsAiOptions): VsAiSession {
     // A frame with the seq already logged (the one a subscription starts with) adds no lines.
     let { log, era } = snapshot;
     if (frame.seq > lastSeq) {
-      log = [...log, ...frame.events.map(logLine)];
+      log = [...log, ...frame.events.map((event) => logLine(event, names))];
       lastSeq = frame.seq;
       for (const event of frame.events) if (event.kind === "eraStarted") era = event.era;
     }

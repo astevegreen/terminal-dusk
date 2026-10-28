@@ -167,7 +167,7 @@ export function VsAiScreen({ clock, newSeed, newAiSeed, makeAi = createWorkerAi,
         aiSeed: newAiSeed(),
         clock,
         makeAi,
-        ...(game ? { ruleset: game.ruleset, makeMatch: game.makeMatch } : {}),
+        ...(game ? { ruleset: game.ruleset, makeMatch: game.makeMatch, label: game.cardName } : {}),
       }),
     [side, newSeed, newAiSeed, clock, makeAi, game],
   );

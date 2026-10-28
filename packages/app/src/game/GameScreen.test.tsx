@@ -30,8 +30,8 @@ const props = (frame: Frame, extra: Partial<GameScreenProps> = {}): GameScreenPr
 });
 const html = (frame: Frame, extra: Partial<GameScreenProps> = {}): string =>
   renderToString(<GameScreen {...props(frame, extra)} />);
-const over = (winner: Side | null): Frame =>
-  withPublic(frameFor("lio"), { status: { kind: "over", winner, reason: "turns ran out" } });
+const over = (winner: Side | null, reason = "turns ran out"): Frame =>
+  withPublic(frameFor("lio"), { status: { kind: "over", winner, reason } });
 
 /**
  * The Decision region's html, up to the Log region after it. The frames are on the test map (issue #366), whose
@@ -106,8 +106,12 @@ describe("the discard pile", () => {
 });
 
 describe("the era line", () => {
-  it("shows the era prop", () => {
-    expect(html(frameFor("lio"), { era: "late" })).toContain("Era: late");
+  it("names a first-deck era by its number and years, and the future cards by theirs", () => {
+    expect(html(frameFor("lio"), { era: "era-2" })).toContain("<span>Era 2 (2001–2008)</span>");
+    expect(html(frameFor("lio"), { era: "future" })).toContain("<span>Future cards (2025–2027)</span>");
+  });
+  it("shows an era id it has no text for as it is", () => {
+    expect(html(frameFor("lio"), { era: "late" })).toContain("<span>late</span>");
   });
   it("says the era is not shown yet for null", () => {
     expect(html(frameFor("lio"), { era: null })).toContain("Era not shown yet");
@@ -145,8 +149,8 @@ describe("the decision region", () => {
       stack: [{ kind: "program", source: "t2", steps: [], next: 0, vars: [] }],
     });
     const question = (card: string) => (card === "t2" ? "Hold the line?" : undefined);
-    expect(html(asking, { question })).toContain("sae, Test card 2: Hold the line?");
-    expect(html(asking)).toContain("sae: yes or no?");
+    expect(html(asking, { question })).toContain("SAE, Test card 2: Hold the line?");
+    expect(html(asking)).toContain("SAE: yes or no?");
   });
   it("shows the refusal code when refusal is set, and nothing when it is not", () => {
     expect(html(frameFor("lio"), { refusal: "stale_seq" })).toContain("Refused: stale_seq");
@@ -155,11 +159,16 @@ describe("the decision region", () => {
 });
 
 describe("a game that is over", () => {
-  it("shows the winner and the reason", () => {
-    expect(html(over("sae"))).toContain("Game over: sae, turns ran out");
+  it("names the winner as LIO or SAE and says why in words", () => {
+    expect(html(over("sae", "turnLimitReached"))).toContain("Game over: SAE, the last turn ended");
+    expect(html(over("lio", "resigned"))).toContain("Game over: LIO, the other side resigned");
+    expect(html(over("lio", "timeout"))).toContain("Game over: LIO, time ran out");
   });
   it("says no winner for a tie", () => {
-    expect(html(over(null))).toContain("Game over: no winner, turns ran out");
+    expect(html(over(null, "turnLimitReached"))).toContain("Game over: no winner, the last turn ended");
+  });
+  it("shows a reason it has no words for as it is", () => {
+    expect(html(over("sae"))).toContain("Game over: SAE, turns ran out");
   });
 });
 
@@ -170,7 +179,7 @@ describe("screen-reader support", () => {
     expect(html({ ...frameFor("lio"), decision: null })).toContain(
       '<span role="status">Waiting for the other side</span>',
     );
-    expect(html(over("sae"))).toContain('<span role="status">Game over: sae, turns ran out</span>');
+    expect(html(over("sae"))).toContain('<span role="status">Game over: SAE, turns ran out</span>');
     expect(out.match(/role="status"/g)).toHaveLength(1);
     expect(out).toContain("<span>You play LIO</span>");
   });
