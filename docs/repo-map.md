@@ -166,7 +166,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/transport/test/rehearsalReport.ts` - The phase 4 rehearsal's short report: what one run played and checked, and every problem it found, each with its match and seq. Exports: rehearsalReport.
 - `packages/app/src/transport/test/remoteGame.ts` - The remote transport tests' match: a small game on the fake Supabase, fake timers, and helpers to subscribe, wait and find the next legal move. Exports: POLL_MS, ruleset, config, TOKENS, fakeTimers, settle, Rig, rig, watch, nextMove.
 - `packages/app/src/vsAi/VsAiScreen.test.tsx`
-- `packages/app/src/vsAi/VsAiScreen.tsx` - Playing against the Easy AI: a side picker, then the game screen for the human's side. Exports: PRACTICE_NOTE, VsAiGame, SidePicker, VsAiView, openSession, VsAiScreenProps, VsAiScreen.
+- `packages/app/src/vsAi/VsAiScreen.tsx` - Playing against the Easy AI: a side picker, then the game screen for the human's side. Exports: PRACTICE_NOTE, VsAiGame, SidePicker, VsAiView, openSession, VsAiScreenProps, vsAiOptions, VsAiScreen.
 - `packages/app/src/vsAi/ai.worker.ts` - The AI's Web Worker: it only passes each message to the AI package's handler and posts the reply back.
 - `packages/app/src/vsAi/aiOpponent.ts` - What the vs-AI session talks to: an opponent that answers one view at a time (docs/architecture.md, Decision 8). Exports: AiOpponent, MakeAi.
 - `packages/app/src/vsAi/firstDeckGame.test.ts`

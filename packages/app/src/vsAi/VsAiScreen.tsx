@@ -157,18 +157,32 @@ export type VsAiScreenProps = {
   game?: VsAiGame;
 };
 
-export function VsAiScreen({ clock, newSeed, newAiSeed, makeAi = createWorkerAi, game }: Readonly<VsAiScreenProps>) {
+/** The session for one game on this screen: the chosen game's rules, match and card names, or the fixture's. */
+export function vsAiOptions(
+  side: Side,
+  {
+    clock,
+    newSeed,
+    newAiSeed,
+    makeAi = createWorkerAi,
+    game,
+  }: Readonly<Omit<VsAiScreenProps, "makeAi" | "game"> & { makeAi?: MakeAi | undefined; game?: VsAiGame | undefined }>,
+): VsAiOptions {
+  return {
+    human: side,
+    gameSeed: newSeed(),
+    aiSeed: newAiSeed(),
+    clock,
+    makeAi,
+    ...(game ? { ruleset: game.ruleset, makeMatch: game.makeMatch, label: game.cardName } : {}),
+  };
+}
+
+export function VsAiScreen(props: Readonly<VsAiScreenProps>) {
+  const { clock, newSeed, newAiSeed, makeAi, game } = props;
   const [side, setSide] = useState<Side | null>(null);
   const start = useCallback(
-    () =>
-      createVsAiSession({
-        human: side ?? "lio",
-        gameSeed: newSeed(),
-        aiSeed: newAiSeed(),
-        clock,
-        makeAi,
-        ...(game ? { ruleset: game.ruleset, makeMatch: game.makeMatch, label: game.cardName } : {}),
-      }),
+    () => createVsAiSession(vsAiOptions(side ?? "lio", { clock, newSeed, newAiSeed, makeAi, game })),
     [side, newSeed, newAiSeed, clock, makeAi, game],
   );
   if (!side) return <SidePicker onPick={setSide} note={game?.note} />;
