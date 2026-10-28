@@ -66,7 +66,7 @@
   ],
   "text": {
     "name": "Chip Chokepoint",
-    "rules": "LIO chooses: Bring the allies in? If yes, (draw from LIO's Contingency deck, then if the result is 3 or more, record \"chokepoint sealed\", then LIO spends 3 points; otherwise, record \"controls leak\", then LIO spends 1 point); if no, LIO spends 2 points.",
+    "rules": "LIO chooses: Bring the allies in? If yes, (draw from LIO's Contingency deck, then if the result is 3 or more, record \"chokepoint sealed\", then LIO spends 3 points on one action; otherwise, record \"controls leak\", then LIO spends 1 point on actions); if no, LIO spends 2 points on one action.",
     "history": "The United States added Huawei to its export-control Entity List on 16 May 2019 and on 7 October 2022 imposed sweeping controls on advanced chips and chip-making tools bound for China, tightened again in October 2023.",
     "art": "art/e3-lio-006"
   }

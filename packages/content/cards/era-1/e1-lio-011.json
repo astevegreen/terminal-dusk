@@ -30,7 +30,7 @@
   ],
   "text": {
     "name": "Dot-com Boom",
-    "rules": "Record \"network effect\". LIO spends 1 point. After each later card played this turn, by either side, LIO spends 1 point.",
+    "rules": "Record \"network effect\". LIO spends 1 point on actions. After each later card played this turn, by either side, LIO spends 1 point on actions.",
     "history": "Netscape's initial public offering on 9 August 1995 saw its shares more than double on the first day of trading and is often taken as the start of the dot-com boom.",
     "art": "art/e1-lio-011"
   }

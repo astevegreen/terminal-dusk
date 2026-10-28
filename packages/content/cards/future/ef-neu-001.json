@@ -22,7 +22,7 @@
   ],
   "text": {
     "name": "Open-Weight Model Leak",
-    "rules": "Record \"weights everywhere\". Until the end of this turn, points spent by either side count 1 more.",
+    "rules": "Record \"weights everywhere\". Until the end of this turn, each time either side spends points, it spends 1 more.",
     "history": "From 2023 several leading AI developers released model weights openly, and leaked or open models spread capability far beyond their makers.",
     "art": "art/ef-neu-001"
   }

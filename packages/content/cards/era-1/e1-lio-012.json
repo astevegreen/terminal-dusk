@@ -56,7 +56,7 @@
   ],
   "text": {
     "name": "Partnership for Peace",
-    "rules": "Record \"partners, not members\". LIO spends 1 point. SAE chooses: Join the partnership? If yes, SAE spends 1 point; if no, until the end of this turn, points spent by SAE count 1 less, never below 1. Lower Escalation by 1.",
+    "rules": "Record \"partners, not members\". LIO spends 1 point on actions. SAE chooses: Join the partnership? If yes, SAE spends 1 point on actions; if no, until the end of this turn, each time SAE spends points, it spends 1 fewer, never below 1. Lower Escalation by 1.",
     "history": "NATO launched the Partnership for Peace at its Brussels summit on 10-11 January 1994, open to former Warsaw Pact states and Soviet republics; Russia signed the framework document on 22 June 1994.",
     "art": "art/e1-lio-012"
   }

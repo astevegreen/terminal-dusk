@@ -56,7 +56,7 @@
   ],
   "text": {
     "name": "Hainan Island Incident",
-    "rules": "Record \"collision\". SAE spends 1 point. LIO chooses: Say sorry? If yes, LIO spends 1 point; if no, until the end of this turn, points spent by LIO count 1 more, then SAE spends 1 point.",
+    "rules": "Record \"collision\". SAE spends 1 point on actions. LIO chooses: Say sorry? If yes, LIO spends 1 point on actions; if no, until the end of this turn, each time LIO spends points, it spends 1 more, then SAE spends 1 point on actions.",
     "history": "On 1 April 2001 a US Navy EP-3 reconnaissance aircraft collided with a Chinese fighter near Hainan Island; the Chinese pilot died and the 24 US crew were held for eleven days until a carefully worded US letter was accepted.",
     "art": "art/e1-sae-010"
   }

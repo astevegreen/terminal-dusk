@@ -57,7 +57,7 @@
   ],
   "text": {
     "name": "PEPFAR",
-    "rules": "Record \"clinics open\". LIO spends 1 point. SAE chooses: Match it with your own aid? If yes, SAE spends 1 point, then until the end of this turn, points spent by SAE count 1 less, never below 1; if no, LIO spends 1 point.",
+    "rules": "Record \"clinics open\". LIO spends 1 point on actions. SAE chooses: Match it with your own aid? If yes, SAE spends 1 point on actions, then until the end of this turn, each time SAE spends points, it spends 1 fewer, never below 1; if no, LIO spends 1 point on actions.",
     "history": "The US President's Emergency Plan for AIDS Relief was announced on 28 January 2003 with $15 billion over five years for treatment and prevention, mainly in Africa.",
     "art": "art/e2-lio-010"
   }

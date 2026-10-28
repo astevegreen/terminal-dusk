@@ -5,7 +5,7 @@ import { firstDeckCardRules } from "./firstDeck.ts";
 describe("firstDeckCardRules", () => {
   it("returns a card's rules text as its card file has it", () => {
     expect(firstDeckCardRules("e1-lio-001")).toBe(
-      'Record "union founded" for the rest of the game. LIO spends 1 point. Until the end of this turn, points spent by LIO count 1 more.',
+      'Record "union founded" for the rest of the game. LIO spends 1 point on actions. Until the end of this turn, each time LIO spends points, it spends 1 more.',
     );
   });
   it("returns undefined for an unknown card", () => {

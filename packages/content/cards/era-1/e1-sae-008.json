@@ -23,7 +23,7 @@
   ],
   "text": {
     "name": "Primakov's U-turn",
-    "rules": "Record \"turn over the Atlantic\". Until the end of this turn, points spent by LIO count 1 less, never below 1.",
+    "rules": "Record \"turn over the Atlantic\". Until the end of this turn, each time LIO spends points, it spends 1 fewer, never below 1.",
     "history": "On 24 March 1999 Russian prime minister Yevgeny Primakov, flying to Washington, ordered his plane to turn back over the Atlantic when told that NATO's bombing of Yugoslavia was about to begin.",
     "art": "art/e1-sae-008"
   }

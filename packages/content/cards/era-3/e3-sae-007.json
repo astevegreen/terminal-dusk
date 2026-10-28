@@ -52,7 +52,7 @@
   ],
   "text": {
     "name": "Rare Earth Squeeze",
-    "rules": "Record \"supply squeezed\". LIO chooses: Give way? If yes, SAE spends 2 points; if no, until the end of this turn, points spent by LIO count 1 less, never below 1, then SAE spends 1 point.",
+    "rules": "Record \"supply squeezed\". LIO chooses: Give way? If yes, SAE spends 2 points on one action; if no, until the end of this turn, each time LIO spends points, it spends 1 fewer, never below 1, then SAE spends 1 point on actions.",
     "history": "After a Chinese trawler collided with Japanese coastguard vessels near disputed islands on 7 September 2010, Japanese importers reported a halt in Chinese rare-earth shipments that lasted into late September; China denied an embargo, and later analysts have disputed how complete the halt was.",
     "art": "art/e3-sae-007"
   }

@@ -42,7 +42,7 @@
   ],
   "text": {
     "name": "Estonian Cyberattacks 2007",
-    "rules": "Draw from SAE's Contingency deck. If the result is 3 or more, record \"sites down\", then SAE spends 2 points; otherwise, record \"cyber defence doctrine\", then LIO spends 1 point.",
+    "rules": "Draw from SAE's Contingency deck. If the result is 3 or more, record \"sites down\", then SAE spends 2 points on one action; otherwise, record \"cyber defence doctrine\", then LIO spends 1 point on actions.",
     "history": "From 27 April 2007 Estonian government, bank and media websites were hit by weeks of denial-of-service attacks after a dispute over moving a Soviet war memorial in Tallinn.",
     "art": "art/e2-sae-004"
   }

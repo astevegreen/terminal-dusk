@@ -30,7 +30,7 @@
   ],
   "text": {
     "name": "Petrocaribe",
-    "rules": "Record \"oil diplomacy\". SAE spends 2 points. At the end of this turn, LIO spends 1 point.",
+    "rules": "Record \"oil diplomacy\". SAE spends 2 points on one action. At the end of this turn, LIO spends 1 point on actions.",
     "history": "Venezuela founded Petrocaribe on 29 June 2005, offering Caribbean states oil on preferential terms; in November 2005 the US-backed Free Trade Area of the Americas stalled at the Mar del Plata summit.",
     "art": "art/e2-sae-008"
   }

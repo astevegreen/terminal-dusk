@@ -20,7 +20,7 @@
   ],
   "text": {
     "name": "Libya Disarms",
-    "rules": "Record \"programme surrendered\". LIO spends 2 points. Lower Escalation by 1.",
+    "rules": "Record \"programme surrendered\". LIO spends 2 points on one action. Lower Escalation by 1.",
     "history": "On 19 December 2003 Libya announced it would give up its nuclear, chemical and long-range missile programmes and admit international inspectors.",
     "art": "art/e2-lio-006"
   }

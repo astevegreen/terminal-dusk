@@ -23,7 +23,7 @@
   ],
   "text": {
     "name": "Cable Cut in the Baltic",
-    "rules": "Record \"anchor dragged\". Until the end of this turn, points spent by LIO count 1 less, never below 1.",
+    "rules": "Record \"anchor dragged\". Until the end of this turn, each time LIO spends points, it spends 1 fewer, never below 1.",
     "history": "On 25 December 2024 the Estlink 2 power cable and several data cables between Finland and Estonia were damaged; Finland boarded a tanker suspected of dragging its anchor across them.",
     "art": "art/ef-sae-002"
   }

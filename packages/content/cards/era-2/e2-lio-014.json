@@ -51,7 +51,7 @@
   ],
   "text": {
     "name": "Fall of the Taliban",
-    "rules": "Record \"Kabul taken\". LIO spends 2 points. Draw from LIO's Contingency deck. If the result is 3 or more, record \"new government\", then LIO spends 1 point; otherwise, record \"insurgency regroups\", then SAE spends 1 point.",
+    "rules": "Record \"Kabul taken\". LIO spends 2 points on one action. Draw from LIO's Contingency deck. If the result is 3 or more, record \"new government\", then LIO spends 1 point on actions; otherwise, record \"insurgency regroups\", then SAE spends 1 point on actions.",
     "history": "US and British air strikes on Afghanistan began on 7 October 2001. Backed by US special forces and air power, the Northern Alliance took Kabul on 13 November, and the Taliban gave up Kandahar, their last stronghold, in early December 2001.",
     "art": "art/e2-lio-014"
   }

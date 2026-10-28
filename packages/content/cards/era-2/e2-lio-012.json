@@ -46,7 +46,7 @@
   ],
   "text": {
     "name": "Euro Cash",
-    "rules": "Record \"single currency\". If \"union founded\" has been recorded this game, LIO spends 2 points; otherwise, LIO spends 1 point. At the end of this turn, LIO spends 1 point.",
+    "rules": "Record \"single currency\". If \"union founded\" has been recorded this game, LIO spends 2 points on one action; otherwise, LIO spends 1 point on actions. At the end of this turn, LIO spends 1 point on actions.",
     "history": "Euro notes and coins entered circulation on 1 January 2002 in twelve EU countries with around 300 million people.",
     "art": "art/e2-lio-012"
   }

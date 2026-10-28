@@ -86,7 +86,7 @@
   ],
   "text": {
     "name": "Oil at $147",
-    "rules": "Record \"oil spike\". SAE chooses: Open the taps? If yes, SAE spends 1 point, then LIO spends 1 point; if no, draw from the Contingency deck of the side that played this card, then if the result is 3 or more, SAE spends 2 points, then until the end of this turn, points spent by SAE count 1 less, never below 1; otherwise, until the end of this turn, points spent by SAE count 1 less, never below 1.",
+    "rules": "Record \"oil spike\". SAE chooses: Open the taps? If yes, SAE spends 1 point on actions, then LIO spends 1 point on actions; if no, draw from the Contingency deck of the side that played this card, then if the result is 3 or more, SAE spends 2 points on one action, then until the end of this turn, each time SAE spends points, it spends 1 fewer, never below 1; otherwise, until the end of this turn, each time SAE spends points, it spends 1 fewer, never below 1.",
     "history": "Crude oil first traded above $100 a barrel on 2 January 2008 and peaked near $147 on 11 July 2008 before collapsing with the financial crisis.",
     "art": "art/e2-neu-005"
   }

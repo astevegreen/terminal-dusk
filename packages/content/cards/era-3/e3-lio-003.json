@@ -67,7 +67,7 @@
   ],
   "text": {
     "name": "Ghost Stories",
-    "rules": "Record \"sleepers exposed\". LIO spends 2 points. LIO chooses: Trade them? If yes, SAE's hand is shown to LIO, then at the end of this turn, LIO spends 1 point, then SAE spends 1 point; if no, record \"no exchange\", then SAE discards 1 card at random.",
+    "rules": "Record \"sleepers exposed\". LIO spends 2 points on one action. LIO chooses: Trade them? If yes, SAE's hand is shown to LIO, then at the end of this turn, LIO spends 1 point on actions, then SAE spends 1 point on actions; if no, record \"no exchange\", then SAE discards 1 card at random.",
     "history": "On 27 June 2010 the FBI arrested ten Russian agents who had lived under false identities in the United States; on 9 July 2010 they were exchanged in Vienna for four people held in Russia.",
     "art": "art/e3-lio-003"
   }

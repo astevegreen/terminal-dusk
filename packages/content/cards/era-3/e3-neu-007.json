@@ -41,7 +41,7 @@
   ],
   "text": {
     "name": "AI Compute Race",
-    "rules": "Record \"compute race\". LIO spends 1 point, then SAE spends 1 point. Then draw from the Contingency deck of the side that played this card. If the result is 4 or more, LIO spends 1 point.",
+    "rules": "Record \"compute race\". LIO spends 1 point on actions, then SAE spends 1 point on actions. Then draw from the Contingency deck of the side that played this card. If the result is 4 or more, LIO spends 1 point on actions.",
     "history": "ChatGPT launched on 30 November 2022 and was estimated to have reached 100 million monthly users by January 2023; on 27 January 2025, after the Chinese company DeepSeek released a low-cost model, Nvidia's shares fell about 17 per cent, losing nearly $600 billion in value.",
     "art": "art/e3-neu-007"
   }

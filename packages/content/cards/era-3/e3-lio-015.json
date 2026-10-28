@@ -60,7 +60,7 @@
   ],
   "text": {
     "name": "Revolution of Dignity",
-    "rules": "Record \"turned west\". LIO spends 2 points. SAE chooses: Stir unrest in the east? If yes, draw from SAE's Contingency deck, then if the result is 4 or more, SAE spends 1 point; otherwise, LIO spends 1 point.",
+    "rules": "Record \"turned west\". LIO spends 2 points on one action. SAE chooses: Stir unrest in the east? If yes, draw from SAE's Contingency deck, then if the result is 4 or more, SAE spends 1 point on actions; otherwise, LIO spends 1 point on actions.",
     "history": "Protests began on Kyiv's Maidan square on 21 November 2013, after Ukraine's government dropped plans to sign an association agreement with the European Union. After more than 100 people were killed in February 2014, the president fled to Russia and parliament removed him on 22 February; Ukraine signed the agreement that year.",
     "art": "art/e3-lio-015"
   }

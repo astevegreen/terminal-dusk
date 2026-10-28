@@ -56,7 +56,7 @@
   ],
   "text": {
     "name": "Taiwan Strait Crisis",
-    "rules": "Record \"strait crisis\". LIO chooses: Send the carriers? If yes, LIO spends 2 points, then until the end of this turn, points spent by LIO count 1 less, never below 1; if no, SAE spends 3 points. Raise Escalation by 1.",
+    "rules": "Record \"strait crisis\". LIO chooses: Send the carriers? If yes, LIO spends 2 points on one action, then until the end of this turn, each time LIO spends points, it spends 1 fewer, never below 1; if no, SAE spends 3 points on one action. Raise Escalation by 1.",
     "history": "China fired missiles into waters near Taiwan and held exercises from July 1995 to March 1996, ahead of Taiwan's first direct presidential election on 23 March 1996; the United States sent two aircraft-carrier groups to the area in March 1996.",
     "art": "art/e1-sae-007"
   }

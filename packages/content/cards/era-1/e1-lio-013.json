@@ -63,7 +63,7 @@
   ],
   "text": {
     "name": "Oslo Accords",
-    "rules": "Record \"handshake\". LIO spends 1 point. SAE chooses: Back the spoilers? If yes, SAE spends 1 point, then at the end of this turn, LIO spends 1 point; if no, LIO spends 1 point. Lower Escalation by 1.",
+    "rules": "Record \"handshake\". LIO spends 1 point on actions. SAE chooses: Back the spoilers? If yes, SAE spends 1 point on actions, then at the end of this turn, LIO spends 1 point on actions; if no, LIO spends 1 point on actions. Lower Escalation by 1.",
     "history": "Israel and the Palestine Liberation Organization signed the Oslo Declaration of Principles at the White House on 13 September 1993, setting out a framework for Palestinian self-government.",
     "art": "art/e1-lio-013"
   }
