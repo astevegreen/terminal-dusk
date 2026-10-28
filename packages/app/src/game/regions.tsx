@@ -4,9 +4,11 @@ import { DECKS, SIDES } from "@terminal-dusk/engine";
 import type { CardId, DeckId, EraId, PublicState, Side } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import type { ReactNode } from "react";
+import { eraText, gameOverText } from "../displayText.ts";
+import type { Label } from "../displayText.ts";
 import { ZoomableMap } from "./ZoomableMap.tsx";
 
-export type Label = (card: CardId) => string;
+export type { Label } from "../displayText.ts";
 const DISCARD_SHOWN = 5;
 
 /**
@@ -38,7 +40,7 @@ function viewerText(frame: Frame): string {
 
 function statusText(frame: Frame): string {
   const { status } = frame.view.public;
-  if (status.kind === "over") return `Game over: ${status.winner ?? "no winner"}, ${status.reason}`;
+  if (status.kind === "over") return gameOverText(status);
   if (frame.viewer === "spectator") return "Game active";
   return frame.decision ? "Your decision" : "Waiting for the other side";
 }
@@ -50,7 +52,7 @@ export function StatusBar({ frame, era }: Readonly<{ frame: Frame; era: EraId | 
       <span>{viewerText(frame)}</span>
       <span>{`Turn ${pub.turn} of ${pub.turns}`}</span>
       <span>{`Plays made: ${pub.playsMade} of ${pub.playsPerTurn}`}</span>
-      <span>{era === null ? "Era not shown yet" : `Era: ${era}`}</span>
+      <span>{era === null ? "Era not shown yet" : eraText(era)}</span>
       {/* Only the state text is a polite live region, so its change is announced and the rest is not. */}
       <span role="status">{statusText(frame)}</span>
     </Region>

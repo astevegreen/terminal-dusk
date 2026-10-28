@@ -170,7 +170,7 @@ describe("the yes/no prompt names the card that asks and its question", () => {
   });
   const ifBlock: StackFrame = { kind: "if", steps: [], next: 0, vars: [] };
   const asked = "e1-lio-002";
-  const expected = `sae, ${firstDeckCardName(asked)}: Honour the assurances?`;
+  const expected = `SAE, ${firstDeckCardName(asked)}: Honour the assurances?`;
   /** The question's paragraph, with the id its group is labelled by. */
   const questionLine = (question: string): string => `<p id="decision-d1-question">${question}</p>`;
   const text = (stack: StackFrame[], onAnswer?: PromptProps["onAnswer"]) =>
@@ -195,15 +195,15 @@ describe("the yes/no prompt names the card that asks and its question", () => {
     expect(text([program(asked), ifBlock, ifBlock], () => {})).toContain(questionLine(expected));
   });
   it("uses the nearest program frame from the top, not a lower one", () => {
-    expect(text([program(asked), program()], () => {})).toContain(questionLine("sae: yes or no?"));
+    expect(text([program(asked), program()], () => {})).toContain(questionLine("SAE: yes or no?"));
   });
   it("falls back to '<side>: yes or no?' with no source card", () => {
-    expect(text([program(), ifBlock], () => {})).toContain(questionLine("sae: yes or no?"));
-    expect(text([], () => {})).toContain(questionLine("sae: yes or no?"));
+    expect(text([program(), ifBlock], () => {})).toContain(questionLine("SAE: yes or no?"));
+    expect(text([], () => {})).toContain(questionLine("SAE: yes or no?"));
   });
   it("falls back to '<side>: yes or no?' when the source card has no question", () => {
     expect(firstDeckCardQuestion("e1-lio-001")).toBeUndefined();
-    expect(text([program("e1-lio-001")], () => {})).toContain(questionLine("sae: yes or no?"));
+    expect(text([program("e1-lio-001")], () => {})).toContain(questionLine("SAE: yes or no?"));
   });
   it("keeps the Yes and No buttons and their answers with a question shown", () => {
     const sent: AnswerValue[] = [];
@@ -260,8 +260,8 @@ describe("the discardCards prompt (#192)", () => {
   it("renders both cases read-only with renderToString: the question and the choices as text, no buttons", () => {
     const own = readOnly(fromHand, ["a", "b", "c"], ["x"]);
     const rival = readOnly(fromRival, ["x"], ["a", "b", "c"]);
-    expect(own).toContain("sae: discard 2 cards from your hand");
-    expect(rival).toContain("lio: discard 2 cards from the rival&#x27;s hand");
+    expect(own).toContain("SAE: discard 2 cards from your hand");
+    expect(rival).toContain("LIO: discard 2 cards from the rival&#x27;s hand");
     for (const html of [own, rival]) {
       expect(html).not.toContain("<button");
       expect(html).toContain("<li>Discard Card a, Card b</li><li>Discard Card a, Card c</li>");
@@ -278,13 +278,13 @@ describe("the discardCards prompt (#192)", () => {
 describe("decisionPrompts without an onAnswer", () => {
   it("shows what is asked and lists the choices as text, with no buttons", () => {
     const cases: [Decision, string[], string[]][] = [
-      [decision("yesNo", {}), [], ["sae: yes or no?", "Yes", "No"]],
-      [decision("chooseCard", { from: "hand" }, "lio"), ["a"], ["lio: pick an opening card", "Card a"]],
-      [decision("playCardAs", play), ["a"], ["sae: play a card for its event or its points", "Card a: event"]],
+      [decision("yesNo", {}), [], ["SAE: yes or no?", "Yes", "No"]],
+      [decision("chooseCard", { from: "hand" }, "lio"), ["a"], ["LIO: pick an opening card", "Card a"]],
+      [decision("playCardAs", play), ["a"], ["SAE: play a card for its event or its points", "Card a: event"]],
       [
         decision("rivalEventOrder", {}, "lio"),
         [],
-        ["lio: the rival&#x27;s event happens before or after your points?", "After the points"],
+        ["LIO: the rival&#x27;s event happens before or after your points?", "After the points"],
       ],
     ];
     for (const [d, hand, texts] of cases) {

@@ -1,6 +1,12 @@
 import { SIDES, apply, legalAnswers } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
-import { FIRST_DECK_NOTE, firstDeckCardName, firstDeckConfig, firstDeckRuleset } from "./firstDeck.ts";
+import {
+  FIRST_DECK_NOTE,
+  firstDeckCardName,
+  firstDeckConfig,
+  firstDeckEraName,
+  firstDeckRuleset,
+} from "./firstDeck.ts";
 import { hostCreate } from "./index.ts";
 
 const byText = (a: string, b: string): number => a.localeCompare(b);
@@ -84,5 +90,16 @@ describe("the first deck as a game", () => {
   it("names its cards with real card names and labels the game as a TEST", () => {
     expect(firstDeckCardName("e1-lio-001")).not.toBe("e1-lio-001");
     expect(FIRST_DECK_NOTE).toMatch(/TEST/);
+  });
+});
+
+describe("first-deck era names", () => {
+  it("names an era the deck has by its number and years", () => {
+    expect(firstDeckEraName("era-2")).toBe("Era 2 (2001–2008)");
+    expect(firstDeckEraName("future")).toBe("Future cards (2025–2027)");
+  });
+  it("gives back an era id it has no name for, even one named like an object property", () => {
+    expect(firstDeckEraName("test")).toBe("test");
+    expect(firstDeckEraName("toString")).toBe("toString");
   });
 });

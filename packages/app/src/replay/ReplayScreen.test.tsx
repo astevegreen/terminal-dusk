@@ -2,7 +2,8 @@ import { renderToString } from "react-dom/server";
 import { beforeAll, describe, expect, it } from "vitest";
 import { cardAffiliation, cardName, cardQuestion } from "../testMode/fixture.ts";
 import { buttonsOf } from "../testMode/promptTree.ts";
-import { logLine } from "../testMode/session.ts";
+import { eraText } from "../displayText.ts";
+import { logLine } from "../eventPresentation.ts";
 import { createVsAiSession } from "../vsAi/session.ts";
 import { playOut } from "../vsAi/test/scriptedHuman.ts";
 import { standInAi } from "../vsAi/test/standInAi.ts";
@@ -36,7 +37,9 @@ const view = (index: number, onGo: (i: number) => void = () => {}, onClose: () =
 const html = (index: number): string => renderToString(view(index));
 const disabled = (out: string, name: string): boolean =>
   new RegExp(`<button[^>]*disabled=""[^>]*>${name}</button>`).test(out);
-const lines = (upTo: number): string[] => recording.frames.slice(0, upTo + 1).flatMap((f) => f.events.map(logLine));
+const NAMES = { card: cardName, era: eraText };
+const lines = (upTo: number): string[] =>
+  recording.frames.slice(0, upTo + 1).flatMap((f) => f.events.map((e) => logLine(e, NAMES)));
 /** Presses the named button of the viewer at `index` and returns the step it asked to go to (or null). */
 function press(index: number, name: string): number | null {
   let went: number | null = null;
@@ -91,7 +94,7 @@ describe("the replay viewer on a finished fixture game", () => {
     }
     const grows = recording.frames.findIndex((f, i) => i > 0 && f.events.length > 0);
     expect(grows).toBeGreaterThan(0);
-    const newLine = logLine(recording.frames[grows]!.events[0]!);
+    const newLine = logLine(recording.frames[grows]!.events[0]!, NAMES);
     expect(html(grows)).toContain(newLine);
     expect(html(grows - 1)).not.toContain(`>${newLine}<`);
     // Newest first: the last line of the shown steps comes before the first.
@@ -118,9 +121,9 @@ describe("the replay viewer on a finished fixture game", () => {
       ...recording,
       frames: recording.frames.map((f, i) =>
         i === 2
-          ? { ...f, events: [...f.events, eraEvent("early")] }
+          ? { ...f, events: [...f.events, eraEvent("era-2")] }
           : i === 4
-            ? { ...f, events: [...f.events, eraEvent("late")] }
+            ? { ...f, events: [...f.events, eraEvent("future")] }
             : f,
       ),
     };
@@ -137,12 +140,12 @@ describe("the replay viewer on a finished fixture game", () => {
         />,
       );
     for (const i of [0, 1]) expect(at(i)).toContain("Era not shown yet");
-    for (const i of [2, 3]) expect(at(i)).toContain("Era: early");
-    expect(at(4)).toContain("Era: late");
+    for (const i of [2, 3]) expect(at(i)).toContain("<span>Era 2 (2001–2008)</span>");
+    expect(at(4)).toContain("<span>Future cards (2025–2027)</span>");
     expect(at(2)).not.toContain("Era not shown yet");
-    expect(at(recording.frames.length - 1)).toContain("Era: late");
+    expect(at(recording.frames.length - 1)).toContain("<span>Future cards (2025–2027)</span>");
     // Stepping back before the first era event goes back to "not shown yet".
-    expect(at(1)).not.toContain("Era: early");
+    expect(at(1)).not.toContain("Era 2 (2001–2008)");
   });
 
   it("says Game active before the last step, then the final status and the seed hash at the last", () => {
@@ -154,7 +157,8 @@ describe("the replay viewer on a finished fixture game", () => {
       expect(out).not.toContain("Game over");
     }
     const out = html(last);
-    expect(out).toContain("Game over");
+    // The fixture game runs to its last turn, and nobody scores yet, so it ends with no winner.
+    expect(out).toContain("Game over: no winner, the last turn ended");
     expect(out).toContain(`Seed checked: ${recording.seedHash}`);
     expect(out).not.toContain("Game active");
     expect(disabled(out, "Next")).toBe(true);

@@ -7,6 +7,7 @@ import { ANON_KEY, URL_BASE } from "../../transport/test/fakeSupabase.ts";
 import { config, nextMove, POLL_MS, rig as transportRig, settle } from "../../transport/test/remoteGame.ts";
 import { createOnlineGame } from "../onlineGame.ts";
 import type { OnlineGame } from "../onlineGame.ts";
+import { cardName } from "../../testMode/fixture.ts";
 
 export const NOW = 50_000;
 /** Carol is signed in but plays in neither seat, so she watches as a spectator. */
@@ -58,6 +59,7 @@ export function onlineRig(player: string | null = "alice", initial: ClockMode = 
     accessToken: () => Promise.resolve(player === null ? null : (TOKEN_OF[player] ?? null)),
     fetch,
     now: () => time.now,
+    label: cardName,
     ...(defaultPoll ? {} : { pollMs: POLL_MS }),
     timers,
   });

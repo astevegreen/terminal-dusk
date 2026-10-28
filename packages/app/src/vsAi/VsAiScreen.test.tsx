@@ -7,7 +7,10 @@ import type { VsAiSession } from "./session.ts";
 import { flush, playOut } from "./test/scriptedHuman.ts";
 import { standInAi } from "./test/standInAi.ts";
 import type { StandInOptions } from "./test/standInAi.ts";
-import { SidePicker, VsAiScreen, VsAiView, openSession } from "./VsAiScreen.tsx";
+import { SidePicker, VsAiScreen, VsAiView, openSession, vsAiOptions } from "./VsAiScreen.tsx";
+import type { VsAiGame } from "./VsAiScreen.tsx";
+import { cardAffiliation, cardQuestion, fixtureConfig, fixtureRuleset } from "../testMode/fixture.ts";
+import { createLocalMatch } from "../transport/localMatch.ts";
 
 const GAME_SEED = "screen-seed-never-shown-91c2";
 const clock = (): number => 1_700_000_000_000;
@@ -39,7 +42,7 @@ describe("the game screen against the AI", () => {
     const { session } = start({ hold: true });
     const out = view(session);
     expect(out).toContain("You play LIO");
-    expect(out).toContain("lio: pick an opening card");
+    expect(out).toContain("LIO: pick an opening card");
     expect(out).toContain("<button");
     expect(out).not.toContain("New game");
   });
@@ -84,6 +87,31 @@ describe("leaving the screen", () => {
     expect(standIn.stops).toBe(0);
     cleanUp();
     expect(standIn.stops).toBe(1);
+  });
+});
+
+describe("the session the screen starts", () => {
+  const setup = { clock, newSeed: () => GAME_SEED, newAiSeed: () => 5, makeAi: standInAi().makeAi };
+  it("names the log's cards with the chosen game's card names, so a real deck never shows test-card names", () => {
+    const named = (id: string): string => `Named ${id}`;
+    const game: VsAiGame = {
+      ruleset: fixtureRuleset,
+      makeMatch: (seed, now) => createLocalMatch(fixtureRuleset, fixtureConfig, seed, now),
+      cardName: named,
+      cardQuestion,
+      cardAffiliation,
+      note: "A named game",
+    };
+    const options = vsAiOptions("sae", { ...setup, game });
+    expect(options.label).toBe(named);
+    expect(options.ruleset).toBe(game.ruleset);
+    expect(options.makeMatch).toBe(game.makeMatch);
+    expect(options.human).toBe("sae");
+  });
+  it("with no game chosen, leaves the names to the session, which uses the developer fixture's", () => {
+    const options = vsAiOptions("lio", setup);
+    expect("label" in options).toBe(false);
+    expect("ruleset" in options).toBe(false);
   });
 });
 

@@ -1,4 +1,5 @@
 import type { Side } from "@terminal-dusk/engine";
+import { firstDeckConfig, firstDeckRuleset } from "@terminal-dusk/host/first-deck";
 import { describe, expect, it } from "vitest";
 import { fixtureConfig, fixtureRuleset } from "../testMode/fixture.ts";
 import { createLocalMatch } from "../transport/localMatch.ts";
@@ -31,6 +32,28 @@ describe("a whole game against the AI", () => {
       expect(standIn.answers.length).toBeGreaterThan(0);
     });
   }
+});
+
+describe("the log", () => {
+  it("names cards by the game's card names and sides as LIO and SAE", async () => {
+    // The first deck, because the fixture game deals full hands and so draws no card.
+    const standIn = standInAi();
+    const session = createVsAiSession({
+      human: "lio",
+      gameSeed: GAME_SEED,
+      aiSeed: 11,
+      clock,
+      makeAi: standIn.makeAi,
+      ruleset: firstDeckRuleset,
+      makeMatch: (seed, now) => createLocalMatch(firstDeckRuleset, firstDeckConfig(), seed, now),
+      label: (id) => `Named ${id}`,
+    });
+    await playOut(session, standIn);
+    const log = session.getSnapshot().log.join("\n");
+    expect(log).toMatch(/^LIO drew Named e1-[a-z]+-\d+\.$/m);
+    expect(log).toMatch(/^SAE /m);
+    expect(log).not.toMatch(/^(lio|sae) /m);
+  });
 });
 
 describe("the AI's answers depend only on the seeds and the human's answers", () => {

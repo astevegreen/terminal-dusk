@@ -57,10 +57,10 @@ describe("the chooseAction prompt (R16c, #317)", () => {
 
   it("says the points to spend in its question", () => {
     expect(renderToString(createElement(decisionPrompts.chooseAction, props(menu("sae", 3))))).toContain(
-      "sae: spend all 3 points on one action",
+      "SAE: spend all 3 points on one action",
     );
     expect(renderToString(createElement(decisionPrompts.chooseAction, props(menu("lio", 1))))).toContain(
-      "lio: spend all 1 point on one action",
+      "LIO: spend all 1 point on one action",
     );
   });
 });
@@ -85,10 +85,10 @@ describe("the realign prompt (R16c, #317)", () => {
 
   it("says the attempts left in its question, and lists the countries as text when read-only", () => {
     const html = renderToString(createElement(decisionPrompts.realign, props(realign("sae", 2, ["alpha"]))));
-    expect(html).toContain("sae: realign (2 attempts left)");
+    expect(html).toContain("SAE: realign (2 attempts left)");
     expect(html).toContain("<li>Realign in alpha</li>");
     expect(html).not.toContain("<button");
     const one = renderToString(createElement(decisionPrompts.realign, props(realign("lio", 1, ["alpha"]))));
-    expect(one).toContain("lio: realign (1 attempt left)");
+    expect(one).toContain("LIO: realign (1 attempt left)");
   });
 });

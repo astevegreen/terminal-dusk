@@ -66,7 +66,7 @@ describe("test mode screen", () => {
       "Your decision",
       "<li>Test card 1</li><li>Test card 2</li><li>Test card 3</li><li>Test card 4</li><li>Test card 5</li><li>Test card 7</li><li>Test card 13</li>",
       "SAE holds 7 cards",
-      "lio: pick an opening card",
+      "LIO: pick an opening card",
       "min-height:44px",
     ];
     for (const text of texts) expect(out).toContain(text);

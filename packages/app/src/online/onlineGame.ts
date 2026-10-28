@@ -2,9 +2,11 @@
 // transport with real timers, keeps the latest frame and the game's log and era, says whose turn it is, reads
 // the deadline from the match row's clock, and sends answers. It holds display data only: no rules, and the
 // access token is only passed through, never kept in the snapshot.
-import type { AnswerValue, EraId } from "@terminal-dusk/engine";
+import type { AnswerValue, CardId, EraId } from "@terminal-dusk/engine";
 import type { Frame, MatchClock } from "@terminal-dusk/host";
-import { logLine } from "../testMode/session.ts";
+import { eraText } from "../displayText.ts";
+import type { GameNames } from "../displayText.ts";
+import { logLine } from "../eventPresentation.ts";
 import type { TransportError } from "../transport/matchTransport.ts";
 import type { FetchLike } from "../transport/remoteHttp.ts";
 import { createRemoteMatch } from "../transport/remoteMatch.ts";
@@ -40,6 +42,8 @@ export type OnlineGameOptions = {
   fetch: FetchLike;
   /** The time, in whole milliseconds, stamped on each deadline read. */
   now: () => number;
+  /** How the log names cards: the game's own card names. */
+  label: (id: CardId) => string;
   /** How long to wait between polls; 5000 when left out. */
   pollMs?: number;
   /** Real timers when left out. */
@@ -75,6 +79,7 @@ const CLOSED = new Error("online game closed");
 export function createOnlineGame(options: OnlineGameOptions): OnlineGame {
   const { playerId, accessToken, now } = options;
   const timers = options.timers ?? realTimers;
+  const names: GameNames = { card: options.label, era: eraText };
   const listeners = new Set<() => void>();
   let closed = false;
   let lastSeq = -1;
@@ -118,7 +123,7 @@ export function createOnlineGame(options: OnlineGameOptions): OnlineGame {
     let { log, era } = snapshot;
     const isNew = frame.seq > lastSeq;
     if (isNew) {
-      log = [...log, ...frame.events.map(logLine)];
+      log = [...log, ...frame.events.map((event) => logLine(event, names))];
       lastSeq = frame.seq;
       for (const event of frame.events) if (event.kind === "eraStarted") era = event.era;
     }

@@ -34,7 +34,7 @@ describe("the chooseAction prompt (R16b, #316)", () => {
 
   it("says that all the points go to one action, and lists the choices as text when read-only", () => {
     const html = renderToString(createElement(decisionPrompts.chooseAction, props(choosing("sae", 1, ["alpha"]))));
-    expect(html).toContain("sae: spend all 1 point on one action");
+    expect(html).toContain("SAE: spend all 1 point on one action");
     expect(html).toContain("<li>Place influence</li><li>Intervene in alpha</li>");
     expect(html).not.toContain("<button");
   });

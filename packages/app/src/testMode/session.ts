@@ -1,13 +1,15 @@
 // The state behind the test-mode screen: one local match, the viewer being looked at, that viewer's latest
 // frame and game log, and the last refusal. It holds display data only; the rules stay in the host.
 import type { AnswerValue, EraId, GameEvent, Viewer } from "@terminal-dusk/engine";
+import { eraText } from "../displayText.ts";
+import type { GameNames } from "../displayText.ts";
 import type { Frame } from "@terminal-dusk/host";
-import { eventPresentation } from "../eventPresentation.ts";
+import { logLine } from "../eventPresentation.ts";
 import { toRecording } from "../replay/recording.ts";
 import type { ReplayRecording } from "../replay/recording.ts";
 import { createLocalMatch } from "../transport/localMatch.ts";
 import type { LocalMatch } from "../transport/localMatch.ts";
-import { DEFAULT_SEED, fixtureRuleset, testModeConfig } from "./fixture.ts";
+import { DEFAULT_SEED, cardName, fixtureRuleset, testModeConfig } from "./fixture.ts";
 
 export type Snapshot = {
   viewer: Viewer;
@@ -36,10 +38,9 @@ export type TestSession = {
   answer(value: AnswerValue): Promise<void>;
 };
 
-/** One log line for an event. */
-export function logLine(event: GameEvent): string {
-  return (eventPresentation[event.kind].log as (e: GameEvent) => string)(event);
-}
+/** The test mode's log names the fixture's cards. */
+const FIXTURE_NAMES: GameNames = { card: cardName, era: eraText };
+const line = (event: GameEvent): string => logLine(event, FIXTURE_NAMES);
 
 export function createTestSession(clock: () => number, startSeed: string = DEFAULT_SEED): TestSession {
   const listeners = new Set<() => void>();
@@ -66,7 +67,7 @@ export function createTestSession(clock: () => number, startSeed: string = DEFAU
   const onFrame = (viewer: Viewer, frame: Frame): void => {
     // A frame with the seq already logged (the one a new subscription starts with) adds no lines.
     if (frame.seq > lastSeq[viewer]) {
-      logs[viewer] = [...logs[viewer], ...frame.events.map(logLine)];
+      logs[viewer] = [...logs[viewer], ...frame.events.map(line)];
       lastSeq[viewer] = frame.seq;
       for (const event of frame.events) if (event.kind === "eraStarted") eras[viewer] = event.era;
     }
