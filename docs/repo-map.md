@@ -812,6 +812,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/reveals.test.ts` - The fuzz suite and the revealHand step of R6a (#185): the fuzz cards show hands at the top level, inside an if and in both kinds of reaction, and the fuzz game…
 - `tests/fuzz/reveals.ts` - TEST-ONLY FIXTURES, never game content: the `revealHand` steps (R6a) the fuzz cards run. Exports: REVEAL, RevealWhere, revealStep, revealOf, revealTriggerOf, announcedReveal.
 - `tests/fuzz/testMap.ts` - The content test map (TEST_MAP_SCENARIO) in the fuzz games, with a battleground list for each random era (#429). Exports: onTestMap.
+- `tests/fuzz/trackEnd.test.ts` - Games that end at a score track's end (R23).
 - `tests/fuzz/turnEndSpend.test.ts` - Turn-end-place (#426): random games on the content test map whose cards leave turn-end payments behind, played with every check on every step.
 - `tests/golden/__snapshots__/refill.test.ts.snap`
 - `tests/golden/refill.test.ts` - Golden replay of refilling hands (docs/design/core-loop.md, "Refilling hands").
