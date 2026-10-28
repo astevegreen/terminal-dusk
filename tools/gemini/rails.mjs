@@ -5,7 +5,7 @@
 //   P4: a change touching a rail gets a deep audit asking whether it loosens, bypasses or disables a check, guard,
 //       gate, hook or required review. Yes holds it for the owner; no merges it like any other change.
 //   P2: an audit that could not run is a machine failure: it retries by itself and never waits for the owner.
-import { ARGON, OPUS } from "./agy.mjs";
+import { ARGON, FLASH, OPUS } from "./agy.mjs";
 
 // The rails: where a loosened check hides its own failure. The first six are the same in YODC and the course;
 // the rest are TD's own: this audit is a merge gate now, so its code and GEMINI.md (agy's instructions for it) are
@@ -22,10 +22,11 @@ export const RAILS = [
   { test: (f) => f === "package.json", what: "the root package.json, whose scripts run the gate" },
 ];
 
-// The models a rail audit may use, in order: only the two deepest. When both are out of usage the audit doesn't
-// fall back to a lighter model: it can't run, and the pull request retries (P2). agy.mjs's ORDER stays as it is,
-// because its copies in the three repos must stay the same; tools/gemini-audit.mjs passes this order instead.
-export const RAIL_MODELS = [ARGON, OPUS];
+// The models a rail audit may use, in order: the two deepest, then Flash, so the audit never waits for the deep
+// models (owner's rule). Never Sonnet: the Claude reviewer already covers that family. When none of the three is
+// available the audit can't run, and the pull request retries (P2). agy.mjs's ORDER stays as it is, because its
+// copies in the three repos must stay the same; tools/gemini-audit.mjs passes this order instead.
+export const RAIL_MODELS = [ARGON, OPUS, FLASH];
 
 // TD's agents and skills also wire hooks and tool limits in their front matter (the lanes' bash-guard, the
 // implementer's file lock), so a changed line of that kind there touches a rail too.

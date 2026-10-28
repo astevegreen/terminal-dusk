@@ -134,8 +134,9 @@ test("an audit that could not run retries by itself: it never merges unaudited o
   assert.equal(decide({ review: failed, rail: ok("LOOSENS: yes\nDrops a job."), hits }).verdict, "hold");
 });
 
-test("a rail audit asks only Argon, then Opus; with both out of usage it can't run, so it retries", () => {
-  assert.deepEqual(RAIL_MODELS, [ARGON, OPUS]);
+test("a rail audit asks Argon, Opus, then Flash and never Sonnet; with none of the three available it retries", () => {
+  assert.deepEqual(RAIL_MODELS, [ARGON, OPUS, FLASH]);
+  assert.ok(!RAIL_MODELS.includes(SONNET));
   const asked = [];
   const outOfUsage = (model) => {
     asked.push(model);
@@ -143,10 +144,28 @@ test("a rail audit asks only Argon, then Opus; with both out of usage it can't r
   };
   const store = { outUntil: () => null, markOut: () => {} };
   assert.throws(() => askFirstAvailable(RAIL_MODELS, outOfUsage, store, () => 0), /^Error: no model answered/);
-  assert.deepEqual(asked, [ARGON, OPUS]);
-  assert.ok(!asked.includes(FLASH) && !asked.includes(SONNET));
-  const error = "no model answered: both are out of usage";
+  assert.deepEqual(asked, [ARGON, OPUS, FLASH]);
+  assert.ok(!asked.includes(SONNET));
+  const error = "no model answered: all three are out of usage";
   assert.equal(decide({ review: ok("No findings."), rail: { ok: false, error }, hits }).verdict, "retry");
+});
+
+test("a rail audit doesn't wait for the deep models: Flash answers when Argon and Opus are out of usage", () => {
+  const asked = [];
+  const ask = (model) => {
+    asked.push(model);
+    if (model === FLASH) return "LOOSENS: no\nAdds a job.";
+    throw new Error("You have exhausted your individual quota. Resets in 2h0m0s");
+  };
+  const store = { outUntil: () => null, markOut: () => {} };
+  const answer = askFirstAvailable(RAIL_MODELS, ask, store, () => 0);
+  assert.equal(answer.model, FLASH);
+  assert.deepEqual(asked, [ARGON, OPUS, FLASH]);
+  assert.deepEqual(
+    answer.passed.map((p) => p.model),
+    [ARGON, OPUS],
+  );
+  assert.equal(railAnswer(answer.response).loosens, false);
 });
 
 test("only a verdict the audit's own account posted for this commit, and not a retry, is reused", () => {

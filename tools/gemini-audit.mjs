@@ -172,7 +172,8 @@ export function auditPr(number, io = { gh, ask: askGemini, post, me: signedIn })
     }
   };
   const review = ask("pr-audit");
-  // Only Argon or Opus may answer a rail audit; with both out of usage it can't run, and the verdict is retry.
+  // Argon, Opus or Flash may answer a rail audit, never Sonnet; with none of the three available it can't run, and
+  // the verdict is retry.
   const rail = hits.length ? ask("rail-audit", { deepPaths: hits.map((h) => h.file), models: RAIL_MODELS }) : null;
   const verdict = { sha: pr.headRefOid, ...decide({ review, rail, hits }) };
   const parts = [verdictMarker(verdict), review.ok ? report("pull request", review) : skipped(new Error(review.error))];

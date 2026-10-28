@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { auditPr } from "./gemini-audit.mjs";
-import { ARGON, OPUS } from "./gemini/agy.mjs";
+import { ARGON, FLASH, OPUS, SONNET } from "./gemini/agy.mjs";
 import { verdictMarker } from "./gemini/rails.mjs";
 
 const SCRIPT = path.join(import.meta.dirname, "gemini-audit.mjs");
@@ -95,14 +95,15 @@ test("auditPr asks who it is signed in as only when a comment carries a verdict"
   assert.equal(calls.me, 0);
 });
 
-test("auditPr's rail audit asks only Argon and Opus; when neither answers, the verdict is retry", () => {
+test("auditPr's rail audit asks Argon, Opus and Flash, never Sonnet; when none answers, the verdict is retry", () => {
   const { io, calls } = fake({
     diff: diffOf(".github/workflows/ci.yml"),
     answers: { "rail-audit": new Error("no model answered: Gemini 4 Argon is out of usage") },
   });
   const r = auditPr(7, io);
   const rail = calls.ask.find((a) => a.prompt === "rail-audit");
-  assert.deepEqual(rail.opts.models, [ARGON, OPUS]);
+  assert.deepEqual(rail.opts.models, [ARGON, OPUS, FLASH]);
+  assert.ok(!rail.opts.models.includes(SONNET));
   assert.equal(calls.ask.find((a) => a.prompt === "pr-audit").opts.models, undefined, "the review keeps its order");
   assert.equal(r.verdict, "retry");
   assert.match(calls.post[0].body, /\*\*Verdict: retry\*\*/);
