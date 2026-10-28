@@ -832,7 +832,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/hooks/bash-guard.mjs` - PreToolUse (Bash): catch disguised versions of denied commands anywhere in a command line.
 - `tools/hooks/bash-guard.reading.test.mjs` - How bash-guard reads a command line: the commands bash runs wherever they hide, and the text it never runs.
 - `tools/hooks/bash-guard.test.mjs`
-- `tools/hooks/codeowners.test.mjs` - .github/CODEOWNERS must keep the fences, database migrations and dependency files waiting for the owner.
+- `tools/hooks/codeowners.test.mjs` - .github/CODEOWNERS names no path, so no change waits for the owner's review (owner's policy, 28 Oct 2026).
 - `tools/hooks/env-check.mjs` - SessionStart (startup): check this machine is set up the way the project expects.
 - `tools/hooks/env-check.test.mjs`
 - `tools/hooks/file-lock.mjs` - PreToolUse (Edit|Write|MultiEdit|NotebookEdit), implementer only: refuse edits to Locked files.
@@ -954,7 +954,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 ## .github
 
-- `.github/CODEOWNERS` - Locked: configuration and gates, the agents' own rules
+- `.github/CODEOWNERS` - No path waits for the owner's review: CI, the reviewer agent and agy decide merges (owner's policy, 28 Oct 2026).
 - `.github/ISSUE_TEMPLATE/bug.yml`
 - `.github/ISSUE_TEMPLATE/config.yml`
 - `.github/ISSUE_TEMPLATE/task.yml`

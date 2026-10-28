@@ -1,20 +1,5 @@
-# Locked: configuration and gates, the agents' own rules
-/.claude/                           @astevegreen
-/CLAUDE.md                          @astevegreen
-/GEMINI.md                          @astevegreen
-/.github/                           @astevegreen
-/docs/architecture.md               @astevegreen
-/tools/hooks/                       @astevegreen
-/tools/gates/                       @astevegreen
-/tools/git-hooks/                   @astevegreen
-# Held: database migrations, golden replays, dependencies and tool settings
-/packages/server/supabase/migrations/        @astevegreen
-/tests/golden/                               @astevegreen
-**/package.json                              @astevegreen
-/pnpm-lock.yaml                              @astevegreen
-/pnpm-workspace.yaml                         @astevegreen
-**/tsconfig*.json                            @astevegreen
-**/vitest.config.*                           @astevegreen
-**/vite.config.*                             @astevegreen
-/eslint.config.*                             @astevegreen
-/.prettierignore                             @astevegreen
+# No path waits for the owner's review: CI, the reviewer agent and agy decide merges (owner's policy, 28 Oct 2026).
+# GitHub's ruleset still requires code-owner review, so a path listed here would make every change to it wait for
+# the owner again. A change that loosens a rail (hooks, gates, git hooks, workflows, .claude/settings*.json or this
+# file) is held for the owner by agy's rail audit instead (CLAUDE.md, Finishing). tools/hooks/codeowners.test.mjs
+# keeps this file free of entries.
