@@ -83,6 +83,19 @@ describe("boardValue", () => {
     expect(boardValue({ ...pub, influence }, "lio", MEDIUM_WEIGHTS)).toBeGreaterThan(before);
   });
 
+  it("counts the region scoring points a side gains by controlling a country, scaled by the region weight", () => {
+    const pub = viewFor(newMapGame(1), "lio").public;
+    const target = pub.map!.countries.find((c) => c.id === "test-b1")!;
+    const taken = pub.influence!.map((e) => (e.country === target.id ? { ...e, lio: e.sae + target.stability } : e));
+    const gain = (region: number): number => {
+      const weights = { ...MEDIUM_WEIGHTS, region, progress: 0 };
+      return boardValue({ ...pub, influence: taken }, "lio", weights) - boardValue(pub, "lio", weights);
+    };
+    expect(gain(0)).toBe(0);
+    expect(gain(1)).toBeGreaterThan(0);
+    expect(gain(2)).toBeCloseTo(2 * gain(1));
+  });
+
   it("counts progress in a battleground more when the battleground weight is higher", () => {
     const pub = viewFor(newMapGame(1), "lio").public;
     const gain = (battleground: number): number => {
