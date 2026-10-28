@@ -87,7 +87,7 @@ What the reference rules mean for this game, as far as they reach:
 ## Escalation (proposal topic 4, option B)
 
 Called "tension" until the owner's 22 October dialogue, which settled everything below except the parts that wait
-on scoring, the map and the tech race.
+on scoring's numbers, the map and the tech race.
 
 - **Name.** The track is called **Escalation** on screen (owner, 22 Oct), after Herman Kahn's escalation ladder
   (_On Escalation_, 1965).
@@ -129,7 +129,7 @@ on scoring, the map and the tech race.
   a great power to act, and a world at the brink excuses restraint. A side that falls short has a **credibility
   gap**, and the rival scores. The name comes from the deterrence literature (Schelling on commitment and
   credibility; the debate on a "reputation for resolve"). Open: the numbers, which wait for plays per turn and
-  scoring; when the gap is counted; whether card events count toward it.
+  scoring's numbers; when the gap is counted; whether card events count toward it.
 - **Cards that move it** (owner, 22 Oct). Sixteen cards move Escalation by 1, on top of what each already does.
   Their design lines are rewritten in the card rewording pass (question 7).
   - **Raise:** Desert Storm Coalition, Second Chechen War, Taiwan Strait Crisis (Era 1); ABM Treaty Withdrawal,
@@ -152,20 +152,26 @@ Decided by the owner on 28 October 2026, choosing between the options in `docs/p
   to give.
 - **How a region scores.** A side is **present** in a region if it controls at least one country there, **ahead**
   if it controls more countries and more battlegrounds there than the rival, and **holds every battleground** if
-  it controls all of the region's battlegrounds. Each level scores a fixed amount for that region. The region's
-  battlegrounds are those on the list of the era that is ending (Map section).
+  it controls all of the region's battlegrounds. Each level scores a fixed amount for that region, and a side
+  scores only the highest level it reaches (owner: "highest level only"). The region's battlegrounds are those on
+  the list of the era that is ending (Map section).
+- **A region with no battlegrounds that era** (owner: "countries only") still scores: ahead means controlling
+  more countries there, and no side can hold every battleground.
 - **Battlegrounds score on their own** (owner: "yes, +1 each"). Each battleground a side controls in a scoring
   region adds 1, beyond counting towards ahead and holding every battleground.
 - **One shared score track** from LIO's end to SAE's end. A whole number that stops at its ends. Escalation's
   crisis moves it against the side that caused the crisis, and a credibility gap moves it towards the rival.
+- **Each region moves the track once** (owner: "net, check per region"). Both sides score a region together, and
+  the track moves by the difference towards the side that scored more.
 - **How the game is won** (owner: "track end, or ahead in 2025"). A side that reaches its end of the track wins
-  at once. Otherwise, after the final era scores at the end of 2025, the side the track leans towards wins.
+  at once; during era scoring this is checked after each region, so the game stops before the next region scores. Otherwise, after the final era scores at the end of 2025, the side the track leans towards wins.
 - **An even track at the end** (owner: "tie-break based on whoever is further ahead on the technology track …
   If that is also a tie, then it's a draw"). The side further ahead on the tech race track wins; if that is
   also even, the game is a draw.
 - Open: the track's length and where it starts, the amounts for present, ahead and holding every battleground
   per region, and the order regions score in (scenario data, with the region contents); how "further ahead" on
-  the tech race is measured (tech race topic); whether the 2025-2027 scenario scores again at the end of 2027.
+  the tech race is measured (tech race topic); when the 2025-2027 scenario (eras.md) has its final scoring and
+  win check.
 
 ## Owner's remaining questions
 
@@ -175,4 +181,4 @@ Decided by the owner on 28 October 2026, choosing between the options in `docs/p
 3. Country and region content for the six-region map, including which regions close at Escalation's thresholds,
    and in what order.
 4. Answered 26 Oct: the intervention and realign formulas stand as written (#316, #317).
-5. Credibility's numbers, once plays per turn and scoring are known.
+5. Credibility's numbers, once plays per turn and scoring's numbers are known.
