@@ -81,7 +81,7 @@
   ],
   "text": {
     "name": "Ruble Default",
-    "rules": "Record \"default\". SAE chooses: Default? If yes, (draw from the Contingency deck of the side that played this card, then if the result is 3 or more, SAE spends 2 points, then until the end of this turn, points spent by SAE count 1 less, never below 1; otherwise, until the end of this turn, points spent by SAE count 1 less, never below 1); if no, LIO spends 1 point.",
+    "rules": "Record \"default\". SAE chooses: Default? If yes, (draw from the Contingency deck of the side that played this card, then if the result is 3 or more, SAE spends 2 points on one action, then until the end of this turn, each time SAE spends points, it spends 1 fewer, never below 1; otherwise, until the end of this turn, each time SAE spends points, it spends 1 fewer, never below 1); if no, LIO spends 1 point on actions.",
     "history": "On 17 August 1998 Russia devalued the ruble and defaulted on its domestic debt; the shock led to the $3.6 billion rescue of the hedge fund Long-Term Capital Management in September 1998.",
     "art": "art/e1-neu-003"
   }

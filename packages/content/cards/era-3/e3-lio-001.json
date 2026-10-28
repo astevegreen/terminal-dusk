@@ -83,7 +83,7 @@
   ],
   "text": {
     "name": "Stuxnet",
-    "rules": "Draw from LIO's Contingency deck. If \"programme revealed\" has been recorded this game, the result needs to be 2 or more; otherwise, 3 or more. If it is, record \"centrifuges spin apart\", then LIO spends 2 points; otherwise, record \"cyberweapon loose\", then SAE spends 1 point.",
+    "rules": "Draw from LIO's Contingency deck. If \"programme revealed\" has been recorded this game, the result needs to be 2 or more; otherwise, 3 or more. If it is, record \"centrifuges spin apart\", then LIO spends 2 points on one action; otherwise, record \"cyberweapon loose\", then SAE spends 1 point on actions.",
     "history": "The Stuxnet worm, discovered in June 2010, damaged uranium-enrichment centrifuges at Iran's Natanz plant; no government has officially acknowledged creating it.",
     "art": "art/e3-lio-001"
   }

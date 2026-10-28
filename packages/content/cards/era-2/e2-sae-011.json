@@ -22,7 +22,7 @@
   ],
   "text": {
     "name": "Munich Speech 2007",
-    "rules": "Record \"unipolar moment over\". Until the end of this turn, points spent by SAE count 1 more.",
+    "rules": "Record \"unipolar moment over\". Until the end of this turn, each time SAE spends points, it spends 1 more.",
     "history": "At the Munich Security Conference on 10 February 2007 President Putin attacked a \"unipolar\" world order and US dominance, in a speech widely seen as a turning point in Russia-West relations.",
     "art": "art/e2-sae-011"
   }

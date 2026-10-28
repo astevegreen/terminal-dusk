@@ -141,7 +141,7 @@
   ],
   "text": {
     "name": "COVID-19",
-    "rules": "Record \"pandemic\". Each side chooses: Close the borders? If LIO says yes, LIO spends 1 point, then until the end of this turn, points spent by LIO count 1 less, never below 1; otherwise, (draw from the Contingency deck of the side that played this card, then if the result is 3 or more, LIO spends 2 points, then SAE spends 1 point; otherwise, SAE spends 1 point). If SAE says yes, SAE spends 1 point, then until the end of this turn, points spent by SAE count 1 less, never below 1; otherwise, (draw from the Contingency deck of the side that played this card, then if the result is 3 or more, SAE spends 2 points, then LIO spends 1 point; otherwise, LIO spends 1 point).",
+    "rules": "Record \"pandemic\". Each side chooses: Close the borders? If LIO says yes, LIO spends 1 point on actions, then until the end of this turn, each time LIO spends points, it spends 1 fewer, never below 1; otherwise, (draw from the Contingency deck of the side that played this card, then if the result is 3 or more, LIO spends 2 points on one action, then SAE spends 1 point on actions; otherwise, SAE spends 1 point on actions). If SAE says yes, SAE spends 1 point on actions, then until the end of this turn, each time SAE spends points, it spends 1 fewer, never below 1; otherwise, (draw from the Contingency deck of the side that played this card, then if the result is 3 or more, SAE spends 2 points on one action, then LIO spends 1 point on actions; otherwise, LIO spends 1 point on actions).",
     "history": "The World Health Organization declared COVID-19 a pandemic on 11 March 2020, when about 118,000 cases had been reported in 114 countries; millions of deaths followed worldwide.",
     "art": "art/e3-neu-002"
   }

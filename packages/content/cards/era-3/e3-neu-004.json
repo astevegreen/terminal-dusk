@@ -47,7 +47,7 @@
   ],
   "text": {
     "name": "Migration Crises",
-    "rules": "Record \"a million arrivals\". Until the end of this turn, points spent by LIO count 1 less, never below 1. If \"proxy war\" has been recorded this game, LIO spends nothing at the end of this turn; otherwise, at the end of this turn, LIO spends 1 point.",
+    "rules": "Record \"a million arrivals\". Until the end of this turn, each time LIO spends points, it spends 1 fewer, never below 1. If \"proxy war\" has been recorded this game, LIO spends nothing at the end of this turn; otherwise, at the end of this turn, LIO spends 1 point on actions.",
     "history": "In 2015 just over one million refugees and migrants reached Europe by sea, more than 800,000 of them via Greece, and about half of them from Syria; at least 3,700 died or went missing at sea. By 2024 more than 7 million people had left Venezuela since its economic collapse began in 2014, most of them for other Latin American countries.",
     "art": "art/e3-neu-004"
   }

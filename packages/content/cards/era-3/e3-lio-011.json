@@ -30,7 +30,7 @@
   ],
   "text": {
     "name": "Private Constellation",
-    "rules": "Record \"constellation\". LIO spends 1 point. At the end of this turn, LIO spends 1 point.",
+    "rules": "Record \"constellation\". LIO spends 1 point on actions. At the end of this turn, LIO spends 1 point on actions.",
     "history": "SpaceX launched the first 60 Starlink satellites on 23 May 2019; within days of Russia's February 2022 invasion the service was activated in Ukraine and became an important part of its communications.",
     "art": "art/e3-lio-011"
   }

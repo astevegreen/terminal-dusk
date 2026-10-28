@@ -90,7 +90,7 @@
   ],
   "text": {
     "name": "Curveball",
-    "rules": "LIO chooses: Act on the single source? If yes, (draw from LIO's Contingency deck, then if the result is 5 or more, LIO spends 2 points; otherwise, record \"intelligence discredited\", then if \"coalition fractures\" has been recorded this game, SAE spends 2 points; otherwise, SAE spends 1 point; then until the end of this turn, points spent by LIO count 1 less, never below 1); if no, LIO spends 1 point.",
+    "rules": "LIO chooses: Act on the single source? If yes, (draw from LIO's Contingency deck, then if the result is 5 or more, LIO spends 2 points on one action; otherwise, record \"intelligence discredited\", then if \"coalition fractures\" has been recorded this game, SAE spends 2 points on one action; otherwise, SAE spends 1 point on actions; then until the end of this turn, each time LIO spends points, it spends 1 fewer, never below 1); if no, LIO spends 1 point on actions.",
     "history": "Claims that Iraq had mobile biological-weapons laboratories, presented to the UN Security Council on 5 February 2003, rested largely on an informant code-named Curveball whose account was later found to be fabricated.",
     "art": "art/e2-sae-002"
   }

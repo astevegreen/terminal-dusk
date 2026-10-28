@@ -49,7 +49,7 @@
   ],
   "text": {
     "name": "Parallel Plumbing",
-    "rules": "Record \"parallel plumbing\". SAE spends 2 points. LIO chooses: Join the bank? If yes, LIO spends 1 point, then SAE spends 1 point; if no, record \"stayed out\".",
+    "rules": "Record \"parallel plumbing\". SAE spends 2 points on one action. LIO chooses: Join the bank? If yes, LIO spends 1 point on actions, then SAE spends 1 point on actions; if no, record \"stayed out\".",
     "history": "Brazil, Russia, India and China held their first BRIC summit in Yekaterinburg on 16 June 2009; the China-led Asian Infrastructure Investment Bank opened on 16 January 2016 with 57 founding members, and China has built its own cross-border payment system.",
     "art": "art/e3-sae-009"
   }

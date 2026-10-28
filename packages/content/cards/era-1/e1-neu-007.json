@@ -22,7 +22,7 @@
   ],
   "text": {
     "name": "First Crew on the ISS",
-    "rules": "Record \"crew aboard\". Until the end of this turn, points spent by either side count 1 more.",
+    "rules": "Record \"crew aboard\". Until the end of this turn, each time either side spends points, it spends 1 more.",
     "history": "Expedition 1, one American and two Russian crew members, arrived at the International Space Station in November 2000 and began continuous human occupation of the station.",
     "art": "art/e1-neu-007"
   }

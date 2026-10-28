@@ -36,7 +36,7 @@
   ],
   "text": {
     "name": "Olympic Summer 2008",
-    "rules": "Record \"summer of 2008\". SAE spends 3 points. If SAE played this card, until the end of this turn, points spent by SAE count 1 more. If this card's event happens, remove it from the game afterwards.",
+    "rules": "Record \"summer of 2008\". SAE spends 3 points on one action. If SAE played this card, until the end of this turn, each time SAE spends points, it spends 1 more. If this card's event happens, remove it from the game afterwards.",
     "history": "The Beijing Olympics opened on 8 August 2008; the same week, Russian forces fought a five-day war with Georgia that ended in a ceasefire brokered by France.",
     "art": "art/e2-sae-003"
   },

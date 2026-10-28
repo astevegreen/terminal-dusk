@@ -114,7 +114,7 @@
   ],
   "text": {
     "name": "Annexation of Crimea",
-    "rules": "Record \"borders redrawn\". If \"hollow assurance\" or \"precedent set\" (or both) has been recorded this game, SAE spends 4 points, or 3 if LIO played this card; otherwise, SAE spends 3 points, or 2 if LIO played this card. At the end of this turn, LIO spends 1 point. Raise Escalation by 1.",
+    "rules": "Record \"borders redrawn\". If \"hollow assurance\" or \"precedent set\" (or both) has been recorded this game, SAE spends 4 points on one action, or 3 if LIO played this card; otherwise, SAE spends 3 points on one action, or 2 if LIO played this card. At the end of this turn, LIO spends 1 point on actions. Raise Escalation by 1.",
     "history": "Russian forces took control of Crimea in late February 2014; after a referendum on 16 March 2014 Russia annexed the peninsula on 18 March, and the UN General Assembly declared the referendum invalid on 27 March 2014.",
     "art": "art/e3-sae-003"
   }

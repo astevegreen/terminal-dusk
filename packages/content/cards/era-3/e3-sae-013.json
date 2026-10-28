@@ -56,7 +56,7 @@
   ],
   "text": {
     "name": "Eurozone Crisis",
-    "rules": "Record \"troika\". LIO chooses: Bail out Greece? If yes, LIO spends 1 point, then until the end of this turn, points spent by LIO count 1 less, never below 1; if no, record \"port sold\", then SAE spends 2 points.",
+    "rules": "Record \"troika\". LIO chooses: Bail out Greece? If yes, LIO spends 1 point on actions, then until the end of this turn, each time LIO spends points, it spends 1 fewer, never below 1; if no, record \"port sold\", then SAE spends 2 points on one action.",
     "history": "Greece agreed its first €110 billion bailout from eurozone countries and the IMF on 3 May 2010; in 2016 China's COSCO bought a 67 per cent stake in the Piraeus Port Authority.",
     "art": "art/e3-sae-013"
   }

@@ -58,7 +58,7 @@
   ],
   "text": {
     "name": "Rwandan Genocide",
-    "rules": "Record \"the world looks away\". If \"intervention fatigue\" has been recorded this game, until the end of this turn, points spent by LIO count 2 less and points spent by SAE count 1 less, never below 1; otherwise, until the end of this turn, points spent by either side count 1 less, never below 1.",
+    "rules": "Record \"the world looks away\". If \"intervention fatigue\" has been recorded this game, until the end of this turn, each time LIO spends points, it spends 2 fewer and each time SAE spends points, it spends 1 fewer, never below 1; otherwise, until the end of this turn, each time either side spends points, it spends 1 fewer, never below 1.",
     "history": "Between April and July 1994 an estimated 500,000 to 800,000 people, mostly Tutsi, were killed in Rwanda; the radio station RTLM, broadcasting from July 1993, incited the killings.",
     "art": "art/e1-neu-001"
   }

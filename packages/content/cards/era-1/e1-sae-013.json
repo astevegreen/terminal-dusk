@@ -42,7 +42,7 @@
   ],
   "text": {
     "name": "Cox Report",
-    "rules": "Record \"designs copied\". Draw from SAE's Contingency deck. If the result is 3 or more, SAE spends 2 points; otherwise, record \"ring exposed\", then LIO spends 1 point.",
+    "rules": "Record \"designs copied\". Draw from SAE's Contingency deck. If the result is 3 or more, SAE spends 2 points on one action; otherwise, record \"ring exposed\", then LIO spends 1 point on actions.",
     "history": "The US congressional Cox Report, released on 25 May 1999, alleged that China had obtained design information on US nuclear warheads through espionage over two decades.",
     "art": "art/e1-sae-013"
   }

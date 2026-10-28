@@ -23,7 +23,7 @@
   ],
   "text": {
     "name": "Al Jazeera Launches",
-    "rules": "Record \"new voice\". Until the end of this turn, points spent by LIO count 1 less, never below 1.",
+    "rules": "Record \"new voice\". Until the end of this turn, each time LIO spends points, it spends 1 fewer, never below 1.",
     "history": "Al Jazeera began broadcasting from Doha, Qatar on 1 November 1996 as the first independent Arabic-language satellite news channel.",
     "art": "art/e1-neu-006"
   }

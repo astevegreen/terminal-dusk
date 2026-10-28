@@ -27,7 +27,7 @@
   ],
   "text": {
     "name": "Peace Mission 2005",
-    "rules": "Record \"joint exercise\". SAE spends 2 points. Until the end of this turn, points spent by SAE count 1 more.",
+    "rules": "Record \"joint exercise\". SAE spends 2 points on one action. Until the end of this turn, each time SAE spends points, it spends 1 more.",
     "history": "In August 2005 Russia and China held Peace Mission 2005, their first joint military exercise, with around 10,000 troops in Russia's Far East and on China's Shandong peninsula.",
     "art": "art/e2-sae-010"
   }

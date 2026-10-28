@@ -70,7 +70,7 @@
   ],
   "text": {
     "name": "China Joins the WTO",
-    "rules": "Record \"open trade\". LIO spends 1 point. SAE spends 2 points. LIO chooses: Grant permanent normal trade? If yes, draw from the Contingency deck of the side that played this card, then if the result is 3 or more, LIO spends 1 point, then SAE spends 1 point; otherwise, SAE spends 1 point.",
+    "rules": "Record \"open trade\". LIO spends 1 point on actions. SAE spends 2 points on one action. LIO chooses: Grant permanent normal trade? If yes, draw from the Contingency deck of the side that played this card, then if the result is 3 or more, LIO spends 1 point on actions, then SAE spends 1 point on actions; otherwise, SAE spends 1 point on actions.",
     "history": "China became the 143rd member of the World Trade Organization on 11 December 2001.",
     "art": "art/e2-neu-001"
   }

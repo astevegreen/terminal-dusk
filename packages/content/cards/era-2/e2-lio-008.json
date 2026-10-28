@@ -27,7 +27,7 @@
   ],
   "text": {
     "name": "Smartphones and Social Networks",
-    "rules": "Record \"everyone is connected\". LIO spends 1 point. Until the end of this turn, points spent by either side count 1 more.",
+    "rules": "Record \"everyone is connected\". LIO spends 1 point on actions. Until the end of this turn, each time either side spends points, it spends 1 more.",
     "history": "Apple's first iPhone went on sale on 29 June 2007, and social networks grew rapidly in the same years, putting always-on communication into ordinary hands.",
     "art": "art/e2-lio-008"
   }

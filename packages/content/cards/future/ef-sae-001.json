@@ -42,7 +42,7 @@
   ],
   "text": {
     "name": "Shadow Fleet",
-    "rules": "Draw from SAE's Contingency deck. If the result is 3 or more, record \"sanctions evaded\", then SAE spends 2 points; otherwise, record \"tanker seized\", then LIO spends 1 point.",
+    "rules": "Draw from SAE's Contingency deck. If the result is 3 or more, record \"sanctions evaded\", then SAE spends 2 points on one action; otherwise, record \"tanker seized\", then LIO spends 1 point on actions.",
     "history": "From 2022 a growing fleet of ageing, obscurely owned tankers carried Russian oil outside Western insurance and price-cap rules.",
     "art": "art/ef-sae-001"
   }

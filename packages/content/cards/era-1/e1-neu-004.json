@@ -93,7 +93,7 @@
   ],
   "text": {
     "name": "Test Ban Treaty",
-    "rules": "Each side chooses: Ratify? If LIO says yes, (if SAE says yes, record \"treaty in force\", then LIO spends 2 points, then SAE spends 2 points, then lower Escalation by 1; otherwise, SAE spends 1 point); otherwise, (if SAE says yes, LIO spends 1 point; otherwise, record \"treaty stalled\", then LIO spends 1 point, then SAE spends 1 point).",
+    "rules": "Each side chooses: Ratify? If LIO says yes, (if SAE says yes, record \"treaty in force\", then LIO spends 2 points on one action, then SAE spends 2 points on one action, then lower Escalation by 1; otherwise, SAE spends 1 point on actions); otherwise, (if SAE says yes, LIO spends 1 point on actions; otherwise, record \"treaty stalled\", then LIO spends 1 point on actions, then SAE spends 1 point on actions).",
     "history": "The Comprehensive Nuclear-Test-Ban Treaty opened for signature on 24 September 1996; the US Senate rejected ratification on 13 October 1999 and the treaty has never entered into force.",
     "art": "art/e1-neu-004"
   }
