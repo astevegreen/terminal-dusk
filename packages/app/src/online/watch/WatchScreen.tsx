@@ -20,15 +20,23 @@ export type WatchScreenProps = {
   onBack: () => void;
 };
 
+/** The replay for a finished game: the loaded recording, or "none" when there is no loader, nothing, or a failure. */
+export async function replayFor(
+  load: WatchScreenProps["loadReplay"],
+  matchId: string,
+): Promise<ReplayRecording | "none"> {
+  if (load === undefined) return "none";
+  return (await load(matchId).catch(() => null)) ?? "none";
+}
+
 /** What the screen is given for a finished game: asks `loadReplay` once; a failure or nothing is "none". */
 export function useReplay(over: boolean, matchId: string, load: WatchScreenProps["loadReplay"]): WatchReplay {
   const [replay, setReplay] = useState<WatchReplay>(null);
   useEffect(() => {
     if (!over) return;
     let current = true;
-    const found = load === undefined ? Promise.resolve(null) : load(matchId).catch(() => null);
-    void found.then((recording) => {
-      if (current) setReplay(recording ?? "none");
+    void replayFor(load, matchId).then((found) => {
+      if (current) setReplay(found);
     });
     return () => {
       current = false;

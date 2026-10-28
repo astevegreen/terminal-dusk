@@ -9,6 +9,9 @@ import type { GameScreenProps } from "../../game/GameScreen.tsx";
 import { cardAffiliation, cardName, cardQuestion } from "../../testMode/fixture.ts";
 import { settle } from "../../transport/test/remoteGame.ts";
 import { onlineRig } from "../test/onlineRig.ts";
+import { ReplayScreen } from "../../replay/ReplayScreen.tsx";
+import type { ReplayRecording } from "../../replay/recording.ts";
+import { replayFor } from "./WatchScreen.tsx";
 import { watchText, WatchView } from "./WatchView.tsx";
 import type { OnlineGameSnapshot } from "../onlineGame.ts";
 
@@ -74,5 +77,40 @@ describe("WatchView", () => {
     const { over } = await snapshots();
     const out = renderToString(WatchView({ snapshot: over, replay: "none", ...base }));
     expect(out).toContain("The replay is not available yet.");
+  });
+
+  it("a finished game with a recording hands over to the replay screen", async () => {
+    const { over } = await snapshots();
+    const recording: ReplayRecording = {
+      matchId: "match-1",
+      seedHash: "h",
+      status: over.frame!.view.public.status,
+      frames: [],
+    };
+    const tree = WatchView({ snapshot: over, replay: recording, ...base }) as ReactElement;
+    expect(tree.type).toBe(ReplayScreen);
+  });
+
+  it("a live game ignores a replay and still shows the live board", async () => {
+    const { live } = await snapshots();
+    const tree = WatchView({ snapshot: live, replay: "none", ...base }) as ReactElement;
+    expect(tree.type).toBe("main");
+  });
+});
+
+describe("replayFor", () => {
+  const recording = {
+    matchId: "m",
+    seedHash: "h",
+    status: { kind: "active" },
+    frames: [],
+  } as unknown as ReplayRecording;
+  it("gives the loaded recording", async () => {
+    expect(await replayFor(() => Promise.resolve(recording), "m")).toBe(recording);
+  });
+  it("gives none when there is no loader, nothing found, or the load fails", async () => {
+    expect(await replayFor(undefined, "m")).toBe("none");
+    expect(await replayFor(() => Promise.resolve(null), "m")).toBe("none");
+    expect(await replayFor(() => Promise.reject(new Error("down")), "m")).toBe("none");
   });
 });
