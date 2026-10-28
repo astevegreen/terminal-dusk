@@ -13,6 +13,7 @@ import { lowerEscalation } from "./escalation.ts";
 import { forgetCard } from "./knowledge.ts";
 import { refillHands } from "./refill.ts";
 import { endTurnModifiers } from "./modifiers.ts";
+import { leader, scoreEra } from "./scoring.ts";
 import { runProgram, runStack } from "./stack.ts";
 import type { Budget, Closing } from "./stack.ts";
 import { endTurnTriggers, fireTurnEnd } from "./triggers.ts";
@@ -124,16 +125,20 @@ function putAway(ruleset: Ruleset, state: GameState, card: CardId, player: Side 
 
 /**
  * The turn ends: the triggers and modifiers lasting until then end first, then Escalation falls by 1 (the last
- * turn's too, in a game with a map), then the next turn opens, or after the last turn the game is over.
+ * turn's too, in a game with a map), then at an era's last turn the regions score (scoring.ts), which may end the
+ * game on a track end. Then the next turn opens, or after the last turn the game is over: the side the score track
+ * leans towards wins, or nobody when it is even or the map has no scoring.
  */
 function endTurn(state: GameState, events: GameEvent[], budget: Budget): EngineError | null {
   const pub = state.public;
   endTurnTriggers(state, events);
   endTurnModifiers(state, events);
   lowerEscalation(state, 1, events);
+  scoreEra(state, events);
+  if (pub.status.kind === "over") return null;
   if (pub.turn >= pub.turns) {
     pub.pending = [];
-    pub.status = { kind: "over", winner: null, reason: "turnLimitReached" };
+    pub.status = { kind: "over", winner: leader(pub), reason: "turnLimitReached" };
     return null;
   }
   pub.turn += 1;

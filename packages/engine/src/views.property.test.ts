@@ -4,7 +4,18 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { apply, createGame, DECKS, hiddenPart, legalAnswers, reconstruct, seedHash, SIDES, viewFor } from "./index.ts";
-import type { Answer, GameState, PlayerView, Ruleset, Setup, SetupMap, Side, Step, Viewer } from "./index.ts";
+import type {
+  Answer,
+  GameState,
+  MapScoring,
+  PlayerView,
+  Ruleset,
+  Setup,
+  SetupMap,
+  Side,
+  Step,
+  Viewer,
+} from "./index.ts";
 import { startProgram } from "./stack.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
 import { choose, forEach, ifSaid, ifYes, marker, rulesetWith } from "./test/game.ts";
@@ -68,18 +79,48 @@ const PREFIXES = ["l", "s", "n"];
 const deckArb = fc.array(fc.integer({ min: 1, max: 20 }), { minLength: 3, maxLength: 8 });
 
 /**
+ * Era-end scoring for the test map's regions, in a random order, with a small track (end 1-5) so that games reach its
+ * ends, a start strictly inside it, and amounts from 0 to 4.
+ */
+const scoringArb: fc.Arbitrary<MapScoring> = fc.integer({ min: 1, max: 5 }).chain((end) =>
+  fc.record({
+    track: fc.record({ end: fc.constant(end), start: fc.integer({ min: 1 - end, max: end - 1 }) }),
+    regions: fc
+      .shuffledSubarray(
+        testMap().regions.map((r) => r.id),
+        { minLength: testMap().regions.length },
+      )
+      .chain((ids) =>
+        fc.tuple(
+          ...ids.map((region) =>
+            fc.record({ region: fc.constant(region), present: fc.nat(4), ahead: fc.nat(4), all: fc.nat(4) }),
+          ),
+        ),
+      ),
+  }),
+);
+
+/**
  * No map in about half the games; in the rest, the test map with random starting influence (0-9 each side) for
- * a random selection of its countries.
+ * a random selection of its countries, and era-end scoring in about half of those.
  */
 const mapArb: fc.Arbitrary<SetupMap | null> = fc.option(
   fc
-    .subarray(testMap().countries.map((c) => c.id))
-    .chain((countries) =>
-      fc.tuple(
-        ...countries.map((country) => fc.record({ country: fc.constant(country), lio: fc.nat(9), sae: fc.nat(9) })),
-      ),
+    .tuple(
+      fc
+        .subarray(testMap().countries.map((c) => c.id))
+        .chain((countries) =>
+          fc.tuple(
+            ...countries.map((country) => fc.record({ country: fc.constant(country), lio: fc.nat(9), sae: fc.nat(9) })),
+          ),
+        ),
+      fc.option(scoringArb),
     )
-    .map((startingInfluence) => ({ ...testMap(), startingInfluence })),
+    .map(([startingInfluence, scoring]) => ({
+      ...testMap(),
+      startingInfluence,
+      ...(scoring === null ? {} : { scoring }),
+    })),
   { freq: 2 },
 );
 
@@ -290,10 +331,32 @@ describe("views over random games", () => {
       { numRuns: 300 },
     );
   });
+  it("the score track is a whole number within its ends exactly when the map has scoring, and every viewer sees it alike", () => {
+    fc.assert(
+      fc.property(gameArb, (game) => {
+        const scoring = game.setup.map?.scoring;
+        for (const s of play(game)) {
+          expect("score" in s.public).toBe(scoring !== undefined);
+          if (scoring !== undefined) {
+            expect(Number.isInteger(s.public.score)).toBe(true);
+            expect(Math.abs(s.public.score!)).toBeLessThanOrEqual(scoring.track.end);
+            const atEnd = Math.abs(s.public.score!) === scoring.track.end;
+            const status = s.public.status;
+            expect(atEnd).toBe(status.kind === "over" && status.reason === "trackEnd");
+          }
+          for (const viewer of [...SIDES, "spectator"] as const) {
+            expect(viewFor(s, viewer).public.score).toBe(s.public.score);
+          }
+        }
+      }),
+      { numRuns: 300 },
+    );
+  });
   it("the random games really include games with a map and with starting influence", () => {
     const games = fc.sample(gameArb, { numRuns: 200, seed: 1 });
     expect(games.filter((g) => g.setup.map !== undefined).length).toBeGreaterThan(50);
     expect(games.filter((g) => (g.setup.map?.startingInfluence.length ?? 0) > 0).length).toBeGreaterThan(30);
+    expect(games.filter((g) => g.setup.map?.scoring !== undefined).length).toBeGreaterThan(25);
   });
   it("the leak check itself finds a hidden card when one is planted in a view", () => {
     const game = fc.sample(gameArb, { numRuns: 1, seed: 7 })[0]!;

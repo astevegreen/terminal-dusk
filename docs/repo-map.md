@@ -468,6 +468,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/discardChoice.ts` - Running a discardFromHand step (#186, #192). Exports: runDiscard, resumeDiscard.
 - `packages/engine/src/discardChoiceViews.test.ts` - Views of a discardFromHand pick (#192): the pending discardCards decision is public and lists no card IDs, the picker's knowledge is in its own view only, and…
 - `packages/engine/src/drawStep.test.ts` - The drawContingency step (#65): a card's effect draws from a named side's Contingency deck, and a later step of the same card can read the number drawn.
+- `packages/engine/src/eraScoring.test.ts` - R21: era-end region scoring (docs/design/map-and-points.md, "Scoring").
 - `packages/engine/src/eras.test.ts` - A new era (#37): the setup's checks, its cards waiting in secret, and the shuffle into the draw pile only.
 - `packages/engine/src/eras.ts` - Eras after the first (docs/design/eras.md, "When a new era starts"). Exports: erasError, enterEra.
 - `packages/engine/src/escalateStep.test.ts` - R18a: the escalate step (docs/design/map-and-points.md, "Escalation").
@@ -511,10 +512,14 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/refill.property.test.ts` - Property test for refilling hands (docs/design/core-loop.md, "Refilling hands"): in random games of random sizes, with an era entering on turn 2 and the draw p…
 - `packages/engine/src/refill.test.ts` - Refilling hands (docs/design/core-loop.md, "Refilling hands"): at each turn's start both sides draw up to the hand size from one shared draw pile, after a new…
 - `packages/engine/src/refill.ts` - Refilling hands (docs/design/core-loop.md, "Refilling hands"). Exports: refillHands.
+- `packages/engine/src/regionScore.test.ts` - R21: how one region scores at an era's end (docs/design/map-and-points.md, "Scoring").
 - `packages/engine/src/removeAfterEvent.test.ts` - A removeAfterEvent card leaves the game when its event happens (#199; owner, 21 Oct): played for its event, picked as an opening card, or played by the rival f…
 - `packages/engine/src/revealHand.test.ts` - The revealHand step (#184): shows one side's hand to the other, kept in the peeking side's knowledge.
 - `packages/engine/src/rng.test.ts`
 - `packages/engine/src/rng.ts` - Seeded random numbers for the rules engine. Exports: RngState, seedRng, hashSeed, nextInt, shuffle.
+- `packages/engine/src/scoring.ts` - Era-end region scoring (docs/design/map-and-points.md, "Scoring"). Exports: BATTLEGROUND_POINT, RegionPoints, regionScore, eraEnds, scoreEra, leader, scoreState, scoringError.
+- `packages/engine/src/scoringChecks.test.ts` - R21: createGame checks the map's scoring data (scoring.ts, scoringError).
+- `packages/engine/src/scoringTypes.ts` - Era-end region scoring's types (docs/design/map-and-points.md, "Scoring"): the map's scoring data and the score track's events. Exports: RegionAmounts, MapScoring, RegionScored, ScoreChanged, ScoreEvent.
 - `packages/engine/src/setupTypes.ts` - The setup's types: what createGame starts a game from. Exports: EraEntry, Setup.
 - `packages/engine/src/sha256.test.ts`
 - `packages/engine/src/sha256.ts` - The public fingerprint of a game's seed. Exports: seedHash.
@@ -538,7 +543,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/turn.ts` - The turn structure (docs/design/core-loop.md). Exports: startTurn, afterAnswer.
 - `packages/engine/src/turnEndSpend.test.ts` - Turn-end-place (#426; docs/design/map-and-points.md, "Event points"): points a turnEnd trigger spends may only place influence (owner, 28 Oct).
 - `packages/engine/src/types.test.ts`
-- `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: DECKS, ContingencyDeck, ContingencyDeckReshuffled, ContingencyDrawn, DeckId, EscalationChanged, EscalationCrisis, EscalationEvent, ActiveModifier, ActiveTrigger, Duration, HookId, ….
+- `packages/engine/src/types.ts` - Core engine types: sides, results and the three-compartment game state. Exports: DECKS, ContingencyDeck, ContingencyDeckReshuffled, ContingencyDrawn, DeckId, EscalationChanged, EscalationCrisis, EscalationEvent, MapScoring, RegionAmounts, RegionScored, ScoreChanged, ….
 - `packages/engine/src/verifyGame.test.ts`
 - `packages/engine/src/verifyGame.ts` - Exports: verifyGame.
 - `packages/engine/src/viewTypes.ts` - What each viewer receives of the game state (views.ts). Exports: HiddenCounts, PublicMeta, PlayerView, OmniscientView, HiddenPart.

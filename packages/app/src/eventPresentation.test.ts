@@ -32,6 +32,8 @@ describe("eventPresentation", () => {
       "modifierStarted",
       "pointsSpent",
       "realigned",
+      "regionScored",
+      "scoreChanged",
       "triggerEnded",
       "triggerFired",
       "triggerSet",
@@ -276,6 +278,18 @@ describe("eventPresentation", () => {
       value: 5,
     });
     expect(line).toBe("Crisis: SAE draws 5; Escalation drops to 3.");
+  });
+  it("logs a regionScored with the region and each side's points", () => {
+    expect(say({ kind: "regionScored", visibility: "public", region: "europe", lio: 5, sae: 1 })).toBe(
+      "europe scored: LIO 5, SAE 1.",
+    );
+  });
+  it.each([
+    [-3, "LIO 3"],
+    [2, "SAE 2"],
+    [0, "even"],
+  ])("logs a scoreChanged to %i as the side the track leans towards and by how much", (to, text) => {
+    expect(say({ kind: "scoreChanged", visibility: "public", from: 1, to })).toBe(`The score track moves to ${text}.`);
   });
   it.each([
     ["triggerSet", "cardPlayed", "Card C4 set a reaction whenever a card is played this turn."],

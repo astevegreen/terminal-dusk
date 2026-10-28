@@ -32,6 +32,10 @@ const ownedDeckText = (deck: DeckId): string =>
 /** Cards by name, in order, or "no cards". */
 const cardList = (cards: string[], names: GameNames): string => cards.map(names.card).join(", ") || "no cards";
 
+/** A score track value in words: "LIO 3", "SAE 2" or "even". */
+const scoreText = (score: number): string =>
+  score === 0 ? "even" : `${SIDE_NAME[score < 0 ? "lio" : "sae"]} ${Math.abs(score)}`;
+
 export const eventPresentation: EventPresentation = {
   cardDrawn: { log: (event, names) => `${SIDE_NAME[event.side]} drew ${names.card(event.card)}.` },
   cardDrawnHidden: { log: (event) => `${SIDE_NAME[event.side]} drew a card.` },
@@ -83,6 +87,8 @@ export const eventPresentation: EventPresentation = {
   escalationCrisis: {
     log: (event) => `Crisis: ${SIDE_NAME[event.side]} draws ${event.value}; Escalation drops to 3.`,
   },
+  regionScored: { log: (event) => `${event.region} scored: LIO ${event.lio}, SAE ${event.sae}.` },
+  scoreChanged: { log: (event) => `The score track moves to ${scoreText(event.to)}.` },
 };
 
 /** A modifier in words, such as "ops values for both sides -1, minimum 1". */
