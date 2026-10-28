@@ -6,6 +6,7 @@ import { createEasyPlayer } from "@terminal-dusk/ai";
 import { hostCreate, hostSubmit } from "@terminal-dusk/host";
 import { firstDeckConfig, firstDeckRuleset } from "@terminal-dusk/host/first-deck";
 import { mapSummary } from "./map-stats.mjs";
+import { regionLevels } from "./region-stats.mjs";
 
 export const SIDES = ["lio", "sae"];
 /** A game still going after this many answers stops the run, so a rules loop cannot hang it. */
@@ -17,8 +18,9 @@ const NOW = 0;
 export const matchSeed = (base, i) => `${base}-${i}`;
 
 /**
- * Game `i` of a run: its summary (final status, answer count, answer log, and `map`, the map numbers from
- * map-stats.mjs or null when the game has no map). Throws on any refusal, and when a player throws or gives no
+ * Game `i` of a run: its summary (final status, answer count, answer log, `map`, the map numbers from
+ * map-stats.mjs or null when the game has no map, and `eraEnds`, region-stats.mjs's levels at each era's end, in
+ * order, empty when the game has no map). Throws on any refusal, and when a player throws or gives no
  * answer. `config` is the run's match config (see config.mjs); by default the first-deck TEST scenario as it is.
  * `createPlayer(ruleset, side, seed)` makes each side's player; by default the Easy AI.
  */
@@ -29,6 +31,7 @@ export function playBalanceGame(base, i, config = firstDeckConfig(), { createPla
   if (!created.ok) throw fail(`the host refused to start it: ${describe(created.error)}`);
   let { record, secret, frames } = created.value;
   const publicEvents = [...frames.spectator.events];
+  const eras = eraEndTracker(frames.spectator.view.public);
   const players = {
     lio: createPlayer(firstDeckRuleset, "lio", 2 * i),
     sae: createPlayer(firstDeckRuleset, "sae", 2 * i + 1),
@@ -49,13 +52,36 @@ export function playBalanceGame(base, i, config = firstDeckConfig(), { createPla
       if (!out.ok) throw fail(`the host refused ${side}'s answer ${JSON.stringify(value)}: ${describe(out.error)}`);
       ({ record, secret, frames } = out.value);
       publicEvents.push(...frames.spectator.events);
+      eras.observe(frames.spectator);
       submissions += 1;
       answered = true;
     }
     if (!answered) throw fail("the game is not over but no side has a decision");
   }
   const map = mapSummary(frames.spectator.view.public, publicEvents);
-  return { status: record.status, answers: submissions, log: secret.log, map };
+  const eraEnds = eras.finish(frames.spectator.view.public);
+  return { status: record.status, answers: submissions, log: secret.log, map, eraEnds };
+}
+
+/**
+ * Records region-stats.mjs's levels at each era's end, from the spectator's frames. An era ends when the next one
+ * starts: the map as it stands then, judged by the ending era's battlegrounds. Tracked only on a scenario with a
+ * map (the region levels need one); otherwise `finish` returns an empty list.
+ */
+function eraEndTracker(start) {
+  const eraEnds = [];
+  let era = start.map === undefined || start.map === null ? undefined : start.era;
+  return {
+    observe(spectator) {
+      if (era === undefined || !spectator.events.some((event) => event.kind === "eraStarted")) return;
+      eraEnds.push({ era, ...regionLevels(spectator.view.public, era) });
+      era = spectator.view.public.era;
+    },
+    finish(pub) {
+      if (era !== undefined) eraEnds.push({ era, ...regionLevels(pub, era) });
+      return eraEnds;
+    },
+  };
 }
 
 /** The player's answer to `view`; a player that throws or answers nothing ends the game with `fail`'s error. */

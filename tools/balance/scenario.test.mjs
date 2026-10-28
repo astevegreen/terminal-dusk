@@ -49,7 +49,7 @@ test("--scenario test-map plays the games on the test map scenario", () => {
 test("an unknown --scenario value exits with an error naming the allowed values and plays no game", () => {
   const r = balance("--games", "1", "--scenario", "real-map");
   assert.equal(r.status, 1);
-  assert.match(r.stderr, /--scenario must be one of first-deck, test-map, not "real-map"/);
+  assert.match(r.stderr, /--scenario must be one of first-deck, test-map, six-region, not "real-map"/);
   assert.match(r.stderr, USAGE_LINE);
   assert.equal(r.stdout, "");
   assert.throws(() => parseArgs(["--scenario"]), /needs a value/);
