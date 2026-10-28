@@ -50,6 +50,14 @@
   overflow: auto;
   max-height: 240px;
 }
+/* A card with rules text: its name in bold, the rules on their own line under it (as in the game's hand). */
+.replay .hand-card-name {
+  font-weight: bold;
+}
+.replay .hand-card-rules {
+  display: block;
+  margin-bottom: 4px;
+}
 .replay .replay-side {
   grid-area: side;
   display: flex;

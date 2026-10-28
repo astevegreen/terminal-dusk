@@ -25,6 +25,7 @@ const play = (timers = fakeTimers()): PlaySetup => ({
   timers,
   label: cardName,
   question: cardQuestion,
+  rules: (card) => `rules of ${card}`,
   affiliation: cardAffiliation,
 });
 const setup = (): OnlineSetup => {
@@ -105,6 +106,7 @@ describe("lobbyStep", () => {
     expect(step.type).toBe(OnlineGameFlow);
     expect(step.key).toBe("m-7");
     expect(step.props).toMatchObject({ auth: online.auth, signIn, playerId: "user-1", matchId: "m-7", play: p });
+    expect((step.props as { play: PlaySetup }).play.rules).toBe(p.rules);
   });
   it("Back from the game returns to the lobby, which reads My games again", async () => {
     const r = await startedRig();

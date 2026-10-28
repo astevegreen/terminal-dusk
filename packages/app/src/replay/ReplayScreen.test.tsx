@@ -64,8 +64,9 @@ describe("card rules text in the replay (#417)", () => {
     );
   it("shows each card's rules text under its name in both hands", () => {
     const out = withRules((card) => `RULES-OF-${card}`);
-    const first = recording.frames[0]!.view.sides.lio.hand[0]!;
-    expect(out).toContain(`RULES-OF-${first}`);
+    for (const side of ["lio", "sae"] as const)
+      for (const card of recording.frames[0]!.view.sides[side].hand) expect(out).toContain(`RULES-OF-${card}`);
+    expect(out).toContain('class="hand-card-rules"');
   });
   it("shows names only when no rules text is given", () => {
     expect(withRules()).not.toContain("RULES-OF-");
