@@ -296,6 +296,8 @@ export type PublicState = {
   influence?: InfluenceEntry[];
   /** The Escalation track, a whole number from 0 to 6 (escalation.ts); present exactly when `map` is. */
   escalation?: number;
+  /** The current era's name, whose battleground list counts (battlegrounds.ts); present exactly when `map` is. */
+  era?: EraId;
 };
 /** A side's answer to its decision in a simultaneous group, kept secret until the other side's is in. */
 export type UnrevealedPick = { group: string; decisionId: string; value: AnswerValue };

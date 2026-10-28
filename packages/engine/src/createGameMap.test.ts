@@ -19,12 +19,13 @@ describe("createGame with a map", () => {
     expect("map" in s.public).toBe(false);
     expect("influence" in s.public).toBe(false);
   });
-  it("state.public.map holds the regions, closing order, countries and home-box neighbours, but not the starting influence", () => {
+  it("state.public.map holds the regions, closing order, countries, battleground lists and home-box neighbours, but not the starting influence", () => {
     const { startingInfluence, ...fixed } = testMap();
     expect(startingInfluence.length).toBeGreaterThan(0);
     const s = build(mapSetup());
     expect(s.public.map).toStrictEqual(fixed);
     expect(Object.keys(s.public.map!).toSorted(byCodeUnit)).toEqual([
+      "battlegrounds",
       "closingOrder",
       "countries",
       "homeBox",
@@ -50,7 +51,7 @@ describe("createGame with a map", () => {
     const s = build(mapSetup());
     const hidden = JSON.stringify({ private: s.private, secret: s.secret });
     const words = ["alpha", "bravo", "charlie", "delta", "echo", "foxtrot", "north", "south", "east"];
-    for (const word of [...words, "homeBox", "closingOrder", "influence"]) {
+    for (const word of [...words, "homeBox", "closingOrder", "battlegrounds", "influence"]) {
       expect(hidden).not.toContain(word);
     }
   });

@@ -45,7 +45,7 @@ const escalationEvents = (events: readonly GameEvent[]) =>
 
 /** setupPlus with `extra` in the hands, and the test map unless `map` is false. */
 const setupFor = (extra: { lio?: string[]; sae?: string[] }, map = true, plays = 1): Setup =>
-  map ? { ...setupPlus(extra, 2, plays), map: testMap() } : setupPlus(extra, 2, plays);
+  map ? { ...setupPlus(extra, 2, plays), firstEra: "era-1", map: testMap() } : setupPlus(extra, 2, plays);
 
 /** `state` with Escalation set to `at`, a fresh copy. */
 const at = (state: GameState, value: number): GameState => ({
@@ -154,7 +154,7 @@ describe("escalate in a game with the test map", () => {
 
 describe("escalate in a program with no player", () => {
   const mapGame = (): GameState => {
-    const r = createGame(ruleset, { ...makeSetup(), map: testMap() }, "seed-1");
+    const r = createGame(ruleset, { ...makeSetup(), firstEra: "era-1", map: testMap() }, "seed-1");
     if (!r.ok) throw new Error(r.error.code);
     return playAnswers(r.value.state, 2); // The opening picks are in, so LIO's play is open and no program runs.
   };

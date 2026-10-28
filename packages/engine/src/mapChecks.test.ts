@@ -143,7 +143,7 @@ describe("createGame refuses a bad map", () => {
       (m: SetupMap) => ({ ...m, homeBox: { lio: ["alpha"] } }),
       (m: SetupMap) => ({ ...m, startingInfluence: undefined }),
       (m: SetupMap) => ({ ...m, countries: m.countries.map((c) => ({ ...c, neighbours: "x" })) }),
-      (m: SetupMap) => ({ ...m, countries: m.countries.map((c) => ({ ...c, battleground: "yes" })) }),
+      (m: SetupMap) => ({ ...m, battlegrounds: [{ era: "era-1", countries: "charlie" }] }),
     ];
     for (const make of broken) {
       const map = make(testMap()) as unknown as SetupMap;

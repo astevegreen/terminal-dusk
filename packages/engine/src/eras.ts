@@ -5,16 +5,19 @@ import { shuffle } from "./rng.ts";
 import type { EngineError, GameEvent, GameState, Setup } from "./types.ts";
 
 /**
- * Why the setup's eras are unusable, or null. Each needs a name, a list of at least one card, and a
- * whole-number turn from 2 to the last turn, no two on the same turn. setupCardsError checks the
+ * Why the setup's eras are unusable, or null. Each needs a name, none shared with another era or the first
+ * era, a list of at least one card, and a whole-number turn from 2 to the last turn, no two on the same turn. setupCardsError checks the
  * cards themselves: each in the ruleset, and none used twice anywhere in the setup.
  */
 export function erasError(setup: Setup): EngineError | null {
   if (setup.eras === undefined) return null;
   if (!Array.isArray(setup.eras)) return invalidSetup("The setup's eras must be a list.");
   const turns = new Set<number>();
+  const names = new Set<string>(typeof setup.firstEra === "string" ? [setup.firstEra] : []);
   for (const entry of setup.eras) {
     if (typeof entry?.era !== "string" || entry.era.length === 0) return invalidSetup("Each era needs a name.");
+    if (names.has(entry.era)) return invalidSetup(`Two eras are named ${entry.era}.`);
+    names.add(entry.era);
     if (!Array.isArray(entry.cards) || entry.cards.length === 0) {
       return invalidSetup(`Era ${entry.era} needs at least one card.`);
     }
@@ -39,6 +42,8 @@ export function enterEra(state: GameState, events: GameEvent[]): void {
   state.secret.rng = shuffled.state;
   state.secret.deck = shuffled.items;
   state.secret.eras = state.secret.eras.filter((entry) => entry !== entering);
+  // A game with a map moves on to the entering era's battleground list (battlegrounds.ts).
+  if (state.public.map !== undefined) state.public.era = entering.era;
   events.push({ kind: "eraStarted", visibility: "public", era: entering.era, cardsAdded: entering.cards.length });
 }
 

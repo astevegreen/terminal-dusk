@@ -437,6 +437,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/apply.test.ts`
 - `packages/engine/src/apply.timeout.test.ts` - A timeout ends the game as a loss on time for the side that was late (architecture Decision 1, "System actions").
 - `packages/engine/src/apply.ts` - Takes one answer and returns the next state. Exports: apply.
+- `packages/engine/src/battlegrounds.test.ts` - Battlegrounds by era (#429): each era has its own list on the map, matched by name; the public state's era says whose list counts, from the setup's first era u…
+- `packages/engine/src/battlegrounds.ts` - Battlegrounds by era (docs/design/map-and-points.md, "Map": "each era has its own list"). Exports: battlegroundsError, isBattleground.
 - `packages/engine/src/cardChecks.test.ts` - createGame's card checks: the ruleset's cards are well formed, and a setup uses only known cards, each once.
 - `packages/engine/src/cardChecks.ts` - Card checks for createGame: the ruleset's cards are well formed, and a setup uses only known cards, each once. Exports: rulesetError, setupCardsError, handSizeError.
 - `packages/engine/src/cardFlags.test.ts` - createGame's check of a card's flags (#199): only `removeAfterEvent: true`, the one flag so far.
@@ -486,7 +488,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/lastingTypes.ts` - The types of what a card leaves in force: hooks, durations, modifiers and triggers (modifiers.ts, triggers.ts). Exports: HookId, Duration, ModifierSpec, ModifierExpiry, ModifierStarted, ModifierEnded, ActiveModifier, TriggerFilter, ActiveTrigger.
 - `packages/engine/src/mapChecks.test.ts` - createGame refuses a bad map with invalidSetup and a message naming the problem: one test per refusal.
 - `packages/engine/src/mapChecks.ts` - The setup's map (docs/design/map-and-points.md, "Map" and "Influence"): checking it, and the public state it starts. Exports: mapError, mapState.
-- `packages/engine/src/mapTypes.ts` - The map's types (docs/design/map-and-points.md, "Map" and "Influence"). Exports: RegionId, CountryId, Region, Country, GameMap, InfluenceEntry, SetupMap.
+- `packages/engine/src/mapTypes.ts` - The map's types (docs/design/map-and-points.md, "Map" and "Influence"). Exports: RegionId, CountryId, Region, Country, BattlegroundList, GameMap, InfluenceEntry, SetupMap.
 - `packages/engine/src/markers.test.ts` - Lasting markers (#141): a marker step with `lasting: true` keeps its label in state.public.markers until the game ends.
 - `packages/engine/src/markers.ts` - Lasting markers: named tags a card leaves in the public state until the game ends, which a later card's `has` condition tests. Exports: keepMarker, hasMarker.
 - `packages/engine/src/modifiers.test.ts` - Modifiers (#89): rule changes in public state, the opsValue hook, and their end at the turn's end.

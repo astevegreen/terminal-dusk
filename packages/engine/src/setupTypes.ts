@@ -23,6 +23,11 @@ export type Setup = {
    * stay in the game (none flagged removeAfterEvent; cardChecks.ts, handSizeError).
    */
   handSize: number;
+  /**
+   * The first era's name: required with a map, whose battleground lists are matched to eras by name
+   * (battlegrounds.ts); ignored without one. No two eras share a name.
+   */
+  firstEra?: EraId;
   /** The eras after the first, each entering on its own turn, from 2 to the last. None when left out. */
   eras?: EraEntry[];
   /** Each side's Contingency deck and the World deck: whole numbers, 1 or more, at least 3 cards, any order. */
