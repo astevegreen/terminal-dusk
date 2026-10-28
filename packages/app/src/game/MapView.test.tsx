@@ -80,11 +80,11 @@ describe("the Map area with a map in the frame", () => {
 
 describe("the Map area with no map in the frame", () => {
   const frame = withoutMap(baseFrame());
-  it('shows "No map in this game" and nothing else changes on the screen', () => {
+  it('shows "No map in this game" and nothing else changes on the screen but the no-map mark (#412)', () => {
     const out = render(frame);
     expect(mapAreaOf(out)).toMatch(/tabindex="0"><p>No map in this game<\/p><\/section>$/);
     const withMapOut = render(withMap(frame));
     const rest = (html: string): string => html.replace(mapAreaOf(html), "");
-    expect(rest(out)).toBe(rest(withMapOut));
+    expect(rest(out)).toBe(rest(withMapOut).replace('<div class="game">', '<div class="game game-no-map">'));
   });
 });

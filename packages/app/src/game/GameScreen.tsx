@@ -73,7 +73,8 @@ export function GameScreen({
   refusal,
 }: Readonly<GameScreenProps>) {
   return (
-    <div className="game">
+    // A game with no map gives its map box only its one line (gameScreen.css).
+    <div className={frame.view.public.map === undefined ? "game game-no-map" : "game"}>
       <StatusBar frame={frame} era={era} />
       <MapArea frame={frame} />
       <Hand frame={frame} label={label} />

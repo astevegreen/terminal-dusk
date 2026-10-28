@@ -192,6 +192,13 @@ describe("screen-reader support", () => {
     expect(out).toContain('<section aria-label="Log" data-testid="log" class="game-log" role="log">');
     expect(out).toContain('<ol aria-label="Log entries" tabindex="0"><li>second</li><li>first</li></ol>');
   });
+  it("marks a game with no map, so its empty map box takes only a line, and leaves a map game unmarked", () => {
+    const lio = frameFor("lio");
+    const noMap = { ...lio.view.public };
+    delete noMap.map;
+    expect(html({ ...lio, view: { ...lio.view, public: noMap } })).toContain('<div class="game game-no-map">');
+    expect(out).toContain('<div class="game">');
+  });
   it("lets the keyboard reach each scrolling element, each with a name", () => {
     expect(out).toContain('<section aria-label="Your hand" data-testid="hand" class="game-hand" tabindex="0">');
     expect(out).toContain('<section aria-label="Map" data-testid="map-area" class="game-map" tabindex="0">');
