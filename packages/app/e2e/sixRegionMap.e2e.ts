@@ -1,5 +1,5 @@
-// The six-region map against the AI (A14, #439): 6 regions and 42 boxes and Crimea in its own box, on a phone held
-// upright (375x667) and at the project's own sizes.
+// The six-region map against the AI (A14, #439): 6 regions and 42 boxes, Crimea in its own box, and the two home
+// boxes, readable and tappable on a phone held upright (375x667) and at the project's own sizes.
 import { expect, test } from "@playwright/test";
 import type { Locator, Page } from "@playwright/test";
 
@@ -11,6 +11,8 @@ const REGIONS = [
   "Sub-Saharan Africa",
   "The Americas",
 ];
+
+const heightOf = (locator: Locator): Promise<number> => locator.evaluate((el) => el.getBoundingClientRect().height);
 
 async function startSixRegionGame(page: Page): Promise<Locator> {
   await page.goto("/");
@@ -25,12 +27,24 @@ async function expectNoSideScroll(page: Page): Promise<void> {
   expect(noSideScroll).toBe(true);
 }
 
-/** The whole map, then each region zoomed in, with nothing sideways. */
+/** Every listed element is at least a tap target tall. */
+async function expectAllTall(items: Locator): Promise<void> {
+  for (const item of await items.all()) expect(await heightOf(item)).toBeGreaterThanOrEqual(44);
+}
+
+async function expectHomeBoxes(map: Locator): Promise<void> {
+  await expect(map.locator(".map-home")).toHaveText(["LIO home box", "SAE home box"]);
+  for (const home of await map.locator(".map-home").all()) await expect(home).toBeVisible();
+}
+
+/** The whole map, then each region zoomed in: every button, badge and box tall enough to tap, nothing sideways. */
 async function checkSixRegionMap(page: Page): Promise<void> {
   const map = await startSixRegionGame(page);
   await expect(map.locator(".map-region h3 button")).toHaveText(REGIONS);
   await expect(map.locator(".map-badge")).toHaveCount(42);
   await expect(map.locator('.map-badge[data-country="crimea"]')).toBeVisible();
+  await expectHomeBoxes(map);
+  await expectAllTall(map.locator("button, .map-badge"));
   await expectNoSideScroll(page);
 
   let boxes = 0;
@@ -39,6 +53,8 @@ async function checkSixRegionMap(page: Page): Promise<void> {
     await expect(map.getByRole("heading", { name: region, exact: true })).toBeVisible();
     const regionBoxes = map.locator(".map-box");
     boxes += await regionBoxes.count();
+    await expectHomeBoxes(map);
+    await expectAllTall(map.locator("button, .map-box"));
     await expectNoSideScroll(page);
     if (region === REGIONS[0]) {
       await expect(map.locator('.map-box[data-country="crimea"]')).toContainText("Crimea");
