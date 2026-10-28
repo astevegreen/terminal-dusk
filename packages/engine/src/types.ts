@@ -5,6 +5,8 @@ export { DECKS } from "./contingencyTypes.ts";
 export type { ContingencyDeck, ContingencyDeckReshuffled, ContingencyDrawn, DeckId } from "./contingencyTypes.ts";
 import type { EscalationEvent } from "./escalationTypes.ts";
 export type { EscalationChanged, EscalationCrisis, EscalationEvent } from "./escalationTypes.ts";
+import type { ScoreEvent } from "./scoringTypes.ts";
+export type { MapScoring, RegionAmounts, RegionScored, ScoreChanged, ScoreEvent } from "./scoringTypes.ts";
 import type {
   ActiveModifier,
   ActiveTrigger,
@@ -165,7 +167,8 @@ export type PublicEvent =
   | TriggerEvent
   | HandRevealedHidden
   | CardsDiscarded
-  | EscalationEvent;
+  | EscalationEvent
+  | ScoreEvent;
 /**
  * What happened, for animation, the game log, sounds and the tutorial. An event visible to one side
  * may carry a `publicForm`: the public event everyone else gets instead (see eventsFor).
@@ -296,6 +299,8 @@ export type PublicState = {
   influence?: InfluenceEntry[];
   /** The Escalation track, a whole number from 0 to 6 (escalation.ts); present exactly when `map` is. */
   escalation?: number;
+  /** The score track, a whole number from -end (LIO's end) to +end (SAE's); present exactly when `map.scoring` is. */
+  score?: number;
   /** The current era's name, whose battleground list counts (battlegrounds.ts); present exactly when `map` is. */
   era?: EraId;
 };

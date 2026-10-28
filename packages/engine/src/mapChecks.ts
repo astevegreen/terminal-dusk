@@ -1,8 +1,9 @@
 // The setup's map (docs/design/map-and-points.md, "Map" and "Influence"): checking it, and the public state it
 // starts. The map's content is scenario data; these checks only make sure it is a usable map.
-import type { Country, EngineError, GameMap, InfluenceEntry, Setup, SetupMap } from "./types.ts";
+import type { Country, EngineError, GameMap, InfluenceEntry, MapScoring, Setup, SetupMap } from "./types.ts";
 import { battlegroundsError } from "./battlegrounds.ts";
 import { CLOSING_THRESHOLDS } from "./closedRegions.ts";
+import { scoringError } from "./scoring.ts";
 import { SIDES } from "./types.ts";
 
 const invalidSetup = (message: string): EngineError => ({ code: "invalidSetup", message });
@@ -23,7 +24,8 @@ export function mapError(setup: Setup): EngineError | null {
     adjacencyError(m) ??
     homeBoxError(m) ??
     influenceError(m) ??
-    battlegroundsError(setup, m);
+    battlegroundsError(setup, m) ??
+    scoringError(m);
   return message ? invalidSetup(message) : null;
 }
 
@@ -151,6 +153,12 @@ function influenceError({ countries, startingInfluence }: SetupMap): string | nu
   return null;
 }
 
+/** A fresh copy of a checked map's scoring. */
+const copyScoring = ({ track, regions }: MapScoring): MapScoring => ({
+  track: { end: track.end, start: track.start },
+  regions: regions.map(({ region, present, ahead, all }) => ({ region, present, ahead, all })),
+});
+
 /**
  * The public state a checked map starts: the fixed map (no starting influence) and every country's influence,
  * in the map's country order, 0 where the setup gives none. Fresh copies: nothing is shared with the setup.
@@ -170,6 +178,7 @@ export function mapState(map: SetupMap): { map: GameMap; influence: InfluenceEnt
       })),
       battlegrounds: map.battlegrounds.map(({ era, countries }) => ({ era, countries: [...countries] })),
       homeBox: { lio: [...map.homeBox.lio], sae: [...map.homeBox.sae] },
+      ...(map.scoring === undefined ? {} : { scoring: copyScoring(map.scoring) }),
     },
     influence: map.countries.map(({ id }) => ({
       country: id,

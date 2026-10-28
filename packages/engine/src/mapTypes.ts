@@ -1,6 +1,7 @@
 // The map's types (docs/design/map-and-points.md, "Map" and "Influence"). types.ts re-exports them, so index.ts
 // exports the same names.
 import type { EraId, Side } from "./types.ts";
+import type { MapScoring } from "./scoringTypes.ts";
 
 export type RegionId = string;
 export type CountryId = string;
@@ -31,7 +32,8 @@ export type BattlegroundList = { era: EraId; countries: CountryId[] };
  * box. Home boxes are not countries: they have no influence, stability or control. `closingOrder` lists the
  * three regions that close to interventions and realignments as Escalation reaches 3, 4 and 5, in that order
  * (docs/design/map-and-points.md, "Thresholds close regions"). `battlegrounds` holds one list per era
- * (battlegrounds.ts); every era's list is public, since only an era's cards and turn are secret.
+ * (battlegrounds.ts); every era's list is public, since only an era's cards and turn are secret. `scoring`, when the
+ * map has it, is what each region is worth at an era's end and the score track's size (scoring.ts).
  */
 export type GameMap = {
   regions: Region[];
@@ -39,6 +41,7 @@ export type GameMap = {
   countries: Country[];
   battlegrounds: BattlegroundList[];
   homeBox: Record<Side, CountryId[]>;
+  scoring?: MapScoring;
 };
 
 /** One country's influence for each side: whole numbers, 0 or more. */
