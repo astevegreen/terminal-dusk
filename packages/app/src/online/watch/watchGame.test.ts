@@ -64,6 +64,12 @@ describe("watching a game", () => {
       await settle();
       const secret = w.fake.current().secret;
       for (const body of w.bodies) expect(leaksFor(body.text, secret, "spectator")).toEqual([]);
+      // The move log is the secret's `log` (the answers given); no response holds it whole or any answer's JSON.
+      expect(secret.log.length).toBeGreaterThan(0);
+      for (const body of w.bodies) {
+        expect(body.text).not.toContain(JSON.stringify(secret.log));
+        expect(body.text).not.toContain('"log"');
+      }
     }
     expect(w.bodies.length).toBeGreaterThan(4);
     expect(
