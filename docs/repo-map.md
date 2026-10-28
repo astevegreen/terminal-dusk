@@ -37,7 +37,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/ai/src/player.ts` - A ready-made Easy player and the plain-data protocol a worker uses to run it (Decision 8). Exports: createEasyPlayer, AiRequest, AiResponse, createAiWorkerHandler.
 - `packages/ai/src/random.ts` - The AI's own noise, kept apart from the game's randomness (which stays in the engine's PRNG). Exports: seededRandom.
 - `packages/ai/src/realign.test.ts` - Easy answers the action menu's realign (A11d, issue #372): the menu, then one realign decision per attempt, each a country or a stop (R16c).
-- `packages/ai/src/test/mapGames.ts` - Test helpers for map games (A11a, issue #359; A11b, #360): small rulesets whose cards move Escalation or spend event points, dealt with the test map, and first… Exports: testMap, escalationRuleset, newMapGame, pointsRuleset, newPointsMapGame, newFirstDeckMapGame.
+- `packages/ai/src/sixRegionMap.test.ts` - Easy with the real first deck on the six-region map (A14, issue #439): seeded games, both sides Easy, end to end.
+- `packages/ai/src/test/mapGames.ts` - Test helpers for map games (A11a, issue #359; A11b, #360): small rulesets whose cards move Escalation or spend event points, dealt with the test map, and first… Exports: testMap, escalationRuleset, newMapGame, pointsRuleset, newPointsMapGame, newFirstDeckMapGame, newSixRegionMapGame.
 - `packages/ai/src/test/markerGames.ts` - Test helpers for lasting markers and `has` conditions (R4): a small ruleset whose cards set two lasting labels, and cards whose yes/no question exists only whi… Exports: MARKER_LABELS, markerRuleset, newMarkerGame.
 - `packages/ai/src/test/playEasy.test.ts`
 - `packages/ai/src/test/playEasy.ts` - Test helper: plays a whole game with Easy on both sides, checking every answer against the real state. Exports: EasyOptions, playEasy.
@@ -63,6 +64,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e/replay.e2e.ts`
 - `packages/app/e2e/server.test.ts` - The Playwright run's own port (server.ts): a free one, kept for the run's workers, never a server already running.
 - `packages/app/e2e/server.ts` - Where the Playwright smoke tests serve the app (playwright.config.ts). Exports: e2ePort, e2eServer.
+- `packages/app/e2e/sixRegionMap.e2e.ts` - The six-region map against the AI (A14, #439): 6 regions and 42 boxes and Crimea in its own box, on a phone held upright (375x667) and at the project's own siz…
 - `packages/app/e2e/testMode.e2e.ts`
 - `packages/app/e2e/vsAi.e2e.ts`
 - `packages/app/e2e/vsAiReplay.e2e.ts`
@@ -71,7 +73,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/playwright.config.ts` - Playwright smoke tests (`pnpm test:e2e`), kept apart from Vitest: their files end in .e2e.ts. Exports: default.
 - `packages/app/playwright.stack.config.ts` - Playwright settings for the phase 4 browser gate (A10, e2e-stack/): two browsers, a real sign-in by email code and a whole online game on the local Supabase st… Exports: default.
 - `packages/app/src/App.test.tsx`
-- `packages/app/src/App.tsx` - The home screen: the game's name, a button to play against the AI, a button to play online and a button into developer test mode. Exports: AppProps, App, onlineRoute, Home.
+- `packages/app/src/App.tsx` - The home screen: the game's name, a button to play against the AI, a button to play the six-region map against the AI (A14, #439), a button to play online and… Exports: AppProps, App, onlineRoute, Home.
 - `packages/app/src/chooseActionPrompt.test.tsx` - The chooseAction prompt (R16b, #316): all the points go to one action, placing or one intervention.
 - `packages/app/src/decisionPrompts.test.tsx`
 - `packages/app/src/decisionPrompts.tsx` - One prompt component per DecisionKind. Exports: CardQuestion, CardAffiliation, PromptProps, PromptComponent, askingCard, decisionPrompts.
@@ -175,6 +177,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/vsAi/firstDeckGame.test.ts`
 - `packages/app/src/vsAi/session.test.ts`
 - `packages/app/src/vsAi/session.ts` - The state behind a game against the AI: one local match on the developer fixture, the human's latest frame and log, and the AI side's frames, which the session… Exports: VsAiSnapshot, VsAiOptions, VsAiSession, NO_ANSWER, createVsAiSession.
+- `packages/app/src/vsAi/sixRegionMapGame.test.ts` - A game against the AI on the six-region map (A14, issue #439): the first deck on that map, played to its end from either side with the human pressing the first…
 - `packages/app/src/vsAi/test/scriptedHuman.ts` - Test helper: a human who always presses the first button of the prompt on screen, and a loop that plays a vs-AI session to the end with them. Exports: flush, pressFirst, playOut.
 - `packages/app/src/vsAi/test/standInAi.ts` - Test helper: an opponent that calls the Easy AI directly instead of through a Web Worker. Exports: StandInOptions, StandIn, standInAi.
 - `packages/app/src/vsAi/workerAi.test.ts`
@@ -561,7 +564,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/src/entitlement.test.ts`
 - `packages/host/src/entitlement.ts` - Who may create an online game (docs/architecture.md, Product calls: "Free players cannot create online games"). Exports: PLATFORMS, Platform, Entitlement, isPlatform, isEntitlement, createOnlineRefusal.
 - `packages/host/src/firstDeck.test.ts`
-- `packages/host/src/firstDeck.ts` - The first deck as a game the app can start: the ruleset, a match config, and card names and rules text. Exports: FIRST_DECK_NOTE, firstDeckRuleset, firstDeckCardName, firstDeckEraName, firstDeckCardQuestion, firstDeckCardRules, firstDeckTestMap, firstDeckConfig.
+- `packages/host/src/firstDeck.ts` - The first deck as a game the app can start: the ruleset, a match config, and card names and rules text. Exports: FIRST_DECK_NOTE, SIX_REGION_MAP_NOTE, firstDeckRuleset, firstDeckCardName, firstDeckEraName, firstDeckCardQuestion, firstDeckCardRules, firstDeckTestMap, firstDeckConfig, sixRegionMapConfig.
 - `packages/host/src/firstDeckQuestion.test.ts`
 - `packages/host/src/firstDeckRules.test.ts`
 - `packages/host/src/firstDeckTestMap.test.ts` - The test map as the host hands it to the app (issue #366): R14's TEST_MAP_SCENARIO through content's scenarioSetup.
@@ -583,6 +586,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/src/hostTimeout.ts` - A missed deadline: the server's deadline job (never a player) tells the host that `side` was late. Exports: hostTimeout.
 - `packages/host/src/index.test.ts`
 - `packages/host/src/index.ts` - Public entry point of MatchHost (docs/architecture.md, Decision 3). Exports: hostCreate, hostSubmit, hostTimeout, hostDeadline, hostArchive, createOnlineRefusal, isEntitlement, isPlatform, PLATFORMS, Entitlement, Platform, DeadlineRule, ….
+- `packages/host/src/sixRegionMapConfig.test.ts` - The six-region map game as the host hands it to the app (A14, issue #439): the first deck's config with the six-region scenario's map, and nothing else of that…
 - `packages/host/src/test/clock.ts` - Test helpers for matches with deadlines. Exports: DAY, startedWith, lioToPlay, clockOf, withClock, swept.
 - `packages/host/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
 - `packages/host/src/test/leaks.ts` - Test helpers for leak checks, copying the idea of tests/fuzz/checks.ts (hiddenFrom, leaksIn). Exports: hiddenFrom, leaksIn.

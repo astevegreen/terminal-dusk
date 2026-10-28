@@ -12,12 +12,14 @@ import {
   cardName,
   scenarioSetup,
 } from "@terminal-dusk/content/first-deck";
-import { TEST_MAP_SCENARIO } from "@terminal-dusk/content";
+import { SIX_REGION_MAP_SCENARIO, TEST_MAP_SCENARIO } from "@terminal-dusk/content";
 import type { CardId, EraId, Ruleset, Setup } from "@terminal-dusk/engine";
 import type { MatchConfig } from "./types.ts";
 
 export const FIRST_DECK_NOTE =
   "First deck, Eras 1 to 3 and the future cards (TEST scenario with placeholder numbers; they join on turns 2, 3 and 4)";
+export const SIX_REGION_MAP_NOTE =
+  "First deck on the six-region map (placeholder stabilities, battlegrounds and starting influence)";
 export const firstDeckRuleset: Ruleset = FIRST_DECK_RULESET;
 export { cardName as firstDeckCardName };
 
@@ -47,15 +49,18 @@ const RULES = new Map<CardId, string>(FIRST_DECK_CARDS.map((card) => [card.id, c
 /** A first-deck card's rules text as its card file has it, shown under its name; undefined for an unknown id. */
 export const firstDeckCardRules = (id: CardId): string | undefined => RULES.get(id);
 
+/** A fresh copy of a scenario's map, starting influence included, through content's scenarioSetup. */
+function mapOf(scenario: typeof TEST_MAP_SCENARIO): NonNullable<Setup["map"]> {
+  const { map } = scenarioSetup(scenario);
+  if (map === undefined) throw new Error(`the ${scenario.id} scenario has no map`);
+  return map;
+}
+
 /**
  * A fresh copy of R14's test map, starting influence included: TEST_MAP_SCENARIO through content's scenarioSetup.
  * Test data, not the game's map; the developer test mode plays on it. The first-deck config below has no map.
  */
-export const firstDeckTestMap = (): NonNullable<Setup["map"]> => {
-  const { map } = scenarioSetup(TEST_MAP_SCENARIO);
-  if (map === undefined) throw new Error("the test map scenario has no map");
-  return map;
-};
+export const firstDeckTestMap = (): NonNullable<Setup["map"]> => mapOf(TEST_MAP_SCENARIO);
 
 /** The match config for the first deck: the TEST scenario's numbers, empty hands and the Era 1 draw pile. */
 export function firstDeckConfig(): MatchConfig {
@@ -68,4 +73,13 @@ export function firstDeckConfig(): MatchConfig {
       ...scenarioSetup(FIRST_DECK_SCENARIO),
     },
   };
+}
+
+/**
+ * The first deck on the six-region map (A14, #439): firstDeckConfig with only the map taken from the six-region
+ * scenario. Turns, plays, hand size and eras stay the first deck's, because that scenario has no eras.
+ */
+export function sixRegionMapConfig(): MatchConfig {
+  const config = firstDeckConfig();
+  return { ...config, matchId: "six-region-map", setup: { ...config.setup, map: mapOf(SIX_REGION_MAP_SCENARIO) } };
 }

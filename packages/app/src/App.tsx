@@ -1,5 +1,6 @@
-// The home screen: the game's name, a button to play against the AI, a button to play online and a button into
-// developer test mode. The AI and test mode need no account; only Play online asks to sign in.
+// The home screen: the game's name, a button to play against the AI, a button to play the six-region map against
+// the AI (A14, #439), a button to play online and a button into developer test mode. The AI games and test mode
+// need no account; only Play online asks to sign in.
 import { useState } from "react";
 import { OnlineScreen } from "./online/OnlineScreen.tsx";
 import type { OnlineSetup } from "./online/OnlineScreen.tsx";
@@ -17,6 +18,8 @@ export type AppProps = {
   newAiSeed: () => number;
   /** The game played against the AI; the developer fixture when left out. Test mode always uses its own fixture. */
   game?: VsAiGame;
+  /** The game on the six-region map against the AI; the same as `game` when left out. */
+  mapGame?: VsAiGame;
   /** Supabase Auth and the session store; left out when this build has no online play set up. */
   online?: OnlineSetup;
   /** The timers an online game polls with; main.tsx passes the real ones, which are also the default. */
@@ -25,11 +28,23 @@ export type AppProps = {
 
 const TAP = { minHeight: 44, minWidth: 44 } as const;
 
-export function App({ clock, newSeed, newAiSeed, game, online, timers = realTimers }: Readonly<AppProps>) {
-  const [screen, setScreen] = useState<"home" | "vsAi" | "online" | "testMode">("home");
+type Screen = "vsAi" | "vsAiMap" | "online" | "testMode";
+
+export function App({ clock, newSeed, newAiSeed, game, mapGame, online, timers = realTimers }: Readonly<AppProps>) {
+  const [screen, setScreen] = useState<"home" | Screen>("home");
   if (screen === "testMode") return <TestModeScreen clock={clock} />;
-  if (screen === "vsAi")
-    return <VsAiScreen clock={clock} newSeed={newSeed} newAiSeed={newAiSeed} {...(game ? { game } : {})} />;
+  if (screen === "vsAi" || screen === "vsAiMap") {
+    const played = screen === "vsAiMap" ? (mapGame ?? game) : game;
+    return (
+      <VsAiScreen
+        key={screen}
+        clock={clock}
+        newSeed={newSeed}
+        newAiSeed={newAiSeed}
+        {...(played ? { game: played } : {})}
+      />
+    );
+  }
   if (screen === "online") return onlineRoute({ clock, game, online, timers }, () => setScreen("home"));
   return <Home onPick={setScreen} />;
 }
@@ -59,12 +74,15 @@ export function onlineRoute(
 }
 
 /** The home screen's buttons; `onPick` opens the chosen screen. */
-export function Home({ onPick }: Readonly<{ onPick: (screen: "vsAi" | "online" | "testMode") => void }>) {
+export function Home({ onPick }: Readonly<{ onPick: (screen: Screen) => void }>) {
   return (
     <main>
       <h1>Terminal Dusk</h1>
       <button type="button" style={TAP} onClick={() => onPick("vsAi")}>
         Play against the AI
+      </button>
+      <button type="button" style={TAP} onClick={() => onPick("vsAiMap")}>
+        Play the six-region map
       </button>
       <button type="button" style={TAP} onClick={() => onPick("online")}>
         Play online

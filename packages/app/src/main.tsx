@@ -4,11 +4,13 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import {
   FIRST_DECK_NOTE,
+  SIX_REGION_MAP_NOTE,
   firstDeckCardName,
   firstDeckCardQuestion,
   firstDeckCardRules,
   firstDeckConfig,
   firstDeckRuleset,
+  sixRegionMapConfig,
 } from "@terminal-dusk/host/first-deck";
 import { createLocalMatch } from "./transport/localMatch.ts";
 import { App } from "./App.tsx";
@@ -26,6 +28,13 @@ const firstDeckGame: VsAiGame = {
   cardRules: firstDeckCardRules,
   cardAffiliation: (id) => firstDeckRuleset.cards.find((card) => card.id === id)?.affiliation,
   note: FIRST_DECK_NOTE,
+};
+
+/** The first deck on the six-region map against the AI (A14, #439): the same cards, only the map is added. */
+const sixRegionMapGame: VsAiGame = {
+  ...firstDeckGame,
+  makeMatch: (seed, clock) => createLocalMatch(firstDeckRuleset, sixRegionMapConfig(), seed, clock),
+  note: SIX_REGION_MAP_NOTE,
 };
 
 /**
@@ -59,6 +68,7 @@ createRoot(root).render(
       newSeed={newSeed}
       newAiSeed={newAiSeed}
       game={firstDeckGame}
+      mapGame={sixRegionMapGame}
       timers={realTimers}
       {...(online ? { online } : {})}
     />
