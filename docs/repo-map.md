@@ -136,6 +136,13 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/online/test/signInRig.ts` - A sign-in session wired to the fake Supabase Auth, a memory store and a hand-moved clock, for the tests. Exports: START, EMAIL, CODE, STORED, Rig, rig, rigWith, rigOnCode, settle, heldStore.
 - `packages/app/src/online/timers.test.ts`
 - `packages/app/src/online/timers.ts` - Real timers for createRemoteMatch's `setTimer`/`clearTimer` options, over `setTimeout`/`clearTimeout`. Exports: TimerHandle, setTimer, clearTimer, Timers, realTimers.
+- `packages/app/src/online/watch/WatchScreen.tsx` - The watch screen's wiring: a watch session for one match id (always a spectator, no sign-in needed), drawn by WatchView, closed when the screen goes. Exports: WatchScreenProps, useReplay, WatchScreen.
+- `packages/app/src/online/watch/WatchView.test.tsx` - The watch screen drawn from real snapshots of a watched game: read-only board, spectator wording, and a finished game handing over to its replay.
+- `packages/app/src/online/watch/WatchView.tsx` - A watched game drawn from an online game snapshot: a "Watching" line, who is being waited for or how the game ended, Back, and the board through the same GameS… Exports: WatchReplay, WatchViewProps, watchText, WatchView.
+- `packages/app/src/online/watch/watchGame.test.ts` - What a watcher is sent (O14): only the public spectator frame, never a hand, the deck, the seed or the move log.
+- `packages/app/src/online/watch/watchGame.ts` - A watched game: an online game session that is always a spectator. Exports: WatchGameOptions, createWatchGame.
+- `packages/app/src/online/watch/watchLink.test.ts`
+- `packages/app/src/online/watch/watchLink.ts` - The watch link for an online game: the app's address with `?watch=<matchId>`. Exports: watchLinkFor, matchIdFromSearch.
 - `packages/app/src/placeInfluencePrompt.test.tsx` - The placeInfluence prompt (R16a, #315): one choice per country a placing lists.
 - `packages/app/src/platform/storage.test.ts`
 - `packages/app/src/platform/storage.ts` - The `storage` part of the Platform interface (docs/architecture.md, Decision 7): a small async key-value store, so a Capacitor implementation fits later. Exports: KeyValueStore, StorageLike, memoryStore, webStore.
