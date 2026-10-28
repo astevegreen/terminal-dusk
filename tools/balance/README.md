@@ -27,6 +27,17 @@ node tools/balance/run.mjs --scenario six-region   # the six-region map (package
   influence and control, not a verdict on balance, and its first line says so.
 - Any other value is refused with the allowed values and the usage line, and no game is played.
 
+## Choosing each side's AI tier
+
+`--lio-tier` and `--sae-tier` (each `easy` or `medium`, Easy when left out) pick the AI tier of one side, so a run can
+pit Medium against Easy. A run that uses either option adds a line under the results by side with the tiers and how
+many Escalation crises each side caused (a crisis is Escalation reaching 6; the side that caused it draws the cost).
+Without them the report is exactly as before.
+
+```
+node tools/balance/run.mjs --scenario test-map --games 200 --lio-tier medium --sae-tier easy
+```
+
 ## How to run it
 
 ```

@@ -1,6 +1,6 @@
 // Test helper: plays a whole game with Easy on both sides, checking every answer against the real state.
 import { legalAnswers, SIDES, viewFor } from "@terminal-dusk/engine";
-import type { Answer, GameEvent, Ruleset } from "@terminal-dusk/engine";
+import type { Answer, AnswerValue, GameEvent, PlayerView, Ruleset, Side } from "@terminal-dusk/engine";
 import { expect } from "vitest";
 import { easyAnswer } from "../easy.ts";
 import type { Weights } from "../types.ts";
@@ -11,6 +11,14 @@ import type { TestState } from "./testGames.ts";
 const MOST_ANSWERS = 500;
 
 export type EasyOptions = {
+  /** The tier that answers (easyAnswer if not given); its answers are checked the same way. */
+  answerWith?: (
+    rules: Ruleset,
+    view: PlayerView,
+    side: Side,
+    weights: never,
+    random: () => number,
+  ) => AnswerValue | null;
   /** Names the game in the "did not end" error. */
   name?: string;
   /** The most answers the game may take (MOST_ANSWERS if not given); still going after them, it did not end. */
@@ -43,7 +51,7 @@ export function playEasy(
     const waiting = SIDES.filter((side) => before.public.pending.some((d) => d.side === side));
     const side = waiting[Math.floor(random() * waiting.length)]!;
     const started = Date.now();
-    const value = easyAnswer(rules, viewFor(before, side), side, weights, random);
+    const value = (options.answerWith ?? easyAnswer)(rules, viewFor(before, side), side, weights as never, random);
     options.timed?.(Date.now() - started);
     expect(value).not.toBeNull();
     expect(legalAnswers(rules, before, side)).toContainEqual(value);
