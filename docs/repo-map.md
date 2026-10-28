@@ -69,6 +69,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e/tracks.e2e.ts` - The score track and Escalation on screen (A15, #448): test mode's map has scoring, so the region shows there at a phone held upright, held sideways and at desk…
 - `packages/app/e2e/vsAi.e2e.ts`
 - `packages/app/e2e/vsAiReplay.e2e.ts`
+- `packages/app/e2e/watch.e2e.ts`
+- `packages/app/e2e/watchStack.e2e.ts`
 - `packages/app/index.html`
 - `packages/app/package.json`
 - `packages/app/playwright.config.ts` - Playwright smoke tests (`pnpm test:e2e`), kept apart from Vitest: their files end in .e2e.ts. Exports: default.
@@ -136,6 +138,13 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/online/test/signInRig.ts` - A sign-in session wired to the fake Supabase Auth, a memory store and a hand-moved clock, for the tests. Exports: START, EMAIL, CODE, STORED, Rig, rig, rigWith, rigOnCode, settle, heldStore.
 - `packages/app/src/online/timers.test.ts`
 - `packages/app/src/online/timers.ts` - Real timers for createRemoteMatch's `setTimer`/`clearTimer` options, over `setTimeout`/`clearTimeout`. Exports: TimerHandle, setTimer, clearTimer, Timers, realTimers.
+- `packages/app/src/online/watch/WatchScreen.tsx` - The watch screen's wiring: a watch session for one match id (always a spectator, no sign-in needed), drawn by WatchView, closed when the screen goes. Exports: WatchScreenProps, replayFor, useReplay, WatchScreen.
+- `packages/app/src/online/watch/WatchView.test.tsx` - The watch screen drawn from real snapshots of a watched game: read-only board, spectator wording, and a finished game handing over to its replay.
+- `packages/app/src/online/watch/WatchView.tsx` - A watched game drawn from an online game snapshot: a "Watching" line, who is being waited for or how the game ended, Back, and the board through the same GameS… Exports: WatchReplay, WatchViewProps, watchText, WatchView.
+- `packages/app/src/online/watch/watchGame.test.ts` - What a watcher is sent (O14): only the public spectator frame, never a hand, the deck, the seed or the move log.
+- `packages/app/src/online/watch/watchGame.ts` - A watched game: an online game session that is always a spectator. Exports: WatchGameOptions, createWatchGame.
+- `packages/app/src/online/watch/watchLink.test.ts`
+- `packages/app/src/online/watch/watchLink.ts` - The watch link for an online game: the app's address with `?watch=<matchId>`. Exports: watchLinkFor, matchIdFromSearch.
 - `packages/app/src/placeInfluencePrompt.test.tsx` - The placeInfluence prompt (R16a, #315): one choice per country a placing lists.
 - `packages/app/src/platform/storage.test.ts`
 - `packages/app/src/platform/storage.ts` - The `storage` part of the Platform interface (docs/architecture.md, Decision 7): a small async key-value store, so a Capacitor implementation fits later. Exports: KeyValueStore, StorageLike, memoryStore, webStore.
@@ -709,6 +718,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/supabaseStore.deadlines.test.ts` - SupabaseStore's DeadlineStore side (due, saveClock) and the clock on load, against a stand-in client, so these run without the local stack.
 - `packages/server/src/supabaseStore.games.stack.test.ts` - Whole games played through `submit` with a SupabaseStore on the local Supabase stack.
 - `packages/server/src/supabaseStore.guards.stack.test.ts` - SupabaseStore's guards on the local Supabase stack: the seq check in the commit_match SQL function, unknown matches, a missing secret row and database errors,…
+- `packages/server/src/supabaseStore.spectator.stack.test.ts` - What a signed-out watcher (O14, #454) can read from the local Supabase stack under real row-level security: after every step of a whole game, only the spectato…
 - `packages/server/src/supabaseStore.test.ts` - SupabaseStore against a stand-in client, so these run without the local stack.
 - `packages/server/src/supabaseStore.ts` - The Supabase side of the storage port (docs/architecture.md, Decision 5). Exports: StorageError, SupabaseStore.
 - `packages/server/src/sweepDeadlines.storage.test.ts`

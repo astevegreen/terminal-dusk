@@ -18,6 +18,7 @@ import type { VsAiGame } from "./vsAi/VsAiScreen.tsx";
 import type { OnlineSetup } from "./online/OnlineScreen.tsx";
 import { webStore } from "./platform/storage.ts";
 import { realTimers } from "./online/timers.ts";
+import { matchIdFromSearch } from "./online/watch/watchLink.ts";
 
 /** The game against the AI: the real first deck. Test mode keeps its own developer fixture. */
 const firstDeckGame: VsAiGame = {
@@ -59,6 +60,7 @@ const randomWords = (count: number): Uint32Array => crypto.getRandomValues(new U
 const newSeed = (): string => Array.from(randomWords(4), (n) => n.toString(16).padStart(8, "0")).join("");
 const newAiSeed = (): number => randomWords(1)[0] ?? 0;
 
+const watchId = matchIdFromSearch(location.search);
 const root = document.getElementById("root");
 if (!root) throw new Error("index.html has no #root element");
 createRoot(root).render(
@@ -70,6 +72,7 @@ createRoot(root).render(
       game={firstDeckGame}
       mapGame={sixRegionMapGame}
       timers={realTimers}
+      {...(watchId === null ? {} : { watch: watchId })}
       {...(online ? { online } : {})}
     />
   </StrictMode>,

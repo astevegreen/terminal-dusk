@@ -3,6 +3,8 @@
 // need no account; only Play online asks to sign in.
 import { useState } from "react";
 import { OnlineScreen } from "./online/OnlineScreen.tsx";
+import { WatchScreen } from "./online/watch/WatchScreen.tsx";
+import { cardAffiliation as fixtureAffiliation, cardName, cardQuestion } from "./testMode/fixture.ts";
 import type { OnlineSetup } from "./online/OnlineScreen.tsx";
 import { realTimers } from "./online/timers.ts";
 import type { Timers } from "./online/timers.ts";
@@ -24,14 +26,39 @@ export type AppProps = {
   online?: OnlineSetup;
   /** The timers an online game polls with; main.tsx passes the real ones, which are also the default. */
   timers?: Timers;
+  /** The match id from a watch link (`?watch=<id>`): opens that game as a spectator instead of the home screen. */
+  watch?: string;
 };
 
 const TAP = { minHeight: 44, minWidth: 44 } as const;
 
 type Screen = "vsAi" | "vsAiMap" | "online" | "testMode";
 
-export function App({ clock, newSeed, newAiSeed, game, mapGame, online, timers = realTimers }: Readonly<AppProps>) {
+export function App({
+  clock,
+  newSeed,
+  newAiSeed,
+  game,
+  mapGame,
+  online,
+  timers = realTimers,
+  watch,
+}: Readonly<AppProps>) {
   const [screen, setScreen] = useState<"home" | Screen>("home");
+  const [watching, setWatching] = useState(watch ?? null);
+  if (watching !== null && online) {
+    const play = {
+      clock,
+      timers,
+      label: game?.cardName ?? cardName,
+      question: game?.cardQuestion ?? cardQuestion,
+      rules: game?.cardRules,
+      affiliation: game?.cardAffiliation ?? fixtureAffiliation,
+    };
+    return (
+      <WatchScreen key={watching} auth={online.auth} matchId={watching} play={play} onBack={() => setWatching(null)} />
+    );
+  }
   if (screen === "testMode") return <TestModeScreen clock={clock} />;
   if (screen === "vsAi" || screen === "vsAiMap") {
     const played = screen === "vsAiMap" ? (mapGame ?? game) : game;

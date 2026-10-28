@@ -66,3 +66,21 @@ describe("the online route", () => {
     expect(route.props.rules).toBeUndefined();
   });
 });
+
+describe("a watch link (O14)", () => {
+  const online = {
+    auth: { url: "http://x.test", anonKey: "k", fetch: () => Promise.reject(new Error("offline")) },
+  } as never;
+  const props = { clock: () => 0, newSeed: () => "s", newAiSeed: () => 1 };
+
+  it("opens the watch screen, not the home screen, and needs no sign-in", () => {
+    const out = renderToString(<App {...props} online={online} watch="match-1" />);
+    expect(out).toContain("Watching");
+    expect(out).not.toContain("Play against the AI");
+    expect(out).not.toContain("Email address");
+  });
+
+  it("a build with no online setup shows the home screen", () => {
+    expect(renderToString(<App {...props} watch="match-1" />)).toContain("Play against the AI");
+  });
+});
