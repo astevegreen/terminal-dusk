@@ -148,7 +148,7 @@ differences between options more than the exact figures.
   79 of A's 99 decided games and 65 of C's 100. Europe, the Middle East and North Africa and Sub-Saharan Africa each
   decide fewer than 10 games in 100 on every option. B spreads it over three regions: Eastern Europe and Central
   Asia 28, East and South Asia 30 and the Americas 26 of its 94 decided games. Europe's average swing is close to zero on
-  every option (0.1 or less either way), so its amounts barely matter in these runs.
+  every option (about 0.1 either way), so its amounts barely matter in these runs.
 - **The swing grows with the eras on B, and holds steady on A and C.** On B the score hardly moves in Era 1 (average
   swing +0.09 towards SAE) and builds to +1.07 in Era 3. On A and C LIO gains in every era.
 - **The track.** 15 steps (B) ended 16% of games early; 20 steps ended 36% (A) and 21% (C). Most track ends come

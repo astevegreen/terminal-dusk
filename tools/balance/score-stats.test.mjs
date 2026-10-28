@@ -92,6 +92,10 @@ test("a real scored game ends with a track position, and its regions' points add
     ["era-1"],
     "the first scoring is era-1's",
   );
+  const eras = game.score.rows.map((r) => r.era);
+  const order = [...new Set(eras)];
+  assert.deepEqual(order, ["era-1", "era-2", "era-3"].slice(0, order.length), "eras come in order, none skipped");
+  for (const era of order) assert.ok(eras.filter((e) => e === era).length <= 6, `${era} scores each region once`);
   const moved = game.score.rows.reduce((n, r) => n + r.sae - r.lio, 0);
   if (game.score.how !== "trackEnd") assert.equal(game.score.final, moved, "no clamping, so the points add up");
   assert.equal(playBalanceGame("x13", 0, scenarioConfig("six-region")).score, null, "no scoring, no score numbers");
