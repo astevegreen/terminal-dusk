@@ -151,7 +151,9 @@ Decided by the owner on 28 October 2026, choosing between the options in `docs/p
 (option B, every region scores at each era's end, with no scoring cards).
 
 - **When** (owner: "every era's end"). At the end of each era's last turn every region scores, in a fixed order.
-  The base game scores three times. There are no scoring cards, so "how scoring cards are played" has no answer
+  The order (owner, 28 Oct, chosen in chat: S1) is the closing order's own list: Eastern Europe and Central Asia,
+  East and South Asia, Europe, then the three regions that never close, Middle East and North Africa, Sub-Saharan
+  Africa, the Americas. The scenario sets it as data, so a balance pass can change it. The base game scores three times. There are no scoring cards, so "how scoring cards are played" has no answer
   to give.
 - **How a region scores.** A side is **present** in a region if it controls at least one country there, **ahead**
   if it controls more countries and more battlegrounds there than the rival, and **holds every battleground** if
@@ -172,7 +174,7 @@ Decided by the owner on 28 October 2026, choosing between the options in `docs/p
   If that is also a tie, then it's a draw"). The side further ahead on the tech race track wins; if that is
   also even, the game is a draw.
 - Open: the track's length and where it starts, the amounts for present, ahead and holding every battleground
-  per region, and the order regions score in (scenario data, with the region contents); how "further ahead" on
+  per region (scenario data, with the region contents); how "further ahead" on
   the tech race is measured (tech race topic); when the 2025-2027 scenario (eras.md) has its final scoring and
   win check.
 
@@ -182,8 +184,8 @@ Decided by the owner on 28 October 2026, choosing between the options in `docs/p
    Credibility.
 2. Answered 28 Oct: scoring, as above. Its numbers wait on the stabilities and battleground lists (question 3).
 3. Answered 28 Oct: the six-region map's content is option 2 of `docs/proposals/map-content/`, with H1, Crimea
-   as its own box, and closing order C1. Still open: each country's stability, each era's battleground list, the
-   order regions score in, who sets the real stabilities (owner or a balance pass), Taiwan's and Crimea's starting
+   as its own box, and closing order C1; the order regions score in is S1 (Scoring section). Still open: each
+   country's stability, each era's battleground list, who sets the real stabilities (owner or a balance pass), Taiwan's and Crimea's starting
    influence numbers, whether Kosovo and the Palestinian territories get a box (option 2 gives neither one), and
    whether every country must be reachable from both home boxes and long sea links are acceptable (option 2's tables
    assume yes; its Reach section shows the result).
