@@ -179,7 +179,9 @@
   display: flex;
   justify-content: space-between;
   gap: 1px;
-  font-size: 17px;
+  /* Named fonts of Arial's width, so a name fits on every system: Linux's default sans-serif is wider. */
+  font-family: "Segoe UI", Roboto, Arial, "Liberation Sans", "Helvetica Neue", sans-serif;
+  font-size: 16px;
   font-weight: bold;
   letter-spacing: -0.02em;
   white-space: nowrap;
