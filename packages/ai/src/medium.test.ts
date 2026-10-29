@@ -1,13 +1,13 @@
 // The Medium tier (A16, issue #455): whole seeded games on the test map and the six-region map.
 import { FIRST_DECK_RULESET } from "@terminal-dusk/content/first-deck";
 import { legalAnswers, SIDES, viewFor } from "@terminal-dusk/engine";
-import type { Ruleset } from "@terminal-dusk/engine";
+import type { AnswerValue, Ruleset } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { mediumAnswer } from "./medium.ts";
 import { seededRandom } from "./random.ts";
 import { escalationRuleset, newFirstDeckMapGame, newMapGame, newSixRegionMapGame } from "./test/mapGames.ts";
 import { playEasy } from "./test/playEasy.ts";
-import { applyAnswer, newGame, ruleset } from "./test/testGames.ts";
+import { applyAnswer, applyTo, newGame, ruleset } from "./test/testGames.ts";
 import type { TestState } from "./test/testGames.ts";
 import { MEDIUM_WEIGHTS } from "./weights/medium.ts";
 
@@ -96,5 +96,37 @@ describe("the Medium tier", () => {
       const answer = mediumAnswer(escalationRuleset, view, "lio", MEDIUM_WEIGHTS, seededRandom(seed));
       if (answer?.kind === "chooseCard") expect(risky(answer.card)).toBe(false);
     }
+  });
+
+  it("does not pick an action menu answer that raises Escalation to 6 when another answer is safe", () => {
+    let checked = 0;
+    for (let seed = 1; seed <= 6; seed++) {
+      const menus: TestState[] = [];
+      playEasy(escalationRuleset, newMapGame(seed), MEDIUM_WEIGHTS, seededRandom(seed), {
+        applied: (before) => {
+          if (before.public.pending.some((d) => d.kind === "chooseAction")) menus.push(before);
+        },
+      });
+      for (const menu of menus) {
+        const decision = menu.public.pending.find((d) => d.kind === "chooseAction")!;
+        const state = { ...menu, public: { ...menu.public, escalation: 5 } };
+        const causes = (value: AnswerValue): boolean =>
+          applyTo(escalationRuleset, state, { decisionId: decision.id, side: decision.side, value }).events.some(
+            (e) => e.kind === "escalationCrisis" && e.side === decision.side,
+          );
+        const legal = legalAnswers(escalationRuleset, state, decision.side);
+        if (!legal.some(causes) || legal.every(causes)) continue;
+        checked++;
+        const answer = mediumAnswer(
+          escalationRuleset,
+          viewFor(state, decision.side),
+          decision.side,
+          MEDIUM_WEIGHTS,
+          seededRandom(seed),
+        )!;
+        expect(causes(answer)).toBe(false);
+      }
+    }
+    expect(checked).toBeGreaterThan(0);
   });
 });

@@ -1,7 +1,7 @@
 // The Medium tier's Escalation safety (docs/design/map-and-points.md, "Escalation"): a raise to 6 is a crisis that
 // costs the side that caused it the number it draws from its own Contingency deck, so Medium never makes one itself.
 // Uses the cards it has not seen to tell whether a high Escalation is a danger to the rival (unseen.ts).
-import type { AnswerValue, CardDef, PlayerView, Ruleset, Side } from "@terminal-dusk/engine";
+import type { AnswerValue, CardDef, PlayerView, PublicState, Ruleset, Side } from "@terminal-dusk/engine";
 import { escalationEffect, unseenCards } from "./unseen.ts";
 import type { MediumWeights } from "./types.ts";
 
@@ -18,7 +18,12 @@ function eventRuns(card: CardDef, answer: AnswerValue, side: Side): boolean {
 
 /** What a crisis `side` caused is expected to cost: the mean of the numbers left in its Contingency deck. */
 export function expectedCrisisCost(view: PlayerView, side: Side): number {
-  const left = view.public.contingency[side].left;
+  return crisisCost(view.public, side);
+}
+
+/** The same from the public state alone, for a state Medium has simulated. */
+export function crisisCost(pub: PublicState, side: Side): number {
+  const left = pub.contingency[side].left;
   return left.length === 0 ? DEFAULT_DRAW : left.reduce((a, b) => a + b, 0) / left.length;
 }
 

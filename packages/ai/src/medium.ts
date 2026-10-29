@@ -6,7 +6,7 @@ import type { AnswerValue, PlayerView, Ruleset, Side } from "@terminal-dusk/engi
 import { namedCard } from "./easy.ts";
 import { boardValue } from "./evaluate.ts";
 import { guessHidden } from "./guess.ts";
-import { safetyScore } from "./safety.ts";
+import { crisisCost, safetyScore } from "./safety.ts";
 import type { MediumWeights } from "./types.ts";
 
 /** The state reconstruct() makes from a view (the name GameState stays with the engine and host, hard rule 2). */
@@ -39,7 +39,9 @@ function afterValue(
     const values = legalAnswers(ruleset, next, side).map((a) => afterValue(ruleset, next, side, a, weights, depth - 1));
     return Math.max(...values);
   }
-  return boardValue(next.public, side, weights);
+  // An answer that makes Escalation reach 6 (an intervention in a battleground) is a crisis for the side that gave it.
+  const crises = applied.value.events.filter((e) => e.kind === "escalationCrisis" && e.side === side).length;
+  return boardValue(next.public, side, weights) - crises * weights.crisis * crisisCost(state.public, side);
 }
 
 /**

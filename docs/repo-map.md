@@ -42,7 +42,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/ai/src/random.ts` - The AI's own noise, kept apart from the game's randomness (which stays in the engine's PRNG). Exports: seededRandom.
 - `packages/ai/src/realign.test.ts` - Easy answers the action menu's realign (A11d, issue #372): the menu, then one realign decision per attempt, each a country or a stop (R16c).
 - `packages/ai/src/safety.test.ts`
-- `packages/ai/src/safety.ts` - The Medium tier's Escalation safety (docs/design/map-and-points.md, "Escalation"): a raise to 6 is a crisis that costs the side that caused it the number it dr… Exports: expectedCrisisCost, crisisShare, safetyScore.
+- `packages/ai/src/safety.ts` - The Medium tier's Escalation safety (docs/design/map-and-points.md, "Escalation"): a raise to 6 is a crisis that costs the side that caused it the number it dr… Exports: expectedCrisisCost, crisisCost, crisisShare, safetyScore.
 - `packages/ai/src/sixRegionMap.test.ts` - Easy with the real first deck on the six-region map (A14, issue #439): seeded games, both sides Easy, end to end.
 - `packages/ai/src/test/mapGames.ts` - Test helpers for map games (A11a, issue #359; A11b, #360): small rulesets whose cards move Escalation or spend event points, dealt with the test map, and first… Exports: testMap, escalationRuleset, newMapGame, pointsRuleset, newPointsMapGame, newFirstDeckMapGame, newSixRegionMapGame.
 - `packages/ai/src/test/markerGames.ts` - Test helpers for lasting markers and `has` conditions (R4): a small ruleset whose cards set two lasting labels, and cards whose yes/no question exists only whi… Exports: MARKER_LABELS, markerRuleset, newMarkerGame.
