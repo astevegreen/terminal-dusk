@@ -1,6 +1,6 @@
 // The turn structure (docs/design/core-loop.md). Each turn opens with both hands refilled to the hand
 // size, then both sides secretly picking a card, a neutral one too. Both are revealed together and their
-// events resolve, more ops first. Then LIO and SAE take turns to play, until each has made
+// events resolve, more ops first (under Quantum Computing the holder's rival picks first, face up). Then LIO and SAE take turns to play, until each has made
 // `playsPerTurn` plays. After the setup's number of turns the game is over.
 //
 // A play uses a card for its event or its points (decisions.ts lists the uses each card allows). A

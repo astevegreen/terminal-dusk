@@ -6,7 +6,8 @@ import type { RealignOptions } from "./realignTypes.ts";
 import type { CardId, Side } from "./types.ts";
 
 /**
- * `chooseCard`: both sides secretly pick their opening card for the turn. `playCardAs`: one side plays a
+ * `chooseCard`: both sides secretly pick their opening card for the turn (one at a time under Quantum
+ * Computing, the rival first, turn.ts). `playCardAs`: one side plays a
  * card from its hand for its event or its points. `rivalEventOrder`: having played a rival's card for
  * its points, that side says whether the card's event happens before or after the points. `discardCards`: a
  * side picks the cards a discardFromHand step discards, from its own hand or the rival's (discardChoice.ts).
