@@ -3,6 +3,7 @@
 import type { Viewer } from "@terminal-dusk/engine";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { ZoomableMap } from "../game/ZoomableMap.tsx";
 import { byCodeUnit } from "../test/order.ts";
 import { TestModeView } from "./TestModeScreen.tsx";
 import { fixtureConfig, testModeConfig } from "./fixture.ts";
@@ -24,8 +25,14 @@ describe("the test mode game on the test map", () => {
       const { frame } = session.getSnapshot();
       expect(frame?.viewer).toBe(viewer);
       const out = renderToString(<TestModeView snapshot={session.getSnapshot()} session={session} />);
-      const badges = [...out.matchAll(/<li class="map-badge" data-country="([^"]+)"/g)].map((m) => m[1] ?? "");
       const ids = frame?.view.public.map?.countries.map((c) => c.id) ?? [];
+      // The screen shows the drawn map first (L2, #465), a marker per country...
+      const markers = [...out.matchAll(/<li class="dm-marker" data-country="([^"]+)"/g)].map((m) => m[1] ?? "");
+      expect([...markers].sort(byCodeUnit)).toEqual([...ids].sort(byCodeUnit));
+      expect(markers).toHaveLength(12);
+      // ...and its List, behind the Map/List toggle, the badges, from the same viewer's frame.
+      const list = renderToString(<ZoomableMap pub={frame!.view.public} startMode="list" />);
+      const badges = [...list.matchAll(/<li class="map-badge" data-country="([^"]+)"/g)].map((m) => m[1] ?? "");
       expect([...badges].sort(byCodeUnit)).toEqual([...ids].sort(byCodeUnit));
       expect(badges).toHaveLength(12);
       expect(out).not.toContain("No map in this game");

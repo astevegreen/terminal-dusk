@@ -19,6 +19,7 @@ const balance = (...args) =>
   });
 const SIX = ["--scenario", "six-region"];
 const PROPOSALS = path.join(import.meta.dirname, "..", "..", "docs", "proposals", "map-numbers");
+const BALANCE_PROPOSALS = path.join(import.meta.dirname, "..", "..", "docs", "proposals", "map-balance");
 const sixMap = () => scenarioConfig("six-region").setup.map;
 const stabilityOf = (map, id) => map.countries.find((c) => c.id === id).stability;
 const listOf = (map, era) => map.battlegrounds.find((list) => list.era === era).countries;
@@ -147,6 +148,18 @@ test("every proposal numbers file in docs/proposals/map-numbers fits the six-reg
   assert.ok(files.length >= 2, "the proposal has at least two options' numbers");
   for (const name of files) {
     const numbers = JSON.parse(readFileSync(path.join(PROPOSALS, name), "utf8"));
+    assert.equal(numbersError(numbers, sixMap()), null, name);
+    const config = balanceConfig({ scenario: "six-region", numbers });
+    assert.equal(playBalanceGame(name, 0, config).status.kind, "over", name);
+  }
+});
+
+// X15 (issue #472): the balance pass's option and variant files must keep loading as the map changes.
+test("every numbers file in docs/proposals/map-balance fits the six-region map and plays", () => {
+  const files = readdirSync(BALANCE_PROPOSALS).filter((name) => name.endsWith(".json"));
+  assert.ok(files.length >= 5, "three options and two variants");
+  for (const name of files) {
+    const numbers = JSON.parse(readFileSync(path.join(BALANCE_PROPOSALS, name), "utf8"));
     assert.equal(numbersError(numbers, sixMap()), null, name);
     const config = balanceConfig({ scenario: "six-region", numbers });
     assert.equal(playBalanceGame(name, 0, config).status.kind, "over", name);

@@ -28,7 +28,7 @@ export const matchSeed = (base, i) => `${base}-${i}`;
  * answer. `config` is the run's match config (see config.mjs); by default the first-deck TEST scenario as it is.
  * `createPlayer(ruleset, side, seed)` makes each side's player; by default the Easy AI. `tiers` (optional,
  * { lio, sae } of TIERS names) picks each side's tier instead; `createPlayer` wins over it. The summary's `crises`
- * counts the escalation crises each side caused.
+ * counts the escalation crises each side caused, and `techRaces` the tech race attempts each side made.
  */
 export function playBalanceGame(base, i, config = firstDeckConfig(), { createPlayer, tiers = {} } = {}) {
   const seed = matchSeed(base, i);
@@ -68,10 +68,17 @@ export function playBalanceGame(base, i, config = firstDeckConfig(), { createPla
   }
   const map = mapSummary(frames.spectator.view.public, publicEvents);
   const eraEnds = eras.finish(frames.spectator.view.public);
-  const crises = { lio: 0, sae: 0 };
-  for (const event of publicEvents) if (event.kind === "escalationCrisis") crises[event.side] += 1;
+  const crises = countBySide(publicEvents, "escalationCrisis");
+  const techRaces = countBySide(publicEvents, "techRaceAttempted");
   const score = scoreSummary(scores.start, frames.spectator.view.public.score, record.status, scores.rows);
-  return { status: record.status, answers: submissions, log: secret.log, map, eraEnds, score, crises };
+  return { status: record.status, answers: submissions, log: secret.log, map, eraEnds, score, crises, techRaces };
+}
+
+/** How many of `events` are of `kind`, by the side each names. */
+export function countBySide(events, kind) {
+  const counts = { lio: 0, sae: 0 };
+  for (const event of events) if (event.kind === kind) counts[event.side] += 1;
+  return counts;
 }
 
 /**

@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { cardAffiliation, cardName, cardQuestion } from "../testMode/fixture.ts";
 import { GameScreen } from "./GameScreen.tsx";
 import { baseFrame, map, withMap, withoutMap } from "./test/mapFixture.ts";
+import { ZoomableMap } from "./ZoomableMap.tsx";
 
 const render = (frame: Frame): string =>
   renderToString(
@@ -33,7 +34,15 @@ const badgeOf = (out: string, id: string): string => {
 };
 
 describe("the Map area with a map in the frame", () => {
-  const out = mapAreaOf(render(withMap(baseFrame())));
+  // The badges are the Map area's List since the drawn map (L2, #465): drawn here as its List.
+  const out = renderToString(<ZoomableMap pub={withMap(baseFrame()).view.public} startMode="list" />);
+  const area = mapAreaOf(render(withMap(baseFrame())));
+
+  it("holds the map's Map/List toggle, with the drawn map shown first", () => {
+    expect(area).toContain('role="toolbar" aria-label="Map view"');
+    expect(area).toContain('class="dm-view"');
+    expect(area.match(/class="dm-marker"/g)).toHaveLength(map.countries.length);
+  });
 
   it("shows one badge per country in the map's order, grouped under each region's name in the map's region order", () => {
     // Each region's name is a button inside its heading (issue #365), which zooms into the region.
@@ -74,7 +83,7 @@ describe("the Map area with a map in the frame", () => {
   });
 
   it("lets the keyboard reach the Map area, which scrolls inside itself", () => {
-    expect(out).toContain('<section aria-label="Map" data-testid="map-area" class="game-map" tabindex="0">');
+    expect(area).toContain('<section aria-label="Map" data-testid="map-area" class="game-map" tabindex="0">');
   });
 });
 

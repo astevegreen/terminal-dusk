@@ -34,10 +34,11 @@ export function formatText(stats, title = "Balance report") {
     ]),
   );
   if (stats.tiers !== undefined) {
-    const { tiers, crises } = stats;
+    const { tiers, crises, techRaces } = stats;
     lines.push(
       `Tiers: ${LABEL.lio} ${tiers.lio}, ${LABEL.sae} ${tiers.sae}. Escalation crises caused: ` +
-        `${LABEL.lio} ${crises.lio}, ${LABEL.sae} ${crises.sae}.`,
+        `${LABEL.lio} ${crises.lio}, ${LABEL.sae} ${crises.sae}. Tech race attempts: ` +
+        `${LABEL.lio} ${techRaces.lio}, ${LABEL.sae} ${techRaces.sae}.`,
     );
   }
   lines.push("");

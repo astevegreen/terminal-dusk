@@ -15,7 +15,7 @@ export type Zoom = RegionId | null;
 export type OnZoom = (zoom: Zoom) => void;
 
 /** A country's influence, looked up by its id; a country with no entry has 0 for both sides. */
-function influenceOf(influence: InfluenceEntry[] | undefined, country: Country): { lio: number; sae: number } {
+export function influenceOf(influence: InfluenceEntry[] | undefined, country: Country): { lio: number; sae: number } {
   const entry = influence?.find((e) => e.country === country.id);
   return { lio: entry?.lio ?? 0, sae: entry?.sae ?? 0 };
 }

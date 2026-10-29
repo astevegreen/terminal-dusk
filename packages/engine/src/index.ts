@@ -1,5 +1,6 @@
 // Public entry point of the rules engine. Only the exports listed in .claude/rules/engine.md belong here.
 export { apply } from "./apply.ts";
+export { isBattleground } from "./battlegrounds.ts";
 export { closedRegions, isRegionClosed } from "./closedRegions.ts";
 export { createGame } from "./createGame.ts";
 export { legalAnswers, pendingFor } from "./decisions.ts";
