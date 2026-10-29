@@ -1017,6 +1017,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `docs/design/core-loop.md` - Core loop
 - `docs/design/eras.md` - Eras
 - `docs/design/map-and-points.md` - The map, influence, points and escalation: owner decisions (W7)
+- `docs/design/screen-layout.md` - Screen layout: the map is the board
 - `docs/design/sides.md` - Sides
 - `docs/design/tech-race.md` - The tech race track: owner decisions (T1)
 - `docs/proposals/card-count-gap.md` - The LIO/SAE card-count gap and the missing Era 3 LIO Ops 4 card: options
