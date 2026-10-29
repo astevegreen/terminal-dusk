@@ -171,6 +171,13 @@ test("the sheet's tabs switch between Play, Log and Details, Hide folds it, and 
   await expect(page.getByTestId("contingency")).toBeHidden();
   await expect(tab(page, "Details")).toBeFocused();
 
+  // Play opens it again too, on the decision still waiting.
+  await tab(page, "Play").click();
+  await expect(tab(page, "Play")).toHaveAttribute("aria-selected", "true");
+  await expect(decision).toBeVisible();
+  await hide.click();
+  await expect(decision).toBeHidden();
+
   // SAE's opening pick is a new decision on screen, so the sheet opens on Play by itself.
   await page.getByRole("button", { name: "SAE", exact: true }).click();
   await expect(tab(page, "Play")).toHaveAttribute("aria-selected", "true");
