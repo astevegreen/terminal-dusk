@@ -104,6 +104,23 @@ describe("GameScreen for a side", () => {
   });
 });
 
+describe("the top bar (L5, #485)", () => {
+  const lio = frameFor("lio");
+  it("holds the page's Menu, then the page's own items, then the status and the tracks", () => {
+    const out = html(lio, { menu: <p>A note</p>, bar: <button type="button">Back</button> });
+    expect(out).toContain(
+      '<div class="game-top"><details class="game-menu"><summary>Menu</summary><div class="game-menu-body"><p>A note</p></div></details><button type="button">Back</button><div class="game-top-main"><section aria-label="Status" data-testid="status-bar"',
+    );
+    expect(out.indexOf('data-testid="tracks"')).toBeGreaterThan(out.indexOf('data-testid="status-bar"'));
+    expect(out.indexOf('data-testid="tracks"')).toBeLessThan(out.indexOf('data-testid="map-area"'));
+  });
+  it("has no Menu when the page gives it nothing to hold", () => {
+    const out = html(lio);
+    expect(out).not.toContain("<details");
+    expect(out).toContain('<div class="game-top"><div class="game-top-main"><section aria-label="Status"');
+  });
+});
+
 describe("the discard pile", () => {
   it("shows the count of 7 and the last 5 names, newest first", () => {
     const ids = ["t1", "t2", "t3", "t4", "t5", "t6", "t7"];
@@ -212,7 +229,7 @@ describe("screen-reader support", () => {
     expect(out).toContain('<section aria-label="Your hand" data-testid="hand" class="game-hand" tabindex="0">');
     expect(out).toContain('<section aria-label="Map" data-testid="map-area" class="game-map" tabindex="0">');
     expect(out).toContain('<ol aria-label="Log entries" tabindex="0">');
-    expect(out).toContain('<div class="game-side" role="region" aria-label="Game details" tabindex="0">');
+    expect(out).toContain('<div class="game-sheet" role="region" aria-label="Game details" tabindex="0">');
   });
   it("gives a spectator's two open prompts different question ids", () => {
     const spectator = html(frameFor("spectator"));

@@ -87,10 +87,11 @@ export function VsAiView({
         onClose={() => setWatching(null)}
       />
     );
+  const aiRefused = snapshot.aiRefusal ? <p role="alert">{`AI refused: ${snapshot.aiRefusal}`}</p> : null;
+  // In a game the note waits in the top bar's Menu and the AI's refusal shows in the bar, so the map gets the whole
+  // screen (L5, #485). Watch replay and New game, only at the end, stay after the game: after the log in tab order.
   return (
     <main className="game-page">
-      <p>{note}</p>
-      {snapshot.aiRefusal && <p role="alert">{`AI refused: ${snapshot.aiRefusal}`}</p>}
       {frame ? (
         <FocusingGameScreen
           frame={frame}
@@ -102,9 +103,15 @@ export function VsAiView({
           rules={rules}
           onAnswer={(value) => void session.answer(value)}
           refusal={snapshot.refusal}
+          menu={<p>{note}</p>}
+          bar={aiRefused}
         />
       ) : (
-        <p role="alert">{`Could not start the game: ${snapshot.refusal ?? "unknown"}`}</p>
+        <>
+          <p>{note}</p>
+          {aiRefused}
+          <p role="alert">{`Could not start the game: ${snapshot.refusal ?? "unknown"}`}</p>
+        </>
       )}
       {snapshot.replayReady && (
         <button type="button" style={TAP} onClick={() => setWatching(session.replay())}>

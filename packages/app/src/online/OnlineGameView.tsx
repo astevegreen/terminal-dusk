@@ -43,16 +43,19 @@ export function OnlineGameView({
     game?.close();
     onBack();
   };
+  const items = (
+    <>
+      <button type="button" style={TAP} onClick={back}>
+        Back
+      </button>
+      <p role="status">{turnText(snapshot)}</p>
+      {deadlineLine !== null && <p>{deadlineLine}</p>}
+    </>
+  );
+  // In a game the lines go in the game's top bar, so the map gets the whole screen (L5, #485).
   return (
     <main className="game-page">
-      <div style={BAR}>
-        <button type="button" style={TAP} onClick={back}>
-          Back
-        </button>
-        <p role="status">{turnText(snapshot)}</p>
-        {deadlineLine !== null && <p>{deadlineLine}</p>}
-      </div>
-      {showing && (
+      {showing ? (
         <GameScreen
           frame={frame}
           log={snapshot.log}
@@ -63,7 +66,10 @@ export function OnlineGameView({
           affiliation={affiliation}
           onAnswer={turn === "mine" && game !== null ? (value) => void game.answer(value) : undefined}
           refusal={snapshot.refusal?.code ?? null}
+          bar={items}
         />
+      ) : (
+        <div style={BAR}>{items}</div>
       )}
     </main>
   );

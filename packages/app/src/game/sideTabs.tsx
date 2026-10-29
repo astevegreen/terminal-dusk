@@ -1,11 +1,14 @@
-// The side panel's three tabs (L1, issue #464; docs/architecture.md, Decision 6): Play (the decision and the
-// hand), Log, and Details (the opponent, the table and the Contingency decks). The tab picked is local UI state;
-// the Play tab opens by itself whenever a new decision waits. GameScreen stays hook-free: the hook lives here.
+// The sheet's three tabs (L1, issue #464; L5, #485; docs/architecture.md, Decision 6): Play (the decision and the
+// hand), Log, and Details (the opponent, the table and the Contingency decks), with Hide beside them, which folds
+// the sheet down to its tab row. The tab picked is local UI state; the Play tab opens by itself whenever a new
+// decision waits, even from folded. GameScreen stays hook-free: the hook lives here.
 import type { Decision } from "@terminal-dusk/engine";
 import { memo, useId, useState } from "react";
 import type { ReactNode } from "react";
 
 export type TabId = "play" | "log" | "details";
+/** What the player last picked: a tab, or "hide" to fold the sheet. */
+export type SheetPick = TabId | "hide";
 type DecisionId = Decision["id"];
 
 export const TABS: readonly { id: TabId; title: string }[] = [
@@ -15,19 +18,21 @@ export const TABS: readonly { id: TabId; title: string }[] = [
 ];
 
 /**
- * The tab to show. `picked` is the tab the player last picked (null: none yet), `pickedForDecisionId` the
- * decision waiting when they picked it, and `waitingId` the decision waiting now (null: none). A pick holds only
- * while the same decision waits (a refusal or a re-render keeps the id), so a new decision opens Play.
+ * The tab to show, or null for a folded sheet. `picked` is what the player last picked (null: nothing yet),
+ * `pickedForDecisionId` the decision waiting when they picked it, and `waitingId` the decision waiting now (null:
+ * none). A pick holds only while the same decision waits (a refusal or a re-render keeps the id), so a new
+ * decision opens Play.
  */
 export function shownTab(
-  picked: TabId | null,
+  picked: SheetPick | null,
   pickedForDecisionId: DecisionId | null,
   waitingId: DecisionId | null,
-): TabId {
-  return picked !== null && pickedForDecisionId === waitingId ? picked : "play";
+): TabId | null {
+  if (picked === null || pickedForDecisionId !== waitingId) return "play";
+  return picked === "hide" ? null : picked;
 }
 
-type Pick = { tab: TabId; forId: DecisionId | null } | null;
+type Pick = { tab: SheetPick; forId: DecisionId | null } | null;
 
 function SideTabsInner({
   waitingId,
@@ -36,24 +41,35 @@ function SideTabsInner({
   const [pick, setPick] = useState<Pick>(null);
   const shown = shownTab(pick?.tab ?? null, pick?.forId ?? null, waitingId);
   // A pick a new decision has overridden is forgotten, so it does not come back once that decision is answered.
-  if (pick !== null && shown !== pick.tab) setPick(null);
+  if (pick !== null && pick.forId !== waitingId) setPick(null);
   const base = useId();
   return (
     <>
-      <div role="tablist" aria-label="Side panel" className="game-tabs">
-        {TABS.map(({ id, title }) => (
-          <button
-            key={id}
-            type="button"
-            role="tab"
-            id={`${base}-${id}-tab`}
-            aria-selected={id === shown}
-            aria-controls={`${base}-${id}`}
-            onClick={() => setPick({ tab: id, forId: waitingId })}
-          >
-            {title}
-          </button>
-        ))}
+      <div className="game-sheet-bar">
+        <div role="tablist" aria-label="Side panel" className="game-tabs">
+          {TABS.map(({ id, title }) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              id={`${base}-${id}-tab`}
+              aria-selected={id === shown}
+              aria-controls={`${base}-${id}`}
+              onClick={() => setPick({ tab: id, forId: waitingId })}
+            >
+              {title}
+            </button>
+          ))}
+        </div>
+        {/* Outside the tablist, as it is not a tab; gone while the sheet is folded. */}
+        <button
+          type="button"
+          className="game-sheet-hide"
+          hidden={shown === null}
+          onClick={() => setPick({ tab: "hide", forId: waitingId })}
+        >
+          Hide
+        </button>
       </div>
       {/* Each panel is the scrolling element, so the keyboard can reach it; an inactive one is hidden. */}
       {TABS.map(({ id }, i) => (

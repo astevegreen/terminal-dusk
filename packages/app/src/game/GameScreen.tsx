@@ -1,12 +1,15 @@
-// The game screen: one whole game drawn from one frame, laid out for a phone held sideways (844x390; L1, #464):
-// a thin top bar, the map filling the main area and a side panel with Play, Log and Details tabs. It renders
-// from its props alone (SideTabs holds the picked tab). A placeholder look: boxes, no art, no colour scheme.
+// The game screen: one whole game drawn from one frame, laid out for a phone held sideways (844x390; L1, #464).
+// Since L5 (#485) the map fills the whole screen and everything else floats over it: a slim see-through top bar
+// and a sheet along the bottom with the Play, Log and Details tabs (docs/design/screen-layout.md). It renders from
+// its props alone (SideTabs holds the picked tab).
 import type { AnswerValue, EraId } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
+import type { ReactNode } from "react";
 import { decisionPrompts } from "../decisionPrompts.tsx";
 import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
 import "./map/mapTheme.css";
 import "./gameScreen.css";
+import "./gameBars.css";
 import { Contingency, Hand, Log, MapArea, Opponent, Region, StatusBar, Table } from "./regions.tsx";
 import type { Label } from "./regions.tsx";
 import { SideTabs } from "./sideTabs.tsx";
@@ -29,6 +32,10 @@ export type GameScreenProps = {
   /** Present: the waiting decision can be answered. Absent: it is shown read-only. */
   onAnswer?: ((value: AnswerValue) => void) | undefined;
   refusal?: string | null | undefined;
+  /** What the page keeps out of the way, such as a note: a Menu at the start of the top bar holds it. */
+  menu?: ReactNode;
+  /** The page's own items for the top bar, such as Back or New game, shown after the Menu. */
+  bar?: ReactNode;
 };
 
 function DecisionRegion({
@@ -38,7 +45,7 @@ function DecisionRegion({
   affiliation,
   onAnswer,
   refusal,
-}: Readonly<Omit<GameScreenProps, "log" | "era" | "rules">>) {
+}: Readonly<Omit<GameScreenProps, "log" | "era" | "rules" | "menu" | "bar">>) {
   const stack = frame.view.public.stack;
   const hand = frame.view.mine?.hand ?? [];
   const known = frame.view.mine?.knowledge ?? [];
@@ -79,6 +86,8 @@ export function GameScreen({
   rules,
   onAnswer,
   refusal,
+  menu,
+  bar,
 }: Readonly<GameScreenProps>) {
   return (
     // A game with no map gives its map box only its one line (gameScreen.css).
@@ -86,12 +95,21 @@ export function GameScreen({
       {/* Shown only on a screen taller than it is wide (gameScreen.css): the same layout, held the wrong way. */}
       <p className="game-rotate-hint">Turn your phone sideways to play.</p>
       <div className="game-top">
-        <StatusBar frame={frame} era={era} />
-        <Tracks pub={frame.view.public} />
+        {menu !== undefined && (
+          <details className="game-menu">
+            <summary>Menu</summary>
+            <div className="game-menu-body">{menu}</div>
+          </details>
+        )}
+        {bar}
+        <div className="game-top-main">
+          <StatusBar frame={frame} era={era} />
+          <Tracks pub={frame.view.public} />
+        </div>
       </div>
       <MapArea frame={frame} />
       {/* A div with a role, as a section would pick up the boxed style. Its tabs are Play, Log and Details. */}
-      <div className="game-side" role="region" aria-label="Game details" tabIndex={0}>
+      <div className="game-sheet" role="region" aria-label="Game details" tabIndex={0}>
         <SideTabs waitingId={frame.decision?.id ?? null}>
           <>
             <DecisionRegion
