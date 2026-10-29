@@ -6,7 +6,7 @@ import type { ReplayFrame } from "@terminal-dusk/host";
 import { useState } from "react";
 import { countryNames } from "../countryChoices.ts";
 import { decisionPrompts } from "../decisionPrompts.tsx";
-import { eraText, gameOverText, playsText, regionNamer } from "../displayText.ts";
+import { eraText, gameOverText, mapNames, playsText } from "../displayText.ts";
 import { logLine } from "../eventPresentation.ts";
 import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
 import type { CardRules } from "../displayText.ts";
@@ -138,9 +138,7 @@ export function ReplayView({
   const atLast = index === frames.length - 1;
   const log = frames
     .slice(0, index + 1)
-    .flatMap((f) =>
-      f.events.map((event) => logLine(event, { card: label, era: eraText, region: regionNamer(f.view.public) })),
-    );
+    .flatMap((f) => f.events.map((event) => logLine(event, { card: label, era: eraText, ...mapNames(f.view.public) })));
   const era = eraAt(frames, index);
   return (
     <div className="replay">

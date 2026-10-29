@@ -1,19 +1,30 @@
 // The words the game screens share: side names and who each side is, era names, why a game ended, and what the log calls cards and
 // eras. Display data only; era names come from the first deck through the host (the app may not import content).
-import type { CardId, EraId, GameStatus, PublicState, RegionId, Ruleset, Side } from "@terminal-dusk/engine";
+import type { CardId, CountryId, EraId, GameStatus, PublicState, RegionId, Ruleset, Side } from "@terminal-dusk/engine";
 import { firstDeckEraName } from "@terminal-dusk/host/first-deck";
+import { countryNames } from "./countryChoices.ts";
 
 /** A card's shown name. */
 export type Label = (card: CardId) => string;
 
 /** What a log line calls a card and an era. */
-export type GameNames = { card: Label; era: (era: EraId) => string; region: (region: RegionId) => string };
+export type GameNames = {
+  card: Label;
+  era: (era: EraId) => string;
+  region: (region: RegionId) => string;
+  /** A country's shown name from the frame's map (countryChoices.ts), so a log line never shows its id (L7, #487). */
+  country: (country: CountryId) => string;
+};
 
 /** A region's shown name from the frame's map; an id the map lacks (or a game with no map) shows as it is. */
 export const regionNamer =
   (pub: PublicState): GameNames["region"] =>
   (id) =>
     pub.map?.regions.find((r) => r.id === id)?.name ?? id;
+
+/** The names a log line takes from the frame's own map: its regions' and its countries' (L7, #487). */
+export type MapNames = Pick<GameNames, "region" | "country">;
+export const mapNames = (pub: PublicState): MapNames => ({ region: regionNamer(pub), country: countryNames(pub.map) });
 
 /** The score track's value in words: "LIO 3", "SAE 2" or "even". Negative leans LIO. */
 export function scoreText(score: number): string {

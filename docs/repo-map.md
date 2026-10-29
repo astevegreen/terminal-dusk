@@ -107,7 +107,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/decisionPrompts.test.tsx`
 - `packages/app/src/decisionPrompts.tsx` - One prompt component per DecisionKind. Exports: PromptPlace, CardQuestion, CardAffiliation, PromptProps, PromptComponent, askingCard, decisionPrompts.
 - `packages/app/src/displayText.test.ts`
-- `packages/app/src/displayText.ts` - The words the game screens share: side names and who each side is, era names, why a game ended, and what the log calls cards and eras. Exports: Label, GameNames, regionNamer, scoreText, ESCALATION_NAME, CardRules, CardPoints, pointsOf, SIDE_NAME, SIDE_WHO, sideFullName, eraText, ….
+- `packages/app/src/displayText.ts` - The words the game screens share: side names and who each side is, era names, why a game ended, and what the log calls cards and eras. Exports: Label, GameNames, regionNamer, MapNames, mapNames, scoreText, ESCALATION_NAME, CardRules, CardPoints, pointsOf, SIDE_NAME, SIDE_WHO, ….
 - `packages/app/src/eventPresentation.test.ts`
 - `packages/app/src/eventPresentation.ts` - How each EventKind is presented. Exports: EventPresentation, eventPresentation, logLine, touchedCountries.
 - `packages/app/src/game/GameScreen.test.tsx`

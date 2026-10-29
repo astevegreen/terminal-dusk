@@ -109,9 +109,23 @@ test("a placing: tap a glowing country to place; a dim one or a drag never answe
   expect(await questionIdOf(page)).toBe(question);
 
   // A tap answers: the first zooms in while the marker is under 44 px tall, the next picks it at 44 px or more.
+  const marker = countryButtons(page).first().locator("xpath=..");
+  const id = (await marker.getAttribute("data-country"))!;
+  const countryName = (await marker.getAttribute("title"))!;
+  expect(countryName).not.toBe(id);
   const { box: tapped, taken } = await tapCountry(page, countryButtons(page).first());
   expect(taken).toBe(true);
   expect(tapped.height).toBeGreaterThanOrEqual(43.5);
+  // The log line (the ticker's and the drawer's) names the country, never by its id.
+  await expect(page.getByTestId("log")).toContainText(`LIO placed 1 influence in ${countryName} for`);
+  await expect(page.getByTestId("log")).not.toContainText(`placed 1 influence in ${id} for`);
+  // The browser never scrolled the map area, though focus moved to the next placing's first glowing country while
+  // the map was zoomed in: only the one CSS transform moves the map (Decision 6).
+  if (PLACING.test(await bannerText(page))) await expect(countryButtons(page).first()).toBeFocused();
+  const scrolled = await page
+    .locator(".dm-view")
+    .evaluate((el) => [el.scrollLeft, el.scrollTop, el.closest('[data-testid="map-area"]')!.scrollTop]);
+  expect(scrolled).toEqual([0, 0, 0]);
   await shoot(page, testInfo, "placed");
 });
 

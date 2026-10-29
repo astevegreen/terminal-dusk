@@ -25,6 +25,7 @@ import { SideTabs } from "./sideTabs.tsx";
 import { TopBar } from "./topBar.tsx";
 import { Tracks } from "./tracks.tsx";
 import type { CardPoints, CardRules } from "../displayText.ts";
+import type { Choice } from "../promptChoices.tsx";
 
 export type GameScreenProps = {
   frame: Frame;
@@ -51,6 +52,9 @@ export type GameScreenProps = {
 };
 
 type PromptData = Pick<GameScreenProps, "frame" | "label" | "question" | "affiliation">;
+
+/** No country to pick: one shared empty list, so the map's `memo` sees the same value from frame to frame. */
+const NO_CHOICES: readonly Choice[] = [];
 
 /** The props every prompt on the screen shares, from the frame and the display data. */
 function shared({ frame, label, question, affiliation }: Readonly<PromptData>) {
@@ -114,7 +118,7 @@ export function GameScreen({
   const chips = chipsOf(frame.view.mine?.hand ?? [], label, points, affiliation);
   // The countries the waiting decision lets this screen pick, which glow on the map (L7, #487).
   const waiting = onAnswer === undefined ? null : frame.decision;
-  const choices = waiting ? countryChoices(waiting, countryNames(frame.view.public.map)) : [];
+  const choices = waiting ? countryChoices(waiting, countryNames(frame.view.public.map)) : NO_CHOICES;
   return (
     // A game with no map gives its map box only its one line (gameScreen.css).
     <div className={frame.view.public.map === undefined ? "game game-no-map" : "game"}>

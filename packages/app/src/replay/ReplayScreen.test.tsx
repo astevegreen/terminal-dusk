@@ -2,7 +2,7 @@ import { renderToString } from "react-dom/server";
 import { beforeAll, describe, expect, it } from "vitest";
 import { cardAffiliation, cardName, cardQuestion } from "../testMode/fixture.ts";
 import { buttonsOf } from "../testMode/promptTree.ts";
-import { eraText } from "../displayText.ts";
+import { eraText, mapNames } from "../displayText.ts";
 import { logLine } from "../eventPresentation.ts";
 import { createVsAiSession } from "../vsAi/session.ts";
 import { playOut } from "../vsAi/test/scriptedHuman.ts";
@@ -37,9 +37,14 @@ const view = (index: number, onGo: (i: number) => void = () => {}, onClose: () =
 const html = (index: number): string => renderToString(view(index));
 const disabled = (out: string, name: string): boolean =>
   new RegExp(`<button[^>]*disabled=""[^>]*>${name}</button>`).test(out);
-const NAMES = { card: cardName, era: eraText, region: (id: string) => id };
+/** A frame's log-line names: its map's regions and countries (L7, #487). */
+const namesOf = (f: (typeof recording.frames)[number]) => ({
+  card: cardName,
+  era: eraText,
+  ...mapNames(f.view.public),
+});
 const lines = (upTo: number): string[] =>
-  recording.frames.slice(0, upTo + 1).flatMap((f) => f.events.map((e) => logLine(e, NAMES)));
+  recording.frames.slice(0, upTo + 1).flatMap((f) => f.events.map((e) => logLine(e, namesOf(f))));
 /** Presses the named button of the viewer at `index` and returns the step it asked to go to (or null). */
 function press(index: number, name: string): number | null {
   let went: number | null = null;
@@ -122,7 +127,7 @@ describe("the replay viewer on a finished fixture game", () => {
     expect(recording.frames.some((f) => f.view.public.playsMade > f.view.public.playsPerTurn)).toBe(true);
     const grows = recording.frames.findIndex((f, i) => i > 0 && f.events.length > 0);
     expect(grows).toBeGreaterThan(0);
-    const newLine = logLine(recording.frames[grows]!.events[0]!, NAMES);
+    const newLine = logLine(recording.frames[grows]!.events[0]!, namesOf(recording.frames[grows]!));
     expect(html(grows)).toContain(newLine);
     expect(html(grows - 1)).not.toContain(`>${newLine}<`);
     // Newest first: the last line of the shown steps comes before the first.

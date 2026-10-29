@@ -159,15 +159,25 @@ describe("focus for a decision whose choices are countries (L7, #487)", () => {
   it("falls back to the first glowing country on the map, before the hand strip, when the banner has no button", () => {
     const seen: string[] = [];
     let focused = "";
+    let options: FocusOptions | undefined;
     const root: FocusRoot = {
       querySelector: (selector) => {
         seen.push(selector);
-        return selector === STRIP_CHIP || selector === MAP_CHOICE ? { focus: () => (focused = selector) } : null;
+        return selector === STRIP_CHIP || selector === MAP_CHOICE
+          ? {
+              focus: (given) => {
+                focused = selector;
+                options = given;
+              },
+            }
+          : null;
       },
     };
     applyDecisionFocus(null, decision("d1"), true, root);
     expect(seen).toEqual([FIRST_CHOICE, MAP_CHOICE]);
     expect(focused).toBe(MAP_CHOICE);
+    // Without scrolling: only the map's one CSS transform may move the map area (Decision 6).
+    expect(options).toEqual({ preventScroll: true });
   });
   it("looks for the glowing countries' buttons in the drawn map and in the List", () => {
     expect(MAP_CHOICE).toContain(".dm-marker button");

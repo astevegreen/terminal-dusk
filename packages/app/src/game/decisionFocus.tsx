@@ -18,7 +18,9 @@ export function shouldFocusDecision(previousId: DecisionId | null, decision: Dec
 }
 
 /** The little the effect needs from the page: a place to find the decision's first button in. */
-export type FocusRoot = { querySelector: (selector: string) => { focus: () => void } | null };
+export type FocusRoot = {
+  querySelector: (selector: string) => { focus: (options?: FocusOptions) => void } | null;
+};
 export const FIRST_CHOICE = '[data-testid="decision"] button';
 /** The first glowing country, on the drawn map or in the List (L7, #487): where a placing's choices start. */
 export const MAP_CHOICE = '[data-testid="map-area"] .dm-marker button, [data-testid="map-area"] .map-pick';
@@ -29,7 +31,8 @@ export const STRIP_CHIP = '[data-testid="hand"] .strip-chip[tabindex="0"]';
 /**
  * The effect: applies the rule, focuses the first choice inside `root` when it says so (the decision banner's first
  * button; or, when it has none, the first glowing country, as for a placing; or the hand strip's chip, as for a
- * play), and returns the id to remember for the next check.
+ * play), and returns the id to remember for the next check. A glowing country is focused without scrolling: the
+ * browser must never scroll the map area, which only the one CSS transform moves (Decision 6).
  */
 export function applyDecisionFocus(
   previousId: DecisionId | null,
@@ -37,8 +40,13 @@ export function applyDecisionFocus(
   canAnswer: boolean,
   root: FocusRoot | null,
 ): DecisionId | null {
-  if (shouldFocusDecision(previousId, decision, canAnswer))
-    (root?.querySelector(FIRST_CHOICE) ?? root?.querySelector(MAP_CHOICE) ?? root?.querySelector(STRIP_CHIP))?.focus();
+  if (shouldFocusDecision(previousId, decision, canAnswer)) {
+    const banner = root?.querySelector(FIRST_CHOICE);
+    const country = banner ? null : root?.querySelector(MAP_CHOICE);
+    if (banner) banner.focus();
+    else if (country) country.focus({ preventScroll: true });
+    else root?.querySelector(STRIP_CHIP)?.focus();
+  }
   return decision?.id ?? null;
 }
 
