@@ -21,6 +21,8 @@ import type { MapPicks } from "./map/mapPicks.ts";
 import { MapPanel } from "./map/MapPanel.tsx";
 import type { MapMode } from "./map/MapPanel.tsx";
 import type { PickHandlers } from "./map/Marker.tsx";
+import { nextPulse } from "./map/pulse.ts";
+import type { Pulse } from "./map/pulse.ts";
 import "./map/mapTheme.css";
 import "./map/drawnMap.css";
 
@@ -63,8 +65,12 @@ function ZoomableMapInner({
   const saved = useRef<View | null>(null);
   const control = useRef<MapControl | null>(null);
   const layout = useMemo(() => (pub.map === undefined ? undefined : layoutFor(pub.map)), [pub.map]);
-  // The highlight: the countries this frame's events touched, until the next frame.
+  // The highlight: the countries this frame's events touched, until the next frame. Each new batch of events flips
+  // the pulse's beat, so they pulse again even when the last batch touched them too (pulse.ts; L9, #489).
   const touched = useMemo(() => new Set<CountryId>(touchedCountries(events)), [events]);
+  const [pulse, setPulse] = useState<Pulse>({ events, beat: 0 });
+  const next = nextPulse(pulse, events);
+  if (next !== pulse) setPulse(next);
   const byCountry = useMemo(() => picksByCountry(choices), [choices]);
   // The latest of what the handlers read, so the handlers stay the same object and the markers' memo holds.
   const latest = useRef({ byCountry, onAnswer, layout, pub });
@@ -115,6 +121,7 @@ function ZoomableMapInner({
     <MapPanel
       pub={pub}
       touched={touched}
+      beat={next.beat}
       mode={mode}
       zoom={zoom}
       layout={layout}

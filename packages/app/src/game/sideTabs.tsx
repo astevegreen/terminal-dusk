@@ -1,21 +1,18 @@
-// The sheet's tabs (L1, issue #464; L5, #485; docs/architecture.md, Decision 6): Log, and Details (the opponent,
-// the table and the Contingency decks), with Hide beside them, which folds the sheet down to its tab row. The tab
-// picked is local UI state. Since L7 (#487) the decision is a banner above the hand strip, not a Play tab, so the
-// sheet starts folded and a new decision folds it again, leaving the map clear to pick a country on. GameScreen
-// stays hook-free: the hook lives here.
+// The sheet's tab (L1, issue #464; L5, #485; docs/architecture.md, Decision 6): Details (the opponent, the table and
+// the Contingency decks), with Hide beside it, which folds the sheet down to its tab row. The log left the sheet for
+// its own drawer, opened from the ticker (L9, #489), and the decision is a banner above the hand strip, not a Play
+// tab (L7, #487), so the sheet starts folded and a new decision folds it again, leaving the map clear to pick a
+// country on. The tab picked is local UI state. GameScreen stays hook-free: the hook lives here.
 import type { Decision } from "@terminal-dusk/engine";
-import { memo, useId, useRef, useState } from "react";
+import { Children, memo, useId, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
-export type TabId = "log" | "details";
+export type TabId = "details";
 /** What the player last picked: a tab, or "hide" to fold the sheet. */
 export type SheetPick = TabId | "hide";
 type DecisionId = Decision["id"];
 
-export const TABS: readonly { id: TabId; title: string }[] = [
-  { id: "log", title: "Log" },
-  { id: "details", title: "Details" },
-];
+export const TABS: readonly { id: TabId; title: string }[] = [{ id: "details", title: "Details" }];
 
 /**
  * The tab to show, or null for a folded sheet. `picked` is what the player last picked (null: nothing yet),
@@ -34,10 +31,8 @@ export function shownTab(
 
 type Pick = { tab: SheetPick; forId: DecisionId | null } | null;
 
-function SideTabsInner({
-  waitingId,
-  children,
-}: Readonly<{ waitingId: DecisionId | null; children: readonly ReactNode[] }>) {
+function SideTabsInner({ waitingId, children }: Readonly<{ waitingId: DecisionId | null; children: ReactNode }>) {
+  const panels = Children.toArray(children);
   const [pick, setPick] = useState<Pick>(null);
   const shown = shownTab(pick?.tab ?? null, pick?.forId ?? null, waitingId);
   // A pick a new decision has overridden is forgotten, so it does not come back once that decision is answered.
@@ -87,7 +82,7 @@ function SideTabsInner({
           tabIndex={0}
           hidden={id !== shown}
         >
-          {children[i]}
+          {panels[i]}
         </div>
       ))}
     </>

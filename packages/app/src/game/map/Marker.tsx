@@ -8,6 +8,7 @@ import { memo } from "react";
 import type { FocusEvent, MouseEvent } from "react";
 import type { Point } from "./layout.ts";
 import { MARKER } from "./layout.ts";
+import type { Beat } from "./pulse.ts";
 
 /** What the map does with a glowing country: `keyboard` is true for a click from Enter or a screen reader. */
 export type PickHandlers = {
@@ -34,6 +35,8 @@ export type MarkerProps = {
   battleground: boolean;
   /** The latest frame's events touched this country. */
   touched: boolean;
+  /** On a touched country, the pulse's beat (pulse.ts): its change starts the pulse again. */
+  pulse?: Beat | undefined;
   /** Whether you may pick it now (L7, #487). */
   pick?: PickState | undefined;
   /** The choice's text when it glows, such as "Place in Ukraine": its button's name starts with it. */
@@ -65,7 +68,7 @@ function byKeyboard(target: Element): boolean {
 }
 
 function MarkerInner(props: Readonly<MarkerProps>) {
-  const { id, name, short, x, y, lio, sae, stability, control, battleground, touched, pick, choice, on } = props;
+  const { id, name, short, x, y, lio, sae, stability, control, battleground, touched, pulse, pick, choice, on } = props;
   const glows = pick === "glow" && choice !== undefined && on !== undefined;
   return (
     <li
@@ -74,6 +77,7 @@ function MarkerInner(props: Readonly<MarkerProps>) {
       data-control={control}
       data-battleground={battleground ? "true" : undefined}
       data-touched={touched ? "true" : undefined}
+      data-pulse={touched ? pulse : undefined}
       data-pick={pick ?? undefined}
       title={name}
       style={placeOf({ x, y })}

@@ -126,21 +126,27 @@ describe("the viewer switch", () => {
     expect(out).not.toMatch(/\bt\d+\b/);
     expect(out).not.toContain("Test card 1,");
     expect(out.match(/pick an opening card/g)).toHaveLength(2);
-    // Outside the map (whose region buttons zoom, for every viewer: issue #366), the side panel's two tabs
-    // (L1, #464; Play became the decision banner in L7, #487) and the sheet's Hide beside them (L5, #485), only the
-    // three viewer controls and Restart are buttons, so the Decision region has none.
+    // Outside the map (whose region buttons zoom, for every viewer: issue #366), the side panel's one tab (L1, #464;
+    // the log left the sheet for its drawer in L9, #489, and Play became the decision banner in L7, #487), the sheet's
+    // Hide beside it (L5, #485), and the ticker with its drawer's Close (L9), only the three viewer controls and
+    // Restart are buttons, so the Decision region has none.
     const map = /<section aria-label="Map"[^]*?<\/section>/.exec(out)?.[0] ?? "";
     expect(map).toContain("<button");
     const tabs = /<div role="tablist"[^]*?<\/div>/.exec(out)?.[0] ?? "";
-    expect(tabs.match(/<button/g)).toHaveLength(2);
-    expect(tabs.match(/<button[^>]*role="tab"/g)).toHaveLength(2);
+    expect(tabs.match(/<button/g)).toHaveLength(1);
+    expect(tabs.match(/<button[^>]*role="tab"/g)).toHaveLength(1);
     const hide = /<button[^>]*class="game-sheet-hide"[^>]*>Hide<\/button>/.exec(out)?.[0] ?? "";
     expect(hide).not.toBe("");
+    const drawer = /<button[^>]*class="game-ticker"[^]*?<div class="game-drawer-head">[^]*?<\/button><\/div>/.exec(
+      out,
+    )?.[0];
+    expect(drawer?.match(/<button/g)).toHaveLength(2);
     expect(
       out
         .replace(map, "")
         .replace(tabs, "")
         .replace(hide, "")
+        .replace(drawer ?? "", "")
         .match(/<button/g),
     ).toHaveLength(4);
   });

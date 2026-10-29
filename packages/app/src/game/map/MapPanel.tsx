@@ -10,6 +10,7 @@ import { DrawnMap } from "./DrawnMap.tsx";
 import type { MapLayout } from "./layout.ts";
 import { layoutFor } from "./layoutFor.ts";
 import type { MapPicks } from "./mapPicks.ts";
+import type { Beat } from "./pulse.ts";
 
 export type MapMode = "map" | "list";
 
@@ -27,6 +28,8 @@ export type PanelHandlers = {
 export type PanelProps = {
   pub: PublicState;
   touched: ReadonlySet<CountryId>;
+  /** The pulse's beat for the touched countries (pulse.ts); 0 when not given. */
+  beat?: Beat | undefined;
   mode: MapMode;
   zoom: Zoom;
   on: PanelHandlers;
@@ -60,6 +63,7 @@ function Toggle({ mode, on, credit }: Readonly<Pick<PanelProps, "mode" | "on"> &
 export function MapPanel({
   pub,
   touched,
+  beat,
   mode,
   zoom,
   on,
@@ -79,6 +83,7 @@ export function MapPanel({
           pub={pub}
           layout={drawing}
           touched={touched}
+          beat={beat}
           onRegion={on.region}
           picks={picks}
           viewportRef={viewportRef}

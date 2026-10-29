@@ -124,6 +124,28 @@ describe("the top bar (L5, #485)", () => {
   });
 });
 
+describe("the ticker and the log drawer (L9, #489)", () => {
+  const out = html(frameFor("lio"), { log: ["first", "second"] });
+  it("puts the ticker at the top bar's right end, after the tracks, showing the newest log line", () => {
+    const top = /<div class="game-top">[^]*?<\/button><\/div>/.exec(out)?.[0] ?? "";
+    expect(top).toMatch(/data-testid="tracks"[^]*data-testid="ticker"[^]*<\/button><\/div>$/);
+    expect(top).toContain('<span class="game-ticker-line">second</span>');
+    expect(out.indexOf('data-testid="ticker"')).toBeLessThan(out.indexOf('data-testid="map-area"'));
+  });
+  it("keeps the log in the drawer the ticker opens, not in the sheet, whose one tab is Details (L7, #487)", () => {
+    const drawer = out.indexOf('class="game-drawer"');
+    expect(out.indexOf('data-testid="log"')).toBeGreaterThan(drawer);
+    expect(out.indexOf('data-testid="log"')).toBeLessThan(out.indexOf('data-testid="map-area"'));
+    const tabs = [...out.matchAll(/role="tab"[^>]*>([^<]+)<\/button>/g)].map((m) => m[1]);
+    expect(tabs).toEqual(["Details"]);
+  });
+  it("gives a spectator the same ticker, from the log the page gives it", () => {
+    expect(html(frameFor("spectator"), { log: ["SAE spent 2 points."] })).toContain(
+      '<span class="game-ticker-line">SAE spent 2 points.</span>',
+    );
+  });
+});
+
 describe("the discard pile", () => {
   it("shows the count of 7 and the last 5 names, newest first", () => {
     const ids = ["t1", "t2", "t3", "t4", "t5", "t6", "t7"];

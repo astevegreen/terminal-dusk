@@ -64,10 +64,24 @@ async function scaleOf(page: Page): Promise<number> {
   return Number(/scale\(([\d.e-]+)\)/.exec(transform)?.[1]);
 }
 
+/** A tap on a dim country never answers: from the whole map, it falls through to its region, which zooms in. */
+async function expectDimTapIgnored(page: Page): Promise<void> {
+  const map = page.getByTestId("map-area");
+  await map.getByRole("button", { name: "Whole map", exact: true }).click();
+  const { dim } = await pickStates(page);
+  expect(dim.length).toBeGreaterThan(0);
+  const question = await questionIdOf(page);
+  const before = await scaleOf(page);
+  await map.locator(`.dm-marker[data-country="${dim[0]}"]`).click({ force: true });
+  await expect.poll(() => scaleOf(page)).toBeGreaterThan(before);
+  expect(await questionIdOf(page)).toBe(question);
+  await map.getByRole("button", { name: "Whole map", exact: true }).click();
+}
+
 test("a placing: tap a glowing country to place; a dim one or a drag never answers; 44 px at the moment it answers", async ({
   page,
 }, testInfo) => {
-  const map = await startSixRegionGame(page);
+  await startSixRegionGame(page);
   await playUntil(page, PLACING, (names) => names.find((n) => n === "Place influence"));
   // The banner asks in words, with a hint, and no country is a button there; the countries glow on the map.
   await expect(banner(page)).toContainText("Tap a glowing country on the map.");
@@ -81,13 +95,8 @@ test("a placing: tap a glowing country to place; a dim one or a drag never answe
   for (const id of glow) expect(await countryButtons(page).allTextContents()).not.toContain(`Place in ${id}:`);
   await shoot(page, testInfo, "placing");
 
-  // A tap on a dim country never answers: it falls through to its region, which zooms in.
+  await expectDimTapIgnored(page);
   const question = await questionIdOf(page);
-  const before = await scaleOf(page);
-  await map.locator(`.dm-marker[data-country="${dim[0]}"]`).click({ force: true });
-  await expect.poll(() => scaleOf(page)).toBeGreaterThan(before);
-  expect(await questionIdOf(page)).toBe(question);
-  await map.getByRole("button", { name: "Whole map", exact: true }).click();
 
   // A drag that starts on a glowing country moves the map and never answers.
   const target = countryButtons(page).first();
@@ -106,7 +115,9 @@ test("a placing: tap a glowing country to place; a dim one or a drag never answe
   await shoot(page, testInfo, "placed");
 });
 
-test("an intervention and a realignment are each answered by tapping a glowing country", async ({ page }) => {
+test("an intervention and a realignment are each answered by tapping a glowing country, never a dim one", async ({
+  page,
+}) => {
   await startSixRegionGame(page);
   // An action menu that offers an intervention: its target countries glow, beside the other actions in the banner.
   await playUntil(page, MENU);
@@ -116,6 +127,7 @@ test("an intervention and a realignment are each answered by tapping a glowing c
     if ((await countryButtons(page).count()) > 0) {
       await expect(decisionButtons(page).getByText("Place influence", { exact: true })).toBeVisible();
       expect(await countryButtons(page).first().textContent()).toMatch(/^Intervene in [A-Z]/);
+      await expectDimTapIgnored(page);
       const { taken } = await tapCountry(page, countryButtons(page).first());
       intervened = taken;
     } else {
@@ -142,6 +154,7 @@ test("an intervention and a realignment are each answered by tapping a glowing c
       continue;
     }
     expect(await countryButtons(page).first().textContent()).toMatch(/^Realign in [A-Z]/);
+    await expectDimTapIgnored(page);
     realigned = (await tapCountry(page, countryButtons(page).first())).taken;
   }
   expect(realigned).toBe(true);

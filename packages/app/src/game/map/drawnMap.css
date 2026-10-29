@@ -240,6 +240,31 @@
   box-shadow: 0 0 0 9px var(--map-touched-glow);
   z-index: 1;
 }
+/* They pulse briefly (L9, #489): the beat (data-pulse, game/map/pulse.ts) flips with each new move, and each beat
+   has its own copy of the same animation, so changing it starts the pulse again. Reduced motion: no pulse. */
+.dm-marker[data-pulse="0"] {
+  animation: dm-pulse-0 var(--map-pulse-time) ease-out var(--map-pulse-count);
+}
+.dm-marker[data-pulse="1"] {
+  animation: dm-pulse-1 var(--map-pulse-time) ease-out var(--map-pulse-count);
+}
+@keyframes dm-pulse-0 {
+  50% {
+    box-shadow: 0 0 0 var(--map-pulse-ring) var(--map-pulse-glow);
+    scale: 1.15;
+  }
+}
+@keyframes dm-pulse-1 {
+  50% {
+    box-shadow: 0 0 0 var(--map-pulse-ring) var(--map-pulse-glow);
+    scale: 1.15;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dm-marker[data-pulse] {
+    animation: none;
+  }
+}
 /* A decision asks for a country (L7, #487): the ones you may pick glow and take taps; the rest dim and let taps
    through to their region, which zooms. The glow's button covers the whole marker, so the marker is the target. */
 .dm-marker[data-pick="glow"] {

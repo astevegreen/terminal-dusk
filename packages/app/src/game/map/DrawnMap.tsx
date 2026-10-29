@@ -17,6 +17,7 @@ import { neighbourPairs, shortName } from "./layout.ts";
 import type { MapLayout, Point } from "./layout.ts";
 import { Marker, placeOf } from "./Marker.tsx";
 import { Leaders, TONES, Tints, WorldPicture } from "./artLayer.tsx";
+import type { Beat } from "./pulse.ts";
 import { RegionChips } from "./RegionChips.tsx";
 import { pickState } from "./mapPicks.ts";
 import type { MapPicks } from "./mapPicks.ts";
@@ -25,6 +26,8 @@ export type DrawnMapProps = {
   pub: PublicState;
   layout: MapLayout;
   touched: ReadonlySet<CountryId>;
+  /** The pulse's beat for the touched countries (pulse.ts); 0 when not given. */
+  beat?: Beat | undefined;
   onRegion: (region: RegionId) => void;
   /** The countries the waiting decision lets you pick; left out, none glows. */
   picks?: MapPicks | undefined;
@@ -103,7 +106,16 @@ function RegionButtons({ pub, layout, onRegion }: Readonly<Pick<DrawnMapProps, "
 }
 
 /** The map in its wrapper, inside the map area that clips it; a frame with no map draws nothing here. */
-export function DrawnMap({ pub, layout, touched, onRegion, picks, viewportRef, wrapperRef }: Readonly<DrawnMapProps>) {
+export function DrawnMap({
+  pub,
+  layout,
+  touched,
+  beat = 0,
+  onRegion,
+  picks,
+  viewportRef,
+  wrapperRef,
+}: Readonly<DrawnMapProps>) {
   const { map } = pub;
   if (map === undefined) return null;
   return (
@@ -143,6 +155,7 @@ export function DrawnMap({ pub, layout, touched, onRegion, picks, viewportRef, w
                 control={controller(pub, c.id) ?? "none"}
                 battleground={isBattleground(pub, c.id)}
                 touched={touched.has(c.id)}
+                pulse={touched.has(c.id) ? beat : undefined}
                 pick={pickState(picks, c.id)}
                 choice={picks?.choices.get(c.id)?.text}
                 on={picks?.on}

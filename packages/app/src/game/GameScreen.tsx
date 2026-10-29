@@ -3,7 +3,9 @@
 // and a sheet with tabs (docs/design/screen-layout.md). Since L6 (#486) the hand is a slim strip along the bottom
 // edge, with the sheet's tab row beside it; a card's choices are on the card when it is lifted. Since L7 (#487) the
 // decision is a banner just above the strip, in place of the sheet's Play tab, and the countries it asks for glow
-// on the map. It renders from its props alone (SideTabs holds the picked tab, HandStrip the lifted card).
+// on the map. Since L9 (#489) the ticker at the top bar's right end shows the newest log line and opens the full log
+// in a drawer, so the sheet holds Details alone. It renders from its props alone (SideTabs holds the picked tab,
+// HandStrip the lifted card, TopBar whether the drawer is open).
 import type { AnswerValue, CardId, EraId } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import type { ReactNode } from "react";
@@ -17,9 +19,10 @@ import "./handStrip.css";
 import "./decisionBanner.css";
 import { LiftedCard, StripCounts, chipsOf } from "./handCards.tsx";
 import { HandStrip } from "./handStrip.tsx";
-import { Contingency, Log, MapArea, Opponent, Region, StatusBar, Table } from "./regions.tsx";
+import { Contingency, MapArea, Opponent, Region, StatusBar, Table } from "./regions.tsx";
 import type { Label } from "./regions.tsx";
 import { SideTabs } from "./sideTabs.tsx";
+import { TopBar } from "./topBar.tsx";
 import { Tracks } from "./tracks.tsx";
 import type { CardPoints, CardRules } from "../displayText.ts";
 
@@ -117,7 +120,8 @@ export function GameScreen({
     <div className={frame.view.public.map === undefined ? "game game-no-map" : "game"}>
       {/* Shown only on a screen taller than it is wide (gameScreen.css): the same layout, held the wrong way. */}
       <p className="game-rotate-hint">Turn your phone sideways to play.</p>
-      <div className="game-top">
+      {/* The top bar, the ticker at its right end, and the log drawer the ticker opens (topBar.tsx). */}
+      <TopBar log={log} waitingId={frame.decision?.id ?? null}>
         {menu !== undefined && (
           <details className="game-menu">
             <summary>Menu</summary>
@@ -129,7 +133,7 @@ export function GameScreen({
           <StatusBar frame={frame} era={era} />
           <Tracks pub={frame.view.public} />
         </div>
-      </div>
+      </TopBar>
       <MapArea frame={frame} choices={choices} onAnswer={onAnswer} />
       <DecisionRegion onAnswer={onAnswer} refusal={refusal} {...data} />
       {/* The bottom edge: the hand strip, then the sheet's tab row, whose open panel rises over the map. */}
@@ -141,10 +145,10 @@ export function GameScreen({
             </LiftedCard>
           ))}
         </HandStrip>
-        {/* A div with a role, as a section would pick up the boxed style. Its tabs are Log and Details. */}
+        {/* A div with a role, as a section would pick up the boxed style. Its one tab is Details: the decision is the
+            banner (L7, #487) and the log is in the drawer the ticker opens (L9, #489). */}
         <div className="game-sheet" role="region" aria-label="Game details" tabIndex={0}>
           <SideTabs waitingId={frame.decision?.id ?? null}>
-            <Log log={log} />
             <>
               <Opponent frame={frame} />
               <Table pub={frame.view.public} label={label} />

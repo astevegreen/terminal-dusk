@@ -1,8 +1,8 @@
 // The map-first game screen (L5, #485), run at both configured sizes (844x390 and 1280x800): the map fills the
-// whole game screen and everything else floats over it. A slim see-through top bar, the decision banner just above
-// the hand strip (L7, #487), a sheet along the bottom with the Log and Details tabs that starts folded down to its
-// tab row, and "Whole map" keeps every country clear of all of them. A screenshot of each size, sheet open and
-// folded, is saved in the test's output folder and attached.
+// whole game screen and everything else floats over it. A slim see-through top bar with the ticker at its right end
+// (L9, #489), the decision banner just above the hand strip (L7, #487), a sheet along the bottom with the Details
+// tab that starts folded down to its tab row, and "Whole map" keeps every country clear of all of them. A screenshot
+// of each size, sheet open and folded, is saved in the test's output folder and attached.
 import { expect, test } from "@playwright/test";
 import type { Locator, Page, TestInfo } from "@playwright/test";
 import { pageSize, startSixRegionGame } from "./start.ts";
@@ -140,41 +140,36 @@ test("the map fills the game screen, with a slim see-through top bar and a sheet
   await expectNoPageScroll(page);
   await shoot(page, testInfo, "folded");
 
-  // Each tab opens the sheet again.
-  await tab(page, "Log").click();
-  await expect(page.getByTestId("log")).toBeVisible();
-  await expect(tab(page, "Log")).toHaveAttribute("aria-selected", "true");
+  // The tab opens the sheet again.
+  await tab(page, "Details").click();
+  await expect(page.getByTestId("contingency")).toBeVisible();
+  await expect(tab(page, "Details")).toHaveAttribute("aria-selected", "true");
 });
 
-test("the sheet's tabs switch between Log and Details, Hide folds it, and a new decision folds it again", async ({
-  page,
-}) => {
+test("the sheet's Details tab opens it, Hide folds it, and a new decision folds it again", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Test mode" }).click();
   const decision = page.getByTestId("decision");
   await expect(decision).toBeVisible();
-  // The decision is the banner above the hand strip (L7, #487), not a tab: the sheet starts folded.
-  expect(await page.getByRole("tab").allTextContents()).toEqual(["Log", "Details"]);
-  for (const name of ["Log", "Details"]) await expect(tab(page, name)).toHaveAttribute("aria-selected", "false");
+  // The decision is the banner above the hand strip (L7, #487) and the log is in the drawer the ticker opens (L9,
+  // #489), so Details is the one tab, and the sheet starts folded.
+  expect(await page.getByRole("tab").allTextContents()).toEqual(["Details"]);
+  await expect(tab(page, "Details")).toHaveAttribute("aria-selected", "false");
   await expect(page.getByTestId("hand")).toBeVisible();
   await expect(page.getByTestId("log")).toBeHidden();
 
-  await tab(page, "Log").click();
-  await expect(tab(page, "Log")).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByTestId("log")).toBeVisible();
+  await tab(page, "Details").click();
+  await expect(tab(page, "Details")).toHaveAttribute("aria-selected", "true");
+  for (const id of ["opponent", "table", "contingency"]) await expect(page.getByTestId(id)).toBeVisible();
   // Test mode's own controls above the game leave it shorter, and the open sheet still leaves the map tools clear.
   await expectToolsTappable(page.getByTestId("map-area"));
-
-  await tab(page, "Details").click();
-  for (const id of ["opponent", "table", "contingency"]) await expect(page.getByTestId(id)).toBeVisible();
-  await expect(page.getByTestId("log")).toBeHidden();
   await expectNoPageScroll(page);
 
   // Hide folds the sheet: no tab is picked and nothing in it shows; Hide itself goes until it opens again. The
   // banner and the hand strip are not in the sheet: they stay.
   const hide = sheetOf(page).getByRole("button", { name: "Hide" });
   await hide.click();
-  for (const name of ["Log", "Details"]) await expect(tab(page, name)).toHaveAttribute("aria-selected", "false");
+  await expect(tab(page, "Details")).toHaveAttribute("aria-selected", "false");
   for (const id of ["log", "contingency"]) await expect(page.getByTestId(id)).toBeHidden();
   await expect(hide).toBeHidden();
   await expect(decision).toBeVisible();
