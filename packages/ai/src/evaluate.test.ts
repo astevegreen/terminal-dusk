@@ -126,4 +126,21 @@ describe("boardValue, the later weight", () => {
     expect(gain(0)).toBeGreaterThan(0);
     expect(gain(1)).toBeGreaterThan(gain(0));
   });
+
+  it("gives no later-weight bonus to a country on a past era's battleground list", () => {
+    const pub = viewFor(newMapGame(1), "lio").public;
+    const map = pub.map!;
+    const inNow = new Set(map.battlegrounds.flatMap((l) => l.countries));
+    const target = map.countries.find((c) => !inNow.has(c.id))!;
+    const withPast = {
+      ...pub,
+      map: { ...map, battlegrounds: [{ era: "past-era", countries: [target.id] }, ...map.battlegrounds] },
+    };
+    const influence = pub.influence!.map((e) => (e.country === target.id ? { ...e, lio: e.lio + 1 } : e));
+    const gain = (later: number): number => {
+      const weights = { ...MEDIUM_WEIGHTS, region: 0, later };
+      return boardValue({ ...withPast, influence }, "lio", weights) - boardValue(withPast, "lio", weights);
+    };
+    expect(gain(1)).toBeCloseTo(gain(0));
+  });
 });

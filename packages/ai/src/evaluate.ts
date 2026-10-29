@@ -62,7 +62,9 @@ export function boardValue(pub: PublicState, side: Side, weights: MediumWeights)
   const rival = otherSide(side);
   const held: Held = new Map(map.countries.map((c) => [c.id, controller(pub, c.id)]));
   const now = new Set(map.battlegrounds.find((l) => l.era === pub.era)?.countries ?? []);
-  const later = new Set(map.battlegrounds.filter((l) => l.era !== pub.era).flatMap((l) => l.countries));
+  // The lists run in era order, so the ones after the current era's are the later eras'; past eras' no longer count.
+  const nowAt = map.battlegrounds.findIndex((l) => l.era === pub.era);
+  const later = new Set(map.battlegrounds.slice(nowAt + 1).flatMap((l) => l.countries));
   const factors = new Map(map.regions.map((r) => [r.id, regionFactor(pub, r.id, weights)]));
   let value = 0;
   for (const amounts of scoring.regions) {
