@@ -63,7 +63,7 @@ export function techValue(pub: PublicState, side: Side, weights: MediumWeights):
   if (race === undefined || steps === undefined) return 0;
   const lean = side === "lio" ? -race.marker : race.marker;
   const holds = (s: Side): number => (race.bonus.includes(s) ? 1 : 0);
-  const end = lean === steps ? 1 : lean === -steps ? -1 : 0;
+  const end = Math.abs(lean) === steps ? Math.sign(lean) : 0;
   return weights.tech * lean + weights.techBonus * (holds(side) - holds(otherSide(side))) + weights.region * end;
 }
 
