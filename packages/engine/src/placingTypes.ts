@@ -50,7 +50,8 @@ export type InfluencePlaced = {
 /**
  * One intervention (R16b): `side` spent `points` on `country`, of stability `stability`, and drew `draw` from its
  * Contingency deck. `result` is draw + points - 2 x stability; when above 0, `removed` rival influence came off
- * (stopping at 0) and `added` (the rest) went on as `side`'s own. Both are 0 when the result is 0 or less.
+ * (stopping at 0) and `added` (the rest) went on as `side`'s own. Both are 0 when the result is 0 or less. `tech`
+ * is 1 when `side` held AI, the tech race's second step, adding 1 to the result (R26); absent otherwise.
  */
 export type Intervened = {
   kind: "intervened";
@@ -63,4 +64,5 @@ export type Intervened = {
   result: number;
   removed: number;
   added: number;
+  tech?: 1;
 };

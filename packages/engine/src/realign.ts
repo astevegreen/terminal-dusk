@@ -9,8 +9,9 @@
 import { drawContingency } from "./contingency.ts";
 import { newRealignDecision } from "./decisions.ts";
 import { controller, realignTargets, removeInfluence } from "./influence.ts";
+import { NETWORKS, techHolds } from "./techRace.ts";
 import { otherSide } from "./types.ts";
-import type { CountryId, EngineError, Frame, GameEvent, GameState, PublicState, Side } from "./types.ts";
+import type { CountryId, EngineError, Frame, GameEvent, GameState, PublicState, Realigned, Side } from "./types.ts";
 
 const invalidProgram = (message: string): EngineError => ({ code: "invalidProgram", message });
 
@@ -74,7 +75,9 @@ function realign(state: GameState, side: Side, country: CountryId, events: GameE
   const rival = otherSide(side);
   const own = drawContingency(state, side, events);
   const theirs = drawContingency(state, rival, events);
-  const ownTotal = own + realignBonus(state.public, side, country);
+  // Networks and Orbit, the tech race's first step: +1 in each realignment its holder starts (R26).
+  const tech = techHolds(state.public, side, NETWORKS) ? 1 : 0;
+  const ownTotal = own + realignBonus(state.public, side, country) + tech;
   const rivalTotal = theirs + realignBonus(state.public, rival, country);
   const totals = side === "lio" ? { lio: ownTotal, sae: rivalTotal } : { lio: rivalTotal, sae: ownTotal };
   const difference = Math.abs(ownTotal - rivalTotal);
@@ -87,5 +90,6 @@ function realign(state: GameState, side: Side, country: CountryId, events: GameE
     if (influence !== undefined) state.public.influence = influence;
     removed = Math.min(before, difference);
   }
-  events.push({ kind: "realigned", visibility: "public", side, country, totals, loser, removed });
+  const realigned: Realigned = { kind: "realigned", visibility: "public", side, country, totals, loser, removed };
+  events.push(tech === 1 ? { ...realigned, tech } : realigned);
 }
