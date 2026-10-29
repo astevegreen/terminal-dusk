@@ -141,14 +141,16 @@ test("on a large screen the strip shows bigger cards with their full names, and 
     }
     // Not only this hand's: every card name in the game fits whole on a chip, written in turn on the first chip.
     expect(CARD_NAMES.length).toBeGreaterThan(40);
+    for (const name of CARD_NAMES) expect(name).toMatch(/\S/);
     expect(await namesThatDoNotFit(page, CARD_NAMES), `${size.width}`).toEqual([]);
   }
 });
 
-/** Every card's name in the game's content (packages/content/cards). */
+/** Every card's name in the game's content (packages/content/cards: each card's `text.name`). */
 const CARD_NAMES: string[] = readdirSync(CARDS, { recursive: true, encoding: "utf8" })
   .filter((file) => file.endsWith(".json"))
-  .map((file) => (JSON.parse(readFileSync(path.join(CARDS, file), "utf8")) as { name: string }).name);
+  .map((file) => (JSON.parse(readFileSync(path.join(CARDS, file), "utf8")) as { text?: { name?: string } }).text?.name)
+  .map((name) => name ?? "");
 
 /** The names that, written on the strip's first chip, would run past it or be cut short. */
 const namesThatDoNotFit = (page: Page, names: string[]): Promise<string[]> =>

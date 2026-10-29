@@ -25,7 +25,7 @@
 @media (min-width: 1200px) {
   .game {
     --game-strip-h: 72px;
-    --strip-chip-name-max: 9em;
+    --strip-chip-name-max: 11em;
   }
   .game .strip-chip > .strip-chip-name {
     overflow: visible;
