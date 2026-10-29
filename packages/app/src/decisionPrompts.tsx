@@ -217,6 +217,7 @@ function PlaceInfluencePrompt({ decision, onAnswer }: Readonly<PromptProps>) {
 const ACTION_TEXT: Record<Exclude<PointsAction, "intervene">, string> = {
   place: "Place influence",
   realign: "Realign",
+  techRace: "Make a tech race attempt",
   pass: "Leave the points unspent",
 };
 

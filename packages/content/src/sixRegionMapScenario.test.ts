@@ -205,6 +205,20 @@ describe("the six-region map scenario (#422)", () => {
     expect(map.scoring!.regions.map((r) => r.region)).toEqual(map.regions.map((r) => r.id));
   });
 
+  // R25 (#462; docs/design/tech-race.md, "The track"): four named steps costing 1 to 4, 4+ to move, Hypersonics escalates.
+  it("has the tech race track the doc decided", () => {
+    expect(map.techRace).toEqual({
+      steps: [
+        { name: "Networks and Orbit", cost: 1 },
+        { name: "AI", cost: 2 },
+        { name: "Hypersonics", cost: 3 },
+        { name: "Quantum Computing", cost: 4 },
+      ],
+      success: 4,
+      escalateAt: 3,
+    });
+  });
+
   it("lists every link at both ends", () => {
     for (const c of map.countries) {
       for (const n of c.neighbours) expect(neighboursOf(n), `${c.id} lists ${n}`).toContain(c.id);
@@ -278,5 +292,7 @@ describe("the six-region map scenario (#422)", () => {
     expect(influence).toHaveLength(42);
     expect(influence?.find((e) => e.country === "taiwan")).toEqual({ country: "taiwan", lio: 3, sae: 0 });
     expect(influence?.find((e) => e.country === "crimea")).toEqual({ country: "crimea", lio: 0, sae: 1 });
+    expect(result.value.state.public.map?.techRace).toEqual(map.techRace);
+    expect(result.value.state.public.techRace).toEqual({ marker: 0, attempted: [], reached: [], bonus: [] });
   });
 });

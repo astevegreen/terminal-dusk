@@ -35,11 +35,21 @@ describe("eventPresentation", () => {
       "realigned",
       "regionScored",
       "scoreChanged",
+      "techRaceAttempted",
       "triggerEnded",
       "triggerFired",
       "triggerSet",
     ];
     expect(Object.keys(eventPresentation).sort(byCodeUnit)).toEqual(kinds);
+  });
+  it("logs a tech race attempt's draw, bonus and move, or that the marker stayed", () => {
+    const attempt = { kind: "techRaceAttempted", visibility: "public", side: "lio", points: 4, cost: 1 } as const;
+    expect(say({ ...attempt, draw: 3, bonus: 1, from: 0, to: -1, first: true })).toBe(
+      "LIO's tech race attempt draws 3 +1: the marker moves from 0 to -1.",
+    );
+    expect(say({ ...attempt, draw: 2, bonus: 0, from: 0, to: 0, first: false })).toBe(
+      "LIO's tech race attempt draws 2: no move.",
+    );
   });
   it("logs a drawn card by its name for the side that drew it", () => {
     const line = say({

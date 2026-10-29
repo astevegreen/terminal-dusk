@@ -68,13 +68,15 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e/drawnMap.e2e.ts` - The drawn map (L2, #465) in the six-region game against the AI, at the phone and desktop sizes: 42 markers and the two home boxes, all inside the map area with…
 - `packages/app/e2e/game.e2e.ts`
 - `packages/app/e2e/keyboard.e2e.ts`
+- `packages/app/e2e/landscape.e2e.ts` - The game screen laid out for a phone held sideways (L1, #464), run at both configured sizes (844x390 and 1280x800): no page scroll, a thin top bar, the map fil…
 - `packages/app/e2e/map.e2e.ts`
-- `packages/app/e2e/narrow.e2e.ts` - The game screen on a phone held upright (375x667), found in the phase 3 gate playtest of 28 Oct: the details column and the log were squeezed, and a game with…
+- `packages/app/e2e/narrow.e2e.ts` - The game screen on a phone held upright (375x667), found in the phase 3 gate playtest of 28 Oct: a game with no map kept a full-size empty map box (#412).
 - `packages/app/e2e/online.e2e.ts`
 - `packages/app/e2e/replay.e2e.ts`
 - `packages/app/e2e/server.test.ts` - The Playwright run's own port (server.ts): a free one, kept for the run's workers, never a server already running.
 - `packages/app/e2e/server.ts` - Where the Playwright smoke tests serve the app (playwright.config.ts). Exports: e2ePort, e2eServer.
 - `packages/app/e2e/sixRegionMap.e2e.ts` - The six-region map against the AI (A14, #439): 6 regions and 42 boxes, Crimea in its own box, and the two home boxes, readable and tappable on a phone held upr…
+- `packages/app/e2e/start.ts` - Shared starts for the Playwright smoke tests (not a test file: only *.e2e.ts files are tests). Exports: startSixRegionGame, pageSize.
 - `packages/app/e2e/testMode.e2e.ts`
 - `packages/app/e2e/tracks.e2e.ts` - The score track and Escalation on screen (A15, #448): test mode's map has scoring, so the region shows there at a phone held upright, held sideways and at desk…
 - `packages/app/e2e/vsAi.e2e.ts`
@@ -95,7 +97,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/eventPresentation.test.ts`
 - `packages/app/src/eventPresentation.ts` - How each EventKind is presented. Exports: EventPresentation, eventPresentation, logLine, touchedCountries.
 - `packages/app/src/game/GameScreen.test.tsx`
-- `packages/app/src/game/GameScreen.tsx` - The game screen: one whole game drawn from one frame, laid out for a phone held sideways (844x390). Exports: GameScreenProps, GameScreen.
+- `packages/app/src/game/GameScreen.tsx` - The game screen: one whole game drawn from one frame, laid out for a phone held sideways (844x390; L1, #464): a thin top bar, the map filling the main area and… Exports: GameScreenProps, GameScreen.
 - `packages/app/src/game/MapView.test.tsx` - The map zoomed out (issue #364): badges per country, grouped by region, net influence, controller colour.
 - `packages/app/src/game/MapView.tsx` - The map (docs/architecture.md, Decision 6). Exports: Zoom, OnZoom, influenceOf, netInfluence, shownZoom, MapView.
 - `packages/app/src/game/MapZoom.test.tsx` - The map zoomed into a region (issue #365): region buttons, country boxes, "Whole map", zoom kept across frames.
@@ -124,6 +126,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/map/sixRegionLayout.ts` - The six-region map's drawing (L2, #465): a placeholder, flat and hand-placed. Exports: SIX_REGION_LAYOUT.
 - `packages/app/src/game/map/test/layoutChecks.ts` - Test helper: the checks every map layout must pass, for the six-region layout and for autoLayout on any map. Exports: expectInside, expectNoOverlap.
 - `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, HandCard, Hand, Opponent, Table, Contingency, Log.
+- `packages/app/src/game/sideTabs.test.tsx` - The side panel's three tabs (L1, issue #464): which one shows, and how they draw.
+- `packages/app/src/game/sideTabs.tsx` - The side panel's three tabs (L1, issue #464; docs/architecture.md, Decision 6): Play (the decision and the hand), Log, and Details (the opponent, the table and… Exports: TabId, TABS, shownTab, SideTabs.
 - `packages/app/src/game/sixRegionMapView.test.tsx` - The real six-region map on screen (A14, issue #439): 6 region buttons and 42 badges zoomed out, each region's boxes zoomed in, Crimea's own box, and both home…
 - `packages/app/src/game/test/mapFixture.ts` - Test helper: a hand-written two-region map, its influence, and test-mode frames with and without it. Exports: map, influence, baseFrame, withMap, withoutMap.
 - `packages/app/src/game/tracks.test.tsx` - The score track and Escalation on screen (A15, issue #448): drawn from the frame's public state, and only on a map that has scoring.
@@ -440,6 +444,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/schema/map.ts` - The map a scenario can carry (docs/design/map-and-points.md, "Map", "Influence" and "Escalation"): regions, their closing order, countries, each era's battlegr… Exports: mapSchema.
 - `packages/content/schema/mapScoring.test.ts` - A scenario map's scoring (R21, #437): the score track and each region's amounts are scenario data, refused at their path when the engine's createGame would ref…
 - `packages/content/schema/mapScoring.ts` - A map's scoring (docs/design/map-and-points.md, "Scoring"): the score track's end and start, and what each region is worth at an era's end. Exports: scoringSchema, checkScoring.
+- `packages/content/schema/mapTechRace.test.ts` - A scenario map's tech race track (R25, #462): its steps, success number and Escalation step are scenario data, refused at their path when the engine's createGa…
+- `packages/content/schema/mapTechRace.ts` - A map's tech race track (docs/design/tech-race.md, "The track"): its named steps from parity outwards with their costs, the draw that moves the marker, and the… Exports: techRaceSchema, checkTechRace.
 - `packages/content/schema/scenario.test.ts`
 - `packages/content/schema/scenario.ts` - The scenario schema: what one scenario file in packages/content/scenarios/ must hold (docs/architecture.md, section 4). Exports: scenarioSchema, Scenario.
 - `packages/content/schema/scenario.types.test.ts` - Type-level check, run by `tsc`: the scenario schema and the engine's Setup can't drift apart.
@@ -579,12 +585,18 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/stack.test.ts`
 - `packages/engine/src/stack.ts` - The resolution stack: runs program steps until one needs a player's choice, records that as the pending decision (or, for both sides at once, a simultaneous pa… Exports: Budget, newBudget, startProgram, runProgram, Closing, resumeStack, runStack.
 - `packages/engine/src/stepBudget.test.ts`
+- `packages/engine/src/techRace.test.ts` - R25 (#462): the tech race action (docs/design/tech-race.md, "Making an attempt" and "First there").
+- `packages/engine/src/techRace.ts` - The tech race (docs/design/tech-race.md): one shared public marker, negative for LIO's lead and positive for SAE's, on a track of `steps` each way from parity. Exports: techRaceCost, canRace, attemptTechRace, techRaceState, copyTechRace, techRaceError.
+- `packages/engine/src/techRaceChecks.test.ts` - R25 (#462): createGame checks the map's tech race data (techRace.ts, techRaceError), and card data can't mark a spendPoints step as a play for points, which on…
+- `packages/engine/src/techRaceEffects.test.ts` - R25 (#462): what the tech race does beyond moving its marker (docs/design/tech-race.md, "What each step gives" and "Links to the rest of the game"): entering H…
+- `packages/engine/src/techRaceTypes.ts` - The tech race's types (docs/design/tech-race.md). Exports: TechStep, MapTechRace, TechRaceState, TechRaceAttempted.
 - `packages/engine/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
 - `packages/engine/src/test/game.ts` - Test helpers: a started game, answers for it, and small programs for the stack. Exports: testCard, rulesetWith, ruleset, sideCard, withCards, makeSetup, setupPlus, startGame, startAtPlay, cardAnswer, playAnswer, orderAnswer, ….
 - `packages/engine/src/test/map.ts` - A small made-up map for engine tests: three regions, five countries in a ring with one cross link, and one country on its own. Exports: testMap, mapSetup.
 - `packages/engine/src/test/mapGame.ts` - Test helpers for spending points on the test map (R16a placing, R16b intervening): a game at LIO's first play, with the influence a test needs, and what one si… Exports: spend, mapGame, countOf.
 - `packages/engine/src/test/placing.ts` - Test helper: finishing the spending a play for points asks for in a game with a map (R16a placing.ts, R16b action choice, R16c realign), never realigning: on t… Exports: placeAll.
 - `packages/engine/src/test/sort.ts` - Test helper: the sort order the tests use for object keys and card ids. Exports: byCodeUnit.
+- `packages/engine/src/test/techRace.ts` - Test helpers for the tech race (R25; docs/design/tech-race.md): the test map with the doc's track, a ruleset with cards worth enough points, and games at LIO's… Exports: TECH_RACE, raceRules, raceSetup, withRace, raceGame, nextDraw, choose, techRaceAction, placeAction, menu.
 - `packages/engine/src/triggerFilter.test.ts` - A trigger's filter and once (#189): a trigger that reacts only to one side's plays, or only while a lasting marker is set, and a trigger that fires at most onc…
 - `packages/engine/src/triggerFilterChecks.test.ts` - createGame's checks of a trigger's filter and once (#189): badTrigger, and the ruleset check that a has names a marker some card sets, which reads a trigger's…
 - `packages/engine/src/triggers.test.ts` - Triggers (#90): reactions a card leaves behind, fired at the cardPlayed and turnEnd hooks.

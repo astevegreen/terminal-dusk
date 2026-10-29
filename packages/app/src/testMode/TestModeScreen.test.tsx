@@ -103,11 +103,19 @@ describe("the viewer switch", () => {
     expect(out).not.toMatch(/\bt\d+\b/);
     expect(out).not.toContain("Test card 1,");
     expect(out.match(/pick an opening card/g)).toHaveLength(2);
-    // Outside the map (whose region buttons zoom, for every viewer: issue #366), only the three viewer controls
-    // and Restart are buttons, so the Decision region has none.
+    // Outside the map (whose region buttons zoom, for every viewer: issue #366) and the side panel's three tabs
+    // (L1, #464), only the three viewer controls and Restart are buttons, so the Decision region has none.
     const map = /<section aria-label="Map"[^]*?<\/section>/.exec(out)?.[0] ?? "";
     expect(map).toContain("<button");
-    expect(out.replace(map, "").match(/<button/g)).toHaveLength(4);
+    const tabs = /<div role="tablist"[^]*?<\/div>/.exec(out)?.[0] ?? "";
+    expect(tabs.match(/<button/g)).toHaveLength(3);
+    expect(tabs.match(/<button[^>]*role="tab"/g)).toHaveLength(3);
+    expect(
+      out
+        .replace(map, "")
+        .replace(tabs, "")
+        .match(/<button/g),
+    ).toHaveLength(4);
   });
   it("marks the chosen viewer", () => {
     const session = fresh();

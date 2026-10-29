@@ -53,7 +53,7 @@ export function WatchView({ snapshot, replay, label, question, rules, affiliatio
   }
   const showing = frame !== null && turn !== "loading";
   return (
-    <main style={{ maxWidth: "100%", boxSizing: "border-box" }}>
+    <main className="game-page">
       <div style={BAR}>
         <button type="button" style={TAP} onClick={onBack}>
           Back

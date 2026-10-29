@@ -7,6 +7,8 @@ import type { EscalationEvent } from "./escalationTypes.ts";
 export type { EscalationChanged, EscalationCrisis, EscalationEvent } from "./escalationTypes.ts";
 import type { ScoreEvent } from "./scoringTypes.ts";
 export type { MapScoring, RegionAmounts, RegionScored, ScoreChanged, ScoreEvent } from "./scoringTypes.ts";
+import type { TechRaceAttempted, TechRaceState } from "./techRaceTypes.ts";
+export type { MapTechRace, TechRaceAttempted, TechRaceState, TechStep } from "./techRaceTypes.ts";
 import type {
   ActiveModifier,
   ActiveTrigger,
@@ -168,7 +170,8 @@ export type PublicEvent =
   | HandRevealedHidden
   | CardsDiscarded
   | EscalationEvent
-  | ScoreEvent;
+  | ScoreEvent
+  | TechRaceAttempted;
 /**
  * What happened, for animation, the game log, sounds and the tutorial. An event visible to one side
  * may carry a `publicForm`: the public event everyone else gets instead (see eventsFor).
@@ -219,6 +222,8 @@ export type Condition =
  * `discardFromHand` makes `side` discard `count` (1 or more) cards from its hand, at random (discard.ts), or
  * picked by `chosenBy`: the hand's "owner" or the card's "player", after seeing the hand (discardChoice.ts).
  * `escalate` moves Escalation by the non-zero whole `by`: up, caused by the card's player, or down (escalateStep.ts).
+ * A `spendPoints` with `play` is a card played for its points (turn.ts), which may make a tech race attempt
+ * (techRace.ts); only the engine sets it, never card data (cardChecks.ts).
  */
 export type Step =
   | { op: "choose"; who: Side | "both"; decision: { kind: "yesNo" }; bind: VarName }
@@ -226,7 +231,7 @@ export type Step =
   | { op: "if"; cond: Condition; then: Step[]; else?: Step[] }
   | { op: "forEach"; over: string[]; bind: VarName; do: Step[] }
   | { op: "marker"; label: string; var?: VarName; lasting?: true }
-  | { op: "spendPoints"; side: Side; amount: number }
+  | { op: "spendPoints"; side: Side; amount: number; play?: true }
   | { op: "drawContingency"; side: Side | "player"; bind?: VarName }
   | { op: "addToNumber"; var: VarName; amount: number }
   | { op: "modifier"; mod: ModifierSpec; duration: Duration }
@@ -303,6 +308,8 @@ export type PublicState = {
   score?: number;
   /** The current era's name, whose battleground list counts (battlegrounds.ts); present exactly when `map` is. */
   era?: EraId;
+  /** The tech race (techRace.ts); present exactly when `map.techRace` is. */
+  techRace?: TechRaceState;
 };
 /** A side's answer to its decision in a simultaneous group, kept secret until the other side's is in. */
 export type UnrevealedPick = { group: string; decisionId: string; value: AnswerValue };
