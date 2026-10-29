@@ -1,9 +1,11 @@
 // The game screen: one whole game drawn from one frame, laid out for a phone held sideways (844x390; L1, #464).
 // Since L5 (#485) the map fills the whole screen and everything else floats over it: a slim see-through top bar
-// with the ticker at its right end, the log drawer the ticker opens (L9, #489), and a sheet along the bottom with
-// the Play and Details tabs (docs/design/screen-layout.md). It renders from its props alone (SideTabs holds the
-// picked tab, TopBar whether the drawer is open).
-import type { AnswerValue, EraId } from "@terminal-dusk/engine";
+// and a sheet with the Play and Details tabs (docs/design/screen-layout.md). Since L6 (#486) the hand is a slim
+// strip along the bottom edge, with the sheet's tab row beside it; a card's choices are on the card when it is
+// lifted. Since L9 (#489) the ticker at the top bar's right end shows the newest log line and opens the full log in
+// a drawer. It renders from its props alone (SideTabs holds the picked tab, HandStrip the lifted card, TopBar
+// whether the drawer is open).
+import type { AnswerValue, CardId, EraId } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import type { ReactNode } from "react";
 import { decisionPrompts } from "../decisionPrompts.tsx";
@@ -11,12 +13,15 @@ import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
 import "./map/mapTheme.css";
 import "./gameScreen.css";
 import "./gameBars.css";
-import { Contingency, Hand, MapArea, Opponent, Region, StatusBar, Table } from "./regions.tsx";
+import "./handStrip.css";
+import { LiftedCard, StripCounts, chipsOf } from "./handCards.tsx";
+import { HandStrip } from "./handStrip.tsx";
+import { Contingency, MapArea, Opponent, Region, StatusBar, Table } from "./regions.tsx";
 import type { Label } from "./regions.tsx";
 import { SideTabs } from "./sideTabs.tsx";
 import { TopBar } from "./topBar.tsx";
 import { Tracks } from "./tracks.tsx";
-import type { CardRules } from "../displayText.ts";
+import type { CardPoints, CardRules } from "../displayText.ts";
 
 export type GameScreenProps = {
   frame: Frame;
@@ -29,8 +34,10 @@ export type GameScreenProps = {
   question: CardQuestion;
   /** Whose each card is, so the prompt offers only the plays a card allows. Display data only. */
   affiliation: CardAffiliation;
-  /** A card's rules text, shown under its name in the hand; left out, the hand shows names only. Display data only. */
+  /** A card's rules text, shown on the card when it is lifted from the hand strip. Display data only. */
   rules?: CardRules | undefined;
+  /** A card's points value, shown on its chip in the hand strip; left out, the chips show names only. Display data. */
+  points?: CardPoints | undefined;
   /** Present: the waiting decision can be answered. Absent: it is shown read-only. */
   onAnswer?: ((value: AnswerValue) => void) | undefined;
   refusal?: string | null | undefined;
@@ -40,42 +47,49 @@ export type GameScreenProps = {
   bar?: ReactNode;
 };
 
-function DecisionRegion({
-  frame,
-  label,
-  question,
-  affiliation,
-  onAnswer,
-  refusal,
-}: Readonly<Omit<GameScreenProps, "log" | "era" | "rules" | "menu" | "bar">>) {
-  const stack = frame.view.public.stack;
+type PromptData = Pick<GameScreenProps, "frame" | "label" | "question" | "affiliation">;
+
+/** The props every prompt on the screen shares, from the frame and the display data. */
+function shared({ frame, label, question, affiliation }: Readonly<PromptData>) {
   const hand = frame.view.mine?.hand ?? [];
   const known = frame.view.mine?.knowledge ?? [];
-  // The waiting decision is answerable; otherwise the open ones are shown read-only (a spectator's are always these).
-  const waiting = frame.decision;
-  const open = waiting ? [waiting] : frame.view.public.pending;
+  return { hand, known, label, stack: frame.view.public.stack, question, affiliation };
+}
+
+/**
+ * The decision's own region: its question, and the choices that use no card in the hand (those are on the lifted
+ * card, L6). The waiting decision is answerable; otherwise the open ones are shown read-only (a spectator's are
+ * always these). L7 (#487) turns this into the decision banner just above the hand strip.
+ */
+function DecisionRegion({
+  onAnswer,
+  refusal,
+  ...data
+}: Readonly<PromptData & Pick<GameScreenProps, "onAnswer" | "refusal">>) {
+  const waiting = data.frame.decision;
+  const open = waiting ? [waiting] : data.frame.view.public.pending;
   return (
     <Region id="decision" title="Decision">
       {open.map((decision) => {
         const Prompt = decisionPrompts[decision.kind];
         const answer = waiting && onAnswer ? { onAnswer } : {};
-        return (
-          <Prompt
-            key={decision.id}
-            decision={decision}
-            hand={hand}
-            known={known}
-            label={label}
-            stack={stack}
-            question={question}
-            affiliation={affiliation}
-            {...answer}
-          />
-        );
+        return <Prompt key={decision.id} decision={decision} {...shared(data)} place="banner" {...answer} />;
       })}
       {typeof refusal === "string" && <output role="alert">{`Refused: ${refusal}`}</output>}
     </Region>
   );
+}
+
+/** The waiting decision's choices for one card, drawn on that card when it is lifted; nothing when none waits. */
+function CardChoices({
+  card,
+  onAnswer,
+  ...data
+}: Readonly<PromptData & { card: CardId; onAnswer: GameScreenProps["onAnswer"] }>) {
+  const waiting = data.frame.decision;
+  if (!waiting || !onAnswer) return null;
+  const Prompt = decisionPrompts[waiting.kind];
+  return <Prompt decision={waiting} {...shared(data)} place={{ card }} onAnswer={onAnswer} />;
 }
 
 export function GameScreen({
@@ -86,11 +100,14 @@ export function GameScreen({
   question,
   affiliation,
   rules,
+  points,
   onAnswer,
   refusal,
   menu,
   bar,
 }: Readonly<GameScreenProps>) {
+  const data = { frame, label, question, affiliation };
+  const chips = chipsOf(frame.view.mine?.hand ?? [], label, points, affiliation);
   return (
     // A game with no map gives its map box only its one line (gameScreen.css).
     <div className={frame.view.public.map === undefined ? "game game-no-map" : "game"}>
@@ -111,26 +128,27 @@ export function GameScreen({
         </div>
       </TopBar>
       <MapArea frame={frame} />
-      {/* A div with a role, as a section would pick up the boxed style. Its tabs are Play and Details. */}
-      <div className="game-sheet" role="region" aria-label="Game details" tabIndex={0}>
-        <SideTabs waitingId={frame.decision?.id ?? null}>
-          <>
-            <DecisionRegion
-              frame={frame}
-              label={label}
-              question={question}
-              affiliation={affiliation}
-              onAnswer={onAnswer}
-              refusal={refusal}
-            />
-            <Hand frame={frame} label={label} rules={rules} />
-          </>
-          <>
-            <Opponent frame={frame} />
-            <Table pub={frame.view.public} label={label} />
-            <Contingency pub={frame.view.public} />
-          </>
-        </SideTabs>
+      {/* The bottom edge: the hand strip, then the sheet's tab row, whose open panel rises over the map. */}
+      <div className="game-bottom">
+        <HandStrip chips={chips} counts={<StripCounts frame={frame} />}>
+          {chips.map((chip) => (
+            <LiftedCard key={chip.card} chip={chip} rules={rules}>
+              <CardChoices card={chip.card} onAnswer={onAnswer} {...data} />
+            </LiftedCard>
+          ))}
+        </HandStrip>
+        {/* A div with a role, as a section would pick up the boxed style. Its tabs are Play and Details; the log is in
+            the drawer the ticker opens (L9, #489). */}
+        <div className="game-sheet" role="region" aria-label="Game details" tabIndex={0}>
+          <SideTabs waitingId={frame.decision?.id ?? null}>
+            <DecisionRegion onAnswer={onAnswer} refusal={refusal} {...data} />
+            <>
+              <Opponent frame={frame} />
+              <Table pub={frame.view.public} label={label} />
+              <Contingency pub={frame.view.public} />
+            </>
+          </SideTabs>
+        </div>
       </div>
     </div>
   );

@@ -99,7 +99,11 @@ test("the map fills the game screen, with a slim see-through top bar and a sheet
   // A decision waits, so the sheet is open on Play: its panel rises over the map but leaves the top 40% clear.
   const sheet = sheetOf(page);
   await expect(tab(page, "Play")).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByTestId("decision").getByRole("button").first()).toBeInViewport({ ratio: 1 });
+  // The decision's question is on screen, and so is the hand strip, whose cards carry a card decision's choices (L6).
+  await expect(page.getByTestId("decision").getByRole("group").first()).toBeInViewport({ ratio: 1 });
+  await expect(page.getByTestId("hand").getByRole("toolbar").getByRole("button").first()).toBeInViewport({
+    ratio: 1,
+  });
   const panel = await box(page.getByRole("tabpanel"));
   expect(panel.top).toBeGreaterThanOrEqual(mapBox.top + mapBox.height * 0.4);
   expect((await box(sheet)).bottom).toBeCloseTo(mapBox.bottom, 0);
@@ -158,8 +162,10 @@ test("the sheet's tabs switch between Play and Details, Hide folds it, and a new
   const hide = sheetOf(page).getByRole("button", { name: "Hide" });
   await hide.click();
   for (const name of ["Play", "Details"]) await expect(tab(page, name)).toHaveAttribute("aria-selected", "false");
-  for (const id of ["decision", "hand", "contingency"]) await expect(page.getByTestId(id)).toBeHidden();
+  for (const id of ["decision", "log", "contingency"]) await expect(page.getByTestId(id)).toBeHidden();
   await expect(hide).toBeHidden();
+  // The hand is not in the sheet since L6 (#486): its strip stays along the bottom edge.
+  await expect(page.getByTestId("hand")).toBeVisible();
 
   // Play opens it again, on the decision still waiting.
   await tab(page, "Play").click();
@@ -180,6 +186,6 @@ test("the sheet's tabs switch between Play and Details, Hide folds it, and a new
   // SAE's opening pick is a new decision on screen, so the sheet opens on Play by itself.
   await page.getByRole("button", { name: "SAE", exact: true }).click();
   await expect(tab(page, "Play")).toHaveAttribute("aria-selected", "true");
-  await expect(decision.getByRole("button").first()).toBeVisible();
+  await expect(decision.getByText("SAE: pick an opening card")).toBeVisible();
   await expect(page.getByTestId("contingency")).toBeHidden();
 });

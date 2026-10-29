@@ -1,0 +1,144 @@
+/* The hand strip along the bottom edge and the lifted card (L6, #486; docs/design/screen-layout.md). Placeholder
+   look; every colour and size is a variable on .game, so the era themes (#481) restyle it without moving it. The
+   side colours come from the map's (--map-lio, --map-sae, --map-none in map/mapTheme.css). */
+.game {
+  /* The strip's height: at most 56 px on a phone held sideways (Decision 6), a little more on a large screen. */
+  --game-strip-h: 56px;
+  --strip-bg: var(--game-bar-bg);
+  --strip-chip-bg: rgb(255 255 255 / 0.9);
+  --strip-chip-edge: 5px;
+  --strip-chip-name-max: 9em;
+  --strip-lio: var(--map-lio);
+  --strip-sae: var(--map-sae);
+  --strip-neutral: var(--map-none);
+  --lifted-bg: var(--game-panel-bg);
+  --lifted-shadow: 0 2px 10px rgb(0 0 0 / 0.35);
+}
+@media (min-width: 1000px) {
+  .game {
+    --game-strip-h: 68px;
+    --strip-chip-name-max: 16em;
+  }
+}
+/* The bottom edge holds the strip and, beside it, the sheet's tab row; the lifted card and the sheet's open panel
+   both rise from its top edge. */
+.game .game-bottom {
+  grid-area: bottom;
+  z-index: 2;
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+  height: var(--game-strip-h);
+}
+.game .game-strip {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 0 4px;
+  background: var(--strip-bg);
+}
+/* The chips scroll sideways when the hand is wider than the screen. */
+.game .strip-cards {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  height: 100%;
+  overflow: auto hidden;
+}
+.game .strip-chip {
+  box-sizing: border-box;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  min-width: 44px;
+  height: calc(var(--game-strip-h) - 8px);
+  min-height: 44px;
+  padding: 0 8px 0 6px;
+  border: 1px solid var(--game-edge);
+  border-left: var(--strip-chip-edge) solid var(--strip-neutral);
+  border-radius: 4px;
+  background: var(--strip-chip-bg);
+  color: var(--game-fg);
+  font: inherit;
+  cursor: pointer;
+}
+.game .strip-chip[data-side="lio"],
+.game .game-lifted[data-side="lio"] {
+  border-left-color: var(--strip-lio);
+}
+.game .strip-chip[data-side="sae"],
+.game .game-lifted[data-side="sae"] {
+  border-left-color: var(--strip-sae);
+}
+.game .strip-chip[aria-expanded="true"] {
+  outline: 3px solid var(--game-fg);
+  outline-offset: -3px;
+}
+.game .strip-chip-points {
+  flex: none;
+  min-width: 1.4em;
+  font-weight: bold;
+  text-align: center;
+}
+.game .strip-chip-name {
+  max-width: var(--strip-chip-name-max);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* The rival's hand size, the deck and the discard pile, two to a line. */
+.game .strip-counts {
+  display: grid;
+  flex: none;
+  grid-template-columns: auto auto;
+  gap: 0 8px;
+  margin: 0;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+/* The lifted card: over the middle third of the screen, from just above the strip; it scrolls if its text is long. */
+.game .game-lifted {
+  position: absolute;
+  bottom: 100%;
+  left: calc(100% / 3);
+  z-index: 1;
+  box-sizing: border-box;
+  width: calc(100% / 3);
+  max-height: calc(100cqh - var(--game-strip-h) - 52px);
+  margin-bottom: 4px;
+  padding: 6px 8px;
+  overflow: auto;
+  border: 1px solid var(--game-edge);
+  border-left: var(--strip-chip-edge) solid var(--strip-neutral);
+  border-radius: 6px;
+  background: var(--lifted-bg);
+  box-shadow: var(--lifted-shadow);
+}
+.game .game-lifted[hidden] {
+  display: none;
+}
+.game .lifted-head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.game .lifted-side {
+  margin-left: auto;
+  font-size: 0.85em;
+}
+.game .game-lifted .lifted-choices > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+/* No map: the bottom edge spans the empty rows above the strip, so the lifted card rises from the strip itself. */
+.game.game-no-map .game-lifted {
+  bottom: var(--game-strip-h);
+  max-height: calc(100% - var(--game-strip-h) - 4px);
+}

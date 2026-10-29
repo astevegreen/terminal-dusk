@@ -1,31 +1,9 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
+import { answerOnce, yourDecision } from "./answer.ts";
 
 const FIRST_DECK_NOTE =
   "First deck, Eras 1 to 3 and the future cards (TEST scenario with placeholder numbers; they join on turns 2, 3 and 4)";
-
-/** Taps the decision's buttons in order until one is not refused (the game offers some refused moves). */
-async function answerOnce(page: Page): Promise<void> {
-  const buttons = page.getByTestId("decision").getByRole("button");
-  const count = await buttons.count();
-  for (let i = 0; i < count; i++) {
-    const button = await buttons.nth(i).elementHandle();
-    if (!button) return;
-    await button.click();
-    // An accepted answer brings a new decision, which replaces the button; a refused one leaves the button and
-    // shows a "Refused:" line again.
-    const refusedOrGone = await page.waitForFunction(
-      (tapped) =>
-        !tapped.isConnected ||
-        [...document.querySelectorAll('[data-testid="decision"] output')].some((line) =>
-          line.textContent?.startsWith("Refused:"),
-        ),
-      button,
-    );
-    await refusedOrGone.dispose();
-    if (!(await button.evaluate((tapped) => tapped.isConnected))) return;
-  }
-}
 
 /** Plays a first-deck game against the Easy AI as LIO to its end and returns the end screen's "Game over: ..." line. */
 async function playToGameOver(page: Page): Promise<string> {
@@ -36,9 +14,8 @@ async function playToGameOver(page: Page): Promise<string> {
   await expect(page.getByTestId("decision")).toBeVisible();
 
   const gameOver = page.getByText("Game over");
-  const answerButton = page.getByTestId("decision").getByRole("button").first();
   for (let step = 0; step < 100; step++) {
-    await answerButton.or(gameOver).first().waitFor();
+    await yourDecision(page).or(gameOver).first().waitFor();
     if (await gameOver.isVisible()) break;
     await answerOnce(page);
   }

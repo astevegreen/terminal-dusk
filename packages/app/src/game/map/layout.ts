@@ -46,6 +46,8 @@ export const LEADER_MAX = 180;
 export const MARKER: Size = { w: 92, h: 48 };
 /** The band at the top of each region rectangle that holds the region's name; no marker sits in it. */
 export const LABEL_BAND = 26;
+/** A region's standings chip (L8, #488): two lines, one per side, wide enough for "SAE every battleground 11". */
+export const CHIP: Size = { w: 220, h: 44 };
 /** The longest name a marker shows. */
 export const SHORT_MAX = 9;
 

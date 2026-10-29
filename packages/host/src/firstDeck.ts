@@ -89,3 +89,5 @@ export function sixRegionMapConfig(): MatchConfig {
 export { closedRegions } from "@terminal-dusk/engine";
 // Likewise which countries are battlegrounds in the current era, for the drawn map's markers (L2, #465).
 export { isBattleground } from "@terminal-dusk/engine";
+// Likewise each side's level and points in a region if it scored now, for the map's standings chips (L8, #488).
+export { regionStanding } from "@terminal-dusk/engine";

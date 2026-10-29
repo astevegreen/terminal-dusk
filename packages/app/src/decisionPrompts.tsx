@@ -15,6 +15,10 @@ import type {
 } from "@terminal-dusk/engine";
 import type { ComponentType } from "react";
 import { SIDE_NAME } from "./displayText.ts";
+import { Choices } from "./promptChoices.tsx";
+import type { Choice, PromptPlace } from "./promptChoices.tsx";
+
+export type { PromptPlace } from "./promptChoices.tsx";
 
 /** A card's yes/no question, from its rules text, or undefined when it has none. Display data only. */
 export type CardQuestion = (card: CardId) => string | undefined;
@@ -37,48 +41,12 @@ export type PromptProps = {
   question: CardQuestion;
   /** Present: the prompt shows a button per choice. Absent: it is read-only, with the choices as text. */
   onAnswer?: (value: AnswerValue) => void;
+  /** Where this drawing of the prompt is (promptChoices.tsx); left out, every choice is drawn here. */
+  place?: PromptPlace | undefined;
 };
 export type PromptComponent = ComponentType<PromptProps>;
 
-/** The smallest tap target (.claude/rules/app.md). */
-const BUTTON_STYLE = { minHeight: 44, minWidth: 44 } as const;
 const USES: readonly PlayUse[] = ["event", "points"];
-
-type Choice = { text: string; value: AnswerValue };
-
-/**
- * The choices as a list of button texts and the answers they send, in a group named by its question.
- * The question's id comes from the decision's id (no useId: tests call prompts as plain functions), so two
- * prompts on one screen get different ids.
- */
-function Choices({
-  decision,
-  question,
-  choices,
-  onAnswer,
-}: Readonly<{ decision: Decision; question: string; choices: Choice[]; onAnswer?: PromptProps["onAnswer"] }>) {
-  const questionId = `decision-${decision.id}-question`;
-  return (
-    <section role="group" aria-labelledby={questionId}>
-      <p id={questionId}>{question}</p>
-      {onAnswer ? (
-        <div>
-          {choices.map((choice) => (
-            <button key={choice.text} type="button" style={BUTTON_STYLE} onClick={() => onAnswer(choice.value)}>
-              {choice.text}
-            </button>
-          ))}
-        </div>
-      ) : (
-        <ul>
-          {choices.map((choice) => (
-            <li key={choice.text}>{choice.text}</li>
-          ))}
-        </ul>
-      )}
-    </section>
-  );
-}
 
 /** The card whose effect is running: the source of the nearest program frame from the top, if it has one. */
 export function askingCard(stack: readonly StackFrame[]): CardId | undefined {
@@ -100,18 +68,31 @@ function YesNoPrompt(props: Readonly<PromptProps>) {
     { text: "Yes", value: { kind: "yesNo", yes: true } },
     { text: "No", value: { kind: "yesNo", yes: false } },
   ];
-  return <Choices decision={props.decision} question={yesNoText(props)} choices={choices} onAnswer={props.onAnswer} />;
+  return (
+    <Choices
+      decision={props.decision}
+      question={yesNoText(props)}
+      choices={choices}
+      onAnswer={props.onAnswer}
+      place={props.place}
+    />
+  );
 }
 
 /** The secret opening card pick: every card in the hand. */
-function ChooseCardPrompt({ decision, hand, label, onAnswer }: Readonly<PromptProps>) {
-  const choices: Choice[] = hand.map((card) => ({ text: label(card), value: { kind: "chooseCard", card } }));
+function ChooseCardPrompt({ decision, hand, label, onAnswer, place }: Readonly<PromptProps>) {
+  const choices: Choice[] = hand.map((card) => ({
+    text: label(card),
+    value: { kind: "chooseCard", card },
+    cards: [card],
+  }));
   return (
     <Choices
       decision={decision}
       question={`${SIDE_NAME[decision.side]}: pick an opening card`}
       choices={choices}
       onAnswer={onAnswer}
+      place={place}
     />
   );
 }
@@ -135,6 +116,7 @@ function playChoices({ decision, hand, label, affiliation }: Readonly<PromptProp
     return USES.filter((use) => allowed.has(use)).map((as): Choice => ({
       text: `${label(card)}: ${as}`,
       value: { kind: "playCardAs", card, as },
+      cards: [card],
     }));
   });
 }
@@ -147,6 +129,7 @@ function PlayCardAsPrompt(props: Readonly<PromptProps>) {
       question={`${SIDE_NAME[props.decision.side]}: play a card for its event or its points`}
       choices={playChoices(props)}
       onAnswer={props.onAnswer}
+      place={props.place}
     />
   );
 }
@@ -160,11 +143,12 @@ function ExtraPlayPrompt(props: Readonly<PromptProps>) {
       question={`${SIDE_NAME[props.decision.side]}: Hypersonics extra play, or pass`}
       choices={choices}
       onAnswer={props.onAnswer}
+      place={props.place}
     />
   );
 }
 
-function RivalEventOrderPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
+function RivalEventOrderPrompt({ decision, onAnswer, place }: Readonly<PromptProps>) {
   const choices: Choice[] = [
     { text: "Before the points", value: { kind: "rivalEventOrder", event: "before" } },
     { text: "After the points", value: { kind: "rivalEventOrder", event: "after" } },
@@ -175,6 +159,7 @@ function RivalEventOrderPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
       question={`${SIDE_NAME[decision.side]}: the rival's event happens before or after your points?`}
       choices={choices}
       onAnswer={onAnswer}
+      place={place}
     />
   );
 }
@@ -189,14 +174,16 @@ function setsOf(cards: readonly CardId[], count: number): CardId[][] {
  * A discard pick: one choice per set of `count` cards, from the viewer's hand ("hand") or the rival's cards it
  * has been shown ("rivalHand"), labelled with the card names.
  */
-function DiscardCardsPrompt({ decision, hand, known, label, onAnswer }: Readonly<PromptProps>) {
+function DiscardCardsPrompt({ decision, hand, known, label, onAnswer, place }: Readonly<PromptProps>) {
   const options = decision.options;
   const from = "from" in options ? options.from : "hand";
   const count = "count" in options ? options.count : 0;
   const cards = from === "rivalHand" ? known : hand;
+  // From the hand, each set goes on the lifted card of every card in it; the rival's cards are not in the strip.
   const choices: Choice[] = setsOf(cards, count).map((set) => ({
     text: `Discard ${set.map(label).join(", ")}`,
     value: { kind: "discardCards", cards: set },
+    ...(from === "hand" ? { cards: set } : {}),
   }));
   const whose = from === "rivalHand" ? "the rival's hand" : "your hand";
   return (
@@ -205,6 +192,7 @@ function DiscardCardsPrompt({ decision, hand, known, label, onAnswer }: Readonly
       question={`${SIDE_NAME[decision.side]}: discard ${count} card${count === 1 ? "" : "s"} from ${whose}`}
       choices={choices}
       onAnswer={onAnswer}
+      place={place}
     />
   );
 }
@@ -213,7 +201,7 @@ function DiscardCardsPrompt({ decision, hand, known, label, onAnswer }: Readonly
  * A placing (R16a): one choice per country the decision lists, in its order, with the points left in the
  * question. A country the side cannot afford now is refused by the transport, like any illegal pick.
  */
-function PlaceInfluencePrompt({ decision, onAnswer }: Readonly<PromptProps>) {
+function PlaceInfluencePrompt({ decision, onAnswer, place }: Readonly<PromptProps>) {
   const options = decision.options;
   const points = "points" in options ? options.points : 0;
   const countries = "countries" in options ? options.countries : [];
@@ -227,6 +215,7 @@ function PlaceInfluencePrompt({ decision, onAnswer }: Readonly<PromptProps>) {
       question={`${SIDE_NAME[decision.side]}: place 1 influence (${points} point${points === 1 ? "" : "s"} left)`}
       choices={choices}
       onAnswer={onAnswer}
+      place={place}
     />
   );
 }
@@ -242,7 +231,7 @@ const ACTION_TEXT: Record<Exclude<PointsAction, "intervene">, string> = {
  * The action menu (R16b, R16c): all the points go to one action. One choice per action the decision lists, in its
  * order, except an intervention, which is one choice per country the decision lists for it.
  */
-function ChooseActionPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
+function ChooseActionPrompt({ decision, onAnswer, place }: Readonly<PromptProps>) {
   const options = decision.options;
   const points = "actions" in options ? options.points : 0;
   const actions = "actions" in options ? options.actions : [];
@@ -261,6 +250,7 @@ function ChooseActionPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
       question={`${SIDE_NAME[decision.side]}: spend all ${points} point${points === 1 ? "" : "s"} on one action`}
       choices={choices}
       onAnswer={onAnswer}
+      place={place}
     />
   );
 }
@@ -269,7 +259,7 @@ function ChooseActionPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
  * A realignment attempt (R16c): one choice per country the decision lists, then a choice to stop (the attempts
  * left unmade), with the attempts left in the question.
  */
-function RealignPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
+function RealignPrompt({ decision, onAnswer, place }: Readonly<PromptProps>) {
   const options = decision.options;
   const attempts = "attempts" in options ? options.attempts : 0;
   const targets = "attempts" in options ? options.targets : [];
@@ -283,6 +273,7 @@ function RealignPrompt({ decision, onAnswer }: Readonly<PromptProps>) {
       question={`${SIDE_NAME[decision.side]}: realign (${attempts} attempt${attempts === 1 ? "" : "s"} left)`}
       choices={choices}
       onAnswer={onAnswer}
+      place={place}
     />
   );
 }

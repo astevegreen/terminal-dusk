@@ -1,9 +1,10 @@
 // The drawn map (L2, #465): one wrapper the size of the layout, which mapControl.ts moves by a CSS transform.
 // Inside it, on a real-geography map (L3, #479), the world picture and its tinted countries and borders
 // (artLayer.tsx); then a drawing (hidden from readers) that shades each region, greyed when closed, and draws the
-// lines between neighbours, from each home box to its countries, and from offset markers to their places; a button over each region zooms to it; and the markers sit
-// on top. It reads only the frame's public part, through the engine's pure helpers (the closed regions and the
-// battlegrounds by way of the host, as the app's boundary allows). No hooks: ZoomableMap holds the refs and the
+// lines between neighbours, from each home box to its countries, and from offset markers to their places; a button
+// over each region zooms to it; each region's standings chip sits under its name (L8, #488); and the markers sit on
+// top. It reads only the frame's public part, through the engine's pure helpers (the closed regions, the
+// battlegrounds and the region standings by way of the host, as the app's boundary allows). No hooks: ZoomableMap holds the refs and the
 // zoom, so tests can render and walk it without a browser.
 import { SIDES, controller } from "@terminal-dusk/engine";
 import type { CountryId, PublicState, RegionId } from "@terminal-dusk/engine";
@@ -16,6 +17,7 @@ import type { MapLayout, Point } from "./layout.ts";
 import { Marker, placeOf } from "./Marker.tsx";
 import { Leaders, TONES, Tints, WorldPicture } from "./artLayer.tsx";
 import type { Beat } from "./pulse.ts";
+import { RegionChips } from "./RegionChips.tsx";
 
 export type DrawnMapProps = {
   pub: PublicState;
@@ -121,6 +123,7 @@ export function DrawnMap({
         {layout.art !== undefined && <WorldPicture art={layout.art} layout={layout} />}
         <Picture pub={pub} layout={layout} />
         <RegionButtons pub={pub} layout={layout} onRegion={onRegion} />
+        <RegionChips pub={pub} layout={layout} />
         <ul className="dm-homes" aria-label="Home boxes">
           {SIDES.map((side) => (
             <li key={side} className="dm-home" data-home={side} style={placeOf(layout.homes[side])}>

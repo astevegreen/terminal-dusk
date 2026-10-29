@@ -151,15 +151,16 @@
   background: var(--game-panel-bg);
   white-space: normal;
 }
-/* The sheet: its tab row along the bottom of the map, and the open tab's panel just above it. */
+/* The sheet: its tab row at the bottom edge, beside the hand strip (handStrip.css, L6), and the open tab's panel
+   just above the bottom edge, as wide as the screen (the bottom edge, not the sheet, is the panel's box). */
 .game .game-sheet {
-  grid-area: sheet;
-  z-index: 2;
-  position: relative;
+  display: flex;
+  flex: none;
   min-width: 0;
 }
 .game .game-sheet-bar {
   display: flex;
+  align-items: center;
   gap: 4px;
   padding: 2px 4px;
   background: var(--game-bar-bg);
@@ -170,7 +171,7 @@
   gap: 4px;
 }
 .game .game-tabs button {
-  flex: 1 1 0;
+  flex: 1 1 auto;
   min-width: 44px;
   min-height: 44px;
 }
@@ -186,7 +187,7 @@
 .game .game-sheet-hide[hidden] {
   display: none;
 }
-/* The open panel rises over the map from the tab row, never past the top 54% of the game nor over the map tools
+/* The open panel rises over the map from the bottom edge, never past the top 42% of the game nor over the map tools
    (--game-panel-max, gameScreen.css), and scrolls. */
 .game .game-tab-panel {
   position: absolute;

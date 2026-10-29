@@ -34,12 +34,13 @@ const over = (winner: Side | null, reason = "turns ran out"): Frame =>
   withPublic(frameFor("lio"), { status: { kind: "over", winner, reason } });
 
 /**
- * The Decision region's html, up to the hand after it. The frames are on the test map (issue #366), whose region
- * buttons (zoom, for every viewer) are elsewhere on the screen, so button checks look here.
+ * The Decision region's html, up to the Details tab's panel after it (the log left the sheet for its drawer, L9,
+ * #489). The frames are on the test map (issue #366), whose region buttons (zoom, for every viewer) are elsewhere on
+ * the screen, so button checks look here.
  */
 const decisionOf = (out: string): string => {
   const start = out.indexOf('data-testid="decision"');
-  const end = out.indexOf('data-testid="hand"', start);
+  const end = out.indexOf('role="tabpanel"', start);
   if (start < 0 || end < 0) throw new Error("no Decision region");
   return out.slice(start, end);
 };
@@ -55,16 +56,18 @@ describe("GameScreen for a side", () => {
   it("shows the viewer, the turn line and the plays", () => {
     expectAll(out, ["You play LIO", "Turn 1 of 2", "Plays this turn: 0 of 4", "Your decision"]);
   });
-  it("shows the hand by name in the frame's order and the opponent's count", () => {
-    expectAll(out, ["<li>Test card 1</li><li>Test card 2</li><li>Test card 3</li>", "SAE holds 7 cards"]);
+  it("shows the hand in the strip by name in the frame's order, and the opponent's count", () => {
+    const names = [...out.matchAll(/<span class="strip-chip-name">([^<]+)<\/span>/g)].map((m) => m[1]);
+    expect(names.slice(0, 3)).toEqual(["Test card 1", "Test card 2", "Test card 3"]);
+    expect(out).toContain("SAE holds 7 cards");
   });
-  it("shows each card's rules text under its name when the game has rules text (#414)", () => {
+  it("shows each card's rules text under its name on the lifted card when the game has rules text (#414)", () => {
     const rules = (card: string): string | undefined => (card === "t2" ? undefined : `Rules of ${card}.`);
     const withRules = html(lio, { rules });
     expectAll(withRules, [
-      '<li><span class="hand-card-name">Test card 1</span><span class="hand-card-rules">Rules of t1.</span></li>',
-      "<li>Test card 2</li>",
-      '<li><span class="hand-card-name">Test card 3</span><span class="hand-card-rules">Rules of t3.</span></li>',
+      '<span class="hand-card-name">Test card 1</span><span class="lifted-side">LIO card</span></p><p class="hand-card-rules">Rules of t1.</p>',
+      '<span class="hand-card-name">Test card 2</span><span class="lifted-side">LIO card</span></p></div>',
+      '<span class="hand-card-name">Test card 3</span><span class="lifted-side">LIO card</span></p><p class="hand-card-rules">Rules of t3.</p>',
     ]);
   });
   it("shows the table, with the cards in play and the discard pile", () => {
@@ -169,7 +172,7 @@ describe("the era line", () => {
 describe("GameScreen for a spectator", () => {
   const out = html(frameFor("spectator"), { onAnswer: () => {} });
   it("shows two hand counts, no opponent region and Game active", () => {
-    expectAll(out, ["Spectating", "LIO holds 7 cards, SAE holds 7 cards"]);
+    expectAll(out, ["Spectating", '<span data-side="lio">LIO 7</span><span data-side="sae">SAE 7</span>']);
     expect(out).not.toContain('data-testid="opponent"');
     expect(out).toContain("Game active");
   });
@@ -248,7 +251,9 @@ describe("screen-reader support", () => {
     expect(out).toContain('<div class="game">');
   });
   it("lets the keyboard reach each scrolling element, each with a name", () => {
-    expect(out).toContain('<section aria-label="Your hand" data-testid="hand" class="game-hand" tabindex="0">');
+    // The hand strip scrolls sideways; its chips take the keyboard, so the strip itself needs no tabindex.
+    expect(out).toContain('<section aria-label="Your hand" data-testid="hand" class="game-strip">');
+    expect(out).toContain('<div role="toolbar" aria-label="Your cards" class="strip-cards">');
     expect(out).toContain('<section aria-label="Map" data-testid="map-area" class="game-map" tabindex="0">');
     expect(out).toContain('<ol aria-label="Log entries" tabindex="0">');
     expect(out).toContain('<div class="game-sheet" role="region" aria-label="Game details" tabindex="0">');

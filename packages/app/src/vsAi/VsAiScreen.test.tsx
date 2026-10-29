@@ -62,7 +62,7 @@ describe("the game screen against the AI", () => {
     expect(hand.length).toBeGreaterThan(0);
     const rules = (id: string): string => `Rules of ${id}.`;
     const out = renderToString(<VsAiView snapshot={snapshot} session={session} onNewGame={() => {}} rules={rules} />);
-    for (const id of hand) expect(out).toContain(`<span class="hand-card-rules">Rules of ${id}.</span>`);
+    for (const id of hand) expect(out).toContain(`<p class="hand-card-rules">Rules of ${id}.</p>`);
     expect(view(session)).not.toContain("hand-card-rules");
   });
   it("draws the game screen inside the wrapper that moves focus to each new decision", () => {

@@ -67,14 +67,17 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e-stack/mail.ts` - Reading sign-in codes from the local stack's mail catcher (Mailpit) for A10. Exports: mailpitUrl, codeFrom, waitForCode, whyMailUnavailable.
 - `packages/app/e2e-stack/phase4.e2e.ts` - The phase 4 gate in a real browser (A10; docs/architecture.md, "Revised build order", phase 4).
 - `packages/app/e2e-stack/runUsers.ts` - The run's two players, found and removed by email with the service role (A10). Exports: userIdByEmail, grantWebByEmail, removeRun.
+- `packages/app/e2e/answer.ts` - Shared answering for the Playwright smoke tests (not a test file: only *.e2e.ts files are tests). Exports: decisionButtons, stripChips, liftedCard, yourDecision, takenOrRefused, answerOnce.
 - `packages/app/e2e/drawnMap.e2e.ts` - The drawn map (L2, #465) in the six-region game against the AI, at the phone and desktop sizes: 42 markers and the two home boxes, all inside the map area with…
 - `packages/app/e2e/game.e2e.ts`
+- `packages/app/e2e/handStrip.e2e.ts` - The hand strip (L6, #486), run at both configured sizes (844x390 and 1280x800): the hand is a slim strip along the bottom edge, each card a chip at least 44 px…
 - `packages/app/e2e/keyboard.e2e.ts`
 - `packages/app/e2e/landscape.e2e.ts` - The map-first game screen (L5, #485), run at both configured sizes (844x390 and 1280x800): the map fills the whole game screen and everything else floats over…
 - `packages/app/e2e/map.e2e.ts`
-- `packages/app/e2e/mapTheme.test.ts` - Guards src/game/map/mapTheme.css, drawnMap.css and gameScreen.css.
+- `packages/app/e2e/mapTheme.test.ts` - Guards src/game/map/mapTheme.css, drawnMap.css, regionChips.css and gameScreen.css.
 - `packages/app/e2e/narrow.e2e.ts` - The game screen on a phone held upright (375x667), found in the phase 3 gate playtest of 28 Oct: a game with no map kept a full-size empty map box (#412).
 - `packages/app/e2e/online.e2e.ts`
+- `packages/app/e2e/regionChips.e2e.ts` - Region standings chips on the map (L8, #488), in the six-region game against the AI at both configured sizes (844x390 and 1280x800): six chips, one under each…
 - `packages/app/e2e/replay.e2e.ts`
 - `packages/app/e2e/server.test.ts` - The Playwright run's own port (server.ts): a free one, kept for the run's workers, never a server already running.
 - `packages/app/e2e/server.ts` - Where the Playwright smoke tests serve the app (playwright.config.ts). Exports: e2ePort, e2eServer.
@@ -99,9 +102,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/App.tsx` - The home screen: the game's name, a button to play against the AI, a button to play the six-region map against the AI (A14, #439), a button to play online and… Exports: AppProps, App, onlineRoute, Home.
 - `packages/app/src/chooseActionPrompt.test.tsx` - The chooseAction prompt (R16b, #316): all the points go to one action, placing or one intervention.
 - `packages/app/src/decisionPrompts.test.tsx`
-- `packages/app/src/decisionPrompts.tsx` - One prompt component per DecisionKind. Exports: CardQuestion, CardAffiliation, PromptProps, PromptComponent, askingCard, decisionPrompts.
+- `packages/app/src/decisionPrompts.tsx` - One prompt component per DecisionKind. Exports: PromptPlace, CardQuestion, CardAffiliation, PromptProps, PromptComponent, askingCard, decisionPrompts.
 - `packages/app/src/displayText.test.ts`
-- `packages/app/src/displayText.ts` - The words the game screens share: side names and who each side is, era names, why a game ended, and what the log calls cards and eras. Exports: Label, GameNames, regionNamer, scoreText, ESCALATION_NAME, CardRules, SIDE_NAME, SIDE_WHO, sideFullName, eraText, playsText, reasonText, ….
+- `packages/app/src/displayText.ts` - The words the game screens share: side names and who each side is, era names, why a game ended, and what the log calls cards and eras. Exports: Label, GameNames, regionNamer, scoreText, ESCALATION_NAME, CardRules, CardPoints, pointsOf, SIDE_NAME, SIDE_WHO, sideFullName, eraText, ….
 - `packages/app/src/eventPresentation.test.ts`
 - `packages/app/src/eventPresentation.ts` - How each EventKind is presented. Exports: EventPresentation, eventPresentation, logLine, touchedCountries.
 - `packages/app/src/game/GameScreen.test.tsx`
@@ -111,33 +114,42 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/MapZoom.test.tsx` - The map zoomed into a region (issue #365): region buttons, country boxes, "Whole map", zoom kept across frames.
 - `packages/app/src/game/ZoomableMap.tsx` - The Map area's one hook holder (docs/architecture.md, Decision 6). Exports: ZoomableMap.
 - `packages/app/src/game/decisionFocus.test.tsx`
-- `packages/app/src/game/decisionFocus.tsx` - Keyboard play: when a new decision waits for the player, focus moves to its first choice button. Exports: shouldFocusDecision, FocusRoot, FIRST_CHOICE, applyDecisionFocus, FocusingGameScreen.
+- `packages/app/src/game/decisionFocus.tsx` - Keyboard play: when a new decision waits for the player, focus moves to its first choice button. Exports: shouldFocusDecision, FocusRoot, FIRST_CHOICE, STRIP_CHIP, applyDecisionFocus, FocusingGameScreen.
 - `packages/app/src/game/drawerControl.test.ts` - The log drawer's rules (L9, #489), without a browser: when it shows, and how it closes.
 - `packages/app/src/game/drawerControl.ts` - The log drawer's rules (L9, #489; docs/design/screen-layout.md), kept apart from React so they are tested without a browser: when the drawer shows, and how it… Exports: Opened, drawerShown, DrawerPart, DrawerParts, dismissDrawer.
 - `packages/app/src/game/gameBars.css`
 - `packages/app/src/game/gameScreen.css`
+- `packages/app/src/game/handCards.tsx` - What the hand strip shows (L6, #486; docs/design/screen-layout.md), drawn from the frame and display data only: each card in the hand as a small chip (its poin… Exports: StripChip, chipsOf, chipName, ChipFace, LiftedCard, StripCounts.
+- `packages/app/src/game/handStrip.css`
+- `packages/app/src/game/handStrip.test.tsx` - The hand strip (L6, #486): each card a chip with its points, name and side; a lifted card with its full text and the waiting decision's choices for it; the riv…
+- `packages/app/src/game/handStrip.tsx` - The hand strip along the bottom edge (L6, #486; docs/design/screen-layout.md; Decision 6's bottom sheet in its folded form). Exports: stripMove, liftedIn, HandStrip.
 - `packages/app/src/game/logDrawer.css`
 - `packages/app/src/game/map/DrawnMap.test.tsx` - The drawn map (L2, #465): a shaded area per region, a marker per country with its name, both sides' influence, its controller's colour, stability and a battleg…
 - `packages/app/src/game/map/DrawnMap.tsx` - The drawn map (L2, #465): one wrapper the size of the layout, which mapControl.ts moves by a CSS transform. Exports: DrawnMapProps, DrawnMap.
 - `packages/app/src/game/map/MapPanel.test.tsx` - The Map area's two views (L2, #465): the drawn map, with "Whole map", or the List, which is the map as it was drawn before (MapView, unchanged), with a Map/Lis…
 - `packages/app/src/game/map/MapPanel.tsx` - The Map area's contents (L2, #465): a Map/List toggle (with the picture's credit on a real-geography map, L3, #479), then the drawn map or the List, which is M… Exports: MapMode, PanelHandlers, PanelProps, MapPanel.
 - `packages/app/src/game/map/Marker.tsx` - One country on the drawn map (L2, #465): a small box at its place, filled in its controller's colour, with its short name, a battleground mark, LIO's influence… Exports: MarkerProps, placeOf, markerText, Marker.
+- `packages/app/src/game/map/RegionChips.test.tsx` - Region standings on the map (L8, #488): under each region's name, a chip shows how each side stands there now, in the words of docs/design/map-and-points.md (p…
+- `packages/app/src/game/map/RegionChips.tsx` - Region standings on the map (L8, #488): under each region's name, a small chip with one line per side, its level there now in the words of docs/design/map-and-… Exports: standingLine, standingLabel, RegionChips.
 - `packages/app/src/game/map/artLayer.tsx` - The real-geography map's artwork (L3, #479), drawn under the markers: the Blue Marble picture, each region's countries tinted in its tone (greyed when the regi… Exports: TONES, WorldPicture, Tints, Leaders.
 - `packages/app/src/game/map/autoLayout.test.ts` - The layout any other map gets (L2, #465): regions in a grid, each country in its own region, nothing overlapping, whatever the map; layoutFor picks it whenever…
 - `packages/app/src/game/map/autoLayout.ts` - A drawing for any map that has no hand-made one (L2, #465), such as the test map: the two home boxes in a strip along the top, then the regions in a grid in th… Exports: autoLayout.
+- `packages/app/src/game/map/chipPlaces.test.ts` - Where each region's standings chip sits (L8, #488): under the region's name, inside the region, clear of every country marker, home box and true-place dot.
+- `packages/app/src/game/map/chipPlaces.ts` - Where each region's standings chip sits (L8, #488), in layout units: the highest spot under the region's name, then the leftmost, where a CHIP-sized box stays… Exports: chipBox, chipPlaces.
 - `packages/app/src/game/map/drawnMap.css`
 - `packages/app/src/game/map/fitTransform.test.ts` - The drawn map's view maths (L2, #465): fitting a rectangle to the screen, zooming around a point, panning, and the clamps that keep the map between "whole map…
 - `packages/app/src/game/map/fitTransform.ts` - The drawn map's view (L2, #465): how far it is zoomed and moved, as one CSS transform on its one wrapper (docs/architecture.md, Decision 6). Exports: View, Bounds, MAX_ZOOM, fitTransform, transformCss, minScale, clampView, zoomAt, panBy, pinchFactor, midpoint.
 - `packages/app/src/game/map/gestures.test.ts` - The drawn map's gestures (L2, #465), as pure steps: a tap stays a tap until the pointer has moved 6 px, then it drags the map; two fingers pinch, zooming aroun…
 - `packages/app/src/game/map/gestures.ts` - The drawn map's gestures (L2, #465) as pure steps, so they are tested without a browser; mapControl.ts feeds them the real pointer and wheel events. Exports: DRAG_THRESHOLD, Gesture, NO_GESTURE, pointerDown, pointerUp, pointerMove, wheelFactor.
 - `packages/app/src/game/map/layout.test.ts` - The layout helpers (L2, #465): neighbour lines once per pair, short names, and the rectangle tests.
-- `packages/app/src/game/map/layout.ts` - The drawn map's layout (L2, #465): where each region, country and home box sits, in whole numbers in a fixed space the map is drawn at, before it is scaled to… Exports: Size, Point, Rect, MapLayout, WorldArt, Leader, LEADER_MAX, MARKER, LABEL_BAND, SHORT_MAX, shortName, markerBox, ….
+- `packages/app/src/game/map/layout.ts` - The drawn map's layout (L2, #465): where each region, country and home box sits, in whole numbers in a fixed space the map is drawn at, before it is scaled to… Exports: Size, Point, Rect, MapLayout, WorldArt, Leader, LEADER_MAX, MARKER, LABEL_BAND, CHIP, SHORT_MAX, shortName, ….
 - `packages/app/src/game/map/layoutFor.ts` - Which drawing a frame's map gets (L2, #465): the hand-made six-region one when it places every region and country of the map, otherwise autoLayout's grid. Exports: layoutFor.
 - `packages/app/src/game/map/mapControl.test.ts` - The drawn map's wiring to the browser (L2, #465), driven here with stand-in elements: the wheel zooms around the cursor without scrolling the page, a drag past…
 - `packages/app/src/game/map/mapControl.ts` - The drawn map's wiring to the browser (L2, #465; docs/architecture.md, Decision 6): wheel, pointer and resize events on the map area move one wrapper by a CSS… Exports: SavedView, MapControl, controlMap.
 - `packages/app/src/game/map/mapTheme.css`
 - `packages/app/src/game/map/pulse.test.ts` - The pulse on the countries a move touched (L9, #489): each new batch of events starts it again, even on a country the last batch touched too, and a redraw with…
 - `packages/app/src/game/map/pulse.ts` - The pulse on the countries a move touched (L9, #489; docs/architecture.md, Decision 6: animation comes from events). Exports: Beat, Pulse, nextPulse.
+- `packages/app/src/game/map/regionChips.css`
 - `packages/app/src/game/map/sixRegionLayout.test.ts` - The six-region map's drawing (L2, #465; real geography since L3, #479): every country inside its region and the map, nothing overlapping, the regions roughly w…
 - `packages/app/src/game/map/sixRegionLayout.ts` - The six-region map's drawing (L2, #465; real geography since L3, #479). Exports: SIX_REGION_LAYOUT.
 - `packages/app/src/game/map/test/layoutChecks.ts` - Test helper: the checks every map layout must pass, for the six-region layout and for autoLayout on any map. Exports: expectInside, expectNoOverlap.
@@ -149,7 +161,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/map/world/worldArt.json`
 - `packages/app/src/game/map/world/worldArt.test.ts` - The real-geography map's artwork (L3, #479), as `pnpm map:build` made it: every country of the six-region game has a shape, and the shape is around the country…
 - `packages/app/src/game/map/world/worldArt.ts` - The real-geography map's artwork (L3, #479), made by `pnpm map:build` from the sources in SOURCES.md: the Blue Marble picture, and each game country's shape an… Exports: WORLD_ART.
-- `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, HandCard, Hand, Opponent, Table, Contingency, Log.
+- `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, HandCard, Opponent, Table, Contingency, Log.
 - `packages/app/src/game/sideTabs.test.tsx` - The side panel's tabs (L1, issue #464; two since L9, #489): which one shows, and how they draw.
 - `packages/app/src/game/sideTabs.tsx` - The sheet's two tabs (L1, issue #464; L5, #485; docs/architecture.md, Decision 6): Play (the decision and the hand) and Details (the opponent, the table and th… Exports: TabId, SheetPick, TABS, shownTab, SideTabs.
 - `packages/app/src/game/sixRegionMapView.test.tsx` - The real six-region map on screen (A14, issue #439): 6 region buttons and 42 badges zoomed out, each region's boxes zoomed in, Crimea's own box, and both home…
@@ -208,6 +220,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/placeInfluencePrompt.test.tsx` - The placeInfluence prompt (R16a, #315): one choice per country a placing lists.
 - `packages/app/src/platform/storage.test.ts`
 - `packages/app/src/platform/storage.ts` - The `storage` part of the Platform interface (docs/architecture.md, Decision 7): a small async key-value store, so a Capacitor implementation fits later. Exports: KeyValueStore, StorageLike, memoryStore, webStore.
+- `packages/app/src/promptChoices.tsx` - How a prompt draws its choices (decisionPrompts.tsx), and where (L6, #486; docs/design/screen-layout.md). Exports: PromptPlace, Choice, BUTTON_STYLE, TAP_A_CARD, Choices.
+- `packages/app/src/promptPlace.test.tsx` - Where a prompt draws its choices (L6, #486): the choices that use a card in the hand go on that card when it is lifted from the hand strip, and the decision's…
 - `packages/app/src/realignPrompts.test.tsx` - The action menu and realign prompts (R16c, #317): one choice per action, and one per country to realign in.
 - `packages/app/src/replay/ReplayScreen.test.tsx`
 - `packages/app/src/replay/ReplayScreen.tsx` - The replay viewer: steps through a finished game's recorded frames, both hands showing. Exports: ReplayScreenProps, ReplayView, ReplayScreen.
@@ -562,7 +576,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/events.ts` - Filtering events by who may see them. Exports: eventsFor.
 - `packages/engine/src/hasCondition.test.ts` - The `has` condition (#141): an if is true exactly when a lasting marker with that label has been set.
 - `packages/engine/src/index.test.ts`
-- `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, isBattleground, closedRegions, isRegionClosed, createGame, legalAnswers, pendingFor, eventsFor, controller, placementCost, seedHash, DECKS, ….
+- `packages/engine/src/index.ts` - Public entry point of the rules engine. Exports: apply, isBattleground, closedRegions, isRegionClosed, createGame, legalAnswers, pendingFor, eventsFor, controller, placementCost, regionStanding, RegionLevel, ….
 - `packages/engine/src/influence.test.ts` - R15: who controls a country, what one influence costs to place, and adding and removing influence (docs/design/map-and-points.md, "Influence").
 - `packages/engine/src/influence.ts` - The influence rules (docs/design/map-and-points.md, "Influence"): who controls a country, whether a side may place one influence there and at what cost, and ad… Exports: controller, placementCost, reachable, affordable, realignTargets, costNow, addInfluence, removeInfluence.
 - `packages/engine/src/intervening.test.ts` - R16b (#316): intervene on the action menu (docs/design/map-and-points.md, "Points and actions" 1 and 2).
@@ -599,7 +613,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/revealHand.test.ts` - The revealHand step (#184): shows one side's hand to the other, kept in the peeking side's knowledge.
 - `packages/engine/src/rng.test.ts`
 - `packages/engine/src/rng.ts` - Seeded random numbers for the rules engine. Exports: RngState, seedRng, hashSeed, nextInt, shuffle.
-- `packages/engine/src/scoring.ts` - Era-end region scoring (docs/design/map-and-points.md, "Scoring"). Exports: BATTLEGROUND_POINT, RegionPoints, regionScore, eraEnds, moveScore, scoreEra, leader, scoreState, scoringError.
+- `packages/engine/src/scoring.ts` - Era-end region scoring (docs/design/map-and-points.md, "Scoring"). Exports: BATTLEGROUND_POINT, RegionPoints, RegionLevel, RegionStanding, regionStanding, regionScore, eraEnds, moveScore, scoreEra, leader, scoreState, scoringError.
 - `packages/engine/src/scoringChecks.test.ts` - R21: createGame checks the map's scoring data (scoring.ts, scoringError).
 - `packages/engine/src/scoringTypes.ts` - Era-end region scoring's types (docs/design/map-and-points.md, "Scoring"): the map's scoring data and the score track's events. Exports: RegionAmounts, MapScoring, RegionScored, ScoreChanged, ScoreEvent.
 - `packages/engine/src/setupTypes.ts` - The setup's types: what createGame starts a game from. Exports: EraEntry, Setup.
@@ -652,7 +666,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/src/entitlement.test.ts`
 - `packages/host/src/entitlement.ts` - Who may create an online game (docs/architecture.md, Product calls: "Free players cannot create online games"). Exports: PLATFORMS, Platform, Entitlement, isPlatform, isEntitlement, createOnlineRefusal.
 - `packages/host/src/firstDeck.test.ts`
-- `packages/host/src/firstDeck.ts` - The first deck as a game the app can start: the ruleset, a match config, and card names and rules text. Exports: FIRST_DECK_NOTE, SIX_REGION_MAP_NOTE, firstDeckRuleset, firstDeckCardName, firstDeckEraName, firstDeckCardQuestion, firstDeckCardRules, firstDeckTestMap, firstDeckConfig, sixRegionMapConfig, closedRegions, isBattleground.
+- `packages/host/src/firstDeck.ts` - The first deck as a game the app can start: the ruleset, a match config, and card names and rules text. Exports: FIRST_DECK_NOTE, SIX_REGION_MAP_NOTE, firstDeckRuleset, firstDeckCardName, firstDeckEraName, firstDeckCardQuestion, firstDeckCardRules, firstDeckTestMap, firstDeckConfig, sixRegionMapConfig, closedRegions, isBattleground, ….
 - `packages/host/src/firstDeckQuestion.test.ts`
 - `packages/host/src/firstDeckRules.test.ts`
 - `packages/host/src/firstDeckTestMap.test.ts` - The test map as the host hands it to the app (issue #366): R14's TEST_MAP_SCENARIO through content's scenarioSetup.

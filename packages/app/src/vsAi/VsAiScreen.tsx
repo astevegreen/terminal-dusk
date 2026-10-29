@@ -7,9 +7,9 @@ import { FocusingGameScreen } from "../game/decisionFocus.tsx";
 import { ReplayScreen } from "../replay/ReplayScreen.tsx";
 import type { ReplayRecording } from "../replay/recording.ts";
 import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
-import { SIDE_NAME, SIDE_WHO, sideFullName } from "../displayText.ts";
-import type { CardRules } from "../displayText.ts";
-import { cardAffiliation as fixtureAffiliation, cardName, cardQuestion } from "../testMode/fixture.ts";
+import { SIDE_NAME, SIDE_WHO, pointsOf, sideFullName } from "../displayText.ts";
+import type { CardPoints, CardRules } from "../displayText.ts";
+import { cardAffiliation as fixtureAffiliation, cardName, cardQuestion, fixtureRuleset } from "../testMode/fixture.ts";
 import type { MakeAi } from "./aiOpponent.ts";
 import { createVsAiSession } from "./session.ts";
 import type { VsAiOptions } from "./session.ts";
@@ -18,6 +18,7 @@ import { createWorkerAi } from "./workerAi.ts";
 
 const TAP = { minHeight: 44, minWidth: 44 } as const;
 export const PRACTICE_NOTE = "Practice game with developer test cards";
+const fixturePoints = pointsOf(fixtureRuleset);
 
 /** A game to play against the AI: its rules, how it starts, how its cards are named and the note shown above it. */
 export type VsAiGame = {
@@ -63,6 +64,7 @@ export function VsAiView({
   question = cardQuestion,
   affiliation = fixtureAffiliation,
   rules,
+  points = fixturePoints,
 }: Readonly<{
   snapshot: VsAiSnapshot;
   session: VsAiSession;
@@ -73,6 +75,8 @@ export function VsAiView({
   affiliation?: CardAffiliation | undefined;
   /** A card's rules text for the hand; left out, as for the developer fixture, the hand shows names only. */
   rules?: CardRules | undefined;
+  /** A card's points for its chip in the hand strip; the developer fixture's when left out. */
+  points?: CardPoints | undefined;
 }>) {
   const [watching, setWatching] = useState<ReplayRecording | null>(null);
   const { frame } = snapshot;
@@ -101,6 +105,7 @@ export function VsAiView({
           question={question}
           affiliation={affiliation}
           rules={rules}
+          points={points}
           onAnswer={(value) => void session.answer(value)}
           refusal={snapshot.refusal}
           menu={<p>{note}</p>}
@@ -153,6 +158,7 @@ function Game({
       question={game?.cardQuestion}
       affiliation={game?.cardAffiliation}
       rules={game?.cardRules}
+      points={game ? pointsOf(game.ruleset) : undefined}
     />
   );
 }

@@ -6,6 +6,7 @@
 // Screenshots of the ticker with a pulse and of the open drawer are saved in the test's output folder and attached.
 import { expect, test } from "@playwright/test";
 import type { Locator, Page, TestInfo } from "@playwright/test";
+import { answerOnce, yourDecision } from "./answer.ts";
 import { startSixRegionGame } from "./start.ts";
 
 const box = (locator: Locator): Promise<DOMRect> => locator.evaluate((el) => el.getBoundingClientRect().toJSON());
@@ -19,30 +20,6 @@ async function shoot(page: Page, testInfo: TestInfo, name: string): Promise<void
   const path = testInfo.outputPath(`l9-${name}-${viewport.width}.png`);
   await page.screenshot({ path });
   await testInfo.attach(`${name} ${viewport.width}x${viewport.height}`, { path, contentType: "image/png" });
-}
-
-/** Taps one of LIO's choices, placing influence where it can, and waits until the screen has moved on from it. */
-async function answerOnce(page: Page): Promise<void> {
-  const decision = page.getByTestId("decision");
-  const names = await decision.getByRole("button").allTextContents();
-  const pick =
-    names.find((n) => n.startsWith("Place in ")) ??
-    names.find((n) => n === "Place influence") ??
-    names.find((n) => /: (points|influence|operations)/i.test(n)) ??
-    names[0]!;
-  const button = await decision.getByRole("button", { name: pick, exact: true }).first().elementHandle();
-  if (button === null) return;
-  await button.click();
-  // An accepted answer replaces the button; a refused one leaves it and shows a "Refused:" line.
-  const moved = await page.waitForFunction(
-    (tapped) =>
-      !tapped.isConnected ||
-      [...document.querySelectorAll('[data-testid="decision"] output')].some((l) =>
-        l.textContent?.startsWith("Refused:"),
-      ),
-    button,
-  );
-  await moved.dispose();
 }
 
 /** What the screen showed at one moment while SAE's line was on the ticker and some countries were touched. */
@@ -90,10 +67,9 @@ async function watchTheAi(page: Page): Promise<void> {
 async function untilTheAiMoved(page: Page): Promise<Seen> {
   await watchTheAi(page);
   const seen = (): Promise<Seen[]> => page.evaluate(() => (window as unknown as { l9Seen: Seen[] }).l9Seen);
-  const answer = page.getByTestId("decision").getByRole("button").first();
   const over = page.getByText("Game over");
   for (let step = 0; step < 150; step++) {
-    await answer.or(over).first().waitFor();
+    await yourDecision(page).or(over).first().waitFor();
     const found = await seen();
     if (found.length > 0) return found.at(-1)!;
     if (await over.isVisible()) break;

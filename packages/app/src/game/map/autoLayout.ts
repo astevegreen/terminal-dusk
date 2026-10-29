@@ -1,8 +1,9 @@
 // A drawing for any map that has no hand-made one (L2, #465), such as the test map: the two home boxes in a strip
 // along the top, then the regions in a grid in the map's order, each the same size, with its countries in a grid
-// under its name. Nothing overlaps, whatever the map (autoLayout.test.ts).
+// under its name. On a map with scoring, a row under the name is left for the region's standings chip (L8, #488).
+// Nothing overlaps, whatever the map (autoLayout.test.ts).
 import type { CountryId, GameMap, RegionId } from "@terminal-dusk/engine";
-import { LABEL_BAND, MARKER } from "./layout.ts";
+import { CHIP, LABEL_BAND, MARKER } from "./layout.ts";
 import type { MapLayout, Point, Rect } from "./layout.ts";
 
 /** The space between markers, and between regions. */
@@ -20,7 +21,12 @@ export function autoLayout(map: GameMap): MapLayout {
   const outer = gridOf(map.regions.length);
   const most = Math.max(0, ...map.regions.map((r) => map.countries.filter((c) => c.region === r.id).length));
   const inner = gridOf(most);
-  const region = { w: inner.cols * CELL.w + GAP, h: LABEL_BAND + inner.rows * CELL.h + GAP };
+  const scored = map.scoring !== undefined;
+  const top = LABEL_BAND + (scored ? CHIP.h + 2 * GAP : 0);
+  const region = {
+    w: Math.max(inner.cols * CELL.w + GAP, scored ? CHIP.w + 2 * GAP : 0),
+    h: top + inner.rows * CELL.h + GAP,
+  };
   const size = {
     w: Math.max(GAP + outer.cols * (region.w + GAP), 2 * CELL.w + 2 * GAP),
     h: HOME_STRIP + outer.rows * (region.h + GAP),
@@ -40,7 +46,7 @@ export function autoLayout(map: GameMap): MapLayout {
       .forEach((c, j) => {
         countries[c.id] = {
           x: rect.x + GAP + (j % inner.cols) * CELL.w + MARKER.w / 2,
-          y: rect.y + LABEL_BAND + Math.floor(j / inner.cols) * CELL.h + MARKER.h / 2,
+          y: rect.y + top + Math.floor(j / inner.cols) * CELL.h + MARKER.h / 2,
         };
       });
   });

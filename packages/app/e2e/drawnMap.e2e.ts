@@ -5,6 +5,7 @@
 // markers and its credit shows. With L2_SHOTS set to a folder, it saves a screenshot of each.
 import { expect, test } from "@playwright/test";
 import type { Locator, Page } from "@playwright/test";
+import { liftedCard, stripChips, yourDecision } from "./answer.ts";
 import { startSixRegionGame } from "./start.ts";
 
 type View = { scale: number; x: number; y: number };
@@ -209,6 +210,26 @@ async function afterPlacing(decision: Locator, marker: Locator): Promise<"lit" |
 }
 
 /**
+ * A card decision (L6, #486): lifts each card in the hand strip in turn and takes the first that offers a play for
+ * its points (or any choice, such as the opening pick), then waits for that card to leave the hand.
+ */
+async function playFromStrip(page: Page): Promise<void> {
+  const chips = stripChips(page);
+  const count = await chips.count();
+  for (let i = 0; i < count; i++) {
+    await chips.nth(i).click();
+    const buttons = liftedCard(page).getByRole("button");
+    const names = await buttons.allTextContents();
+    const pick = names.find((n) => n.endsWith(": points")) ?? names[0];
+    if (pick === undefined) continue;
+    await buttons.getByText(pick, { exact: true }).click();
+    await expect(liftedCard(page)).toHaveCount(0);
+    return;
+  }
+  throw new Error("no card in the strip offers a choice");
+}
+
+/**
  * Plays LIO's choices, placing influence where it can, until `count` placements were each seen lit. While LIO is
  * still placing, the frame shown is the one the placement made, so its country must light up; once the turn goes
  * on, a later frame's own events decide what is lit. Returns the countries seen lit, in order.
@@ -217,8 +238,14 @@ async function placeAndWatch(page: Page, area: Locator, count: number): Promise<
   const lit: string[] = [];
   const decision = page.getByTestId("decision");
   for (let step = 0; step < 60 && lit.length < count; step++) {
-    await expect(decision.getByRole("button").first()).toBeVisible();
+    // A choice to make: a button in the decision's region, or a card in the hand strip whose choices are on it
+    // when it is lifted (L6, #486).
+    await expect(yourDecision(page)).toBeVisible();
     const names = await decision.getByRole("button").allTextContents();
+    if (names.length === 0) {
+      await playFromStrip(page);
+      continue;
+    }
     const place = names.find((n) => n.startsWith("Place in "));
     const pick =
       place ??

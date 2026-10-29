@@ -8,8 +8,9 @@ import type { ReactElement } from "react";
 import type { CardId } from "@terminal-dusk/engine";
 import type { Platform } from "@terminal-dusk/host";
 import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
-import type { CardRules } from "../displayText.ts";
-import { cardAffiliation as fixtureAffiliation, cardName, cardQuestion } from "../testMode/fixture.ts";
+import { pointsOf } from "../displayText.ts";
+import type { CardPoints, CardRules } from "../displayText.ts";
+import { cardAffiliation as fixtureAffiliation, cardName, cardQuestion, fixtureRuleset } from "../testMode/fixture.ts";
 import type { AuthEndpoint } from "../transport/emailAuth.ts";
 import type { KeyValueStore } from "../platform/storage.ts";
 import { createLobbySession } from "./lobbySession.ts";
@@ -173,6 +174,8 @@ export type OnlineScreenProps = {
   question?: CardQuestion | undefined;
   /** A card's rules text for the hand; left out, the hand shows names only. */
   rules?: CardRules | undefined;
+  /** A card's points for its chip in the hand strip; the developer fixture's when left out. */
+  points?: CardPoints | undefined;
   affiliation?: CardAffiliation | undefined;
   /** Returns to the home screen. */
   onBack: () => void;
@@ -185,6 +188,7 @@ export function OnlineScreen({
   label = cardName,
   question = cardQuestion,
   rules,
+  points = pointsOf(fixtureRuleset),
   affiliation = fixtureAffiliation,
   onBack,
 }: Readonly<OnlineScreenProps>) {
@@ -197,6 +201,7 @@ export function OnlineScreen({
       label={label}
       question={question}
       rules={rules}
+      points={points}
       affiliation={affiliation}
       onBack={onBack}
     />

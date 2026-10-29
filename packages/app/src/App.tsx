@@ -6,6 +6,7 @@ import { OnlineScreen } from "./online/OnlineScreen.tsx";
 import { WatchScreen } from "./online/watch/WatchScreen.tsx";
 import { cardAffiliation as fixtureAffiliation, cardName, cardQuestion } from "./testMode/fixture.ts";
 import type { OnlineSetup } from "./online/OnlineScreen.tsx";
+import { pointsOf } from "./displayText.ts";
 import { realTimers } from "./online/timers.ts";
 import type { Timers } from "./online/timers.ts";
 import { TestModeScreen } from "./testMode/TestModeScreen.tsx";
@@ -94,6 +95,7 @@ export function onlineRoute(
       label={game?.cardName}
       question={game?.cardQuestion}
       rules={game?.cardRules}
+      points={game ? pointsOf(game.ruleset) : undefined}
       affiliation={game?.cardAffiliation}
       onBack={onBack}
     />

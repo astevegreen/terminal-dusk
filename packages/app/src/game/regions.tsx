@@ -84,23 +84,6 @@ export function HandCard({
   );
 }
 
-export function Hand({ frame, label, rules }: Readonly<{ frame: Frame; label: Label; rules?: CardRules | undefined }>) {
-  const { mine } = frame.view;
-  return (
-    <Region id="hand" title="Your hand" className="game-hand" scrolls>
-      {mine ? (
-        <ol>
-          {mine.hand.map((card) => (
-            <HandCard key={card} card={card} label={label} rules={rules} />
-          ))}
-        </ol>
-      ) : (
-        <p>{SIDES.map((s) => holds(frame, s)).join(", ")}</p>
-      )}
-    </Region>
-  );
-}
-
 export function Opponent({ frame }: Readonly<{ frame: Frame }>) {
   if (frame.viewer === "spectator") return null;
   return (

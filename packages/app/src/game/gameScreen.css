@@ -41,7 +41,8 @@ body:has(.game-page) {
   container-type: size;
 }
 /* One column for a phone held sideways: a hint line (upright only), the top bar, the map's own row, then the
-   sheet's tab row. The map's box spans the top bar to the sheet, so the bars lie over its edges (L5, #485). */
+   bottom edge (the hand strip and the sheet's tab row, L6). The map's box spans the top bar to the bottom edge, so
+   the bars lie over its edges (L5, #485). */
 .game {
   --game-bg: #fff;
   --game-fg: #000;
@@ -58,20 +59,23 @@ body:has(.game-page) {
   --game-ticker-bg: rgb(0 0 0 / 0.06);
   --game-ticker-fg: var(--game-fg);
   --game-drawer-w: max(50%, min(100%, 300px));
-  /* The open sheet's panel: at most 46% of the game, and never over the top bar (46px), the tools' block or the tab
-     row (48px), so the map tools can always be reached (gameBars.css). */
-  --game-sheet-reserve: calc(46px + var(--game-tools-block) + 48px);
-  --game-panel-max: min(46cqh, 100cqh - var(--game-sheet-reserve));
+  /* The open sheet's panel: it rises from the bottom edge (the hand strip, --game-strip-h in handStrip.css) no
+     higher than 58% of the game, and never over the top bar (46px) or the tools' block, so the map tools can always
+     be reached (gameBars.css). */
+  --game-sheet-reserve: calc(46px + var(--game-tools-block) + var(--game-strip-h));
+  --game-panel-max: min(58cqh - var(--game-strip-h), 100cqh - var(--game-sheet-reserve));
   box-sizing: border-box;
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  /* The banner row stays empty for now: L7 (#487) puts the decision banner there, just above the hand strip. */
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
   grid-template-areas:
     "hint"
     "top"
     "map"
-    "sheet";
+    "banner"
+    "bottom";
   width: 100%;
   max-width: 100vw;
   overflow: hidden;
@@ -102,11 +106,11 @@ body:has(.game-page) {
     display: block;
   }
 }
-/* The map, from the top bar to the sheet: its rows follow the game's, so the drawing takes the clear row between the
+/* The map, from the top bar to the bottom edge: its rows follow the game's, so the drawing takes the clear row between the
    bars and "Whole map" fits the world there, while the picture runs on under both see-through bars. The side
    colours (--map-lio, --map-sae, --map-none) and the sea are in map/mapTheme.css. */
 .game > .game-map {
-  grid-row: top-start / sheet-end;
+  grid-row: top-start / bottom-end;
   grid-column: 1;
   display: grid;
   grid-template-rows: subgrid;
@@ -186,9 +190,10 @@ body:has(.game-page) {
   height: auto;
   min-height: 0;
 }
-/* No map: the map box shrinks to its "No map in this game" line under the top bar, and the sheet takes the rest. */
+/* No map: the map box shrinks to its "No map in this game" line under the top bar, and the sheet's open panel may
+   take all the rest, rising from the bottom edge, which spans the empty rows for it. */
 .game.game-no-map {
-  grid-template-rows: auto auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
 }
 .game.game-no-map > .game-map {
   grid-row: map;
@@ -196,16 +201,18 @@ body:has(.game-page) {
   padding: 4px;
   background: none;
 }
-.game.game-no-map > .game-sheet {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
+.game.game-no-map > .game-bottom {
+  grid-row: banner-start / bottom-end;
+  align-items: flex-end;
+  height: auto;
+  min-height: var(--game-strip-h);
+}
+.game.game-no-map > .game-bottom > * {
+  height: var(--game-strip-h);
 }
 .game.game-no-map .game-tab-panel {
-  position: static;
-  flex: 1 1 0;
-  min-height: 0;
-  max-height: none;
+  bottom: var(--game-strip-h);
+  max-height: calc(100% - var(--game-strip-h));
 }
 .game .map-region h3 {
   margin: 2px 0;

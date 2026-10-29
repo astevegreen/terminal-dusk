@@ -37,8 +37,9 @@ test.describe("on a phone held upright", () => {
 
   /**
    * The same sideways layout under a short turn-your-phone hint (L1, #464): no page scroll either way, the hint
-   * above the status bar, the status bar, map and decision on screen, and the sheet along the bottom of the map,
-   * which fills the screen behind it (L5, #485). With no map, the map's one line sits above the sheet instead.
+   * above the status bar, the status bar, map and decision on screen, and the bottom edge along the bottom of the
+   * map, which fills the screen behind it (L5, #485): the hand strip from its left side and the sheet's tab row at
+   * its right (L6, #486). With no map, the map's one line sits above the sheet instead.
    */
   async function checkUpright(page: Page, hasMap: boolean): Promise<void> {
     const fits = await page.evaluate(
@@ -54,8 +55,11 @@ test.describe("on a phone held upright", () => {
     const side = await box(page.getByRole("region", { name: "Game details" }));
     const map = await box(page.getByTestId("map-area"));
     if (hasMap) {
-      expect(side.left).toBeCloseTo(map.left, 0);
-      expect(side.width).toBeCloseTo(map.width, 0);
+      const hand = await box(page.getByTestId("hand"));
+      expect(hand.left).toBeCloseTo(map.left, 0);
+      expect(side.right).toBeCloseTo(map.right, 0);
+      expect(hand.right).toBeCloseTo(side.left, 0);
+      expect(hand.bottom).toBeCloseTo(map.bottom, 0);
       expect(side.bottom).toBeCloseTo(map.bottom, 0);
     } else expect(side.top).toBeGreaterThanOrEqual(map.bottom);
   }

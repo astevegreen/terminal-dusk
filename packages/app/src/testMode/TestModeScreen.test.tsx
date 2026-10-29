@@ -16,6 +16,11 @@ const clock = (): number => 1_700_000_000_000 + tick++;
 const fresh = (seed?: string): TestSession => createTestSession(clock, seed);
 const html = (session: TestSession): string =>
   renderToString(<TestModeView snapshot={session.getSnapshot()} session={session} />);
+/** The cards in the hand strip (L6, #486), in its order: each chip's points and name. */
+const stripCards = (out: string): string[] =>
+  [...out.matchAll(/<span class="strip-chip-points">(\d+)<\/span><span class="strip-chip-name">([^<]+)</g)].map(
+    (m) => `${m[1]} ${m[2]}`,
+  );
 
 /** Presses the first prompt button the screen offers (in `order`) that the transport does not refuse. */
 async function answerOnce(session: TestSession, order: "first" | "last", accepted?: AnswerValue[]): Promise<string> {
@@ -64,12 +69,22 @@ describe("test mode screen", () => {
       "Turn 1 of 2",
       "Plays this turn: 0 of 4",
       "Your decision",
-      "<li>Test card 1</li><li>Test card 2</li><li>Test card 3</li><li>Test card 4</li><li>Test card 5</li><li>Test card 7</li><li>Test card 13</li>",
       "SAE holds 7 cards",
+      ">Rival 7</span>",
       "LIO: pick an opening card",
       "min-height:44px",
     ];
     for (const text of texts) expect(out).toContain(text);
+    // The hand is in the strip, each card with the fixture's points (1 + (n - 1) % 3).
+    expect(stripCards(out)).toEqual([
+      "1 Test card 1",
+      "2 Test card 2",
+      "3 Test card 3",
+      "1 Test card 4",
+      "2 Test card 5",
+      "1 Test card 7",
+      "1 Test card 13",
+    ]);
   });
   it("shows the game's events as a log, oldest first, once cards are revealed", async () => {
     const session = fresh();
@@ -89,16 +104,22 @@ describe("the viewer switch", () => {
     session.setViewer("sae");
     const out = html(session);
     expect(out).toContain("You play SAE");
-    expect(out).toContain(
-      "<li>Test card 9</li><li>Test card 10</li><li>Test card 11</li><li>Test card 12</li><li>Test card 8</li><li>Test card 6</li><li>Test card 14</li>",
-    );
+    expect(stripCards(out).map((card) => card.slice(2))).toEqual([
+      "Test card 9",
+      "Test card 10",
+      "Test card 11",
+      "Test card 12",
+      "Test card 8",
+      "Test card 6",
+      "Test card 14",
+    ]);
     expect(out).toContain("LIO holds 7 cards");
   });
   it("shows a spectator two hand counts, no card ids, read-only prompts and no answer buttons", () => {
     const session = fresh();
     session.setViewer("spectator");
     const out = html(session);
-    expect(out).toContain("LIO holds 7 cards, SAE holds 7 cards");
+    expect(out).toContain('<span data-side="lio">LIO 7</span><span data-side="sae">SAE 7</span>');
     expect(out).not.toContain('data-testid="opponent"');
     expect(out).not.toMatch(/\bt\d+\b/);
     expect(out).not.toContain("Test card 1,");

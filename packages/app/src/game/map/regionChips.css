@@ -1,0 +1,43 @@
+/* Region standings chips (L8, #488), drawn in layout units inside the map's wrapper like the markers. Colours and
+   sizes come from mapTheme.css, so an era's theme (#481) restyles them; the chip's box size is CHIP in layout.ts.
+   Taps go through to the region under them, as with the markers. */
+.dm-chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+}
+.dm-chip {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--map-chip-gap);
+  overflow: hidden;
+}
+.dm-chip-side {
+  box-sizing: border-box;
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 0 var(--map-chip-pad);
+  border: var(--map-chip-edge-width) solid var(--map-chip-edge);
+  border-radius: var(--map-chip-radius);
+  color: var(--map-chip-text);
+  font-family: var(--map-name-font);
+  font-size: var(--map-chip-font-size);
+  font-weight: bold;
+  line-height: var(--map-chip-line);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+.dm-chip-side[data-side="lio"] {
+  background: var(--map-lio);
+}
+.dm-chip-side[data-side="sae"] {
+  background: var(--map-sae);
+}
+/* A side with nothing in the region: its colour faded, so the sides that stand somewhere catch the eye. */
+.dm-chip-side[data-level="none"] {
+  opacity: var(--map-chip-none-opacity);
+}
