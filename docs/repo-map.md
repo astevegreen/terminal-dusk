@@ -67,13 +67,15 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e-stack/runUsers.ts` - The run's two players, found and removed by email with the service role (A10). Exports: userIdByEmail, grantWebByEmail, removeRun.
 - `packages/app/e2e/game.e2e.ts`
 - `packages/app/e2e/keyboard.e2e.ts`
+- `packages/app/e2e/landscape.e2e.ts` - The game screen laid out for a phone held sideways (L1, #464), run at both configured sizes (844x390 and 1280x800): no page scroll, a thin top bar, the map fil…
 - `packages/app/e2e/map.e2e.ts`
-- `packages/app/e2e/narrow.e2e.ts` - The game screen on a phone held upright (375x667), found in the phase 3 gate playtest of 28 Oct: the details column and the log were squeezed, and a game with…
+- `packages/app/e2e/narrow.e2e.ts` - The game screen on a phone held upright (375x667), found in the phase 3 gate playtest of 28 Oct: a game with no map kept a full-size empty map box (#412).
 - `packages/app/e2e/online.e2e.ts`
 - `packages/app/e2e/replay.e2e.ts`
 - `packages/app/e2e/server.test.ts` - The Playwright run's own port (server.ts): a free one, kept for the run's workers, never a server already running.
 - `packages/app/e2e/server.ts` - Where the Playwright smoke tests serve the app (playwright.config.ts). Exports: e2ePort, e2eServer.
 - `packages/app/e2e/sixRegionMap.e2e.ts` - The six-region map against the AI (A14, #439): 6 regions and 42 boxes, Crimea in its own box, and the two home boxes, readable and tappable on a phone held upr…
+- `packages/app/e2e/start.ts` - Shared starts for the Playwright smoke tests (not a test file: only *.e2e.ts files are tests). Exports: startSixRegionGame, pageSize.
 - `packages/app/e2e/testMode.e2e.ts`
 - `packages/app/e2e/tracks.e2e.ts` - The score track and Escalation on screen (A15, #448): test mode's map has scoring, so the region shows there at a phone held upright, held sideways and at desk…
 - `packages/app/e2e/vsAi.e2e.ts`
@@ -94,7 +96,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/eventPresentation.test.ts`
 - `packages/app/src/eventPresentation.ts` - How each EventKind is presented. Exports: EventPresentation, eventPresentation, logLine.
 - `packages/app/src/game/GameScreen.test.tsx`
-- `packages/app/src/game/GameScreen.tsx` - The game screen: one whole game drawn from one frame, laid out for a phone held sideways (844x390). Exports: GameScreenProps, GameScreen.
+- `packages/app/src/game/GameScreen.tsx` - The game screen: one whole game drawn from one frame, laid out for a phone held sideways (844x390; L1, #464): a thin top bar, the map filling the main area and… Exports: GameScreenProps, GameScreen.
 - `packages/app/src/game/MapView.test.tsx` - The map zoomed out (issue #364): badges per country, grouped by region, net influence, controller colour.
 - `packages/app/src/game/MapView.tsx` - The map (docs/architecture.md, Decision 6). Exports: Zoom, OnZoom, netInfluence, shownZoom, MapView.
 - `packages/app/src/game/MapZoom.test.tsx` - The map zoomed into a region (issue #365): region buttons, country boxes, "Whole map", zoom kept across frames.
@@ -103,6 +105,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/decisionFocus.tsx` - Keyboard play: when a new decision waits for the player, focus moves to its first choice button. Exports: shouldFocusDecision, FocusRoot, FIRST_CHOICE, applyDecisionFocus, FocusingGameScreen.
 - `packages/app/src/game/gameScreen.css`
 - `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, HandCard, Hand, Opponent, Table, Contingency, Log.
+- `packages/app/src/game/sideTabs.test.tsx` - The side panel's three tabs (L1, issue #464): which one shows, and how they draw.
+- `packages/app/src/game/sideTabs.tsx` - The side panel's three tabs (L1, issue #464; docs/architecture.md, Decision 6): Play (the decision and the hand), Log, and Details (the opponent, the table and… Exports: TabId, TABS, shownTab, SideTabs.
 - `packages/app/src/game/sixRegionMapView.test.tsx` - The real six-region map on screen (A14, issue #439): 6 region buttons and 42 badges zoomed out, each region's boxes zoomed in, Crimea's own box, and both home…
 - `packages/app/src/game/test/mapFixture.ts` - Test helper: a hand-written two-region map, its influence, and test-mode frames with and without it. Exports: map, influence, baseFrame, withMap, withoutMap.
 - `packages/app/src/game/tracks.test.tsx` - The score track and Escalation on screen (A15, issue #448): drawn from the frame's public state, and only on a map that has scoring.

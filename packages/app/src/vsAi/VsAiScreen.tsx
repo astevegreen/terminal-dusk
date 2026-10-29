@@ -88,7 +88,7 @@ export function VsAiView({
       />
     );
   return (
-    <main>
+    <main className="game-page">
       <p>{note}</p>
       {snapshot.aiRefusal && <p role="alert">{`AI refused: ${snapshot.aiRefusal}`}</p>}
       {frame ? (

@@ -1,23 +1,64 @@
 /* Placeholder look only: system font, grey borders, no colours, no images. */
+/* The page around a game (L1, #464): exactly the screen's height, a column whose game takes what the page's own
+   lines (a note, a Back button) leave, so the page itself never scrolls. */
+body:has(.game-page) {
+  margin: 0;
+}
+.game-page {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  max-width: 100%;
+  padding: 4px;
+  overflow: hidden;
+}
+.game-page > * {
+  flex: none;
+}
+.game-page > p,
+.game-page > h1 {
+  margin: 0 0 4px;
+}
+.game-page > h1 {
+  font-size: 1.25em;
+}
+/* The game itself, or the plain div around it (the keyboard-focus wrapper), takes the rest of the page. */
+.game-page > .game,
+.game-page > :has(> .game) {
+  flex: 1 1 0;
+  min-height: 0;
+}
+.game-page > :has(> .game) {
+  display: flex;
+  flex-direction: column;
+}
+.game-page > :has(> .game) > .game {
+  flex: 1 1 0;
+  min-height: 0;
+}
+/* One grid laid out for a phone held sideways: a hint line (upright only), the top bar, then the map beside the
+   side panel. Only the map and the open tab's panel scroll. */
 .game {
   box-sizing: border-box;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
-  grid-template-rows: auto auto minmax(220px, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) clamp(240px, 34vw, 420px);
+  grid-template-rows: auto auto minmax(0, 1fr);
   grid-template-areas:
-    "status status"
-    "tracks tracks"
-    "map side"
-    "hand side";
+    "hint hint"
+    "top top"
+    "map side";
   gap: 4px;
   width: 100%;
   max-width: 100vw;
-  min-height: 300px;
+  overflow: hidden;
   font-family: system-ui, sans-serif;
   font-size: 13px;
 }
 .game > section,
-.game .game-side > section {
+.game .game-top > section,
+.game .game-tab-panel > section {
   box-sizing: border-box;
   min-width: 0;
   border: 1px solid #999;
@@ -34,15 +75,37 @@
 .game p {
   margin: 0 0 2px;
 }
+/* An upright screen gets one short line asking to turn the phone, above the same layout. */
+.game .game-rotate-hint {
+  grid-area: hint;
+  display: none;
+  margin: 0;
+  font-weight: bold;
+}
+@media (orientation: portrait) {
+  .game .game-rotate-hint {
+    display: block;
+  }
+}
+/* The thin top bar: the status and the two tracks in one row, wrapping only when the screen is too narrow. */
+.game .game-top {
+  grid-area: top;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+}
+.game .game-top > section {
+  flex: 1 1 300px;
+}
 .game .game-status {
-  grid-area: status;
   display: flex;
   flex-wrap: wrap;
   gap: 4px 16px;
 }
-/* The score track and Escalation, in a full-width row under the status bar (A15). */
-.game .game-tracks {
-  grid-area: tracks;
+/* The score track and Escalation, beside the status in the top bar (A15). */
+.game .game-top > .game-tracks {
+  flex: 1 1 360px;
 }
 .game .track-score {
   display: flex;
@@ -168,9 +231,6 @@
 .game .map-box[data-control="none"] {
   background: var(--map-none);
 }
-.game .game-hand {
-  grid-area: hand;
-}
 /* A card with rules text: its name in bold, the rules on their own line under it. */
 .game .hand-card-name {
   font-weight: bold;
@@ -179,45 +239,56 @@
   display: block;
   margin-bottom: 4px;
 }
+/* The side panel: the tab row, then the open tab's panel, which scrolls; the others are hidden. */
 .game .game-side {
   grid-area: side;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.game .game-tabs {
+  display: flex;
+  flex: none;
+  gap: 4px;
+}
+.game .game-tabs button {
+  flex: 1 1 0;
+  min-width: 44px;
+  min-height: 44px;
+}
+.game .game-tabs button[aria-selected="true"] {
+  font-weight: bold;
+  border-bottom: 3px solid #000;
+}
+.game .game-tab-panel {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 4px;
   min-height: 0;
   overflow: auto;
 }
-.game .game-log ol {
-  max-height: 90px;
-  overflow-y: auto;
+.game .game-tab-panel[hidden] {
+  display: none;
 }
-/* No map: the map box shrinks to its "No map in this game" line, and the hand and details get the room. */
+.game .game-tab-panel > section {
+  flex: none;
+}
+/* No map: the map box shrinks to its "No map in this game" line across the top, and the side panel gets the rest. */
 .game.game-no-map {
-  grid-template-rows: auto auto auto minmax(220px, 1fr);
-}
-/* A phone held upright: one column, so the map, the hand and the details each get the whole width. */
-@media (max-width: 599px) {
-  .game {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto minmax(220px, auto) auto auto;
-    grid-template-areas:
-      "status"
-      "tracks"
-      "map"
-      "hand"
-      "side";
-  }
-  .game.game-no-map {
-    grid-template-rows: auto auto auto auto auto;
-  }
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  grid-template-areas:
+    "hint hint"
+    "top top"
+    "map map"
+    "side side";
 }
 @media (min-width: 1000px) {
   .game {
     font-size: 16px;
-    min-height: 600px;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
-  }
-  .game .game-log ol {
-    max-height: 200px;
+    grid-template-columns: minmax(0, 1fr) 420px;
   }
 }
