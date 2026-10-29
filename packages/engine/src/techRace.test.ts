@@ -4,19 +4,29 @@
 // Built on the test map (test/map.ts) with the doc's track (test/techRace.ts).
 import { describe, expect, it } from "vitest";
 import { legalAnswers } from "./index.ts";
-import type { GameEvent, GameState, Side } from "./index.ts";
-import { applied, orderAnswer, playAnswer, playAnswers, startWith } from "./test/game.ts";
+import type { GameEvent, GameState, Ruleset, Side } from "./index.ts";
+import { applied, orderAnswer, playAnswer, playAnswers, sideCard, startGame, startWith } from "./test/game.ts";
 import { spend } from "./test/mapGame.ts";
-import { choose, menu, nextDraw, placeAction, raceGame, withRace, raceRules, techRaceAction } from "./test/techRace.ts";
+import {
+  choose,
+  menu,
+  nextDraw,
+  placeAction,
+  raceGame,
+  raceRules,
+  raceSetup,
+  techRaceAction,
+  withRace,
+} from "./test/techRace.ts";
 
 /** `side`'s play (pending in `state`) of `card` for its points, which opens the action menu. */
-const playForPoints = (state: GameState, side: Side, card: string) =>
-  applied(state, playAnswer(state, side, card, "points"), raceRules).state;
+const playForPoints = (state: GameState, side: Side, card: string, rules: Ruleset = raceRules) =>
+  applied(state, playAnswer(state, side, card, "points"), rules).state;
 
 /** `side` plays `card` for its points and makes a tech race attempt, its draw being `draw`. */
-function attempt(state: GameState, side: Side, card: string, draw: number) {
-  const asked = playForPoints(nextDraw(state, side, draw), side, card);
-  return applied(asked, choose(asked, techRaceAction), raceRules);
+function attempt(state: GameState, side: Side, card: string, draw: number, rules: Ruleset = raceRules) {
+  const asked = playForPoints(nextDraw(state, side, draw), side, card, rules);
+  return applied(asked, choose(asked, techRaceAction), rules);
 }
 
 const raced = (events: readonly GameEvent[]) => events.filter((e) => e.kind === "techRaceAttempted");
@@ -115,6 +125,19 @@ describe("making an attempt", () => {
     // LIO's turn-2 hand: AI costs 2, so it plays s9 (SAE's 4-point card) for its points, its event after.
     const asked = playForPoints(turn2, "lio", "s9");
     expect(menu(applied(asked, orderAnswer(asked, "lio", "after"), raceRules).state)).toContain("techRace");
+  });
+
+  it("keeps the marker and the steps reached when a new era starts", () => {
+    // era-1 for turn 1, era-2 (one neutral card, e1, and its own battleground list) from turn 2.
+    const rules = { ...raceRules, cards: [...raceRules.cards, { ...sideCard("e1", 1), era: "era-2" }] };
+    const base = raceSetup(2, 1);
+    const map = { ...base.map!, battlegrounds: [...base.map!.battlegrounds, { era: "era-2", countries: ["foxtrot"] }] };
+    const setup = { ...base, map, eras: [{ era: "era-2", turn: 2, cards: ["e1"] }] };
+    const opened = playAnswers(startGame(2, 1, rules, setup), 2, rules);
+    const lio = attempt(opened, "lio", "l2", 4, rules).state;
+    const era2 = playAnswers(attempt(lio, "sae", "s2", 1, rules).state, 2, rules);
+    expect(era2.public.era).toBe("era-2");
+    expect(race(era2)).toMatchObject({ marker: -1, reached: [1], bonus: ["lio"] });
   });
 });
 
