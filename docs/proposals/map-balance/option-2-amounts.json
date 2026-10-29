@@ -1,0 +1,47 @@
+{
+  "name": "X15 option 2: East and South Asia 2/4/6, the Americas 1/2/4",
+  "scoring": {
+    "track": {
+      "end": 20,
+      "start": 0
+    },
+    "regions": [
+      {
+        "region": "eastern-europe-central-asia",
+        "present": 2,
+        "ahead": 5,
+        "all": 8
+      },
+      {
+        "region": "east-south-asia",
+        "present": 2,
+        "ahead": 4,
+        "all": 6
+      },
+      {
+        "region": "europe",
+        "present": 2,
+        "ahead": 5,
+        "all": 8
+      },
+      {
+        "region": "middle-east-north-africa",
+        "present": 2,
+        "ahead": 4,
+        "all": 6
+      },
+      {
+        "region": "sub-saharan-africa",
+        "present": 1,
+        "ahead": 3,
+        "all": 4
+      },
+      {
+        "region": "americas",
+        "present": 1,
+        "ahead": 2,
+        "all": 4
+      }
+    ]
+  }
+}

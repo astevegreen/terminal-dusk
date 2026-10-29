@@ -1,6 +1,7 @@
 // The per-side AI tier options --lio-tier and --sae-tier (A16, issue #455): parsing, refusals, and a small seeded run.
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { countBySide } from "./play.mjs";
 import { formatText } from "./report.mjs";
 import { parseArgs, runBalance } from "./run.mjs";
 
@@ -33,7 +34,10 @@ test("a Medium-vs-Easy run reports the tiers and the crises each side caused, an
   });
   assert.deepEqual(stats.tiers, { lio: "medium", sae: "easy" });
   assert.equal(stats.crises.lio, 0);
-  assert.match(formatText(stats), /Tiers: LIO medium, SAE easy\. Escalation crises caused: LIO 0, SAE \d+\./);
+  assert.match(
+    formatText(stats),
+    /Tiers: LIO medium, SAE easy\. Escalation crises caused: LIO 0, SAE \d+\. Tech race attempts: LIO \d+, SAE \d+\./,
+  );
 });
 
 test("the same seed and tiers give the same run", () => {
@@ -46,4 +50,28 @@ test("Medium as SAE causes no crisis either, on the test map and the six-region 
     const stats = runBalance({ scenario, games: 4, seed: "tiers-sae", tiers: { lio: "easy", sae: "medium" } });
     assert.equal(stats.crises.sae, 0, scenario);
   }
+});
+
+// X15 (issue #472): the tier line also counts each side's tech race attempts, from the public events.
+test("countBySide counts one kind of public event by the side it names, and ignores other kinds", () => {
+  const events = [
+    { kind: "techRaceAttempted", side: "lio" },
+    { kind: "techRaceAttempted", side: "sae" },
+    { kind: "techRaceAttempted", side: "lio" },
+    { kind: "escalationCrisis", side: "lio" },
+  ];
+  assert.deepEqual(countBySide(events, "techRaceAttempted"), { lio: 2, sae: 1 });
+  assert.deepEqual(countBySide(events, "escalationCrisis"), { lio: 1, sae: 0 });
+  assert.deepEqual(countBySide([], "techRaceAttempted"), { lio: 0, sae: 0 });
+});
+
+test("a tiered run sums each game's tech race attempts by side", () => {
+  const stats = runBalance({
+    scenario: "six-region",
+    games: 2,
+    seed: "tiers-tech",
+    tiers: { lio: "medium", sae: "medium" },
+  });
+  assert.deepEqual(Object.keys(stats.techRaces), ["lio", "sae"]);
+  for (const n of Object.values(stats.techRaces)) assert.ok(Number.isInteger(n) && n >= 0);
 });

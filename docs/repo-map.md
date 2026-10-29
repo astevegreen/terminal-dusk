@@ -997,6 +997,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `docs/proposals/card-rewording/era-2.md` - Era 2 cards: rules text reworded now that points have a use
 - `docs/proposals/card-rewording/era-3.md` - Era 3 and future cards: rules text reworded now that points have a use
 - `docs/proposals/era-lengths.md` - Era lengths and turns per era: options
+- `docs/proposals/map-balance.md` - A balance pass on the six-region map
+- `docs/proposals/map-balance/option-1-taiwan.json`
+- `docs/proposals/map-balance/option-2-amounts.json`
+- `docs/proposals/map-balance/option-3-track.json`
 - `docs/proposals/map-content/README.md` - The six-region map's content, and the order regions close at Escalation
 - `docs/proposals/map-content/option-1.md` - Option 1: even regions, six countries each
 - `docs/proposals/map-content/option-2.md` - Option 2: card places first, uneven regions

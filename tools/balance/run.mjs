@@ -103,8 +103,14 @@ export function runBalance(options, { createPlayer } = {}) {
   });
   if (tiers === undefined) return { setup, ...stats };
   const crises = { lio: 0, sae: 0 };
-  for (const game of summaries) for (const side of Object.keys(crises)) crises[side] += game.crises[side];
-  return { setup, ...stats, tiers: { lio: tiers.lio ?? "easy", sae: tiers.sae ?? "easy" }, crises };
+  const techRaces = { lio: 0, sae: 0 };
+  for (const game of summaries) {
+    for (const side of Object.keys(crises)) {
+      crises[side] += game.crises[side];
+      techRaces[side] += game.techRaces[side];
+    }
+  }
+  return { setup, ...stats, tiers: { lio: tiers.lio ?? "easy", sae: tiers.sae ?? "easy" }, crises, techRaces };
 }
 
 const SCENARIO_TITLES = {

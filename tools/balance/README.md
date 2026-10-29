@@ -32,8 +32,9 @@ node tools/balance/run.mjs --scenario six-region   # the six-region map (package
 
 `--lio-tier` and `--sae-tier` (each `easy` or `medium`, Easy when left out) pick the AI tier of one side, so a run can
 pit Medium against Easy. A run that uses either option adds a line under the results by side with the tiers and how
-many Escalation crises each side caused (a crisis is Escalation reaching 6; the side that caused it draws the cost).
-Without them the report is exactly as before.
+many Escalation crises each side caused (a crisis is Escalation reaching 6; the side that caused it draws the cost),
+and how many tech race attempts each side made (the public `techRaceAttempted` events; zero while the AI never picks
+the action). Without them the report is exactly as before.
 
 ```
 node tools/balance/run.mjs --scenario test-map --games 200 --lio-tier medium --sae-tier easy

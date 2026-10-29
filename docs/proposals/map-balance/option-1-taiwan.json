@@ -1,0 +1,15 @@
+{
+  "name": "X15 option 1: Taiwan starts at LIO 2 (aligned, not controlled)",
+  "startingInfluence": [
+    {
+      "country": "taiwan",
+      "lio": 2,
+      "sae": 0
+    },
+    {
+      "country": "crimea",
+      "lio": 0,
+      "sae": 1
+    }
+  ]
+}
