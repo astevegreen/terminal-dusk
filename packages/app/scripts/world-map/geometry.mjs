@@ -76,14 +76,11 @@ export const projectorOf = (crop) => (lon, lat) => ({
 
 const inBox = (box, [lon, lat]) => lon >= box.west && lon <= box.east && lat >= box.south && lat <= box.north;
 
-const polygonsOf = (geometry) =>
-  geometry === null
-    ? []
-    : geometry.type === "Polygon"
-      ? [geometry.coordinates]
-      : geometry.type === "MultiPolygon"
-        ? geometry.coordinates
-        : [];
+function polygonsOf(geometry) {
+  if (geometry?.type === "Polygon") return [geometry.coordinates];
+  if (geometry?.type === "MultiPolygon") return geometry.coordinates;
+  return [];
+}
 const isCrimea = (code, polygon) => code === "RUS" && polygon[0].every((p) => inBox(CRIMEA_AREA, p));
 
 /** The pieces of Russia that are Crimea: none where Natural Earth draws the peninsula inside Ukraine. */
@@ -170,6 +167,9 @@ export function rounded(points, project) {
   return out;
 }
 
+/** Points as an SVG path's line-to list: "x y" pairs joined by L. */
+const pointList = (points) => points.map(([x, y]) => `${x} ${y}`).join("L");
+
 /** A filled shape's path: each ring cut to the crop, rounded, and kept only when it is big enough to see. */
 export function shapePath(polygons, project, crop) {
   let d = "";
@@ -177,7 +177,7 @@ export function shapePath(polygons, project, crop) {
     for (const ring of polygon) {
       const points = rounded(clipRing(ring, crop), project);
       if (points.length < 3 || areaOf(points) < MIN_RING_AREA) continue;
-      d += `M${points.map(([x, y]) => `${x} ${y}`).join("L")}Z`;
+      d += "M" + pointList(points) + "Z";
     }
   return d;
 }
@@ -233,7 +233,8 @@ export function bordersPath(countries, project, crop) {
     });
 
   const runs = [];
-  for (const code of [...countries.keys()].sort()) {
+  // Country codes are unique, so two are never equal.
+  for (const code of [...countries.keys()].sort((a, b) => (a < b ? -1 : 1))) {
     let run = [];
     const end = () => {
       if (run.length > 1) runs.push(run);
@@ -261,7 +262,7 @@ export function bordersPath(countries, project, crop) {
       const last = points.at(-1);
       if (last === undefined || last[0] !== x || last[1] !== y) points.push([x, y]);
     }
-    if (points.length > 1) d += `M${points.map(([x, y]) => `${x} ${y}`).join("L")}`;
+    if (points.length > 1) d += "M" + pointList(points);
   }
   return d;
 }

@@ -238,7 +238,7 @@ test("placing influence lights up the country it was placed in", async ({ page }
   const area = await startDrawnMap(page);
   await expect(area.locator(".dm-marker[data-touched]")).toHaveCount(0);
   const lit = await placeAndWatch(page, area, 3);
-  expect(lit.length).toBe(3);
+  expect(lit).toHaveLength(3);
   await expect(area.locator(`.dm-marker[data-country="${lit[2]}"]`)).toHaveAttribute("data-touched", "true");
   await shoot(page, "highlight");
 });
