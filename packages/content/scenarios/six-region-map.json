@@ -505,6 +505,16 @@
           "all": 5
         }
       ]
+    },
+    "techRace": {
+      "steps": [
+        { "name": "Networks and Orbit", "cost": 1 },
+        { "name": "AI", "cost": 2 },
+        { "name": "Hypersonics", "cost": 3 },
+        { "name": "Quantum Computing", "cost": 4 }
+      ],
+      "success": 4,
+      "escalateAt": 3
     }
   }
 }

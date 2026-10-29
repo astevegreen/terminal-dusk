@@ -85,12 +85,29 @@ export function scoreEra(state: GameState, events: GameEvent[]): void {
     events.push({ kind: "regionScored", visibility: "public", region: amounts.region, ...points });
     if (moveScore(state, points.sae - points.lio, events)) return;
   }
+  quantumScore(state, events);
 }
 
-/** The winner after the final era: the side the track leans towards, or null when it is even or there is no track. */
+/**
+ * Quantum Computing's era score (docs/design/tech-race.md): after every region, a tech race marker at a side's end
+ * of its track moves the score track 1 towards that side, which may end the game there.
+ */
+function quantumScore(state: GameState, events: GameEvent[]): void {
+  const pub = state.public;
+  const end = pub.map?.techRace?.steps.length;
+  if (pub.techRace === undefined || end === undefined || Math.abs(pub.techRace.marker) !== end) return;
+  moveScore(state, Math.sign(pub.techRace.marker), events);
+}
+
+/**
+ * The winner after the final era: the side the track leans towards. An even track goes to the side the tech race
+ * marker favours (docs/design/tech-race.md); null when that is at parity too, or there is no track or tech race.
+ */
 export function leader(pub: PublicState): Side | null {
-  if (pub.score === undefined || pub.score === 0) return null;
-  return pub.score < 0 ? "lio" : "sae";
+  if (pub.score === undefined) return null;
+  const lean = pub.score === 0 ? (pub.techRace?.marker ?? 0) : pub.score;
+  if (lean === 0) return null;
+  return lean < 0 ? "lio" : "sae";
 }
 
 /** The score track a game with `map` starts with: `{ score }` when the map has scoring, otherwise nothing. */

@@ -144,6 +144,7 @@ function endTurn(state: GameState, events: GameEvent[], budget: Budget): EngineE
   pub.turn += 1;
   pub.playsMade = 0;
   pub.turnEndFired = false;
+  if (pub.techRace !== undefined) pub.techRace.attempted = [];
   return startTurn(state, events, budget);
 }
 
@@ -200,7 +201,7 @@ function play(
     state.public.pending = [newDecision(state.meta.seq, side, "rivalEventOrder")];
     return null;
   }
-  const steps = value.as === "event" ? (card?.effect ?? []) : [spendPoints(side, card?.ops ?? 0)];
+  const steps = value.as === "event" ? (card?.effect ?? []) : [spendPoints(side, card?.ops ?? 0, true)];
   return runCard(ruleset, state, steps, value.card, player ?? undefined, { events, budget });
 }
 
@@ -221,7 +222,8 @@ function playRival(
   const card = cardOf(ruleset, id);
   const effect = card?.effect ?? [];
   // The printed ops: the modifiers in force when this step runs change them, its own event's included.
-  const points = spendPoints(side, card?.ops ?? 0);
+  // Only points spent before the event may go to the tech race, whose attempt drops the event (actionMenu.ts).
+  const points = spendPoints(side, card?.ops ?? 0, event === "after");
   const steps = event === "before" ? [...effect, points] : [points, ...effect];
   return runCard(ruleset, state, steps, id, side, { events, budget });
 }
@@ -229,7 +231,9 @@ function playRival(
 /** True while a rival's card is in play and its player has yet to say when its event happens. */
 const waitsForOrder = (state: GameState): boolean => state.public.pending.some((d) => d.kind === "rivalEventOrder");
 
-const spendPoints = (side: Side, amount: number): Step => ({ op: "spendPoints", side, amount });
+/** A play's spendPoints step; `play` marks a card played for its points, which may make a tech race attempt. */
+const spendPoints = (side: Side, amount: number, play: boolean): Step =>
+  play ? { op: "spendPoints", side, amount, play: true } : { op: "spendPoints", side, amount };
 
 /** `card` leaves `side`'s hand, and so the rival's knowledge (knowledge.ts). */
 function removeFromHand(state: GameState, side: Side, card: CardId): void {

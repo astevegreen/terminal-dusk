@@ -14,13 +14,14 @@ export type PlaceOptions = { points: number; countries: CountryId[] };
 /**
  * A choice on the action menu. All of a play's points go to one action (owner, 26 Oct, #316): placing influence,
  * one intervention, or realigning. `pass` declines realigning when neither placing nor an intervention is
- * possible: the points are left unspent, since realigning is never forced (owner, 26 Oct, #317 review).
+ * possible: the points are left unspent, since realigning is never forced (owner, 26 Oct, #317 review). `techRace`
+ * spends them all on one tech race attempt (techRace.ts), only for a card played for its points.
  */
-export type PointsAction = "place" | "intervene" | "realign" | "pass";
+export type PointsAction = "place" | "intervene" | "realign" | "techRace" | "pass";
 
 /**
  * What a chooseAction decision allows: `actions`, the choices the side has now with its `points`, in menu order
- * (place, intervene, realign, pass), and `targets`, the countries open to an intervention (the rival has influence
+ * (place, intervene, realign, techRace, pass), and `targets`, the countries open to an intervention (the rival has influence
  * there and Escalation has not closed its region), in the map's order; empty when "intervene" is not offered.
  * Placing is offered while a placement is affordable. All of it is public.
  */

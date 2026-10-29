@@ -5,6 +5,7 @@
 // scenario.types.test.ts checks it against the engine's type.
 import * as z from "zod";
 import { checkScoring, scoringSchema } from "./mapScoring.ts";
+import { checkTechRace, techRaceSchema } from "./mapTechRace.ts";
 
 const name = z.string().min(1);
 
@@ -31,6 +32,7 @@ type MapShape = {
   homeBox: { lio: readonly string[]; sae: readonly string[] };
   startingInfluence: readonly { country: string }[];
   scoring?: { track: { end: number; start: number }; regions: readonly { region: string }[] };
+  techRace?: { steps: readonly unknown[]; escalateAt: number };
 };
 
 /** Region ids are not repeated, and each region holds at least one country. */
@@ -161,6 +163,7 @@ function checkMap(map: MapShape, ctx: z.RefinementCtx): void {
     checkHomeBox,
     checkInfluence,
     checkScoring,
+    checkTechRace,
   ];
   for (const check of checks) check(map, ctx);
 }
@@ -170,7 +173,8 @@ function checkMap(map: MapShape, ctx: z.RefinementCtx): void {
  * `closingOrder` names the three regions that close as Escalation reaches 3, 4 and 5, one per threshold, in that
  * order (docs/design/map-and-points.md, "Thresholds close regions"). `battlegrounds` holds one list per era, matched by
  * the era's name; lists for eras the scenario does not use are allowed and never read. `scoring` is optional: a map
- * without it never scores (mapScoring.ts).
+ * without it never scores (mapScoring.ts). `techRace` is optional too: a map without it has no tech race
+ * (mapTechRace.ts).
  */
 export const mapSchema = z
   .strictObject({
@@ -181,5 +185,6 @@ export const mapSchema = z
     homeBox: z.strictObject({ lio: z.array(name), sae: z.array(name) }),
     startingInfluence: z.array(influenceEntry),
     scoring: scoringSchema.exactOptional(),
+    techRace: techRaceSchema.exactOptional(),
   })
   .superRefine(checkMap);
