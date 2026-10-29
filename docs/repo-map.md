@@ -1005,6 +1005,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## docs
 
 - `docs/architecture.md` - Terminal Dusk — Core Architecture Decisions
+- `docs/design/art-direction.md` - Art direction
 - `docs/design/cards/deck-plan.md` - First deck: plan
 - `docs/design/cards/era-1.md` - Era 1 cards: 1991 to 2001 (the Cold War's end to 9/11)
 - `docs/design/cards/era-2.md` - Era 2 cards: 2001 to 2008 (9/11 to the crash)
