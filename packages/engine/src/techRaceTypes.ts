@@ -16,9 +16,10 @@ export type MapTechRace = { steps: TechStep[]; success: number; escalateAt: numb
  * number from -steps (LIO's end) through 0 (parity) to +steps (SAE's end), like the score track; it never resets.
  * `attempted`: the sides that have made their one attempt this turn, in SIDES order. `reached`: the steps (1 = the
  * first from parity) some side has reached in this game, ascending, each once. `bonus`: the sides whose next attempt
- * draws +1 for reaching a step first, in SIDES order.
+ * draws +1 for reaching a step first, in SIDES order. `extraPlay`: the side offered Hypersonics' extra play this turn,
+ * set when it is offered and cleared when the turn ends; absent otherwise.
  */
-export type TechRaceState = { marker: number; attempted: Side[]; reached: number[]; bonus: Side[] };
+export type TechRaceState = { marker: number; attempted: Side[]; reached: number[]; bonus: Side[]; extraPlay?: Side };
 
 /**
  * One tech race attempt: `side` spent `points` (at least `cost`) and drew `draw` from its own Contingency deck, plus

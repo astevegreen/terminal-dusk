@@ -126,10 +126,10 @@ function kindOf(card: CardId, side: Side, affiliation: CardAffiliation): "own" |
   return owner === side ? "own" : "rival";
 }
 
-/** A play: every card in the hand, with the uses the decision allows for that card's kind. */
-function PlayCardAsPrompt({ decision, hand, label, affiliation, onAnswer }: Readonly<PromptProps>) {
+/** Every card in the hand, with the uses the decision allows for that card's kind. */
+function playChoices({ decision, hand, label, affiliation }: Readonly<PromptProps>): Choice[] {
   const options = decision.options;
-  const choices: Choice[] = hand.flatMap((card) => {
+  return hand.flatMap((card) => {
     const allowed: ReadonlySet<PlayUse> =
       "uses" in options ? new Set(options.uses[kindOf(card, decision.side, affiliation)]) : new Set<PlayUse>();
     return USES.filter((use) => allowed.has(use)).map((as): Choice => ({
@@ -137,12 +137,29 @@ function PlayCardAsPrompt({ decision, hand, label, affiliation, onAnswer }: Read
       value: { kind: "playCardAs", card, as },
     }));
   });
+}
+
+/** A play: every card in the hand, with the uses the decision allows for that card's kind. */
+function PlayCardAsPrompt(props: Readonly<PromptProps>) {
   return (
     <Choices
-      decision={decision}
-      question={`${SIDE_NAME[decision.side]}: play a card for its event or its points`}
+      decision={props.decision}
+      question={`${SIDE_NAME[props.decision.side]}: play a card for its event or its points`}
+      choices={playChoices(props)}
+      onAnswer={props.onAnswer}
+    />
+  );
+}
+
+/** Hypersonics' extra play at the end of the turn: a play as above, or passing. */
+function ExtraPlayPrompt(props: Readonly<PromptProps>) {
+  const choices: Choice[] = [...playChoices(props), { text: "Pass", value: { kind: "pass" } }];
+  return (
+    <Choices
+      decision={props.decision}
+      question={`${SIDE_NAME[props.decision.side]}: Hypersonics extra play, or pass`}
       choices={choices}
-      onAnswer={onAnswer}
+      onAnswer={props.onAnswer}
     />
   );
 }
@@ -279,4 +296,5 @@ export const decisionPrompts: Record<DecisionKind, PromptComponent> = {
   placeInfluence: PlaceInfluencePrompt,
   chooseAction: ChooseActionPrompt,
   realign: RealignPrompt,
+  extraPlay: ExtraPlayPrompt,
 };
