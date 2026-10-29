@@ -840,6 +840,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 ## tools
 
 - `tools/balance/README.md` - Balance tool
+- `tools/balance/arena.mjs` - `node tools/balance/arena.mjs [--a <tier>] [--b <tier>] [--games <n>] [--seed <base>] [--scenario <name>] [--json]`: the AI arena of Decision 8.
+- `tools/balance/arena.test.mjs` - The AI arena (X14, Decision 8): side alternation, tallying, the Medium-beats-Easy gate, arguments and report shape.
 - `tools/balance/config.mjs` - The run's match config: the chosen scenario (the first-deck TEST scenario, the test map scenario with the first deck's Era 1 cards, or the six-region map with…
 - `tools/balance/era-stats.test.mjs` - The "By era" numbers from hand-made game summaries: distinct cards used per game, their share of the era, and picks plus plays per game, including a card both…
 - `tools/balance/fixtures/first-deck-3-games.txt`
