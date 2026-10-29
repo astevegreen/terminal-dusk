@@ -4,6 +4,7 @@ import { erasError } from "./eras.ts";
 import { ESCALATION_START } from "./escalation.ts";
 import { mapError, mapState } from "./mapChecks.ts";
 import { scoreState } from "./scoring.ts";
+import { techRaceState } from "./techRace.ts";
 import { seedRng, shuffle } from "./rng.ts";
 import { seedHash } from "./sha256.ts";
 import { newBudget } from "./stack.ts";
@@ -79,7 +80,13 @@ export function createGame(
       // as before. mapError has made sure a setup with a map names its first era.
       ...(setup.map === undefined
         ? {}
-        : { ...mapState(setup.map), escalation: ESCALATION_START, ...scoreState(setup.map), era: setup.firstEra! }),
+        : {
+            ...mapState(setup.map),
+            escalation: ESCALATION_START,
+            ...scoreState(setup.map),
+            era: setup.firstEra!,
+            ...techRaceState(setup.map),
+          }),
     },
     private: {
       lio: { hand: [...setup.hands.lio], picks: [], knowledge: [] },

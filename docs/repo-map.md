@@ -422,6 +422,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/schema/map.ts` - The map a scenario can carry (docs/design/map-and-points.md, "Map", "Influence" and "Escalation"): regions, their closing order, countries, each era's battlegr… Exports: mapSchema.
 - `packages/content/schema/mapScoring.test.ts` - A scenario map's scoring (R21, #437): the score track and each region's amounts are scenario data, refused at their path when the engine's createGame would ref…
 - `packages/content/schema/mapScoring.ts` - A map's scoring (docs/design/map-and-points.md, "Scoring"): the score track's end and start, and what each region is worth at an era's end. Exports: scoringSchema, checkScoring.
+- `packages/content/schema/mapTechRace.test.ts` - A scenario map's tech race track (R25, #462): its steps, success number and Escalation step are scenario data, refused at their path when the engine's createGa…
+- `packages/content/schema/mapTechRace.ts` - A map's tech race track (docs/design/tech-race.md, "The track"): its named steps from parity outwards with their costs, the draw that moves the marker, and the… Exports: techRaceSchema, checkTechRace.
 - `packages/content/schema/scenario.test.ts`
 - `packages/content/schema/scenario.ts` - The scenario schema: what one scenario file in packages/content/scenarios/ must hold (docs/architecture.md, section 4). Exports: scenarioSchema, Scenario.
 - `packages/content/schema/scenario.types.test.ts` - Type-level check, run by `tsc`: the scenario schema and the engine's Setup can't drift apart.
@@ -561,12 +563,18 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/stack.test.ts`
 - `packages/engine/src/stack.ts` - The resolution stack: runs program steps until one needs a player's choice, records that as the pending decision (or, for both sides at once, a simultaneous pa… Exports: Budget, newBudget, startProgram, runProgram, Closing, resumeStack, runStack.
 - `packages/engine/src/stepBudget.test.ts`
+- `packages/engine/src/techRace.test.ts` - R25 (#462): the tech race action (docs/design/tech-race.md, "Making an attempt" and "First there").
+- `packages/engine/src/techRace.ts` - The tech race (docs/design/tech-race.md): one shared public marker, negative for LIO's lead and positive for SAE's, on a track of `steps` each way from parity. Exports: techRaceCost, canRace, attemptTechRace, techRaceState, copyTechRace, techRaceError.
+- `packages/engine/src/techRaceChecks.test.ts` - R25 (#462): createGame checks the map's tech race data (techRace.ts, techRaceError), and card data can't mark a spendPoints step as a play for points, which on…
+- `packages/engine/src/techRaceEffects.test.ts` - R25 (#462): what the tech race does beyond moving its marker (docs/design/tech-race.md, "What each step gives" and "Links to the rest of the game"): entering H…
+- `packages/engine/src/techRaceTypes.ts` - The tech race's types (docs/design/tech-race.md). Exports: TechStep, MapTechRace, TechRaceState, TechRaceAttempted.
 - `packages/engine/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
 - `packages/engine/src/test/game.ts` - Test helpers: a started game, answers for it, and small programs for the stack. Exports: testCard, rulesetWith, ruleset, sideCard, withCards, makeSetup, setupPlus, startGame, startAtPlay, cardAnswer, playAnswer, orderAnswer, ….
 - `packages/engine/src/test/map.ts` - A small made-up map for engine tests: three regions, five countries in a ring with one cross link, and one country on its own. Exports: testMap, mapSetup.
 - `packages/engine/src/test/mapGame.ts` - Test helpers for spending points on the test map (R16a placing, R16b intervening): a game at LIO's first play, with the influence a test needs, and what one si… Exports: spend, mapGame, countOf.
 - `packages/engine/src/test/placing.ts` - Test helper: finishing the spending a play for points asks for in a game with a map (R16a placing.ts, R16b action choice, R16c realign), never realigning: on t… Exports: placeAll.
 - `packages/engine/src/test/sort.ts` - Test helper: the sort order the tests use for object keys and card ids. Exports: byCodeUnit.
+- `packages/engine/src/test/techRace.ts` - Test helpers for the tech race (R25; docs/design/tech-race.md): the test map with the doc's track, a ruleset with cards worth enough points, and games at LIO's… Exports: TECH_RACE, raceRules, raceSetup, withRace, raceGame, nextDraw, choose, techRaceAction, placeAction, menu.
 - `packages/engine/src/triggerFilter.test.ts` - A trigger's filter and once (#189): a trigger that reacts only to one side's plays, or only while a lasting marker is set, and a trigger that fires at most onc…
 - `packages/engine/src/triggerFilterChecks.test.ts` - createGame's checks of a trigger's filter and once (#189): badTrigger, and the ruleset check that a has names a marker some card sets, which reads a trigger's…
 - `packages/engine/src/triggers.test.ts` - Triggers (#90): reactions a card leaves behind, fired at the cardPlayed and turnEnd hooks.

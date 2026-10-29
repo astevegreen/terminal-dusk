@@ -4,6 +4,7 @@ import type { Country, EngineError, GameMap, InfluenceEntry, MapScoring, Setup, 
 import { battlegroundsError } from "./battlegrounds.ts";
 import { CLOSING_THRESHOLDS } from "./closedRegions.ts";
 import { scoringError } from "./scoring.ts";
+import { copyTechRace, techRaceError } from "./techRace.ts";
 import { SIDES } from "./types.ts";
 
 const invalidSetup = (message: string): EngineError => ({ code: "invalidSetup", message });
@@ -25,7 +26,8 @@ export function mapError(setup: Setup): EngineError | null {
     homeBoxError(m) ??
     influenceError(m) ??
     battlegroundsError(setup, m) ??
-    scoringError(m);
+    scoringError(m) ??
+    techRaceError(m);
   return message ? invalidSetup(message) : null;
 }
 
@@ -179,6 +181,7 @@ export function mapState(map: SetupMap): { map: GameMap; influence: InfluenceEnt
       battlegrounds: map.battlegrounds.map(({ era, countries }) => ({ era, countries: [...countries] })),
       homeBox: { lio: [...map.homeBox.lio], sae: [...map.homeBox.sae] },
       ...(map.scoring === undefined ? {} : { scoring: copyScoring(map.scoring) }),
+      ...(map.techRace === undefined ? {} : { techRace: copyTechRace(map.techRace) }),
     },
     influence: map.countries.map(({ id }) => ({
       country: id,

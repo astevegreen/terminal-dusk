@@ -116,7 +116,8 @@ function innerSteps(step: Step): readonly Step[] {
  * addToNumber's `amount` and an escalate's `by` must be whole numbers, and neither may be 0. A modifier must use a hook,
  * side, add, min and duration the engine knows (badModifier); a trigger a hook and duration, and a
  * reaction of at least one step (badTrigger). A discardFromHand names LIO or SAE and a whole `count`, 1 or more,
- * and a `chosenBy`, if any, of "owner" or "player".
+ * and a `chosenBy`, if any, of "owner" or "player". A spendPoints never has `play`: only the engine's own plays
+ * for points set it (turn.ts), and it would let an event's points make a tech race attempt.
  */
 function badStep(step: Step): string | null {
   switch (step.op) {
@@ -138,6 +139,10 @@ function badStep(step: Step): string | null {
       return badModifier(step.mod, step.duration);
     case "trigger":
       return badTrigger(step);
+    case "spendPoints":
+      return step.play === undefined
+        ? null
+        : "marks its points as a card played for its points (play), which only the engine may.";
     case "discardFromHand":
       if (step.side !== "lio" && step.side !== "sae")
         return 'discards from the hand of a side that is not "lio" or "sae".';

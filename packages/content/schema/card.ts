@@ -6,9 +6,12 @@ import * as z from "zod";
 /**
  * A step a card's effect may hold: any engine step but a card choice, which only a turn's opening asks for. A
  * `choose` in an effect asks yes/no only; the one other way an effect asks a side to pick cards is a
- * `discardFromHand` with `chosenBy`, and only to discard them.
+ * `discardFromHand` with `chosenBy`, and only to discard them. A `spendPoints` never has `play`: only the engine's
+ * own plays for points set it (the engine's cardChecks refuses it too).
  */
-export type CardStep = Exclude<Step, { decision: { kind: "chooseCard" } }>;
+export type CardStep = WithoutPlay<Exclude<Step, { decision: { kind: "chooseCard" } }>>;
+/** A spendPoints step without the engine-only `play` mark; every other step as it is. */
+type WithoutPlay<S> = S extends { op: "spendPoints" } ? Omit<S, "play"> : S;
 
 const side = z.enum(["lio", "sae"]);
 const name = z.string().min(1);

@@ -14,7 +14,10 @@ export type ScenarioSetup = Pick<
 
 type ScenarioMap = NonNullable<Scenario["map"]>;
 
-/** A fresh copy of the scenario's map: no array or object is shared with the scenario. `scoring` only when it has one. */
+/**
+ * A fresh copy of the scenario's map: no array or object is shared with the scenario. `scoring` and `techRace` only
+ * when it has them.
+ */
 function copyMap(map: ScenarioMap): NonNullable<Setup["map"]> {
   const copy: NonNullable<Setup["map"]> = {
     regions: map.regions.map(({ id, name }) => ({ id, name })),
@@ -36,6 +39,10 @@ function copyMap(map: ScenarioMap): NonNullable<Setup["map"]> {
       track: { end: track.end, start: track.start },
       regions: regions.map(({ region, present, ahead, all }) => ({ region, present, ahead, all })),
     };
+  }
+  if (map.techRace !== undefined) {
+    const { steps, success, escalateAt } = map.techRace;
+    copy.techRace = { steps: steps.map(({ name, cost }) => ({ name, cost })), success, escalateAt };
   }
   return copy;
 }

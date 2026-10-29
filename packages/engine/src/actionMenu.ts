@@ -5,13 +5,15 @@
 // intervention or a realignment is possible. Realigning is never forced (owner, 26 Oct, #317 review): when
 // neither placing nor an intervention is possible, the menu also offers to pass, leaving the points unspent.
 // With only placing possible it starts at once; with nothing possible the points are lost and the program runs on.
-// Points spent at turn end only place influence (Turn-end-place: owner, 28 Oct, #426).
+// Points spent at turn end only place influence (Turn-end-place: owner, 28 Oct, #426). A card played for its points
+// may instead make a tech race attempt (techRace.ts), which drops a rival card's event still to come.
 import { newActionDecision } from "./decisions.ts";
 import { affordable, reachable, realignTargets } from "./influence.ts";
 import { intervene, interveneTargets } from "./intervening.ts";
 import { opsValue } from "./modifiers.ts";
 import { offerPlacement, resumePlacement } from "./placing.ts";
 import { offerRealign, resumeRealign } from "./realign.ts";
+import { attemptTechRace, canRace } from "./techRace.ts";
 import type { ActionAnswer, AnswerValue, EngineError, Frame, GameEvent, GameState, PointsAction } from "./types.ts";
 import type { Side, Step } from "./types.ts";
 
@@ -37,12 +39,14 @@ export function runSpendPoints(state: GameState, frame: Frame, step: SpendStep, 
   const canPlace = affordable(state.public, side, reachable(state.public, side), amount).length > 0;
   const targets = amount > 0 ? interveneTargets(state.public, side) : [];
   const canRealign = amount > 0 && realignTargets(state.public, side).length > 0;
-  if (targets.length === 0 && !canRealign)
+  const canTech = step.play === true && canRace(state.public, side, amount);
+  if (targets.length === 0 && !canRealign && !canTech)
     return offerPlacement(state, frame, side, amount, reachable(state.public, side));
   const actions: PointsAction[] = [];
   if (canPlace) actions.push("place");
   if (targets.length > 0) actions.push("intervene");
   if (canRealign) actions.push("realign");
+  if (canTech) actions.push("techRace");
   if (!canPlace && targets.length === 0) actions.push("pass");
   state.public.pending = [newActionDecision(state.meta.seq, side, amount, actions, targets)];
   return "paused";
@@ -69,7 +73,8 @@ export function resumePoints(state: GameState, value: AnswerValue, events: GameE
  * Resumes the top frame, paused at a spendPoints step's action menu, with the action picked (apply has checked it
  * against legalAnswers): placing fixes the countries in reach now and asks for the first placement; an
  * intervention runs at once and the frame moves on; realigning gives one attempt per point; passing spends
- * nothing and the frame moves on. Anything else on top of the stack is a broken program.
+ * nothing and the frame moves on. A tech race attempt runs at once and ends the frame: a rival card's event after
+ * the points never runs, so the card counts as played with no event and a once-only card stays in the game. Anything else on top of the stack is a broken program.
  */
 function resumeAction(state: GameState, answer: ActionAnswer, events: GameEvent[]): EngineError | null {
   const frame = state.public.stack.at(-1);
@@ -89,6 +94,12 @@ function resumeAction(state: GameState, answer: ActionAnswer, events: GameEvent[
       intervene(state, side, answer.country, points, events);
       state.public.pending = [];
       frame.next += 1;
+      return null;
+    case "techRace":
+      state.public.pending = [];
+      frame.next = frame.steps.length;
+      state.public.inPlayBy[0] = null;
+      attemptTechRace(state, side, points, events);
       return null;
     case "realign":
     case "pass":
