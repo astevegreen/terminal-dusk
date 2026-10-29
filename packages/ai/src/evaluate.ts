@@ -89,7 +89,9 @@ export function boardValue(pub: PublicState, side: Side, weights: MediumWeights)
     value += weights.region * (factors.get(amounts.region) ?? 1) * (pts[side] - pts[rival]);
   }
   for (const country of map.countries) {
-    const bg = now.has(country.id) ? 1 : later.has(country.id) ? weights.later : 0;
+    let bg = 0;
+    if (now.has(country.id)) bg = 1;
+    else if (later.has(country.id)) bg = weights.later;
     const lead = controlProgress(pub, country, side) - controlProgress(pub, country, rival);
     value += weights.progress * (1 + weights.battleground * bg) * (factors.get(country.region) ?? 1) * lead;
   }
