@@ -13,6 +13,7 @@ import type { CardId, Side } from "./types.ts";
  * `placeInfluence`: a side spending points places one influence in a country (placing.ts). `chooseAction`: a
  * side spending points picks the one action they all go to: placing, an intervention (intervening.ts) or
  * realigning (actionMenu.ts). `realign`: a side picks the country of its next realignment attempt (realign.ts).
+ * `extraPlay`: the side holding Hypersonics makes one more play at the end of the turn, or passes (turn.ts).
  */
 export type DecisionKind =
   | "yesNo"
@@ -22,7 +23,8 @@ export type DecisionKind =
   | "discardCards"
   | "placeInfluence"
   | "chooseAction"
-  | "realign";
+  | "realign"
+  | "extraPlay";
 /** What a played card is used for: its event, or its action points. */
 export type PlayUse = "event" | "points";
 /** The uses a play allows, by whose card it is: the player's own, the rival's, or neutral. */
@@ -66,7 +68,9 @@ export type AnswerValue =
   | { kind: "placeInfluence"; country: CountryId }
   | ActionAnswer
   /** `country` null: stop realigning, leaving the attempts left unmade. */
-  | { kind: "realign"; country: CountryId | null };
+  | { kind: "realign"; country: CountryId | null }
+  /** Hypersonics' extra play not made. */
+  | { kind: "pass" };
 /** A timeout naming "both" is a simultaneous pick missed by both sides: a draw. */
 export type Answer =
   | { decisionId: string; side: Side; value: AnswerValue }

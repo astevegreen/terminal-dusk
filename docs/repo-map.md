@@ -564,9 +564,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/stack.ts` - The resolution stack: runs program steps until one needs a player's choice, records that as the pending decision (or, for both sides at once, a simultaneous pa… Exports: Budget, newBudget, startProgram, runProgram, Closing, resumeStack, runStack.
 - `packages/engine/src/stepBudget.test.ts`
 - `packages/engine/src/techRace.test.ts` - R25 (#462): the tech race action (docs/design/tech-race.md, "Making an attempt" and "First there").
-- `packages/engine/src/techRace.ts` - The tech race (docs/design/tech-race.md): one shared public marker, negative for LIO's lead and positive for SAE's, on a track of `steps` each way from parity. Exports: NETWORKS, AI_STEP, techHolds, techRaceCost, canRace, attemptTechRace, techRaceState, copyTechRace, techRaceError.
+- `packages/engine/src/techRace.ts` - The tech race (docs/design/tech-race.md): one shared public marker, negative for LIO's lead and positive for SAE's, on a track of `steps` each way from parity. Exports: NETWORKS, AI_STEP, techHolds, techRaceCost, canRace, extraPlayer, attemptTechRace, techRaceState, copyTechRace, techRaceError.
 - `packages/engine/src/techRaceChecks.test.ts` - R25 (#462): createGame checks the map's tech race data (techRace.ts, techRaceError), and card data can't mark a spendPoints step as a play for points, which on…
 - `packages/engine/src/techRaceEffects.test.ts` - R25 (#462): what the tech race does beyond moving its marker (docs/design/tech-race.md, "What each step gives" and "Links to the rest of the game"): entering H…
+- `packages/engine/src/techRaceExtraPlay.test.ts` - R26b (#470): Hypersonics' extra play (docs/design/tech-race.md, "The extra play").
 - `packages/engine/src/techRacePowers.test.ts` - R26 (#470): the tech race's step powers that change a roll (docs/design/tech-race.md, "What each step gives").
 - `packages/engine/src/techRaceTypes.ts` - The tech race's types (docs/design/tech-race.md). Exports: TechStep, MapTechRace, TechRaceState, TechRaceAttempted.
 - `packages/engine/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.

@@ -38,8 +38,8 @@ type PlainKind = Exclude<DecisionKind, "discardCards" | "placeInfluence" | "choo
 
 /**
  * What a decision of `kind` allows, said without card IDs: a yes/no or a rivalEventOrder has no
- * options; the opening pick is any card in your hand, neutral ones too; a play is any card in your hand,
- * used as its kind of card allows.
+ * options; the opening pick is any card in your hand, neutral ones too; a play, the extra play too, is any card in
+ * your hand, used as its kind of card allows.
  */
 function optionsFor(kind: PlainKind): DecisionOptions {
   switch (kind) {
@@ -49,6 +49,7 @@ function optionsFor(kind: PlainKind): DecisionOptions {
     case "chooseCard":
       return { from: "hand" };
     case "playCardAs":
+    case "extraPlay":
       return { from: "hand", uses: playUses() };
   }
 }
@@ -130,12 +131,11 @@ export function legalAnswers(ruleset: Ruleset, state: GameState, side: Side): An
       ];
     case "chooseCard":
       return state.private[side].hand.map((card) => ({ kind: "chooseCard", card }));
-    case "playCardAs": {
-      const uses = playUses();
-      return state.private[side].hand.flatMap((card) =>
-        uses[whoseCard(cardOf(ruleset, card), side)].map((as: PlayUse) => ({ kind: "playCardAs" as const, card, as })),
-      );
-    }
+    case "playCardAs":
+      return plays(ruleset, state, side);
+    case "extraPlay":
+      // An ordinary play, or none (owner: "Optional full play").
+      return [...plays(ruleset, state, side), { kind: "pass" }];
     case "discardCards": {
       const { options } = decision;
       if (!("count" in options)) return [];
@@ -167,6 +167,14 @@ export function legalAnswers(ruleset: Ruleset, state: GameState, side: Side): An
       return [...countries, null].map((country) => ({ kind: "realign", country }));
     }
   }
+}
+
+/** Every play `side` may make: each card in its hand, for each use its kind of card allows. */
+function plays(ruleset: Ruleset, state: GameState, side: Side): AnswerValue[] {
+  const uses = playUses();
+  return state.private[side].hand.flatMap((card) =>
+    uses[whoseCard(cardOf(ruleset, card), side)].map((as: PlayUse) => ({ kind: "playCardAs" as const, card, as })),
+  );
 }
 
 /**

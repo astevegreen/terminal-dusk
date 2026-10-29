@@ -76,26 +76,37 @@ function lastPlay(marker: number, end = 5, foxtrot: { lio: number; sae: number }
   return withRace({ ...state, public: { ...state.public, influence } }, { marker });
 }
 
+/**
+ * `state` after its last normal play, and Hypersonics' extra play passed when it is offered (R26b): a side holding
+ * Quantum Computing holds Hypersonics too.
+ */
+function finish(state: GameState): GameState {
+  const played = playAnswers(state, 1, raceRules);
+  const d = played.public.pending[0];
+  if (d?.kind !== "extraPlay") return played;
+  return applied(played, { decisionId: d.id, side: d.side, value: { kind: "pass" } }, raceRules).state;
+}
+
 describe("Quantum Computing's era score", () => {
   it("after the regions score, moves the score track 1 toward the side holding it", () => {
-    const end = playAnswers(lastPlay(-4), 1, raceRules);
+    const end = finish(lastPlay(-4));
     expect(end.public.score).toBe(-1);
     expect(end.public.status).toEqual({ kind: "over", winner: "lio", reason: "turnLimitReached" });
-    expect(playAnswers(lastPlay(4), 1, raceRules).public.score).toBe(1);
+    expect(finish(lastPlay(4)).public.score).toBe(1);
   });
 
   it("does nothing for a side one step short of Quantum Computing", () => {
-    expect(playAnswers(lastPlay(-3), 1, raceRules).public.score).toBe(0);
+    expect(finish(lastPlay(-3)).public.score).toBe(0);
   });
 
   it("wins at once when it reaches the holder's end of the track", () => {
-    const end = playAnswers(lastPlay(-4, 1), 1, raceRules);
+    const end = finish(lastPlay(-4, 1));
     expect(end.public.status).toEqual({ kind: "over", winner: "lio", reason: "trackEnd" });
   });
 
   it("comes after every region: a region that ends the game leaves it unscored", () => {
     // SAE is present in east and reaches its end (+1) first; LIO's Quantum Computing never moves the track.
-    const end = playAnswers(lastPlay(-4, 1, { lio: 0, sae: 1 }), 1, raceRules);
+    const end = finish(lastPlay(-4, 1, { lio: 0, sae: 1 }));
     expect(end.public.score).toBe(1);
     expect(end.public.status).toEqual({ kind: "over", winner: "sae", reason: "trackEnd" });
   });
@@ -123,7 +134,7 @@ describe("the tie-break on an even score track", () => {
   });
 
   it("decides a finished game whose track ends even", () => {
-    const end = playAnswers(lastPlay(2), 1, raceRules);
+    const end = finish(lastPlay(2));
     expect(end.public.score).toBe(0);
     expect(end.public.status).toEqual({ kind: "over", winner: "sae", reason: "turnLimitReached" });
   });

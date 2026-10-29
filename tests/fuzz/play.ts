@@ -224,7 +224,7 @@ export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed
       ({ state, events } = answered(rules, state, answer));
       allEvents.push(...events);
       checkStep(rules, setup, state, events, seed, { before, allEvents, knowledge });
-      checkTriggerFilters(rules, prior, events, state);
+      checkTriggerFilters(rules, prior, events, state, answer);
       checkRemoved(rules, prior, answer, state);
       checkRefilled(setup, prior, state);
       checkPlayerDraws(events, players);

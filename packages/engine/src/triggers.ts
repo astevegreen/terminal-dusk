@@ -62,7 +62,8 @@ export function afterProgram(state: GameState, finished: Frame, events: GameEven
   if (!isPlay || finished.source !== played || played === undefined) return;
   // LIO makes the plays with an even count before them, so the play just counted tells who made it: turn.ts
   // asks for each play by this same count. Not `inPlayBy`, which is null for a play for points with no event.
-  const player = (pub.playsMade - 1) % 2 === 0 ? "lio" : "sae";
+  // Hypersonics' extra play, offered only after all the normal plays and not counted, is its holder's.
+  const player = pub.techRace?.extraPlay ?? ((pub.playsMade - 1) % 2 === 0 ? "lio" : "sae");
   const reacting = pub.triggers.filter(
     (t) => t.hook === "cardPlayed" && t.source !== played && filterHolds(state, t, player),
   );

@@ -5,7 +5,17 @@
 // Trigger events name only the card that set a trigger and its hook, and a card (or its reaction) can set more
 // than one trigger on the same hook, so the check follows each trigger by its place in `public.triggers`: it
 // starts from the list before the step and replays the step's trigger events on it, in order.
-import type { CardId, GameEvent, GameState, HookId, Ruleset, Side, Step, TriggerFilter } from "@terminal-dusk/engine";
+import type {
+  Answer,
+  CardId,
+  GameEvent,
+  GameState,
+  HookId,
+  Ruleset,
+  Side,
+  Step,
+  TriggerFilter,
+} from "@terminal-dusk/engine";
 import { isLasting } from "./markers.ts";
 
 /** What the check saw in one step, for the fuzz tests' counts. */
@@ -45,32 +55,45 @@ function kindFromRules(rules: Ruleset, source: CardId, hook: HookId): Kind {
   return { filter: steps[0]!.filter, once: steps[0]!.once };
 }
 
+/** The side making play `n` of a turn: LIO makes the plays with an even count before them. */
+const playerOf = (n: number): Side => ((n - 1) % 2 === 0 ? "lio" : "sae");
+
 /**
  * The play whose cardPlayed hook is still to come in `state`: the next play while a side is asked to play
  * (`inPlay` empty), or the card in play while its own program has not finished (it is the stack's bottom
  * frame, or the stack is empty while its player says when a rival card's event happens). `n` counts the
- * plays this turn, this one included. Null in any other state (opening cards, reactions, the turn's end).
+ * plays this turn, this one included; Hypersonics' extra play, which the engine does not count, comes after
+ * all the normal ones and is its holder's. Null in any other state (opening cards, reactions, the turn's end).
  */
-function openPlay(state: GameState): { turn: number; n: number; card: CardId | null } | null {
+function openPlay(state: GameState): { turn: number; n: number; card: CardId | null; side: Side } | null {
   const pub = state.public;
   if (pub.status.kind !== "active") return null;
-  if (pub.pending.some((d) => d.kind === "playCardAs")) return { turn: pub.turn, n: pub.playsMade + 1, card: null };
+  const extra = pub.techRace?.extraPlay;
+  const n = extra === undefined ? pub.playsMade : pub.playsMade + 1;
+  const side = extra ?? playerOf(n);
+  if (pub.pending.some((d) => d.kind === "playCardAs")) {
+    return { turn: pub.turn, n: pub.playsMade + 1, card: null, side: playerOf(pub.playsMade + 1) };
+  }
+  if (extra !== undefined && pub.pending.some((d) => d.kind === "extraPlay")) {
+    return { turn: pub.turn, n, card: null, side: extra };
+  }
   const [card, bottom] = [pub.inPlay[0], pub.stack[0]];
   if (pub.playsMade === 0 || pub.inPlay.length !== 1 || card === undefined) return null;
   const own = bottom === undefined || (bottom.kind === "program" && bottom.source === card);
-  return own ? { turn: pub.turn, n: pub.playsMade, card } : null;
+  return own ? { turn: pub.turn, n, card, side } : null;
 }
 
 /**
  * The play whose cardPlayed hook happened in this step, worked out from the states as afterProgram does: one
- * was still to come before, and is not after. LIO makes the plays with an even count before them.
+ * was still to come before, and is not after. Passing on Hypersonics' extra play (`answer`) makes no play.
  */
-function finishedPlay(before: GameState, after: GameState): Play | null {
+function finishedPlay(before: GameState, after: GameState, answer: Answer | undefined): Play | null {
   const open = openPlay(before);
   if (open === null) return null;
+  if (open.card === null && answer !== undefined && "value" in answer && answer.value.kind === "pass") return null;
   const still = openPlay(after);
   if (still !== null && still.turn === open.turn && still.n === open.n) return null;
-  return { side: (open.n - 1) % 2 === 0 ? "lio" : "sae", card: open.card };
+  return { side: open.side, card: open.card };
 }
 
 /** True when this turn's turnEnd hook happened in this step: it had not fired before, and it has fired or the turn moved on. */
@@ -194,19 +217,21 @@ function endOne(list: Entry[], event: { source: CardId; hook: HookId }, i: numbe
  * fired. When no cardPlayed trigger fired, the hook's place among the events is unknown, so (c) covers a
  * `has` filter only when its marker's presence is the same before and after the step. A trigger set in this
  * step whose card sets triggers of differing filters or once on that hook is judged only for its order.
- * The playing side is worked out from the states, as afterProgram does, never from who answered.
+ * The playing side is worked out from the states, as afterProgram does, never from who answered; `answer` only
+ * tells a pass on Hypersonics' extra play, which makes no play.
  */
 export function checkTriggerFilters(
   rules: Ruleset,
   before: GameState,
   events: readonly GameEvent[],
   after: GameState,
+  answer?: Answer,
 ): FilterCounts {
   const counts = noCounts();
   const status = after.public.status;
   // A game that ends at the score track's end (R21) ends in endTurn too, after the turnEnd hook, like the last turn.
   if (status.kind === "over" && status.reason !== "turnLimitReached" && status.reason !== "trackEnd") return counts;
-  const play = finishedPlay(before, after);
+  const play = finishedPlay(before, after, answer);
   let turnEnd = turnEndHappened(before, after);
   const list: Entry[] = before.public.triggers.map((t) => ({
     source: t.source,

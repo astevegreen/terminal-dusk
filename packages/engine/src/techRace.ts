@@ -47,6 +47,17 @@ export function canRace(pub: PublicState, side: Side, points: number): boolean {
   return cost !== null && points >= cost;
 }
 
+/**
+ * The side to offer Hypersonics' extra play now, or null: the side holding the track's `escalateAt` step, with a
+ * card in its hand, not yet offered it this turn (docs/design/tech-race.md, "The extra play").
+ */
+export function extraPlayer(state: GameState): Side | null {
+  const pub = state.public;
+  const step = pub.map?.techRace?.escalateAt;
+  if (step === undefined || pub.techRace === undefined || pub.techRace.extraPlay !== undefined) return null;
+  return SIDES.find((side) => techHolds(pub, side, step) && state.private[side].hand.length > 0) ?? null;
+}
+
 /** `list` with `item` added once, in `order`. */
 const added = <T>(list: readonly T[], item: T, order: readonly T[]): T[] =>
   order.filter((x) => x === item || list.includes(x));

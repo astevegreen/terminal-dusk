@@ -16,6 +16,7 @@ import { endTurnModifiers } from "./modifiers.ts";
 import { leader, scoreEra } from "./scoring.ts";
 import { runProgram, runStack } from "./stack.ts";
 import type { Budget, Closing } from "./stack.ts";
+import { extraPlayer } from "./techRace.ts";
 import { endTurnTriggers, fireTurnEnd } from "./triggers.ts";
 import { otherSide } from "./types.ts";
 import type { AnswerValue, CardId, EngineError, GameEvent, GameState, Ruleset, Side, Step } from "./types.ts";
@@ -86,8 +87,8 @@ function revealOpening(
 /**
  * Runs the game on while nothing waits on the stack. The first card in play has finished its event (and
  * any reactions to it), so it leaves play (putAway) and the next card's event starts. With no card in
- * play, the next side plays. Once both have made all their plays, the turnEnd hook fires; when its
- * reactions have finished, the turn ends.
+ * play, the next side plays. Once both have made all their plays, the side holding Hypersonics may make one more
+ * (offerExtraPlay); then the turnEnd hook fires, and when its reactions have finished, the turn ends.
  */
 function settle(ruleset: Ruleset, state: GameState, events: GameEvent[], budget: Budget): EngineError | null {
   const pub = state.public;
@@ -101,6 +102,8 @@ function settle(ruleset: Ruleset, state: GameState, events: GameEvent[], budget:
     } else if (pub.playsMade < 2 * pub.playsPerTurn) {
       pub.pending = [newDecision(state.meta.seq, pub.playsMade % 2 === 0 ? "lio" : "sae", "playCardAs")];
       return null;
+    } else if (!pub.turnEndFired && offerExtraPlay(state)) {
+      return null;
     } else if (pub.turnEndFired) {
       error = endTurn(state, events, budget);
     } else {
@@ -110,6 +113,18 @@ function settle(ruleset: Ruleset, state: GameState, events: GameEvent[], budget:
     if (error) return error;
   }
   return null;
+}
+
+/**
+ * Offers Hypersonics' extra play to the side holding it, if any (techRace.ts, extraPlayer), recording it as offered
+ * so it comes once a turn. True when it is offered.
+ */
+function offerExtraPlay(state: GameState): boolean {
+  const side = extraPlayer(state);
+  if (side === null) return false;
+  state.public.techRace!.extraPlay = side;
+  state.public.pending = [newDecision(state.meta.seq, side, "extraPlay")];
+  return true;
 }
 
 /**
@@ -144,7 +159,10 @@ function endTurn(state: GameState, events: GameEvent[], budget: Budget): EngineE
   pub.turn += 1;
   pub.playsMade = 0;
   pub.turnEndFired = false;
-  if (pub.techRace !== undefined) pub.techRace.attempted = [];
+  if (pub.techRace !== undefined) {
+    pub.techRace.attempted = [];
+    delete pub.techRace.extraPlay;
+  }
   return startTurn(state, events, budget);
 }
 
@@ -177,7 +195,7 @@ function runCard(
 }
 
 /**
- * `side` plays a card: it leaves the hand for `inPlay` at once. Your own card or a neutral card runs its
+ * `side` plays a card, a normal play or Hypersonics' extra play: it leaves the hand for `inPlay` at once. Your own card or a neutral card runs its
  * event or spends its points; a rival's card waits for its rivalEventOrder answer. An event records
  * `side` as its player (a rival's card always has its event); a play for points with no event records
  * nothing (null in `inPlayBy`).
@@ -196,7 +214,8 @@ function play(
   const player = rival || value.as === "event" ? side : null;
   state.public.inPlay = [value.card];
   state.public.inPlayBy = [player];
-  state.public.playsMade += 1;
+  // Hypersonics' extra play, the only play once all the normal ones are made, is not one of them.
+  if (state.public.playsMade < 2 * state.public.playsPerTurn) state.public.playsMade += 1;
   if (rival) {
     state.public.pending = [newDecision(state.meta.seq, side, "rivalEventOrder")];
     return null;

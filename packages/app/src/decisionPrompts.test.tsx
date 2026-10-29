@@ -134,6 +134,16 @@ describe("decisionPrompts with an onAnswer", () => {
     const d = decision("playCardAs", { from: "hand", uses: { own: ["points"], rival: ["points"], neutral: [] } });
     expect(pressAll(d, ["a"]).texts).toEqual(["Card a: points"]);
   });
+  it("extraPlay has a button for each card and use, as a play does, then a Pass button", () => {
+    expect(pressAll(decision("extraPlay", play), ["a"])).toEqual({
+      texts: ["Card a: event", "Card a: points", "Pass"],
+      sent: [
+        { kind: "playCardAs", card: "a", as: "event" },
+        { kind: "playCardAs", card: "a", as: "points" },
+        { kind: "pass" },
+      ],
+    });
+  });
   it("rivalEventOrder has a before and an after button", () => {
     expect(pressAll(decision("rivalEventOrder", {}, "lio"), [])).toEqual({
       texts: ["Before the points", "After the points"],
