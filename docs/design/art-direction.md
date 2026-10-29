@@ -20,12 +20,14 @@ Each era has its own theme, in the style of its time. Owner: "The different era 
 like board, frames, borders, menus, backgrounds, decks, tracks, etc." A theme is a look, not a literal picture: it
 does not redraw the world map.
 
-| Era                    | Theme                 | The feel                                                                     |
-| ---------------------- | --------------------- | ---------------------------------------------------------------------------- |
-| Era 1 (1991–2001)      | Green-screen terminal | Glowing lines on black, scan lines, a blinking cursor, computer lettering    |
-| Era 2 (2001–2008)      | 24-hour news desk     | Deep blue, glossy panels, a red "breaking" tag, a ticker of the latest moves |
-| Era 3 (2008–2025)      | Data dashboard        | Charcoal, thin neon lines, a faint grid, glowing outlines, small live charts |
-| Future era (2025–2027) | Not chosen yet        | Ask the owner before building it                                             |
+| Era               | Theme                 | The feel                                                                     |
+| ----------------- | --------------------- | ---------------------------------------------------------------------------- |
+| Era 1 (1991–2001) | Green-screen terminal | Glowing lines on black, scan lines, a blinking cursor, computer lettering    |
+| Era 2 (2001–2008) | 24-hour news desk     | Deep blue, glossy panels, a red "breaking" tag, a ticker of the latest moves |
+| Era 3 (2008–2025) | Data dashboard        | Charcoal, thin neon lines, a faint grid, glowing outlines, small live charts |
+
+The optional 2025–2027 scenario extends Era 3 (`docs/design/eras.md`), so it uses Era 3's theme. A theme of its own
+for those years is not chosen yet: ask the owner before building one.
 
 What a theme styles:
 
