@@ -16,7 +16,7 @@ import { endTurnModifiers } from "./modifiers.ts";
 import { leader, scoreEra } from "./scoring.ts";
 import { runProgram, runStack } from "./stack.ts";
 import type { Budget, Closing } from "./stack.ts";
-import { extraPlayer } from "./techRace.ts";
+import { extraPlayer, quantumHolder } from "./techRace.ts";
 import { endTurnTriggers, fireTurnEnd } from "./triggers.ts";
 import { otherSide } from "./types.ts";
 import type { AnswerValue, CardId, EngineError, GameEvent, GameState, Ruleset, Side, Step } from "./types.ts";
@@ -26,12 +26,44 @@ const OPENING: Step[] = [{ op: "choose", who: "both", decision: { kind: "chooseC
 
 /**
  * Opens the current turn: an era entering on it is shuffled into the draw pile, both hands are refilled
- * to the hand size (refill.ts), then both sides make their opening pick. Edits `state`, a working copy, in place.
+ * to the hand size (refill.ts), then both sides make their opening pick. While a side holds Quantum Computing,
+ * its rival picks first, alone (pickOpening). Edits `state`, a working copy, in place.
  */
 export function startTurn(state: GameState, events: GameEvent[], budget: Budget): EngineError | null {
   enterEra(state, events);
   refillHands(state, events);
-  return runProgram(state, OPENING, events, budget);
+  const holder = quantumHolder(state.public);
+  if (holder === null) return runProgram(state, OPENING, events, budget);
+  state.public.pending = [newDecision(state.meta.seq, otherSide(holder), "chooseCard")];
+  return null;
+}
+
+/**
+ * One side's opening pick under Quantum Computing (docs/design/tech-race.md, "The opening-card power"). The rival's
+ * card leaves its hand face up for `inPlay`, where the holder sees it, and the holder picks; nothing is held
+ * secretly between the two. The holder's pick then reveals both in the usual order (revealOpening).
+ */
+function pickOpening(
+  ruleset: Ruleset,
+  state: GameState,
+  side: Side,
+  card: CardId,
+  events: GameEvent[],
+  budget: Budget,
+): EngineError | null {
+  const pub = state.public;
+  const first = pub.inPlay[0];
+  const firstBy = pub.inPlayBy[0];
+  if (first === undefined || firstBy === null || firstBy === undefined) {
+    removeFromHand(state, side, card);
+    pub.inPlay = [card];
+    pub.inPlayBy = [side];
+    pub.pending = [newDecision(state.meta.seq, otherSide(side), "chooseCard")];
+    return null;
+  }
+  pub.pending = [];
+  const picks = { [firstBy]: first, [side]: card } as Record<Side, CardId>;
+  return revealOpening(ruleset, state, picks.lio, picks.sae, events, budget, firstBy);
 }
 
 /**
@@ -52,6 +84,9 @@ export function afterAnswer(
       const error = revealOpening(ruleset, state, lio.card, sae.card, events, budget);
       if (error || state.public.stack.length > 0) return error;
     }
+  } else if (closing.value.kind === "chooseCard") {
+    const error = pickOpening(ruleset, state, closing.who, closing.value.card, events, budget);
+    if (error || state.public.stack.length > 0 || state.public.pending.length > 0) return error;
   } else if (closing.value.kind === "playCardAs") {
     const error = play(ruleset, state, closing.who, closing.value, events, budget);
     if (error || state.public.stack.length > 0 || waitsForOrder(state)) return error;
@@ -66,6 +101,7 @@ export function afterAnswer(
  * Both opening cards leave their hands for `inPlay`, in resolution order: more ops first, and on a
  * tie the card LIO picked, whichever side's card it is. `inPlayBy` records who picked each, so the
  * second card's event, which may start in a later call, still knows its picker. Then the first starts.
+ * `shown`, under Quantum Computing, is the side whose card already left its hand (pickOpening).
  */
 function revealOpening(
   ruleset: Ruleset,
@@ -74,9 +110,10 @@ function revealOpening(
   saePick: CardId,
   events: GameEvent[],
   budget: Budget,
+  shown?: Side,
 ): EngineError | null {
-  removeFromHand(state, "lio", lioPick);
-  removeFromHand(state, "sae", saePick);
+  if (shown !== "lio") removeFromHand(state, "lio", lioPick);
+  if (shown !== "sae") removeFromHand(state, "sae", saePick);
   const ops = (id: CardId) => cardOf(ruleset, id)?.ops ?? 0;
   const saeFirst = ops(saePick) > ops(lioPick);
   state.public.inPlay = saeFirst ? [saePick, lioPick] : [lioPick, saePick];
@@ -106,6 +143,8 @@ function settle(ruleset: Ruleset, state: GameState, events: GameEvent[], budget:
       return null;
     } else if (pub.turnEndFired) {
       error = endTurn(state, events, budget);
+      // Under Quantum Computing the next turn opens on a single opening pick, which waits off the stack.
+      if (!error && pub.pending.length > 0) return null;
     } else {
       fireTurnEnd(state, events);
       error = runStack(state, events, budget);
