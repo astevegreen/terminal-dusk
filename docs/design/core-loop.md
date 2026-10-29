@@ -10,7 +10,9 @@ change it in Notion and promote again.
 1. **Refill.** At the start of each turn, both players refill their hands to the hand size (see "Refilling
    hands" below).
 2. **Opening cards.** Then both players pick one card from their hand at the same time, in secret. Neither
-   player sees the other's pick until both have picked. A player may pick one of their rival's cards.
+   player sees the other's pick until both have picked. A player may pick one of their rival's cards. The one
+   exception: a side holding the tech race's Quantum Computing step sees its rival's pick first
+   (docs/design/tech-race.md).
 3. **Reveal.** Both opening cards are revealed together.
 4. **Order.** The opening card with more action points resolves first. If both have the same action points,
    the card LIO picked resolves first, whichever side's card it is.
@@ -19,7 +21,8 @@ change it in Notion and promote again.
    except that its Contingency draws from the rival's own deck come from the World deck
    (docs/design/contingency-deck.md).
 6. **Card plays.** After the opening cards, the players take turns playing one card at a time.
-   LIO plays first in every turn.
+   LIO plays first in every turn. A side holding the tech race's Hypersonics step then makes one extra play
+   (docs/design/tech-race.md).
 
 ## Refilling hands
 

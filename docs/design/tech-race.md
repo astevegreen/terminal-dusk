@@ -67,7 +67,7 @@ Powers add up: the side holding a step has its power and every power below it (o
   turn, a side holding Hypersonics may play one more card from its hand. It is optional, and it is an ordinary
   play: for the event or for points, on any action. A tech race attempt is allowed in it only if the side has not
   already made its one attempt that turn. The turn-end rules come after it.
-- **Hypersonics and Escalation.** Only gaining Hypersonics raises Escalation: the marker moving from AI to
+- **Hypersonics and Escalation** (owner: "Only advancing"). Only gaining Hypersonics raises Escalation: the marker moving from AI to
   Hypersonics on a side's own attempt. A rival pulling the marker back from Quantum Computing to Hypersonics raises
   nothing. It happens every time the marker enters Hypersonics this way, not while it stays there.
 - **A crisis from Hypersonics** (owner: "The side that advanced"). If entering Hypersonics pushes Escalation to 6,

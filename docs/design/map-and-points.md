@@ -129,7 +129,7 @@ What the reference rules mean for this game, as far as they reach:
 ## Escalation (proposal topic 4, option B)
 
 Called "tension" until the owner's 22 October dialogue, which settled everything below except the parts that wait
-on scoring's numbers, the map and the tech race.
+on scoring's numbers and the map; its tech race links are below.
 
 - **Name.** The track is called **Escalation** on screen (owner, 22 Oct), after Herman Kahn's escalation ladder
   (_On Escalation_, 1965).
