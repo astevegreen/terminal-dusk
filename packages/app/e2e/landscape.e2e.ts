@@ -161,8 +161,16 @@ test("the sheet's tabs switch between Play and Details, Hide folds it, and a new
   for (const id of ["decision", "hand", "contingency"]) await expect(page.getByTestId(id)).toBeHidden();
   await expect(hide).toBeHidden();
 
-  // A tab opens it again, and Hide folds it again, from the keyboard too: the keyboard's place moves to the tab that
-  // was open, as Hide itself goes.
+  // Play opens it again, on the decision still waiting.
+  await tab(page, "Play").click();
+  await expect(tab(page, "Play")).toHaveAttribute("aria-selected", "true");
+  await expect(decision).toBeVisible();
+  await hide.click();
+  await expect(decision).toBeHidden();
+
+  // Another tab opens it again, and Hide folds it again, from the keyboard too: the keyboard's place moves to the
+  // tab that was open, as Hide itself goes. The sheet is left folded from Details, not Play, so the check below
+  // proves a new decision opens Play rather than the tab last open.
   await tab(page, "Details").click();
   await expect(page.getByTestId("contingency")).toBeVisible();
   await hide.press("Enter");
