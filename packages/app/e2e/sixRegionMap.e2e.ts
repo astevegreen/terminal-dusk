@@ -2,6 +2,7 @@
 // boxes, readable and tappable on a phone held upright (375x667) and at the project's own sizes.
 import { expect, test } from "@playwright/test";
 import type { Locator, Page } from "@playwright/test";
+import { startSixRegionGame } from "./start.ts";
 
 const REGIONS = [
   "Eastern Europe and Central Asia",
@@ -13,14 +14,6 @@ const REGIONS = [
 ];
 
 const heightOf = (locator: Locator): Promise<number> => locator.evaluate((el) => el.getBoundingClientRect().height);
-
-async function startSixRegionGame(page: Page): Promise<Locator> {
-  await page.goto("/");
-  await page.getByRole("button", { name: "Play the six-region map" }).click();
-  await page.getByRole("button", { name: "Play as LIO" }).click();
-  await expect(page.getByTestId("decision")).toBeVisible();
-  return page.getByTestId("map-area");
-}
 
 async function expectNoSideScroll(page: Page): Promise<void> {
   const noSideScroll = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);

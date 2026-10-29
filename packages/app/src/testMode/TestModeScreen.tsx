@@ -32,7 +32,7 @@ export function TestModeView({ snapshot, session }: Readonly<{ snapshot: Snapsho
       />
     );
   return (
-    <main>
+    <main className="game-page">
       <h1>Test mode</h1>
       <nav aria-label="Viewer">
         {VIEWERS.map(({ viewer: v, text }) => (

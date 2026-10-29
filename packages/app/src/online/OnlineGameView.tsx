@@ -44,7 +44,7 @@ export function OnlineGameView({
     onBack();
   };
   return (
-    <main style={{ maxWidth: "100%", boxSizing: "border-box" }}>
+    <main className="game-page">
       <div style={BAR}>
         <button type="button" style={TAP} onClick={back}>
           Back

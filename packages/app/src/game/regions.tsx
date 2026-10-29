@@ -141,7 +141,7 @@ export function Contingency({ pub }: Readonly<{ pub: PublicState }>) {
   );
 }
 
-/** The log arrives oldest first and is shown newest first. Its list is the part that scrolls. */
+/** The log arrives oldest first and is shown newest first. Its list can take the keyboard; its Log tab scrolls. */
 export function Log({ log }: Readonly<{ log: string[] }>) {
   return (
     <Region id="log" title="Log" className="game-log" role="log">

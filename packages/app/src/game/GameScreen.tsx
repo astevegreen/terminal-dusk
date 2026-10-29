@@ -1,5 +1,6 @@
-// The game screen: one whole game drawn from one frame, laid out for a phone held sideways (844x390).
-// It renders from its props alone. A placeholder look: boxes, no art, no colour scheme.
+// The game screen: one whole game drawn from one frame, laid out for a phone held sideways (844x390; L1, #464):
+// a thin top bar, the map filling the main area and a side panel with Play, Log and Details tabs. It renders
+// from its props alone (SideTabs holds the picked tab). A placeholder look: boxes, no art, no colour scheme.
 import type { AnswerValue, EraId } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import { decisionPrompts } from "../decisionPrompts.tsx";
@@ -7,6 +8,7 @@ import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
 import "./gameScreen.css";
 import { Contingency, Hand, Log, MapArea, Opponent, Region, StatusBar, Table } from "./regions.tsx";
 import type { Label } from "./regions.tsx";
+import { SideTabs } from "./sideTabs.tsx";
 import { Tracks } from "./tracks.tsx";
 import type { CardRules } from "../displayText.ts";
 
@@ -80,24 +82,34 @@ export function GameScreen({
   return (
     // A game with no map gives its map box only its one line (gameScreen.css).
     <div className={frame.view.public.map === undefined ? "game game-no-map" : "game"}>
-      <StatusBar frame={frame} era={era} />
-      <Tracks pub={frame.view.public} />
+      {/* Shown only on a screen taller than it is wide (gameScreen.css): the same layout, held the wrong way. */}
+      <p className="game-rotate-hint">Turn your phone sideways to play.</p>
+      <div className="game-top">
+        <StatusBar frame={frame} era={era} />
+        <Tracks pub={frame.view.public} />
+      </div>
       <MapArea frame={frame} />
-      <Hand frame={frame} label={label} rules={rules} />
-      {/* It scrolls, so the keyboard can reach it; a div with a role, as a section would pick up the boxed style. */}
+      {/* A div with a role, as a section would pick up the boxed style. Its tabs are Play, Log and Details. */}
       <div className="game-side" role="region" aria-label="Game details" tabIndex={0}>
-        <Opponent frame={frame} />
-        <Table pub={frame.view.public} label={label} />
-        <Contingency pub={frame.view.public} />
-        <DecisionRegion
-          frame={frame}
-          label={label}
-          question={question}
-          affiliation={affiliation}
-          onAnswer={onAnswer}
-          refusal={refusal}
-        />
-        <Log log={log} />
+        <SideTabs waitingId={frame.decision?.id ?? null}>
+          <>
+            <DecisionRegion
+              frame={frame}
+              label={label}
+              question={question}
+              affiliation={affiliation}
+              onAnswer={onAnswer}
+              refusal={refusal}
+            />
+            <Hand frame={frame} label={label} rules={rules} />
+          </>
+          <Log log={log} />
+          <>
+            <Opponent frame={frame} />
+            <Table pub={frame.view.public} label={label} />
+            <Contingency pub={frame.view.public} />
+          </>
+        </SideTabs>
       </div>
     </div>
   );
