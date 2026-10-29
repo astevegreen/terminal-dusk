@@ -8,7 +8,7 @@ import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
-import { bordersPath, countriesOf, gameShapes, projectorOf } from "./geometry.mjs";
+import { bordersPath, countriesOf, crimeaOf, gameShapes, projectorOf } from "./geometry.mjs";
 
 const app = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const world = join(app, "src/game/map/world");
@@ -29,7 +29,10 @@ function buildArt(dir, crop) {
   const features = JSON.parse(readFileSync(join(dir, COUNTRIES), "utf8")).features;
   const countries = countriesOf(features);
   const project = projectorOf(crop);
-  const art = { shapes: gameShapes(countries, project, crop), borders: bordersPath(countries, project, crop) };
+  const art = {
+    shapes: gameShapes(countries, project, crop, crimeaOf(features)),
+    borders: bordersPath(countries, project, crop),
+  };
   const empty = Object.entries(art.shapes).filter(([, d]) => d === "");
   if (empty.length > 0) throw new Error(`No shape for ${empty.map(([id]) => id).join(", ")}`);
   writeFileSync(join(world, "worldArt.json"), `${JSON.stringify(art)}\n`);

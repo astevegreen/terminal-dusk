@@ -4,18 +4,22 @@
 //
 // Borders follow the UN-recognised lines, as the owner decided: Kosovo is drawn inside Serbia, Somaliland inside
 // Somalia, Northern Cyprus inside Cyprus, and Crimea inside Ukraine. Crimea keeps its own tint shape for its game
-// marker: Ukraine's land inside a box around the peninsula.
+// marker: the peninsula's own outline where Natural Earth draws it as a piece of Russia, as its default file does;
+// otherwise Ukraine's land inside a box around it.
 
 /** Natural Earth codes drawn as part of another country (UN-recognised borders). */
 export const MERGES = Object.freeze({ KOS: "SRB", SOL: "SOM", CYN: "CYP" });
 
-/** The box around Crimea: Russia's land inside it is drawn as Ukraine's, and the game's Crimea is Ukraine inside it. */
+/** Where Crimea is: a piece of Russia lying wholly in here is the peninsula (it reaches 46.22°N). */
+export const CRIMEA_AREA = Object.freeze({ west: 32, east: 37, south: 44, north: 46.5 });
+
+/** Where Natural Earth draws Crimea inside Ukraine, the game's Crimea is Ukraine's land in this box: south of Perekop. */
 export const CRIMEA_BOX = Object.freeze({ west: 32, east: 37, south: 44, north: 46.15 });
 
 /** Rings smaller than this many square units after rounding are dropped: specks a player can't see. */
 export const MIN_RING_AREA = 2;
 
-/** Which Natural Earth code is which game country. Crimea is cut from Ukraine; France is only its European land. */
+/** Which Natural Earth code is which game country. Crimea is part of Ukraine; France is only its European land. */
 export const GAME_COUNTRIES = Object.freeze({
   canada: "CAN",
   mexico: "MEX",
@@ -72,9 +76,27 @@ export const projectorOf = (crop) => (lon, lat) => ({
 
 const inBox = (box, [lon, lat]) => lon >= box.west && lon <= box.east && lat >= box.south && lat <= box.north;
 
+const polygonsOf = (geometry) =>
+  geometry === null
+    ? []
+    : geometry.type === "Polygon"
+      ? [geometry.coordinates]
+      : geometry.type === "MultiPolygon"
+        ? geometry.coordinates
+        : [];
+const isCrimea = (code, polygon) => code === "RUS" && polygon[0].every((p) => inBox(CRIMEA_AREA, p));
+
+/** The pieces of Russia that are Crimea: none where Natural Earth draws the peninsula inside Ukraine. */
+export function crimeaOf(features) {
+  return features
+    .filter((f) => f.properties.ADM0_A3 === "RUS")
+    .flatMap((f) => polygonsOf(f.geometry))
+    .filter((polygon) => isCrimea("RUS", polygon));
+}
+
 /**
  * Each country's polygons (each a list of rings, the first the outline), by its code after the UN merges, with
- * Russia's land inside the Crimea box given to Ukraine. `features` are GeoJSON features with `properties.ADM0_A3`.
+ * Russia's Crimea given to Ukraine. `features` are GeoJSON features with `properties.ADM0_A3`.
  */
 export function countriesOf(features) {
   const out = new Map();
@@ -85,13 +107,7 @@ export function countriesOf(features) {
   for (const f of features) {
     const raw = f.properties.ADM0_A3;
     const code = MERGES[raw] ?? raw;
-    const g = f.geometry;
-    if (g === null) continue;
-    const polygons = g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : [];
-    for (const polygon of polygons) {
-      const crimean = code === "RUS" && polygon[0].every((p) => inBox(CRIMEA_BOX, p));
-      add(crimean ? "UKR" : code, polygon);
-    }
+    for (const polygon of polygonsOf(f.geometry)) add(isCrimea(code, polygon) ? "UKR" : code, polygon);
   }
   return out;
 }
@@ -166,10 +182,17 @@ export function shapePath(polygons, project, crop) {
   return d;
 }
 
-/** Each game country's shape path: Crimea is Ukraine cut to the Crimea box, France only its European land. */
-export function gameShapes(countries, project, crop) {
+/**
+ * Each game country's shape path. Crimea is its own outline (`crimea`, from crimeaOf), or else Ukraine cut to the
+ * Crimea box; France is only its European land.
+ */
+export function gameShapes(countries, project, crop, crimea = []) {
   const shapes = {};
   for (const [id, code] of Object.entries(GAME_COUNTRIES)) {
+    if (id === "crimea" && crimea.length > 0) {
+      shapes[id] = shapePath(crimea, project, crop);
+      continue;
+    }
     let polygons = countries.get(code) ?? [];
     const only = id === "crimea" ? CRIMEA_BOX : KEEP_ONLY[id];
     if (only !== undefined)

@@ -3,10 +3,12 @@
 // or near it, inside its region's rectangle. The rectangles are the regions' tap zones and do not overlap: the
 // Americas on the left, Europe and Eastern Europe across the top, the Middle East and Africa below them, Asia on the
 // right. A crowded country's marker sits a little away, joined to its place by a leader line. No two markers overlap
-// (sixRegionLayout.test.ts). Positions are marker centres.
+// (sixRegionLayout.test.ts). Positions are marker centres. Under them, the world picture and each country's shape
+// (world/worldArt.ts).
 import type { CountryId } from "@terminal-dusk/engine";
 import type { MapLayout, Point } from "./layout.ts";
 import { WORLD_SIZE, project } from "./world/projection.ts";
+import { WORLD_ART } from "./world/worldArt.ts";
 
 /** Each country's true place, as longitude and latitude in degrees (east and north positive). */
 const LON_LAT: Readonly<Record<CountryId, readonly [number, number]>> = {
@@ -136,4 +138,5 @@ export const SIX_REGION_LAYOUT: MapLayout = {
     tajikistan: "Tajik.",
   },
   places,
+  art: WORLD_ART,
 };

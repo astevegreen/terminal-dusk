@@ -26,8 +26,9 @@ the credit. Its logo is not used: NASA does not allow the logo to suggest it end
 - **Borders**: UN-recognised, as the owner decided. Kosovo is drawn inside Serbia, Somaliland inside Somalia,
   Northern Cyprus inside Cyprus, and Crimea inside Ukraine. A border is an edge two countries share, so no coast is
   drawn over the picture.
-- **Shapes**: one per game country, for its region's tint. Crimea's is Ukraine's land between 32°E and 37°E, south
-  of 46.15°N. France's is only its European land. Points are rounded to whole map units, and specks under 2 square
+- **Shapes**: one per game country, for its region's tint. Natural Earth's default file draws Crimea as a piece of
+  Russia; the build gives that piece to Ukraine (so no border cuts it off) and uses its outline as the game's Crimea.
+  (A file that draws Crimea inside Ukraine gets Ukraine's land between 32°E and 37°E, south of 46.15°N, instead.) France's is only its European land. Points are rounded to whole map units, and specks under 2 square
   units are dropped.
 
 ## Rebuilding

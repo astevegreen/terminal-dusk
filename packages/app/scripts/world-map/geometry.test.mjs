@@ -7,6 +7,7 @@ import {
   bordersPath,
   clipRing,
   countriesOf,
+  crimeaOf,
   gameShapes,
   projectorOf,
   rounded,
@@ -60,13 +61,38 @@ describe("the UN-recognised borders", () => {
     expect(bordersPath(countries, flat, everywhere)).toBe("");
   });
 
-  it("draws Russia's land in the Crimea box as Ukraine's, so no border cuts Crimea from Ukraine", () => {
-    const countries = countriesOf([
-      feature("UKR", square(30, 46.15, 4)),
-      feature("RUS", square(33, 44.5, 1), square(40, 50, 5)),
-    ]);
+  // As Natural Earth draws it: Crimea a piece of Russia reaching 46.22°N, sharing its northern edge with Ukraine.
+  const ukraine = [
+    [30, 46.22],
+    [32.5, 46.22],
+    [35, 46.22],
+    [36, 46.22],
+    [36, 52],
+    [30, 52],
+    [30, 46.22],
+  ];
+  const crimea = [
+    [32.5, 44.4],
+    [35, 44.4],
+    [35, 46.22],
+    [32.5, 46.22],
+    [32.5, 44.4],
+  ];
+  const drawnAsRussia = [feature("UKR", ukraine), feature("RUS", crimea, square(40, 50, 5))];
+
+  it("draws Russia's Crimea as Ukraine's, so no border cuts Crimea from Ukraine", () => {
+    const countries = countriesOf(drawnAsRussia);
     expect(countries.get("UKR")).toHaveLength(2);
     expect(countries.get("RUS")).toHaveLength(1);
+    expect(bordersPath(countries, flat, everywhere)).toBe("");
+  });
+
+  it("gives the game's Crimea that piece's own outline, and Ukraine both", () => {
+    const pieces = crimeaOf(drawnAsRussia);
+    expect(pieces).toEqual([[crimea]]);
+    const shapes = gameShapes(countriesOf(drawnAsRussia), flat, everywhere, pieces);
+    expect(shapes["crimea"]).toBe("M33 -44L35 -44L35 -46L33 -46Z");
+    expect(shapes["ukraine"]).toContain(shapes["crimea"]);
   });
 });
 
@@ -137,7 +163,7 @@ describe("the shapes", () => {
     ).toBe(4);
   });
 
-  it("gives every game country a shape, Crimea Ukraine's land in its box, and France only its European land", () => {
+  it("gives every game country a shape, Crimea Ukraine's land in its box when Ukraine holds it, and France only its European land", () => {
     const features = Object.values(GAME_COUNTRIES).map((code, i) =>
       feature(code, square(-170 + (i % 30) * 10, -60 + Math.floor(i / 30) * 10, 8)),
     );

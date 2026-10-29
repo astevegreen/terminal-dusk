@@ -86,6 +86,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e/vsAiReplay.e2e.ts`
 - `packages/app/e2e/watch.e2e.ts`
 - `packages/app/e2e/watchStack.e2e.ts`
+- `packages/app/e2e/worldFiles.test.ts` - Guards src/game/map/world/blueMarble.webp, the picture `pnpm map:build` made (L3, #479): a WebP at the size the map draws it, within its 500 KB budget so the m…
 - `packages/app/index.html`
 - `packages/app/package.json`
 - `packages/app/playwright.config.ts` - Playwright smoke tests (`pnpm test:e2e`), kept apart from Vitest: their files end in .e2e.ts. Exports: default.
@@ -134,9 +135,13 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/map/sixRegionLayout.ts` - The six-region map's drawing (L2, #465; real geography since L3, #479). Exports: SIX_REGION_LAYOUT.
 - `packages/app/src/game/map/test/layoutChecks.ts` - Test helper: the checks every map layout must pass, for the six-region layout and for autoLayout on any map. Exports: expectInside, expectNoOverlap.
 - `packages/app/src/game/map/world/SOURCES.md` - Where the world map comes from (L3, #479)
+- `packages/app/src/game/map/world/blueMarble.webp`
 - `packages/app/src/game/map/world/crop.json`
 - `packages/app/src/game/map/world/projection.test.ts` - The world map's projection (L3, #479): the crop's corners land on the drawing's corners, in whole units.
 - `packages/app/src/game/map/world/projection.ts` - The world map's projection (L3, #479): the Blue Marble picture is equirectangular, so a place's longitude and latitude map straight to layout units, 7 to the d… Exports: CROP, WORLD_SIZE, project.
+- `packages/app/src/game/map/world/worldArt.json`
+- `packages/app/src/game/map/world/worldArt.test.ts` - The real-geography map's artwork (L3, #479), as `pnpm map:build` made it: every country of the six-region game has a shape, and the shape is around the country…
+- `packages/app/src/game/map/world/worldArt.ts` - The real-geography map's artwork (L3, #479), made by `pnpm map:build` from the sources in SOURCES.md: the Blue Marble picture, and each game country's shape an… Exports: WORLD_ART.
 - `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, HandCard, Hand, Opponent, Table, Contingency, Log.
 - `packages/app/src/game/sideTabs.test.tsx` - The side panel's three tabs (L1, issue #464): which one shows, and how they draw.
 - `packages/app/src/game/sideTabs.tsx` - The side panel's three tabs (L1, issue #464; docs/architecture.md, Decision 6): Play (the decision and the hand), Log, and Details (the opponent, the table and… Exports: TabId, TABS, shownTab, SideTabs.
