@@ -102,9 +102,16 @@ export function runBalance(options, { createPlayer } = {}) {
     eras: eraCards(setup),
   });
   if (tiers === undefined) return { setup, ...stats };
-  const crises = { lio: 0, sae: 0 };
-  for (const game of summaries) for (const side of Object.keys(crises)) crises[side] += game.crises[side];
-  return { setup, ...stats, tiers: { lio: tiers.lio ?? "easy", sae: tiers.sae ?? "easy" }, crises };
+  const crises = sumBySide(summaries, "crises");
+  const techRaces = sumBySide(summaries, "techRaces");
+  return { setup, ...stats, tiers: { lio: tiers.lio ?? "easy", sae: tiers.sae ?? "easy" }, crises, techRaces };
+}
+
+/** The games' per-side counts under `key` (each a { lio, sae } of whole numbers), added up by side. */
+export function sumBySide(summaries, key) {
+  const total = { lio: 0, sae: 0 };
+  for (const game of summaries) for (const side of Object.keys(total)) total[side] += game[key][side];
+  return total;
 }
 
 const SCENARIO_TITLES = {

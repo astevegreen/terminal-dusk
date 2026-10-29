@@ -1,0 +1,47 @@
+{
+  "name": "X15 option 3: the track starts 4 steps towards SAE",
+  "scoring": {
+    "track": {
+      "end": 20,
+      "start": 4
+    },
+    "regions": [
+      {
+        "region": "eastern-europe-central-asia",
+        "present": 2,
+        "ahead": 5,
+        "all": 8
+      },
+      {
+        "region": "east-south-asia",
+        "present": 2,
+        "ahead": 5,
+        "all": 8
+      },
+      {
+        "region": "europe",
+        "present": 2,
+        "ahead": 5,
+        "all": 8
+      },
+      {
+        "region": "middle-east-north-africa",
+        "present": 2,
+        "ahead": 4,
+        "all": 6
+      },
+      {
+        "region": "sub-saharan-africa",
+        "present": 1,
+        "ahead": 3,
+        "all": 4
+      },
+      {
+        "region": "americas",
+        "present": 1,
+        "ahead": 3,
+        "all": 5
+      }
+    ]
+  }
+}
