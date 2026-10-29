@@ -1,6 +1,6 @@
 // The map-first game screen (L5, #485), run at both configured sizes (844x390 and 1280x800): the map fills the
-// whole game screen and everything else floats over it. A slim see-through top bar with the ticker under it (L9,
-// #489), a sheet along the bottom with the Play and Details tabs that folds down to its tab row, and "Whole map"
+// whole game screen and everything else floats over it. A slim see-through top bar with the ticker at its right end
+// (L9, #489), a sheet along the bottom with the Play and Details tabs that folds down to its tab row, and "Whole map"
 // keeps every country clear of them. A screenshot of each size, sheet open and folded, is saved in the test's output
 // folder and attached.
 import { expect, test } from "@playwright/test";
