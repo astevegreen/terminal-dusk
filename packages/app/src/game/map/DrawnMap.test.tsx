@@ -9,7 +9,8 @@ import { describe, expect, it } from "vitest";
 import { button, treeOf } from "../../online/test/screenTree.ts";
 import { baseFrame, map as fixtureMap, withMap } from "../test/mapFixture.ts";
 import { DrawnMap } from "./DrawnMap.tsx";
-import { neighbourPairs } from "./layout.ts";
+import { leaderLines, neighbourPairs } from "./layout.ts";
+import type { MapLayout } from "./layout.ts";
 import { layoutFor } from "./layoutFor.ts";
 import { SIX_REGION_LAYOUT } from "./sixRegionLayout.ts";
 
@@ -27,11 +28,9 @@ const sixPub: PublicState = {
   ],
 };
 
-function drawn(pub: PublicState, touched: CountryId[] = []) {
+function drawn(pub: PublicState, touched: CountryId[] = [], layout: MapLayout = layoutFor(pub.map!)) {
   const regions: string[] = [];
-  const element = (
-    <DrawnMap pub={pub} layout={layoutFor(pub.map!)} touched={new Set(touched)} onRegion={(id) => regions.push(id)} />
-  );
+  const element = <DrawnMap pub={pub} layout={layout} touched={new Set(touched)} onRegion={(id) => regions.push(id)} />;
   return { regions, tree: treeOf(element), html: renderToString(element) };
 }
 
@@ -147,5 +146,63 @@ describe("any other map", () => {
     const { html } = drawn(fixturePub);
     const { w, h } = layoutFor(fixtureMap).size;
     expect(html).toMatch(new RegExp(`^<div class="dm-view"><div class="dm-world" style="width:${w}px;height:${h}px"`));
+  });
+});
+
+/** The six-region layout with stand-in art: a square shape per country and one border line. */
+const withArt: MapLayout = {
+  ...SIX_REGION_LAYOUT,
+  art: {
+    picture: "/world.webp",
+    credit: "Picture credit",
+    shapes: Object.fromEntries(sixMap.countries.map((c, i) => [c.id, `M${i} 0L${i + 1} 0L${i + 1} 1Z`])),
+    borders: "M0 0L5 5",
+  },
+};
+
+describe("the real-geography map (L3, #479)", () => {
+  const { html } = drawn(sixPub, [], withArt);
+
+  it("draws the picture first, at the drawing's size, hidden from readers and not draggable", () => {
+    const { w, h } = withArt.size;
+    expect(html).toMatch(
+      new RegExp(
+        `<div class="dm-world" data-art="true"[^>]*><img class="dm-picture" src="/world.webp" alt="" draggable="false" width="${w}" height="${h}"/>`,
+      ),
+    );
+  });
+
+  it("tints each region's countries in the region's tone, greyed when the region is closed", () => {
+    const tints = [...html.matchAll(/<path class="dm-tint" data-region="([^"]+)"[^>]*d="([^"]+)"/g)];
+    expect(tints.map((m) => m[1])).toEqual(sixMap.regions.map((r) => r.id));
+    const europe = tints.find((m) => m[1] === "europe")![2]!;
+    for (const c of sixMap.countries.filter((c) => c.region === "europe"))
+      expect(europe).toContain(withArt.art!.shapes[c.id]!);
+    const first = sixMap.closingOrder[0]!;
+    const closed = drawn({ ...sixPub, escalation: 3 }, [], withArt).html;
+    expect(
+      [...closed.matchAll(/<path class="dm-tint" data-region="([^"]+)" data-closed="true"/g)].map((m) => m[1]),
+    ).toEqual([first]);
+  });
+
+  it("draws the borders over the tints", () => {
+    expect(html).toMatch(/<path class="dm-tint".*<path class="dm-borders" d="M0 0L5 5"/);
+  });
+
+  it("draws a leader line and a dot at the true place for each marker away from its country", () => {
+    const leaders = leaderLines(withArt);
+    const drawnLeaders = [
+      ...html.matchAll(/<line class="dm-leader" data-country="([^"]+)" x1="(\d+)" y1="(\d+)" x2="(\d+)" y2="(\d+)"/g),
+    ];
+    expect(drawnLeaders.map((m) => m[1])).toEqual(leaders.map((l) => l.country));
+    for (const [m, l] of drawnLeaders.map((m, i) => [m, leaders[i]!] as const))
+      expect(m.slice(2).map(Number)).toEqual([l.from.x, l.from.y, l.to.x, l.to.y]);
+    expect(html.match(/<circle class="dm-place"/g)).toHaveLength(leaders.length);
+  });
+
+  it("draws no picture, tints, borders or leader lines for a layout without art", () => {
+    const plain = drawn(fixturePub).html;
+    for (const part of ["dm-picture", "dm-tint", "dm-borders", "dm-leader", "dm-place", "data-art"])
+      expect(plain).not.toContain(part);
   });
 });

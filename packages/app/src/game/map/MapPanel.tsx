@@ -1,4 +1,5 @@
-// The Map area's contents (L2, #465): a Map/List toggle, then the drawn map or the List, which is MapView as it was
+// The Map area's contents (L2, #465): a Map/List toggle (with the picture's credit on a real-geography map, L3,
+// #479), then the drawn map or the List, which is MapView as it was
 // before the drawn map. No hooks: ZoomableMap holds the mode, the List's zoom and the drawn map's refs, and passes
 // them in, so tests render and walk this without a browser.
 import type { CountryId, PublicState, RegionId } from "@terminal-dusk/engine";
@@ -34,7 +35,7 @@ export type PanelProps = {
   wrapperRef?: Ref<HTMLDivElement> | undefined;
 };
 
-function Toggle({ mode, on }: Readonly<Pick<PanelProps, "mode" | "on">>) {
+function Toggle({ mode, on, credit }: Readonly<Pick<PanelProps, "mode" | "on"> & { credit: string | undefined }>) {
   return (
     <div className="dm-tools" role="toolbar" aria-label="Map view">
       <button type="button" aria-pressed={mode === "map"} onClick={() => on.mode("map")}>
@@ -48,6 +49,7 @@ function Toggle({ mode, on }: Readonly<Pick<PanelProps, "mode" | "on">>) {
           Whole map
         </button>
       )}
+      {mode === "map" && credit !== undefined && <span className="dm-credit">{credit}</span>}
     </div>
   );
 }
@@ -55,13 +57,14 @@ function Toggle({ mode, on }: Readonly<Pick<PanelProps, "mode" | "on">>) {
 export function MapPanel({ pub, touched, mode, zoom, on, layout, viewportRef, wrapperRef }: Readonly<PanelProps>) {
   const { map } = pub;
   if (map === undefined) return <p>No map in this game</p>;
+  const drawing = layout ?? layoutFor(map);
   return (
     <div className="dm" data-mode={mode}>
-      <Toggle mode={mode} on={on} />
+      <Toggle mode={mode} on={on} credit={drawing.art?.credit} />
       {mode === "map" ? (
         <DrawnMap
           pub={pub}
-          layout={layout ?? layoutFor(map)}
+          layout={drawing}
           touched={touched}
           onRegion={on.region}
           viewportRef={viewportRef}

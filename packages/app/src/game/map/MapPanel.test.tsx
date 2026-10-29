@@ -9,10 +9,12 @@ import type { Zoom } from "../MapView.tsx";
 import { baseFrame, withMap, withoutMap } from "../test/mapFixture.ts";
 import { MapPanel } from "./MapPanel.tsx";
 import type { MapMode } from "./MapPanel.tsx";
+import type { MapLayout } from "./layout.ts";
+import { layoutFor } from "./layoutFor.ts";
 
 const pub: PublicState = withMap(baseFrame()).view.public;
 
-function panel(mode: MapMode, zoom: Zoom = null, at: PublicState = pub) {
+function panel(mode: MapMode, zoom: Zoom = null, at: PublicState = pub, layout?: MapLayout) {
   const asked: string[] = [];
   const element = (
     <MapPanel
@@ -20,6 +22,7 @@ function panel(mode: MapMode, zoom: Zoom = null, at: PublicState = pub) {
       touched={new Set(["w2"])}
       mode={mode}
       zoom={zoom}
+      layout={layout}
       on={{
         mode: (m: MapMode) => asked.push(`mode:${m}`),
         zoom: (z: Zoom) => asked.push(`zoom:${String(z)}`),
@@ -70,6 +73,22 @@ describe("the Map view", () => {
     button(tree, "Western Shore").press();
     button(tree, "Whole map").press();
     expect(asked).toEqual(["region:west", "whole"]);
+  });
+});
+
+describe("the picture's credit (L3, #479)", () => {
+  const art = { picture: "/w.webp", credit: "Blue Marble imagery: NASA Earth Observatory", shapes: {}, borders: "" };
+  const withArt: MapLayout = { ...layoutFor(pub.map!), art };
+
+  it("shows in the toolbar with the drawn map when the map has a picture", () => {
+    expect(toolbarOf(panel("map", null, pub, withArt).html)).toContain(
+      '<span class="dm-credit">Blue Marble imagery: NASA Earth Observatory</span>',
+    );
+  });
+
+  it("is not shown on the List, nor for a map with no picture", () => {
+    expect(panel("list", null, pub, withArt).html).not.toContain("dm-credit");
+    expect(panel("map").html).not.toContain("dm-credit");
   });
 });
 

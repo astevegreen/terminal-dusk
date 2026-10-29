@@ -13,6 +13,7 @@ import { controlMap } from "./map/mapControl.ts";
 import type { MapControl } from "./map/mapControl.ts";
 import { MapPanel } from "./map/MapPanel.tsx";
 import type { MapMode } from "./map/MapPanel.tsx";
+import "./map/mapTheme.css";
 import "./map/drawnMap.css";
 
 const NO_EVENTS: readonly GameEvent[] = [];

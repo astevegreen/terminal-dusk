@@ -1,6 +1,7 @@
 // The drawn map (L2, #465): one wrapper the size of the layout, which mapControl.ts moves by a CSS transform.
-// Inside it, a picture (hidden from readers) shades each region, greyed when closed, and draws the lines between
-// neighbours and from each home box to its countries; a button over each region zooms to it; and the markers sit
+// Inside it, on a real-geography map (L3, #479), the world picture and its tinted countries and borders
+// (artLayer.tsx); then a drawing (hidden from readers) that shades each region, greyed when closed, and draws the
+// lines between neighbours, from each home box to its countries, and from offset markers to their places; a button over each region zooms to it; and the markers sit
 // on top. It reads only the frame's public part, through the engine's pure helpers (the closed regions and the
 // battlegrounds by way of the host, as the app's boundary allows). No hooks: ZoomableMap holds the refs and the
 // zoom, so tests can render and walk it without a browser.
@@ -13,6 +14,7 @@ import { influenceOf } from "../MapView.tsx";
 import { neighbourPairs, shortName } from "./layout.ts";
 import type { MapLayout, Point } from "./layout.ts";
 import { Marker, placeOf } from "./Marker.tsx";
+import { Leaders, TONES, Tints, WorldPicture } from "./artLayer.tsx";
 
 export type DrawnMapProps = {
   pub: PublicState;
@@ -23,22 +25,21 @@ export type DrawnMapProps = {
   wrapperRef?: Ref<HTMLDivElement> | undefined;
 };
 
-/** How many flat region shades drawnMap.css has; regions take them in the map's order. */
-const TONES = 6;
-
 function Line({ className, from, to, home }: Readonly<{ className: string; from: Point; to: Point; home?: string }>) {
   return <line className={className} data-home={home} x1={from.x} y1={from.y} x2={to.x} y2={to.y} />;
 }
 
-/** The picture under the markers: region areas, then the neighbour lines, then the home-box lines. */
+/** The drawing under the markers: tints and borders, region areas, neighbour, home-box and leader lines. */
 function Picture({ pub, layout }: Readonly<{ pub: PublicState; layout: MapLayout }>) {
   const map = pub.map!;
   const { w, h } = layout.size;
+  const shut = closedRegions(pub);
   return (
     <svg className="dm-lines" aria-hidden="true" width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
+      {layout.art !== undefined && <Tints art={layout.art} map={map} closed={shut} />}
       {map.regions.map((region, i) => {
         const r = layout.regions[region.id]!;
-        const closed = closedRegions(pub).includes(region.id);
+        const closed = shut.includes(region.id);
         return (
           <rect
             key={region.id}
@@ -68,6 +69,7 @@ function Picture({ pub, layout }: Readonly<{ pub: PublicState; layout: MapLayout
           />
         )),
       )}
+      <Leaders layout={layout} />
     </svg>
   );
 }
@@ -99,7 +101,13 @@ export function DrawnMap({ pub, layout, touched, onRegion, viewportRef, wrapperR
   if (map === undefined) return null;
   return (
     <div className="dm-view" ref={viewportRef}>
-      <div className="dm-world" style={{ width: layout.size.w, height: layout.size.h }} ref={wrapperRef}>
+      <div
+        className="dm-world"
+        data-art={layout.art === undefined ? undefined : "true"}
+        style={{ width: layout.size.w, height: layout.size.h }}
+        ref={wrapperRef}
+      >
+        {layout.art !== undefined && <WorldPicture art={layout.art} layout={layout} />}
         <Picture pub={pub} layout={layout} />
         <RegionButtons pub={pub} layout={layout} onRegion={onRegion} />
         <ul className="dm-homes" aria-label="Home boxes">

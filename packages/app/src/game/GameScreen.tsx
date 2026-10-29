@@ -5,6 +5,7 @@ import type { AnswerValue, EraId } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import { decisionPrompts } from "../decisionPrompts.tsx";
 import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
+import "./map/mapTheme.css";
 import "./gameScreen.css";
 import { Contingency, Hand, Log, MapArea, Opponent, Region, StatusBar, Table } from "./regions.tsx";
 import type { Label } from "./regions.tsx";
