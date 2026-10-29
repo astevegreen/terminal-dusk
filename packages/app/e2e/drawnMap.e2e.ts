@@ -5,7 +5,7 @@
 // markers and its credit shows. With L2_SHOTS set to a folder, it saves a screenshot of each.
 import { expect, test } from "@playwright/test";
 import type { Locator, Page } from "@playwright/test";
-import { liftedCard, stripChips, yourDecision } from "./answer.ts";
+import { decisionButtons, playFromStrip, tapAnswer, yourDecision } from "./answer.ts";
 import { startSixRegionGame } from "./start.ts";
 
 type View = { scale: number; x: number; y: number };
@@ -192,47 +192,23 @@ test("two fingers spread twice as far apart double the zoom", async ({ page }) =
   expect((await viewOf(area)).scale).toBeCloseTo(before.scale * 2, 2);
 });
 
-/** What the screen shows after a placement: its country lit while LIO still places, or the turn gone on. */
-async function afterPlacing(decision: Locator, marker: Locator): Promise<"lit" | "moved on"> {
-  let seen: "lit" | "moved on" | "waiting" = "waiting";
-  // Polled, as the click returns before the redraw: the old buttons are still on screen for a moment.
-  await expect
-    .poll(async () => {
-      const stillPlacing = (await decision.getByRole("button").allTextContents()).some((n) =>
-        n.startsWith("Place in "),
-      );
-      if (!stillPlacing) seen = "moved on";
-      else if ((await marker.getAttribute("data-touched")) === "true") seen = "lit";
-      return seen;
-    })
-    .not.toBe("waiting");
-  return seen === "lit" ? "lit" : "moved on";
-}
-
 /**
- * A card decision (L6, #486): lifts each card in the hand strip in turn and takes the first that offers a play for
- * its points (or any choice, such as the opening pick), then waits for that card to leave the hand.
+ * The waiting decision's number, from its question's id: the engine names a decision "d" and the count of changes
+ * the game had made when it made the decision (engine/src/decisions.ts), and each answer taken is one change.
  */
-async function playFromStrip(page: Page): Promise<void> {
-  const chips = stripChips(page);
-  const count = await chips.count();
-  for (let i = 0; i < count; i++) {
-    await chips.nth(i).click();
-    const buttons = liftedCard(page).getByRole("button");
-    const names = await buttons.allTextContents();
-    const pick = names.find((n) => n.endsWith(": points")) ?? names[0];
-    if (pick === undefined) continue;
-    await buttons.getByText(pick, { exact: true }).click();
-    await expect(liftedCard(page)).toHaveCount(0);
-    return;
-  }
-  throw new Error("no card in the strip offers a choice");
+async function decisionNumber(page: Page): Promise<number | undefined> {
+  const question = page.getByTestId("decision").locator('[id^="decision-d"][id$="-question"]');
+  if ((await question.count()) === 0) return undefined;
+  const match = /^decision-d(\d+)-question$/.exec((await question.first().getAttribute("id")) ?? "");
+  return match ? Number(match[1]) : undefined;
 }
 
 /**
- * Plays LIO's choices, placing influence where it can, until `count` placements were each seen lit. While LIO is
- * still placing, the frame shown is the one the placement made, so its country must light up; once the turn goes
- * on, a later frame's own events decide what is lit. Returns the countries seen lit, in order.
+ * Plays LIO's choices, placing influence where it can, until `count` placements were each seen lit. Each answer is
+ * waited for until it is taken, so the screen is never read before its redraw. When the decision then waiting was
+ * made by the placement itself (its number is one more than the number of the decision the placement answered), the
+ * frame shown is the one the placement made, so its country must be lit. Once a later frame shows (the turn went on,
+ * or the rival moved), that frame's own events decide what is lit. Returns the countries seen lit, in order.
  */
 async function placeAndWatch(page: Page, area: Locator, count: number): Promise<string[]> {
   const lit: string[] = [];
@@ -241,7 +217,7 @@ async function placeAndWatch(page: Page, area: Locator, count: number): Promise<
     // A choice to make: a button in the decision's region, or a card in the hand strip whose choices are on it
     // when it is lifted (L6, #486).
     await expect(yourDecision(page)).toBeVisible();
-    const names = await decision.getByRole("button").allTextContents();
+    const names = await decisionButtons(page).allTextContents();
     if (names.length === 0) {
       await playFromStrip(page);
       continue;
@@ -252,11 +228,13 @@ async function placeAndWatch(page: Page, area: Locator, count: number): Promise<
       names.find((n) => n === "Place influence") ??
       names.find((n) => /: (points|influence|operations)/i.test(n)) ??
       names[0]!;
-    await decision.getByRole("button", { name: pick, exact: true }).click();
-    if (place === undefined) continue;
+    const answered = await decisionNumber(page);
+    const taken = await tapAnswer(page, decision.getByRole("button", { name: pick, exact: true }));
+    if (!taken || place === undefined || answered === undefined) continue;
+    if ((await decisionNumber(page)) !== answered + 1) continue;
     const country = place.slice("Place in ".length);
-    if ((await afterPlacing(decision, area.locator(`.dm-marker[data-country="${country}"]`))) === "lit")
-      lit.push(country);
+    await expect(area.locator(`.dm-marker[data-country="${country}"]`)).toHaveAttribute("data-touched", "true");
+    lit.push(country);
   }
   return lit;
 }
