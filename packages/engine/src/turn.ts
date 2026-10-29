@@ -78,23 +78,40 @@ export function afterAnswer(
   events: GameEvent[],
   budget: Budget,
 ): EngineError | null {
+  const error = applyAnswer(ruleset, state, closing, events, budget);
+  if (error || waitsAfter(state, closing)) return error;
+  return settle(ruleset, state, events, budget);
+}
+
+/** The rules work of the answer `closing`: an opening pick, a play, or a rival's card's order. Edits `state` in place. */
+function applyAnswer(
+  ruleset: Ruleset,
+  state: GameState,
+  closing: Closing,
+  events: GameEvent[],
+  budget: Budget,
+): EngineError | null {
   if (closing.who === "both") {
     const { lio, sae } = closing.values;
-    if (lio.kind === "chooseCard" && sae.kind === "chooseCard") {
-      const error = revealOpening(ruleset, state, lio.card, sae.card, events, budget);
-      if (error || state.public.stack.length > 0) return error;
-    }
-  } else if (closing.value.kind === "chooseCard") {
-    const error = pickOpening(ruleset, state, closing.who, closing.value.card, events, budget);
-    if (error || state.public.stack.length > 0 || state.public.pending.length > 0) return error;
-  } else if (closing.value.kind === "playCardAs") {
-    const error = play(ruleset, state, closing.who, closing.value, events, budget);
-    if (error || state.public.stack.length > 0 || waitsForOrder(state)) return error;
-  } else if (closing.value.kind === "rivalEventOrder") {
-    const error = playRival(ruleset, state, closing.who, closing.value.event, events, budget);
-    if (error || state.public.stack.length > 0) return error;
+    if (lio.kind !== "chooseCard" || sae.kind !== "chooseCard") return null;
+    return revealOpening(ruleset, state, lio.card, sae.card, events, budget);
   }
-  return settle(ruleset, state, events, budget);
+  const { who, value } = closing;
+  if (value.kind === "chooseCard") return pickOpening(ruleset, state, who, value.card, events, budget);
+  if (value.kind === "playCardAs") return play(ruleset, state, who, value, events, budget);
+  if (value.kind === "rivalEventOrder") return playRival(ruleset, state, who, value.event, events, budget);
+  return null;
+}
+
+/**
+ * Whether the game waits after the answer `closing`, rather than running on: on the stack, on Quantum Computing's
+ * second opening pick, or on a rival's card's order.
+ */
+function waitsAfter(state: GameState, closing: Closing): boolean {
+  if (state.public.stack.length > 0) return true;
+  if (closing.who === "both") return false;
+  if (closing.value.kind === "chooseCard") return state.public.pending.length > 0;
+  return closing.value.kind === "playCardAs" && waitsForOrder(state);
 }
 
 /**
@@ -130,28 +147,37 @@ function revealOpening(
 function settle(ruleset: Ruleset, state: GameState, events: GameEvent[], budget: Budget): EngineError | null {
   const pub = state.public;
   while (pub.stack.length === 0 && pub.status.kind === "active") {
-    const finished = pub.inPlay.shift();
-    const player = pub.inPlayBy.shift();
-    let error: EngineError | null = null;
-    if (finished !== undefined) {
-      putAway(ruleset, state, finished, player ?? null);
-      if (pub.inPlay.length > 0) error = startEvent(ruleset, state, events, budget);
-    } else if (pub.playsMade < 2 * pub.playsPerTurn) {
-      pub.pending = [newDecision(state.meta.seq, pub.playsMade % 2 === 0 ? "lio" : "sae", "playCardAs")];
-      return null;
-    } else if (!pub.turnEndFired && offerExtraPlay(state)) {
-      return null;
-    } else if (pub.turnEndFired) {
-      error = endTurn(state, events, budget);
-      // Under Quantum Computing the next turn opens on a single opening pick, which waits off the stack.
-      if (!error && pub.pending.length > 0) return null;
-    } else {
-      fireTurnEnd(state, events);
-      error = runStack(state, events, budget);
-    }
-    if (error) return error;
+    const next = settleStep(ruleset, state, events, budget);
+    if (next !== null) return next === "waits" ? null : next;
   }
   return null;
+}
+
+/** One step of settle: an error, "waits" when a decision is now pending off the stack, or null to run on. */
+function settleStep(
+  ruleset: Ruleset,
+  state: GameState,
+  events: GameEvent[],
+  budget: Budget,
+): EngineError | "waits" | null {
+  const pub = state.public;
+  const finished = pub.inPlay.shift();
+  const player = pub.inPlayBy.shift();
+  if (finished !== undefined) {
+    putAway(ruleset, state, finished, player ?? null);
+    return pub.inPlay.length > 0 ? startEvent(ruleset, state, events, budget) : null;
+  }
+  if (pub.playsMade < 2 * pub.playsPerTurn) {
+    pub.pending = [newDecision(state.meta.seq, pub.playsMade % 2 === 0 ? "lio" : "sae", "playCardAs")];
+    return "waits";
+  }
+  if (!pub.turnEndFired) {
+    if (offerExtraPlay(state)) return "waits";
+    fireTurnEnd(state, events);
+    return runStack(state, events, budget);
+  }
+  // Under Quantum Computing the next turn opens on a single opening pick, which waits off the stack.
+  return endTurn(state, events, budget) ?? (pub.pending.length > 0 ? "waits" : null);
 }
 
 /**
