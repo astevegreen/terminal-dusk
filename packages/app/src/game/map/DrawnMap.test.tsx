@@ -112,6 +112,15 @@ describe("the six-region map drawn", () => {
   });
 });
 
+describe("the region standings chips (L8, #488)", () => {
+  it("draws a chip for each of the six regions, and none on a map without scoring", () => {
+    const chips = (html: string): string[] =>
+      [...html.matchAll(/<li class="dm-chip" data-region="([^"]+)"/g)].map((m) => m[1]!);
+    expect(chips(drawn(sixPub).html)).toEqual(sixMap.regions.map((r) => r.id));
+    expect(chips(drawn(fixturePub).html)).toEqual([]);
+  });
+});
+
 describe("the highlight on the countries the latest frame touched", () => {
   it("marks exactly the touched countries, and none when nothing was touched", () => {
     expect(touchedIn(drawn(sixPub, ["iran", "poland"]).html)).toEqual(["poland", "iran"]);

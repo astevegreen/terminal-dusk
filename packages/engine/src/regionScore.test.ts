@@ -3,7 +3,7 @@
 // battlegrounds), and holds every battleground when it controls all of them. It scores its highest level only, plus 1
 // for each battleground it controls. The battlegrounds are the list of the era that is ending (`public.era`).
 import { describe, expect, it } from "vitest";
-import { regionScore } from "./scoring.ts";
+import { regionScore, regionStanding } from "./scoring.ts";
 import type { CountryId, PublicState, RegionAmounts, SetupMap } from "./types.ts";
 import { testMap } from "./test/map.ts";
 import { mapState } from "./mapChecks.ts";
@@ -91,5 +91,64 @@ describe("regionScore: one region's points for each side", () => {
   it("influence below control counts for nothing", () => {
     const pub = publicWith({ alpha: { lio: 1 }, charlie: { lio: 3, sae: 1 } }, ["alpha", "charlie"]);
     expect(regionScore(pub, AMOUNTS)).toEqual({ lio: 0, sae: 0 });
+  });
+});
+
+// L8 (#488): the same levels, named, for the map's standings chips; the points are regionScore's, always.
+describe("regionStanding: each side's level and points in one region, as it would score now", () => {
+  it("nothing, with 0 points, where a side controls nothing", () => {
+    expect(regionStanding(publicWith({}, ["alpha", "charlie"]), AMOUNTS)).toEqual({
+      lio: { level: "none", points: 0 },
+      sae: { level: "none", points: 0 },
+    });
+  });
+
+  it("present for each side with a country but not ahead", () => {
+    const pub = publicWith({ alpha: { lio: 2 }, bravo: { lio: 1 }, charlie: { sae: 3 } }, ["alpha", "charlie"]);
+    expect(regionStanding(pub, AMOUNTS)).toEqual({
+      lio: { level: "present", points: 1 + 1 },
+      sae: { level: "present", points: 1 + 1 },
+    });
+  });
+
+  it("ahead, for either side", () => {
+    const lio = publicWith({ alpha: { lio: 2 }, bravo: { lio: 1 } }, ["alpha", "charlie"]);
+    expect(regionStanding(lio, AMOUNTS).lio).toEqual({ level: "ahead", points: 3 + 1 });
+    const sae = publicWith({ alpha: { sae: 2 }, bravo: { sae: 1 } }, ["alpha", "charlie"]);
+    expect(regionStanding(sae, AMOUNTS)).toEqual({
+      lio: { level: "none", points: 0 },
+      sae: { level: "ahead", points: 3 + 1 },
+    });
+  });
+
+  it("holds every battleground, for either side, even when the rival has more countries", () => {
+    const pub = publicWith({ charlie: { sae: 3 }, alpha: { lio: 2 }, bravo: { lio: 1 } }, ["charlie"]);
+    expect(regionStanding(pub, AMOUNTS)).toEqual({
+      lio: { level: "present", points: 1 },
+      sae: { level: "all", points: 5 + 1 },
+    });
+  });
+
+  it("tells present with battlegrounds from ahead when their points are equal", () => {
+    // Amounts where present plus one battleground equals ahead: the level still says which it is. Countries 2 to 1,
+    // battlegrounds 1 to 1, so LIO is present.
+    const amounts: RegionAmounts = { region: "north", present: 1, ahead: 2, all: 9 };
+    const pub = publicWith({ alpha: { lio: 2 }, bravo: { lio: 1 }, charlie: { sae: 3 } }, ["alpha", "charlie"]);
+    expect(regionStanding(pub, amounts).lio).toEqual({ level: "present", points: 1 + 1 });
+  });
+
+  it("its points are always regionScore's", () => {
+    const cases: [Counts, CountryId[]][] = [
+      [{}, ["alpha"]],
+      [{ bravo: { lio: 1 } }, ["alpha", "charlie"]],
+      [{ alpha: { lio: 2 }, charlie: { lio: 3 } }, ["alpha", "charlie"]],
+      [{ charlie: { lio: 3 }, alpha: { sae: 2 }, bravo: { sae: 1 } }, ["charlie"]],
+      [{ alpha: { lio: 2 }, bravo: { lio: 1 }, charlie: { sae: 3 } }, []],
+    ];
+    for (const [counts, bgs] of cases) {
+      const pub = publicWith(counts, bgs);
+      const standing = regionStanding(pub, AMOUNTS);
+      expect({ lio: standing.lio.points, sae: standing.sae.points }).toEqual(regionScore(pub, AMOUNTS));
+    }
   });
 });

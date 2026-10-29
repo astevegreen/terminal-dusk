@@ -6,6 +6,8 @@ export { createGame } from "./createGame.ts";
 export { legalAnswers, pendingFor } from "./decisions.ts";
 export { eventsFor } from "./events.ts";
 export { controller, placementCost } from "./influence.ts";
+export { regionStanding } from "./scoring.ts";
+export type { RegionLevel, RegionStanding } from "./scoring.ts";
 export { seedHash } from "./sha256.ts";
 export { DECKS, SIDES } from "./types.ts";
 export { verifyGame } from "./verifyGame.ts";
