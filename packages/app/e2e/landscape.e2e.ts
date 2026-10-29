@@ -163,11 +163,13 @@ test("the sheet's tabs switch between Play, Log and Details, Hide folds it, and 
   for (const id of ["decision", "hand", "log", "contingency"]) await expect(page.getByTestId(id)).toBeHidden();
   await expect(hide).toBeHidden();
 
-  // A tab opens it again, and Hide folds it again.
+  // A tab opens it again, and Hide folds it again, from the keyboard too: the keyboard's place moves to the tab that
+  // was open, as Hide itself goes.
   await tab(page, "Details").click();
   await expect(page.getByTestId("contingency")).toBeVisible();
-  await hide.click();
+  await hide.press("Enter");
   await expect(page.getByTestId("contingency")).toBeHidden();
+  await expect(tab(page, "Details")).toBeFocused();
 
   // SAE's opening pick is a new decision on screen, so the sheet opens on Play by itself.
   await page.getByRole("button", { name: "SAE", exact: true }).click();

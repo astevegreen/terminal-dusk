@@ -43,6 +43,8 @@ body:has(.game-page) {
 /* One column for a phone held sideways: a hint line (upright only), the top bar, the map's own row, then the
    sheet's tab row. The map's box spans the top bar to the sheet, so the bars lie over its edges (L5, #485). */
 .game {
+  --game-bg: #fff;
+  --game-fg: #000;
   --game-bar-bg: rgb(255 255 255 / 0.78);
   --game-panel-bg: rgb(255 255 255 / 0.94);
   --game-edge: #999;
@@ -52,7 +54,7 @@ body:has(.game-page) {
   --game-tools-block: 100px;
   /* The open sheet's panel: at most 46% of the game, and never over the top bar (46px), the tools' block or the tab
      row (48px), so the map tools can always be reached (gameBars.css). */
-  --game-sheet-reserve: 194px;
+  --game-sheet-reserve: calc(46px + var(--game-tools-block) + 48px);
   --game-panel-max: min(46cqh, 100cqh - var(--game-sheet-reserve));
   box-sizing: border-box;
   position: relative;
@@ -67,8 +69,8 @@ body:has(.game-page) {
   width: 100%;
   max-width: 100vw;
   overflow: hidden;
-  background: #fff;
-  color: #000;
+  background: var(--game-bg);
+  color: var(--game-fg);
   font-family: system-ui, sans-serif;
   font-size: 13px;
 }
@@ -168,7 +170,7 @@ body:has(.game-page) {
   display: block;
   overflow: auto;
   padding: 4px;
-  background: #fff;
+  background: var(--game-bg);
 }
 /* With the sheet open, its panel lies over the List's foot: room below the last line lets it scroll up past it. */
 .game:has(.game-tab-panel:not([hidden])) > .game-map:has(> .dm[data-mode="list"]) {

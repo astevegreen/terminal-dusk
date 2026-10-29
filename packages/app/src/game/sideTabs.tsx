@@ -3,7 +3,7 @@
 // the sheet down to its tab row. The tab picked is local UI state; the Play tab opens by itself whenever a new
 // decision waits, even from folded. GameScreen stays hook-free: the hook lives here.
 import type { Decision } from "@terminal-dusk/engine";
-import { memo, useId, useState } from "react";
+import { memo, useId, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 export type TabId = "play" | "log" | "details";
@@ -43,10 +43,11 @@ function SideTabsInner({
   // A pick a new decision has overridden is forgotten, so it does not come back once that decision is answered.
   if (pick !== null && pick.forId !== waitingId) setPick(null);
   const base = useId();
+  const tablist = useRef<HTMLDivElement>(null);
   return (
     <>
       <div className="game-sheet-bar">
-        <div role="tablist" aria-label="Side panel" className="game-tabs">
+        <div ref={tablist} role="tablist" aria-label="Side panel" className="game-tabs">
           {TABS.map(({ id, title }) => (
             <button
               key={id}
@@ -61,12 +62,16 @@ function SideTabsInner({
             </button>
           ))}
         </div>
-        {/* Outside the tablist, as it is not a tab; gone while the sheet is folded. */}
+        {/* Outside the tablist, as it is not a tab; gone while the sheet is folded, so the keyboard's place moves to
+            the tab that was open, which opens it again. */}
         <button
           type="button"
           className="game-sheet-hide"
           hidden={shown === null}
-          onClick={() => setPick({ tab: "hide", forId: waitingId })}
+          onClick={() => {
+            tablist.current?.querySelector<HTMLElement>('[aria-selected="true"]')?.focus();
+            setPick({ tab: "hide", forId: waitingId });
+          }}
         >
           Hide
         </button>
