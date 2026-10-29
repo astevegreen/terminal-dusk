@@ -66,7 +66,7 @@ And:
 | Hand strip      | bottom edge                           | at most 56 px tall    | your cards as chips; the rival's hand size; deck and discard counts                             |
 | Lifted card     | above the strip, middle of the screen | at most a third       | the card's full text and its play buttons                                                       |
 | Log drawer      | slides in from the right              | about half the width  | the full log, newest first                                                                      |
-| Details panel   | opened from the top bar               | about half the width  | the cards in play, the discard pile, the Contingency deck                                       |
+| Details panel   | opened from the top bar               | about half the width  | the cards in play, the discard pile, the three Contingency decks                                |
 | Credit          | bottom-right corner, small            |                       | "Blue Marble imagery: NASA Earth Observatory"                                                   |
 
 The map fits itself into the space between the top bar and the hand strip, so "Whole map" shows every country; the
@@ -77,12 +77,12 @@ picture runs on under the see-through bars to the screen's edges.
 ```
 +------------------------------------------------------------------------------------+
 | =  LIO  Turn 3/10  Era 1 | Score [====|==  ] LIO +2 | Escalation 4 | Your move     |  top bar
-| > SAE placed 2 in Ukraine                                                          |  ticker
+| > SAE placed 2 in Germany                                                          |  ticker
 |                                                                                    |
 |  [Whole map]                  EUROPE                                               |
 |  [List]                    [LIO ahead 5 | SAE present 1]           ASIA            |
-|                          (Pol)(Ukr)(Bel)                       [LIO - | SAE - ]    |
-|   AMERICAS                    (Crimea)                    (Kaz)                    |
+|                          (Pol)(Ger)(Fin)                       [LIO - | SAE - ]    |
+|   AMERICAS                    (Serbia)                    (Ind)                    |
 |   [ - | - ]           MIDDLE EAST                                  (Taiwan)        |
 |                       [ - | SAE present 1]                                         |
 |                 the Blue Marble picture fills the screen, edge to edge             |
@@ -108,8 +108,8 @@ picture runs on under the see-through bars to the screen's edges.
 
 ```
 |                              EUROPE                                                |
-|                          ((Pol))((Ukr)) (Bel)      <- glowing: you may pick these |
-|                              (Crimea)              <- dim: you may not            |
+|                          ((Pol))((Ger)) (Fin)      <- glowing: you may pick these |
+|                              (Serbia)              <- dim: you may not            |
 | LIO: place 1 influence (3 points left) - tap a glowing country                    |  decision banner
 | [3 Card][2 Card][4 Card][1 Card][3 Card][2 Card]            Rival 7   Deck 23     |
 +------------------------------------------------------------------------------------+
@@ -123,11 +123,11 @@ log drawer can be pinned open on the right without covering the middle of the ma
 ```
 +--------------------------------------------------------------------------------------------+
 | =  LIO  Turn 3/10  Era 1 |  Score [=======|====      ] LIO +2  |  Escalation 4  | Your move  |
-| > SAE placed 2 in Ukraine                                                                  |
+| > SAE placed 2 in Germany                                                                  |
 |                                                                        +-----------------+ |
 |                                                                        | Log (pinned)    | |
 |            the map, much bigger, every marker readable                 | SAE placed 2 in | |
-|                                                                        | Ukraine         | |
+|                                                                        | Germany         | |
 |                                                                        | ...             | |
 |                                                                        +-----------------+ |
 | +--------+ +--------+ +--------+ +--------+ +--------+ +--------+            Rival 7       |
@@ -138,13 +138,13 @@ log drawer can be pinned open on the right without covering the middle of the ma
 
 ## A turn, start to finish
 
-1. The rival moves. The ticker says "SAE placed 2 in Ukraine", Ukraine's marker pulses, and Europe's standings chip
+1. The rival moves. The ticker says "SAE placed 2 in Germany", Germany's marker pulses, and Europe's standings chip
    changes.
 2. Your turn. The status line says "Your move: play a card" and the hand strip lights up.
 3. You tap a card. It lifts, showing its text and the buttons Event and Points.
-4. You tap Points. The banner asks "LIO: place 1 influence (3 points left)". The countries you may place in glow on
-   the map.
-5. You tap Poland, then Ukraine twice. Each tap answers one decision; the marker's numbers and the chip update as you
+4. You tap Points, then Place influence. The banner asks "LIO: place 1 influence (3 points left)". The countries you
+   may place in glow on the map.
+5. You tap Poland, then Germany twice. Each tap answers one decision; the marker's numbers and the chip update as you
    go. On a phone, a tap on a small country first zooms into its region so every target is at least 44 px (#487
    settles exactly how).
 6. The banner goes away, the ticker shows your last move, and the rival's turn begins.
