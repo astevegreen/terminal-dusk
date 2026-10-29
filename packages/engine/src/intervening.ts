@@ -7,8 +7,9 @@
 import { isRegionClosed } from "./closedRegions.ts";
 import { drawContingency } from "./contingency.ts";
 import { addInfluence, removeInfluence } from "./influence.ts";
+import { AI_STEP, techHolds } from "./techRace.ts";
 import { otherSide } from "./types.ts";
-import type { CountryId, GameEvent, GameState, PublicState, Side } from "./types.ts";
+import type { CountryId, GameEvent, GameState, Intervened, PublicState, Side } from "./types.ts";
 
 /**
  * The countries `side` may intervene in now, in the map's order: the rival has 1 or more influence there and the
@@ -30,13 +31,15 @@ export function intervene(state: GameState, side: Side, country: CountryId, poin
   const stability = state.public.map?.countries.find((c) => c.id === country)?.stability ?? 0;
   const rivalHas = state.public.influence?.find((e) => e.country === country)?.[rival] ?? 0;
   const draw = drawContingency(state, side, events);
-  const result = draw + points - 2 * stability;
+  // AI, the tech race's second step: +1 to the result of each of its holder's interventions (R26).
+  const tech = techHolds(state.public, side, AI_STEP) ? 1 : 0;
+  const result = draw + points - 2 * stability + tech;
   const gain = Math.max(0, result);
   const removed = Math.min(gain, rivalHas);
   const added = gain - removed;
   const changed = addInfluence(removeInfluence(state, rival, country, removed), side, country, added);
   if (changed.public.influence !== undefined) state.public.influence = changed.public.influence;
-  events.push({
+  const event: Intervened = {
     kind: "intervened",
     visibility: "public",
     side,
@@ -47,5 +50,6 @@ export function intervene(state: GameState, side: Side, country: CountryId, poin
     result,
     removed,
     added,
-  });
+  };
+  events.push(tech === 1 ? { ...event, tech } : event);
 }

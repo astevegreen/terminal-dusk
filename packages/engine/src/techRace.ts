@@ -13,6 +13,21 @@ import type { GameEvent, GameMap, GameState, MapTechRace, PublicState, Side, Tec
 const way = (side: Side): number => (side === "lio" ? -1 : 1);
 
 /**
+ * The steps whose powers are fixed by number from parity (docs/design/tech-race.md, "What each step gives"): +1 in
+ * the holder's realignments, and +1 to its interventions. Hypersonics' extra play is the track's `escalateAt` step,
+ * and Quantum Computing's powers are its last step.
+ */
+export const NETWORKS = 1;
+export const AI_STEP = 2;
+
+/**
+ * Whether `side` holds tech race step `step` (1 = the first from parity): the side the marker favours holds its step
+ * and every step below it, so its powers add up; the other side holds none. False in a game without a tech race.
+ */
+export const techHolds = (pub: PublicState, side: Side, step: number): boolean =>
+  pub.techRace !== undefined && pub.techRace.marker * way(side) >= step;
+
+/**
  * What `side`'s next move of the marker costs, or null when it has none: moving towards its own end costs the step
  * moved onto; pulling the rival back costs the step left. A side at its own end has no move.
  */

@@ -14,7 +14,8 @@ export type RealignOptions = { attempts: number; targets: CountryId[] };
  * One realignment attempt by `side` in `country`. `totals` is each side's Contingency draw plus its bonuses
  * (1 per adjacent country it controls, 1 for more influence in the country, 1 if its home box touches it).
  * The side with the lower total, `loser`, lost `removed` influence there: the difference, stopping at 0.
- * A tie has no loser and removes nothing.
+ * A tie has no loser and removes nothing. `tech` is 1 when `side` held Networks and Orbit, the tech race's first
+ * step, and so has 1 more in its total (R26); absent otherwise.
  */
 export type Realigned = {
   kind: "realigned";
@@ -24,4 +25,5 @@ export type Realigned = {
   totals: Record<Side, number>;
   loser: Side | null;
   removed: number;
+  tech?: 1;
 };
