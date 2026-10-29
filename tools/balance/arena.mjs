@@ -38,26 +38,35 @@ export function parseArgs(argv) {
     if (!VALUED.has(arg)) throw refuse(`Unknown argument "${arg}".`);
     const value = argv[++i];
     if (value === undefined) throw refuse(`${arg} needs a value.`);
-    if (arg === "--a" || arg === "--b") {
-      if (!Object.hasOwn(TIERS, value)) {
-        throw refuse(`${arg} must be one of ${Object.keys(TIERS).join(", ")}, not "${value}".`);
-      }
-      options[arg.slice(2)] = value;
-    } else if (arg === "--scenario") {
-      if (!SCENARIOS.includes(value)) {
-        throw refuse(`--scenario must be one of ${SCENARIOS.join(", ")}, not "${value}".`);
-      }
-      options.scenario = value;
-    } else if (arg === "--seed") options.seed = value;
-    else if (WHOLE.test(value)) options.games = Number(value);
-    else throw refuse(`--games must be a positive whole number, not "${value}".`);
+    Object.assign(options, valueOf(arg, value));
   }
   return options;
+}
+
+/** The options one valued argument sets; throws a message with the usage line when its value is wrong. */
+function valueOf(arg, value) {
+  if (arg === "--a" || arg === "--b") {
+    if (Object.hasOwn(TIERS, value)) return { [arg.slice(2)]: value };
+    throw refuse(`${arg} must be one of ${Object.keys(TIERS).join(", ")}, not "${value}".`);
+  }
+  if (arg === "--scenario") {
+    if (SCENARIOS.includes(value)) return { scenario: value };
+    throw refuse(`--scenario must be one of ${SCENARIOS.join(", ")}, not "${value}".`);
+  }
+  if (arg === "--seed") return { seed: value };
+  if (WHOLE.test(value)) return { games: Number(value) };
+  throw refuse(`--games must be a positive whole number, not "${value}".`);
 }
 
 const round = (n, places) => Math.round(n * 10 ** places) / 10 ** places;
 const rate = (wins, games) => (games === 0 ? 0 : round(wins / games, 3));
 const record = (wins, losses, draws) => ({ wins, losses, draws, winRate: rate(wins, wins + losses + draws) });
+
+/** Which of wins, losses or draws a game was for `side`; `winner` is a side, or null for a draw. */
+function outcomeFor(winner, side) {
+  if (winner === null) return "draws";
+  return winner === side ? "wins" : "losses";
+}
 
 /**
  * The numbers for finished games, each { aSide, winner (a side, or null for a draw), answers }. `tiers` is each
@@ -75,18 +84,17 @@ export function tallyArena(a, b, results) {
   for (const { aSide, winner, answers: n } of results) {
     answers += n;
     if (winner === null) draws += 1;
-    for (const side of SIDES) {
-      sides[side][winner === null ? "draws" : winner === side ? "wins" : "losses"] += 1;
-    }
+    for (const side of SIDES) sides[side][outcomeFor(winner, side)] += 1;
     const bSide = aSide === "lio" ? "sae" : "lio";
-    for (const [name, side] of a === b
-      ? [[a, aSide]]
-      : [
-          [a, aSide],
-          [b, bSide],
-        ]) {
-      const mine = tiers[name];
-      mine[winner === null ? "draws" : winner === side ? "wins" : "losses"] += 1;
+    const seats =
+      a === b
+        ? [[a, aSide]]
+        : [
+            [a, aSide],
+            [b, bSide],
+          ];
+    for (const [name, side] of seats) {
+      tiers[name][outcomeFor(winner, side)] += 1;
       tierSides[name][side].games += 1;
       if (winner === side) tierSides[name][side].wins += 1;
     }
