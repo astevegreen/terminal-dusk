@@ -1,6 +1,7 @@
 // The map zoomed into a region (issue #365): region buttons, country boxes, "Whole map", zoom kept across frames.
 import { controller } from "@terminal-dusk/engine";
-import type { InfluenceEntry, PublicState } from "@terminal-dusk/engine";
+import type { GameEvent, InfluenceEntry, PublicState } from "@terminal-dusk/engine";
+import type { Frame } from "@terminal-dusk/host";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { button, treeOf } from "../online/test/screenTree.ts";
@@ -94,6 +95,38 @@ describe("the game screen with a map", () => {
     expect(buttonsOf(element).length).toBeGreaterThan(0);
     expect(renderToString(element)).toContain(">Eastern Reach</button>");
   });
+
+  it("highlights on the drawn map exactly the countries the frame's events touched (L2, #465)", () => {
+    const events: GameEvent[] = [
+      { kind: "influencePlaced", visibility: "public", side: "lio", country: "w2", cost: 1 },
+      { kind: "pointsSpent", visibility: "public", side: "lio", amount: 1 },
+      {
+        kind: "realigned",
+        visibility: "public",
+        side: "sae",
+        country: "e1",
+        totals: { lio: 1, sae: 2 },
+        loser: null,
+        removed: 0,
+      },
+    ];
+    const touchedOn = (frame: Frame): string[] => {
+      const html = renderToString(
+        <GameScreen
+          frame={frame}
+          log={[]}
+          era={null}
+          label={cardName}
+          question={cardQuestion}
+          affiliation={cardAffiliation}
+        />,
+      );
+      return [...html.matchAll(/data-country="([^"]+)"[^>]*data-touched="true"/g)].map((m) => m[1]!);
+    };
+    // In the map's order of countries: Birchmark (e1) comes before Cedaria (w2).
+    expect(touchedOn({ ...withMap(baseFrame()), events })).toEqual(["e1", "w2"]);
+    expect(touchedOn({ ...withMap(baseFrame()), events: [] })).toEqual([]);
+  });
 });
 
 describe("tap targets", () => {
@@ -150,7 +183,15 @@ describe("the zoom across frames", () => {
   });
 
   it("the wrapper starts zoomed out", () => {
-    expect(renderToString(<ZoomableMap pub={pub} />)).toBe(drawn(pub, null).html);
+    // Behind the List toggle since the drawn map (L2, #465): the List starts zoomed out, inside the toggle's panel.
+    const list = renderToString(<ZoomableMap pub={pub} startMode="list" />);
+    expect(list).toContain(drawn(pub, null).html);
+    expect(list.replace(drawn(pub, null).html, "")).not.toContain("map-");
+    // The drawn map is what shows first, at the whole map: it has the Whole map button and draws no list.
+    const first = renderToString(<ZoomableMap pub={pub} />);
+    expect(first).toContain('class="dm-view"');
+    expect(first).toContain(">Whole map</button>");
+    expect(first).not.toContain("map-badge");
   });
 });
 
@@ -163,5 +204,6 @@ describe("a frame with no map", () => {
       expect(tree.buttons).toEqual([]);
     }
     expect(renderToString(<ZoomableMap pub={bare} />)).toBe("<p>No map in this game</p>");
+    expect(renderToString(<ZoomableMap pub={bare} startMode="list" />)).toBe("<p>No map in this game</p>");
   });
 });

@@ -1,13 +1,22 @@
 // How each EventKind is presented. A new kind without an entry here fails the type check (hard rule 9).
 import { SIDES } from "@terminal-dusk/engine";
-import type { DeckId, EventKind, GameEvent, HookId, ModifierSpec, VarValue } from "@terminal-dusk/engine";
+import type { CountryId, DeckId, EventKind, GameEvent, HookId, ModifierSpec, VarValue } from "@terminal-dusk/engine";
 import { SIDE_NAME, scoreText } from "./displayText.ts";
 import type { GameNames } from "./displayText.ts";
 
-/** One game-log line per event, naming cards and eras by `names` and sides as LIO and SAE. */
+/**
+ * One game-log line per event, naming cards and eras by `names` and sides as LIO and SAE. `countries`, on the
+ * kinds that act on the map, names the countries the event touched, which the drawn map highlights (L2, #465).
+ */
 export type EventPresentation = {
-  [K in EventKind]: { log: (event: Extract<GameEvent, { kind: K }>, names: GameNames) => string };
+  [K in EventKind]: {
+    log: (event: Extract<GameEvent, { kind: K }>, names: GameNames) => string;
+    countries?: (event: Extract<GameEvent, { kind: K }>) => CountryId[];
+  };
 };
+
+/** The one country an event acts on. */
+const itsCountry = (event: { country: CountryId }): CountryId[] => [event.country];
 
 /** When a trigger's hook happens, in words. */
 const HOOK_TEXT: Record<HookId, string> = {
@@ -41,15 +50,18 @@ export const eventPresentation: EventPresentation = {
   },
   pointsSpent: { log: (event) => `${SIDE_NAME[event.side]} spent ${event.amount} points.` },
   influencePlaced: {
+    countries: itsCountry,
     log: (event) =>
       `${SIDE_NAME[event.side]} placed 1 influence in ${event.country} for ${event.cost} point${event.cost === 1 ? "" : "s"}.`,
   },
   realigned: {
+    countries: itsCountry,
     log: (event) =>
       `${SIDE_NAME[event.side]} realigned in ${event.country}: LIO ${event.totals.lio}, SAE ${event.totals.sae}. ` +
       (event.loser === null ? "A tie: nothing changed." : `${SIDE_NAME[event.loser]} lost ${event.removed} influence.`),
   },
   intervened: {
+    countries: itsCountry,
     log: (event) =>
       `${SIDE_NAME[event.side]} intervened in ${event.country}: draw ${event.draw} + ${event.points} point${event.points === 1 ? "" : "s"} - 2 x stability ` +
       `${event.stability} = ${event.result}` +
@@ -100,4 +112,17 @@ function modifierText(mod: ModifierSpec): string {
 /** One log line for an event, naming cards and eras by `names`. */
 export function logLine(event: GameEvent, names: GameNames): string {
   return (eventPresentation[event.kind].log as (e: GameEvent, n: GameNames) => string)(event, names);
+}
+
+/**
+ * The countries a frame's events touched, each once, in the order first touched: what the drawn map highlights
+ * while that frame is on screen (L2, #465).
+ */
+export function touchedCountries(events: readonly GameEvent[]): CountryId[] {
+  const touched = new Set<CountryId>();
+  for (const event of events) {
+    const countries = eventPresentation[event.kind].countries as ((e: GameEvent) => CountryId[]) | undefined;
+    for (const country of countries?.(event) ?? []) touched.add(country);
+  }
+  return [...touched];
 }

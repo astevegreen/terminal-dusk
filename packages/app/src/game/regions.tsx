@@ -63,7 +63,7 @@ export function StatusBar({ frame, era }: Readonly<{ frame: Frame; era: EraId | 
 export function MapArea({ frame }: Readonly<{ frame: Frame }>) {
   return (
     <Region id="map-area" title="Map" className="game-map" scrolls>
-      <ZoomableMap pub={frame.view.public} />
+      <ZoomableMap pub={frame.view.public} events={frame.events} />
     </Region>
   );
 }

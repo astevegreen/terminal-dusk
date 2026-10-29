@@ -12,6 +12,8 @@ test("test mode map: the 12 country badges show for every viewer and the page do
   for (const viewer of ["LIO", "SAE", "Spectator"]) {
     await page.getByRole("button", { name: viewer, exact: true }).click();
     await expect(page.getByRole("button", { name: viewer, exact: true })).toHaveAttribute("aria-pressed", "true");
+    // The badges are the map's List, behind the Map/List toggle since the drawn map (L2, #465).
+    await page.getByTestId("map-area").getByRole("button", { name: "List", exact: true }).click();
     await expect(badges).toHaveCount(12);
     await expect(badges.first()).toBeVisible();
     const noSideScroll = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);

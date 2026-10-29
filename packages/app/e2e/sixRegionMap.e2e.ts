@@ -40,6 +40,8 @@ async function expectHomeBoxes(map: Locator): Promise<void> {
 /** The whole map, then each region zoomed in: every button, badge and box tall enough to tap, nothing sideways. */
 async function checkSixRegionMap(page: Page): Promise<void> {
   const map = await startSixRegionGame(page);
+  // The badges and boxes are the map's List, behind the Map/List toggle since the drawn map (L2, #465).
+  await map.getByRole("button", { name: "List", exact: true }).click();
   await expect(map.locator(".map-region h3 button")).toHaveText(REGIONS);
   await expect(map.locator(".map-badge")).toHaveCount(42);
   await expect(map.locator('.map-badge[data-country="crimea"]')).toBeVisible();

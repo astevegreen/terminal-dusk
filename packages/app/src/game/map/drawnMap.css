@@ -1,0 +1,225 @@
+/* The drawn map (L2, #465). Placeholder look only: flat colours, no images. Sizes inside .dm-world are in the
+   layout's units (sixRegionLayout.ts: 1000 by 560), which mapControl.ts scales to the map area. */
+.dm {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 100%;
+  min-height: 290px;
+}
+.dm-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.dm-tools button {
+  min-width: 44px;
+  min-height: 44px;
+}
+.dm-tools button[aria-pressed="true"] {
+  font-weight: bold;
+  outline: 2px solid #000;
+}
+/* The map area: it clips the drawing, takes the wheel and the fingers (never the page), and grows to its box. */
+.dm-view {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 240px;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  background: #eef1f4;
+  cursor: grab;
+}
+.dm-view:active {
+  cursor: grabbing;
+}
+/* The one wrapper the view moves, from its top left corner. */
+.dm-world {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+  font-family: system-ui, sans-serif;
+}
+.dm-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+/* Region shades, flat and pale, in the map's region order; a closed region is grey. */
+.dm-area {
+  stroke: #8a8f96;
+  stroke-width: 2;
+}
+.dm-area[data-tone="0"] {
+  fill: #dbe7d4;
+}
+.dm-area[data-tone="1"] {
+  fill: #f1e3c8;
+}
+.dm-area[data-tone="2"] {
+  fill: #d6e2ef;
+}
+.dm-area[data-tone="3"] {
+  fill: #efd9d3;
+}
+.dm-area[data-tone="4"] {
+  fill: #e4dcef;
+}
+.dm-area[data-tone="5"] {
+  fill: #d4ebe8;
+}
+.dm-area[data-closed="true"] {
+  fill: #b9b9b9;
+  stroke-dasharray: 8 6;
+}
+.dm-link {
+  stroke: #5b6470;
+  stroke-width: 2;
+}
+.dm-home-link {
+  stroke-width: 3;
+  stroke-dasharray: 6 5;
+}
+.dm-home-link[data-home="lio"] {
+  stroke: var(--map-lio, #2b6cb0);
+}
+.dm-home-link[data-home="sae"] {
+  stroke: var(--map-sae, #c53030);
+}
+/* A region's button covers its shade and is see-through; its name sits in the band at the top. */
+.dm-region {
+  position: absolute;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 3px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #333;
+  font:
+    bold 17px system-ui,
+    sans-serif;
+  text-align: left;
+  vertical-align: top;
+  display: flex;
+  align-items: flex-start;
+  cursor: zoom-in;
+}
+.dm-region:focus-visible {
+  outline: 4px solid #000;
+  outline-offset: -4px;
+}
+.dm-region[data-closed="true"] {
+  color: #555;
+}
+/* Markers and home boxes sit on top, but let taps through to the region under them. */
+.dm-homes,
+.dm-markers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+}
+.dm-marker,
+.dm-home {
+  position: absolute;
+  box-sizing: border-box;
+  width: 92px;
+  height: 48px;
+  border: 2px solid #222;
+  border-radius: 6px;
+  color: #fff;
+  line-height: 1;
+}
+.dm-home {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  font:
+    bold 17px system-ui,
+    sans-serif;
+  border-width: 4px;
+}
+.dm-home[data-home="lio"] {
+  border-color: var(--map-lio, #2b6cb0);
+  color: var(--map-lio, #2b6cb0);
+}
+.dm-home[data-home="sae"] {
+  border-color: var(--map-sae, #c53030);
+  color: var(--map-sae, #c53030);
+}
+.dm-marker {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 3px 2px;
+}
+.dm-marker[data-control="lio"] {
+  background: var(--map-lio, #2b6cb0);
+}
+.dm-marker[data-control="sae"] {
+  background: var(--map-sae, #c53030);
+}
+.dm-marker[data-control="none"] {
+  background: var(--map-none, #6b6b6b);
+}
+/* The countries the latest frame's events touched. */
+.dm-marker[data-touched="true"] {
+  outline: 5px solid #ffd400;
+  outline-offset: 1px;
+  box-shadow: 0 0 0 9px rgba(255, 212, 0, 0.45);
+  z-index: 1;
+}
+.dm-name {
+  display: flex;
+  justify-content: space-between;
+  gap: 1px;
+  font-size: 17px;
+  font-weight: bold;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+.dm-bg {
+  color: #ffd400;
+  font-size: 13px;
+}
+.dm-nums {
+  display: flex;
+  justify-content: space-between;
+  gap: 3px;
+  font-size: 16px;
+  font-weight: bold;
+}
+.dm-lio,
+.dm-sae,
+.dm-stab {
+  min-width: 22px;
+  padding: 1px 3px;
+  border-radius: 3px;
+  text-align: center;
+}
+.dm-lio {
+  background: #fff;
+  color: var(--map-lio, #2b6cb0);
+}
+.dm-sae {
+  background: #fff;
+  color: var(--map-sae, #c53030);
+}
+.dm-stab {
+  border: 1px solid #fff;
+}
+/* Read aloud, not shown. */
+.dm-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
