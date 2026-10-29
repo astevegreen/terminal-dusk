@@ -325,7 +325,7 @@ Use placeholders until the cards stop changing, then produce AI art and audio th
 
 **Until build phase 5: placeholders.** Claude builds clean card frames, icons and map styling in SVG and CSS. They cost nothing, stay readable on phones, and are swapped out by changing the asset manifest, not the code.
 
-**Style guide first.** One Notion page, decided in a design session: palette, card frame, illustration style, how the map looks, and what each side's visual identity is. Pick a stylised, flat or illustrated look that stays readable at phone size. Two hard rules:
+**Style guide first.** Already decided, in `docs/design/art-direction.md`: the world map is real geography from public-domain data, and each era has its own theme on the board, frames, menus, decks and tracks. The style guide works inside that. It is one Notion page, decided in a design session: palette, card frame, illustration style, how the map looks, and what each side's visual identity is. Pick a stylised, flat or illustrated look that stays readable at phone size. Two hard rules:
 
 - **No likenesses of real people.** Illustrate events through places, objects, symbols, documents and crowds without identifiable faces. This keeps you clear of the store and likeness risks in the architecture review, and image tools often refuse real people anyway.
 - **No imitation of the original game's look**, its card frames or its map.
