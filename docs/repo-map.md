@@ -90,6 +90,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/package.json`
 - `packages/app/playwright.config.ts` - Playwright smoke tests (`pnpm test:e2e`), kept apart from Vitest: their files end in .e2e.ts. Exports: default.
 - `packages/app/playwright.stack.config.ts` - Playwright settings for the phase 4 browser gate (A10, e2e-stack/): two browsers, a real sign-in by email code and a whole online game on the local Supabase st… Exports: default.
+- `packages/app/scripts/world-map/build.mjs` - `pnpm map:build` (L3, #479): makes the real-geography map's two files from the two downloads in map-sources/ (world/SOURCES.md says where each comes from): src…
+- `packages/app/scripts/world-map/geometry.mjs` - The geometry behind `pnpm map:build` (L3, #479), kept pure so geometry.test.mjs can prove it on small shapes.
+- `packages/app/scripts/world-map/geometry.test.mjs` - What `pnpm map:build` does to Natural Earth's countries (L3, #479), shown on small made-up ones: the UN-recognised borders, Crimea, the crop, and whole-number…
 - `packages/app/src/App.test.tsx`
 - `packages/app/src/App.tsx` - The home screen: the game's name, a button to play against the AI, a button to play the six-region map against the AI (A14, #439), a button to play online and… Exports: AppProps, App, onlineRoute, Home.
 - `packages/app/src/chooseActionPrompt.test.tsx` - The chooseAction prompt (R16b, #316): all the points go to one action, placing or one intervention.
@@ -130,6 +133,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/map/sixRegionLayout.test.ts` - The six-region map's drawing (L2, #465; real geography since L3, #479): every country inside its region and the map, nothing overlapping, the regions roughly w…
 - `packages/app/src/game/map/sixRegionLayout.ts` - The six-region map's drawing (L2, #465; real geography since L3, #479). Exports: SIX_REGION_LAYOUT.
 - `packages/app/src/game/map/test/layoutChecks.ts` - Test helper: the checks every map layout must pass, for the six-region layout and for autoLayout on any map. Exports: expectInside, expectNoOverlap.
+- `packages/app/src/game/map/world/SOURCES.md` - Where the world map comes from (L3, #479)
 - `packages/app/src/game/map/world/crop.json`
 - `packages/app/src/game/map/world/projection.test.ts` - The world map's projection (L3, #479): the crop's corners land on the drawing's corners, in whole units.
 - `packages/app/src/game/map/world/projection.ts` - The world map's projection (L3, #479): the Blue Marble picture is equirectangular, so a place's longitude and latitude map straight to layout units, 7 to the d… Exports: CROP, WORLD_SIZE, project.

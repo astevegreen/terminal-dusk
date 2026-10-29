@@ -13,5 +13,8 @@ coverage/
 .claude/worktrees/
 .handoff/
 
+# The world map's downloads (packages/app/src/game/map/world/SOURCES.md): large, and rebuilt into committed files
+map-sources/
+
 # Reviewer eval answers (tools/eval/reviewer-eval.mjs)
 tools/eval/results/
