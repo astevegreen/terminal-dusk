@@ -4,18 +4,16 @@
 // countries a move touched light up. With L2_SHOTS set to a folder, it saves a screenshot of each.
 import { expect, test } from "@playwright/test";
 import type { Locator, Page } from "@playwright/test";
+import { startSixRegionGame } from "./start.ts";
 
 type View = { scale: number; x: number; y: number };
 type Box = { left: number; top: number; right: number; bottom: number };
 
 const SHOTS = process.env["L2_SHOTS"];
 
-async function startSixRegionGame(page: Page): Promise<Locator> {
-  await page.goto("/");
-  await page.getByRole("button", { name: "Play the six-region map" }).click();
-  await page.getByRole("button", { name: "Play as LIO" }).click();
-  await expect(page.getByTestId("decision")).toBeVisible();
-  const area = page.getByTestId("map-area");
+/** The shared start, then waits until the drawn map has fitted itself to the map area. */
+async function startDrawnMap(page: Page): Promise<Locator> {
+  const area = await startSixRegionGame(page);
   await expect(area.locator(".dm-world")).toHaveAttribute("style", /transform/);
   return area;
 }
@@ -52,7 +50,7 @@ async function shoot(page: Page, name: string): Promise<void> {
 test("the whole map: 42 markers and both home boxes inside the map area, none overlapping, nothing sideways", async ({
   page,
 }) => {
-  const area = await startSixRegionGame(page);
+  const area = await startDrawnMap(page);
   const markers = area.locator(".dm-marker");
   await expect(markers).toHaveCount(42);
   await expect(area.locator(".dm-home")).toHaveText(["LIO home", "SAE home"]);
@@ -78,13 +76,20 @@ test("the whole map: 42 markers and both home boxes inside the map area, none ov
         .map((n) => `${n.textContent} ${n.scrollWidth}/${n.clientWidth}`),
     );
   expect(cutOff).toEqual([]);
+  // The region buttons are the map's tap targets: each at least 44 px each way at the whole-map zoom.
+  const regions = await Promise.all((await area.locator(".dm-region").all()).map(boxOf));
+  expect(regions).toHaveLength(6);
+  for (const r of regions) {
+    expect(r.right - r.left).toBeGreaterThanOrEqual(44);
+    expect(r.bottom - r.top).toBeGreaterThanOrEqual(44);
+  }
   const noSideScroll = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
   expect(noSideScroll).toBe(true);
   await shoot(page, "whole");
 });
 
 test("tapping a region zooms in on it, and Whole map goes back to the whole map", async ({ page }) => {
-  const area = await startSixRegionGame(page);
+  const area = await startDrawnMap(page);
   const whole = await viewOf(area);
   await area.getByRole("button", { name: "Europe", exact: true }).click();
   await expect.poll(async () => (await viewOf(area)).scale).toBeGreaterThan(whole.scale * 1.5);
@@ -95,7 +100,7 @@ test("tapping a region zooms in on it, and Whole map goes back to the whole map"
 });
 
 test("the wheel zooms in around the cursor and the page does not scroll", async ({ page }) => {
-  const area = await startSixRegionGame(page);
+  const area = await startDrawnMap(page);
   const before = await viewOf(area);
   const cursor = await centreOf(area.locator(".dm-view"));
   const viewBox = await boxOf(area.locator(".dm-view"));
@@ -115,7 +120,7 @@ test("the wheel zooms in around the cursor and the page does not scroll", async 
 });
 
 test("a drag moves the zoomed-in map without zooming, and is not a tap on the region under it", async ({ page }) => {
-  const area = await startSixRegionGame(page);
+  const area = await startDrawnMap(page);
   const whole = await viewOf(area);
   const centre = await centreOf(area.locator(".dm-view"));
   await page.mouse.move(centre.x, centre.y);
@@ -135,7 +140,7 @@ test("a drag moves the zoomed-in map without zooming, and is not a tap on the re
 });
 
 test("two fingers spread twice as far apart double the zoom", async ({ page }) => {
-  const area = await startSixRegionGame(page);
+  const area = await startDrawnMap(page);
   const before = await viewOf(area);
   const centre = await centreOf(area.locator(".dm-view"));
   await area.locator(".dm-view").evaluate((el, c) => {
@@ -206,7 +211,7 @@ async function placeAndWatch(page: Page, area: Locator, count: number): Promise<
 }
 
 test("placing influence lights up the country it was placed in", async ({ page }) => {
-  const area = await startSixRegionGame(page);
+  const area = await startDrawnMap(page);
   await expect(area.locator(".dm-marker[data-touched]")).toHaveCount(0);
   const lit = await placeAndWatch(page, area, 3);
   expect(lit.length).toBe(3);
