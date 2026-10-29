@@ -29,7 +29,16 @@ describe("the Medium tier", () => {
   it("has the Easy terms and a positive weight for each new term, as data", () => {
     expect(MEDIUM_WEIGHTS.ops).toBeGreaterThan(0);
     expect(MEDIUM_WEIGHTS.noise).toBeGreaterThan(0);
-    for (const key of ["region", "progress", "battleground", "closed", "crisis", "trap"] as const) {
+    for (const key of [
+      "region",
+      "progress",
+      "battleground",
+      "closed",
+      "crisis",
+      "trap",
+      "tech",
+      "techBonus",
+    ] as const) {
       expect(MEDIUM_WEIGHTS[key]).toBeGreaterThan(0);
     }
   });

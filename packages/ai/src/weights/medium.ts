@@ -20,4 +20,8 @@ export const MEDIUM_WEIGHTS: MediumWeights = {
   crisis: 10,
   /** Small: only tips a close choice, and only when Medium's own hand is safe. */
   trap: 1,
+  /** Each step of lead is a step nearer Quantum Computing's era score and wins an even track's tie-break. */
+  tech: 1,
+  /** A first-there +1 makes the next attempt likelier; it is used up by that attempt, whatever its result. */
+  techBonus: 0.5,
 };

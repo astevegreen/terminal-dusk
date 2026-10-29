@@ -25,7 +25,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/ai/src/easy.test.ts`
 - `packages/ai/src/easy.ts` - The Easy tier (docs/architecture.md, Decision 8): score every legal answer with a small evaluation plus random noise, and take the best. Exports: namedCard, easyAnswer.
 - `packages/ai/src/evaluate.test.ts`
-- `packages/ai/src/evaluate.ts` - The Medium tier's board evaluation: how good the map is for a side, in era-end region scoring terms (docs/design/map-and-points.md, "Scoring"). Exports: otherSide, regionPoints, controlProgress, regionFactor, boardValue.
+- `packages/ai/src/evaluate.ts` - The Medium tier's board evaluation: how good the map is for a side, in era-end region scoring terms (docs/design/map-and-points.md, "Scoring"). Exports: otherSide, regionPoints, controlProgress, regionFactor, techValue, boardValue.
 - `packages/ai/src/firstDeckMap.test.ts` - Easy with the real first-deck cards on the test map, so the sixteen R18 cards that move Escalation are in play (A11a, issue #359).
 - `packages/ai/src/guess.test.ts`
 - `packages/ai/src/guess.ts` - Guessing the cards a side cannot see, so the AI can rebuild a full state with `reconstruct`. Exports: seenCards, guessHidden.
@@ -34,7 +34,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/ai/src/mapGames.test.ts` - Easy in games with a map, influence and the Escalation track (A11a, issue #359).
 - `packages/ai/src/markers.test.ts` - Easy on cards with lasting markers and `has` conditions (R4, issue #171).
 - `packages/ai/src/medium.test.ts` - The Medium tier (A16, issue #455): whole seeded games on the test map and the six-region map.
-- `packages/ai/src/medium.ts` - The Medium tier (docs/architecture.md, Decision 8): Easy's scoring, plus the cards it has not seen and an evaluation of the board it would leave, in era-end re… Exports: mediumAnswer.
+- `packages/ai/src/medium.ts` - The Medium tier (docs/architecture.md, Decision 8): Easy's scoring, plus the cards it has not seen and an evaluation of the board it would leave, in era-end re… Exports: attemptValue, mediumAnswer.
 - `packages/ai/src/placing.test.ts` - Easy answers the action menu's place influence (A11b, issue #360): the menu, then one placeInfluence decision per influence (R16a).
 - `packages/ai/src/playedBy.test.ts` - Easy on cards with playedBy conditions (R5, issue #172).
 - `packages/ai/src/player.test.ts`
@@ -44,6 +44,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/ai/src/safety.test.ts`
 - `packages/ai/src/safety.ts` - The Medium tier's Escalation safety (docs/design/map-and-points.md, "Escalation"): a raise to 6 is a crisis that costs the side that caused it the number it dr… Exports: expectedCrisisCost, crisisCost, crisisShare, safetyScore.
 - `packages/ai/src/sixRegionMap.test.ts` - Easy with the real first deck on the six-region map (A14, issue #439): seeded games, both sides Easy, end to end.
+- `packages/ai/src/techRace.test.ts` - The AI and the tech race (A17, issue #471): Easy takes an attempt as one more legal answer; Medium weighs it by the odds of its own Contingency deck, the first…
+- `packages/ai/src/techRace.ts` - The Medium tier's tech race odds (docs/design/tech-race.md, "Making an attempt"): an attempt draws from the side's own Contingency deck, whose numbers left are… Exports: DrawVariant, drawVariants.
 - `packages/ai/src/test/mapGames.ts` - Test helpers for map games (A11a, issue #359; A11b, #360): small rulesets whose cards move Escalation or spend event points, dealt with the test map, and first… Exports: testMap, escalationRuleset, newMapGame, pointsRuleset, newPointsMapGame, newFirstDeckMapGame, newSixRegionMapGame.
 - `packages/ai/src/test/markerGames.ts` - Test helpers for lasting markers and `has` conditions (R4): a small ruleset whose cards set two lasting labels, and cards whose yes/no question exists only whi… Exports: MARKER_LABELS, markerRuleset, newMarkerGame.
 - `packages/ai/src/test/playEasy.test.ts`
