@@ -20,12 +20,12 @@ async function startDrawnMap(page: Page): Promise<Locator> {
   return area;
 }
 
-/** Makes sure the sheet is folded: an open panel lies over the lower map (L5, #485), where the wheel and drag tests
- *  point. Since L7 (#487) the sheet starts folded, as the decision is a banner rather than a tab. */
+/** Makes sure no panel lies over the map where the wheel and drag tests point. The sheet of L5 (#485) is gone since
+ *  L10 (#490); its Details tab is a panel the top bar opens, closed until it is asked for. */
 async function foldSheet(page: Page): Promise<void> {
-  const hide = page.getByRole("region", { name: "Game details" }).getByRole("button", { name: "Hide" });
-  if (await hide.isVisible()) await hide.click();
-  await expect(page.getByRole("tabpanel")).toHaveCount(0);
+  const close = page.getByRole("dialog", { name: "Game details" }).getByRole("button", { name: "Close" });
+  if (await close.isVisible()) await close.click();
+  await expect(page.getByRole("dialog", { name: "Game details" })).toBeHidden();
 }
 
 /** The view the wrapper's CSS transform shows: screen = drawing × scale + (x, y). */

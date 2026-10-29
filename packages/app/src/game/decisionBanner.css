@@ -48,7 +48,7 @@
 .game > .game-banner .decision-hint {
   font-style: italic;
 }
-/* A game with no map: the bottom edge spans the banner's row too, so the sheet's panel can take it. The bottom row
+/* A game with no map: the bottom edge spans the banner's row too, so the lifted card can take it. The bottom row
    keeps the strip's height, the banner sits at the foot of its own row just above it, and the bottom edge's empty
    part lets taps through to the banner. */
 .game.game-no-map {

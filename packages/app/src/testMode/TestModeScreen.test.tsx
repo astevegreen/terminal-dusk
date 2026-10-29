@@ -126,27 +126,28 @@ describe("the viewer switch", () => {
     expect(out).not.toMatch(/\bt\d+\b/);
     expect(out).not.toContain("Test card 1,");
     expect(out.match(/pick an opening card/g)).toHaveLength(2);
-    // Outside the map (whose region buttons zoom, for every viewer: issue #366), the side panel's one tab (L1, #464;
-    // the log left the sheet for its drawer in L9, #489, and Play became the decision banner in L7, #487), the sheet's
-    // Hide beside it (L5, #485), and the ticker with its drawer's Close (L9), only the three viewer controls and
-    // Restart are buttons, so the Decision region has none.
+    // Outside the map (whose region buttons zoom, for every viewer: issue #366), and the top bar's two openers with
+    // their panels' heads (L9, #489; L10, #490: Details, the ticker, the log drawer's Close and Pin, the Details
+    // panel's Close), only the three viewer controls and Restart are buttons, so the Decision region has none. The
+    // sheet with its tab and Hide is gone since L10.
     const map = /<section aria-label="Map"[^]*?<\/section>/.exec(out)?.[0] ?? "";
     expect(map).toContain("<button");
-    const tabs = /<div role="tablist"[^]*?<\/div>/.exec(out)?.[0] ?? "";
-    expect(tabs.match(/<button/g)).toHaveLength(1);
-    expect(tabs.match(/<button[^>]*role="tab"/g)).toHaveLength(1);
-    const hide = /<button[^>]*class="game-sheet-hide"[^>]*>Hide<\/button>/.exec(out)?.[0] ?? "";
-    expect(hide).not.toBe("");
-    const drawer = /<button[^>]*class="game-ticker"[^]*?<div class="game-drawer-head">[^]*?<\/button><\/div>/.exec(
-      out,
-    )?.[0];
-    expect(drawer?.match(/<button/g)).toHaveLength(2);
+    expect(out).not.toContain('role="tab"');
+    const panels =
+      /<button[^>]*class="game-details-button"[^]*?<div[^>]*class="game-drawer game-details"[^]*?<\/button><\/div>/.exec(
+        out,
+      )?.[0];
+    expect(panels?.match(/<button/g)).toHaveLength(5);
+    expect(panels?.match(/>(Details|Close|Pin)<\/button>/g)).toEqual([
+      ">Details</button>",
+      ">Close</button>",
+      ">Pin</button>",
+      ">Close</button>",
+    ]);
     expect(
       out
         .replace(map, "")
-        .replace(tabs, "")
-        .replace(hide, "")
-        .replace(drawer ?? "", "")
+        .replace(panels ?? "", "")
         .match(/<button/g),
     ).toHaveLength(4);
   });

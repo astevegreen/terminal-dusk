@@ -1,6 +1,7 @@
-/* What floats over the map (L5, #485; docs/design/screen-layout.md): the slim see-through top bar, with the Menu,
-   the page's own items, the status line and the two tracks; and the sheet along the bottom, whose tab row stays
-   and whose open panel rises over the map. The bar colours (--game-bar-bg, --game-panel-bg) are in gameScreen.css. */
+/* The slim see-through top bar that floats over the map (L5, #485; docs/design/screen-layout.md), with the Menu, the
+   page's own items, the status line over the two tracks, the Details button and the ticker. The sheet that sat
+   along the bottom is gone since L10 (#490): its Details tab is the Details panel the button opens (logDrawer.css).
+   Every colour and size is a setting on .game (gameScreen.css), so an era's theme (#481) restyles the bar. */
 .game .game-top {
   grid-area: top;
   z-index: 3;
@@ -15,8 +16,18 @@
 .game .game-top > * {
   flex: none;
 }
+/* The page's own lines (online's turn and deadline, Watch's "Watching" and who it waits for): each one line that
+   gives way with "…" before the status line does, so on a phone they never push the ticker off the bar. The turn
+   line (the page's role="status", a few words) never gives way. */
 .game .game-top > p {
+  flex: 0 4 auto;
+  min-width: 5em;
   margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.game .game-top > p[role="status"] {
+  flex: none;
 }
 /* The status line over the tracks line: each one line, cut short with "…" on a narrow screen. */
 .game .game-top > .game-top-main {
@@ -30,7 +41,7 @@
   box-sizing: border-box;
   min-width: 0;
   overflow: hidden;
-  line-height: 20px;
+  line-height: var(--game-bar-line);
   text-overflow: ellipsis;
 }
 .game .game-status {
@@ -40,12 +51,19 @@
 .game .game-status > span {
   flex: none;
 }
+/* On a narrow bar the plays and the era give way first; then the side line, down to "You play LIO" (L10, #490: the
+   Online page's own lines share the bar), so the state text is never cut. */
+.game .game-status > span:nth-child(1),
 .game .game-status > span:nth-child(3),
 .game .game-status > span:nth-child(4) {
-  flex: 0 1 auto;
+  flex: 0 100 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.game .game-status > span:nth-child(1) {
+  flex-shrink: 1;
+  min-width: 6.5em;
 }
 /* The ticker (L9, #489): the top bar's last item, at its right end, a tap target tall, with the newest log line cut
    short with "…". It takes the width the status and the tracks leave, and never less than --game-ticker-min, so on
@@ -101,7 +119,13 @@
   min-width: 60px;
   height: 12px;
   border: 1px solid var(--game-edge);
-  background: linear-gradient(to right, #ddd 49.5%, #000 49.5%, #000 50.5%, #ddd 50.5%);
+  background: linear-gradient(
+    to right,
+    var(--track-bg) 49.5%,
+    var(--track-middle) 49.5%,
+    var(--track-middle) 50.5%,
+    var(--track-bg) 50.5%
+  );
 }
 .game .track-marker {
   position: absolute;
@@ -109,8 +133,8 @@
   width: 6px;
   height: 18px;
   margin-left: -3px;
-  background: #000;
-  border: 1px solid #fff;
+  background: var(--track-marker);
+  border: 1px solid var(--track-marker-edge);
 }
 .game .track-value {
   font-weight: bold;
@@ -151,65 +175,17 @@
   background: var(--game-panel-bg);
   white-space: normal;
 }
-/* The sheet: its tab row at the bottom edge, beside the hand strip (handStrip.css, L6), and the open tab's panel
-   just above the bottom edge, as wide as the screen (the bottom edge, not the sheet, is the panel's box). */
-.game .game-sheet {
-  display: flex;
-  flex: none;
-  min-width: 0;
-}
-.game .game-sheet-bar {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 4px;
-  background: var(--game-bar-bg);
-}
-.game .game-tabs {
-  display: flex;
-  flex: 1 1 auto;
-  gap: 4px;
-}
-.game .game-tabs button {
-  flex: 1 1 auto;
+/* The Details button (L10, #490), just before the ticker: it opens the Details panel (logDrawer.css). A tap target,
+   marked while its panel is open. */
+.game .game-top > .game-details-button {
+  box-sizing: border-box;
   min-width: 44px;
   min-height: 44px;
+  margin: 0;
+  padding: 0 8px;
+  font: inherit;
 }
-.game .game-tabs button[aria-selected="true"] {
+.game .game-top > .game-details-button[aria-expanded="true"] {
   font-weight: bold;
-  border-bottom: 3px solid var(--game-fg);
-}
-.game .game-sheet-hide {
-  flex: none;
-  min-width: 44px;
-  min-height: 44px;
-}
-.game .game-sheet-hide[hidden] {
-  display: none;
-}
-/* The open panel rises over the map from the bottom edge, never past the top 42% of the game nor over the map tools
-   (--game-panel-max, gameScreen.css), and scrolls. */
-.game .game-tab-panel {
-  position: absolute;
-  right: 0;
-  bottom: 100%;
-  left: 0;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-height: var(--game-panel-max);
-  padding: 4px;
-  overflow: auto;
-  background: var(--game-panel-bg);
-}
-.game .game-tab-panel[hidden] {
-  display: none;
-}
-.game .game-tab-panel > section {
-  box-sizing: border-box;
-  flex: none;
-  min-width: 0;
-  padding: 4px;
-  border: 1px solid var(--game-edge);
+  box-shadow: inset 0 -3px 0 var(--game-fg);
 }

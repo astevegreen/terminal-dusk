@@ -104,8 +104,8 @@ test("six standings chips sit under the region names, over no marker, whole map 
   page,
 }, testInfo) => {
   const map = await startSixRegionGame(page);
-  // The sheet starts folded since L7 (#487), so no panel lies over the map.
-  await expect(page.getByRole("tabpanel")).toHaveCount(0);
+  // No panel lies over the map: the Details panel (L10, #490) starts closed.
+  await expect(page.getByRole("dialog", { name: "Game details" })).toBeHidden();
   await map.getByRole("button", { name: "Whole map" }).click();
 
   const chips = map.locator(".dm-chip");

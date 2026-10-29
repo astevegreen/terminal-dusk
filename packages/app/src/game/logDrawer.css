@@ -1,8 +1,10 @@
-/* The log drawer the ticker opens (L9, #489; docs/design/screen-layout.md; the ticker itself is in gameBars.css).
-   Its width and colours are settings on .game (gameScreen.css), so an era's theme (#481) can restyle it. It runs
-   from under the top bar to the sheet's tab row, on the right, about half the width, over the map and the sheet's
-   open panel. (The top bar's Menu is not open with it: the tap that opens the Menu closes the drawer.) Its log
-   scrolls. It slides in where the browser can. */
+/* The two panels the top bar opens (L9, #489; L10, #490; docs/design/screen-layout.md; the ticker and the Details
+   button themselves are in gameBars.css): the log drawer and the Details panel. Their widths and colours are
+   settings on .game (gameScreen.css), so an era's theme (#481) can restyle them. Each runs from under the top bar
+   to the decision banner, on the right, about half the width, over the map. (The top bar's Menu is not open with
+   them: the tap that opens the Menu closes the open panel.) Each scrolls its own body. They slide in where the
+   browser can. On a large screen the log can be pinned open instead: narrower, about a quarter of the width, and
+   the map fits itself beside it (gameScreen.css). */
 .game .game-drawer {
   grid-column: 1;
   grid-row: map-start / map-end;
@@ -20,6 +22,24 @@
 .game .game-drawer[hidden] {
   display: none;
 }
+/* The Details panel is only as tall as what it holds, so on a large screen it covers no more of the map than it
+   must; it scrolls once that is taller than the room. */
+.game .game-drawer.game-details {
+  align-self: start;
+  max-height: 100%;
+}
+.game .game-drawer[data-pinned="true"] {
+  width: var(--game-drawer-pinned-w);
+}
+/* With the log pinned at the side, the map keeps clear of it: the drawing's own box (gameScreen.css) ends where the
+   log starts, so "Whole map" fits the world beside it, and the List's lines stop short of it. The picture still runs
+   on under the log. */
+.game:has(> .game-drawer[data-pinned="true"]:not([hidden])) .dm[data-mode="map"] > .dm-view {
+  margin-right: var(--game-drawer-pinned-w);
+}
+.game:has(> .game-drawer[data-pinned="true"]:not([hidden])) > .game-map:has(> .dm[data-mode="list"]) {
+  padding-right: calc(var(--game-drawer-pinned-w) + 4px);
+}
 @starting-style {
   .game .game-drawer {
     translate: 100% 0;
@@ -33,24 +53,48 @@
 .game .game-drawer:focus {
   outline: none;
 }
+/* A game with no map has only a line in its map row, so the panels take the empty rows down to the decision banner,
+   which sits at the foot of its row (decisionBanner.css) and stays in sight. */
+.game.game-no-map > .game-drawer {
+  grid-row: map-start / banner-end;
+  margin-bottom: var(--game-banner-h);
+}
 .game .game-drawer-head {
   display: flex;
   flex: none;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
   padding: 0 0 0 8px;
 }
 .game .game-drawer-title {
+  flex: 1 1 auto;
   font-weight: bold;
 }
 .game .game-drawer-head > button {
   min-width: 44px;
   min-height: 44px;
 }
-.game .game-drawer > .game-log {
+.game .game-drawer-head > button[hidden] {
+  display: none;
+}
+.game .game-drawer > .game-log,
+.game .game-details-body {
   flex: 1 1 0;
   min-height: 0;
   padding: 0 4px 4px;
   overflow: auto;
+}
+/* The Details panel's three parts, each in a box, one after another. */
+.game .game-details-body {
+  flex: 0 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.game .game-details-body > section {
+  box-sizing: border-box;
+  flex: none;
+  min-width: 0;
+  padding: 4px;
+  border: 1px solid var(--game-edge);
 }
