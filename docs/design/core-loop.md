@@ -10,7 +10,9 @@ change it in Notion and promote again.
 1. **Refill.** At the start of each turn, both players refill their hands to the hand size (see "Refilling
    hands" below).
 2. **Opening cards.** Then both players pick one card from their hand at the same time, in secret. Neither
-   player sees the other's pick until both have picked. A player may pick one of their rival's cards.
+   player sees the other's pick until both have picked. A player may pick one of their rival's cards. The one
+   exception: a side holding the tech race's Quantum Computing step sees its rival's pick first
+   (docs/design/tech-race.md).
 3. **Reveal.** Both opening cards are revealed together.
 4. **Order.** The opening card with more action points resolves first. If both have the same action points,
    the card LIO picked resolves first, whichever side's card it is.
@@ -19,7 +21,8 @@ change it in Notion and promote again.
    except that its Contingency draws from the rival's own deck come from the World deck
    (docs/design/contingency-deck.md).
 6. **Card plays.** After the opening cards, the players take turns playing one card at a time.
-   LIO plays first in every turn.
+   LIO plays first in every turn. A side holding the tech race's Hypersonics step then makes one extra play
+   (docs/design/tech-race.md).
 
 ## Refilling hands
 
@@ -45,7 +48,8 @@ change it in Notion and promote again.
 - Each played card is used in exactly one way: for its **event** or for its **action points**.
 - Your own cards and neutral cards may be played either way.
 - A **rival's card** (one whose side is the other player's) may only be played for its action points.
-  Its event then still happens, as the rival's event:
+  Its event then still happens, as the rival's event, except when the points go to the tech race, which cancels
+  the event (owner, 28 Oct; docs/design/tech-race.md):
   - the player who played the card chooses whether the event happens **before or after** they spend the points;
   - the event runs exactly as if the **rival** had played it, except that its Contingency draws from the
     rival's own deck come from the World deck (docs/design/contingency-deck.md).
@@ -58,7 +62,9 @@ change it in Notion and promote again.
   For whose Contingency deck a neutral event draws from, see docs/design/contingency-deck.md.
 - **The new action.** One new kind of action sits alongside the familiar ones: the tech race. A side spends a
   card's action points to move up the tech race track (owner, 22 Oct; docs/design/map-and-points.md). The track
-  itself is not designed yet.
+  is decided in docs/design/tech-race.md (owner, 28 Oct). Two of its steps change this loop while a side holds
+  them: Hypersonics gives an extra card play after the normal plays, and Quantum Computing makes the rival pick
+  its opening card first, in view of the Quantum Computing side.
 
 ## Undo
 
@@ -69,7 +75,9 @@ change it in Notion and promote again.
 
 - The opening picks are one simultaneous decision group (docs/architecture.md, Decision 1). A side's pick is
   held in its own private compartment ("own unrevealed picks", Decision 2), so the other side and spectators
-  can't see it until both are in.
+  can't see it until both are in. While a side holds the tech race's Quantum Computing step, the picks are
+  sequential instead: the rival picks first, and its pick is shown only to the Quantum Computing side, never in
+  public state or events, until Reveal (docs/design/tech-race.md).
 - Undo happens only in the UI's staged answer. The engine only ever sees confirmed answers.
 - Hand size, cards played per turn and turns per era come from scenario data (docs/architecture.md,
   Decision 4), so the engine must not hard-code them. The hand size is 8 for now; plays per turn and turns per
@@ -86,8 +94,7 @@ change it in Notion and promote again.
 
 ## Not decided yet
 
-- The tech race track, and the full list of actions and their costs.
 - How many cards each player plays per turn, and how a turn ends.
 - Scoring's numbers. When regions score and how the game is won are decided in docs/design/map-and-points.md
   (owner, 28 Oct): every region scores at each era's end, and there are no scoring cards. The Escalation track
-  (formerly the tension track) is decided there too, except the parts that wait on scoring's numbers, the map and the tech race.
+  (formerly the tension track) is decided there too, except the parts that wait on scoring's numbers and the map; its tech race links are in docs/design/tech-race.md.

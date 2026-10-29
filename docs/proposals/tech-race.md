@@ -2,6 +2,10 @@ Proposal, not a rule
 
 # The tech race track: options
 
+**Decided 28 Oct (owner, chosen in chat): option T1, reshaped into four named steps each way with rising costs, a
+Contingency draw to succeed and themed powers; the rules are in `docs/design/tech-race.md`.** The text below is the
+original proposal, which recommends nothing.
+
 Sprint backlog X7, owner question 1 in `docs/design/map-and-points.md`: the tech race track's branches, costs,
 what moving up gives, and its links to Escalation and Credibility. This file lays out three options with their
 trade-offs. It decides nothing, and nothing here is a rule until the owner picks an option and it is promoted into

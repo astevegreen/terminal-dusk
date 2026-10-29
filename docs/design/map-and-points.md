@@ -6,7 +6,8 @@ game's own words. The reference game is named by the owner only as the model for
 text are used here. Updated on 22 October 2026 with the owner's answers from the escalation design dialogue: the
 Escalation section, the Intervene action (formerly the coup) and the fourth action. Updated on 28 October 2026
 with the owner's scoring answers (Scoring section, and battlegrounds by era in the Map section), and later that day
-with the six-region map's numbers (Map section's "Map numbers", R24, #458).
+with the six-region map's numbers (Map section's "Map numbers", R24, #458). The tech race, decided the same day,
+has its own file, `docs/design/tech-race.md`; this file points to it.
 
 Not yet built. Numbers marked "open" are for the owner to set.
 
@@ -59,8 +60,7 @@ Decided by the owner on 28 October 2026, in chat, answering the questions of `do
   the middle**, not option A's 2 steps towards LIO.
 - **Taiwan and Crimea at the start** (owner: "LIO 3 / SAE 1"). Taiwan LIO 3, which controls it at stability 3;
   Crimea SAE 1, a foothold without control at stability 2. Every other country starts empty.
-- Open: the balance pass on the stabilities (above), and the tech race tie-break on an even track (Scoring
-  section). Turns, plays per turn and hand size in the scenario are still the first deck's placeholders (era
+- Open: the balance pass on the stabilities (above). Turns, plays per turn and hand size in the scenario are still the first deck's placeholders (era
   lengths).
 
 ## Influence (proposal topic 2, option A)
@@ -105,8 +105,8 @@ What the reference rules mean for this game, as far as they reach:
      declined this way are not spent.
 3. **The fourth action is the tech race** (owner, 22 Oct: "let's go with (a) The track is the fourth action"). It
    takes the place of the reference game's extra track action: a side spends a card's points to move up the tech
-   race track. The track itself (its branches, costs and what moving up gives) is its own topic, not designed yet.
-   Until it is, the menu is place, intervene, realign.
+   race track. The track (one shared marker, its steps, costs and powers) is decided in `docs/design/tech-race.md`
+   (owner, 28 Oct). Until it is built, the menu is place, intervene, realign.
 4. **Rival cards and neutral cards** keep the rules already in `core-loop.md` ("Playing a card"): a rival card
    played for points still runs its event, before or after, at the player's choice; a neutral card played for
    points has no event.
@@ -123,12 +123,13 @@ What the reference rules mean for this game, as far as they reach:
   placing: no intervention and no realignment, whatever the amount (an Ops swing still in force can make it 2).
   With no placement affordable they are lost. An intervention in a battleground raises Escalation however it turns
   out, so this removes a cheap push on the track just before it falls. Spends during the turn are unchanged.
-- Open (tech race topic): whether event points may also be spent on the tech race.
+- Event points may not be spent on the tech race; only a card played for its points can make an attempt (owner,
+  28 Oct: "No, cards only"; `docs/design/tech-race.md`).
 
 ## Escalation (proposal topic 4, option B)
 
 Called "tension" until the owner's 22 October dialogue, which settled everything below except the parts that wait
-on scoring's numbers, the map and the tech race.
+on scoring's numbers and the map; its tech race links are below.
 
 - **Name.** The track is called **Escalation** on screen (owner, 22 Oct), after Herman Kahn's escalation ladder
   (_On Escalation_, 1965).
@@ -180,8 +181,9 @@ on scoring's numbers, the map and the tech race.
     India-US Nuclear Deal (Era 2).
   - **The arms-control cards** move it as part of their choice, and keep their points: Test Ban Treaty lowers it
     by 1 only if both sides ratify; ABM Treaty Withdrawal raises it by 1 only if LIO leaves the treaty.
-- **Tech race links** (open, tech race topic): whether military-use branches move Escalation, and whether tech
-  race moves count toward Credibility.
+- **Tech race links** (owner, 28 Oct; `docs/design/tech-race.md`): entering the Hypersonics step raises
+  Escalation by 1, and a crisis it causes is the advancing side's. Tech race attempts do not count toward
+  Credibility, and Escalation's thresholds never close the tech race.
 
 ## Scoring (proposal topic 5)
 
@@ -210,16 +212,20 @@ Decided by the owner on 28 October 2026, choosing between the options in `docs/p
   at once; during era scoring this is checked after each region, so the game stops before the next region scores. Otherwise, after the final era scores at the end of 2025, the side the track leans towards wins.
 - **An even track at the end** (owner: "tie-break based on whoever is further ahead on the technology track …
   If that is also a tie, then it's a draw"). The side further ahead on the tech race track wins; if that is
-  also even, the game is a draw.
+  also even, the game is a draw. "Further ahead" means the side the tech race marker favours; with the marker at
+  parity, it is a draw (owner, 28 Oct; `docs/design/tech-race.md`).
+- **The tech race scores too.** At each era's end, after all six regions, the side holding the tech race's
+  Quantum Computing step moves the track 1 its way (`docs/design/tech-race.md`).
 - The six-region map's track (20 steps to each end, starting in the middle) and its amounts per region are in the
-  Map section's "Map numbers" (owner, 28 Oct). Open: how "further ahead" on
-  the tech race is measured (tech race topic); when the 2025-2027 scenario (eras.md) has its final scoring and
-  win check.
+  Map section's "Map numbers" (owner, 28 Oct). Open: when the 2025-2027 scenario (eras.md) has its final scoring
+  and win check.
 
 ## Owner's remaining questions
 
-1. The tech race track: its branches, costs and what moving up gives, and its links to Escalation and
-   Credibility.
+1. Answered 28 Oct: the tech race is option T1 of `docs/proposals/tech-race.md`, one shared marker, reshaped in
+   chat into four named steps each way (Networks and Orbit, AI, Hypersonics, Quantum Computing) with rising costs,
+   a Contingency draw of 4 or more to succeed and themed powers; its links to Escalation and Credibility are
+   above. The rules are in `docs/design/tech-race.md`.
 2. Answered 28 Oct: scoring, as above, and its numbers for the six-region map (Map section's "Map numbers").
 3. Answered 28 Oct: the six-region map's content is option 2 of `docs/proposals/map-content/`, with H1, Crimea
    as its own box, and closing order C1; the order regions score in is S1 (Scoring section). Its numbers too
