@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { legalAnswers } from "./index.ts";
 import type { GameEvent, GameState, Side } from "./index.ts";
-import { applied, orderAnswer, playAnswer, startWith } from "./test/game.ts";
+import { applied, orderAnswer, playAnswer, playAnswers, startWith } from "./test/game.ts";
 import { spend } from "./test/mapGame.ts";
 import { choose, menu, nextDraw, placeAction, raceGame, withRace, raceRules, techRaceAction } from "./test/techRace.ts";
 
@@ -104,6 +104,17 @@ describe("making an attempt", () => {
     const sae = applied(nextDraw(saeAsked, "sae", 1), choose(saeAsked, techRaceAction), raceRules).state;
     expect(race(sae).attempted).toEqual(["lio", "sae"]);
     expect(menu(playForPoints(sae, "lio", "l3"))).not.toContain("techRace");
+  });
+
+  it("is offered again once the next turn opens, with the marker kept where it was", () => {
+    const lio = attempt(raceGame({}, 2, 1), "lio", "l2", 4).state;
+    const sae = attempt(lio, "sae", "s2", 1).state;
+    const turn2 = playAnswers(sae, 2, raceRules);
+    expect(turn2.public.turn).toBe(2);
+    expect(race(turn2)).toMatchObject({ marker: -1, attempted: [] });
+    // LIO's turn-2 hand: AI costs 2, so it plays s9 (SAE's 4-point card) for its points, its event after.
+    const asked = playForPoints(turn2, "lio", "s9");
+    expect(menu(applied(asked, orderAnswer(asked, "lio", "after"), raceRules).state)).toContain("techRace");
   });
 });
 

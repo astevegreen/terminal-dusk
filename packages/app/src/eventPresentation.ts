@@ -89,9 +89,11 @@ export const eventPresentation: EventPresentation = {
   scoreChanged: { log: (event) => `The score track moves from ${scoreText(event.from)} to ${scoreText(event.to)}.` },
   // The minimal line hard rule 9 needs; the tech race's full log and screen are R26.
   techRaceAttempted: {
-    log: (event) =>
-      `${SIDE_NAME[event.side]}'s tech race attempt draws ${event.draw}${event.bonus > 0 ? ` +${event.bonus}` : ""}: ` +
-      (event.to === event.from ? "no move." : `the marker moves from ${event.from} to ${event.to}.`),
+    log: (event) => {
+      const bonus = event.bonus > 0 ? " +" + event.bonus : "";
+      const result = event.to === event.from ? "no move." : `the marker moves from ${event.from} to ${event.to}.`;
+      return `${SIDE_NAME[event.side]}'s tech race attempt draws ${event.draw}${bonus}: ${result}`;
+    },
   },
 };
 
