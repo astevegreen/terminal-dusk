@@ -1,6 +1,7 @@
 // Shared answering for the Playwright smoke tests (not a test file: only *.e2e.ts files are tests). Since L6 (#486)
 // a decision's choices are in two places: the decision's own region (yes/no, actions, countries, Pass) and, for a
 // card decision (play, opening pick, discard), on each card lifted from the hand strip.
+import { expect } from "@playwright/test";
 import type { ElementHandle, Locator, Page } from "@playwright/test";
 
 /** The decision region's own buttons. */
@@ -27,6 +28,17 @@ export async function takenOrRefused(page: Page, tapped: ElementHandle): Promise
   return !(await tapped.evaluate((button) => button.isConnected));
 }
 
+/**
+ * Taps a choice's button and waits until its answer was taken (the decision it answered left the screen) or refused;
+ * true when taken. The tap returns before the redraw, so the screen is read again only after this.
+ */
+export async function tapAnswer(page: Page, choice: Locator): Promise<boolean> {
+  const button = await choice.elementHandle();
+  if (!button) return false;
+  await button.click();
+  return takenOrRefused(page, button);
+}
+
 /** Taps `buttons` in order until one is not refused; true when an answer was taken. */
 async function tapUntilTaken(page: Page, buttons: Locator): Promise<boolean> {
   const count = await buttons.count();
@@ -38,6 +50,27 @@ async function tapUntilTaken(page: Page, buttons: Locator): Promise<boolean> {
     if (await takenOrRefused(page, button)) return true;
   }
   return false;
+}
+
+/**
+ * Answers a card decision (play, opening pick, discard) from the hand strip: lifts each card in turn and taps its
+ * button that plays it for its points, or its first button, until one is taken; then the card has left the hand, so
+ * nothing is lifted.
+ */
+export async function playFromStrip(page: Page): Promise<void> {
+  const chips = stripChips(page);
+  const count = await chips.count();
+  for (let i = 0; i < count; i++) {
+    const chip = chips.nth(i);
+    if ((await chip.getAttribute("aria-expanded")) !== "true") await chip.click();
+    const buttons = liftedCard(page).getByRole("button");
+    const names = await buttons.allTextContents();
+    const pick = names.find((n) => n.endsWith(": points")) ?? names[0];
+    if (pick === undefined || !(await tapAnswer(page, buttons.getByText(pick, { exact: true })))) continue;
+    await expect(liftedCard(page)).toHaveCount(0);
+    return;
+  }
+  throw new Error("no card in the strip offers a choice that is taken");
 }
 
 /**
