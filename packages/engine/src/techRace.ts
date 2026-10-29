@@ -58,6 +58,12 @@ export function extraPlayer(state: GameState): Side | null {
   return SIDES.find((side) => techHolds(pub, side, step) && state.private[side].hand.length > 0) ?? null;
 }
 
+/** The side holding Quantum Computing, the track's last step, or null (docs/design/tech-race.md, "The opening-card power"). */
+export function quantumHolder(pub: PublicState): Side | null {
+  const step = pub.map?.techRace?.steps.length;
+  return step === undefined ? null : (SIDES.find((side) => techHolds(pub, side, step)) ?? null);
+}
+
 /** `list` with `item` added once, in `order`. */
 const added = <T>(list: readonly T[], item: T, order: readonly T[]): T[] =>
   order.filter((x) => x === item || list.includes(x));
