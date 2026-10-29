@@ -63,7 +63,7 @@ export function techValue(pub: PublicState, side: Side, weights: MediumWeights):
   if (race === undefined || steps === undefined) return 0;
   const lean = side === "lio" ? -race.marker : race.marker;
   const holds = (s: Side): number => (race.bonus.includes(s) ? 1 : 0);
-  const end = lean === steps ? 1 : lean === -steps ? -1 : 0;
+  const end = Math.abs(lean) === steps ? Math.sign(lean) : 0;
   return weights.tech * lean + weights.techBonus * (holds(side) - holds(otherSide(side))) + weights.region * end;
 }
 
@@ -89,7 +89,9 @@ export function boardValue(pub: PublicState, side: Side, weights: MediumWeights)
     value += weights.region * (factors.get(amounts.region) ?? 1) * (pts[side] - pts[rival]);
   }
   for (const country of map.countries) {
-    const bg = now.has(country.id) ? 1 : later.has(country.id) ? weights.later : 0;
+    let bg = 0;
+    if (now.has(country.id)) bg = 1;
+    else if (later.has(country.id)) bg = weights.later;
     const lead = controlProgress(pub, country, side) - controlProgress(pub, country, rival);
     value += weights.progress * (1 + weights.battleground * bg) * (factors.get(country.region) ?? 1) * lead;
   }
