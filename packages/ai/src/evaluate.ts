@@ -52,8 +52,25 @@ export function regionFactor(pub: PublicState, region: RegionId, weights: Medium
 }
 
 /**
+ * How good the tech race is for `side` (docs/design/tech-race.md): `tech` per step the marker leans its way (a rival
+ * lead counts against it), `techBonus` for holding a first-there +1 (the rival's against it), and one era-end region
+ * point for holding the track's end, Quantum Computing, which moves the score track 1 at each era's end. 0 with no
+ * tech race.
+ */
+export function techValue(pub: PublicState, side: Side, weights: MediumWeights): number {
+  const race = pub.techRace;
+  const steps = pub.map?.techRace?.steps.length;
+  if (race === undefined || steps === undefined) return 0;
+  const lean = side === "lio" ? -race.marker : race.marker;
+  const holds = (s: Side): number => (race.bonus.includes(s) ? 1 : 0);
+  const end = lean === steps ? 1 : lean === -steps ? -1 : 0;
+  return weights.tech * lean + weights.techBonus * (holds(side) - holds(otherSide(side))) + weights.region * end;
+}
+
+/**
  * How good the board is for `side`: its lead over the rival in region scoring points as the map stands now, plus
- * its lead in the progress towards controlling countries, a battleground counting more. 0 on a map with no scoring.
+ * its lead in the progress towards controlling countries, a battleground counting more, plus the tech race
+ * (techValue). 0 on a map with no scoring.
  */
 export function boardValue(pub: PublicState, side: Side, weights: MediumWeights): number {
   const map = pub.map;
@@ -76,5 +93,5 @@ export function boardValue(pub: PublicState, side: Side, weights: MediumWeights)
     const lead = controlProgress(pub, country, side) - controlProgress(pub, country, rival);
     value += weights.progress * (1 + weights.battleground * bg) * (factors.get(country.region) ?? 1) * lead;
   }
-  return value;
+  return value + techValue(pub, side, weights);
 }
