@@ -47,20 +47,38 @@ const longestLineFits = (page: Page): Promise<boolean> =>
     });
 
 /**
- * How far a chip reaches past the part of the map on screen (the map's view, which clips the zoomed map, inside the
- * window), in px on its worst side: 0 or less when all of it shows. Worked out from the boxes: Playwright's
- * toBeInViewport({ ratio: 1 }) reads a wholly shown chip as 0.99999994 at some zooms, a rounding in the browser.
+ * How far a chip reaches past what the screen shows of it, in px on its worst side: 0 or less when all of it shows.
+ * What shows is the window, cut down by every box around the chip that hides what overflows it (the map's view,
+ * which clips the zoomed map, the map's section, which scrolls, and any other), each inside its borders and
+ * scrollbars, as Playwright's toBeInViewport cuts it. Worked out from the boxes because toBeInViewport({ ratio: 1 })
+ * reads a wholly shown chip as 0.99999994 at some zooms, a rounding in the browser.
  */
 const pastScreen = (chip: Locator): Promise<number> =>
   chip.evaluate((el) => {
+    const shown = { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight };
+    // The page's own boxes hand their overflow to the window, which is already the starting clip.
+    for (let box = el.parentElement; box && box !== document.body; box = box.parentElement) {
+      const style = getComputedStyle(box);
+      const r = box.getBoundingClientRect();
+      const border = {
+        left: parseFloat(style.borderLeftWidth),
+        right: parseFloat(style.borderRightWidth),
+        top: parseFloat(style.borderTopWidth),
+        bottom: parseFloat(style.borderBottomWidth),
+      };
+      if (style.overflowX !== "visible") {
+        const scrollbar = Math.max(0, box.offsetWidth - box.clientWidth - border.left - border.right);
+        shown.left = Math.max(shown.left, r.left + border.left);
+        shown.right = Math.min(shown.right, r.right - border.right - scrollbar);
+      }
+      if (style.overflowY !== "visible") {
+        const scrollbar = Math.max(0, box.offsetHeight - box.clientHeight - border.top - border.bottom);
+        shown.top = Math.max(shown.top, r.top + border.top);
+        shown.bottom = Math.min(shown.bottom, r.bottom - border.bottom - scrollbar);
+      }
+    }
     const c = el.getBoundingClientRect();
-    const v = el.closest(".dm-view")!.getBoundingClientRect();
-    return Math.max(
-      Math.max(v.left, 0) - c.left,
-      Math.max(v.top, 0) - c.top,
-      c.right - Math.min(v.right, window.innerWidth),
-      c.bottom - Math.min(v.bottom, window.innerHeight),
-    );
+    return Math.max(shown.left - c.left, shown.top - c.top, c.right - shown.right, c.bottom - shown.bottom);
   });
 
 /** Each chip's two lines as shown, by region. */
