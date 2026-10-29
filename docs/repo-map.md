@@ -117,8 +117,6 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/gameBars.css`
 - `packages/app/src/game/gameScreen.css`
 - `packages/app/src/game/logDrawer.css`
-- `packages/app/src/game/logDrawer.test.tsx` - The ticker and the log drawer (L9, #489): the ticker shows the newest log line exactly as the log has it, and opens the full log, newest first, in a drawer tha…
-- `packages/app/src/game/logDrawer.tsx` - The ticker and the log drawer (L9, #489; docs/design/screen-layout.md). Exports: LogDrawer.
 - `packages/app/src/game/map/DrawnMap.test.tsx` - The drawn map (L2, #465): a shaded area per region, a marker per country with its name, both sides' influence, its controller's colour, stability and a battleg…
 - `packages/app/src/game/map/DrawnMap.tsx` - The drawn map (L2, #465): one wrapper the size of the layout, which mapControl.ts moves by a CSS transform. Exports: DrawnMapProps, DrawnMap.
 - `packages/app/src/game/map/MapPanel.test.tsx` - The Map area's two views (L2, #465): the drawn map, with "Whole map", or the List, which is the map as it was drawn before (MapView, unchanged), with a Map/Lis…
@@ -156,6 +154,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/sideTabs.tsx` - The sheet's two tabs (L1, issue #464; L5, #485; docs/architecture.md, Decision 6): Play (the decision and the hand) and Details (the opponent, the table and th… Exports: TabId, SheetPick, TABS, shownTab, SideTabs.
 - `packages/app/src/game/sixRegionMapView.test.tsx` - The real six-region map on screen (A14, issue #439): 6 region buttons and 42 badges zoomed out, each region's boxes zoomed in, Crimea's own box, and both home…
 - `packages/app/src/game/test/mapFixture.ts` - Test helper: a hand-written two-region map, its influence, and test-mode frames with and without it. Exports: map, influence, baseFrame, withMap, withoutMap.
+- `packages/app/src/game/topBar.test.tsx` - The top bar's ticker and the log drawer (L9, #489): the ticker, the top bar's last item, shows the newest log line exactly as the log has it, and opens the ful…
+- `packages/app/src/game/topBar.tsx` - The top bar, with the ticker at its right end, and the log drawer the ticker opens (L5, #485; L9, #489; docs/design/screen-layout.md). Exports: TopBar.
 - `packages/app/src/game/tracks.test.tsx` - The score track and Escalation on screen (A15, issue #448): drawn from the frame's public state, and only on a map that has scoring.
 - `packages/app/src/game/tracks.tsx` - The score track and the Escalation track, drawn from the frame's public state alone (docs/architecture.md, Decision 6; A15, issue #448). Exports: Tracks.
 - `packages/app/src/main.tsx` - Browser entry point: mounts the app into the #root element of index.html.

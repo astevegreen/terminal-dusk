@@ -52,25 +52,24 @@ body:has(.game-page) {
      two of them wide and two tall beside it. */
   --game-tools-row: 52px;
   --game-tools-block: 100px;
-  /* The ticker under the top bar and the log drawer it opens (L9, #489; logDrawer.css). The ticker is one line of
-     text in a see-through strip a tap target tall. */
-  --game-ticker-h: 44px;
-  --game-ticker-bg: rgb(255 255 255 / 0.62);
+  /* The ticker at the top bar's right end, one line a tap target tall, and the log drawer it opens (L9, #489;
+     gameBars.css, logDrawer.css). The ticker never gets narrower than its least width; it takes what is left. */
+  --game-ticker-min: 160px;
+  --game-ticker-bg: rgb(0 0 0 / 0.06);
   --game-ticker-fg: var(--game-fg);
   --game-drawer-w: max(50%, min(100%, 300px));
-  /* The open sheet's panel: at most 46% of the game, and never over the top bar (46px), the ticker, the tools'
-     block or the tab row (48px), so the map tools can always be reached (gameBars.css). */
-  --game-sheet-reserve: calc(46px + var(--game-ticker-h) + var(--game-tools-block) + 48px);
+  /* The open sheet's panel: at most 46% of the game, and never over the top bar (46px), the tools' block or the tab
+     row (48px), so the map tools can always be reached (gameBars.css). */
+  --game-sheet-reserve: calc(46px + var(--game-tools-block) + 48px);
   --game-panel-max: min(46cqh, 100cqh - var(--game-sheet-reserve));
   box-sizing: border-box;
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   grid-template-areas:
     "hint"
     "top"
-    "ticker"
     "map"
     "sheet";
   width: 100%;
@@ -103,10 +102,9 @@ body:has(.game-page) {
     display: block;
   }
 }
-/* The map, from the top bar to the sheet: its rows follow the game's (top bar, ticker, map, sheet), so the drawing
-   takes the clear row between the ticker and the sheet and "Whole map" fits the world there, while the picture runs
-   on under the see-through bars. The side colours (--map-lio, --map-sae, --map-none) and the sea are in
-   map/mapTheme.css. */
+/* The map, from the top bar to the sheet: its rows follow the game's, so the drawing takes the clear row between the
+   bars and "Whole map" fits the world there, while the picture runs on under both see-through bars. The side
+   colours (--map-lio, --map-sae, --map-none) and the sea are in map/mapTheme.css. */
 .game > .game-map {
   grid-row: top-start / sheet-end;
   grid-column: 1;
@@ -124,7 +122,7 @@ body:has(.game-page) {
   background: var(--map-sea);
 }
 .game > .game-map > .dm {
-  grid-row: 3;
+  grid-row: 2;
 }
 /* The drawing fills its row; the map tools float over its top-left corner and the credit sits at the bottom right.
    The drawing's own box leaves room for the tools, so "Whole map" fits the world clear of them: a row above it, or
@@ -190,7 +188,7 @@ body:has(.game-page) {
 }
 /* No map: the map box shrinks to its "No map in this game" line under the top bar, and the sheet takes the rest. */
 .game.game-no-map {
-  grid-template-rows: auto auto auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto minmax(0, 1fr);
 }
 .game.game-no-map > .game-map {
   grid-row: map;

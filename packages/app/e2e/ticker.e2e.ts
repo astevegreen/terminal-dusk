@@ -1,5 +1,6 @@
 // The ticker, the log drawer and the pulse (L9, #489), run at both configured sizes (844x390 and 1280x800) in the
-// six-region game against the AI. After the AI moves, the ticker under the top bar shows its newest log line and the
+// six-region game against the AI. After the AI moves, the ticker, at the top bar's right end (Decision (architect)
+// on #489: no row of its own, so the map keeps every pixel), shows its newest log line and the
 // countries its move touched pulse, or, with reduced motion, keep a steady outline. The ticker opens the full log
 // in a drawer on the right, which closes on a tap outside, on Close and on Escape, by touch and by keyboard.
 // Screenshots of the ticker with a pulse and of the open drawer are saved in the test's output folder and attached.
@@ -131,7 +132,7 @@ test.describe("with reduced motion", () => {
   });
 });
 
-test("the ticker sits just under the top bar, see-through and a tap target tall, and opens the drawer on the right", async ({
+test("the ticker sits at the top bar's right end, see-through and a tap target tall, and opens the drawer on the right", async ({
   page,
 }, testInfo) => {
   await startSixRegionGame(page);
@@ -139,9 +140,25 @@ test("the ticker sits just under the top bar, see-through and a tap target tall,
   const ticker = tickerOf(page);
   const top = await box(page.locator(".game-top"));
   const tickerBox = await box(ticker);
-  expect(tickerBox.top).toBeCloseTo(top.bottom, 0);
+  // Inside the top bar, which stays slim (at most 12% of the height), so the map loses nothing to it.
+  await expect(page.locator(".game-top").getByTestId("ticker")).toBeVisible();
+  expect(top.height).toBeLessThanOrEqual(viewport.height * 0.12);
+  expect(tickerBox.top).toBeGreaterThanOrEqual(top.top);
+  expect(tickerBox.bottom).toBeLessThanOrEqual(top.bottom);
+  expect(tickerBox.right).toBeGreaterThanOrEqual(viewport.width - 8);
   expect(tickerBox.height).toBeGreaterThanOrEqual(44);
-  expect(tickerBox.width).toBeCloseTo(viewport.width, 0);
+  expect(tickerBox.width).toBeGreaterThanOrEqual(160);
+  // The status line's own state text stays in full beside it.
+  await expect(page.getByTestId("status-bar").getByRole("status")).toBeInViewport({ ratio: 1 });
+  const statusShown = await page
+    .getByTestId("status-bar")
+    .getByRole("status")
+    .evaluate((el) => {
+      const s = el.getBoundingClientRect();
+      const bar = el.closest(".game-top-main")!.getBoundingClientRect();
+      return s.right <= bar.right + 0.5 && el.scrollWidth <= el.clientWidth;
+    });
+  expect(statusShown).toBe(true);
   const alpha = await ticker.evaluate((el) => {
     const parts = /rgba?\(([^)]+)\)/.exec(getComputedStyle(el).backgroundColor)?.[1]?.split(/[\s,/]+/) ?? [];
     return parts.length === 4 ? Number(parts[3]) : 1;
@@ -155,9 +172,12 @@ test("the ticker sits just under the top bar, see-through and a tap target tall,
   await expect(drawer).toBeVisible();
   await expect(ticker).toHaveAttribute("aria-expanded", "true");
   await expect(drawer.getByRole("log", { name: "Log" })).toBeVisible();
-  // About half the width, on the right, under the ticker: the left half of the map stays in sight.
+  // About half the width, on the right, under the ticker: the left half of the map stays in sight. It slides in,
+  // so it is measured once it has arrived, and the game has not moved sideways to show it.
+  await expect.poll(async () => Math.round((await box(drawer)).right)).toBe(viewport.width);
   const drawerBox = await box(drawer);
-  expect(drawerBox.right).toBeCloseTo(viewport.width, 0);
+  expect((await box(page.locator(".game"))).left).toBe(0);
+  expect(await page.locator(".game").evaluate((el) => el.scrollLeft)).toBe(0);
   expect(drawerBox.left).toBeGreaterThanOrEqual(viewport.width * 0.4);
   expect(drawerBox.top).toBeGreaterThanOrEqual(tickerBox.bottom - 1);
   const heights = await page

@@ -47,6 +47,38 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* The ticker (L9, #489): the top bar's last item, at its right end, a tap target tall, with the newest log line cut
+   short with "…". It takes the width the status and the tracks leave, and never less than --game-ticker-min, so on
+   a narrow bar the status line's plays and era give way first. Its look is the --game-ticker-* settings
+   (gameScreen.css), so an era's theme (#481) can dress it as a news ticker. */
+.game .game-top > .game-ticker {
+  box-sizing: border-box;
+  display: flex;
+  flex: 3 1 0;
+  align-items: center;
+  gap: 6px;
+  min-width: var(--game-ticker-min);
+  min-height: 44px;
+  margin: 0;
+  padding: 0 8px;
+  border: 0;
+  border-left: 1px solid var(--game-edge);
+  border-radius: 0;
+  background: var(--game-ticker-bg);
+  color: var(--game-ticker-fg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.game .game-ticker-mark {
+  flex: none;
+  font-weight: bold;
+}
+.game .game-ticker-line {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 /* The score track and Escalation (A15), on the line under the status. */
 .game .game-tracks {
   display: flex;
@@ -83,8 +115,10 @@
 .game .track-value {
   font-weight: bold;
 }
+/* On a narrow line (beside the ticker, L9) Escalation gives way first, cut with "…", so the score is never squeezed
+   under it. */
 .game .track-escalation {
-  flex: 0 1 auto;
+  flex: 0 100 auto;
   min-width: 0;
   margin: 0;
   overflow: hidden;

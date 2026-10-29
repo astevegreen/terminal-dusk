@@ -59,7 +59,7 @@ And:
 | --------------- | ------------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------- |
 | Map             | the whole screen, behind everything   | 844x390               | the Blue Marble picture, borders, region names, country markers                                 |
 | Top bar         | top edge, see-through                 | about 40 px tall      | menu, your side, turn, era, score track, Escalation, the status line ("Your move: play a card") |
-| Ticker          | just under the top bar                | about 20 px tall      | the newest log line; tap to open the log drawer                                                 |
+| Ticker          | right end of the top bar              | 44 px, in the top bar | the newest log line; tap to open the log drawer. No row of its own: the map keeps every pixel   |
 | Standings chips | on the map, under each region's name  | small                 | each side's level in that region (present, ahead, holds every battleground) and its points now  |
 | Map tools       | floating, top-left corner of the map  | 44 px buttons         | Map/List, Whole map                                                                             |
 | Decision banner | just above the hand strip             | one line, about 44 px | the question and any buttons that are not countries or cards                                    |

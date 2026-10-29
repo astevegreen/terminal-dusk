@@ -123,11 +123,11 @@ describe("the top bar (L5, #485)", () => {
 
 describe("the ticker and the log drawer (L9, #489)", () => {
   const out = html(frameFor("lio"), { log: ["first", "second"] });
-  it("puts the ticker just under the top bar, before the map, showing the newest log line", () => {
-    const ticker = out.indexOf('data-testid="ticker"');
-    expect(ticker).toBeGreaterThan(out.indexOf('data-testid="tracks"'));
-    expect(ticker).toBeLessThan(out.indexOf('data-testid="map-area"'));
-    expect(out).toContain('<span class="game-ticker-line">second</span>');
+  it("puts the ticker at the top bar's right end, after the tracks, showing the newest log line", () => {
+    const top = /<div class="game-top">[^]*?<\/button><\/div>/.exec(out)?.[0] ?? "";
+    expect(top).toMatch(/data-testid="tracks"[^]*data-testid="ticker"[^]*<\/button><\/div>$/);
+    expect(top).toContain('<span class="game-ticker-line">second</span>');
+    expect(out.indexOf('data-testid="ticker"')).toBeLessThan(out.indexOf('data-testid="map-area"'));
   });
   it("keeps the log in the drawer the ticker opens, not in the sheet, whose tabs are Play and Details", () => {
     const drawer = out.indexOf('class="game-drawer"');

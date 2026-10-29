@@ -1,40 +1,8 @@
-/* The ticker and the log drawer (L9, #489; docs/design/screen-layout.md). Their colours and sizes are the
-   --game-ticker-* and --game-drawer-w settings on .game (gameScreen.css), so an era's theme (#481) can dress the
-   ticker as a news ticker without moving it. */
-/* The ticker: its own row just under the top bar, see-through, one line cut short with "…", a tap target tall. */
-.game .game-ticker {
-  grid-area: ticker;
-  z-index: 3;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  height: var(--game-ticker-h);
-  min-height: 44px;
-  margin: 0;
-  padding: 0 8px;
-  border: 0;
-  border-radius: 0;
-  background: var(--game-ticker-bg);
-  color: var(--game-ticker-fg);
-  font: inherit;
-  text-align: left;
-  white-space: nowrap;
-  cursor: pointer;
-}
-.game .game-ticker-mark {
-  flex: none;
-  font-weight: bold;
-}
-.game .game-ticker-line {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-/* The drawer: from under the ticker to the sheet's tab row, on the right, about half the width, over the map and the
-   sheet's open panel. (The top bar's Menu cannot be open with it: the tap that opens the Menu closes the drawer.)
-   Its log scrolls. It slides in where the browser can. */
+/* The log drawer the ticker opens (L9, #489; docs/design/screen-layout.md; the ticker itself is in gameBars.css).
+   Its width and colours are settings on .game (gameScreen.css), so an era's theme (#481) can restyle it. It runs
+   from under the top bar to the sheet's tab row, on the right, about half the width, over the map and the sheet's
+   open panel. (The top bar's Menu is not open with it: the tap that opens the Menu closes the drawer.) Its log
+   scrolls. It slides in where the browser can. */
 .game .game-drawer {
   grid-column: 1;
   grid-row: map-start / map-end;
