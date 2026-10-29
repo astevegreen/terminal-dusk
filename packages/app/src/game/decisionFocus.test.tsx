@@ -111,22 +111,24 @@ describe("tab order", () => {
     const status = /data-testid="status-bar"[^>]*>(.*?)<\/section>/.exec(out)?.[1] ?? "";
     expect(status).not.toMatch(/<button|<a |<input|tabindex/);
   });
-  it("follows reading order: the ticker and its log, the map, the decision banner, the hand strip's chips, the sheet's tab", () => {
+  it("follows reading order: Details and the ticker, their panels, the map, the decision banner, the hand strip's chips", () => {
     const at = (text: string): number => out.indexOf(text);
-    // Since L9 (#489) the log is in the drawer the ticker opens, right after the ticker at the top bar's end, so the
-    // keyboard reaches it next once it is open. Since L6 (#486) the hand is a strip at the left of the bottom edge,
-    // with the sheet's tab row to its right. The map's region buttons (issue #366) come before both, as the map does
-    // on screen, and since L7 (#487) the decision banner sits between the map and the strip. The opening pick's
-    // choices are on the lifted cards, so the decision's region has the question only.
+    // Since L10 (#490) the Details button and the ticker end the top bar, and the two panels they open come right
+    // after it, so the keyboard reaches an open panel next (opening one also moves the keyboard into it). Since L9
+    // (#489) the log is in the drawer the ticker opens. The map's region buttons (issue #366) come next, as the map
+    // does on screen; since L7 (#487) the decision banner sits between the map and the strip; since L6 (#486) the
+    // hand is a strip along the bottom edge, its whole width since L10. The opening pick's choices are on the lifted
+    // cards, so the decision's region has the question only.
     const marks = [
+      at('class="game-details-button"'),
       at('data-testid="ticker"'),
       at('<ol aria-label="Log entries" tabindex="0">'),
+      at('aria-label="Game details"'),
+      at('<div class="game-details-body" role="group" aria-label="Details" tabindex="0">'),
       at('data-testid="map-area"'),
       at('data-testid="decision"'),
       at('data-testid="hand"'),
       at('class="strip-chip"'),
-      at('aria-label="Game details" tabindex="0"'),
-      at('role="tablist"'),
     ];
     for (const mark of marks) expect(mark).toBeGreaterThan(-1);
     expect([...marks].sort((a, b) => a - b)).toEqual(marks);

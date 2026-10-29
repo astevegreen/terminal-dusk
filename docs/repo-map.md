@@ -68,21 +68,29 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e-stack/phase4.e2e.ts` - The phase 4 gate in a real browser (A10; docs/architecture.md, "Revised build order", phase 4).
 - `packages/app/e2e-stack/runUsers.ts` - The run's two players, found and removed by email with the service role (A10). Exports: userIdByEmail, grantWebByEmail, removeRun.
 - `packages/app/e2e/answer.ts` - Shared answering for the Playwright smoke tests (not a test file: only *.e2e.ts files are tests). Exports: decisionButtons, countryButtons, stripChips, liftedCard, yourDecision, takenOrRefused, tapAnswer, questionIdOf, answeredOrRefused, tapCountry, playFromStrip, answerOnce.
+- `packages/app/e2e/bars/bars.tsx` - The test page behind onlineBars.e2e.ts (L10, #490): the real Online and Watch game views (OnlineGameView, WatchView), drawn from a real frame of the six-region…
+- `packages/app/e2e/bars/index.html`
+- `packages/app/e2e/details.e2e.ts` - The Details panel (L10, #490; docs/design/screen-layout.md), at 844x390, 1280x800 and 1920x1080 (sizes.ts).
 - `packages/app/e2e/drawnMap.e2e.ts` - The drawn map (L2, #465) in the six-region game against the AI, at the phone and desktop sizes: 42 markers and the two home boxes, all inside the map area with…
+- `packages/app/e2e/furnitureTheme.test.ts` - Guards the furniture's stylesheets (L10, #490): the top bar with its score track, the log drawer and the Details panel.
 - `packages/app/e2e/game.e2e.ts`
 - `packages/app/e2e/handStrip.e2e.ts` - The hand strip (L6, #486), run at both configured sizes (844x390 and 1280x800): the hand is a slim strip along the bottom edge, each card a chip at least 44 px…
 - `packages/app/e2e/keyboard.e2e.ts`
 - `packages/app/e2e/landscape.e2e.ts` - The map-first game screen (L5, #485), run at both configured sizes (844x390 and 1280x800): the map fills the whole game screen and everything else floats over…
+- `packages/app/e2e/largeScreen.e2e.ts` - Large screens (L10, #490; docs/design/screen-layout.md): 1200 px wide and up get the same layout with more room.
 - `packages/app/e2e/map.e2e.ts`
 - `packages/app/e2e/mapPicking.e2e.ts` - Choosing countries by tapping them on the map (L7, #487), in the six-region game against the AI at both configured sizes (844x390 and 1280x800): a placing, a r…
 - `packages/app/e2e/mapTheme.test.ts` - Guards src/game/map/mapTheme.css, drawnMap.css, regionChips.css and gameScreen.css.
+- `packages/app/e2e/measure.ts` - Shared measurements for the Playwright smoke tests of the map-first screen (not a test file: only *.e2e.ts files are tests). Exports: box, expectNoPageScroll, backgroundAlpha, coveredOnMap, expectTapTargets, shoot.
 - `packages/app/e2e/narrow.e2e.ts` - The game screen on a phone held upright (375x667), found in the phase 3 gate playtest of 28 Oct: a game with no map kept a full-size empty map box (#412).
 - `packages/app/e2e/online.e2e.ts`
+- `packages/app/e2e/onlineBars.e2e.ts` - The Online and Watch screens' top bars (L10, #490), measured without the online stack on a test page (bars/) that draws the real OnlineGameView and WatchView f…
 - `packages/app/e2e/regionChips.e2e.ts` - Region standings chips on the map (L8, #488), in the six-region game against the AI at both configured sizes (844x390 and 1280x800): six chips, one under each…
 - `packages/app/e2e/replay.e2e.ts`
 - `packages/app/e2e/server.test.ts` - The Playwright run's own port (server.ts): a free one, kept for the run's workers, never a server already running.
 - `packages/app/e2e/server.ts` - Where the Playwright smoke tests serve the app (playwright.config.ts). Exports: e2ePort, e2eServer.
 - `packages/app/e2e/sixRegionMap.e2e.ts` - The six-region map against the AI (A14, #439): 6 regions and 42 boxes, Crimea in its own box, and the two home boxes, readable and tappable on a phone held upr…
+- `packages/app/e2e/sizes.ts` - The screen sizes the L10 (#490) tests check (not a test file: only *.e2e.ts files are tests). Exports: Size, LARGE_MONITOR, sizesFor, isLarge.
 - `packages/app/e2e/start.ts` - Shared starts for the Playwright smoke tests (not a test file: only *.e2e.ts files are tests). Exports: startSixRegionGame, pageSize.
 - `packages/app/e2e/testMode.e2e.ts`
 - `packages/app/e2e/ticker.e2e.ts` - The ticker, the log drawer and the pulse (L9, #489), run at both configured sizes (844x390 and 1280x800) in the six-region game against the AI.
@@ -120,14 +128,16 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/decisionBanner.test.tsx` - The decision banner and the glowing countries on the game screen (L7, #487): the question in a banner just above the hand strip, with the choices that are not…
 - `packages/app/src/game/decisionFocus.test.tsx`
 - `packages/app/src/game/decisionFocus.tsx` - Keyboard play: when a new decision waits for the player, focus moves to its first choice button. Exports: shouldFocusDecision, FocusRoot, FIRST_CHOICE, MAP_CHOICE, STRIP_CHIP, applyDecisionFocus, FocusingGameScreen.
-- `packages/app/src/game/drawerControl.test.ts` - The log drawer's rules (L9, #489), without a browser: when it shows, and how it closes.
-- `packages/app/src/game/drawerControl.ts` - The log drawer's rules (L9, #489; docs/design/screen-layout.md), kept apart from React so they are tested without a browser: when the drawer shows, and how it… Exports: Opened, drawerShown, DrawerPart, DrawerParts, dismissDrawer.
+- `packages/app/src/game/drawerControl.test.ts` - The rules of the top bar's two panels (L9, #489; L10, #490), without a browser: which one shows, when the log is pinned, and how an open one closes.
+- `packages/app/src/game/drawerControl.ts` - The rules of the two panels the top bar opens (L9, #489; L10, #490; docs/design/screen-layout.md), kept apart from React so they are tested without a browser:… Exports: PanelId, Opened, shownPanel, logShown, dismissable, PanelPart, PanelParts, dismissPanel.
 - `packages/app/src/game/gameBars.css`
 - `packages/app/src/game/gameScreen.css`
 - `packages/app/src/game/handCards.tsx` - What the hand strip shows (L6, #486; docs/design/screen-layout.md), drawn from the frame and display data only: each card in the hand as a small chip (its poin… Exports: StripChip, chipsOf, chipName, ChipFace, LiftedCard, StripCounts.
 - `packages/app/src/game/handStrip.css`
 - `packages/app/src/game/handStrip.test.tsx` - The hand strip (L6, #486): each card a chip with its points, name and side; a lifted card with its full text and the waiting decision's choices for it; the riv…
 - `packages/app/src/game/handStrip.tsx` - The hand strip along the bottom edge (L6, #486; docs/design/screen-layout.md; Decision 6's bottom sheet in its folded form). Exports: stripMove, liftedIn, HandStrip.
+- `packages/app/src/game/largeScreen.test.ts` - The large-screen check (L10, #490): 1200 px wide and up, asked of a stand-in window, as drawerControl.test.ts uses a stand-in document.
+- `packages/app/src/game/largeScreen.ts` - Whether the screen is large: 1200 px wide and up (L10, #490; docs/design/screen-layout.md). Exports: LARGE_SCREEN, matchesLarge, watchLarge, useLargeScreen.
 - `packages/app/src/game/logDrawer.css`
 - `packages/app/src/game/map/DrawnMap.test.tsx` - The drawn map (L2, #465): a shaded area per region, a marker per country with its name, both sides' influence, its controller's colour, stability and a battleg…
 - `packages/app/src/game/map/DrawnMap.tsx` - The drawn map (L2, #465): one wrapper the size of the layout, which mapControl.ts moves by a CSS transform. Exports: DrawnMapProps, DrawnMap.
@@ -169,12 +179,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/map/world/worldArt.test.ts` - The real-geography map's artwork (L3, #479), as `pnpm map:build` made it: every country of the six-region game has a shape, and the shape is around the country…
 - `packages/app/src/game/map/world/worldArt.ts` - The real-geography map's artwork (L3, #479), made by `pnpm map:build` from the sources in SOURCES.md: the Blue Marble picture, and each game country's shape an… Exports: WORLD_ART.
 - `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, HandCard, Opponent, Table, Contingency, Log.
-- `packages/app/src/game/sideTabs.test.tsx` - The sheet's tab (L1, issue #464): which one shows, and how it draws.
-- `packages/app/src/game/sideTabs.tsx` - The sheet's tab (L1, issue #464; L5, #485; docs/architecture.md, Decision 6): Details (the opponent, the table and the Contingency decks), with Hide beside it,… Exports: TabId, SheetPick, TABS, shownTab, SideTabs.
 - `packages/app/src/game/sixRegionMapView.test.tsx` - The real six-region map on screen (A14, issue #439): 6 region buttons and 42 badges zoomed out, each region's boxes zoomed in, Crimea's own box, and both home…
 - `packages/app/src/game/test/mapFixture.ts` - Test helper: a hand-written two-region map, its influence, and test-mode frames with and without it. Exports: map, influence, baseFrame, withMap, withoutMap.
 - `packages/app/src/game/topBar.test.tsx` - The top bar's ticker and the log drawer (L9, #489): the ticker, the top bar's last item, shows the newest log line exactly as the log has it, and opens the ful…
-- `packages/app/src/game/topBar.tsx` - The top bar, with the ticker at its right end, and the log drawer the ticker opens (L5, #485; L9, #489; docs/design/screen-layout.md). Exports: TopBar.
+- `packages/app/src/game/topBar.tsx` - The top bar, with the Details button and the ticker at its right end, and the two panels they open (L5, #485; L9, #489; L10, #490; docs/design/screen-layout.md… Exports: TopBar.
 - `packages/app/src/game/tracks.test.tsx` - The score track and Escalation on screen (A15, issue #448): drawn from the frame's public state, and only on a map that has scoring.
 - `packages/app/src/game/tracks.tsx` - The score track and the Escalation track, drawn from the frame's public state alone (docs/architecture.md, Decision 6; A15, issue #448). Exports: Tracks.
 - `packages/app/src/main.tsx` - Browser entry point: mounts the app into the #root element of index.html.

@@ -33,9 +33,8 @@ const props = (frame: Frame, extra: Partial<GameScreenProps> = {}): GameScreenPr
 });
 const html = (frame: Frame, extra: Partial<GameScreenProps> = {}): string =>
   renderToString(<GameScreen {...props(frame, extra)} />);
-/** The strip's html: from the hand region to the sheet after it. */
-const stripOf = (out: string): string =>
-  out.slice(out.indexOf('data-testid="hand"'), out.indexOf('class="game-sheet"'));
+/** The strip's html: from the hand region to the end of the screen (since L10, #490, nothing follows the strip). */
+const stripOf = (out: string): string => out.slice(out.indexOf('data-testid="hand"'));
 
 describe("the chips", () => {
   const lio = frameFor("lio");

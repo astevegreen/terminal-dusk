@@ -118,7 +118,10 @@ picture runs on under the see-through bars to the screen's edges.
 ### A large screen (1200 px wide and up; drawn here at 1280x800)
 
 The same pieces with more room: the hand strip shows bigger cards with their names in full, text is larger, and the
-log drawer can be pinned open on the right without covering the middle of the map.
+log drawer can be pinned open on the right without covering the middle of the map. (As built in L10: Pin is a button
+in the log drawer, shown only on a large screen; pinned, the log takes about a quarter of the width and the map fits
+itself beside it. The ticker stays at the right end of the top bar, as on a phone; the sketch below still draws it
+under the bar.)
 
 ```
 +--------------------------------------------------------------------------------------------+

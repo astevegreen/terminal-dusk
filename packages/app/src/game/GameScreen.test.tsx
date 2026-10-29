@@ -132,12 +132,40 @@ describe("the ticker and the log drawer (L9, #489)", () => {
     expect(top).toContain('<span class="game-ticker-line">second</span>');
     expect(out.indexOf('data-testid="ticker"')).toBeLessThan(out.indexOf('data-testid="map-area"'));
   });
-  it("keeps the log in the drawer the ticker opens, not in the sheet, whose one tab is Details (L7, #487)", () => {
+  it("keeps the log in the drawer the ticker opens, and the sheet and its tabs are gone (L10, #490)", () => {
     const drawer = out.indexOf('class="game-drawer"');
     expect(out.indexOf('data-testid="log"')).toBeGreaterThan(drawer);
     expect(out.indexOf('data-testid="log"')).toBeLessThan(out.indexOf('data-testid="map-area"'));
-    const tabs = [...out.matchAll(/role="tab"[^>]*>([^<]+)<\/button>/g)].map((m) => m[1]);
-    expect(tabs).toEqual(["Details"]);
+    expect(out).not.toContain('role="tab"');
+    expect(out).not.toContain("game-sheet");
+  });
+});
+
+describe("the Details panel (L10, #490)", () => {
+  const out = html(frameFor("lio"), { log: ["first"] });
+  const panel = /<div[^>]*class="game-drawer game-details"[^]*?(?=<section aria-label="Map")/.exec(out)?.[0] ?? "";
+  it("is opened from a Details button in the top bar, before the ticker", () => {
+    const top = /<div class="game-top">[^]*?<\/button><\/div>/.exec(out)?.[0] ?? "";
+    expect(top).toMatch(
+      /data-testid="tracks"[^]*class="game-details-button"[^>]*>Details<\/button><button[^>]*data-testid="ticker"/,
+    );
+  });
+  it("holds what the sheet's Details tab held: the rival's hand size, the table and the Contingency decks", () => {
+    expect(panel).toContain('aria-label="Game details"');
+    for (const id of ["opponent", "table", "contingency"]) expect(panel).toContain(`data-testid="${id}"`);
+    expect(panel).toContain("SAE holds 7 cards");
+    expect(panel).toContain("Discard pile: 0 cards.");
+  });
+  it("shows the rival's hand only as a number: none of the rival's cards", () => {
+    const rival = frameFor("sae").view.mine?.hand ?? [];
+    expect(rival.length).toBeGreaterThan(0);
+    for (const card of rival) expect(panel).not.toContain(cardName(card));
+  });
+  it("leaves only the decision banner and the hand strip at the bottom", () => {
+    const bottom = /<div class="game-bottom">[^]*$/.exec(out)?.[0] ?? "";
+    expect(bottom).toContain('data-testid="hand"');
+    expect(bottom).not.toContain("Game details");
+    expect(out.indexOf('data-testid="decision"')).toBeLessThan(out.indexOf('class="game-bottom"'));
   });
   it("gives a spectator the same ticker, from the log the page gives it", () => {
     expect(html(frameFor("spectator"), { log: ["SAE spent 2 points."] })).toContain(
@@ -256,7 +284,7 @@ describe("screen-reader support", () => {
     expect(out).toContain('<div role="toolbar" aria-label="Your cards" class="strip-cards">');
     expect(out).toContain('<section aria-label="Map" data-testid="map-area" class="game-map" tabindex="0">');
     expect(out).toContain('<ol aria-label="Log entries" tabindex="0">');
-    expect(out).toContain('<div class="game-sheet" role="region" aria-label="Game details" tabindex="0">');
+    expect(out).toContain('<div class="game-details-body" role="group" aria-label="Details" tabindex="0">');
   });
   it("gives a spectator's two open prompts different question ids", () => {
     const spectator = html(frameFor("spectator"));

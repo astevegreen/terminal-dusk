@@ -57,6 +57,56 @@ describe("the log drawer", () => {
   });
 });
 
+describe("pinning the log (L10, #490)", () => {
+  const out = bar(["first"]);
+  it("offers Pin after Close, hidden until the screen is large (a server render is never large)", () => {
+    const head = /<div class="game-drawer-head">[^]*?<\/div>/.exec(out)?.[0] ?? "";
+    expect(head).toMatch(/>Close<\/button><button type="button"[^>]*class="game-drawer-pin"[^>]*>Pin<\/button>/);
+    expect(/<button[^>]*class="game-drawer-pin"[^>]*>/.exec(head)?.[0]).toMatch(/aria-pressed="false"[^>]*hidden=""/);
+  });
+  it("starts unpinned", () => {
+    expect(drawerOf(out)).toContain('data-pinned="false"');
+  });
+});
+
+const detailsButtonOf = (html: string): string =>
+  /<button[^>]*class="game-details-button"[^>]*>[^<]*<\/button>/.exec(html)?.[0] ?? "";
+const panelOf = (html: string): string => /<div[^>]*class="game-drawer game-details"[^>]*>[^]*$/.exec(html)?.[0] ?? "";
+
+describe("the Details panel (L10, #490)", () => {
+  const out = renderToString(
+    <TopBar log={["first"]} waitingId="d1" details={<p>The rival holds 7 cards</p>}>
+      <p>Status</p>
+    </TopBar>,
+  );
+  it("is opened by a Details button in the top bar, just before the ticker, which stays last", () => {
+    expect(out).toMatch(
+      /^<div class="game-top"><p>Status<\/p><button[^>]*class="game-details-button"[^>]*>Details<\/button><button[^>]*class="game-ticker"[^]*?<\/button><\/div>/,
+    );
+  });
+  it("names the panel it opens, which starts closed: hidden, after the top bar, named Game details", () => {
+    const button = detailsButtonOf(out);
+    expect(button).toContain('type="button"');
+    expect(button).toContain('aria-expanded="false"');
+    const controls = /aria-controls="([^"]+)"/.exec(button)?.[1];
+    const panel = /<div[^>]*class="game-drawer game-details"[^>]*>/.exec(out)?.[0] ?? "";
+    expect(panel).toContain(`id="${controls}"`);
+    expect(panel).toContain('role="dialog"');
+    expect(panel).toContain('aria-label="Game details"');
+    expect(panel).toMatch(/\shidden=""/);
+    expect(out.indexOf("game-details-button")).toBeLessThan(out.indexOf('class="game-drawer game-details"'));
+  });
+  it("holds what the page gives it, under a Close button", () => {
+    const panel = panelOf(out);
+    expect(panel).toMatch(/<div class="game-drawer-head">[^]*?>Close<\/button><\/div>/);
+    expect(panel).toContain("<p>The rival holds 7 cards</p>");
+  });
+  it("is left out when the page gives no details", () => {
+    expect(detailsButtonOf(bar(["first"]))).toBe("");
+    expect(bar(["first"])).not.toContain("game-details");
+  });
+});
+
 describe("the test walkers", () => {
   it("step over its hooks, the ticker and Close, and still reach the page's own buttons in the bar", () => {
     const pressed: string[] = [];

@@ -38,8 +38,8 @@ test.describe("on a phone held upright", () => {
   /**
    * The same sideways layout under a short turn-your-phone hint (L1, #464): no page scroll either way, the hint
    * above the status bar, the status bar, map and decision on screen, and the bottom edge along the bottom of the
-   * map, which fills the screen behind it (L5, #485): the hand strip from its left side and the sheet's tab row at
-   * its right (L6, #486). With no map, the map's one line sits above the sheet instead.
+   * map, which fills the screen behind it (L5, #485): the hand strip from its left side to its right (L6, #486; the
+   * sheet's tab row left it in L10, #490). With no map, the map's one line sits above the strip instead.
    */
   async function checkUpright(page: Page, hasMap: boolean): Promise<void> {
     const fits = await page.evaluate(
@@ -52,16 +52,13 @@ test.describe("on a phone held upright", () => {
     await expect(hint).toBeVisible();
     expect((await box(hint)).bottom).toBeLessThanOrEqual((await box(page.getByTestId("status-bar"))).top);
     for (const id of ["status-bar", "map-area", "decision"]) await expect(page.getByTestId(id)).toBeInViewport();
-    const side = await box(page.getByRole("region", { name: "Game details" }));
     const map = await box(page.getByTestId("map-area"));
+    const hand = await box(page.getByTestId("hand"));
     if (hasMap) {
-      const hand = await box(page.getByTestId("hand"));
       expect(hand.left).toBeCloseTo(map.left, 0);
-      expect(side.right).toBeCloseTo(map.right, 0);
-      expect(hand.right).toBeCloseTo(side.left, 0);
+      expect(hand.right).toBeCloseTo(map.right, 0);
       expect(hand.bottom).toBeCloseTo(map.bottom, 0);
-      expect(side.bottom).toBeCloseTo(map.bottom, 0);
-    } else expect(side.top).toBeGreaterThanOrEqual(map.bottom);
+    } else expect(hand.top).toBeGreaterThanOrEqual(map.bottom);
   }
 
   test("test mode: the hint above the same layout, and the map keeps room for itself", async ({ page }) => {

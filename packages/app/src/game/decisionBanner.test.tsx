@@ -84,9 +84,9 @@ describe("the glowing countries on the game screen (L7, #487)", () => {
     expect(out).not.toContain("data-pick");
     expect(bannerOf(out)).toContain("<li>Place in Cedaria</li>");
   });
-  it("leave the sheet with Details only: the decision is no longer a tab (and the log is in its drawer, L9)", () => {
+  it("are not a tab: the decision is the banner, and since L10 (#490) no sheet or tab is left at all", () => {
     const out = html(asking(placing), { onAnswer: () => {} });
-    const tabs = [...out.matchAll(/role="tab"[^>]*>([^<]+)<\/button>/g)].map((m) => m[1]);
-    expect(tabs).toEqual(["Details"]);
+    expect(out).not.toContain('role="tab"');
+    expect(out).not.toContain("game-sheet");
   });
 });

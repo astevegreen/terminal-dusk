@@ -20,8 +20,23 @@
     --strip-chip-name-max: 16em;
   }
 }
-/* The bottom edge holds the strip and, beside it, the sheet's tab row; the lifted card and the sheet's open panel
-   both rise from its top edge. */
+/* A large screen (L10, #490): bigger cards, each with its full name, on up to two lines, never cut short. The strip
+   stays slim (72 px), and its text grows with the game's (gameScreen.css). */
+@media (min-width: 1200px) {
+  .game {
+    --game-strip-h: 72px;
+    --strip-chip-name-max: 9em;
+  }
+  .game .strip-chip > .strip-chip-name {
+    overflow: visible;
+    line-height: 1.25;
+    text-align: left;
+    text-overflow: clip;
+    white-space: normal;
+  }
+}
+/* The bottom edge holds the strip, the whole width of the screen since the sheet left it (L10, #490); the lifted
+   card rises from its top edge. */
 .game .game-bottom {
   grid-area: bottom;
   z-index: 2;
