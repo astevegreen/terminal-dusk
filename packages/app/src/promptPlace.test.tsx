@@ -6,7 +6,8 @@ import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { decisionPrompts } from "./decisionPrompts.tsx";
 import type { PromptPlace, PromptProps } from "./decisionPrompts.tsx";
-import { TAP_A_CARD } from "./promptChoices.tsx";
+import { TAP_A_CARD, TAP_A_COUNTRY } from "./promptChoices.tsx";
+import { testCountryName } from "./test/promptProps.ts";
 import { buttonsOf } from "./testMode/promptTree.ts";
 
 const play: DecisionOptions = { from: "hand", uses: { own: ["event", "points"], rival: ["points"], neutral: [] } };
@@ -22,6 +23,7 @@ const propsFor = (d: Decision, place: PromptPlace | undefined, sent?: AnswerValu
   hand: ["a", "b", "c"],
   known: ["x", "y"],
   label: (card) => `Card ${card}`,
+  country: testCountryName,
   affiliation: (card) => (card === "b" ? "sae" : "lio"),
   stack: [],
   question: () => undefined,
@@ -113,11 +115,36 @@ describe("decisions that use no card", () => {
   it.each([
     [decision("yesNo", {}), ["Yes", "No"]],
     [decision("rivalEventOrder", {}), ["Before the points", "After the points"]],
-    [decision("placeInfluence", { points: 2, countries: ["c1"] }), ["Place in c1"]],
   ])("%#: keep every choice in the decision's region, with no hint, and draw nothing on a card", (d, texts) => {
     expect(drawn(d, "banner").texts).toEqual(texts);
     expect(html(d, "banner")).not.toContain(TAP_A_CARD);
     expect(html(d, { card: "a" })).toBe("");
+  });
+});
+
+describe("decisions that name countries (L7, #487): the countries are tapped on the map", () => {
+  const menu = { points: 2, actions: ["place", "intervene", "realign"], targets: ["ukraine"] } as const;
+  it.each([
+    [decision("placeInfluence", { points: 2, countries: ["ukraine", "chile"] }), []],
+    [
+      decision("chooseAction", { ...menu, actions: [...menu.actions], targets: [...menu.targets] }),
+      ["Place influence", "Realign"],
+    ],
+    [decision("realign", { attempts: 2, targets: ["ukraine"] }), ["Stop realigning"]],
+  ])("%#: the banner keeps the question and the other choices, with a hint to tap a glowing country", (d, texts) => {
+    expect(drawn(d, "banner").texts).toEqual(texts);
+    const banner = html(d, "banner");
+    expect(banner).toContain(TAP_A_COUNTRY);
+    expect(banner).not.toContain(TAP_A_CARD);
+    expect(banner).not.toMatch(/(Place|Intervene|Realign) in /);
+    expect(html(d, { card: "a" })).toBe("");
+  });
+  it("draws the country choices, by name, when no place is given and when read-only", () => {
+    const d = decision("placeInfluence", { points: 2, countries: ["ukraine", "chile"] });
+    expect(drawn(d, undefined).texts).toEqual(["Place in Ukraine", "Place in Chile"]);
+    const readOnly = html(d, "banner", false);
+    expect(readOnly).toContain("<li>Place in Ukraine</li><li>Place in Chile</li>");
+    expect(readOnly).not.toContain(TAP_A_COUNTRY);
   });
 });
 

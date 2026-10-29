@@ -1,0 +1,65 @@
+/* The decision banner (L7, #487; docs/design/screen-layout.md): one slim see-through line just above the hand
+   strip, in the game's "banner" row, with the question, a hint, the choices that are neither cards nor countries,
+   and a refusal. It is furniture: the map's own row ends above it, so "Whole map" and a zoomed-in country are never
+   under it. Its height is fixed, so the map does not jump from one decision to the next; a line too long for the
+   screen scrolls sideways. Placeholder look; the sizes and colours are variables for the era themes (#481). */
+.game {
+  --game-banner-h: 50px;
+  --game-banner-bg: var(--game-bar-bg);
+}
+.game > .game-banner {
+  grid-area: banner;
+  z-index: 2;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  height: var(--game-banner-h);
+  padding: 0 4px;
+  overflow: auto hidden;
+  background: var(--game-banner-bg);
+  white-space: nowrap;
+}
+.game > .game-banner > section,
+.game > .game-banner > section > div,
+.game > .game-banner > section > ul {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 4px 8px;
+}
+.game > .game-banner > section > ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.game > .game-banner > section > ul > li:not(:last-child)::after {
+  content: ",";
+}
+.game > .game-banner p,
+.game > .game-banner output {
+  flex: none;
+  margin: 0;
+}
+.game > .game-banner > section > p:first-child {
+  font-weight: bold;
+}
+.game > .game-banner .decision-hint {
+  font-style: italic;
+}
+/* A game with no map: the bottom edge spans the banner's row too, so the sheet's panel can take it. The bottom row
+   keeps the strip's height, the banner sits at the foot of its own row just above it, and the bottom edge's empty
+   part lets taps through to the banner. */
+.game.game-no-map {
+  grid-template-rows: auto auto auto minmax(0, 1fr) var(--game-strip-h);
+}
+.game.game-no-map > .game-banner {
+  align-self: end;
+}
+.game.game-no-map > .game-bottom {
+  pointer-events: none;
+}
+.game.game-no-map > .game-bottom > * {
+  pointer-events: auto;
+}

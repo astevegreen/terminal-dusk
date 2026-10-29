@@ -51,19 +51,19 @@ export const eventPresentation: EventPresentation = {
   pointsSpent: { log: (event) => `${SIDE_NAME[event.side]} spent ${event.amount} points.` },
   influencePlaced: {
     countries: itsCountry,
-    log: (event) =>
-      `${SIDE_NAME[event.side]} placed 1 influence in ${event.country} for ${event.cost} point${event.cost === 1 ? "" : "s"}.`,
+    log: (event, names) =>
+      `${SIDE_NAME[event.side]} placed 1 influence in ${names.country(event.country)} for ${event.cost} point${event.cost === 1 ? "" : "s"}.`,
   },
   realigned: {
     countries: itsCountry,
-    log: (event) =>
-      `${SIDE_NAME[event.side]} realigned in ${event.country}: LIO ${event.totals.lio}, SAE ${event.totals.sae}. ` +
+    log: (event, names) =>
+      `${SIDE_NAME[event.side]} realigned in ${names.country(event.country)}: LIO ${event.totals.lio}, SAE ${event.totals.sae}. ` +
       (event.loser === null ? "A tie: nothing changed." : `${SIDE_NAME[event.loser]} lost ${event.removed} influence.`),
   },
   intervened: {
     countries: itsCountry,
-    log: (event) =>
-      `${SIDE_NAME[event.side]} intervened in ${event.country}: draw ${event.draw} + ${event.points} point${event.points === 1 ? "" : "s"} - 2 x stability ` +
+    log: (event, names) =>
+      `${SIDE_NAME[event.side]} intervened in ${names.country(event.country)}: draw ${event.draw} + ${event.points} point${event.points === 1 ? "" : "s"} - 2 x stability ` +
       `${event.stability} = ${event.result}` +
       (event.result > 0 ? `; removed ${event.removed} rival influence, added ${event.added} own.` : "; no change."),
   },

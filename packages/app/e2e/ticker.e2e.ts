@@ -86,10 +86,14 @@ test("after the AI moves, the ticker shows its log line and the countries it tou
 
   // The ticker showed the log's newest line, word for word.
   expect(seen.ticker).toBe(seen.newest);
-  // Each touched country pulsed, and each is named in the log, so the pulse follows the moves the log tells.
+  // Each touched country pulsed, and each is named in the log, so the pulse follows the moves the log tells. The log
+  // names a country by its name (its marker's title), never by its id (L7, #487).
   for (const marker of seen.touched) {
     expect(marker.animation, marker.id).toMatch(/^dm-pulse-[01]$/);
-    expect(seen.log).toContain(marker.id);
+    const name = await page.locator(`.dm-marker[data-country="${marker.id}"]`).getAttribute("title");
+    expect(seen.log).toContain(` in ${name}`);
+    expect(seen.log).not.toContain(` in ${marker.id}:`);
+    expect(seen.log).not.toContain(` in ${marker.id} for`);
   }
   // And now, on LIO's turn, the ticker still shows the log's newest line.
   await expect(tickerOf(page).locator(".game-ticker-line")).toHaveText((await newestLogLine(page))!);

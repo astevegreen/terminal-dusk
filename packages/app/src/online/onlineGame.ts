@@ -4,8 +4,8 @@
 // access token is only passed through, never kept in the snapshot.
 import type { AnswerValue, CardId, EraId } from "@terminal-dusk/engine";
 import type { Frame, MatchClock } from "@terminal-dusk/host";
-import { eraText, regionNamer } from "../displayText.ts";
-import type { GameNames } from "../displayText.ts";
+import { eraText, mapNames } from "../displayText.ts";
+import type { GameNames, MapNames } from "../displayText.ts";
 import { logLine } from "../eventPresentation.ts";
 import type { TransportError } from "../transport/matchTransport.ts";
 import type { FetchLike } from "../transport/remoteHttp.ts";
@@ -79,7 +79,7 @@ const CLOSED = new Error("online game closed");
 export function createOnlineGame(options: OnlineGameOptions): OnlineGame {
   const { playerId, accessToken, now } = options;
   const timers = options.timers ?? realTimers;
-  const names: Omit<GameNames, "region"> = { card: options.label, era: eraText };
+  const names: Omit<GameNames, keyof MapNames> = { card: options.label, era: eraText };
   const listeners = new Set<() => void>();
   let closed = false;
   let lastSeq = -1;
@@ -123,10 +123,7 @@ export function createOnlineGame(options: OnlineGameOptions): OnlineGame {
     let { log, era } = snapshot;
     const isNew = frame.seq > lastSeq;
     if (isNew) {
-      log = [
-        ...log,
-        ...frame.events.map((event) => logLine(event, { ...names, region: regionNamer(frame.view.public) })),
-      ];
+      log = [...log, ...frame.events.map((event) => logLine(event, { ...names, ...mapNames(frame.view.public) }))];
       lastSeq = frame.seq;
       for (const event of frame.events) if (event.kind === "eraStarted") era = event.era;
     }

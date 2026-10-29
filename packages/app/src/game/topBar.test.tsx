@@ -17,13 +17,13 @@ const bar = (log: string[], waitingId: string | null = null, items: ReactNode = 
   );
 
 describe("the ticker", () => {
-  const out = bar(["LIO placed 1 influence in poland for 1 point.", "SAE spent 2 points."], "d1");
+  const out = bar(["LIO placed 1 influence in Poland for 1 point.", "SAE spent 2 points."], "d1");
   it("is the top bar's last item, after the bar's other items", () => {
     expect(out).toMatch(/^<div class="game-top"><p>Status<\/p><button[^>]*class="game-ticker"[^]*?<\/button><\/div>/);
   });
   it("shows the newest log line, word for word, and no other", () => {
     expect(tickerOf(out)).toContain('<span class="game-ticker-line">SAE spent 2 points.</span>');
-    expect(tickerOf(out)).not.toContain("poland");
+    expect(tickerOf(out)).not.toContain("Poland");
   });
   it("is a button that says the drawer is closed and names the drawer it opens", () => {
     const ticker = tickerOf(out);

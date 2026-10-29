@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { eraText } from "../displayText.ts";
+import { eraText, mapNames } from "../displayText.ts";
 import { logLine } from "../eventPresentation.ts";
 import { cardName } from "../testMode/fixture.ts";
 import { nextMove, POLL_MS, settle, watch } from "../transport/test/remoteGame.ts";
@@ -49,9 +49,10 @@ describe("createOnlineGame: frames, log and turn", () => {
       await play(r);
       await poll(r); // a poll with nothing new adds nothing
     }
-    const expected = watched.frames
-      .flatMap((f) => f.events)
-      .map((e) => logLine(e, { card: cardName, era: eraText, region: (id) => id }));
+    // Each frame's lines name its map's regions and countries (L7, #487).
+    const expected = watched.frames.flatMap((f) =>
+      f.events.map((e) => logLine(e, { card: cardName, era: eraText, ...mapNames(f.view.public) })),
+    );
     expect(expected.length).toBeGreaterThan(0);
     expect(r.game.getSnapshot().log).toEqual(expected);
     expect(r.game.getSnapshot().era).toBe("late");

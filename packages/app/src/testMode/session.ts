@@ -1,8 +1,8 @@
 // The state behind the test-mode screen: one local match, the viewer being looked at, that viewer's latest
 // frame and game log, and the last refusal. It holds display data only; the rules stay in the host.
 import type { AnswerValue, EraId, GameEvent, Viewer } from "@terminal-dusk/engine";
-import { eraText, regionNamer } from "../displayText.ts";
-import type { GameNames } from "../displayText.ts";
+import { eraText, mapNames } from "../displayText.ts";
+import type { GameNames, MapNames } from "../displayText.ts";
 import type { Frame } from "@terminal-dusk/host";
 import { logLine } from "../eventPresentation.ts";
 import { toRecording } from "../replay/recording.ts";
@@ -39,11 +39,11 @@ export type TestSession = {
 };
 
 /** The test mode's log names the fixture's cards. */
-const FIXTURE_NAMES: Omit<GameNames, "region"> = { card: cardName, era: eraText };
+const FIXTURE_NAMES: Omit<GameNames, keyof MapNames> = { card: cardName, era: eraText };
 const lineFor =
   (frame: Frame) =>
   (event: GameEvent): string =>
-    logLine(event, { ...FIXTURE_NAMES, region: regionNamer(frame.view.public) });
+    logLine(event, { ...FIXTURE_NAMES, ...mapNames(frame.view.public) });
 
 export function createTestSession(clock: () => number, startSeed: string = DEFAULT_SEED): TestSession {
   const listeners = new Set<() => void>();

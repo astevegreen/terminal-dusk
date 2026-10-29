@@ -5,7 +5,7 @@
 // attached.
 import { expect, test } from "@playwright/test";
 import type { Locator, Page, TestInfo } from "@playwright/test";
-import { decisionButtons, playFromStrip, tapAnswer, yourDecision } from "./answer.ts";
+import { countryButtons, decisionButtons, playFromStrip, tapAnswer, tapCountry, yourDecision } from "./answer.ts";
 import { startSixRegionGame } from "./start.ts";
 
 type Box = { left: number; top: number; right: number; bottom: number };
@@ -104,7 +104,8 @@ test("six standings chips sit under the region names, over no marker, whole map 
   page,
 }, testInfo) => {
   const map = await startSixRegionGame(page);
-  await page.getByRole("region", { name: "Game details" }).getByRole("button", { name: "Hide" }).click();
+  // The sheet starts folded since L7 (#487), so no panel lies over the map.
+  await expect(page.getByRole("tabpanel")).toHaveCount(0);
   await map.getByRole("button", { name: "Whole map" }).click();
 
   const chips = map.locator(".dm-chip");
@@ -140,21 +141,28 @@ test("a chip changes after influence is placed", async ({ page }) => {
   const before = await chipTexts(map);
   expect(before).toHaveLength(6);
   // Play LIO's choices, placing influence in the same country while it can, until some chip reads differently. A
-  // card decision's choices are on the card lifted from the hand strip (L6, #486); every other choice is a button in
-  // the decision's region. Each tap waits until its answer is taken, as the tap returns before the redraw.
+  // placing's countries glow on the map (L7, #487); a card decision's choices are on the card lifted from the hand
+  // strip (L6, #486); every other choice is a button in the decision banner. Each tap waits until its answer is
+  // taken, as the tap returns before the redraw.
   let target: string | undefined;
   for (let step = 0; step < 80; step++) {
     if ((await chipTexts(map)).join() !== before.join()) break;
     await expect(yourDecision(page)).toBeVisible();
+    if (/: place 1 influence/.test((await decision.textContent()) ?? "")) {
+      const glowing = await countryButtons(page)
+        .locator("xpath=..")
+        .evaluateAll((all) => all.map((li) => (li as HTMLElement).dataset["country"]!));
+      if (target === undefined || !glowing.includes(target)) target = glowing[0];
+      const taken = (await tapCountry(page, map.locator(`.dm-marker[data-country="${target}"] .dm-pick`))).taken;
+      if (!taken) target = glowing.find((c) => c !== target);
+      continue;
+    }
     const names = await decisionButtons(page).allTextContents();
     if (names.length === 0) {
       await playFromStrip(page);
       continue;
     }
-    const places = names.filter((n) => n.startsWith("Place in "));
-    if (target === undefined || !places.includes(target)) target = places[0];
     const pick =
-      (places.length > 0 ? target : undefined) ??
       names.find((n) => n === "Place influence") ??
       names.find((n) => /: (points|influence|operations)/i.test(n)) ??
       names[0]!;

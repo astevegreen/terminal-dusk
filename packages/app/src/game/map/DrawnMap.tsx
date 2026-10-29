@@ -5,7 +5,8 @@
 // over each region zooms to it; each region's standings chip sits under its name (L8, #488); and the markers sit on
 // top. It reads only the frame's public part, through the engine's pure helpers (the closed regions, the
 // battlegrounds and the region standings by way of the host, as the app's boundary allows). No hooks: ZoomableMap holds the refs and the
-// zoom, so tests can render and walk it without a browser.
+// zoom, so tests can render and walk it without a browser. When a decision asks for a country (L7, #487), the
+// countries it lists glow and the rest dim (mapPicks.ts).
 import { SIDES, controller } from "@terminal-dusk/engine";
 import type { CountryId, PublicState, RegionId } from "@terminal-dusk/engine";
 import { closedRegions, isBattleground } from "@terminal-dusk/host/first-deck";
@@ -18,6 +19,8 @@ import { Marker, placeOf } from "./Marker.tsx";
 import { Leaders, TONES, Tints, WorldPicture } from "./artLayer.tsx";
 import type { Beat } from "./pulse.ts";
 import { RegionChips } from "./RegionChips.tsx";
+import { pickState } from "./mapPicks.ts";
+import type { MapPicks } from "./mapPicks.ts";
 
 export type DrawnMapProps = {
   pub: PublicState;
@@ -26,6 +29,8 @@ export type DrawnMapProps = {
   /** The pulse's beat for the touched countries (pulse.ts); 0 when not given. */
   beat?: Beat | undefined;
   onRegion: (region: RegionId) => void;
+  /** The countries the waiting decision lets you pick; left out, none glows. */
+  picks?: MapPicks | undefined;
   viewportRef?: Ref<HTMLDivElement> | undefined;
   wrapperRef?: Ref<HTMLDivElement> | undefined;
 };
@@ -107,6 +112,7 @@ export function DrawnMap({
   touched,
   beat = 0,
   onRegion,
+  picks,
   viewportRef,
   wrapperRef,
 }: Readonly<DrawnMapProps>) {
@@ -150,6 +156,9 @@ export function DrawnMap({
                 battleground={isBattleground(pub, c.id)}
                 touched={touched.has(c.id)}
                 pulse={touched.has(c.id) ? beat : undefined}
+                pick={pickState(picks, c.id)}
+                choice={picks?.choices.get(c.id)?.text}
+                on={picks?.on}
               />
             );
           })}

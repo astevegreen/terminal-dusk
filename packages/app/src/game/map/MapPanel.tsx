@@ -9,6 +9,7 @@ import type { OnZoom, Zoom } from "../MapView.tsx";
 import { DrawnMap } from "./DrawnMap.tsx";
 import type { MapLayout } from "./layout.ts";
 import { layoutFor } from "./layoutFor.ts";
+import type { MapPicks } from "./mapPicks.ts";
 import type { Beat } from "./pulse.ts";
 
 export type MapMode = "map" | "list";
@@ -34,6 +35,8 @@ export type PanelProps = {
   on: PanelHandlers;
   /** The drawing for this map; layoutFor's when not given. */
   layout?: MapLayout | undefined;
+  /** The countries the waiting decision lets you pick (L7, #487), in both views; left out, none. */
+  picks?: MapPicks | undefined;
   viewportRef?: Ref<HTMLDivElement> | undefined;
   wrapperRef?: Ref<HTMLDivElement> | undefined;
 };
@@ -65,6 +68,7 @@ export function MapPanel({
   zoom,
   on,
   layout,
+  picks,
   viewportRef,
   wrapperRef,
 }: Readonly<PanelProps>) {
@@ -81,11 +85,12 @@ export function MapPanel({
           touched={touched}
           beat={beat}
           onRegion={on.region}
+          picks={picks}
           viewportRef={viewportRef}
           wrapperRef={wrapperRef}
         />
       ) : (
-        <MapView pub={pub} zoom={shownZoom(map, zoom)} onZoom={on.zoom} />
+        <MapView pub={pub} zoom={shownZoom(map, zoom)} onZoom={on.zoom} picks={picks} />
       )}
     </div>
   );

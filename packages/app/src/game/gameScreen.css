@@ -19,8 +19,22 @@ body:has(.game-page) {
 .game-page > :not(.game):not(:has(> .game)) {
   margin: 4px 4px 0;
 }
-.game-page > h1 {
+.game-page > h1,
+.game-page > .test-mode-bar > h1 {
   font-size: 1.25em;
+}
+/* Test mode's developer controls in one row that wraps only when it must, so its game keeps the height the decision
+   banner (L7, #487) needs beside the map. */
+.game-page > .test-mode-bar,
+.test-mode-bar > nav,
+.test-mode-bar > form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+.test-mode-bar > * {
+  margin: 0;
 }
 /* The game itself, or the plain div around it (the keyboard-focus wrapper), takes the rest of the page. */
 .game-page > .game,
@@ -68,7 +82,7 @@ body:has(.game-page) {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  /* The banner row stays empty for now: L7 (#487) puts the decision banner there, just above the hand strip. */
+  /* The decision banner's row (L7, #487, decisionBanner.css), just above the hand strip. */
   grid-template-rows: auto auto minmax(0, 1fr) auto auto;
   grid-template-areas:
     "hint"
@@ -300,6 +314,18 @@ body:has(.game-page) {
 .game .map-badge[data-control="none"],
 .game .map-box[data-control="none"] {
   background: var(--map-none);
+}
+/* The List's countries you may pick (L7, #487): ringed, with a button that answers; the rest faded. */
+.game .map-badge[data-pick="glow"],
+.game .map-box[data-pick="glow"] {
+  outline: var(--map-pick-ring) solid var(--map-pick-glow);
+}
+.game .map-badge[data-pick="dim"],
+.game .map-box[data-pick="dim"] {
+  opacity: var(--map-dim-opacity);
+}
+.game .map-pick {
+  font-weight: bold;
 }
 /* A card with rules text: its name in bold, the rules on their own line under it. */
 .game .hand-card-name {

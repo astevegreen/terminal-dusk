@@ -1,7 +1,16 @@
 // The drawn map's wiring to the browser (L2, #465; docs/architecture.md, Decision 6): wheel, pointer and resize
 // events on the map area move one wrapper by a CSS transform written straight to its style, never through a
 // React render. The maths is in fitTransform.ts and gestures.ts; this file only listens and writes.
-import { clampView, fitTransform, transformCss, zoomAt } from "./fitTransform.ts";
+import {
+  MAX_ZOOM,
+  clampView,
+  fitTransform,
+  focusTransform,
+  minScale,
+  revealView,
+  transformCss,
+  zoomAt,
+} from "./fitTransform.ts";
 import type { Bounds, View } from "./fitTransform.ts";
 import { NO_GESTURE, pointerDown, pointerMove, pointerUp, wheelFactor } from "./gestures.ts";
 import type { Point, Rect, Size } from "./layout.ts";
@@ -14,6 +23,16 @@ export type MapControl = {
   fit: (rect: Rect) => void;
   /** Shows the whole map. */
   whole: () => void;
+  /**
+   * Zooms in on `country` in `region` until a marker is drawn at least `pickScale` times its size (L7, #487): the
+   * region fitted, or larger and centred on the country, within the clamps. False when that is the view already
+   * (or the map area has no size), so there is nothing to zoom to.
+   */
+  focus: (region: Rect, country: Point, pickScale: number) => boolean;
+  /** Moves the map, without zooming, just enough to show `rect` (a marker the keyboard's focus is on). */
+  reveal: (rect: Rect) => void;
+  /** How large the map is drawn now: 1 is the layout's own size; 0 before the map area has a size. */
+  scale: () => number;
   /** Fits the view to the map area's new size: still the whole map if it was, otherwise within the clamps. */
   resize: () => void;
   dispose: () => void;
@@ -111,6 +130,18 @@ export function controlMap(viewport: HTMLElement, wrapper: HTMLElement, content:
     whole: () => {
       if (hasSize(screen())) show(wholeOn(screen()));
     },
+    focus: (region, country, pickScale) => {
+      if (!hasSize(screen())) return false;
+      const largest = minScale(bounds()) * MAX_ZOOM;
+      const next = clampView(focusTransform(region, country, screen(), pickScale, largest), bounds());
+      if (saved.current !== null && sameView(next, saved.current)) return false;
+      show(next);
+      return true;
+    },
+    reveal: (rect) => {
+      if (saved.current !== null && hasSize(screen())) show(revealView(saved.current, rect, bounds()));
+    },
+    scale: () => saved.current?.scale ?? 0,
     resize,
     dispose: () => {
       for (const [type, fn, options] of listeners) viewport.removeEventListener(type, fn as EventListener, options);

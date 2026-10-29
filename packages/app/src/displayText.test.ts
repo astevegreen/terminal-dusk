@@ -1,5 +1,46 @@
+import type { PublicState } from "@terminal-dusk/engine";
+import { sixRegionMapConfig } from "@terminal-dusk/host/first-deck";
 import { describe, expect, it } from "vitest";
-import { SIDE_NAME, SIDE_WHO, eraText, gameOverText, playsText, reasonText, sideFullName } from "./displayText.ts";
+import {
+  SIDE_NAME,
+  SIDE_WHO,
+  eraText,
+  gameOverText,
+  mapNames,
+  playsText,
+  reasonText,
+  sideFullName,
+} from "./displayText.ts";
+import { logLine } from "./eventPresentation.ts";
+
+describe("a log line's names from the frame's map (L7, #487)", () => {
+  const pub = { map: sixRegionMapConfig().setup.map! } as unknown as PublicState;
+  const names = { card: (id: string) => id, era: eraText, ...mapNames(pub) };
+  it("names the country a placing or a realignment acted on, never by its id", () => {
+    const placed = logLine(
+      { kind: "influencePlaced", visibility: "public", side: "sae", country: "ukraine", cost: 1 },
+      names,
+    );
+    expect(placed).toBe("SAE placed 1 influence in Ukraine for 1 point.");
+    expect(placed).not.toContain("ukraine");
+    const realigned = logLine(
+      {
+        kind: "realigned",
+        visibility: "public",
+        side: "lio",
+        country: "ukraine",
+        totals: { lio: 4, sae: 4 },
+        loser: null,
+        removed: 0,
+      },
+      names,
+    );
+    expect(realigned).toContain("realigned in Ukraine:");
+  });
+  it("names the regions from the same map", () => {
+    expect(names.region("europe")).toBe("Europe");
+  });
+});
 
 describe("the words the game screens share", () => {
   it("counts the plays this turn out of both sides' plays together, since each side makes playsPerTurn (#410)", () => {

@@ -7,6 +7,8 @@
 import { SIDES, controller } from "@terminal-dusk/engine";
 import type { Country, GameMap, InfluenceEntry, PublicState, Region, RegionId } from "@terminal-dusk/engine";
 import { SIDE_NAME } from "../displayText.ts";
+import { pickState } from "./map/mapPicks.ts";
+import type { MapPicks } from "./map/mapPicks.ts";
 
 /** The tap-target size used across the app (App.tsx): at least 44 by 44 CSS px. */
 const TAP = { minHeight: 44, minWidth: 44 } as const;
@@ -35,21 +37,44 @@ export function shownZoom(map: GameMap | undefined, zoom: Zoom): Zoom {
 const controlOf = (pub: PublicState, country: Country): string => controller(pub, country.id) ?? "none";
 const countriesIn = (map: GameMap, region: Region): Country[] => map.countries.filter((c) => c.region === region.id);
 
-function Badge({ pub, country }: Readonly<{ pub: PublicState; country: Country }>) {
+/** A country you may pick now (L7, #487): a button named after the choice, which answers at once. */
+function PickButton({ picks, country }: Readonly<{ picks: MapPicks | undefined; country: Country }>) {
+  const choice = picks?.choices.get(country.id);
+  if (picks === undefined || choice === undefined) return null;
   return (
-    <li className="map-badge" data-country={country.id} data-control={controlOf(pub, country)} title={country.name}>
+    <button
+      type="button"
+      className="map-pick"
+      style={TAP}
+      data-choice={choice.text}
+      onClick={() => picks.answer(choice)}
+    >
+      {choice.text}
+    </button>
+  );
+}
+
+type CountryProps = { pub: PublicState; country: Country; picks: MapPicks | undefined };
+
+function Badge({ pub, country, picks }: Readonly<CountryProps>) {
+  return (
+    <li
+      className="map-badge"
+      data-country={country.id}
+      data-control={controlOf(pub, country)}
+      data-pick={pickState(picks, country.id) ?? undefined}
+      title={country.name}
+    >
       <span className="map-badge-name">{country.name}</span>{" "}
       <span className="map-badge-net">{netInfluence(pub.influence, country)}</span>
+      <PickButton picks={picks} country={country} />
     </li>
   );
 }
 
-function RegionGroup({
-  pub,
-  map,
-  region,
-  onZoom,
-}: Readonly<{ pub: PublicState; map: GameMap; region: Region; onZoom: OnZoom }>) {
+type RegionProps = { pub: PublicState; map: GameMap; region: Region; onZoom: OnZoom; picks: MapPicks | undefined };
+
+function RegionGroup({ pub, map, region, onZoom, picks }: Readonly<RegionProps>) {
   const headingId = `map-region-${region.id}`;
   return (
     <div className="map-region" data-region={region.id}>
@@ -60,7 +85,7 @@ function RegionGroup({
       </h3>
       <ul aria-labelledby={headingId}>
         {countriesIn(map, region).map((c) => (
-          <Badge key={c.id} pub={pub} country={c} />
+          <Badge key={c.id} pub={pub} country={c} picks={picks} />
         ))}
       </ul>
     </div>
@@ -90,10 +115,16 @@ function HomeBoxes() {
   );
 }
 
-function CountryBox({ pub, map, country }: Readonly<{ pub: PublicState; map: GameMap; country: Country }>) {
+function CountryBox({ pub, map, country, picks }: Readonly<CountryProps & { map: GameMap }>) {
   const { lio, sae } = influenceOf(pub.influence, country);
   return (
-    <li className="map-box" data-country={country.id} data-control={controlOf(pub, country)} style={TAP}>
+    <li
+      className="map-box"
+      data-country={country.id}
+      data-control={controlOf(pub, country)}
+      data-pick={pickState(picks, country.id) ?? undefined}
+      style={TAP}
+    >
       <span className="map-box-name">{country.name}</span>
       <Stat label="Stability" value={country.stability} />
       <Stat label="LIO" value={lio} />
@@ -101,16 +132,12 @@ function CountryBox({ pub, map, country }: Readonly<{ pub: PublicState; map: Gam
       {SIDES.filter((side) => map.homeBox[side].includes(country.id)).map((side) => (
         <span key={side} className="map-box-home">{`Next to ${SIDE_NAME[side]} home`}</span>
       ))}
+      <PickButton picks={picks} country={country} />
     </li>
   );
 }
 
-function ZoomedRegion({
-  pub,
-  map,
-  region,
-  onZoom,
-}: Readonly<{ pub: PublicState; map: GameMap; region: Region; onZoom: OnZoom }>) {
+function ZoomedRegion({ pub, map, region, onZoom, picks }: Readonly<RegionProps>) {
   const headingId = `map-region-${region.id}`;
   return (
     <div className="map-region map-zoomed" data-region={region.id}>
@@ -121,7 +148,7 @@ function ZoomedRegion({
       <h3 id={headingId}>{region.name}</h3>
       <ul aria-labelledby={headingId}>
         {countriesIn(map, region).map((c) => (
-          <CountryBox key={c.id} pub={pub} map={map} country={c} />
+          <CountryBox key={c.id} pub={pub} map={map} country={c} picks={picks} />
         ))}
       </ul>
     </div>
@@ -131,18 +158,24 @@ function ZoomedRegion({
 /**
  * The map at the given zoom, under the home boxes: the whole map's badges region by region in the map's order, or
  * one region's boxes. A zoom naming a region the map lacks draws the whole map. No map: a line saying so, and no zoom.
+ * With `picks` (L7, #487), each country you may pick has a button that answers.
  */
-export function MapView({ pub, zoom, onZoom }: Readonly<{ pub: PublicState; zoom: Zoom; onZoom: OnZoom }>) {
+export function MapView({
+  pub,
+  zoom,
+  onZoom,
+  picks,
+}: Readonly<{ pub: PublicState; zoom: Zoom; onZoom: OnZoom; picks?: MapPicks | undefined }>) {
   const { map } = pub;
   if (map === undefined) return <p>No map in this game</p>;
   const shown = shownZoom(map, zoom);
   const zoomed = map.regions.find((r) => r.id === shown);
-  if (zoomed) return <ZoomedRegion pub={pub} map={map} region={zoomed} onZoom={onZoom} />;
+  if (zoomed) return <ZoomedRegion pub={pub} map={map} region={zoomed} onZoom={onZoom} picks={picks} />;
   return (
     <>
       <HomeBoxes />
       {map.regions.map((region) => (
-        <RegionGroup key={region.id} pub={pub} map={map} region={region} onZoom={onZoom} />
+        <RegionGroup key={region.id} pub={pub} map={map} region={region} onZoom={onZoom} picks={picks} />
       ))}
     </>
   );

@@ -3,12 +3,17 @@ import { describe, expect, it } from "vitest";
 import type { GameNames } from "./displayText.ts";
 import { eventPresentation, logLine } from "./eventPresentation.ts";
 import { byCodeUnit } from "./test/order.ts";
+import { testCountryName } from "./test/promptProps.ts";
 
-/** Test names: a card reads "Card C7"; only era2 has a name, as the status bar would show it. */
+/**
+ * Test names: a card reads "Card C7"; only era2 has a name, as the status bar would show it; a country reads as its
+ * id with a capital letter, so a line that printed the id would be caught (L7, #487).
+ */
 const NAMES: GameNames = {
   card: (id) => `Card ${id.toUpperCase()}`,
   era: (era) => (era === "era2" ? "Era 2 (2001–2008)" : era),
   region: (id) => (id === "europe" ? "Europe" : id),
+  country: testCountryName,
 };
 const say = (event: GameEvent): string => logLine(event, NAMES);
 
@@ -123,7 +128,7 @@ describe("eventPresentation", () => {
       country: "alpha",
       cost: 1,
     });
-    expect(line).toBe("LIO placed 1 influence in alpha for 1 point.");
+    expect(line).toBe("LIO placed 1 influence in Alpha for 1 point.");
   });
   it("logs a placed influence that cost 2 points in a rival-controlled country", () => {
     const line = say({
@@ -133,7 +138,7 @@ describe("eventPresentation", () => {
       country: "charlie",
       cost: 2,
     });
-    expect(line).toBe("SAE placed 1 influence in charlie for 2 points.");
+    expect(line).toBe("SAE placed 1 influence in Charlie for 2 points.");
   });
   it("logs a realignment with the side, the country, both totals and what the loser lost", () => {
     const line = say({
@@ -145,7 +150,7 @@ describe("eventPresentation", () => {
       loser: "sae",
       removed: 2,
     });
-    expect(line).toBe("LIO realigned in delta: LIO 6, SAE 4. SAE lost 2 influence.");
+    expect(line).toBe("LIO realigned in Delta: LIO 6, SAE 4. SAE lost 2 influence.");
   });
   it("logs a tied realignment as changing nothing", () => {
     const line = say({
@@ -157,15 +162,15 @@ describe("eventPresentation", () => {
       loser: null,
       removed: 0,
     });
-    expect(line).toBe("SAE realigned in charlie: LIO 4, SAE 4. A tie: nothing changed.");
+    expect(line).toBe("SAE realigned in Charlie: LIO 4, SAE 4. A tie: nothing changed.");
   });
   it("logs an intervention with its draw, points, stability, result and the influence it moved (R16b)", () => {
     const base = { kind: "intervened", visibility: "public", side: "lio", country: "echo", stability: 1 } as const;
     expect(say({ ...base, points: 2, draw: 4, result: 4, removed: 3, added: 1 })).toBe(
-      "LIO intervened in echo: draw 4 + 2 points - 2 x stability 1 = 4; removed 3 rival influence, added 1 own.",
+      "LIO intervened in Echo: draw 4 + 2 points - 2 x stability 1 = 4; removed 3 rival influence, added 1 own.",
     );
     expect(say({ ...base, points: 1, draw: 1, result: 0, removed: 0, added: 0 })).toBe(
-      "LIO intervened in echo: draw 1 + 1 point - 2 x stability 1 = 0; no change.",
+      "LIO intervened in Echo: draw 1 + 1 point - 2 x stability 1 = 0; no change.",
     );
   });
   it("logs a reshuffled draw pile with how many cards it got back, never which", () => {

@@ -1,8 +1,8 @@
 // The map-first game screen (L5, #485), run at both configured sizes (844x390 and 1280x800): the map fills the
 // whole game screen and everything else floats over it. A slim see-through top bar with the ticker at its right end
-// (L9, #489), a sheet along the bottom with the Play and Details tabs that folds down to its tab row, and "Whole map"
-// keeps every country clear of them. A screenshot of each size, sheet open and folded, is saved in the test's output
-// folder and attached.
+// (L9, #489), the decision banner just above the hand strip (L7, #487), a sheet along the bottom with the Details
+// tab that starts folded down to its tab row, and "Whole map" keeps every country clear of all of them. A screenshot
+// of each size, sheet open and folded, is saved in the test's output folder and attached.
 import { expect, test } from "@playwright/test";
 import type { Locator, Page, TestInfo } from "@playwright/test";
 import { pageSize, startSixRegionGame } from "./start.ts";
@@ -96,14 +96,22 @@ test("the map fills the game screen, with a slim see-through top bar and a sheet
   await expect(topBar.getByTestId("status-bar")).toBeVisible();
   await expect(topBar.getByTestId("tracks")).toBeVisible();
 
-  // A decision waits, so the sheet is open on Play: its panel rises over the map but leaves the top 40% clear.
+  // A decision waits: its question is in the banner, one slim see-through line just above the hand strip (L7,
+  // #487), and the sheet stays folded, so nothing else covers the map.
   const sheet = sheetOf(page);
-  await expect(tab(page, "Play")).toHaveAttribute("aria-selected", "true");
-  // The decision's question is on screen, and so is the hand strip, whose cards carry a card decision's choices (L6).
-  await expect(page.getByTestId("decision").getByRole("group").first()).toBeInViewport({ ratio: 1 });
+  await expect(page.getByRole("tabpanel")).toHaveCount(0);
+  const banner = page.getByTestId("decision");
+  await expect(banner.getByRole("group").first()).toBeInViewport({ ratio: 1 });
+  const bannerBox = await box(banner);
+  expect(bannerBox.height).toBeLessThanOrEqual(viewport.height * 0.13);
+  expect(bannerBox.bottom).toBeCloseTo((await box(page.getByTestId("hand"))).top, 0);
+  expect(await backgroundAlpha(banner)).toBeLessThan(1);
+  // The hand strip is on screen too, whose cards carry a card decision's choices (L6).
   await expect(page.getByTestId("hand").getByRole("toolbar").getByRole("button").first()).toBeInViewport({
     ratio: 1,
   });
+  // A tab opens the sheet: its panel rises over the map but leaves the top 40% clear.
+  await tab(page, "Details").click();
   const panel = await box(page.getByRole("tabpanel"));
   expect(panel.top).toBeGreaterThanOrEqual(mapBox.top + mapBox.height * 0.4);
   expect((await box(sheet)).bottom).toBeCloseTo(mapBox.bottom, 0);
@@ -125,67 +133,61 @@ test("the map fills the game screen, with a slim see-through top bar and a sheet
   expect(folded.bottom).toBeCloseTo(mapBox.bottom, 0);
   expect(await backgroundAlpha(sheet.getByRole("tablist").locator(".."))).toBeLessThan(1);
 
-  // "Whole map" fits the world between the top bar and the folded sheet: no country or region name is covered.
+  // "Whole map" fits the world between the top bar and the banner: no country or region name is covered.
   await map.getByRole("button", { name: "Whole map" }).click();
+  expect((await box(map.locator(".dm-view"))).bottom).toBeLessThanOrEqual(bannerBox.top + 0.5);
   await expect.poll(() => coveredOnMap(page)).toEqual([]);
   await expectNoPageScroll(page);
   await shoot(page, testInfo, "folded");
 
-  // Each tab opens the sheet again.
+  // The tab opens the sheet again.
   await tab(page, "Details").click();
   await expect(page.getByTestId("contingency")).toBeVisible();
   await expect(tab(page, "Details")).toHaveAttribute("aria-selected", "true");
 });
 
-test("the sheet's tabs switch between Play and Details, Hide folds it, and a new decision opens Play", async ({
-  page,
-}) => {
+test("the sheet's Details tab opens it, Hide folds it, and a new decision folds it again", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Test mode" }).click();
   const decision = page.getByTestId("decision");
   await expect(decision).toBeVisible();
-  await expect(tab(page, "Play")).toHaveAttribute("aria-selected", "true");
+  // The decision is the banner above the hand strip (L7, #487) and the log is in the drawer the ticker opens (L9,
+  // #489), so Details is the one tab, and the sheet starts folded.
+  expect(await page.getByRole("tab").allTextContents()).toEqual(["Details"]);
+  await expect(tab(page, "Details")).toHaveAttribute("aria-selected", "false");
   await expect(page.getByTestId("hand")).toBeVisible();
-  // The log is not a tab any more: it is in the drawer the ticker opens (L9, #489).
-  await expect(tab(page, "Log")).toHaveCount(0);
   await expect(page.getByTestId("log")).toBeHidden();
-  // Test mode's own controls above the game leave it shorter, and the open sheet still leaves the map tools clear.
-  await expectToolsTappable(page.getByTestId("map-area"));
 
   await tab(page, "Details").click();
   await expect(tab(page, "Details")).toHaveAttribute("aria-selected", "true");
   for (const id of ["opponent", "table", "contingency"]) await expect(page.getByTestId(id)).toBeVisible();
-  await expect(decision).toBeHidden();
+  // Test mode's own controls above the game leave it shorter, and the open sheet still leaves the map tools clear.
+  await expectToolsTappable(page.getByTestId("map-area"));
   await expectNoPageScroll(page);
 
-  // Hide folds the sheet: no tab is picked and nothing in it shows; Hide itself goes until it opens again.
+  // Hide folds the sheet: no tab is picked and nothing in it shows; Hide itself goes until it opens again. The
+  // banner and the hand strip are not in the sheet: they stay.
   const hide = sheetOf(page).getByRole("button", { name: "Hide" });
   await hide.click();
-  for (const name of ["Play", "Details"]) await expect(tab(page, name)).toHaveAttribute("aria-selected", "false");
-  for (const id of ["decision", "log", "contingency"]) await expect(page.getByTestId(id)).toBeHidden();
+  await expect(tab(page, "Details")).toHaveAttribute("aria-selected", "false");
+  for (const id of ["log", "contingency"]) await expect(page.getByTestId(id)).toBeHidden();
   await expect(hide).toBeHidden();
-  // The hand is not in the sheet since L6 (#486): its strip stays along the bottom edge.
+  await expect(decision).toBeVisible();
   await expect(page.getByTestId("hand")).toBeVisible();
 
-  // Play opens it again, on the decision still waiting.
-  await tab(page, "Play").click();
-  await expect(tab(page, "Play")).toHaveAttribute("aria-selected", "true");
-  await expect(decision).toBeVisible();
-  await hide.click();
-  await expect(decision).toBeHidden();
-
   // Another tab opens it again, and Hide folds it again, from the keyboard too: the keyboard's place moves to the
-  // tab that was open, as Hide itself goes. The sheet is left folded from Details, not Play, so the check below
-  // proves a new decision opens Play rather than the tab last open.
+  // tab that was open, as Hide itself goes.
   await tab(page, "Details").click();
   await expect(page.getByTestId("contingency")).toBeVisible();
   await hide.press("Enter");
   await expect(page.getByTestId("contingency")).toBeHidden();
   await expect(tab(page, "Details")).toBeFocused();
 
-  // SAE's opening pick is a new decision on screen, so the sheet opens on Play by itself.
+  // Left open on Details, the sheet folds by itself when SAE's opening pick arrives as a new decision.
+  await tab(page, "Details").click();
+  await expect(page.getByTestId("contingency")).toBeVisible();
   await page.getByRole("button", { name: "SAE", exact: true }).click();
-  await expect(tab(page, "Play")).toHaveAttribute("aria-selected", "true");
   await expect(decision.getByText("SAE: pick an opening card")).toBeVisible();
   await expect(page.getByTestId("contingency")).toBeHidden();
+  await expect(page.getByRole("tabpanel")).toHaveCount(0);
 });

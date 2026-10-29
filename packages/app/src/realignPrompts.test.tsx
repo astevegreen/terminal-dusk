@@ -75,7 +75,7 @@ describe("the realign prompt (R16c, #317)", () => {
       ),
     );
     for (const b of buttons) b.click();
-    expect(buttons.map((b) => b.text)).toEqual(["Realign in charlie", "Realign in echo", "Stop realigning"]);
+    expect(buttons.map((b) => b.text)).toEqual(["Realign in Charlie", "Realign in Echo", "Stop realigning"]);
     expect(sent).toEqual([
       { kind: "realign", country: "charlie" },
       { kind: "realign", country: "echo" },
@@ -86,7 +86,7 @@ describe("the realign prompt (R16c, #317)", () => {
   it("says the attempts left in its question, and lists the countries as text when read-only", () => {
     const html = renderToString(createElement(decisionPrompts.realign, props(realign("sae", 2, ["alpha"]))));
     expect(html).toContain("SAE: realign (2 attempts left)");
-    expect(html).toContain("<li>Realign in alpha</li>");
+    expect(html).toContain("<li>Realign in Alpha</li>");
     expect(html).not.toContain("<button");
     const one = renderToString(createElement(decisionPrompts.realign, props(realign("lio", 1, ["alpha"]))));
     expect(one).toContain("LIO: realign (1 attempt left)");

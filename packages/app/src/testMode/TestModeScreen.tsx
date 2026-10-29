@@ -37,35 +37,38 @@ export function TestModeView({ snapshot, session }: Readonly<{ snapshot: Snapsho
     );
   return (
     <main className="game-page">
-      <h1>Test mode</h1>
-      <nav aria-label="Viewer">
-        {VIEWERS.map(({ viewer: v, text }) => (
-          <button key={v} type="button" style={TAP} aria-pressed={v === viewer} onClick={() => session.setViewer(v)}>
-            {text}
+      {/* One row of developer controls where the screen is wide enough, so the game keeps its height (L7, #487). */}
+      <div className="test-mode-bar">
+        <h1>Test mode</h1>
+        <nav aria-label="Viewer">
+          {VIEWERS.map(({ viewer: v, text }) => (
+            <button key={v} type="button" style={TAP} aria-pressed={v === viewer} onClick={() => session.setViewer(v)}>
+              {text}
+            </button>
+          ))}
+        </nav>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            session.restart(seedText);
+          }}
+        >
+          <label>
+            Seed <input value={seedText} style={{ minHeight: 44 }} onChange={(e) => setSeedText(e.target.value)} />
+          </label>
+          <button type="submit" style={TAP}>
+            Restart
           </button>
-        ))}
-      </nav>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          session.restart(seedText);
-        }}
-      >
-        <label>
-          Seed <input value={seedText} style={{ minHeight: 44 }} onChange={(e) => setSeedText(e.target.value)} />
-        </label>
-        <button type="submit" style={TAP}>
-          Restart
-        </button>
-      </form>
-      {snapshot.replayReady && (
-        <button type="button" style={TAP} onClick={() => setWatching(session.replay())}>
-          Watch replay
-        </button>
-      )}
-      <p data-testid="refusal" role="status">
-        {snapshot.refusal ? `Refused: ${snapshot.refusal}` : "No refusal"}
-      </p>
+        </form>
+        {snapshot.replayReady && (
+          <button type="button" style={TAP} onClick={() => setWatching(session.replay())}>
+            Watch replay
+          </button>
+        )}
+        <p data-testid="refusal" role="status">
+          {snapshot.refusal ? `Refused: ${snapshot.refusal}` : "No refusal"}
+        </p>
+      </div>
       {frame && (
         <GameScreen
           frame={frame}
