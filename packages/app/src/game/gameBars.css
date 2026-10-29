@@ -143,7 +143,7 @@
 }
 .game .game-tabs button[aria-selected="true"] {
   font-weight: bold;
-  border-bottom: 3px solid #000;
+  border-bottom: 3px solid var(--game-fg);
 }
 .game .game-sheet-hide {
   flex: none;
