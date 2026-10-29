@@ -29,7 +29,7 @@ Measured on a phone-sized screen (844x390, the size Decision 6 designs for):
 | Page note line and top bar     | 82 px tall     | a fifth of the height, before the map starts |
 | Map area                       | 545x304 px     | about half                                   |
 | The world drawing inside it    | 535x225 px     | **about a third**                            |
-| Side panel (one tab at a time) | 287x304 px     | about a quarter, beside the map              |
+| Side panel (one tab at a time) | 287x304 px     | a third of the width, beside the map         |
 | One country marker             | 25x13 px       | too small to read or tap                     |
 
 And:
@@ -42,7 +42,9 @@ And:
 ## Principles
 
 1. **The map is the board.** It fills the whole screen, edge to edge. Everything else floats on top of it.
-2. **Furniture is slim and see-through, and gets out of the way.** Nothing permanently covers the map (Decision 6).
+2. **Furniture is slim and see-through, and gets out of the way.** The picture runs on under the slim bars, but
+   "Whole map" keeps every country clear of them, and anything bigger (a lifted card, a drawer, a panel) closes
+   again (Decision 6).
 3. **Choose on the map.** When a decision asks for a country, the countries you may pick glow and you tap one.
 4. **Show, don't make them read.** The latest move shows in one ticker line and as a pulse on the countries it
    touched. Standings show on the regions.
@@ -113,7 +115,7 @@ picture runs on under the see-through bars to the screen's edges.
 +------------------------------------------------------------------------------------+
 ```
 
-### A large screen (1280x800 and up)
+### A large screen (1200 px wide and up; drawn here at 1280x800)
 
 The same pieces with more room: the hand strip shows bigger cards with their names in full, text is larger, and the
 log drawer can be pinned open on the right without covering the middle of the map.
@@ -153,7 +155,8 @@ log drawer can be pinned open on the right without covering the middle of the ma
   the game state.
 - Decision 6: designed for 844x390 landscape first; one prompt component per decision kind; animation from events,
   never from comparing states; pan and zoom move one wrapper with CSS transforms outside React renders; the List view
-  stays as an alternative to the map.
+  stays as an alternative to the map. The hand strip is Decision 6's bottom sheet in its folded form: it never
+  covers a country at "Whole map", and the lifted card drops back when you tap elsewhere.
 - Tap targets of at least 44 px, keyboard play, and screen-reader names for every piece.
 - vs AI, online play, watching, Test mode and the replay all use the same screen.
 - LIO blue and SAE red, in every era.
