@@ -10,7 +10,7 @@ import {
   answeredOrRefused,
   countryButtons,
   decisionButtons,
-  playForPoints,
+  playFromStrip,
   questionIdOf,
   tapCountry,
   yourDecision,
@@ -44,7 +44,7 @@ async function playUntil(page: Page, asked: RegExp, choose?: (names: string[]) =
       const question = await questionIdOf(page);
       await decisionButtons(page).getByText(pick, { exact: true }).click();
       await answeredOrRefused(page, question);
-    } else if (names.length === 0 && (await countryButtons(page).count()) === 0) await playForPoints(page);
+    } else if (names.length === 0 && (await countryButtons(page).count()) === 0) await playFromStrip(page);
     else await answerOnce(page);
   }
   throw new Error(`the banner never asked ${asked}`);

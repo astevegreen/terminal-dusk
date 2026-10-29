@@ -67,7 +67,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e-stack/mail.ts` - Reading sign-in codes from the local stack's mail catcher (Mailpit) for A10. Exports: mailpitUrl, codeFrom, waitForCode, whyMailUnavailable.
 - `packages/app/e2e-stack/phase4.e2e.ts` - The phase 4 gate in a real browser (A10; docs/architecture.md, "Revised build order", phase 4).
 - `packages/app/e2e-stack/runUsers.ts` - The run's two players, found and removed by email with the service role (A10). Exports: userIdByEmail, grantWebByEmail, removeRun.
-- `packages/app/e2e/answer.ts` - Shared answering for the Playwright smoke tests (not a test file: only *.e2e.ts files are tests). Exports: decisionButtons, countryButtons, stripChips, liftedCard, yourDecision, takenOrRefused, questionIdOf, answeredOrRefused, tapCountry, playForPoints, answerOnce.
+- `packages/app/e2e/answer.ts` - Shared answering for the Playwright smoke tests (not a test file: only *.e2e.ts files are tests). Exports: decisionButtons, countryButtons, stripChips, liftedCard, yourDecision, takenOrRefused, tapAnswer, questionIdOf, answeredOrRefused, tapCountry, playFromStrip, answerOnce.
 - `packages/app/e2e/drawnMap.e2e.ts` - The drawn map (L2, #465) in the six-region game against the AI, at the phone and desktop sizes: 42 markers and the two home boxes, all inside the map area with…
 - `packages/app/e2e/game.e2e.ts`
 - `packages/app/e2e/handStrip.e2e.ts` - The hand strip (L6, #486), run at both configured sizes (844x390 and 1280x800): the hand is a slim strip along the bottom edge, each card a chip at least 44 px…

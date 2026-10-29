@@ -5,6 +5,7 @@
 // attached.
 import { expect, test } from "@playwright/test";
 import type { Locator, Page, TestInfo } from "@playwright/test";
+import { countryButtons, decisionButtons, playFromStrip, tapAnswer, tapCountry, yourDecision } from "./answer.ts";
 import { startSixRegionGame } from "./start.ts";
 
 type Box = { left: number; top: number; right: number; bottom: number };
@@ -45,6 +46,41 @@ const longestLineFits = (page: Page): Promise<boolean> =>
       return fits;
     });
 
+/**
+ * How far a chip reaches past what the screen shows of it, in px on its worst side: 0 or less when all of it shows.
+ * What shows is the window, cut down by every box around the chip that hides what overflows it (the map's view,
+ * which clips the zoomed map, the map's section, which scrolls, and any other), each inside its borders and
+ * scrollbars, as Playwright's toBeInViewport cuts it. Worked out from the boxes because toBeInViewport({ ratio: 1 })
+ * reads a wholly shown chip as 0.99999994 at some zooms, a rounding in the browser.
+ */
+const pastScreen = (chip: Locator): Promise<number> =>
+  chip.evaluate((el) => {
+    const shown = { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight };
+    // The page's own boxes hand their overflow to the window, which is already the starting clip.
+    for (let box = el.parentElement; box && box !== document.body; box = box.parentElement) {
+      const style = getComputedStyle(box);
+      const r = box.getBoundingClientRect();
+      const border = {
+        left: parseFloat(style.borderLeftWidth),
+        right: parseFloat(style.borderRightWidth),
+        top: parseFloat(style.borderTopWidth),
+        bottom: parseFloat(style.borderBottomWidth),
+      };
+      if (style.overflowX !== "visible") {
+        const scrollbar = Math.max(0, box.offsetWidth - box.clientWidth - border.left - border.right);
+        shown.left = Math.max(shown.left, r.left + border.left);
+        shown.right = Math.min(shown.right, r.right - border.right - scrollbar);
+      }
+      if (style.overflowY !== "visible") {
+        const scrollbar = Math.max(0, box.offsetHeight - box.clientHeight - border.top - border.bottom);
+        shown.top = Math.max(shown.top, r.top + border.top);
+        shown.bottom = Math.min(shown.bottom, r.bottom - border.bottom - scrollbar);
+      }
+    }
+    const c = el.getBoundingClientRect();
+    return Math.max(shown.left - c.left, shown.top - c.top, c.right - shown.right, c.bottom - shown.bottom);
+  });
+
 /** Each chip's two lines as shown, by region. */
 const chipTexts = (map: Locator): Promise<string[]> =>
   map
@@ -68,7 +104,8 @@ test("six standings chips sit under the region names, over no marker, whole map 
   page,
 }, testInfo) => {
   const map = await startSixRegionGame(page);
-  await page.getByRole("region", { name: "Game details" }).getByRole("button", { name: "Hide" }).click();
+  // The sheet starts folded since L7 (#487), so no panel lies over the map.
+  await expect(page.getByRole("tabpanel")).toHaveCount(0);
   await map.getByRole("button", { name: "Whole map" }).click();
 
   const chips = map.locator(".dm-chip");
@@ -85,7 +122,7 @@ test("six standings chips sit under the region names, over no marker, whole map 
   // Zoomed into Europe, its chip is large enough to read, and still covers nothing.
   await map.getByRole("button", { name: "Europe", exact: true }).click();
   const europe = map.locator('.dm-chip[data-region="europe"]');
-  await expect(europe).toBeInViewport({ ratio: 1 });
+  await expect.poll(() => pastScreen(europe)).toBeLessThanOrEqual(0);
   await expect
     .poll(() =>
       europe
@@ -103,30 +140,33 @@ test("a chip changes after influence is placed", async ({ page }) => {
   const decision = page.getByTestId("decision");
   const before = await chipTexts(map);
   expect(before).toHaveLength(6);
-  // Play LIO's choices, placing influence in the same country while it can, until some chip reads differently.
+  // Play LIO's choices, placing influence in the same country while it can, until some chip reads differently. A
+  // placing's countries glow on the map (L7, #487); a card decision's choices are on the card lifted from the hand
+  // strip (L6, #486); every other choice is a button in the decision banner. Each tap waits until its answer is
+  // taken, as the tap returns before the redraw.
   let target: string | undefined;
   for (let step = 0; step < 80; step++) {
     if ((await chipTexts(map)).join() !== before.join()) break;
-    await expect(decision.getByRole("button").first()).toBeVisible();
-    const names = await decision.getByRole("button").allTextContents();
-    const places = names.filter((n) => n.startsWith("Place in "));
-    if (target === undefined || !places.includes(target)) target = places[0];
+    await expect(yourDecision(page)).toBeVisible();
+    if (/: place 1 influence/.test((await decision.textContent()) ?? "")) {
+      const glowing = await countryButtons(page)
+        .locator("xpath=..")
+        .evaluateAll((all) => all.map((li) => (li as HTMLElement).dataset["country"]!));
+      if (target === undefined || !glowing.includes(target)) target = glowing[0];
+      const taken = (await tapCountry(page, map.locator(`.dm-marker[data-country="${target}"] .dm-pick`))).taken;
+      if (!taken) target = glowing.find((c) => c !== target);
+      continue;
+    }
+    const names = await decisionButtons(page).allTextContents();
+    if (names.length === 0) {
+      await playFromStrip(page);
+      continue;
+    }
     const pick =
-      (places.length > 0 ? target : undefined) ??
       names.find((n) => n === "Place influence") ??
       names.find((n) => /: (points|influence|operations)/i.test(n)) ??
       names[0]!;
-    // The click returns before the redraw: wait for what it changes, the country's LIO number after a placement,
-    // otherwise the buttons.
-    const country = pick.startsWith("Place in ") ? pick.slice("Place in ".length) : undefined;
-    const lio = map.locator(`.dm-marker[data-country="${country}"] .dm-lio`);
-    const seen = async (): Promise<string> =>
-      country === undefined
-        ? (await decision.getByRole("button").allTextContents()).join()
-        : ((await lio.textContent()) ?? "");
-    const was = await seen();
-    await decision.getByRole("button", { name: pick, exact: true }).click();
-    await expect.poll(seen).not.toBe(was);
+    await tapAnswer(page, decision.getByRole("button", { name: pick, exact: true }));
   }
   expect((await chipTexts(map)).join()).not.toBe(before.join());
 });
