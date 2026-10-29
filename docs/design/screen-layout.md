@@ -17,8 +17,8 @@ it, a hand along the bottom). Nothing is copied: no names, art, text, colours or
 - **The hand is a slim strip along the bottom.** Tap a card to lift it, with its play buttons on the lifted card.
 - **Region standings show on the map**, as a small chip under each region's name.
 - **Phones stay sideways only.** An upright phone keeps showing "Turn your phone sideways to play."
-- **What just happened shows as a ticker line** under the top bar, with the full log in a drawer, and the countries
-  a move touched pulse on the map.
+- **What just happened shows as a ticker line** at the right end of the top bar (L9 found a row of its own under the
+  bar cost the phone map too much), with the full log in a drawer, and the countries a move touched pulse on the map.
 
 ## The problem today
 
@@ -59,7 +59,7 @@ And:
 | --------------- | ------------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------- |
 | Map             | the whole screen, behind everything   | 844x390               | the Blue Marble picture, borders, region names, country markers                                 |
 | Top bar         | top edge, see-through                 | about 40 px tall      | menu, your side, turn, era, score track, Escalation, the status line ("Your move: play a card") |
-| Ticker          | just under the top bar                | about 20 px tall      | the newest log line; tap to open the log drawer                                                 |
+| Ticker          | right end of the top bar              | 44 px, in the top bar | the newest log line; tap to open the log drawer. No row of its own: the map keeps every pixel   |
 | Standings chips | on the map, under each region's name  | small                 | each side's level in that region (present, ahead, holds every battleground) and its points now  |
 | Map tools       | floating, top-left corner of the map  | 44 px buttons         | Map/List, Whole map                                                                             |
 | Decision banner | just above the hand strip             | one line, about 44 px | the question and any buttons that are not countries or cards                                    |
@@ -76,8 +76,8 @@ picture runs on under the see-through bars to the screen's edges.
 
 ```
 +------------------------------------------------------------------------------------+
-| =  LIO  Turn 3/10  Era 1 | Score [====|==  ] LIO +2 | Escalation 4 | Your move     |  top bar
-| > SAE placed 2 in Germany                                                          |  ticker
+| = LIO  Turn 3/10  Era 1 | LIO +2 | Esc 4 | Your move |  > SAE placed 2 in Germany  |  top bar, ticker
+|                                                                                    |
 |                                                                                    |
 |  [Whole map]                  EUROPE                                               |
 |  [List]                    [LIO ahead 5 | SAE present 1]           ASIA            |

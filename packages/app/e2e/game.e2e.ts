@@ -5,16 +5,18 @@ const REGIONS = ["status-bar", "map-area", "hand", "opponent", "table", "conting
 test("game screen: every region is visible, nothing scrolls sideways, buttons are at least 44 px", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Test mode" }).click();
-  // The side panel shows one tab at a time (L1, #464), so each region is checked with its tab open; Play last.
+  // The side panel shows one tab at a time (L1, #464), so each region is checked with its tab open; Play last. The
+  // log is in the drawer the ticker opens (L9, #489); tapping the Play tab outside the drawer closes it again.
   const shownWith: [string | null, string[]][] = [
     [null, ["status-bar", "map-area"]],
     ["Details", ["opponent", "table", "contingency"]],
-    ["Log", ["log"]],
+    ["ticker", ["log"]],
     ["Play", ["hand", "decision"]],
   ];
   expect(shownWith.flatMap(([, ids]) => ids).sort()).toEqual([...REGIONS].sort());
   for (const [tab, ids] of shownWith) {
-    if (tab !== null) await page.getByRole("tab", { name: tab, exact: true }).click();
+    if (tab === "ticker") await page.getByTestId("ticker").click();
+    else if (tab !== null) await page.getByRole("tab", { name: tab, exact: true }).click();
     for (const id of ids) await expect(page.getByTestId(id)).toBeVisible();
   }
   // Test mode plays on the test map (issue #366); map.e2e.ts checks its badges.

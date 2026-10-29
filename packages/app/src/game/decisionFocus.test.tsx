@@ -110,18 +110,21 @@ describe("tab order", () => {
     const status = /data-testid="status-bar"[^>]*>(.*?)<\/section>/.exec(out)?.[1] ?? "";
     expect(status).not.toMatch(/<button|<a |<input|tabindex/);
   });
-  it("follows reading order along the bottom edge: the hand strip's chips, then the sheet's tabs, decision and log", () => {
+  it("follows reading order: the ticker and its log, the map, then the hand strip's chips, the sheet's tabs and decision", () => {
     const at = (text: string): number => out.indexOf(text);
-    // Since L6 (#486) the hand is a strip at the left of the bottom edge, with the sheet's tab row to its right. The
-    // map's region buttons (issue #366) come before both, as the map does on screen. The opening pick's choices are
-    // on the lifted cards, so the decision's region has the question only.
+    // Since L9 (#489) the log is in the drawer the ticker opens, right after the ticker at the top bar's end, so the
+    // keyboard reaches it next once it is open. Since L6 (#486) the hand is a strip at the left of the bottom edge,
+    // with the sheet's tab row to its right. The map's region buttons (issue #366) come before both, as the map does
+    // on screen. The opening pick's choices are on the lifted cards, so the decision's region has the question only.
     const marks = [
+      at('data-testid="ticker"'),
+      at('<ol aria-label="Log entries" tabindex="0">'),
+      at('data-testid="map-area"'),
       at('data-testid="hand"'),
       at('class="strip-chip"'),
       at('aria-label="Game details" tabindex="0"'),
       at('role="tablist"'),
       at('data-testid="decision"'),
-      at('<ol aria-label="Log entries" tabindex="0">'),
     ];
     for (const mark of marks) expect(mark).toBeGreaterThan(-1);
     expect([...marks].sort((a, b) => a - b)).toEqual(marks);

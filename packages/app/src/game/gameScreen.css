@@ -53,6 +53,12 @@ body:has(.game-page) {
      two of them wide and two tall beside it. */
   --game-tools-row: 52px;
   --game-tools-block: 100px;
+  /* The ticker at the top bar's right end, one line a tap target tall, and the log drawer it opens (L9, #489;
+     gameBars.css, logDrawer.css). The ticker never gets narrower than its least width; it takes what is left. */
+  --game-ticker-min: 160px;
+  --game-ticker-bg: rgb(0 0 0 / 0.06);
+  --game-ticker-fg: var(--game-fg);
+  --game-drawer-w: max(50%, min(100%, 300px));
   /* The open sheet's panel: it rises from the bottom edge (the hand strip, --game-strip-h in handStrip.css) no
      higher than 58% of the game, and never over the top bar (46px) or the tools' block, so the map tools can always
      be reached (gameBars.css). */

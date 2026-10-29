@@ -5,6 +5,7 @@ import type { CountryId } from "@terminal-dusk/engine";
 import { memo } from "react";
 import type { Point } from "./layout.ts";
 import { MARKER } from "./layout.ts";
+import type { Beat } from "./pulse.ts";
 
 export type MarkerProps = {
   id: CountryId;
@@ -21,6 +22,8 @@ export type MarkerProps = {
   battleground: boolean;
   /** The latest frame's events touched this country. */
   touched: boolean;
+  /** On a touched country, the pulse's beat (pulse.ts): its change starts the pulse again. */
+  pulse?: Beat | undefined;
 };
 
 /** Where a box centred on `at` starts, as CSS. */
@@ -31,7 +34,7 @@ export const markerText = (p: Readonly<MarkerProps>): string =>
   `${p.name}: LIO ${p.lio}, SAE ${p.sae}, stability ${p.stability}${p.battleground ? ", battleground" : ""}`;
 
 function MarkerInner(props: Readonly<MarkerProps>) {
-  const { id, name, short, x, y, lio, sae, stability, control, battleground, touched } = props;
+  const { id, name, short, x, y, lio, sae, stability, control, battleground, touched, pulse } = props;
   return (
     <li
       className="dm-marker"
@@ -39,6 +42,7 @@ function MarkerInner(props: Readonly<MarkerProps>) {
       data-control={control}
       data-battleground={battleground ? "true" : undefined}
       data-touched={touched ? "true" : undefined}
+      data-pulse={touched ? pulse : undefined}
       title={name}
       style={placeOf({ x, y })}
     >

@@ -34,12 +34,13 @@ const over = (winner: Side | null, reason = "turns ran out"): Frame =>
   withPublic(frameFor("lio"), { status: { kind: "over", winner, reason } });
 
 /**
- * The Decision region's html, up to the Log region after it. The frames are on the test map (issue #366), whose
- * region buttons (zoom, for every viewer) are elsewhere on the screen, so button checks look here.
+ * The Decision region's html, up to the Details tab's panel after it (the log left the sheet for its drawer, L9,
+ * #489). The frames are on the test map (issue #366), whose region buttons (zoom, for every viewer) are elsewhere on
+ * the screen, so button checks look here.
  */
 const decisionOf = (out: string): string => {
   const start = out.indexOf('data-testid="decision"');
-  const end = out.indexOf('data-testid="log"', start);
+  const end = out.indexOf('role="tabpanel"', start);
   if (start < 0 || end < 0) throw new Error("no Decision region");
   return out.slice(start, end);
 };
@@ -120,6 +121,28 @@ describe("the top bar (L5, #485)", () => {
     const out = html(lio);
     expect(out).not.toContain("<details");
     expect(out).toContain('<div class="game-top"><div class="game-top-main"><section aria-label="Status"');
+  });
+});
+
+describe("the ticker and the log drawer (L9, #489)", () => {
+  const out = html(frameFor("lio"), { log: ["first", "second"] });
+  it("puts the ticker at the top bar's right end, after the tracks, showing the newest log line", () => {
+    const top = /<div class="game-top">[^]*?<\/button><\/div>/.exec(out)?.[0] ?? "";
+    expect(top).toMatch(/data-testid="tracks"[^]*data-testid="ticker"[^]*<\/button><\/div>$/);
+    expect(top).toContain('<span class="game-ticker-line">second</span>');
+    expect(out.indexOf('data-testid="ticker"')).toBeLessThan(out.indexOf('data-testid="map-area"'));
+  });
+  it("keeps the log in the drawer the ticker opens, not in the sheet, whose tabs are Play and Details", () => {
+    const drawer = out.indexOf('class="game-drawer"');
+    expect(out.indexOf('data-testid="log"')).toBeGreaterThan(drawer);
+    expect(out.indexOf('data-testid="log"')).toBeLessThan(out.indexOf('data-testid="map-area"'));
+    const tabs = [...out.matchAll(/role="tab"[^>]*>([^<]+)<\/button>/g)].map((m) => m[1]);
+    expect(tabs).toEqual(["Play", "Details"]);
+  });
+  it("gives a spectator the same ticker, from the log the page gives it", () => {
+    expect(html(frameFor("spectator"), { log: ["SAE spent 2 points."] })).toContain(
+      '<span class="game-ticker-line">SAE spent 2 points.</span>',
+    );
   });
 });
 

@@ -9,6 +9,7 @@ import type { OnZoom, Zoom } from "../MapView.tsx";
 import { DrawnMap } from "./DrawnMap.tsx";
 import type { MapLayout } from "./layout.ts";
 import { layoutFor } from "./layoutFor.ts";
+import type { Beat } from "./pulse.ts";
 
 export type MapMode = "map" | "list";
 
@@ -26,6 +27,8 @@ export type PanelHandlers = {
 export type PanelProps = {
   pub: PublicState;
   touched: ReadonlySet<CountryId>;
+  /** The pulse's beat for the touched countries (pulse.ts); 0 when not given. */
+  beat?: Beat | undefined;
   mode: MapMode;
   zoom: Zoom;
   on: PanelHandlers;
@@ -54,7 +57,17 @@ function Toggle({ mode, on, credit }: Readonly<Pick<PanelProps, "mode" | "on"> &
   );
 }
 
-export function MapPanel({ pub, touched, mode, zoom, on, layout, viewportRef, wrapperRef }: Readonly<PanelProps>) {
+export function MapPanel({
+  pub,
+  touched,
+  beat,
+  mode,
+  zoom,
+  on,
+  layout,
+  viewportRef,
+  wrapperRef,
+}: Readonly<PanelProps>) {
   const { map } = pub;
   if (map === undefined) return <p>No map in this game</p>;
   const drawing = layout ?? layoutFor(map);
@@ -66,6 +79,7 @@ export function MapPanel({ pub, touched, mode, zoom, on, layout, viewportRef, wr
           pub={pub}
           layout={drawing}
           touched={touched}
+          beat={beat}
           onRegion={on.region}
           viewportRef={viewportRef}
           wrapperRef={wrapperRef}

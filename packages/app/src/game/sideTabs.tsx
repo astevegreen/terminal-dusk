@@ -1,19 +1,19 @@
-// The sheet's three tabs (L1, issue #464; L5, #485; docs/architecture.md, Decision 6): Play (the decision and the
-// hand), Log, and Details (the opponent, the table and the Contingency decks), with Hide beside them, which folds
-// the sheet down to its tab row. The tab picked is local UI state; the Play tab opens by itself whenever a new
-// decision waits, even from folded. GameScreen stays hook-free: the hook lives here.
+// The sheet's two tabs (L1, issue #464; L5, #485; docs/architecture.md, Decision 6): Play (the decision and the
+// hand) and Details (the opponent, the table and the Contingency decks), with Hide beside them, which folds the
+// sheet down to its tab row. The log left the sheet for its own drawer, opened from the ticker (L9, #489). The tab
+// picked is local UI state; the Play tab opens by itself whenever a new decision waits, even from folded.
+// GameScreen stays hook-free: the hook lives here.
 import type { Decision } from "@terminal-dusk/engine";
 import { memo, useId, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
-export type TabId = "play" | "log" | "details";
+export type TabId = "play" | "details";
 /** What the player last picked: a tab, or "hide" to fold the sheet. */
 export type SheetPick = TabId | "hide";
 type DecisionId = Decision["id"];
 
 export const TABS: readonly { id: TabId; title: string }[] = [
   { id: "play", title: "Play" },
-  { id: "log", title: "Log" },
   { id: "details", title: "Details" },
 ];
 
@@ -95,7 +95,7 @@ function SideTabsInner({
 }
 
 /**
- * Takes its three panels as children, in TABS order. Wrapped in `memo`, like ZoomableMap: a memo element is not
+ * Takes its two panels as children, in TABS order. Wrapped in `memo`, like ZoomableMap: a memo element is not
  * a plain function, so the test walkers that call function components directly (testMode/promptTree.ts,
  * online/test/screenTree.ts) step over its hook and walk on into the panels, reaching the prompts and the hand.
  */
