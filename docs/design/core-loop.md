@@ -75,7 +75,9 @@ change it in Notion and promote again.
 
 - The opening picks are one simultaneous decision group (docs/architecture.md, Decision 1). A side's pick is
   held in its own private compartment ("own unrevealed picks", Decision 2), so the other side and spectators
-  can't see it until both are in.
+  can't see it until both are in. While a side holds the tech race's Quantum Computing step, the picks are
+  sequential instead: the rival picks first, and its pick is shown only to the Quantum Computing side, never in
+  public state or events, until Reveal (docs/design/tech-race.md).
 - Undo happens only in the UI's staged answer. The engine only ever sees confirmed answers.
 - Hand size, cards played per turn and turns per era come from scenario data (docs/architecture.md,
   Decision 4), so the engine must not hard-code them. The hand size is 8 for now; plays per turn and turns per
