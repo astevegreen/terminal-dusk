@@ -19,6 +19,12 @@ async function startDrawnMap(page: Page): Promise<Locator> {
   return area;
 }
 
+/** Folds the sheet: its open panel lies over the lower map (L5, #485), where the wheel and drag tests point. */
+async function foldSheet(page: Page): Promise<void> {
+  await page.getByRole("region", { name: "Game details" }).getByRole("button", { name: "Hide" }).click();
+  await expect(page.getByRole("tabpanel")).toHaveCount(0);
+}
+
 /** The view the wrapper's CSS transform shows: screen = drawing × scale + (x, y). */
 async function viewOf(area: Locator): Promise<View> {
   const transform = await area.locator(".dm-world").evaluate((el) => (el as HTMLElement).style.transform);
@@ -117,6 +123,7 @@ test("tapping a region zooms in on it, and Whole map goes back to the whole map"
 
 test("the wheel zooms in around the cursor and the page does not scroll", async ({ page }) => {
   const area = await startDrawnMap(page);
+  await foldSheet(page);
   const before = await viewOf(area);
   const cursor = await centreOf(area.locator(".dm-view"));
   const viewBox = await boxOf(area.locator(".dm-view"));
@@ -137,6 +144,7 @@ test("the wheel zooms in around the cursor and the page does not scroll", async 
 
 test("a drag moves the zoomed-in map without zooming, and is not a tap on the region under it", async ({ page }) => {
   const area = await startDrawnMap(page);
+  await foldSheet(page);
   const whole = await viewOf(area);
   const centre = await centreOf(area.locator(".dm-view"));
   await page.mouse.move(centre.x, centre.y);

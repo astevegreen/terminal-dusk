@@ -1,6 +1,6 @@
-/* Placeholder look only: system font, grey borders, no colours, no images. */
+/* Placeholder look only: system font, grey borders, no images beyond the map's own. */
 /* The page around a game (L1, #464): exactly the screen's height, a column whose game takes what the page's own
-   lines (a note, a Back button) leave, so the page itself never scrolls. */
+   lines (Test mode's controls) leave, so the page itself never scrolls. The game runs edge to edge (L5, #485). */
 body:has(.game-page) {
   margin: 0;
 }
@@ -11,15 +11,13 @@ body:has(.game-page) {
   height: 100vh;
   height: 100dvh;
   max-width: 100%;
-  padding: 4px;
   overflow: hidden;
 }
 .game-page > * {
   flex: none;
 }
-.game-page > p,
-.game-page > h1 {
-  margin: 0 0 4px;
+.game-page > :not(.game):not(:has(> .game)) {
+  margin: 4px 4px 0;
 }
 .game-page > h1 {
   font-size: 1.25em;
@@ -38,34 +36,43 @@ body:has(.game-page) {
   flex: 1 1 0;
   min-height: 0;
 }
-/* One grid laid out for a phone held sideways: a hint line (upright only), the top bar, then the map beside the
-   side panel. Only the map and the open tab's panel scroll. */
+/* Its height is the page's, never its content's, so the sheet's panel can be sized from it (gameBars.css). */
+.game-page .game {
+  container-type: size;
+}
+/* One column for a phone held sideways: a hint line (upright only), the top bar, the map's own row, then the
+   sheet's tab row. The map's box spans the top bar to the sheet, so the bars lie over its edges (L5, #485). */
 .game {
+  --game-bg: #fff;
+  --game-fg: #000;
+  --game-bar-bg: rgb(255 255 255 / 0.78);
+  --game-panel-bg: rgb(255 255 255 / 0.94);
+  --game-edge: #999;
+  /* The room kept clear for the map tools (Map, List, Whole map): a row of tap targets above the world, or a block
+     two of them wide and two tall beside it. */
+  --game-tools-row: 52px;
+  --game-tools-block: 100px;
+  /* The open sheet's panel: at most 46% of the game, and never over the top bar (46px), the tools' block or the tab
+     row (48px), so the map tools can always be reached (gameBars.css). */
+  --game-sheet-reserve: calc(46px + var(--game-tools-block) + 48px);
+  --game-panel-max: min(46cqh, 100cqh - var(--game-sheet-reserve));
   box-sizing: border-box;
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(240px, 34vw, 420px);
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   grid-template-areas:
-    "hint hint"
-    "top top"
-    "map side";
-  gap: 4px;
+    "hint"
+    "top"
+    "map"
+    "sheet";
   width: 100%;
   max-width: 100vw;
   overflow: hidden;
+  background: var(--game-bg);
+  color: var(--game-fg);
   font-family: system-ui, sans-serif;
   font-size: 13px;
-}
-.game > section,
-.game .game-top > section,
-.game .game-tab-panel > section {
-  box-sizing: border-box;
-  min-width: 0;
-  border: 1px solid #999;
-  padding: 4px;
-}
-.game > section {
-  overflow: auto;
 }
 .game ul,
 .game ol {
@@ -80,6 +87,8 @@ body:has(.game-page) {
   grid-area: hint;
   display: none;
   margin: 0;
+  padding: 2px 4px;
+  background: var(--game-bar-bg);
   font-weight: bold;
 }
 @media (orientation: portrait) {
@@ -87,59 +96,110 @@ body:has(.game-page) {
     display: block;
   }
 }
-/* The thin top bar: the status and the two tracks in one row, wrapping only when the screen is too narrow. */
-.game .game-top {
-  grid-area: top;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+/* The map, from the top bar to the sheet: its rows follow the game's, so the drawing takes the clear row between the
+   bars and "Whole map" fits the world there, while the picture runs on under both see-through bars. The side
+   colours (--map-lio, --map-sae, --map-none) and the sea are in map/mapTheme.css. */
+.game > .game-map {
+  grid-row: top-start / sheet-end;
+  grid-column: 1;
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-template-columns: minmax(0, 1fr);
+  z-index: 0;
+  box-sizing: border-box;
   min-width: 0;
-}
-.game .game-top > section {
-  flex: 1 1 300px;
-}
-.game .game-status {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-}
-/* The score track and Escalation, beside the status in the top bar (A15). */
-.game .game-top > .game-tracks {
-  flex: 1 1 360px;
-}
-.game .track-score {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 8px;
-}
-.game .track-bar {
-  position: relative;
-  flex: 1 1 120px;
-  height: 12px;
-  border: 1px solid #999;
-  background: linear-gradient(to right, #ddd 49.5%, #000 49.5%, #000 50.5%, #ddd 50.5%);
-}
-.game .track-marker {
-  position: absolute;
-  top: -4px;
-  width: 6px;
-  height: 18px;
-  margin-left: -3px;
-  background: #000;
-  border: 1px solid #fff;
-}
-.game .track-value {
-  font-weight: bold;
-}
-.game .track-escalation {
-  margin: 4px 0 0;
-}
-.game .game-map {
-  /* The side colours (--map-lio, --map-sae, --map-none) are in map/mapTheme.css. */
-  grid-area: map;
   min-height: 0;
-  border-style: dashed;
+  overflow: hidden;
+  background: var(--map-backdrop);
+}
+.game > .game-map:has(.dm-world[data-art="true"]) {
+  background: var(--map-sea);
+}
+.game > .game-map > .dm {
+  grid-row: 2;
+}
+/* The drawing fills its row; the map tools float over its top-left corner and the credit sits at the bottom right.
+   The drawing's own box leaves room for the tools, so "Whole map" fits the world clear of them: a row above it, or
+   a block of two rows beside it when the row is wider than the world (a phone held sideways), short enough that
+   the open sheet never covers it. The picture still runs on under that room. */
+.game .dm[data-mode="map"] {
+  container: dm-map / size;
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  position: relative;
+  height: auto;
+  min-height: 0;
+}
+.game .dm[data-mode="map"] > * {
+  grid-area: 1 / 1;
+}
+.game .dm[data-mode="map"] > .dm-tools {
+  z-index: 1;
+  align-self: start;
+  justify-self: start;
+  margin: 4px;
+}
+.game .dm[data-mode="map"] > .dm-view {
+  min-height: 0;
+  margin-top: var(--game-tools-row);
+  overflow: visible;
+}
+@container dm-map (min-aspect-ratio: 1960 / 826) {
+  .game .dm[data-mode="map"] > .dm-tools {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: calc(var(--game-tools-block) - 8px);
+  }
+  .game .dm[data-mode="map"] > .dm-tools > button:nth-of-type(3) {
+    grid-column: 1 / -1;
+  }
+  .game .dm[data-mode="map"] > .dm-view {
+    margin-top: 0;
+    margin-left: var(--game-tools-block);
+  }
+}
+.game .dm[data-mode="map"] .dm-credit {
+  position: absolute;
+  right: 4px;
+  bottom: 2px;
+  pointer-events: none;
+}
+/* The List is a page to read: it takes only the row between the bars, on a plain background, and scrolls. */
+.game > .game-map:has(> .dm[data-mode="list"]) {
+  grid-row: map;
+  display: block;
+  overflow: auto;
+  padding: 4px;
+  background: var(--game-bg);
+}
+/* With the sheet open, its panel lies over the List's foot: room below the last line lets it scroll up past it. */
+.game:has(.game-tab-panel:not([hidden])) > .game-map:has(> .dm[data-mode="list"]) {
+  padding-bottom: calc(var(--game-panel-max) + 4px);
+}
+.game .dm[data-mode="list"] {
+  height: auto;
+  min-height: 0;
+}
+/* No map: the map box shrinks to its "No map in this game" line under the top bar, and the sheet takes the rest. */
+.game.game-no-map {
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+}
+.game.game-no-map > .game-map {
+  grid-row: map;
+  display: block;
+  padding: 4px;
+  background: none;
+}
+.game.game-no-map > .game-sheet {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.game.game-no-map .game-tab-panel {
+  position: static;
+  flex: 1 1 0;
+  min-height: 0;
+  max-height: none;
 }
 .game .map-region h3 {
   margin: 2px 0;
@@ -236,56 +296,8 @@ body:has(.game-page) {
   display: block;
   margin-bottom: 4px;
 }
-/* The side panel: the tab row, then the open tab's panel, which scrolls; the others are hidden. */
-.game .game-side {
-  grid-area: side;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-}
-.game .game-tabs {
-  display: flex;
-  flex: none;
-  gap: 4px;
-}
-.game .game-tabs button {
-  flex: 1 1 0;
-  min-width: 44px;
-  min-height: 44px;
-}
-.game .game-tabs button[aria-selected="true"] {
-  font-weight: bold;
-  border-bottom: 3px solid #000;
-}
-.game .game-tab-panel {
-  display: flex;
-  flex: 1 1 0;
-  flex-direction: column;
-  gap: 4px;
-  min-height: 0;
-  overflow: auto;
-}
-.game .game-tab-panel[hidden] {
-  display: none;
-}
-.game .game-tab-panel > section {
-  flex: none;
-}
-/* No map: the map box shrinks to its "No map in this game" line across the top, and the side panel gets the rest. */
-.game.game-no-map {
-  grid-template-rows: auto auto auto minmax(0, 1fr);
-  grid-template-areas:
-    "hint hint"
-    "top top"
-    "map map"
-    "side side";
-}
 @media (min-width: 1000px) {
   .game {
     font-size: 16px;
-    grid-template-columns: minmax(0, 1fr) 420px;
   }
 }

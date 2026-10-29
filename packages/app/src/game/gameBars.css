@@ -1,0 +1,180 @@
+/* What floats over the map (L5, #485; docs/design/screen-layout.md): the slim see-through top bar, with the Menu,
+   the page's own items, the status line and the two tracks; and the sheet along the bottom, whose tab row stays
+   and whose open panel rises over the map. The bar colours (--game-bar-bg, --game-panel-bg) are in gameScreen.css. */
+.game .game-top {
+  grid-area: top;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 1px 4px;
+  background: var(--game-bar-bg);
+  white-space: nowrap;
+}
+.game .game-top > * {
+  flex: none;
+}
+.game .game-top > p {
+  margin: 0;
+}
+/* The status line over the tracks line: each one line, cut short with "…" on a narrow screen. */
+.game .game-top > .game-top-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+.game .game-top-main > section {
+  box-sizing: border-box;
+  min-width: 0;
+  overflow: hidden;
+  line-height: 20px;
+  text-overflow: ellipsis;
+}
+.game .game-status {
+  display: flex;
+  gap: 12px;
+}
+.game .game-status > span {
+  flex: none;
+}
+.game .game-status > span:nth-child(3),
+.game .game-status > span:nth-child(4) {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The score track and Escalation (A15), on the line under the status. */
+.game .game-tracks {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.game .track-score {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.game .track-score > span {
+  flex: none;
+}
+.game .track-bar {
+  position: relative;
+  flex: 1 1 120px;
+  min-width: 60px;
+  height: 12px;
+  border: 1px solid var(--game-edge);
+  background: linear-gradient(to right, #ddd 49.5%, #000 49.5%, #000 50.5%, #ddd 50.5%);
+}
+.game .track-marker {
+  position: absolute;
+  top: -4px;
+  width: 6px;
+  height: 18px;
+  margin-left: -3px;
+  background: #000;
+  border: 1px solid #fff;
+}
+.game .track-value {
+  font-weight: bold;
+}
+.game .track-escalation {
+  flex: 0 1 auto;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The Menu holds what the page keeps out of the way, such as its note; it drops down over the map. */
+.game .game-menu {
+  position: relative;
+}
+.game .game-menu > summary {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.game .game-menu-body {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 4;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(80vw, 480px);
+  padding: 8px;
+  border: 1px solid var(--game-edge);
+  background: var(--game-panel-bg);
+  white-space: normal;
+}
+/* The sheet: its tab row along the bottom of the map, and the open tab's panel just above it. */
+.game .game-sheet {
+  grid-area: sheet;
+  z-index: 2;
+  position: relative;
+  min-width: 0;
+}
+.game .game-sheet-bar {
+  display: flex;
+  gap: 4px;
+  padding: 2px 4px;
+  background: var(--game-bar-bg);
+}
+.game .game-tabs {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 4px;
+}
+.game .game-tabs button {
+  flex: 1 1 0;
+  min-width: 44px;
+  min-height: 44px;
+}
+.game .game-tabs button[aria-selected="true"] {
+  font-weight: bold;
+  border-bottom: 3px solid #000;
+}
+.game .game-sheet-hide {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+}
+.game .game-sheet-hide[hidden] {
+  display: none;
+}
+/* The open panel rises over the map from the tab row, never past the top 54% of the game nor over the map tools
+   (--game-panel-max, gameScreen.css), and scrolls. */
+.game .game-tab-panel {
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  left: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: var(--game-panel-max);
+  padding: 4px;
+  overflow: auto;
+  background: var(--game-panel-bg);
+}
+.game .game-tab-panel[hidden] {
+  display: none;
+}
+.game .game-tab-panel > section {
+  box-sizing: border-box;
+  flex: none;
+  min-width: 0;
+  padding: 4px;
+  border: 1px solid var(--game-edge);
+}

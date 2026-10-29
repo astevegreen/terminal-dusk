@@ -70,7 +70,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e/drawnMap.e2e.ts` - The drawn map (L2, #465) in the six-region game against the AI, at the phone and desktop sizes: 42 markers and the two home boxes, all inside the map area with…
 - `packages/app/e2e/game.e2e.ts`
 - `packages/app/e2e/keyboard.e2e.ts`
-- `packages/app/e2e/landscape.e2e.ts` - The game screen laid out for a phone held sideways (L1, #464), run at both configured sizes (844x390 and 1280x800): no page scroll, a thin top bar, the map fil…
+- `packages/app/e2e/landscape.e2e.ts` - The map-first game screen (L5, #485), run at both configured sizes (844x390 and 1280x800): the map fills the whole game screen and everything else floats over…
 - `packages/app/e2e/map.e2e.ts`
 - `packages/app/e2e/mapTheme.test.ts` - Guards src/game/map/mapTheme.css, drawnMap.css and gameScreen.css.
 - `packages/app/e2e/narrow.e2e.ts` - The game screen on a phone held upright (375x667), found in the phase 3 gate playtest of 28 Oct: a game with no map kept a full-size empty map box (#412).
@@ -104,13 +104,14 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/eventPresentation.test.ts`
 - `packages/app/src/eventPresentation.ts` - How each EventKind is presented. Exports: EventPresentation, eventPresentation, logLine, touchedCountries.
 - `packages/app/src/game/GameScreen.test.tsx`
-- `packages/app/src/game/GameScreen.tsx` - The game screen: one whole game drawn from one frame, laid out for a phone held sideways (844x390; L1, #464): a thin top bar, the map filling the main area and… Exports: GameScreenProps, GameScreen.
+- `packages/app/src/game/GameScreen.tsx` - The game screen: one whole game drawn from one frame, laid out for a phone held sideways (844x390; L1, #464). Exports: GameScreenProps, GameScreen.
 - `packages/app/src/game/MapView.test.tsx` - The map zoomed out (issue #364): badges per country, grouped by region, net influence, controller colour.
 - `packages/app/src/game/MapView.tsx` - The map (docs/architecture.md, Decision 6). Exports: Zoom, OnZoom, influenceOf, netInfluence, shownZoom, MapView.
 - `packages/app/src/game/MapZoom.test.tsx` - The map zoomed into a region (issue #365): region buttons, country boxes, "Whole map", zoom kept across frames.
 - `packages/app/src/game/ZoomableMap.tsx` - The Map area's one hook holder (docs/architecture.md, Decision 6). Exports: ZoomableMap.
 - `packages/app/src/game/decisionFocus.test.tsx`
 - `packages/app/src/game/decisionFocus.tsx` - Keyboard play: when a new decision waits for the player, focus moves to its first choice button. Exports: shouldFocusDecision, FocusRoot, FIRST_CHOICE, applyDecisionFocus, FocusingGameScreen.
+- `packages/app/src/game/gameBars.css`
 - `packages/app/src/game/gameScreen.css`
 - `packages/app/src/game/map/DrawnMap.test.tsx` - The drawn map (L2, #465): a shaded area per region, a marker per country with its name, both sides' influence, its controller's colour, stability and a battleg…
 - `packages/app/src/game/map/DrawnMap.tsx` - The drawn map (L2, #465): one wrapper the size of the layout, which mapControl.ts moves by a CSS transform. Exports: DrawnMapProps, DrawnMap.
@@ -144,7 +145,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/map/world/worldArt.ts` - The real-geography map's artwork (L3, #479), made by `pnpm map:build` from the sources in SOURCES.md: the Blue Marble picture, and each game country's shape an… Exports: WORLD_ART.
 - `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, HandCard, Hand, Opponent, Table, Contingency, Log.
 - `packages/app/src/game/sideTabs.test.tsx` - The side panel's three tabs (L1, issue #464): which one shows, and how they draw.
-- `packages/app/src/game/sideTabs.tsx` - The side panel's three tabs (L1, issue #464; docs/architecture.md, Decision 6): Play (the decision and the hand), Log, and Details (the opponent, the table and… Exports: TabId, TABS, shownTab, SideTabs.
+- `packages/app/src/game/sideTabs.tsx` - The sheet's three tabs (L1, issue #464; L5, #485; docs/architecture.md, Decision 6): Play (the decision and the hand), Log, and Details (the opponent, the tabl… Exports: TabId, SheetPick, TABS, shownTab, SideTabs.
 - `packages/app/src/game/sixRegionMapView.test.tsx` - The real six-region map on screen (A14, issue #439): 6 region buttons and 42 badges zoomed out, each region's boxes zoomed in, Crimea's own box, and both home…
 - `packages/app/src/game/test/mapFixture.ts` - Test helper: a hand-written two-region map, its influence, and test-mode frames with and without it. Exports: map, influence, baseFrame, withMap, withoutMap.
 - `packages/app/src/game/tracks.test.tsx` - The score track and Escalation on screen (A15, issue #448): drawn from the frame's public state, and only on a map that has scoring.

@@ -24,6 +24,14 @@ describe("shownTab", () => {
   it("goes back to Play once the decision it was picked for has gone", () => {
     expect(shownTab("log", "d1", null)).toBe("play");
   });
+  it("shows no tab while the player has folded the sheet with Hide, for the same decision (L5, #485)", () => {
+    expect(shownTab("hide", "d1", "d1")).toBeNull();
+    expect(shownTab("hide", null, null)).toBeNull();
+  });
+  it("opens Play by itself when a new decision arrives while the sheet is folded", () => {
+    expect(shownTab("hide", "d1", "d2")).toBe("play");
+    expect(shownTab("hide", null, "d1")).toBe("play");
+  });
 });
 
 describe("SideTabs", () => {
@@ -50,6 +58,12 @@ describe("SideTabs", () => {
     for (const [, controls] of out.matchAll(/aria-controls="([^"]+)"/g)) expect(out).toContain(`id="${controls}"`);
     expect(out.match(/role="tabpanel"[^>]*tabindex="0"/g)).toHaveLength(3);
     expect(out).not.toMatch(/tabindex="[1-9]/);
+  });
+  it("puts a Hide button beside the tabs, outside the tablist, in a bar of its own (L5, #485)", () => {
+    expect(out).toMatch(
+      /^<div class="game-sheet-bar"><div role="tablist"[^>]*>.*?<\/div><button type="button"[^>]*>Hide<\/button><\/div>/,
+    );
+    expect(out.match(/role="tab"/g)).toHaveLength(3);
   });
   it("is a memo element, so the test walkers step over its hook and still reach the panels' buttons", () => {
     const pressed: string[] = [];

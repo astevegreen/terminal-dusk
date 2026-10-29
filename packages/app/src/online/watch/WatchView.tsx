@@ -52,17 +52,20 @@ export function WatchView({ snapshot, replay, label, question, rules, affiliatio
     );
   }
   const showing = frame !== null && turn !== "loading";
+  const items = (
+    <>
+      <button type="button" style={TAP} onClick={onBack}>
+        Back
+      </button>
+      <p>Watching</p>
+      <p role="status">{watchText(snapshot)}</p>
+      {turn === "over" && replay === "none" && <p>The replay is not available yet.</p>}
+    </>
+  );
+  // In a game the lines go in the game's top bar, so the map gets the whole screen (L5, #485).
   return (
     <main className="game-page">
-      <div style={BAR}>
-        <button type="button" style={TAP} onClick={onBack}>
-          Back
-        </button>
-        <p>Watching</p>
-        <p role="status">{watchText(snapshot)}</p>
-        {turn === "over" && replay === "none" && <p>The replay is not available yet.</p>}
-      </div>
-      {showing && (
+      {showing ? (
         <GameScreen
           frame={frame}
           log={snapshot.log}
@@ -73,7 +76,10 @@ export function WatchView({ snapshot, replay, label, question, rules, affiliatio
           affiliation={affiliation}
           onAnswer={undefined}
           refusal={null}
+          bar={items}
         />
+      ) : (
+        <div style={BAR}>{items}</div>
       )}
     </main>
   );
