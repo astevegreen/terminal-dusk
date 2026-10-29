@@ -1,6 +1,6 @@
 // The words the game screens share: side names and who each side is, era names, why a game ended, and what the log calls cards and
 // eras. Display data only; era names come from the first deck through the host (the app may not import content).
-import type { CardId, EraId, GameStatus, PublicState, RegionId, Side } from "@terminal-dusk/engine";
+import type { CardId, EraId, GameStatus, PublicState, RegionId, Ruleset, Side } from "@terminal-dusk/engine";
 import { firstDeckEraName } from "@terminal-dusk/host/first-deck";
 
 /** A card's shown name. */
@@ -34,6 +34,15 @@ export const ESCALATION_NAME: readonly string[] = [
 
 /** A card's rules text, shown under its name in the hand; undefined when the game has none for it. */
 export type CardRules = (card: CardId) => string | undefined;
+
+/** A card's points value, shown on it in the hand strip; undefined when the game has none for it. */
+export type CardPoints = (card: CardId) => number | undefined;
+
+/** A ruleset's card points (each card's `ops`), for the hand strip. Display data only. */
+export const pointsOf =
+  (ruleset: Pick<Ruleset, "cards">): CardPoints =>
+  (card) =>
+    ruleset.cards.find((c) => c.id === card)?.ops;
 
 export const SIDE_NAME: Record<Side, string> = { lio: "LIO", sae: "SAE" };
 

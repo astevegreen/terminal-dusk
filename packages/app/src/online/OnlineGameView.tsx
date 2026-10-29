@@ -3,7 +3,7 @@
 // walk and press it without a browser. While the game is loading only the turn line and Back show.
 import type { CardId } from "@terminal-dusk/engine";
 import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
-import type { CardRules } from "../displayText.ts";
+import type { CardPoints, CardRules } from "../displayText.ts";
 import { GameScreen } from "../game/GameScreen.tsx";
 import { deadlineText, turnText } from "./gameText.ts";
 import type { OnlineGame, OnlineGameSnapshot } from "./onlineGame.ts";
@@ -22,6 +22,8 @@ export type OnlineGameViewProps = {
   question: CardQuestion;
   /** A card's rules text for the hand; left out, the hand shows names only. */
   rules?: CardRules | undefined;
+  /** A card's points for its chip in the hand strip; left out, the chips show names only. */
+  points?: CardPoints | undefined;
   affiliation: CardAffiliation;
   /** Returns to the lobby, after the session is closed. */
   onBack: () => void;
@@ -33,6 +35,7 @@ export function OnlineGameView({
   label,
   question,
   rules,
+  points,
   affiliation,
   onBack,
 }: Readonly<OnlineGameViewProps>) {
@@ -63,6 +66,7 @@ export function OnlineGameView({
           label={label}
           question={question}
           rules={rules}
+          points={points}
           affiliation={affiliation}
           onAnswer={turn === "mine" && game !== null ? (value) => void game.answer(value) : undefined}
           refusal={snapshot.refusal?.code ?? null}

@@ -5,9 +5,13 @@ import { useState, useSyncExternalStore } from "react";
 import { GameScreen } from "../game/GameScreen.tsx";
 import { ReplayScreen } from "../replay/ReplayScreen.tsx";
 import type { ReplayRecording } from "../replay/recording.ts";
-import { cardAffiliation, cardName, cardQuestion } from "./fixture.ts";
+import { pointsOf } from "../displayText.ts";
+import { cardAffiliation, cardName, cardQuestion, fixtureRuleset } from "./fixture.ts";
 import { createTestSession } from "./session.ts";
 import type { Snapshot, TestSession } from "./session.ts";
+
+/** Each fixture card's points, shown on its chip in the hand strip (L6, #486). */
+const cardPoints = pointsOf(fixtureRuleset);
 
 const VIEWERS: readonly { viewer: Viewer; text: string }[] = [
   { viewer: "lio", text: "LIO" },
@@ -70,6 +74,7 @@ export function TestModeView({ snapshot, session }: Readonly<{ snapshot: Snapsho
           label={cardName}
           question={cardQuestion}
           affiliation={cardAffiliation}
+          points={cardPoints}
           onAnswer={(value) => void session.answer(value)}
           refusal={snapshot.refusal}
         />

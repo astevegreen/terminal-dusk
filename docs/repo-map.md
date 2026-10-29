@@ -67,8 +67,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e-stack/mail.ts` - Reading sign-in codes from the local stack's mail catcher (Mailpit) for A10. Exports: mailpitUrl, codeFrom, waitForCode, whyMailUnavailable.
 - `packages/app/e2e-stack/phase4.e2e.ts` - The phase 4 gate in a real browser (A10; docs/architecture.md, "Revised build order", phase 4).
 - `packages/app/e2e-stack/runUsers.ts` - The run's two players, found and removed by email with the service role (A10). Exports: userIdByEmail, grantWebByEmail, removeRun.
+- `packages/app/e2e/answer.ts` - Shared answering for the Playwright smoke tests (not a test file: only *.e2e.ts files are tests). Exports: decisionButtons, stripChips, liftedCard, yourDecision, takenOrRefused, answerOnce.
 - `packages/app/e2e/drawnMap.e2e.ts` - The drawn map (L2, #465) in the six-region game against the AI, at the phone and desktop sizes: 42 markers and the two home boxes, all inside the map area with…
 - `packages/app/e2e/game.e2e.ts`
+- `packages/app/e2e/handStrip.e2e.ts` - The hand strip (L6, #486), run at both configured sizes (844x390 and 1280x800): the hand is a slim strip along the bottom edge, each card a chip at least 44 px…
 - `packages/app/e2e/keyboard.e2e.ts`
 - `packages/app/e2e/landscape.e2e.ts` - The map-first game screen (L5, #485), run at both configured sizes (844x390 and 1280x800): the map fills the whole game screen and everything else floats over…
 - `packages/app/e2e/map.e2e.ts`
@@ -98,9 +100,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/App.tsx` - The home screen: the game's name, a button to play against the AI, a button to play the six-region map against the AI (A14, #439), a button to play online and… Exports: AppProps, App, onlineRoute, Home.
 - `packages/app/src/chooseActionPrompt.test.tsx` - The chooseAction prompt (R16b, #316): all the points go to one action, placing or one intervention.
 - `packages/app/src/decisionPrompts.test.tsx`
-- `packages/app/src/decisionPrompts.tsx` - One prompt component per DecisionKind. Exports: CardQuestion, CardAffiliation, PromptProps, PromptComponent, askingCard, decisionPrompts.
+- `packages/app/src/decisionPrompts.tsx` - One prompt component per DecisionKind. Exports: PromptPlace, CardQuestion, CardAffiliation, PromptProps, PromptComponent, askingCard, decisionPrompts.
 - `packages/app/src/displayText.test.ts`
-- `packages/app/src/displayText.ts` - The words the game screens share: side names and who each side is, era names, why a game ended, and what the log calls cards and eras. Exports: Label, GameNames, regionNamer, scoreText, ESCALATION_NAME, CardRules, SIDE_NAME, SIDE_WHO, sideFullName, eraText, playsText, reasonText, ….
+- `packages/app/src/displayText.ts` - The words the game screens share: side names and who each side is, era names, why a game ended, and what the log calls cards and eras. Exports: Label, GameNames, regionNamer, scoreText, ESCALATION_NAME, CardRules, CardPoints, pointsOf, SIDE_NAME, SIDE_WHO, sideFullName, eraText, ….
 - `packages/app/src/eventPresentation.test.ts`
 - `packages/app/src/eventPresentation.ts` - How each EventKind is presented. Exports: EventPresentation, eventPresentation, logLine, touchedCountries.
 - `packages/app/src/game/GameScreen.test.tsx`
@@ -110,9 +112,13 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/MapZoom.test.tsx` - The map zoomed into a region (issue #365): region buttons, country boxes, "Whole map", zoom kept across frames.
 - `packages/app/src/game/ZoomableMap.tsx` - The Map area's one hook holder (docs/architecture.md, Decision 6). Exports: ZoomableMap.
 - `packages/app/src/game/decisionFocus.test.tsx`
-- `packages/app/src/game/decisionFocus.tsx` - Keyboard play: when a new decision waits for the player, focus moves to its first choice button. Exports: shouldFocusDecision, FocusRoot, FIRST_CHOICE, applyDecisionFocus, FocusingGameScreen.
+- `packages/app/src/game/decisionFocus.tsx` - Keyboard play: when a new decision waits for the player, focus moves to its first choice button. Exports: shouldFocusDecision, FocusRoot, FIRST_CHOICE, STRIP_CHIP, applyDecisionFocus, FocusingGameScreen.
 - `packages/app/src/game/gameBars.css`
 - `packages/app/src/game/gameScreen.css`
+- `packages/app/src/game/handCards.tsx` - What the hand strip shows (L6, #486; docs/design/screen-layout.md), drawn from the frame and display data only: each card in the hand as a small chip (its poin… Exports: StripChip, chipsOf, chipName, ChipFace, LiftedCard, StripCounts.
+- `packages/app/src/game/handStrip.css`
+- `packages/app/src/game/handStrip.test.tsx` - The hand strip (L6, #486): each card a chip with its points, name and side; a lifted card with its full text and the waiting decision's choices for it; the riv…
+- `packages/app/src/game/handStrip.tsx` - The hand strip along the bottom edge (L6, #486; docs/design/screen-layout.md; Decision 6's bottom sheet in its folded form). Exports: stripMove, liftedIn, HandStrip.
 - `packages/app/src/game/map/DrawnMap.test.tsx` - The drawn map (L2, #465): a shaded area per region, a marker per country with its name, both sides' influence, its controller's colour, stability and a battleg…
 - `packages/app/src/game/map/DrawnMap.tsx` - The drawn map (L2, #465): one wrapper the size of the layout, which mapControl.ts moves by a CSS transform. Exports: DrawnMapProps, DrawnMap.
 - `packages/app/src/game/map/MapPanel.test.tsx` - The Map area's two views (L2, #465): the drawn map, with "Whole map", or the List, which is the map as it was drawn before (MapView, unchanged), with a Map/Lis…
@@ -143,7 +149,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/map/world/worldArt.json`
 - `packages/app/src/game/map/world/worldArt.test.ts` - The real-geography map's artwork (L3, #479), as `pnpm map:build` made it: every country of the six-region game has a shape, and the shape is around the country…
 - `packages/app/src/game/map/world/worldArt.ts` - The real-geography map's artwork (L3, #479), made by `pnpm map:build` from the sources in SOURCES.md: the Blue Marble picture, and each game country's shape an… Exports: WORLD_ART.
-- `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, HandCard, Hand, Opponent, Table, Contingency, Log.
+- `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, HandCard, Opponent, Table, Contingency, Log.
 - `packages/app/src/game/sideTabs.test.tsx` - The side panel's three tabs (L1, issue #464): which one shows, and how they draw.
 - `packages/app/src/game/sideTabs.tsx` - The sheet's three tabs (L1, issue #464; L5, #485; docs/architecture.md, Decision 6): Play (the decision and the hand), Log, and Details (the opponent, the tabl… Exports: TabId, SheetPick, TABS, shownTab, SideTabs.
 - `packages/app/src/game/sixRegionMapView.test.tsx` - The real six-region map on screen (A14, issue #439): 6 region buttons and 42 badges zoomed out, each region's boxes zoomed in, Crimea's own box, and both home…
@@ -200,6 +206,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/placeInfluencePrompt.test.tsx` - The placeInfluence prompt (R16a, #315): one choice per country a placing lists.
 - `packages/app/src/platform/storage.test.ts`
 - `packages/app/src/platform/storage.ts` - The `storage` part of the Platform interface (docs/architecture.md, Decision 7): a small async key-value store, so a Capacitor implementation fits later. Exports: KeyValueStore, StorageLike, memoryStore, webStore.
+- `packages/app/src/promptChoices.tsx` - How a prompt draws its choices (decisionPrompts.tsx), and where (L6, #486; docs/design/screen-layout.md). Exports: PromptPlace, Choice, BUTTON_STYLE, TAP_A_CARD, Choices.
+- `packages/app/src/promptPlace.test.tsx` - Where a prompt draws its choices (L6, #486): the choices that use a card in the hand go on that card when it is lifted from the hand strip, and the decision's…
 - `packages/app/src/realignPrompts.test.tsx` - The action menu and realign prompts (R16c, #317): one choice per action, and one per country to realign in.
 - `packages/app/src/replay/ReplayScreen.test.tsx`
 - `packages/app/src/replay/ReplayScreen.tsx` - The replay viewer: steps through a finished game's recorded frames, both hands showing. Exports: ReplayScreenProps, ReplayView, ReplayScreen.

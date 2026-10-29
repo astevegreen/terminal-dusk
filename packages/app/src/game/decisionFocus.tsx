@@ -20,9 +20,13 @@ export function shouldFocusDecision(previousId: DecisionId | null, decision: Dec
 /** The little the effect needs from the page: a place to find the decision's first button in. */
 export type FocusRoot = { querySelector: (selector: string) => { focus: () => void } | null };
 export const FIRST_CHOICE = '[data-testid="decision"] button';
+/** The hand strip's chip the keyboard is on (L6, #486): where a card decision's choices start, as they are on the
+ *  cards. */
+export const STRIP_CHIP = '[data-testid="hand"] .strip-chip[tabindex="0"]';
 
 /**
- * The effect: applies the rule, focuses the first choice inside `root` when it says so, and returns the id to
+ * The effect: applies the rule, focuses the first choice inside `root` when it says so (the decision's first
+ * button, or the hand strip's chip when the decision's region has none, as for a play), and returns the id to
  * remember for the next check.
  */
 export function applyDecisionFocus(
@@ -31,7 +35,8 @@ export function applyDecisionFocus(
   canAnswer: boolean,
   root: FocusRoot | null,
 ): DecisionId | null {
-  if (shouldFocusDecision(previousId, decision, canAnswer)) root?.querySelector(FIRST_CHOICE)?.focus();
+  if (shouldFocusDecision(previousId, decision, canAnswer))
+    (root?.querySelector(FIRST_CHOICE) ?? root?.querySelector(STRIP_CHIP))?.focus();
   return decision?.id ?? null;
 }
 

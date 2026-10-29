@@ -1,26 +1,6 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
-
-/** Taps the decision's buttons in order until one is not refused (the fixture offers some refused moves). */
-async function answerOnce(page: Page): Promise<void> {
-  const buttons = page.getByTestId("decision").getByRole("button");
-  const count = await buttons.count();
-  for (let i = 0; i < count; i++) {
-    const button = await buttons.nth(i).elementHandle();
-    if (!button) return;
-    await button.click();
-    const refusedOrGone = await page.waitForFunction(
-      (tapped) =>
-        !tapped.isConnected ||
-        [...document.querySelectorAll('[data-testid="decision"] output')].some((line) =>
-          line.textContent?.startsWith("Refused:"),
-        ),
-      button,
-    );
-    await refusedOrGone.dispose();
-    if (!(await button.evaluate((tapped) => tapped.isConnected))) return;
-  }
-}
+import { answerOnce, yourDecision } from "./answer.ts";
 
 /** Plays the test-mode game to its end: whichever side has a prompt answers it, switching the viewer to reach it. */
 async function finishGame(page: Page): Promise<void> {
@@ -30,7 +10,8 @@ async function finishGame(page: Page): Promise<void> {
       await page.getByRole("button", { name: side, exact: true }).click();
       await expect(status).toContainText(`You play ${side}`);
       if (await status.getByText("Game over").isVisible()) return;
-      if ((await page.getByTestId("decision").getByRole("button").count()) > 0) {
+      // A decision waits for this side: its choices are in the decision's region or on the cards (L6, #486).
+      if (await yourDecision(page).isVisible()) {
         await answerOnce(page);
         break;
       }
