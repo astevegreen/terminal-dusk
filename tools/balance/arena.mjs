@@ -2,7 +2,7 @@
 // the AI arena of Decision 8. Plays n seeded games of tier A against tier B through the match host (play.mjs), swaps
 // the sides every game so neither tier gets the first-player edge, and reports win rate per tier and per side, draws
 // and game length. Exits 1 when a Decision 8 gate that applies to the pairing fails. See tools/balance/README.md.
-import { balanceConfig, DEFAULT_SCENARIO, SCENARIOS } from "./config.mjs";
+import { balanceConfig, SCENARIOS } from "./config.mjs";
 import { playBalanceGame, SIDES, TIERS } from "./play.mjs";
 
 export const USAGE =
@@ -123,7 +123,7 @@ export function checkGate(tally) {
  * Plays the arena. Game `i` has seed `${seed}-${i}`; the two tiers swap sides each game. `createPlayer` is not
  * offered: the arena plays the real tiers only.
  */
-export function runArena({ a, b, games, seed, scenario = DEFAULT_SCENARIO }) {
+export function runArena({ a, b, games, seed, scenario = DEFAULTS.scenario }) {
   const config = balanceConfig({ scenario });
   const results = Array.from({ length: games }, (_, i) => {
     const aSide = sideOf("a", i);
