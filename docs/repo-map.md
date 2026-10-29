@@ -1001,6 +1001,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `docs/proposals/map-balance/option-1-taiwan.json`
 - `docs/proposals/map-balance/option-2-amounts.json`
 - `docs/proposals/map-balance/option-3-track.json`
+- `docs/proposals/map-balance/variant-combined.json`
+- `docs/proposals/map-balance/variant-track-6.json`
 - `docs/proposals/map-content/README.md` - The six-region map's content, and the order regions close at Escalation
 - `docs/proposals/map-content/option-1.md` - Option 1: even regions, six countries each
 - `docs/proposals/map-content/option-2.md` - Option 2: card places first, uneven regions

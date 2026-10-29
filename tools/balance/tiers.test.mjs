@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { countBySide } from "./play.mjs";
 import { formatText } from "./report.mjs";
-import { parseArgs, runBalance } from "./run.mjs";
+import { parseArgs, runBalance, sumBySide } from "./run.mjs";
 
 test("--lio-tier and --sae-tier parse into this run's tiers; a side left out stays Easy", () => {
   assert.deepEqual(parseArgs(["--lio-tier", "medium"]).tiers, { lio: "medium" });
@@ -74,4 +74,14 @@ test("a tiered run sums each game's tech race attempts by side", () => {
   });
   assert.deepEqual(Object.keys(stats.techRaces), ["lio", "sae"]);
   for (const n of Object.values(stats.techRaces)) assert.ok(Number.isInteger(n) && n >= 0);
+});
+
+test("sumBySide adds each game's counts by side, under the key asked for only", () => {
+  const games = [
+    { crises: { lio: 1, sae: 0 }, techRaces: { lio: 0, sae: 2 } },
+    { crises: { lio: 0, sae: 0 }, techRaces: { lio: 3, sae: 1 } },
+  ];
+  assert.deepEqual(sumBySide(games, "techRaces"), { lio: 3, sae: 3 });
+  assert.deepEqual(sumBySide(games, "crises"), { lio: 1, sae: 0 });
+  assert.deepEqual(sumBySide([], "techRaces"), { lio: 0, sae: 0 });
 });

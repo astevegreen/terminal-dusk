@@ -15,7 +15,8 @@ node tools/balance/run.mjs --scenario six-region --games 1000 --seed x15 --lio-t
 node tools/balance/run.mjs --scenario six-region --games 1000 --seed x15 --lio-tier medium --sae-tier medium --numbers docs/proposals/map-balance/option-1-taiwan.json
 ```
 
-(and the same with `option-2-amounts.json` and `option-3-track.json`). Each run is 1,000 seeded games of Medium
+(and the same with `option-2-amounts.json`, `option-3-track.json`, and the two variants `variant-track-6.json` and
+`variant-combined.json`; the second-seed check is the first command with `--seed x15b`). Each run is 1,000 seeded games of Medium
 against Medium through the match host, as a real match plays, and takes about 3 to 4 minutes. The same command always
 prints the same report.
 
@@ -137,7 +138,8 @@ East and South Asia scores 2 / 4 / 6 (present / ahead / every battleground) inst
 
 The score track starts at 4 on SAE's side (of 20 to each end) instead of the middle. Nothing on the map changes.
 
-- **Effect:** LIO's win share falls to 54.8%. A further run with the start at 6 gave LIO 51.2%, SAE 47.0%, so the
+- **Effect:** LIO's win share falls to 54.8%. A further run with the start at 6
+  ([variant-track-6.json](map-balance/variant-track-6.json)) gave LIO 51.2%, SAE 47.0%, so the
   start can be tuned in steps.
 - **For:** one number, easy to tune later as the AI and the turn structure change; it does not touch the map.
 - **Against:** it reverses the owner's 28 October choice to start the track in the middle. It hides the cause instead
@@ -147,6 +149,7 @@ The score track starts at 4 on SAE's side (of 20 to each end) instead of the mid
 ### A combination
 
 Options 1 and 3 can be combined, each at a smaller size. A run with Taiwan at LIO 2 and the track starting 2 towards
+([variant-combined.json](map-balance/variant-combined.json))
 SAE gave **LIO 49.6%, SAE 48.6%, draws 1.8%**, the closest to even of every run. It is not an option file of its own
 because it is two decisions; the owner can take either half alone.
 
