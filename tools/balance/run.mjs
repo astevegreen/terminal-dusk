@@ -7,16 +7,26 @@ import { firstDeckCardName, firstDeckRuleset } from "@terminal-dusk/host/first-d
 import { balanceConfig, DEFAULT_SCENARIO, describeSetup, eraCards, eraIdsOf, FIRST_ERA } from "./config.mjs";
 import { SCENARIOS, setupNumbers } from "./config.mjs";
 import { readNumbers } from "./numbers.mjs";
-import { playBalanceGame } from "./play.mjs";
+import { playBalanceGame, TIERS } from "./play.mjs";
 import { formatText } from "./report.mjs";
 import { balanceStats } from "./stats.mjs";
 
 export const USAGE =
   "Usage: node tools/balance/run.mjs [--scenario <first-deck, test-map or six-region>] " +
   "[--games <positive whole number>] [--seed <base>] [--turns <positive whole number>] " +
-  "[--plays <positive whole number>] [--era <era id>@<positive whole number or off>]... [--numbers <file>] [--json]";
+  "[--plays <positive whole number>] [--era <era id>@<positive whole number or off>]... [--numbers <file>] [--lio-tier <easy or medium>] [--sae-tier <easy or medium>] [--json]";
 const DEFAULTS = { games: 200, seed: "balance", json: false };
-const VALUED = new Set(["--scenario", "--games", "--seed", "--turns", "--plays", "--era", "--numbers"]);
+const VALUED = new Set([
+  "--scenario",
+  "--games",
+  "--seed",
+  "--turns",
+  "--plays",
+  "--era",
+  "--numbers",
+  "--lio-tier",
+  "--sae-tier",
+]);
 const WHOLE = /^[1-9]\d*$/;
 const refuse = (message) => new Error(`${message}\n${USAGE}`);
 
@@ -49,7 +59,12 @@ export function parseArgs(argv) {
     if (arg === "--seed") options.seed = value;
     else if (arg === "--numbers") options.numbersFile = value;
     else if (arg === "--era") eraValues.push(value);
-    else if (arg === "--scenario") {
+    else if (arg === "--lio-tier" || arg === "--sae-tier") {
+      if (!Object.hasOwn(TIERS, value)) {
+        throw refuse(`${arg} must be one of ${Object.keys(TIERS).join(", ")}, not "${value}".`);
+      }
+      options.tiers = { ...options.tiers, [arg.slice(2, 5)]: value };
+    } else if (arg === "--scenario") {
       if (!SCENARIOS.includes(value)) {
         throw refuse(`--scenario must be one of ${SCENARIOS.join(", ")}, not "${value}".`);
       }
@@ -75,10 +90,10 @@ export function parseArgs(argv) {
  * (optional) replaces the Easy AI, for tests.
  */
 export function runBalance(options, { createPlayer } = {}) {
-  const { scenario = DEFAULT_SCENARIO, games, seed, turns, plays, eras, numbers } = options;
+  const { scenario = DEFAULT_SCENARIO, games, seed, turns, plays, eras, numbers, tiers } = options;
   const config = balanceConfig({ scenario, turns, plays, eras, numbers });
   const setup = setupNumbers(config, scenario);
-  const summaries = Array.from({ length: games }, (_, i) => playBalanceGame(seed, i, config, { createPlayer }));
+  const summaries = Array.from({ length: games }, (_, i) => playBalanceGame(seed, i, config, { createPlayer, tiers }));
   // One row per card of the scenario's eras (every first-deck card on first-deck; Era 1's on the test map).
   const ofScenario = new Set(eraIdsOf(scenario));
   const stats = balanceStats(summaries, {
@@ -86,7 +101,10 @@ export function runBalance(options, { createPlayer } = {}) {
     nameOf: firstDeckCardName,
     eras: eraCards(setup),
   });
-  return { setup, ...stats };
+  if (tiers === undefined) return { setup, ...stats };
+  const crises = { lio: 0, sae: 0 };
+  for (const game of summaries) for (const side of Object.keys(crises)) crises[side] += game.crises[side];
+  return { setup, ...stats, tiers: { lio: tiers.lio ?? "easy", sae: tiers.sae ?? "easy" }, crises };
 }
 
 const SCENARIO_TITLES = {

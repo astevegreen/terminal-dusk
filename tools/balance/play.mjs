@@ -2,7 +2,7 @@
 // The tool only sees what the host hands out: each side's frame (its view and decision) while the game runs, the
 // spectator's frames (the public view and public events) for the map numbers, and the answer log once it is over.
 // It never looks inside the game state (hard rule 2).
-import { createEasyPlayer } from "@terminal-dusk/ai";
+import { createEasyPlayer, createMediumPlayer } from "@terminal-dusk/ai";
 import { hostCreate, hostSubmit } from "@terminal-dusk/host";
 import { firstDeckConfig, firstDeckRuleset } from "@terminal-dusk/host/first-deck";
 import { mapSummary } from "./map-stats.mjs";
@@ -10,6 +10,8 @@ import { regionLevels } from "./region-stats.mjs";
 import { scoreSummary } from "./score-stats.mjs";
 
 export const SIDES = ["lio", "sae"];
+/** The AI tiers a side can play as, by name. */
+export const TIERS = { easy: createEasyPlayer, medium: createMediumPlayer };
 /** A game still going after this many answers stops the run, so a rules loop cannot hang it. */
 export const MAX_SUBMISSIONS = 10_000;
 /** The host's clock: every step happens at the same moment, which keeps runs identical. */
@@ -24,9 +26,11 @@ export const matchSeed = (base, i) => `${base}-${i}`;
  * order, empty when the game has no map, and `score`, score-stats.mjs's numbers or null when the map has no scoring).
  * Throws on any refusal, and when a player throws or gives no
  * answer. `config` is the run's match config (see config.mjs); by default the first-deck TEST scenario as it is.
- * `createPlayer(ruleset, side, seed)` makes each side's player; by default the Easy AI.
+ * `createPlayer(ruleset, side, seed)` makes each side's player; by default the Easy AI. `tiers` (optional,
+ * { lio, sae } of TIERS names) picks each side's tier instead; `createPlayer` wins over it. The summary's `crises`
+ * counts the escalation crises each side caused.
  */
-export function playBalanceGame(base, i, config = firstDeckConfig(), { createPlayer = createEasyPlayer } = {}) {
+export function playBalanceGame(base, i, config = firstDeckConfig(), { createPlayer, tiers = {} } = {}) {
   const seed = matchSeed(base, i);
   const fail = (why) => new Error(`Game ${i} (match seed "${seed}"): ${why}`);
   const created = hostCreate(firstDeckRuleset, { ...config, matchId: seed }, seed, NOW);
@@ -36,8 +40,8 @@ export function playBalanceGame(base, i, config = firstDeckConfig(), { createPla
   const eras = eraEndTracker(frames.spectator.view.public);
   const scores = scoreTracker(frames.spectator.view.public);
   const players = {
-    lio: createPlayer(firstDeckRuleset, "lio", 2 * i),
-    sae: createPlayer(firstDeckRuleset, "sae", 2 * i + 1),
+    lio: (createPlayer ?? TIERS[tiers.lio ?? "easy"])(firstDeckRuleset, "lio", 2 * i),
+    sae: (createPlayer ?? TIERS[tiers.sae ?? "easy"])(firstDeckRuleset, "sae", 2 * i + 1),
   };
   let submissions = 0;
   while (record.status.kind !== "over") {
@@ -64,8 +68,10 @@ export function playBalanceGame(base, i, config = firstDeckConfig(), { createPla
   }
   const map = mapSummary(frames.spectator.view.public, publicEvents);
   const eraEnds = eras.finish(frames.spectator.view.public);
+  const crises = { lio: 0, sae: 0 };
+  for (const event of publicEvents) if (event.kind === "escalationCrisis") crises[event.side] += 1;
   const score = scoreSummary(scores.start, frames.spectator.view.public.score, record.status, scores.rows);
-  return { status: record.status, answers: submissions, log: secret.log, map, eraEnds, score };
+  return { status: record.status, answers: submissions, log: secret.log, map, eraEnds, score, crises };
 }
 
 /**

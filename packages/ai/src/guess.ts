@@ -20,7 +20,7 @@ function shuffle<T>(items: readonly T[], random: () => number): T[] {
  * The cards the viewer can see: its hand, the ones in play, discarded or removed from the game, and its own
  * unrevealed picks.
  */
-function seenCards(view: PlayerView): Set<CardId> {
+export function seenCards(view: PlayerView): Set<CardId> {
   const seen = new Set<CardId>([
     ...(view.mine?.hand ?? []),
     ...view.public.inPlay,

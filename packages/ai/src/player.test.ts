@@ -1,8 +1,8 @@
-import { viewFor } from "@terminal-dusk/engine";
+import { legalAnswers, viewFor } from "@terminal-dusk/engine";
 import type { AnswerValue } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { easyAnswer } from "./easy.ts";
-import { createAiWorkerHandler, createEasyPlayer } from "./player.ts";
+import { createAiWorkerHandler, createEasyPlayer, createMediumPlayer } from "./player.ts";
 import type { AiRequest } from "./player.ts";
 import { seededRandom } from "./random.ts";
 import { newGame, ruleset } from "./test/testGames.ts";
@@ -73,5 +73,18 @@ describe("the AI worker handler", () => {
     askAll(handler);
     handler(start(21));
     expect(askAll(handler).map((r) => r?.value)).toEqual(ask(createEasyPlayer(ruleset, "lio", 21)));
+  });
+});
+
+describe("the Medium player", () => {
+  it("answers legally, and the worker handler makes a Medium player only when asked for the medium tier", () => {
+    const state = newGame(7);
+    const player = createMediumPlayer(ruleset, "lio", 1);
+    expect(legalAnswers(ruleset, state, "lio")).toContainEqual(player(view));
+    const handler = createAiWorkerHandler();
+    handler({ kind: "start", ruleset, side: "lio", seed: 1, tier: "medium" });
+    const reply = handler({ kind: "answer", id: 7, view });
+    expect(reply?.id).toBe(7);
+    expect(legalAnswers(ruleset, state, "lio")).toContainEqual(reply?.value);
   });
 });

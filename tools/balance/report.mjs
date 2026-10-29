@@ -33,6 +33,13 @@ export function formatText(stats, title = "Balance report") {
       }),
     ]),
   );
+  if (stats.tiers !== undefined) {
+    const { tiers, crises } = stats;
+    lines.push(
+      `Tiers: ${LABEL.lio} ${tiers.lio}, ${LABEL.sae} ${tiers.sae}. Escalation crises caused: ` +
+        `${LABEL.lio} ${crises.lio}, ${LABEL.sae} ${crises.sae}.`,
+    );
+  }
   lines.push("");
   if (stats.noWinner) lines.push(NO_WINNER_LINE, "");
   const perSide = stats.noWinner ? ["picks", "event", "points", "games"] : ["picks", "event", "points", "games", "win"];

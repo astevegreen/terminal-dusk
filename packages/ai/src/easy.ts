@@ -6,7 +6,7 @@ import { guessHidden } from "./guess.ts";
 import type { Weights } from "./types.ts";
 
 /** The card an answer names, or null for an answer that names none. */
-function namedCard(ruleset: Ruleset, value: AnswerValue): CardDef | null {
+export function namedCard(ruleset: Ruleset, value: AnswerValue): CardDef | null {
   if (value.kind !== "chooseCard" && value.kind !== "playCardAs") return null;
   return ruleset.cards.find((card) => card.id === value.card) ?? null;
 }
