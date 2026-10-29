@@ -11,9 +11,10 @@ const numbersOf = (layout: MapLayout): number[] => [
   ...Object.values(layout.regions).flatMap((r) => [r.x, r.y, r.w, r.h]),
   ...Object.values(layout.countries).flatMap((p) => [p.x, p.y]),
   ...SIDES.flatMap((s) => [layout.homes[s].x, layout.homes[s].y]),
+  ...Object.values(layout.places ?? {}).flatMap((p) => [p.x, p.y]),
 ];
 
-/** Every number is whole; every region and marker is inside the map; every country is under its region's name. */
+/** Every number (true places too) is whole; every region and marker is inside the map; every country is under its region's name. */
 export function expectInside(layout: MapLayout, map: GameMap): void {
   for (const n of numbersOf(layout)) expect(Number.isInteger(n), `${n} is whole`).toBe(true);
   const whole = wholeRect(layout);

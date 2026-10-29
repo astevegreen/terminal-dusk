@@ -18,7 +18,29 @@ export type MapLayout = {
   homes: Readonly<Record<Side, Point>>;
   /** Short names for markers; a country left out shows `shortName` of its full name. */
   short: Readonly<Record<CountryId, string>>;
+  /** Each country's true place on a real-geography map (L3, #479); a marker away from it gets a leader line. */
+  places?: Readonly<Record<CountryId, Point>>;
+  /** The real-geography map's picture, country shapes and borders, drawn under the markers. */
+  art?: WorldArt;
 };
+
+/** The real-geography map's artwork (L3, #479), all in layout units: presentation data, never in the game state. */
+export type WorldArt = {
+  /** The bundled picture's URL, drawn at the layout's size. */
+  picture: string;
+  /** The credit the picture's source asks for, shown with the map. */
+  credit: string;
+  /** One SVG path per country of the map, which its region's tint fills. */
+  shapes: Readonly<Record<CountryId, string>>;
+  /** The land borders between countries, as one SVG path. */
+  borders: string;
+};
+
+/** A line from a marker's centre to its country's true place, when the place is not under the marker. */
+export type Leader = { country: CountryId; from: Point; to: Point };
+
+/** The longest a leader line may be, in layout units, so every marker stays near its place. */
+export const LEADER_MAX = 180;
 
 /** Every marker's size, country or home box, in layout units. */
 export const MARKER: Size = { w: 92, h: 48 };
@@ -94,4 +116,18 @@ export function covers(layout: MapLayout, map: GameMap): boolean {
     map.regions.every((r) => Object.hasOwn(layout.regions, r.id)) &&
     map.countries.every((c) => Object.hasOwn(layout.countries, c.id))
   );
+}
+
+/** Whether point `p` lies inside or on the edge of `rect`. */
+export const holds = (rect: Rect, p: Point): boolean =>
+  p.x >= rect.x && p.x <= rect.x + rect.w && p.y >= rect.y && p.y <= rect.y + rect.h;
+
+/** A leader line for each country whose true place is not under its marker, in the order of `places`. */
+export function leaderLines(layout: MapLayout): Leader[] {
+  const leaders: Leader[] = [];
+  for (const [country, to] of Object.entries(layout.places ?? {})) {
+    const from = layout.countries[country];
+    if (from !== undefined && !holds(markerBox(from), to)) leaders.push({ country, from, to });
+  }
+  return leaders;
 }

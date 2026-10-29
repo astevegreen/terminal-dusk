@@ -3,7 +3,8 @@ import type { Country, GameMap } from "@terminal-dusk/engine";
 import { sixRegionMapConfig } from "@terminal-dusk/host/first-deck";
 import { describe, expect, it } from "vitest";
 import { byCodeUnit } from "../../test/order.ts";
-import { contains, grow, markerBox, neighbourPairs, overlaps, shortName } from "./layout.ts";
+import { contains, grow, leaderLines, markerBox, neighbourPairs, overlaps, shortName } from "./layout.ts";
+import type { MapLayout } from "./layout.ts";
 
 const country = (id: string, neighbours: string[]): Country => ({
   id,
@@ -55,5 +56,24 @@ describe("the rectangle tests", () => {
   it("centre a marker box on its point and grow a rectangle on every side", () => {
     expect(markerBox({ x: 100, y: 50 })).toEqual({ x: 54, y: 26, w: 92, h: 48 });
     expect(grow(a, 2)).toEqual({ x: -2, y: -2, w: 14, h: 14 });
+  });
+});
+
+describe("leaderLines", () => {
+  const base: MapLayout = {
+    size: { w: 400, h: 200 },
+    regions: {},
+    countries: { near: { x: 100, y: 100 }, far: { x: 300, y: 100 } },
+    homes: { lio: { x: 50, y: 30 }, sae: { x: 350, y: 30 } },
+    short: {},
+  };
+
+  it("joins a marker's centre to its country's place when the place is not under the marker", () => {
+    const layout = { ...base, places: { near: { x: 120, y: 110 }, far: { x: 300, y: 180 } } };
+    expect(leaderLines(layout)).toEqual([{ country: "far", from: { x: 300, y: 100 }, to: { x: 300, y: 180 } }]);
+  });
+
+  it("draws none for a layout with no places", () => {
+    expect(leaderLines(base)).toEqual([]);
   });
 });
