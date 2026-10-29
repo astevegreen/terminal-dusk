@@ -51,6 +51,7 @@
   --map-leader-width: 2;
   --map-place: #ffffff;
   --map-place-edge: #222222;
+  --map-place-edge-width: 2;
 
   /* Region names, and the picture's credit. */
   --map-region-text: #333333;

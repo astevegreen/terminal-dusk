@@ -12,6 +12,7 @@ Downloads:
 
 - Picture: https://visibleearth.nasa.gov/images/73909, the 5400 by 2700 JPEG.
 - Countries: https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson
+  (the newest file, not a numbered release: the committed `worldArt.json` was built from the copy downloaded on 29 Oct 2026)
 
 ## The credit
 

@@ -106,6 +106,15 @@ describe("the land borders", () => {
     expect(d).toBe("M2 0L2 -2");
   });
 
+  it("start again at each piece of a country, so no line joins two pieces across the map", () => {
+    // AAA's first island ends on a border with BBB, and its second island starts on one.
+    const countries = countriesOf([
+      feature("AAA", square(0, 0, 2), square(10, 0, 2)),
+      feature("BBB", square(-2, 0, 2), square(10, -2, 2)),
+    ]);
+    expect(bordersPath(countries, flat, everywhere)).toBe("M0 -2L0 0M10 0L12 0");
+  });
+
   it("leave out a border wholly outside the crop", () => {
     const countries = countriesOf([feature("AAA", square(0, 0, 2)), feature("BBB", square(2, 0, 2))]);
     expect(bordersPath(countries, flat, { west: 10, east: 20, south: 10, north: 20 })).toBe("");

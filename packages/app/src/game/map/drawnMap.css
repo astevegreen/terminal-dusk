@@ -106,7 +106,7 @@
 .dm-place {
   fill: var(--map-place);
   stroke: var(--map-place-edge);
-  stroke-width: 2;
+  stroke-width: var(--map-place-edge-width);
 }
 /* Region shades, flat and pale, in the map's region order; a closed region is grey. On the picture, only a faint
    edge: the tints show the regions. */

@@ -216,11 +216,13 @@ const keyOf = (a, b) => {
  */
 export function bordersPath(countries, project, crop) {
   const owners = new Map();
-  const eachEdge = (code, visit) => {
+  // `ringDone` runs after each ring, so a run of border edges never carries on into the next piece of the country.
+  const eachEdge = (code, visit, ringDone = () => {}) => {
     for (const polygon of countries.get(code))
       for (const ring of polygon) {
         const points = open(ring);
         points.forEach((a, i) => visit(a, points[(i + 1) % points.length]));
+        ringDone();
       }
   };
   for (const code of countries.keys())
@@ -237,14 +239,18 @@ export function bordersPath(countries, project, crop) {
       if (run.length > 1) runs.push(run);
       run = [];
     };
-    eachEdge(code, (a, b) => {
-      const others = [...owners.get(keyOf(a, b))].filter((c) => c !== code);
-      const drawnHere = others.length > 0 && others.every((c) => c > code);
-      const seen = inBox(crop, a) || inBox(crop, b);
-      if (!drawnHere || !seen) return end();
-      if (run.length === 0) run.push(a);
-      run.push(b);
-    });
+    eachEdge(
+      code,
+      (a, b) => {
+        const others = [...owners.get(keyOf(a, b))].filter((c) => c !== code);
+        const drawnHere = others.length > 0 && others.every((c) => c > code);
+        const seen = inBox(crop, a) || inBox(crop, b);
+        if (!drawnHere || !seen) return end();
+        if (run.length === 0) run.push(a);
+        run.push(b);
+      },
+      end,
+    );
     end();
   }
   let d = "";
