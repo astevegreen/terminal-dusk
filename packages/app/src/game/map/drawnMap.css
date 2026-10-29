@@ -240,6 +240,33 @@
   box-shadow: 0 0 0 9px var(--map-touched-glow);
   z-index: 1;
 }
+/* A decision asks for a country (L7, #487): the ones you may pick glow and take taps; the rest dim and let taps
+   through to their region, which zooms. The glow's button covers the whole marker, so the marker is the target. */
+.dm-marker[data-pick="glow"] {
+  box-shadow:
+    0 0 0 var(--map-pick-ring) var(--map-pick),
+    0 0 var(--map-pick-blur) var(--map-pick-spread) var(--map-pick-glow);
+  z-index: 2;
+}
+.dm-marker[data-pick="dim"] {
+  opacity: var(--map-dim-opacity);
+  filter: var(--map-dim-filter);
+}
+.dm-pick {
+  position: absolute;
+  inset: -2px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.dm-pick:focus-visible {
+  outline: 4px solid var(--map-focus);
+  outline-offset: 3px;
+}
 .dm-name {
   display: flex;
   justify-content: space-between;

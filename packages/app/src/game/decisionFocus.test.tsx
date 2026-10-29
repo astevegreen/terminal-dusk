@@ -7,6 +7,7 @@ import { createTestSession } from "../testMode/session.ts";
 import {
   FIRST_CHOICE,
   FocusingGameScreen,
+  MAP_CHOICE,
   STRIP_CHIP,
   applyDecisionFocus,
   shouldFocusDecision,
@@ -110,17 +111,19 @@ describe("tab order", () => {
     const status = /data-testid="status-bar"[^>]*>(.*?)<\/section>/.exec(out)?.[1] ?? "";
     expect(status).not.toMatch(/<button|<a |<input|tabindex/);
   });
-  it("follows reading order along the bottom edge: the hand strip's chips, then the sheet's tabs, decision and log", () => {
+  it("follows reading order from the map down: the decision banner, the hand strip's chips, the sheet's tabs and log", () => {
     const at = (text: string): number => out.indexOf(text);
     // Since L6 (#486) the hand is a strip at the left of the bottom edge, with the sheet's tab row to its right. The
-    // map's region buttons (issue #366) come before both, as the map does on screen. The opening pick's choices are
-    // on the lifted cards, so the decision's region has the question only.
+    // map's region buttons (issue #366) come before both, as the map does on screen, and since L7 (#487) the decision
+    // banner sits between the map and the strip. The opening pick's choices are on the lifted cards, so the
+    // decision's region has the question only.
     const marks = [
+      at('data-testid="map-area"'),
+      at('data-testid="decision"'),
       at('data-testid="hand"'),
       at('class="strip-chip"'),
       at('aria-label="Game details" tabindex="0"'),
       at('role="tablist"'),
-      at('data-testid="decision"'),
       at('<ol aria-label="Log entries" tabindex="0">'),
     ];
     for (const mark of marks) expect(mark).toBeGreaterThan(-1);
@@ -145,7 +148,27 @@ describe("focus for a decision whose choices are on the cards", () => {
       },
     };
     applyDecisionFocus(null, decision("d1"), true, root);
-    expect(seen).toEqual([FIRST_CHOICE, STRIP_CHIP]);
+    expect(seen).toEqual([FIRST_CHOICE, MAP_CHOICE, STRIP_CHIP]);
     expect(focused).toBe(STRIP_CHIP);
+  });
+});
+
+describe("focus for a decision whose choices are countries (L7, #487)", () => {
+  it("falls back to the first glowing country on the map, before the hand strip, when the banner has no button", () => {
+    const seen: string[] = [];
+    let focused = "";
+    const root: FocusRoot = {
+      querySelector: (selector) => {
+        seen.push(selector);
+        return selector === STRIP_CHIP || selector === MAP_CHOICE ? { focus: () => (focused = selector) } : null;
+      },
+    };
+    applyDecisionFocus(null, decision("d1"), true, root);
+    expect(seen).toEqual([FIRST_CHOICE, MAP_CHOICE]);
+    expect(focused).toBe(MAP_CHOICE);
+  });
+  it("looks for the glowing countries' buttons in the drawn map and in the List", () => {
+    expect(MAP_CHOICE).toContain(".dm-marker button");
+    expect(MAP_CHOICE).toContain(".map-pick");
   });
 });

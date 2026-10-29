@@ -60,6 +60,46 @@ export function zoomAt(view: View, factor: number, at: Point, bounds: Bounds): V
 export const panBy = (view: View, dx: number, dy: number, bounds: Bounds): View =>
   clampView({ ...view, x: view.x + dx, y: view.y + dy }, bounds);
 
+/** The view at `scale` with the layout point `centre` in the middle of a screen of `size`. */
+const centredOn = (centre: Point, scale: number, size: Size): View => ({
+  scale,
+  x: size.w / 2 - centre.x * scale,
+  y: size.h / 2 - centre.y * scale,
+});
+
+/**
+ * The view a tap on a glowing country that is still too small to pick zooms to (L7, #487): its region fitted to
+ * the screen, or, when that draws its markers smaller than `pickScale`, the zoom raised to `pickScale` and centred
+ * on the country. Never past `maxScale` (the largest zoom), keeping the same centre. The caller still clamps it to
+ * the map's bounds, which may move it but no longer zooms it.
+ */
+export function focusTransform(region: Rect, country: Point, size: Size, pickScale: number, maxScale = Infinity): View {
+  const fit = fitTransform(region, size);
+  if (size.w <= 0 || size.h <= 0) return fit;
+  if (fit.scale < pickScale) return centredOn(country, Math.min(pickScale, maxScale), size);
+  if (fit.scale <= maxScale) return fit;
+  return centredOn({ x: region.x + region.w / 2, y: region.y + region.h / 2 }, maxScale, size);
+}
+
+/** One direction's move that brings [low, high] inside [margin, screen - margin], or no move when it is already. */
+function bringInside(low: number, high: number, screen: number, margin: number): number {
+  if (low < margin) return margin - low;
+  if (high > screen - margin) return Math.max(screen - margin - high, margin - low);
+  return 0;
+}
+
+/**
+ * The view moved, never zoomed, just enough to show `rect` (a marker, in layout units) with `margin` screen px
+ * around it, within the clamps: where the keyboard's focus goes, the map follows (L7, #487).
+ */
+export function revealView(view: View, rect: Rect, bounds: Bounds, margin = 8): View {
+  const left = rect.x * view.scale + view.x;
+  const top = rect.y * view.scale + view.y;
+  const dx = bringInside(left, left + rect.w * view.scale, bounds.viewport.w, margin);
+  const dy = bringInside(top, top + rect.h * view.scale, bounds.viewport.h, margin);
+  return dx === 0 && dy === 0 ? view : panBy(view, dx, dy, bounds);
+}
+
 const distance = ([a, b]: readonly [Point, Point]): number => Math.hypot(b.x - a.x, b.y - a.y);
 
 /** How much a pinch zooms: the two fingers' distance now over their distance before; 1 when they started together. */

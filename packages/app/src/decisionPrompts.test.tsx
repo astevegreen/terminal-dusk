@@ -5,6 +5,7 @@ import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { decisionPrompts } from "./decisionPrompts.tsx";
 import type { PromptProps } from "./decisionPrompts.tsx";
+import { testCountryName } from "./test/promptProps.ts";
 import { buttonsOf } from "./testMode/promptTree.ts";
 
 const label = (card: string): string => `Card ${card}`;
@@ -28,6 +29,7 @@ function pressAll(d: Decision, hand: string[], known: string[] = []) {
     hand,
     known,
     label,
+    country: testCountryName,
     affiliation: () => "sae", // every card is the deciding side's own (the side is "sae" unless a test says otherwise)
     stack: [],
     question: noQuestion,
@@ -45,6 +47,7 @@ const readOnly = (d: Decision, hand: string[], known: string[] = []) => {
       hand={hand}
       known={known}
       label={label}
+      country={testCountryName}
       affiliation={() => "sae"}
       stack={[]}
       question={noQuestion}
@@ -93,6 +96,7 @@ describe("decisionPrompts with an onAnswer", () => {
         hand: [card],
         known: [],
         label,
+        country: testCountryName,
         affiliation,
         stack: [],
         question: noQuestion,
@@ -119,6 +123,7 @@ describe("decisionPrompts with an onAnswer", () => {
         hand: ["mine", "theirs", "nobody"],
         known: [],
         label,
+        country: testCountryName,
         affiliation,
         stack: [],
         question: noQuestion,
@@ -160,6 +165,7 @@ describe("decisionPrompts with an onAnswer", () => {
         hand={[]}
         known={[]}
         label={label}
+        country={testCountryName}
         stack={[]}
         affiliation={() => "sae"}
         question={noQuestion}
@@ -190,6 +196,7 @@ describe("the yes/no prompt names the card that asks and its question", () => {
         hand={[]}
         known={[]}
         label={firstDeckCardName}
+        country={testCountryName}
         stack={stack}
         question={firstDeckCardQuestion}
         affiliation={() => "sae"}
@@ -222,6 +229,7 @@ describe("the yes/no prompt names the card that asks and its question", () => {
       hand: [],
       known: [],
       label: firstDeckCardName,
+      country: testCountryName,
       stack: [program(asked)],
       question: firstDeckCardQuestion,
       affiliation: () => "sae",
@@ -324,6 +332,7 @@ describe("each prompt is a group named by its question", () => {
         hand={hand}
         known={[]}
         label={label}
+        country={testCountryName}
         affiliation={() => "sae"}
         stack={[]}
         question={noQuestion}

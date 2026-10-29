@@ -1,10 +1,11 @@
 // The small regions of the game screen. Each one only shows fields of the frame it is given; none works
 // anything out from the cards (.claude/rules/app.md).
 import { DECKS, SIDES } from "@terminal-dusk/engine";
-import type { CardId, DeckId, EraId, PublicState, Side } from "@terminal-dusk/engine";
+import type { AnswerValue, CardId, DeckId, EraId, PublicState, Side } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import type { ReactNode } from "react";
 import { eraText, gameOverText, playsText, sideFullName } from "../displayText.ts";
+import type { Choice } from "../promptChoices.tsx";
 import type { CardRules, Label } from "../displayText.ts";
 import { ZoomableMap } from "./ZoomableMap.tsx";
 
@@ -59,11 +60,23 @@ export function StatusBar({ frame, era }: Readonly<{ frame: Frame; era: EraId | 
   );
 }
 
-/** The map, zoomed out or into one region. It is itself the scrolling element, so the keyboard can reach it. */
-export function MapArea({ frame }: Readonly<{ frame: Frame }>) {
+/**
+ * The map, zoomed out or into one region. It is itself the scrolling element, so the keyboard can reach it. The
+ * waiting decision's country choices glow on it, and a tap on one sends its answer (L7, #487).
+ */
+export function MapArea({
+  frame,
+  choices,
+  onAnswer,
+}: Readonly<{ frame: Frame; choices?: readonly Choice[]; onAnswer?: ((value: AnswerValue) => void) | undefined }>) {
   return (
     <Region id="map-area" title="Map" className="game-map" scrolls>
-      <ZoomableMap pub={frame.view.public} events={frame.events} />
+      <ZoomableMap
+        pub={frame.view.public}
+        events={frame.events}
+        {...(choices === undefined ? {} : { choices })}
+        onAnswer={onAnswer}
+      />
     </Region>
   );
 }

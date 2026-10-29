@@ -1,18 +1,18 @@
-// The sheet's three tabs (L1, issue #464; L5, #485; docs/architecture.md, Decision 6): Play (the decision and the
-// hand), Log, and Details (the opponent, the table and the Contingency decks), with Hide beside them, which folds
-// the sheet down to its tab row. The tab picked is local UI state; the Play tab opens by itself whenever a new
-// decision waits, even from folded. GameScreen stays hook-free: the hook lives here.
+// The sheet's tabs (L1, issue #464; L5, #485; docs/architecture.md, Decision 6): Log, and Details (the opponent,
+// the table and the Contingency decks), with Hide beside them, which folds the sheet down to its tab row. The tab
+// picked is local UI state. Since L7 (#487) the decision is a banner above the hand strip, not a Play tab, so the
+// sheet starts folded and a new decision folds it again, leaving the map clear to pick a country on. GameScreen
+// stays hook-free: the hook lives here.
 import type { Decision } from "@terminal-dusk/engine";
 import { memo, useId, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
-export type TabId = "play" | "log" | "details";
+export type TabId = "log" | "details";
 /** What the player last picked: a tab, or "hide" to fold the sheet. */
 export type SheetPick = TabId | "hide";
 type DecisionId = Decision["id"];
 
 export const TABS: readonly { id: TabId; title: string }[] = [
-  { id: "play", title: "Play" },
   { id: "log", title: "Log" },
   { id: "details", title: "Details" },
 ];
@@ -21,14 +21,14 @@ export const TABS: readonly { id: TabId; title: string }[] = [
  * The tab to show, or null for a folded sheet. `picked` is what the player last picked (null: nothing yet),
  * `pickedForDecisionId` the decision waiting when they picked it, and `waitingId` the decision waiting now (null:
  * none). A pick holds only while the same decision waits (a refusal or a re-render keeps the id), so a new
- * decision opens Play.
+ * decision folds the sheet.
  */
 export function shownTab(
   picked: SheetPick | null,
   pickedForDecisionId: DecisionId | null,
   waitingId: DecisionId | null,
 ): TabId | null {
-  if (picked === null || pickedForDecisionId !== waitingId) return "play";
+  if (picked === null || pickedForDecisionId !== waitingId) return null;
   return picked === "hide" ? null : picked;
 }
 
@@ -95,7 +95,7 @@ function SideTabsInner({
 }
 
 /**
- * Takes its three panels as children, in TABS order. Wrapped in `memo`, like ZoomableMap: a memo element is not
+ * Takes its panels as children, in TABS order. Wrapped in `memo`, like ZoomableMap: a memo element is not
  * a plain function, so the test walkers that call function components directly (testMode/promptTree.ts,
  * online/test/screenTree.ts) step over its hook and walk on into the panels, reaching the prompts and the hand.
  */

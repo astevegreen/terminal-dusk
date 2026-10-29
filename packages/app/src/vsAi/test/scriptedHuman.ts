@@ -1,6 +1,7 @@
 // Test helper: a human who always presses the first button of the prompt on screen, and a loop that plays a
 // vs-AI session to the end with them.
 import { createElement } from "react";
+import { countryNames } from "../../countryChoices.ts";
 import { decisionPrompts } from "../../decisionPrompts.tsx";
 import { cardAffiliation, cardName, cardQuestion } from "../../testMode/fixture.ts";
 import { buttonsOf } from "../../testMode/promptTree.ts";
@@ -24,6 +25,7 @@ export async function pressFirst(session: VsAiSession): Promise<void> {
       hand: frame.view.mine?.hand ?? [],
       known: frame.view.mine?.knowledge ?? [],
       label: cardName,
+      country: countryNames(frame.view.public.map),
       stack: frame.view.public.stack,
       question: cardQuestion,
       affiliation: cardAffiliation,

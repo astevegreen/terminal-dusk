@@ -1,24 +1,31 @@
 // How a prompt draws its choices (decisionPrompts.tsx), and where (L6, #486; docs/design/screen-layout.md). A
 // choice that belongs to cards in the hand, such as playing a card or discarding it, can go on the lifted card in
 // the hand strip instead of in the decision's own region: the prompt is drawn once per place, and each place shows
-// only its own choices. Left out, a prompt draws every choice in one place, as before L6.
-import type { AnswerValue, CardId, Decision } from "@terminal-dusk/engine";
+// only its own choices. Left out, a prompt draws every choice in one place, as before L6. A choice that names a
+// country (L7, #487) is tapped on the map instead: the banner leaves it out and says to tap a glowing country.
+import type { AnswerValue, CardId, CountryId, Decision } from "@terminal-dusk/engine";
 
 /**
  * Where a prompt is drawn: "banner" is the decision's own region (its question, and the choices that belong to no
- * card in the hand), `{ card }` is that card lifted from the hand strip (only the choices that use it). Left out:
+ * card in the hand and name no country), `{ card }` is that card lifted from the hand strip (only the choices that use it). Left out:
  * everything in one place.
  */
 export type PromptPlace = "banner" | { readonly card: CardId };
 
-/** A choice's button text and the answer it sends; `cards` are the cards in the hand it uses, if any. */
-export type Choice = { text: string; value: AnswerValue; cards?: readonly CardId[] };
+/**
+ * A choice's button text and the answer it sends; `cards` are the cards in the hand it uses, if any, and `country`
+ * the country it names, if any (countryChoices.ts).
+ */
+export type Choice = { text: string; value: AnswerValue; cards?: readonly CardId[]; country?: CountryId };
 
 /** The smallest tap target (.claude/rules/app.md). */
 export const BUTTON_STYLE = { minHeight: 44, minWidth: 44 } as const;
 
 /** The hint under the question when the choices are on the cards in the hand strip. */
 export const TAP_A_CARD = "Tap a card in your hand to see what you can do with it.";
+
+/** The hint in the banner when the choices are countries, which glow on the map (L7, #487). */
+export const TAP_A_COUNTRY = "Tap a glowing country on the map.";
 
 /** The question's id, from the decision's id (no useId: tests call prompts as plain functions). */
 const questionIdOf = (decision: Decision): string => `decision-${decision.id}-question`;
@@ -65,11 +72,16 @@ export function Choices({
   }
   if (typeof place === "object") return null;
   const banner = onAnswer !== undefined && place === "banner";
-  const shown = banner ? choices.filter((choice) => choice.cards === undefined) : choices;
+  const onCards = banner && choices.some((choice) => choice.cards !== undefined);
+  const onMap = banner && choices.some((choice) => choice.country !== undefined);
+  const shown = banner
+    ? choices.filter((choice) => choice.cards === undefined && choice.country === undefined)
+    : choices;
   return (
     <section role="group" aria-labelledby={questionId}>
       <p id={questionId}>{question}</p>
-      {banner && shown.length < choices.length && <p className="decision-hint">{TAP_A_CARD}</p>}
+      {onCards && <p className="decision-hint">{TAP_A_CARD}</p>}
+      {onMap && <p className="decision-hint">{TAP_A_COUNTRY}</p>}
       {onAnswer ? (
         <ChoiceButtons choices={shown} onAnswer={onAnswer} />
       ) : (

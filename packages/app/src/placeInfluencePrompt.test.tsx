@@ -24,7 +24,8 @@ describe("the placeInfluence prompt (R16a, #315)", () => {
       ),
     );
     for (const b of buttons) b.click();
-    expect(buttons.map((b) => b.text)).toEqual(["Place in alpha", "Place in bravo"]);
+    // Named by the country's name, never its id (L7, #487).
+    expect(buttons.map((b) => b.text)).toEqual(["Place in Alpha", "Place in Bravo"]);
     expect(sent).toEqual([
       { kind: "placeInfluence", country: "alpha" },
       { kind: "placeInfluence", country: "bravo" },
@@ -36,7 +37,7 @@ describe("the placeInfluence prompt (R16a, #315)", () => {
       createElement(decisionPrompts.placeInfluence, props(placing("lio", 2, ["alpha", "bravo"]))),
     );
     expect(html).toContain("LIO: place 1 influence (2 points left)");
-    expect(html).toContain("<li>Place in alpha</li><li>Place in bravo</li>");
+    expect(html).toContain("<li>Place in Alpha</li><li>Place in Bravo</li>");
     expect(html).not.toContain("<button");
   });
 

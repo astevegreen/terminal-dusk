@@ -69,6 +69,14 @@
   --map-touched: #ffd400;
   --map-touched-glow: rgba(255, 212, 0, 0.45);
   --map-focus: #000000;
+  /* Picking a country (L7, #487): a glowing ring round the countries you may pick; the rest faded. */
+  --map-pick: #ffffff;
+  --map-pick-ring: 6px;
+  --map-pick-glow: rgba(120, 220, 255, 0.85);
+  --map-pick-blur: 20px;
+  --map-pick-spread: 8px;
+  --map-dim-opacity: 0.45;
+  --map-dim-filter: saturate(0.4);
 
   /* Region standings chips (L8, #488): one line per side, in its colour; a side with nothing there is faded. */
   --map-chip-text: #ffffff;

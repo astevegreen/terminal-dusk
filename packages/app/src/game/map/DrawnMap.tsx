@@ -5,7 +5,8 @@
 // over each region zooms to it; each region's standings chip sits under its name (L8, #488); and the markers sit on
 // top. It reads only the frame's public part, through the engine's pure helpers (the closed regions, the
 // battlegrounds and the region standings by way of the host, as the app's boundary allows). No hooks: ZoomableMap holds the refs and the
-// zoom, so tests can render and walk it without a browser.
+// zoom, so tests can render and walk it without a browser. When a decision asks for a country (L7, #487), the
+// countries it lists glow and the rest dim (mapPicks.ts).
 import { SIDES, controller } from "@terminal-dusk/engine";
 import type { CountryId, PublicState, RegionId } from "@terminal-dusk/engine";
 import { closedRegions, isBattleground } from "@terminal-dusk/host/first-deck";
@@ -17,12 +18,16 @@ import type { MapLayout, Point } from "./layout.ts";
 import { Marker, placeOf } from "./Marker.tsx";
 import { Leaders, TONES, Tints, WorldPicture } from "./artLayer.tsx";
 import { RegionChips } from "./RegionChips.tsx";
+import { pickState } from "./mapPicks.ts";
+import type { MapPicks } from "./mapPicks.ts";
 
 export type DrawnMapProps = {
   pub: PublicState;
   layout: MapLayout;
   touched: ReadonlySet<CountryId>;
   onRegion: (region: RegionId) => void;
+  /** The countries the waiting decision lets you pick; left out, none glows. */
+  picks?: MapPicks | undefined;
   viewportRef?: Ref<HTMLDivElement> | undefined;
   wrapperRef?: Ref<HTMLDivElement> | undefined;
 };
@@ -98,7 +103,7 @@ function RegionButtons({ pub, layout, onRegion }: Readonly<Pick<DrawnMapProps, "
 }
 
 /** The map in its wrapper, inside the map area that clips it; a frame with no map draws nothing here. */
-export function DrawnMap({ pub, layout, touched, onRegion, viewportRef, wrapperRef }: Readonly<DrawnMapProps>) {
+export function DrawnMap({ pub, layout, touched, onRegion, picks, viewportRef, wrapperRef }: Readonly<DrawnMapProps>) {
   const { map } = pub;
   if (map === undefined) return null;
   return (
@@ -138,6 +143,9 @@ export function DrawnMap({ pub, layout, touched, onRegion, viewportRef, wrapperR
                 control={controller(pub, c.id) ?? "none"}
                 battleground={isBattleground(pub, c.id)}
                 touched={touched.has(c.id)}
+                pick={pickState(picks, c.id)}
+                choice={picks?.choices.get(c.id)?.text}
+                on={picks?.on}
               />
             );
           })}

@@ -1,17 +1,20 @@
 // The game screen: one whole game drawn from one frame, laid out for a phone held sideways (844x390; L1, #464).
 // Since L5 (#485) the map fills the whole screen and everything else floats over it: a slim see-through top bar
-// and a sheet with the Play, Log and Details tabs (docs/design/screen-layout.md). Since L6 (#486) the hand is a slim
-// strip along the bottom edge, with the sheet's tab row beside it; a card's choices are on the card when it is
-// lifted. It renders from its props alone (SideTabs holds the picked tab, HandStrip the lifted card).
+// and a sheet with tabs (docs/design/screen-layout.md). Since L6 (#486) the hand is a slim strip along the bottom
+// edge, with the sheet's tab row beside it; a card's choices are on the card when it is lifted. Since L7 (#487) the
+// decision is a banner just above the strip, in place of the sheet's Play tab, and the countries it asks for glow
+// on the map. It renders from its props alone (SideTabs holds the picked tab, HandStrip the lifted card).
 import type { AnswerValue, CardId, EraId } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import type { ReactNode } from "react";
+import { countryChoices, countryNames } from "../countryChoices.ts";
 import { decisionPrompts } from "../decisionPrompts.tsx";
 import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
 import "./map/mapTheme.css";
 import "./gameScreen.css";
 import "./gameBars.css";
 import "./handStrip.css";
+import "./decisionBanner.css";
 import { LiftedCard, StripCounts, chipsOf } from "./handCards.tsx";
 import { HandStrip } from "./handStrip.tsx";
 import { Contingency, Log, MapArea, Opponent, Region, StatusBar, Table } from "./regions.tsx";
@@ -50,13 +53,14 @@ type PromptData = Pick<GameScreenProps, "frame" | "label" | "question" | "affili
 function shared({ frame, label, question, affiliation }: Readonly<PromptData>) {
   const hand = frame.view.mine?.hand ?? [];
   const known = frame.view.mine?.knowledge ?? [];
-  return { hand, known, label, stack: frame.view.public.stack, question, affiliation };
+  const country = countryNames(frame.view.public.map);
+  return { hand, known, label, country, stack: frame.view.public.stack, question, affiliation };
 }
 
 /**
- * The decision's own region: its question, and the choices that use no card in the hand (those are on the lifted
- * card, L6). The waiting decision is answerable; otherwise the open ones are shown read-only (a spectator's are
- * always these). L7 (#487) turns this into the decision banner just above the hand strip.
+ * The decision banner, just above the hand strip (L7, #487): the question, and the choices that use no card in the
+ * hand (those are on the lifted card, L6) and name no country (those glow on the map). The waiting decision is
+ * answerable; otherwise the open ones are shown read-only (a spectator's are always these).
  */
 function DecisionRegion({
   onAnswer,
@@ -66,7 +70,7 @@ function DecisionRegion({
   const waiting = data.frame.decision;
   const open = waiting ? [waiting] : data.frame.view.public.pending;
   return (
-    <Region id="decision" title="Decision">
+    <Region id="decision" title="Decision" className="game-banner">
       {open.map((decision) => {
         const Prompt = decisionPrompts[decision.kind];
         const answer = waiting && onAnswer ? { onAnswer } : {};
@@ -105,6 +109,9 @@ export function GameScreen({
 }: Readonly<GameScreenProps>) {
   const data = { frame, label, question, affiliation };
   const chips = chipsOf(frame.view.mine?.hand ?? [], label, points, affiliation);
+  // The countries the waiting decision lets this screen pick, which glow on the map (L7, #487).
+  const waiting = onAnswer === undefined ? null : frame.decision;
+  const choices = waiting ? countryChoices(waiting, countryNames(frame.view.public.map)) : [];
   return (
     // A game with no map gives its map box only its one line (gameScreen.css).
     <div className={frame.view.public.map === undefined ? "game game-no-map" : "game"}>
@@ -123,7 +130,8 @@ export function GameScreen({
           <Tracks pub={frame.view.public} />
         </div>
       </div>
-      <MapArea frame={frame} />
+      <MapArea frame={frame} choices={choices} onAnswer={onAnswer} />
+      <DecisionRegion onAnswer={onAnswer} refusal={refusal} {...data} />
       {/* The bottom edge: the hand strip, then the sheet's tab row, whose open panel rises over the map. */}
       <div className="game-bottom">
         <HandStrip chips={chips} counts={<StripCounts frame={frame} />}>
@@ -133,10 +141,9 @@ export function GameScreen({
             </LiftedCard>
           ))}
         </HandStrip>
-        {/* A div with a role, as a section would pick up the boxed style. Its tabs are Play, Log and Details. */}
+        {/* A div with a role, as a section would pick up the boxed style. Its tabs are Log and Details. */}
         <div className="game-sheet" role="region" aria-label="Game details" tabIndex={0}>
           <SideTabs waitingId={frame.decision?.id ?? null}>
-            <DecisionRegion onAnswer={onAnswer} refusal={refusal} {...data} />
             <Log log={log} />
             <>
               <Opponent frame={frame} />

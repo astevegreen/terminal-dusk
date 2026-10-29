@@ -5,7 +5,7 @@
 // markers and its credit shows. With L2_SHOTS set to a folder, it saves a screenshot of each.
 import { expect, test } from "@playwright/test";
 import type { Locator, Page } from "@playwright/test";
-import { liftedCard, stripChips, yourDecision } from "./answer.ts";
+import { countryButtons, liftedCard, stripChips, tapCountry, yourDecision } from "./answer.ts";
 import { startSixRegionGame } from "./start.ts";
 
 type View = { scale: number; x: number; y: number };
@@ -20,9 +20,11 @@ async function startDrawnMap(page: Page): Promise<Locator> {
   return area;
 }
 
-/** Folds the sheet: its open panel lies over the lower map (L5, #485), where the wheel and drag tests point. */
+/** Makes sure the sheet is folded: an open panel lies over the lower map (L5, #485), where the wheel and drag tests
+ *  point. Since L7 (#487) the sheet starts folded, as the decision is a banner rather than a tab. */
 async function foldSheet(page: Page): Promise<void> {
-  await page.getByRole("region", { name: "Game details" }).getByRole("button", { name: "Hide" }).click();
+  const hide = page.getByRole("region", { name: "Game details" }).getByRole("button", { name: "Hide" });
+  if (await hide.isVisible()) await hide.click();
   await expect(page.getByRole("tabpanel")).toHaveCount(0);
 }
 
@@ -192,21 +194,33 @@ test("two fingers spread twice as far apart double the zoom", async ({ page }) =
   expect((await viewOf(area)).scale).toBeCloseTo(before.scale * 2, 2);
 });
 
+/** Whether the banner asks LIO to place influence, whose countries glow on the map (L7, #487). */
+const placing = async (decision: Locator): Promise<boolean> =>
+  /: place 1 influence/.test((await decision.textContent()) ?? "");
+
 /** What the screen shows after a placement: its country lit while LIO still places, or the turn gone on. */
 async function afterPlacing(decision: Locator, marker: Locator): Promise<"lit" | "moved on"> {
   let seen: "lit" | "moved on" | "waiting" = "waiting";
-  // Polled, as the click returns before the redraw: the old buttons are still on screen for a moment.
+  // Polled, as the redraw may lag the new question for a moment.
   await expect
     .poll(async () => {
-      const stillPlacing = (await decision.getByRole("button").allTextContents()).some((n) =>
-        n.startsWith("Place in "),
-      );
-      if (!stillPlacing) seen = "moved on";
+      if (!(await placing(decision))) seen = "moved on";
       else if ((await marker.getAttribute("data-touched")) === "true") seen = "lit";
       return seen;
     })
     .not.toBe("waiting");
   return seen === "lit" ? "lit" : "moved on";
+}
+
+/** Taps the glowing countries in turn until a placement is taken; the country placed in, or undefined. */
+async function placeOnMap(page: Page): Promise<string | undefined> {
+  const glowing = countryButtons(page);
+  const count = await glowing.count();
+  for (let i = 0; i < count; i++) {
+    const country = (await glowing.nth(i).locator("xpath=..").getAttribute("data-country")) ?? undefined;
+    if ((await tapCountry(page, glowing.nth(i))).taken) return country;
+  }
+  return undefined;
 }
 
 /**
@@ -241,22 +255,24 @@ async function placeAndWatch(page: Page, area: Locator, count: number): Promise<
     // A choice to make: a button in the decision's region, or a card in the hand strip whose choices are on it
     // when it is lifted (L6, #486).
     await expect(yourDecision(page)).toBeVisible();
+    // A placing: tap a glowing country on the map (L7, #487).
+    if (await placing(decision)) {
+      const country = await placeOnMap(page);
+      if (country === undefined) throw new Error("every glowing country was refused");
+      if ((await afterPlacing(decision, area.locator(`.dm-marker[data-country="${country}"]`))) === "lit")
+        lit.push(country);
+      continue;
+    }
     const names = await decision.getByRole("button").allTextContents();
     if (names.length === 0) {
       await playFromStrip(page);
       continue;
     }
-    const place = names.find((n) => n.startsWith("Place in "));
     const pick =
-      place ??
       names.find((n) => n === "Place influence") ??
       names.find((n) => /: (points|influence|operations)/i.test(n)) ??
       names[0]!;
     await decision.getByRole("button", { name: pick, exact: true }).click();
-    if (place === undefined) continue;
-    const country = place.slice("Place in ".length);
-    if ((await afterPlacing(decision, area.locator(`.dm-marker[data-country="${country}"]`))) === "lit")
-      lit.push(country);
   }
   return lit;
 }

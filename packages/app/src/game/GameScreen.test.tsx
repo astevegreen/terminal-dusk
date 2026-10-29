@@ -34,12 +34,13 @@ const over = (winner: Side | null, reason = "turns ran out"): Frame =>
   withPublic(frameFor("lio"), { status: { kind: "over", winner, reason } });
 
 /**
- * The Decision region's html, up to the Log region after it. The frames are on the test map (issue #366), whose
- * region buttons (zoom, for every viewer) are elsewhere on the screen, so button checks look here.
+ * The Decision region's html, up to the bottom edge after it (the banner sits just above the hand strip since L7,
+ * #487). The frames are on the test map (issue #366), whose region buttons (zoom, for every viewer) are elsewhere on
+ * the screen, so button checks look here.
  */
 const decisionOf = (out: string): string => {
   const start = out.indexOf('data-testid="decision"');
-  const end = out.indexOf('data-testid="log"', start);
+  const end = out.indexOf('<div class="game-bottom"', start);
   if (start < 0 || end < 0) throw new Error("no Decision region");
   return out.slice(start, end);
 };

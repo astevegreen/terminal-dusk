@@ -14,6 +14,8 @@ import type {
   Side,
 } from "@terminal-dusk/engine";
 import type { ComponentType } from "react";
+import { countryChoices } from "./countryChoices.ts";
+import type { CountryName } from "./countryChoices.ts";
 import { SIDE_NAME } from "./displayText.ts";
 import { Choices } from "./promptChoices.tsx";
 import type { Choice, PromptPlace } from "./promptChoices.tsx";
@@ -34,6 +36,8 @@ export type PromptProps = {
   known: CardId[];
   /** A card's display name. Display data only. */
   label: (card: CardId) => string;
+  /** A country's name, from the frame's public map (countryChoices.ts), so no choice shows a country's id. */
+  country: CountryName;
   /** A card's affiliation, to offer each card only the plays its kind allows. Display data only. */
   affiliation: CardAffiliation;
   /** The public resolution stack from the frame, bottom first: it shows which card's effect is asking. */
@@ -201,19 +205,14 @@ function DiscardCardsPrompt({ decision, hand, known, label, onAnswer, place }: R
  * A placing (R16a): one choice per country the decision lists, in its order, with the points left in the
  * question. A country the side cannot afford now is refused by the transport, like any illegal pick.
  */
-function PlaceInfluencePrompt({ decision, onAnswer, place }: Readonly<PromptProps>) {
+function PlaceInfluencePrompt({ decision, country, onAnswer, place }: Readonly<PromptProps>) {
   const options = decision.options;
   const points = "points" in options ? options.points : 0;
-  const countries = "countries" in options ? options.countries : [];
-  const choices: Choice[] = countries.map((country) => ({
-    text: `Place in ${country}`,
-    value: { kind: "placeInfluence", country },
-  }));
   return (
     <Choices
       decision={decision}
       question={`${SIDE_NAME[decision.side]}: place 1 influence (${points} point${points === 1 ? "" : "s"} left)`}
-      choices={choices}
+      choices={countryChoices(decision, country)}
       onAnswer={onAnswer}
       place={place}
     />
@@ -231,17 +230,13 @@ const ACTION_TEXT: Record<Exclude<PointsAction, "intervene">, string> = {
  * The action menu (R16b, R16c): all the points go to one action. One choice per action the decision lists, in its
  * order, except an intervention, which is one choice per country the decision lists for it.
  */
-function ChooseActionPrompt({ decision, onAnswer, place }: Readonly<PromptProps>) {
+function ChooseActionPrompt({ decision, country, onAnswer, place }: Readonly<PromptProps>) {
   const options = decision.options;
   const points = "actions" in options ? options.points : 0;
   const actions = "actions" in options ? options.actions : [];
-  const targets = "actions" in options ? options.targets : [];
   const choices: Choice[] = actions.flatMap((action): Choice[] =>
     action === "intervene"
-      ? targets.map((country) => ({
-          text: `Intervene in ${country}`,
-          value: { kind: "chooseAction", action, country },
-        }))
+      ? countryChoices(decision, country)
       : [{ text: ACTION_TEXT[action], value: { kind: "chooseAction", action } }],
   );
   return (
@@ -259,12 +254,11 @@ function ChooseActionPrompt({ decision, onAnswer, place }: Readonly<PromptProps>
  * A realignment attempt (R16c): one choice per country the decision lists, then a choice to stop (the attempts
  * left unmade), with the attempts left in the question.
  */
-function RealignPrompt({ decision, onAnswer, place }: Readonly<PromptProps>) {
+function RealignPrompt({ decision, country, onAnswer, place }: Readonly<PromptProps>) {
   const options = decision.options;
   const attempts = "attempts" in options ? options.attempts : 0;
-  const targets = "attempts" in options ? options.targets : [];
   const choices: Choice[] = [
-    ...targets.map((country): Choice => ({ text: `Realign in ${country}`, value: { kind: "realign", country } })),
+    ...countryChoices(decision, country),
     { text: "Stop realigning", value: { kind: "realign", country: null } },
   ];
   return (

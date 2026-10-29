@@ -4,6 +4,7 @@ import { SIDES } from "@terminal-dusk/engine";
 import type { CardId, EraId, GameStatus, Side } from "@terminal-dusk/engine";
 import type { ReplayFrame } from "@terminal-dusk/host";
 import { useState } from "react";
+import { countryNames } from "../countryChoices.ts";
 import { decisionPrompts } from "../decisionPrompts.tsx";
 import { eraText, gameOverText, playsText, regionNamer } from "../displayText.ts";
 import { logLine } from "../eventPresentation.ts";
@@ -95,7 +96,8 @@ function OpenDecisions({
   question: CardQuestion;
   affiliation: CardAffiliation;
 }>) {
-  const { pending, stack } = frame.view.public;
+  const { pending, stack, map } = frame.view.public;
+  const country = countryNames(map);
   return (
     <Region id="decision" title="Open decisions">
       {pending.map((decision) => {
@@ -107,6 +109,7 @@ function OpenDecisions({
             hand={[]}
             known={[]}
             label={label}
+            country={country}
             stack={stack}
             question={question}
             affiliation={affiliation}

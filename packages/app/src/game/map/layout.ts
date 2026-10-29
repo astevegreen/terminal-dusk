@@ -44,6 +44,11 @@ export const LEADER_MAX = 180;
 
 /** Every marker's size, country or home box, in layout units. */
 export const MARKER: Size = { w: 92, h: 48 };
+/**
+ * The smallest zoom at which a tap on a glowing country picks it (L7, #487): its marker is then drawn at least 44 px
+ * tall, the smallest tap target (.claude/rules/app.md). Below it, a tap zooms in on the country instead.
+ */
+export const PICK_SCALE = 44 / MARKER.h;
 /** The band at the top of each region rectangle that holds the region's name; no marker sits in it. */
 export const LABEL_BAND = 26;
 /** A region's standings chip (L8, #488): two lines, one per side, wide enough for "SAE every battleground 11". */

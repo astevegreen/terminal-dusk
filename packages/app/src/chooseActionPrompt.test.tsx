@@ -24,7 +24,7 @@ describe("the chooseAction prompt (R16b, #316)", () => {
       ),
     );
     for (const b of buttons) b.click();
-    expect(buttons.map((b) => b.text)).toEqual(["Place influence", "Intervene in charlie", "Intervene in echo"]);
+    expect(buttons.map((b) => b.text)).toEqual(["Place influence", "Intervene in Charlie", "Intervene in Echo"]);
     expect(sent).toEqual([
       { kind: "chooseAction", action: "place" },
       { kind: "chooseAction", action: "intervene", country: "charlie" },
@@ -35,7 +35,7 @@ describe("the chooseAction prompt (R16b, #316)", () => {
   it("says that all the points go to one action, and lists the choices as text when read-only", () => {
     const html = renderToString(createElement(decisionPrompts.chooseAction, props(choosing("sae", 1, ["alpha"]))));
     expect(html).toContain("SAE: spend all 1 point on one action");
-    expect(html).toContain("<li>Place influence</li><li>Intervene in alpha</li>");
+    expect(html).toContain("<li>Place influence</li><li>Intervene in Alpha</li>");
     expect(html).not.toContain("<button");
   });
 });

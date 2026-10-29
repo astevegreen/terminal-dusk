@@ -224,6 +224,63 @@ describe("a resized map area", () => {
   });
 });
 
+describe("picking a country (L7, #487)", () => {
+  const zoomedIn = { current: { scale: 1, x: -200, y: -100 } };
+
+  it("the click that ends a drag starting on a glowing country is swallowed in the capture phase, so it never answers", () => {
+    const { pointer, viewport } = setUp({ current: { ...zoomedIn.current } });
+    // The guard listens in the capture phase, so it runs before the marker's own button hears the click.
+    expect(viewport.listeners.find((l) => l.type === "click")?.options).toEqual({ capture: true });
+    pointer("pointerdown", 1, 100, 100);
+    pointer("pointermove", 1, 100, 140);
+    pointer("pointerup", 1, 100, 140);
+    expect(viewport.fire("click", { detail: 1 }).stopped).toBe(true);
+    // The next tap is a tap again.
+    pointer("pointerdown", 2, 100, 100);
+    pointer("pointerup", 2, 100, 100);
+    expect(viewport.fire("click", { detail: 1 }).stopped).toBe(false);
+  });
+
+  it("the click that ends a pinch is swallowed too", () => {
+    const { pointer, viewport } = setUp();
+    pointer("pointerdown", 1, 200, 200);
+    pointer("pointerdown", 2, 300, 200);
+    pointer("pointermove", 2, 400, 200);
+    pointer("pointerup", 2, 400, 200);
+    pointer("pointerup", 1, 200, 200);
+    expect(viewport.fire("click", { detail: 1 }).stopped).toBe(true);
+  });
+
+  it("scale says how large the map is drawn; focus zooms until a marker is drawn at the pick scale, within the clamps", () => {
+    const { control, view } = setUp();
+    expect(control.scale()).toBeCloseTo(whole().scale);
+    const region = { x: 0, y: 0, w: 1000, h: 560 };
+    expect(control.focus(region, { x: 500, y: 280 }, 1.5)).toBe(true);
+    expect(view().scale).toBeCloseTo(1.5);
+    expect(control.scale()).toBeCloseTo(1.5);
+    // Centred on the country: (500, 280) is drawn in the middle of the 500 x 400 map area.
+    expect(500 * view().scale + view().x).toBeCloseTo(250);
+    expect(280 * view().scale + view().y).toBeCloseTo(200);
+    // Already there: nothing to zoom to, so the caller answers instead.
+    expect(control.focus(region, { x: 500, y: 280 }, 1.5)).toBe(false);
+    // Never past the largest zoom.
+    control.focus(region, { x: 500, y: 280 }, 100);
+    expect(view().scale).toBeCloseTo(whole().scale * MAX_ZOOM);
+  });
+
+  it("reveal moves the map without zooming, just enough to show a marker off the screen", () => {
+    const { control, view } = setUp({ current: { scale: 1, x: 0, y: 0 } });
+    control.reveal({ x: 900, y: 100, w: 92, h: 48 });
+    expect(view().scale).toBe(1);
+    // The marker's right edge, 8 px in from the screen's.
+    expect(view().x).toBe(500 - 8 - 992);
+    expect(view().y).toBe(0);
+    const before = view();
+    control.reveal({ x: 600, y: 100, w: 92, h: 48 });
+    expect(view()).toEqual(before);
+  });
+});
+
 describe("dispose", () => {
   it("removes every listener it added", () => {
     const { viewport, control } = setUp();
