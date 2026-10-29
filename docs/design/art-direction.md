@@ -6,18 +6,20 @@ audio is in `docs/workflow.md`, "Art and audio pipeline".
 
 ## The world map: real geography, the same in every era
 
-- The map is built from free, public-domain world map data, such as Natural Earth, so the world is instantly
-  recognisable and accurate. Owner: "the world should be built off free public-domain world maps because that makes
-  everything instantly recognizable and accurate."
+- The map is built from free, public-domain world maps, so the world is instantly recognisable and accurate. Owner:
+  "the world should be built off free public-domain world maps because that makes everything instantly recognizable
+  and accurate." The picture is NASA's Blue Marble; the borders on it are Natural Earth data.
 - **The look is NASA's Blue Marble** (Blue Marble: Next Generation): the satellite picture of the whole Earth, with
-  real land colours and sea. Owner: "If Blue Marble Maps are public domain I like their style." NASA's imagery is
-  free to use with no licence fee; NASA asks for a credit.
+  real land colours and sea. Owner: "If Blue Marble Maps are public domain I like their style." That condition holds:
+  NASA's imagery is US-government work, not under copyright in the US, and free to use with no licence fee under
+  NASA's media guidelines, which ask for a credit.
 - Blue Marble has no borders, so country borders from public-domain data (Natural Earth) are drawn on top as thin
   lines, in the same map projection so they line up with the picture.
 - Each country marker sits on or near its real place. A small or crowded country can sit a little offset, joined to
   its real place by a thin leader line.
 - The picture ships inside the app, scaled down to a size that loads fast on a phone. It is never fetched from NASA
-  while playing.
+  while playing. Like the SVG artwork, it is presentation data under Decision 4 (`docs/architecture.md`): it never
+  goes in the scenario or the game state, and markers stay keyed by country ID.
 - **Credit and limits:** the credits screen says "Blue Marble imagery: NASA Earth Observatory". No NASA logo or
   emblem anywhere, and nothing that suggests NASA made or endorses the game.
 - The geography itself never changes between eras: it stays accurate and readable at phone size.
