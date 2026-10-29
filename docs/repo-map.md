@@ -966,6 +966,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `docs/design/eras.md` - Eras
 - `docs/design/map-and-points.md` - The map, influence, points and escalation: owner decisions (W7)
 - `docs/design/sides.md` - Sides
+- `docs/design/tech-race.md` - The tech race track: owner decisions (T1)
 - `docs/proposals/card-count-gap.md` - The LIO/SAE card-count gap and the missing Era 3 LIO Ops 4 card: options
 - `docs/proposals/card-rewording/README.md` - Card rules text once points have a use: wording rules
 - `docs/proposals/card-rewording/era-1.md` - Era 1 cards: rules text reworded now that points have a use
