@@ -13,6 +13,7 @@ describe("@terminal-dusk/engine entry point", () => {
       "createGame",
       "eventsFor",
       "hiddenPart",
+      "isBattleground",
       "isRegionClosed",
       "legalAnswers",
       "pendingFor",

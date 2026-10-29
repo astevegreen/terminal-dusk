@@ -87,3 +87,5 @@ export function sixRegionMapConfig(): MatchConfig {
 // The engine's pure helper for which regions Escalation has closed, for the app's Escalation display (A15): the engine's
 // own comment says the app may call it on a view's public part, and the app's boundary check lets it import the host.
 export { closedRegions } from "@terminal-dusk/engine";
+// Likewise which countries are battlegrounds in the current era, for the drawn map's markers (L2, #465).
+export { isBattleground } from "@terminal-dusk/engine";
