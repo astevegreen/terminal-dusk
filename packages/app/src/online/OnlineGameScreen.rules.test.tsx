@@ -23,7 +23,7 @@ describe("Shown passes the rules text on to the hand", () => {
     await settle();
     await play(r);
     const page = (p: PlaySetup): string => renderToString(<Shown game={r.game} play={p} onBack={() => {}} />);
-    expect(page(setup((card) => `RULES-OF-${card}`))).toMatch(/<span class="hand-card-rules">RULES-OF-[^<]+<\/span>/);
+    expect(page(setup((card) => `RULES-OF-${card}`))).toMatch(/<p class="hand-card-rules">RULES-OF-[^<]+<\/p>/);
     expect(page(setup())).not.toContain("hand-card-rules");
   });
 });

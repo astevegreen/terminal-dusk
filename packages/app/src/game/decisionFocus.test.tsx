@@ -4,7 +4,13 @@ import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { cardAffiliation, cardName, cardQuestion } from "../testMode/fixture.ts";
 import { createTestSession } from "../testMode/session.ts";
-import { FIRST_CHOICE, FocusingGameScreen, applyDecisionFocus, shouldFocusDecision } from "./decisionFocus.tsx";
+import {
+  FIRST_CHOICE,
+  FocusingGameScreen,
+  STRIP_CHIP,
+  applyDecisionFocus,
+  shouldFocusDecision,
+} from "./decisionFocus.tsx";
 import type { FocusRoot } from "./decisionFocus.tsx";
 import { GameScreen } from "./GameScreen.tsx";
 import type { GameScreenProps } from "./GameScreen.tsx";
@@ -104,21 +110,42 @@ describe("tab order", () => {
     const status = /data-testid="status-bar"[^>]*>(.*?)<\/section>/.exec(out)?.[1] ?? "";
     expect(status).not.toMatch(/<button|<a |<input|tabindex/);
   });
-  it("follows reading order: the side column, its tabs, the decision's choices, the hand, then the log list", () => {
+  it("follows reading order along the bottom edge: the hand strip's chips, then the sheet's tabs, decision and log", () => {
     const at = (text: string): number => out.indexOf(text);
-    // The decision's first choice: the first button after the Decision region opens (the map's region buttons,
-    // issue #366, come before the side column, as the map does on screen). Since L1 (#464) the hand sits in the
-    // side column's Play tab, under the decision.
-    const choice = out.indexOf("<button", at('data-testid="decision"'));
+    // Since L6 (#486) the hand is a strip at the left of the bottom edge, with the sheet's tab row to its right. The
+    // map's region buttons (issue #366) come before both, as the map does on screen. The opening pick's choices are
+    // on the lifted cards, so the decision's region has the question only.
     const marks = [
+      at('data-testid="hand"'),
+      at('class="strip-chip"'),
       at('aria-label="Game details" tabindex="0"'),
       at('role="tablist"'),
       at('data-testid="decision"'),
-      choice,
-      at('data-testid="hand" class="game-hand" tabindex="0"'),
       at('<ol aria-label="Log entries" tabindex="0">'),
     ];
     for (const mark of marks) expect(mark).toBeGreaterThan(-1);
     expect([...marks].sort((a, b) => a - b)).toEqual(marks);
+  });
+  it("lets only one chip take Tab, so the arrow keys move along the strip (roving tabindex)", () => {
+    const chips = [...out.matchAll(/class="strip-chip"[^>]*tabindex="(-?\d)"/g)].map((m) => m[1]);
+    expect(chips.length).toBeGreaterThan(1);
+    expect(chips.filter((t) => t === "0")).toHaveLength(1);
+    expect(chips[0]).toBe("0");
+  });
+});
+
+describe("focus for a decision whose choices are on the cards", () => {
+  it("falls back to the hand strip's chip when the decision's region has no button", () => {
+    const seen: string[] = [];
+    let focused = "";
+    const root: FocusRoot = {
+      querySelector: (selector) => {
+        seen.push(selector);
+        return selector === STRIP_CHIP ? { focus: () => (focused = selector) } : null;
+      },
+    };
+    applyDecisionFocus(null, decision("d1"), true, root);
+    expect(seen).toEqual([FIRST_CHOICE, STRIP_CHIP]);
+    expect(focused).toBe(STRIP_CHIP);
   });
 });
