@@ -69,4 +69,15 @@
   --map-touched: #ffd400;
   --map-touched-glow: rgba(255, 212, 0, 0.45);
   --map-focus: #000000;
+
+  /* Region standings chips (L8, #488): one line per side, in its colour; a side with nothing there is faded. */
+  --map-chip-text: #ffffff;
+  --map-chip-edge: #222222;
+  --map-chip-edge-width: 1px;
+  --map-chip-radius: 4px;
+  --map-chip-font-size: 14px;
+  --map-chip-line: 19px;
+  --map-chip-pad: 5px;
+  --map-chip-gap: 2px;
+  --map-chip-none-opacity: 0.6;
 }

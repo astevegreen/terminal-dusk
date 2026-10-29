@@ -19,6 +19,7 @@ describe("@terminal-dusk/engine entry point", () => {
       "pendingFor",
       "placementCost",
       "reconstruct",
+      "regionStanding",
       "seedHash",
       "verifyGame",
       "viewFor",

@@ -14,25 +14,41 @@ export const BATTLEGROUND_POINT = 1;
 /** One region's points for each side. */
 export type RegionPoints = Record<Side, number>;
 
+/** The highest level a side reaches in a region: nothing, present, ahead or holding every battleground ("all"). */
+export type RegionLevel = "none" | "present" | "ahead" | "all";
+
+/** Each side's level in one region and the points it would score there now. */
+export type RegionStanding = Record<Side, { level: RegionLevel; points: number }>;
+
 /**
- * What the region of `amounts` scores for each side as the public state is now, with the current era's
- * battlegrounds. "Holds every battleground" needs at least one; in a region with none, ahead is on countries only.
+ * Each side's level in the region of `amounts` as the public state is now, with the current era's battlegrounds, and
+ * the points that gives: the level's amount plus 1 for each battleground it controls. "Holds every battleground"
+ * needs at least one; in a region with none, ahead is on countries only. A pure helper on public data, so the app
+ * can show a region's standing before it scores (docs/architecture.md, Decision 6).
  */
-export function regionScore(pub: PublicState, amounts: RegionAmounts): RegionPoints {
+export function regionStanding(pub: PublicState, amounts: RegionAmounts): RegionStanding {
   const ids = (pub.map?.countries ?? []).filter((c) => c.region === amounts.region).map((c) => c.id);
   const battlegrounds = ids.filter((id) => isBattleground(pub, id));
   const held = (side: Side, list: string[]): number => list.filter((id) => controller(pub, id) === side).length;
-  const points = (side: Side): number => {
-    const countries = held(side, ids);
-    const bgs = held(side, battlegrounds);
+  const level = (side: Side, bgs: number): RegionLevel => {
     const rival = otherSide(side);
-    const bonus = BATTLEGROUND_POINT * bgs;
-    if (battlegrounds.length > 0 && bgs === battlegrounds.length) return amounts.all + bonus;
+    if (battlegrounds.length > 0 && bgs === battlegrounds.length) return "all";
     const moreBgs = battlegrounds.length === 0 || bgs > held(rival, battlegrounds);
-    if (countries > held(rival, ids) && moreBgs) return amounts.ahead + bonus;
-    return countries > 0 ? amounts.present + bonus : 0;
+    if (held(side, ids) > held(rival, ids) && moreBgs) return "ahead";
+    return held(side, ids) > 0 ? "present" : "none";
   };
-  return { lio: points("lio"), sae: points("sae") };
+  const standing = (side: Side): { level: RegionLevel; points: number } => {
+    const bgs = held(side, battlegrounds);
+    const reached = level(side, bgs);
+    return { level: reached, points: reached === "none" ? 0 : amounts[reached] + BATTLEGROUND_POINT * bgs };
+  };
+  return { lio: standing("lio"), sae: standing("sae") };
+}
+
+/** What the region of `amounts` scores for each side as the public state is now: regionStanding's points. */
+export function regionScore(pub: PublicState, amounts: RegionAmounts): RegionPoints {
+  const { lio, sae } = regionStanding(pub, amounts);
+  return { lio: lio.points, sae: sae.points };
 }
 
 /** The side whose end the track is at, or null. */
