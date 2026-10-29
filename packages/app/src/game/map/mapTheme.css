@@ -68,5 +68,11 @@
   --map-battleground: #ffd400;
   --map-touched: #ffd400;
   --map-touched-glow: rgba(255, 212, 0, 0.45);
+  /* The pulse on a touched country (L9, #489): a ring of glow that swells and settles, a few times, then stays as
+     the steady highlight above. With reduced motion there is no pulse, only that highlight. */
+  --map-pulse-glow: rgba(255, 212, 0, 0.85);
+  --map-pulse-ring: 18px;
+  --map-pulse-time: 0.8s;
+  --map-pulse-count: 3;
   --map-focus: #000000;
 }

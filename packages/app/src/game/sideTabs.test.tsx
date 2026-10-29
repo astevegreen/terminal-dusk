@@ -1,5 +1,6 @@
-// The side panel's three tabs (L1, issue #464): which one shows, and how they draw. The Play tab opens by itself
-// whenever a new decision waits; a tab the player picked holds only while the decision it was picked for waits.
+// The side panel's tabs (L1, issue #464; two since L9, #489): which one shows, and how they draw. The Play tab
+// opens by itself whenever a new decision waits; a tab the player picked holds only while the decision it was picked
+// for waits.
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { buttonsOf } from "../testMode/promptTree.ts";
@@ -11,18 +12,17 @@ describe("shownTab", () => {
     expect(shownTab(null, null, "d1")).toBe("play");
   });
   it("keeps the picked tab while the decision it was picked for still waits (a refusal keeps the same id)", () => {
-    expect(shownTab("log", "d1", "d1")).toBe("log");
     expect(shownTab("details", "d1", "d1")).toBe("details");
   });
   it("keeps the picked tab while nothing waits, as for a spectator or on the other side's turn", () => {
-    expect(shownTab("log", null, null)).toBe("log");
+    expect(shownTab("details", null, null)).toBe("details");
   });
   it("opens Play by itself when a new decision arrives", () => {
-    expect(shownTab("log", null, "d2")).toBe("play");
+    expect(shownTab("details", null, "d2")).toBe("play");
     expect(shownTab("details", "d1", "d2")).toBe("play");
   });
   it("goes back to Play once the decision it was picked for has gone", () => {
-    expect(shownTab("log", "d1", null)).toBe("play");
+    expect(shownTab("details", "d1", null)).toBe("play");
   });
   it("shows no tab while the player has folded the sheet with Hide, for the same decision (L5, #485)", () => {
     expect(shownTab("hide", "d1", "d1")).toBeNull();
@@ -38,32 +38,31 @@ describe("SideTabs", () => {
   const out = renderToString(
     <SideTabs waitingId="d1">
       <p>play panel</p>
-      <p>log panel</p>
       <p>details panel</p>
     </SideTabs>,
   );
-  it("names the three tabs Play, Log and Details, in that order", () => {
-    expect(TABS.map((tab) => tab.title)).toEqual(["Play", "Log", "Details"]);
+  it("names the two tabs Play and Details, in that order: the log has its own drawer (L9, #489)", () => {
+    expect(TABS.map((tab) => tab.title)).toEqual(["Play", "Details"]);
     const titles = [...out.matchAll(/role="tab"[^>]*>([^<]+)<\/button>/g)].map((m) => m[1]);
-    expect(titles).toEqual(["Play", "Log", "Details"]);
+    expect(titles).toEqual(["Play", "Details"]);
   });
   it("opens on Play: only its panel shows, and only its tab is selected", () => {
     expect(out.match(/aria-selected="true"/g)).toHaveLength(1);
     expect(out).toMatch(/aria-selected="true"[^>]*>Play</);
     const panels = [...out.matchAll(/<div role="tabpanel"([^>]*)>(.*?)<\/div>/g)];
-    expect(panels.map((m) => m[2])).toEqual(["<p>play panel</p>", "<p>log panel</p>", "<p>details panel</p>"]);
-    expect(panels.map((m) => (m[1] ?? "").includes("hidden"))).toEqual([false, true, true]);
+    expect(panels.map((m) => m[2])).toEqual(["<p>play panel</p>", "<p>details panel</p>"]);
+    expect(panels.map((m) => (m[1] ?? "").includes("hidden"))).toEqual([false, true]);
   });
   it("ties each tab to its panel by id, and lets the keyboard reach each panel, with no positive tabIndex", () => {
     for (const [, controls] of out.matchAll(/aria-controls="([^"]+)"/g)) expect(out).toContain(`id="${controls}"`);
-    expect(out.match(/role="tabpanel"[^>]*tabindex="0"/g)).toHaveLength(3);
+    expect(out.match(/role="tabpanel"[^>]*tabindex="0"/g)).toHaveLength(2);
     expect(out).not.toMatch(/tabindex="[1-9]/);
   });
   it("puts a Hide button beside the tabs, outside the tablist, in a bar of its own (L5, #485)", () => {
     expect(out).toMatch(
       /^<div class="game-sheet-bar"><div role="tablist"[^>]*>.*?<\/div><button type="button"[^>]*>Hide<\/button><\/div>/,
     );
-    expect(out.match(/role="tab"/g)).toHaveLength(3);
+    expect(out.match(/role="tab"/g)).toHaveLength(2);
   });
   it("is a memo element, so the test walkers step over its hook and still reach the panels' buttons", () => {
     const pressed: string[] = [];
@@ -72,7 +71,6 @@ describe("SideTabs", () => {
         <button type="button" onClick={() => pressed.push("play")}>
           Answer
         </button>
-        <p>log</p>
         <p>details</p>
       </SideTabs>,
     );

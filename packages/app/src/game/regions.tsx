@@ -141,8 +141,8 @@ export function Contingency({ pub }: Readonly<{ pub: PublicState }>) {
   );
 }
 
-/** The log arrives oldest first and is shown newest first. Its list can take the keyboard; its Log tab scrolls. */
-export function Log({ log }: Readonly<{ log: string[] }>) {
+/** The log arrives oldest first and is shown newest first. Its list can take the keyboard; the log drawer scrolls it. */
+export function Log({ log }: Readonly<{ log: readonly string[] }>) {
   return (
     <Region id="log" title="Log" className="game-log" role="log">
       <ol aria-label="Log entries" tabIndex={0}>

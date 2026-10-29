@@ -1,7 +1,8 @@
 // The game screen: one whole game drawn from one frame, laid out for a phone held sideways (844x390; L1, #464).
-// Since L5 (#485) the map fills the whole screen and everything else floats over it: a slim see-through top bar
-// and a sheet along the bottom with the Play, Log and Details tabs (docs/design/screen-layout.md). It renders from
-// its props alone (SideTabs holds the picked tab).
+// Since L5 (#485) the map fills the whole screen and everything else floats over it: a slim see-through top bar,
+// the ticker under it with the log drawer it opens (L9, #489), and a sheet along the bottom with the Play and
+// Details tabs (docs/design/screen-layout.md). It renders from its props alone (SideTabs holds the picked tab,
+// LogDrawer whether the drawer is open).
 import type { AnswerValue, EraId } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import type { ReactNode } from "react";
@@ -10,7 +11,8 @@ import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
 import "./map/mapTheme.css";
 import "./gameScreen.css";
 import "./gameBars.css";
-import { Contingency, Hand, Log, MapArea, Opponent, Region, StatusBar, Table } from "./regions.tsx";
+import { LogDrawer } from "./logDrawer.tsx";
+import { Contingency, Hand, MapArea, Opponent, Region, StatusBar, Table } from "./regions.tsx";
 import type { Label } from "./regions.tsx";
 import { SideTabs } from "./sideTabs.tsx";
 import { Tracks } from "./tracks.tsx";
@@ -107,8 +109,9 @@ export function GameScreen({
           <Tracks pub={frame.view.public} />
         </div>
       </div>
+      <LogDrawer log={log} waitingId={frame.decision?.id ?? null} />
       <MapArea frame={frame} />
-      {/* A div with a role, as a section would pick up the boxed style. Its tabs are Play, Log and Details. */}
+      {/* A div with a role, as a section would pick up the boxed style. Its tabs are Play and Details. */}
       <div className="game-sheet" role="region" aria-label="Game details" tabIndex={0}>
         <SideTabs waitingId={frame.decision?.id ?? null}>
           <>
@@ -122,7 +125,6 @@ export function GameScreen({
             />
             <Hand frame={frame} label={label} rules={rules} />
           </>
-          <Log log={log} />
           <>
             <Opponent frame={frame} />
             <Table pub={frame.view.public} label={label} />

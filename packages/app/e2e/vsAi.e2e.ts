@@ -47,11 +47,13 @@ test("play against the AI: pick LIO and tap through a whole game against the wor
   await expect(gameOver).toBeVisible();
   await expect(page.getByText(/^AI refused:/)).toHaveCount(0);
 
-  // The log is on its own tab of the side panel (L1, #464).
-  await page.getByRole("tab", { name: "Log", exact: true }).click();
+  // The log is in the drawer the ticker opens (L9, #489); its Close button shuts it again.
+  await page.getByTestId("ticker").click();
   const log = await page.getByTestId("log").innerText();
   expect(log).toMatch(/^LIO /m);
   expect(log).toMatch(/^SAE /m);
+  await page.getByRole("dialog", { name: "Game log" }).getByRole("button", { name: "Close" }).click();
+  await expect(page.getByTestId("log")).toBeHidden();
   // The finished game can be watched back, and Close returns to it.
   await page.getByRole("button", { name: "Watch replay" }).click();
   await expect(page.getByText(/^Step 1 of \d+$/)).toBeVisible();

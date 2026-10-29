@@ -104,19 +104,22 @@ describe("tab order", () => {
     const status = /data-testid="status-bar"[^>]*>(.*?)<\/section>/.exec(out)?.[1] ?? "";
     expect(status).not.toMatch(/<button|<a |<input|tabindex/);
   });
-  it("follows reading order: the side column, its tabs, the decision's choices, the hand, then the log list", () => {
+  it("follows reading order: the ticker and its log, the map, the sheet, its tabs, the decision's choices, the hand", () => {
     const at = (text: string): number => out.indexOf(text);
     // The decision's first choice: the first button after the Decision region opens (the map's region buttons,
-    // issue #366, come before the side column, as the map does on screen). Since L1 (#464) the hand sits in the
-    // side column's Play tab, under the decision.
+    // issue #366, come before the sheet, as the map does on screen). Since L1 (#464) the hand sits in the sheet's
+    // Play tab, under the decision. Since L9 (#489) the log is in the drawer the ticker opens, right after the
+    // ticker, so the keyboard reaches it next once it is open.
     const choice = out.indexOf("<button", at('data-testid="decision"'));
     const marks = [
+      at('data-testid="ticker"'),
+      at('<ol aria-label="Log entries" tabindex="0">'),
+      at('data-testid="map-area"'),
       at('aria-label="Game details" tabindex="0"'),
       at('role="tablist"'),
       at('data-testid="decision"'),
       choice,
       at('data-testid="hand" class="game-hand" tabindex="0"'),
-      at('<ol aria-label="Log entries" tabindex="0">'),
     ];
     for (const mark of marks) expect(mark).toBeGreaterThan(-1);
     expect([...marks].sort((a, b) => a - b)).toEqual(marks);

@@ -81,6 +81,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e/sixRegionMap.e2e.ts` - The six-region map against the AI (A14, #439): 6 regions and 42 boxes, Crimea in its own box, and the two home boxes, readable and tappable on a phone held upr…
 - `packages/app/e2e/start.ts` - Shared starts for the Playwright smoke tests (not a test file: only *.e2e.ts files are tests). Exports: startSixRegionGame, pageSize.
 - `packages/app/e2e/testMode.e2e.ts`
+- `packages/app/e2e/ticker.e2e.ts` - The ticker, the log drawer and the pulse (L9, #489), run at both configured sizes (844x390 and 1280x800) in the six-region game against the AI.
 - `packages/app/e2e/tracks.e2e.ts` - The score track and Escalation on screen (A15, #448): test mode's map has scoring, so the region shows there at a phone held upright, held sideways and at desk…
 - `packages/app/e2e/vsAi.e2e.ts`
 - `packages/app/e2e/vsAiReplay.e2e.ts`
@@ -111,8 +112,13 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/ZoomableMap.tsx` - The Map area's one hook holder (docs/architecture.md, Decision 6). Exports: ZoomableMap.
 - `packages/app/src/game/decisionFocus.test.tsx`
 - `packages/app/src/game/decisionFocus.tsx` - Keyboard play: when a new decision waits for the player, focus moves to its first choice button. Exports: shouldFocusDecision, FocusRoot, FIRST_CHOICE, applyDecisionFocus, FocusingGameScreen.
+- `packages/app/src/game/drawerControl.test.ts` - The log drawer's rules (L9, #489), without a browser: when it shows, and how it closes.
+- `packages/app/src/game/drawerControl.ts` - The log drawer's rules (L9, #489; docs/design/screen-layout.md), kept apart from React so they are tested without a browser: when the drawer shows, and how it… Exports: Opened, drawerShown, DrawerPart, DrawerParts, dismissDrawer.
 - `packages/app/src/game/gameBars.css`
 - `packages/app/src/game/gameScreen.css`
+- `packages/app/src/game/logDrawer.css`
+- `packages/app/src/game/logDrawer.test.tsx` - The ticker and the log drawer (L9, #489): the ticker shows the newest log line exactly as the log has it, and opens the full log, newest first, in a drawer tha…
+- `packages/app/src/game/logDrawer.tsx` - The ticker and the log drawer (L9, #489; docs/design/screen-layout.md). Exports: LogDrawer.
 - `packages/app/src/game/map/DrawnMap.test.tsx` - The drawn map (L2, #465): a shaded area per region, a marker per country with its name, both sides' influence, its controller's colour, stability and a battleg…
 - `packages/app/src/game/map/DrawnMap.tsx` - The drawn map (L2, #465): one wrapper the size of the layout, which mapControl.ts moves by a CSS transform. Exports: DrawnMapProps, DrawnMap.
 - `packages/app/src/game/map/MapPanel.test.tsx` - The Map area's two views (L2, #465): the drawn map, with "Whole map", or the List, which is the map as it was drawn before (MapView, unchanged), with a Map/Lis…
@@ -132,6 +138,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/map/mapControl.test.ts` - The drawn map's wiring to the browser (L2, #465), driven here with stand-in elements: the wheel zooms around the cursor without scrolling the page, a drag past…
 - `packages/app/src/game/map/mapControl.ts` - The drawn map's wiring to the browser (L2, #465; docs/architecture.md, Decision 6): wheel, pointer and resize events on the map area move one wrapper by a CSS… Exports: SavedView, MapControl, controlMap.
 - `packages/app/src/game/map/mapTheme.css`
+- `packages/app/src/game/map/pulse.test.ts` - The pulse on the countries a move touched (L9, #489): each new batch of events starts it again, even on a country the last batch touched too, and a redraw with…
+- `packages/app/src/game/map/pulse.ts` - The pulse on the countries a move touched (L9, #489; docs/architecture.md, Decision 6: animation comes from events). Exports: Beat, Pulse, nextPulse.
 - `packages/app/src/game/map/sixRegionLayout.test.ts` - The six-region map's drawing (L2, #465; real geography since L3, #479): every country inside its region and the map, nothing overlapping, the regions roughly w…
 - `packages/app/src/game/map/sixRegionLayout.ts` - The six-region map's drawing (L2, #465; real geography since L3, #479). Exports: SIX_REGION_LAYOUT.
 - `packages/app/src/game/map/test/layoutChecks.ts` - Test helper: the checks every map layout must pass, for the six-region layout and for autoLayout on any map. Exports: expectInside, expectNoOverlap.
@@ -144,8 +152,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/map/world/worldArt.test.ts` - The real-geography map's artwork (L3, #479), as `pnpm map:build` made it: every country of the six-region game has a shape, and the shape is around the country…
 - `packages/app/src/game/map/world/worldArt.ts` - The real-geography map's artwork (L3, #479), made by `pnpm map:build` from the sources in SOURCES.md: the Blue Marble picture, and each game country's shape an… Exports: WORLD_ART.
 - `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, HandCard, Hand, Opponent, Table, Contingency, Log.
-- `packages/app/src/game/sideTabs.test.tsx` - The side panel's three tabs (L1, issue #464): which one shows, and how they draw.
-- `packages/app/src/game/sideTabs.tsx` - The sheet's three tabs (L1, issue #464; L5, #485; docs/architecture.md, Decision 6): Play (the decision and the hand), Log, and Details (the opponent, the tabl… Exports: TabId, SheetPick, TABS, shownTab, SideTabs.
+- `packages/app/src/game/sideTabs.test.tsx` - The side panel's tabs (L1, issue #464; two since L9, #489): which one shows, and how they draw.
+- `packages/app/src/game/sideTabs.tsx` - The sheet's two tabs (L1, issue #464; L5, #485; docs/architecture.md, Decision 6): Play (the decision and the hand) and Details (the opponent, the table and th… Exports: TabId, SheetPick, TABS, shownTab, SideTabs.
 - `packages/app/src/game/sixRegionMapView.test.tsx` - The real six-region map on screen (A14, issue #439): 6 region buttons and 42 badges zoomed out, each region's boxes zoomed in, Crimea's own box, and both home…
 - `packages/app/src/game/test/mapFixture.ts` - Test helper: a hand-written two-region map, its influence, and test-mode frames with and without it. Exports: map, influence, baseFrame, withMap, withoutMap.
 - `packages/app/src/game/tracks.test.tsx` - The score track and Escalation on screen (A15, issue #448): drawn from the frame's public state, and only on a map that has scoring.

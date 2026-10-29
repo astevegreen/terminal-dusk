@@ -15,11 +15,14 @@ import { neighbourPairs, shortName } from "./layout.ts";
 import type { MapLayout, Point } from "./layout.ts";
 import { Marker, placeOf } from "./Marker.tsx";
 import { Leaders, TONES, Tints, WorldPicture } from "./artLayer.tsx";
+import type { Beat } from "./pulse.ts";
 
 export type DrawnMapProps = {
   pub: PublicState;
   layout: MapLayout;
   touched: ReadonlySet<CountryId>;
+  /** The pulse's beat for the touched countries (pulse.ts); 0 when not given. */
+  beat?: Beat | undefined;
   onRegion: (region: RegionId) => void;
   viewportRef?: Ref<HTMLDivElement> | undefined;
   wrapperRef?: Ref<HTMLDivElement> | undefined;
@@ -96,7 +99,15 @@ function RegionButtons({ pub, layout, onRegion }: Readonly<Pick<DrawnMapProps, "
 }
 
 /** The map in its wrapper, inside the map area that clips it; a frame with no map draws nothing here. */
-export function DrawnMap({ pub, layout, touched, onRegion, viewportRef, wrapperRef }: Readonly<DrawnMapProps>) {
+export function DrawnMap({
+  pub,
+  layout,
+  touched,
+  beat = 0,
+  onRegion,
+  viewportRef,
+  wrapperRef,
+}: Readonly<DrawnMapProps>) {
   const { map } = pub;
   if (map === undefined) return null;
   return (
@@ -135,6 +146,7 @@ export function DrawnMap({ pub, layout, touched, onRegion, viewportRef, wrapperR
                 control={controller(pub, c.id) ?? "none"}
                 battleground={isBattleground(pub, c.id)}
                 touched={touched.has(c.id)}
+                pulse={touched.has(c.id) ? beat : undefined}
               />
             );
           })}

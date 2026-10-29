@@ -117,6 +117,19 @@ describe("the highlight on the countries the latest frame touched", () => {
     expect(touchedIn(drawn(sixPub, ["iran", "poland"]).html)).toEqual(["poland", "iran"]);
     expect(touchedIn(drawn(sixPub).html)).toEqual([]);
   });
+  it("gives each touched country the pulse's beat, so the pulse starts again for a new move (L9, #489)", () => {
+    const layout = layoutFor(sixPub.map!);
+    const pulsing = (beat: 0 | 1): string[] => {
+      const html = renderToString(
+        <DrawnMap pub={sixPub} layout={layout} touched={new Set(["iran"])} beat={beat} onRegion={() => {}} />,
+      );
+      return [...markersOf(html)].filter(([, m]) => m.includes(`data-pulse="${beat}"`)).map(([id]) => id);
+    };
+    expect(pulsing(0)).toEqual(["iran"]);
+    expect(pulsing(1)).toEqual(["iran"]);
+    // An untouched country has no beat, so its marker does not redraw when the beat flips.
+    expect(markerOf(drawn(sixPub, ["iran"]).html, "poland")).not.toContain("data-pulse");
+  });
 });
 
 describe("closed regions", () => {

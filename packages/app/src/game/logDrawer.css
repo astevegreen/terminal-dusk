@@ -1,0 +1,88 @@
+/* The ticker and the log drawer (L9, #489; docs/design/screen-layout.md). Their colours and sizes are the
+   --game-ticker-* and --game-drawer-w settings on .game (gameScreen.css), so an era's theme (#481) can dress the
+   ticker as a news ticker without moving it. */
+/* The ticker: its own row just under the top bar, see-through, one line cut short with "…", a tap target tall. */
+.game .game-ticker {
+  grid-area: ticker;
+  z-index: 3;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  height: var(--game-ticker-h);
+  min-height: 44px;
+  margin: 0;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 0;
+  background: var(--game-ticker-bg);
+  color: var(--game-ticker-fg);
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.game .game-ticker-mark {
+  flex: none;
+  font-weight: bold;
+}
+.game .game-ticker-line {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The drawer: from under the ticker to the sheet's tab row, on the right, about half the width, over the map and the
+   sheet's open panel. (The top bar's Menu cannot be open with it: the tap that opens the Menu closes the drawer.)
+   Its log scrolls. It slides in where the browser can. */
+.game .game-drawer {
+  grid-column: 1;
+  grid-row: map-start / map-end;
+  justify-self: end;
+  z-index: 3;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: var(--game-drawer-w);
+  min-height: 0;
+  border-left: 1px solid var(--game-edge);
+  background: var(--game-panel-bg);
+  transition: translate 0.2s ease-out;
+}
+.game .game-drawer[hidden] {
+  display: none;
+}
+@starting-style {
+  .game .game-drawer {
+    translate: 100% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game .game-drawer {
+    transition: none;
+  }
+}
+.game .game-drawer:focus {
+  outline: none;
+}
+.game .game-drawer-head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 0 0 8px;
+}
+.game .game-drawer-title {
+  font-weight: bold;
+}
+.game .game-drawer-head > button {
+  min-width: 44px;
+  min-height: 44px;
+}
+.game .game-drawer > .game-log {
+  flex: 1 1 0;
+  min-height: 0;
+  padding: 0 4px 4px;
+  overflow: auto;
+}
