@@ -1,7 +1,8 @@
 // The drawn map (L2, #465) in the six-region game against the AI, at the phone and desktop sizes: 42 markers and the
 // two home boxes, all inside the map area with none overlapping; a region tap zooms in and "Whole map" goes back;
 // the wheel zooms around the cursor without scrolling the page; a drag moves the map; two fingers pinch; and the
-// countries a move touched light up. With L2_SHOTS set to a folder, it saves a screenshot of each.
+// countries a move touched light up. On the real-geography map (L3, #479), the world picture loads under the
+// markers and its credit shows. With L2_SHOTS set to a folder, it saves a screenshot of each.
 import { expect, test } from "@playwright/test";
 import type { Locator, Page } from "@playwright/test";
 import { startSixRegionGame } from "./start.ts";
@@ -86,6 +87,21 @@ test("the whole map: 42 markers and both home boxes inside the map area, none ov
   const noSideScroll = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
   expect(noSideScroll).toBe(true);
   await shoot(page, "whole");
+});
+
+test("the world picture loads under the markers, with the regions tinted and its credit in the toolbar", async ({
+  page,
+}) => {
+  const area = await startDrawnMap(page);
+  const picture = area.locator("img.dm-picture");
+  await expect
+    .poll(() => picture.evaluate((img) => (img as HTMLImageElement).complete && (img as HTMLImageElement).naturalWidth))
+    .toBe(2800);
+  await expect(area.locator(".dm-tint")).toHaveCount(6);
+  await expect(area.locator(".dm-borders")).toHaveAttribute("d", /^M\d/);
+  await expect(area.locator(".dm-credit")).toHaveText("Blue Marble imagery: NASA Earth Observatory");
+  await expect(area.locator(".dm-credit")).toBeInViewport();
+  await shoot(page, "world");
 });
 
 test("tapping a region zooms in on it, and Whole map goes back to the whole map", async ({ page }) => {
@@ -214,7 +230,7 @@ test("placing influence lights up the country it was placed in", async ({ page }
   const area = await startDrawnMap(page);
   await expect(area.locator(".dm-marker[data-touched]")).toHaveCount(0);
   const lit = await placeAndWatch(page, area, 3);
-  expect(lit.length).toBe(3);
+  expect(lit).toHaveLength(3);
   await expect(area.locator(`.dm-marker[data-country="${lit[2]}"]`)).toHaveAttribute("data-touched", "true");
   await shoot(page, "highlight");
 });

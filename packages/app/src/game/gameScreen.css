@@ -136,10 +136,7 @@ body:has(.game-page) {
   margin: 4px 0 0;
 }
 .game .game-map {
-  /* Placeholder side colours, not final: one per side and one for an uncontrolled country. */
-  --map-lio: #2b6cb0;
-  --map-sae: #c53030;
-  --map-none: #6b6b6b;
+  /* The side colours (--map-lio, --map-sae, --map-none) are in map/mapTheme.css. */
   grid-area: map;
   min-height: 0;
   border-style: dashed;

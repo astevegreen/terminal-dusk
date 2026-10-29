@@ -1,0 +1,72 @@
+/* The map's look in one place (L3, #479): every colour, font and line width the drawn map and the List use, as
+   settings. This is the neutral theme; an era's theme (#481) gives some of them new values. drawnMap.css and
+   gameScreen.css only read them. */
+:root {
+  /* The sides, and a country neither side controls. */
+  --map-lio: #2b6cb0;
+  --map-sae: #c53030;
+  --map-none: #6b6b6b;
+
+  --map-font: system-ui, sans-serif;
+  /* Named fonts of Arial's width, so a country's name fits on every system: Linux's default sans-serif is wider. */
+  --map-name-font: "Segoe UI", Roboto, Arial, "Liberation Sans", "Helvetica Neue", sans-serif;
+
+  /* Behind the drawing, and the world picture's filter (none: the picture as NASA made it). */
+  --map-backdrop: #eef1f4;
+  --map-sea: #0b1a2e;
+  --map-picture-filter: none;
+
+  /* Region shades on a map with no picture, in the map's region order, and a closed region. */
+  --map-tone-0: #dbe7d4;
+  --map-tone-1: #f1e3c8;
+  --map-tone-2: #d6e2ef;
+  --map-tone-3: #efd9d3;
+  --map-tone-4: #e4dcef;
+  --map-tone-5: #d4ebe8;
+  --map-closed: #b9b9b9;
+  --map-area-edge: #8a8f96;
+  --map-area-width: 2;
+
+  /* On the world picture: each region's countries tinted, see-through, and the land borders over them. */
+  --map-tint-0: #7fc77a;
+  --map-tint-1: #f2c46b;
+  --map-tint-2: #7fb2e5;
+  --map-tint-3: #e88f7a;
+  --map-tint-4: #b79be6;
+  --map-tint-5: #6fd1c4;
+  --map-tint-opacity: 0.38;
+  --map-tint-closed: #9a9a9a;
+  --map-tint-closed-opacity: 0.6;
+  --map-border: #f4f1e8;
+  --map-border-width: 1.5;
+  --map-border-opacity: 0.8;
+  --map-area-edge-on-picture: #ffffff;
+  --map-area-edge-on-picture-opacity: 0.35;
+
+  /* Lines: between neighbours, from home boxes, and from an offset marker to its country's place. */
+  --map-link: #5b6470;
+  --map-link-width: 2;
+  --map-home-link-width: 3;
+  --map-leader: #ffffff;
+  --map-leader-width: 2;
+  --map-place: #ffffff;
+  --map-place-edge: #222222;
+  --map-place-edge-width: 2;
+
+  /* Region names, and the picture's credit. */
+  --map-region-text: #333333;
+  --map-region-text-closed: #555555;
+  --map-region-text-on-picture: #ffffff;
+  --map-region-text-shadow: 0 1px 3px #000, 0 0 2px #000;
+  --map-credit-text: #555555;
+
+  /* Markers and home boxes. */
+  --map-marker-edge: #222222;
+  --map-marker-text: #ffffff;
+  --map-home-fill: #ffffff;
+  --map-badge-fill: #ffffff;
+  --map-battleground: #ffd400;
+  --map-touched: #ffd400;
+  --map-touched-glow: rgba(255, 212, 0, 0.45);
+  --map-focus: #000000;
+}

@@ -72,6 +72,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e/keyboard.e2e.ts`
 - `packages/app/e2e/landscape.e2e.ts` - The game screen laid out for a phone held sideways (L1, #464), run at both configured sizes (844x390 and 1280x800): no page scroll, a thin top bar, the map fil…
 - `packages/app/e2e/map.e2e.ts`
+- `packages/app/e2e/mapTheme.test.ts` - Guards src/game/map/mapTheme.css, drawnMap.css and gameScreen.css.
 - `packages/app/e2e/narrow.e2e.ts` - The game screen on a phone held upright (375x667), found in the phase 3 gate playtest of 28 Oct: a game with no map kept a full-size empty map box (#412).
 - `packages/app/e2e/online.e2e.ts`
 - `packages/app/e2e/replay.e2e.ts`
@@ -85,10 +86,14 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e/vsAiReplay.e2e.ts`
 - `packages/app/e2e/watch.e2e.ts`
 - `packages/app/e2e/watchStack.e2e.ts`
+- `packages/app/e2e/worldFiles.test.ts` - Guards src/game/map/world/blueMarble.webp, the picture `pnpm map:build` made (L3, #479): a WebP at the size the map draws it, within its 500 KB budget so the m…
 - `packages/app/index.html`
 - `packages/app/package.json`
 - `packages/app/playwright.config.ts` - Playwright smoke tests (`pnpm test:e2e`), kept apart from Vitest: their files end in .e2e.ts. Exports: default.
 - `packages/app/playwright.stack.config.ts` - Playwright settings for the phase 4 browser gate (A10, e2e-stack/): two browsers, a real sign-in by email code and a whole online game on the local Supabase st… Exports: default.
+- `packages/app/scripts/world-map/build.mjs` - `pnpm map:build` (L3, #479): makes the real-geography map's two files from the two downloads in map-sources/ (world/SOURCES.md says where each comes from): src…
+- `packages/app/scripts/world-map/geometry.mjs` - The geometry behind `pnpm map:build` (L3, #479), kept pure so geometry.test.mjs can prove it on small shapes.
+- `packages/app/scripts/world-map/geometry.test.mjs` - What `pnpm map:build` does to Natural Earth's countries (L3, #479), shown on small made-up ones: the UN-recognised borders, Crimea, the crop, and whole-number…
 - `packages/app/src/App.test.tsx`
 - `packages/app/src/App.tsx` - The home screen: the game's name, a button to play against the AI, a button to play the six-region map against the AI (A14, #439), a button to play online and… Exports: AppProps, App, onlineRoute, Home.
 - `packages/app/src/chooseActionPrompt.test.tsx` - The chooseAction prompt (R16b, #316): all the points go to one action, placing or one intervention.
@@ -110,8 +115,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/map/DrawnMap.test.tsx` - The drawn map (L2, #465): a shaded area per region, a marker per country with its name, both sides' influence, its controller's colour, stability and a battleg…
 - `packages/app/src/game/map/DrawnMap.tsx` - The drawn map (L2, #465): one wrapper the size of the layout, which mapControl.ts moves by a CSS transform. Exports: DrawnMapProps, DrawnMap.
 - `packages/app/src/game/map/MapPanel.test.tsx` - The Map area's two views (L2, #465): the drawn map, with "Whole map", or the List, which is the map as it was drawn before (MapView, unchanged), with a Map/Lis…
-- `packages/app/src/game/map/MapPanel.tsx` - The Map area's contents (L2, #465): a Map/List toggle, then the drawn map or the List, which is MapView as it was before the drawn map. Exports: MapMode, PanelHandlers, PanelProps, MapPanel.
+- `packages/app/src/game/map/MapPanel.tsx` - The Map area's contents (L2, #465): a Map/List toggle (with the picture's credit on a real-geography map, L3, #479), then the drawn map or the List, which is M… Exports: MapMode, PanelHandlers, PanelProps, MapPanel.
 - `packages/app/src/game/map/Marker.tsx` - One country on the drawn map (L2, #465): a small box at its place, filled in its controller's colour, with its short name, a battleground mark, LIO's influence… Exports: MarkerProps, placeOf, markerText, Marker.
+- `packages/app/src/game/map/artLayer.tsx` - The real-geography map's artwork (L3, #479), drawn under the markers: the Blue Marble picture, each region's countries tinted in its tone (greyed when the regi… Exports: TONES, WorldPicture, Tints, Leaders.
 - `packages/app/src/game/map/autoLayout.test.ts` - The layout any other map gets (L2, #465): regions in a grid, each country in its own region, nothing overlapping, whatever the map; layoutFor picks it whenever…
 - `packages/app/src/game/map/autoLayout.ts` - A drawing for any map that has no hand-made one (L2, #465), such as the test map: the two home boxes in a strip along the top, then the regions in a grid in th… Exports: autoLayout.
 - `packages/app/src/game/map/drawnMap.css`
@@ -120,13 +126,22 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/map/gestures.test.ts` - The drawn map's gestures (L2, #465), as pure steps: a tap stays a tap until the pointer has moved 6 px, then it drags the map; two fingers pinch, zooming aroun…
 - `packages/app/src/game/map/gestures.ts` - The drawn map's gestures (L2, #465) as pure steps, so they are tested without a browser; mapControl.ts feeds them the real pointer and wheel events. Exports: DRAG_THRESHOLD, Gesture, NO_GESTURE, pointerDown, pointerUp, pointerMove, wheelFactor.
 - `packages/app/src/game/map/layout.test.ts` - The layout helpers (L2, #465): neighbour lines once per pair, short names, and the rectangle tests.
-- `packages/app/src/game/map/layout.ts` - The drawn map's layout (L2, #465): where each region, country and home box sits, in whole numbers in a fixed space the map is drawn at, before it is scaled to… Exports: Size, Point, Rect, MapLayout, MARKER, LABEL_BAND, SHORT_MAX, shortName, markerBox, wholeRect, contains, overlaps, ….
+- `packages/app/src/game/map/layout.ts` - The drawn map's layout (L2, #465): where each region, country and home box sits, in whole numbers in a fixed space the map is drawn at, before it is scaled to… Exports: Size, Point, Rect, MapLayout, WorldArt, Leader, LEADER_MAX, MARKER, LABEL_BAND, SHORT_MAX, shortName, markerBox, ….
 - `packages/app/src/game/map/layoutFor.ts` - Which drawing a frame's map gets (L2, #465): the hand-made six-region one when it places every region and country of the map, otherwise autoLayout's grid. Exports: layoutFor.
 - `packages/app/src/game/map/mapControl.test.ts` - The drawn map's wiring to the browser (L2, #465), driven here with stand-in elements: the wheel zooms around the cursor without scrolling the page, a drag past…
 - `packages/app/src/game/map/mapControl.ts` - The drawn map's wiring to the browser (L2, #465; docs/architecture.md, Decision 6): wheel, pointer and resize events on the map area move one wrapper by a CSS… Exports: SavedView, MapControl, controlMap.
-- `packages/app/src/game/map/sixRegionLayout.test.ts` - The six-region map's drawing (L2, #465): every country inside its region and the map, nothing overlapping, the regions roughly where they are in the world, and…
-- `packages/app/src/game/map/sixRegionLayout.ts` - The six-region map's drawing (L2, #465): a placeholder, flat and hand-placed. Exports: SIX_REGION_LAYOUT.
+- `packages/app/src/game/map/mapTheme.css`
+- `packages/app/src/game/map/sixRegionLayout.test.ts` - The six-region map's drawing (L2, #465; real geography since L3, #479): every country inside its region and the map, nothing overlapping, the regions roughly w…
+- `packages/app/src/game/map/sixRegionLayout.ts` - The six-region map's drawing (L2, #465; real geography since L3, #479). Exports: SIX_REGION_LAYOUT.
 - `packages/app/src/game/map/test/layoutChecks.ts` - Test helper: the checks every map layout must pass, for the six-region layout and for autoLayout on any map. Exports: expectInside, expectNoOverlap.
+- `packages/app/src/game/map/world/SOURCES.md` - Where the world map comes from (L3, #479)
+- `packages/app/src/game/map/world/blueMarble.webp`
+- `packages/app/src/game/map/world/crop.json`
+- `packages/app/src/game/map/world/projection.test.ts` - The world map's projection (L3, #479): the crop's corners land on the drawing's corners, in whole units.
+- `packages/app/src/game/map/world/projection.ts` - The world map's projection (L3, #479): the Blue Marble picture is equirectangular, so a place's longitude and latitude map straight to layout units, 7 to the d… Exports: CROP, WORLD_SIZE, project.
+- `packages/app/src/game/map/world/worldArt.json`
+- `packages/app/src/game/map/world/worldArt.test.ts` - The real-geography map's artwork (L3, #479), as `pnpm map:build` made it: every country of the six-region game has a shape, and the shape is around the country…
+- `packages/app/src/game/map/world/worldArt.ts` - The real-geography map's artwork (L3, #479), made by `pnpm map:build` from the sources in SOURCES.md: the Blue Marble picture, and each game country's shape an… Exports: WORLD_ART.
 - `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, HandCard, Hand, Opponent, Table, Contingency, Log.
 - `packages/app/src/game/sideTabs.test.tsx` - The side panel's three tabs (L1, issue #464): which one shows, and how they draw.
 - `packages/app/src/game/sideTabs.tsx` - The side panel's three tabs (L1, issue #464; docs/architecture.md, Decision 6): Play (the decision and the hand), Log, and Details (the opponent, the table and… Exports: TabId, TABS, shownTab, SideTabs.
