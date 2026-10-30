@@ -101,9 +101,8 @@ export const eventPresentation: EventPresentation = {
     log: (event) => `Escalation ${event.to > event.from ? "rises" : "falls"} to ${event.to}.`,
   },
   escalationCrisis: {
-    // Whether Escalation drops to 3 or the game ends at 6 depends on the score track, so the lines after this one say.
-    log: (event) =>
-      `Crisis: ${SIDE_NAME[event.side]} draws ${event.value}. The score and Escalation lines that follow show the result.`,
+    // Escalation drops to 3, or the game ends with it still at 6, depending on the score track: the lines after this one say which.
+    log: (event) => `Crisis: ${SIDE_NAME[event.side]} draws ${event.value}. The lines that follow show the result.`,
   },
   regionScored: {
     log: (event, names) => `Era scoring, ${names.region(event.region)}: LIO ${event.lio}, SAE ${event.sae}.`,
