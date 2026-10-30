@@ -1,4 +1,5 @@
-// The AI arena (X14, Decision 8): side alternation, tallying, the Medium-beats-Easy gate, arguments and report shape.
+// The AI arena (X14, Decision 8): side alternation, tallying, the Medium-beats-Easy and Hard-beats-Medium gates,
+// arguments and report shape.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { checkGate, formatArena, GATES, parseArgs, runArena, sideOf, tallyArena } from "./arena.mjs";
@@ -54,7 +55,7 @@ test("the gate passes only above 75%: exactly 75% fails", () => {
       "easy",
       Array.from({ length: total }, (_, i) => game("lio", i < wins ? "lio" : "sae")),
     );
-  assert.equal(GATES.length, 1);
+  assert.equal(GATES.length, 2);
   assert.equal(checkGate(make(76, 100)).pass, true);
   assert.equal(checkGate(make(75, 100)).pass, false);
   const result = checkGate(make(90, 100));
@@ -90,7 +91,7 @@ test("parseArgs: defaults, tiers, games, seed, json, and refusals with the usage
     "--json",
   ]);
   assert.deepEqual(o, { a: "easy", b: "medium", games: 20, seed: "x", scenario: "test-map", json: true });
-  assert.throws(() => parseArgs(["--a", "hard"]), /--a must be one of easy, medium, not "hard"[\s\S]*Usage:/);
+  assert.throws(() => parseArgs(["--a", "expert"]), /--a must be one of easy, medium, hard, not "expert"[\s\S]*Usage:/);
   assert.throws(() => parseArgs(["--games", "0"]), /--games must be a positive whole number/);
   assert.throws(() => parseArgs(["--nope"]), /Unknown argument/);
   assert.throws(() => parseArgs(["--b"]), /--b needs a value/);
@@ -117,4 +118,17 @@ test("a real seeded run alternates sides, is repeatable, and its report names ti
 test("Decision 8 gate: Medium beats Easy in over 75% of 40 seeded six-region games", () => {
   const run = runArena({ a: "medium", b: "easy", games: 40, seed: "arena-gate", scenario: "six-region" });
   assert.equal(run.gate.pass, true, run.gate.line);
+});
+
+test("Hard against Medium is held to the Hard-beats-Medium gate: over 65%, exactly 65% fails", () => {
+  const make = (wins, total) =>
+    tallyArena(
+      "hard",
+      "medium",
+      Array.from({ length: total }, (_, i) => game("lio", i < wins ? "lio" : "sae")),
+    );
+  assert.equal(checkGate(make(66, 100)).pass, true);
+  assert.equal(checkGate(make(65, 100)).pass, false);
+  assert.match(checkGate(make(70, 100)).line, /Hard beats Medium in 70\.0% of games \(needs over 65%\): PASS/);
+  assert.equal(checkGate(tallyArena("hard", "easy", [game("lio", "lio")])), null);
 });

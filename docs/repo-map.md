@@ -29,18 +29,22 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/ai/src/firstDeckMap.test.ts` - Easy with the real first-deck cards on the test map, so the sixteen R18 cards that move Escalation are in play (A11a, issue #359).
 - `packages/ai/src/guess.test.ts`
 - `packages/ai/src/guess.ts` - Guessing the cards a side cannot see, so the AI can rebuild a full state with `reconstruct`. Exports: seenCards, guessHidden.
-- `packages/ai/src/index.ts` - Public entry point of the AI opponent (docs/architecture.md, Decision 8). Exports: easyAnswer, mediumAnswer, guessHidden, EASY_WEIGHTS, MEDIUM_WEIGHTS, seededRandom, createEasyPlayer, createMediumPlayer, createAiWorkerHandler, AiRequest, AiResponse, AiTier, ….
+- `packages/ai/src/hard.test.ts` - The Hard tier (A18, issue #507): its search, its count budget and its clock, on the first deck and the test map.
+- `packages/ai/src/hard.ts` - The Hard tier (docs/architecture.md, Decision 8): for a card choice, Medium's best few answers are each played out a few card plays ahead (rollout.ts) on many… Exports: Clock, hardAnswer.
+- `packages/ai/src/index.ts` - Public entry point of the AI opponent (docs/architecture.md, Decision 8). Exports: easyAnswer, mediumAnswer, hardAnswer, guessHidden, EASY_WEIGHTS, MEDIUM_WEIGHTS, HARD_WEIGHTS, seededRandom, createEasyPlayer, createHardPlayer, createMediumPlayer, createAiWorkerHandler, ….
 - `packages/ai/src/intervening.test.ts` - Easy answers the action menu's intervene (A11c, issue #371): one chooseAction answer per country open to an intervention (R16b).
 - `packages/ai/src/mapGames.test.ts` - Easy in games with a map, influence and the Escalation track (A11a, issue #359).
 - `packages/ai/src/markers.test.ts` - Easy on cards with lasting markers and `has` conditions (R4, issue #171).
 - `packages/ai/src/medium.test.ts` - The Medium tier (A16, issue #455): whole seeded games on the test map and the six-region map.
-- `packages/ai/src/medium.ts` - The Medium tier (docs/architecture.md, Decision 8): Easy's scoring, plus the cards it has not seen and an evaluation of the board it would leave, in era-end re… Exports: attemptValue, mediumAnswer.
+- `packages/ai/src/medium.ts` - The Medium tier (docs/architecture.md, Decision 8): Easy's scoring, plus the cards it has not seen and an evaluation of the board it would leave, in era-end re… Exports: GAME_END, attemptValue, Scored, scoredAnswers, bestScored, mediumAnswer.
 - `packages/ai/src/placing.test.ts` - Easy answers the action menu's place influence (A11b, issue #360): the menu, then one placeInfluence decision per influence (R16a).
 - `packages/ai/src/playedBy.test.ts` - Easy on cards with playedBy conditions (R5, issue #172).
 - `packages/ai/src/player.test.ts`
-- `packages/ai/src/player.ts` - A ready-made Easy player and the plain-data protocol a worker uses to run it (Decision 8). Exports: createEasyPlayer, createMediumPlayer, AiTier, AiRequest, AiResponse, createAiWorkerHandler.
+- `packages/ai/src/player.ts` - Ready-made Easy, Medium and Hard players and the plain-data protocol a worker uses to run them (Decision 8). Exports: PlayerOptions, createEasyPlayer, createMediumPlayer, createHardPlayer, AiTier, AiRequest, AiResponse, createAiWorkerHandler.
 - `packages/ai/src/random.ts` - The AI's own noise, kept apart from the game's randomness (which stays in the engine's PRNG). Exports: seededRandom.
 - `packages/ai/src/realign.test.ts` - Easy answers the action menu's realign (A11d, issue #372): the menu, then one realign decision per attempt, each a country or a stop (R16c).
+- `packages/ai/src/rollout.test.ts` - A Hard rollout (A18, issue #507): it plays on from a candidate answer and stops where it should.
+- `packages/ai/src/rollout.ts` - One rollout of the Hard tier (docs/architecture.md, Decision 8): from a guessed full state, play a candidate answer, then both sides on as noise-free Medium pl… Exports: STEP_CAP, RolloutResult, rollout.
 - `packages/ai/src/safety.test.ts`
 - `packages/ai/src/safety.ts` - The Medium tier's Escalation safety (docs/design/map-and-points.md, "Escalation"): a raise to 6 is a crisis that costs the side that caused it the number it dr… Exports: expectedCrisisCost, crisisCost, crisisShare, safetyScore.
 - `packages/ai/src/sixRegionMap.test.ts` - Easy with the real first deck on the six-region map (A14, issue #439): seeded games, both sides Easy, end to end.
@@ -52,10 +56,11 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/ai/src/test/playEasy.ts` - Test helper: plays a whole game with Easy on both sides, checking every answer against the real state. Exports: EasyOptions, playEasy.
 - `packages/ai/src/test/playedByGames.ts` - Test helpers for the playedBy condition (R5): a small ruleset whose cards test who played them, and ask both sides a yes/no only on the `then` branch, so a dec… Exports: Branch, Shape, How, branchLabel, shapeOf, playedByRuleset, newPlayedByGame, parseBranch, playOf.
 - `packages/ai/src/test/testGames.ts` - Test helpers: a small ruleset and seeded games, so the AI tests can make real views with the engine. Exports: TestState, ninetyCards, ruleset, dealGame, newGame, applyTo, applyAnswer.
-- `packages/ai/src/types.ts` - Shared types of the AI package. Exports: Weights, MediumWeights.
+- `packages/ai/src/types.ts` - Shared types of the AI package. Exports: Weights, MediumWeights, HardWeights.
 - `packages/ai/src/unseen.test.ts`
 - `packages/ai/src/unseen.ts` - Which cards a side has not seen yet, and what a card does to Escalation. Exports: unseenCards, escalationEffect.
 - `packages/ai/src/weights/easy.ts` - The Easy tier's weights, as plain data (docs/architecture.md, Decision 8). Exports: EASY_WEIGHTS.
+- `packages/ai/src/weights/hard.ts` - The Hard tier's weights, as plain data (docs/architecture.md, Decision 8). Exports: HARD_WEIGHTS.
 - `packages/ai/src/weights/medium.ts` - The Medium tier's weights, as plain data (docs/architecture.md, Decision 8). Exports: MEDIUM_WEIGHTS.
 - `packages/ai/tsconfig.json`
 
@@ -941,7 +946,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 - `tools/balance/README.md` - Balance tool
 - `tools/balance/arena.mjs` - `node tools/balance/arena.mjs [--a <tier>] [--b <tier>] [--games <n>] [--seed <base>] [--scenario <name>] [--json]`: the AI arena of Decision 8.
-- `tools/balance/arena.test.mjs` - The AI arena (X14, Decision 8): side alternation, tallying, the Medium-beats-Easy gate, arguments and report shape.
+- `tools/balance/arena.test.mjs` - The AI arena (X14, Decision 8): side alternation, tallying, the Medium-beats-Easy and Hard-beats-Medium gates, arguments and report shape.
 - `tools/balance/config.mjs` - The run's match config: the chosen scenario (the first-deck TEST scenario, the test map scenario with the first deck's Era 1 cards, or the six-region map with…
 - `tools/balance/era-stats.test.mjs` - The "By era" numbers from hand-made game summaries: distinct cards used per game, their share of the era, and picks plus plays per game, including a card both…
 - `tools/balance/fixtures/first-deck-3-games.txt`

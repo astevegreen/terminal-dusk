@@ -14,7 +14,7 @@ import type { MediumWeights } from "./types.ts";
 type Guessed = ReturnType<typeof reconstruct>;
 
 /** The value of winning or losing the game outright: past anything the board can be worth. */
-const GAME_END = 1000;
+export const GAME_END = 1000;
 
 /**
  * How good the state is for `side` after it gives `answer`. An answer that only chooses between ways of spending
@@ -65,25 +65,26 @@ export function attemptValue(
   );
 }
 
+/** A legal answer and the score Medium gives it. */
+export type Scored = { answer: AnswerValue; score: number };
+
 /**
- * The best-scoring legal answer for `side`, or null when nothing is pending for it. A score is Easy's
- * `ops * printed ops + rivalCard * (1 if the card is the rival's) + noise * random()`, plus for a card answer its
- * safety (safety.ts), for a tech race attempt its value over the draws it could make, and for any other answer the
- * board it leaves (evaluate.ts). Ties go to the earlier answer.
+ * Every legal answer for `side` with its Medium score, in legal-answer order, or null when nothing is pending for it.
+ * A score is Easy's `ops * printed ops + rivalCard * (1 if the card is the rival's) + noise * random()`, plus for a
+ * card answer its safety (safety.ts), for a tech race attempt its value over the draws it could make, and for any
+ * other answer the board it leaves (evaluate.ts).
  */
-export function mediumAnswer(
+export function scoredAnswers(
   ruleset: Ruleset,
   view: PlayerView,
   side: Side,
   weights: MediumWeights,
   random: () => number,
-): AnswerValue | null {
+): Scored[] | null {
   if (!view.public.pending.some((decision) => decision.side === side)) return null;
   const hidden = guessHidden(ruleset, view, side, random);
   const state = reconstruct(view, hidden);
-  let best: AnswerValue | null = null;
-  let bestScore = -Infinity;
-  for (const answer of legalAnswers(ruleset, state, side)) {
+  return legalAnswers(ruleset, state, side).map((answer) => {
     const card = namedCard(ruleset, answer);
     const ops = card?.ops ?? 0;
     const rival = card !== null && card.affiliation !== "neutral" && card.affiliation !== side ? 1 : 0;
@@ -92,10 +93,25 @@ export function mediumAnswer(
     else if (answer.kind === "chooseAction" && answer.action === "techRace") {
       score += attemptValue(ruleset, view, hidden, side, weights);
     } else score += afterValue(ruleset, state, side, answer, weights, answer.kind === "chooseAction" ? 1 : 0);
-    if (score > bestScore) {
-      best = answer;
-      bestScore = score;
-    }
-  }
-  return best;
+    return { answer, score };
+  });
+}
+
+/** The highest-scoring answer in `scored`; ties go to the earlier one. Null when `scored` is empty. */
+export function bestScored(scored: readonly Scored[]): AnswerValue | null {
+  let top: Scored | null = null;
+  for (const entry of scored) if (top === null || entry.score > top.score) top = entry;
+  return top?.answer ?? null;
+}
+
+/** The best-scoring legal answer for `side` (scoredAnswers), or null when nothing is pending for it. */
+export function mediumAnswer(
+  ruleset: Ruleset,
+  view: PlayerView,
+  side: Side,
+  weights: MediumWeights,
+  random: () => number,
+): AnswerValue | null {
+  const scored = scoredAnswers(ruleset, view, side, weights, random);
+  return scored === null ? null : bestScored(scored);
 }

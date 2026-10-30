@@ -2,7 +2,7 @@ import { legalAnswers, viewFor } from "@terminal-dusk/engine";
 import type { AnswerValue } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { easyAnswer } from "./easy.ts";
-import { createAiWorkerHandler, createEasyPlayer, createMediumPlayer } from "./player.ts";
+import { createAiWorkerHandler, createEasyPlayer, createHardPlayer, createMediumPlayer } from "./player.ts";
 import type { AiRequest } from "./player.ts";
 import { seededRandom } from "./random.ts";
 import { newGame, ruleset } from "./test/testGames.ts";
@@ -86,5 +86,27 @@ describe("the Medium player", () => {
     const reply = handler({ kind: "answer", id: 7, view });
     expect(reply?.id).toBe(7);
     expect(legalAnswers(ruleset, state, "lio")).toContainEqual(reply?.value);
+  });
+});
+
+describe("the Hard player", () => {
+  it("answers legally, and the worker handler makes a Hard player when asked for the hard tier", () => {
+    const state = newGame(7);
+    const player = createHardPlayer(ruleset, "lio", 1);
+    expect(legalAnswers(ruleset, state, "lio")).toContainEqual(player(view));
+    const handler = createAiWorkerHandler();
+    handler({ kind: "start", ruleset, side: "lio", seed: 1, tier: "hard" });
+    const reply = handler({ kind: "answer", id: 9, view });
+    expect(reply?.id).toBe(9);
+    expect(reply?.value).toEqual(createHardPlayer(ruleset, "lio", 1)(view));
+  });
+
+  it("reads the clock the worker handler was given, and only that one", () => {
+    let readings = 0;
+    const handler = createAiWorkerHandler({ now: () => readings++ });
+    handler({ kind: "start", ruleset, side: "lio", seed: 1, tier: "hard" });
+    const reply = handler({ kind: "answer", id: 1, view });
+    expect(legalAnswers(ruleset, newGame(7), "lio")).toContainEqual(reply?.value);
+    expect(readings).toBeGreaterThan(0);
   });
 });

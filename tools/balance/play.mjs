@@ -2,7 +2,7 @@
 // The tool only sees what the host hands out: each side's frame (its view and decision) while the game runs, the
 // spectator's frames (the public view and public events) for the map numbers, and the answer log once it is over.
 // It never looks inside the game state (hard rule 2).
-import { createEasyPlayer, createMediumPlayer } from "@terminal-dusk/ai";
+import { createEasyPlayer, createHardPlayer, createMediumPlayer } from "@terminal-dusk/ai";
 import { hostCreate, hostSubmit } from "@terminal-dusk/host";
 import { firstDeckConfig, firstDeckRuleset } from "@terminal-dusk/host/first-deck";
 import { mapSummary } from "./map-stats.mjs";
@@ -11,7 +11,7 @@ import { scoreSummary } from "./score-stats.mjs";
 
 export const SIDES = ["lio", "sae"];
 /** The AI tiers a side can play as, by name. */
-export const TIERS = { easy: createEasyPlayer, medium: createMediumPlayer };
+export const TIERS = { easy: createEasyPlayer, medium: createMediumPlayer, hard: createHardPlayer };
 /** A game still going after this many answers stops the run, so a rules loop cannot hang it. */
 export const MAX_SUBMISSIONS = 10_000;
 /** The host's clock: every step happens at the same moment, which keeps runs identical. */

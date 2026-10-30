@@ -9,7 +9,8 @@ type WorkerScope = {
 };
 
 const scope = self as unknown as WorkerScope;
-const handle = createAiWorkerHandler();
+// The worker passes the clock Hard stops its search by; the AI package never reads one itself.
+const handle = createAiWorkerHandler({ now: () => performance.now() });
 scope.onmessage = (event) => {
   const response = handle(event.data);
   if (response) scope.postMessage(response);
