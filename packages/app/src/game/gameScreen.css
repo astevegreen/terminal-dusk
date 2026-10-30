@@ -63,6 +63,8 @@ body:has(.game-page) {
   --game-bar-bg: rgb(255 255 255 / 0.78);
   --game-panel-bg: rgb(255 255 255 / 0.94);
   --game-edge: #999;
+  /* The game's lettering; an era's theme (#481) gives it the lettering of its time. */
+  --game-font: system-ui, sans-serif;
   /* The room kept clear for the map tools (Map, List, Whole map): a row of tap targets above the world, or a block
      two of them wide and two tall beside it. */
   --game-tools-row: 52px;
@@ -100,7 +102,7 @@ body:has(.game-page) {
   overflow: hidden;
   background: var(--game-bg);
   color: var(--game-fg);
-  font-family: system-ui, sans-serif;
+  font-family: var(--game-font);
   font-size: 13px;
 }
 .game ul,
@@ -276,7 +278,7 @@ body:has(.game-page) {
   min-height: 44px;
   padding: 2px 6px;
   border-radius: 4px;
-  color: #fff;
+  color: var(--map-marker-text);
 }
 .game .map-badge-name {
   overflow-wrap: anywhere;
@@ -292,7 +294,7 @@ body:has(.game-page) {
   gap: 2px;
   padding: 4px 8px;
   border-radius: 4px;
-  color: #fff;
+  color: var(--map-marker-text);
 }
 .game .map-box-name {
   font-weight: bold;

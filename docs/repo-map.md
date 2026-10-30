@@ -72,6 +72,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e/bars/index.html`
 - `packages/app/e2e/details.e2e.ts` - The Details panel (L10, #490; docs/design/screen-layout.md), at 844x390, 1280x800 and 1920x1080 (sizes.ts).
 - `packages/app/e2e/drawnMap.e2e.ts` - The drawn map (L2, #465) in the six-region game against the AI, at the phone and desktop sizes: 42 markers and the two home boxes, all inside the map area with…
+- `packages/app/e2e/eraThemes.test.ts` - Guards the era themes (#481; docs/design/art-direction.md, "Era themes"): src/game/themes/*.css.
 - `packages/app/e2e/furnitureTheme.test.ts` - Guards the furniture's stylesheets (L10, #490): the top bar with its score track, the log drawer and the Details panel.
 - `packages/app/e2e/game.e2e.ts`
 - `packages/app/e2e/handStrip.e2e.ts` - The hand strip (L6, #486), run at both configured sizes (844x390 and 1280x800): the hand is a slim strip along the bottom edge, each card a chip at least 44 px…
@@ -181,6 +182,11 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, HandCard, Opponent, Table, Contingency, Log.
 - `packages/app/src/game/sixRegionMapView.test.tsx` - The real six-region map on screen (A14, issue #439): 6 region buttons and 42 badges zoomed out, each region's boxes zoomed in, Crimea's own box, and both home…
 - `packages/app/src/game/test/mapFixture.ts` - Test helper: a hand-written two-region map, its influence, and test-mode frames with and without it. Exports: map, influence, baseFrame, withMap, withoutMap.
+- `packages/app/src/game/themes/dashboard.css`
+- `packages/app/src/game/themes/eraTheme.test.ts` - Which era theme a game shows (#481; docs/design/art-direction.md, "Era themes").
+- `packages/app/src/game/themes/eraTheme.ts` - The era themes (#481; docs/design/art-direction.md, "Era themes"): one look per era, chosen by the era the game shows. Exports: THEMES, ThemeName, themeFor.
+- `packages/app/src/game/themes/newsDesk.css`
+- `packages/app/src/game/themes/terminal.css`
 - `packages/app/src/game/topBar.test.tsx` - The top bar's ticker and the log drawer (L9, #489): the ticker, the top bar's last item, shows the newest log line exactly as the log has it, and opens the ful…
 - `packages/app/src/game/topBar.tsx` - The top bar, with the Details button and the ticker at its right end, and the two panels they open (L5, #485; L9, #489; L10, #490; docs/design/screen-layout.md… Exports: TopBar.
 - `packages/app/src/game/tracks.test.tsx` - The score track and Escalation on screen (A15, issue #448): drawn from the frame's public state, and only on a map that has scoring.
