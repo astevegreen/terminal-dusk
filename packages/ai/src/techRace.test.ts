@@ -160,12 +160,12 @@ describe("the AI and the tech race", () => {
     expect(boardValue(at(-2, []), "lio", MEDIUM_WEIGHTS)).toBeGreaterThan(boardValue(at(0, []), "lio", MEDIUM_WEIGHTS));
   });
 
-  it("counts holding Quantum Computing as one era-end region point more", () => {
+  it("counts holding Quantum Computing as one era-end region point more, besides its step and its opening power", () => {
     const pub = MENUS[0]!.public;
     const at = (marker: number) => ({ ...pub, techRace: { ...pub.techRace!, marker, bonus: [] } });
-    const step = techValue(at(-3), "lio", MEDIUM_WEIGHTS) - techValue(at(-2), "lio", MEDIUM_WEIGHTS);
     const end = techValue(at(-4), "lio", MEDIUM_WEIGHTS) - techValue(at(-3), "lio", MEDIUM_WEIGHTS);
-    expect(end - step).toBeCloseTo(MEDIUM_WEIGHTS.region);
+    const { tech, techOpening, region } = MEDIUM_WEIGHTS;
+    expect(end - tech - techOpening).toBeCloseTo(region);
     expect(techValue(at(4), "lio", MEDIUM_WEIGHTS)).toBeCloseTo(-techValue(at(-4), "lio", MEDIUM_WEIGHTS));
   });
 });
