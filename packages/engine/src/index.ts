@@ -24,6 +24,7 @@ export type {
   ContingencyDrawn,
   Decision,
   DecisionKind,
+  DeckId,
   DecisionOptions,
   DrawPileReshuffled,
   Duration,

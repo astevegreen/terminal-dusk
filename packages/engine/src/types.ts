@@ -7,6 +7,10 @@ export const SIDES: readonly Side[] = ["lio", "sae"];
 
 /** The other side: LIO for SAE, SAE for LIO. */
 export const otherSide = (side: Side): Side => (side === "lio" ? "sae" : "lio");
+/** A Contingency deck: a side's own, or the shared World deck, which belongs to no side. */
+export type DeckId = Side | "world";
+/** Every Contingency deck, in the one order the engine shuffles and loops them in. */
+export const DECKS: readonly DeckId[] = ["lio", "sae", "world"];
 
 export type CardId = string;
 export type EraId = string;
@@ -83,10 +87,10 @@ export type PointsSpent = { kind: "pointsSpent"; visibility: "public"; side: Sid
 export type DrawPileReshuffled = { kind: "drawPileReshuffled"; visibility: "public"; cards: number };
 /** A new era started: `cardsAdded` of its cards were shuffled into the draw pile. Never which cards. */
 export type EraStarted = { kind: "eraStarted"; visibility: "public"; era: EraId; cardsAdded: number };
-/** `side` drew a contingency: the top card of its own Contingency deck, numbered `value`. */
-export type ContingencyDrawn = { kind: "contingencyDrawn"; visibility: "public"; side: Side; value: number };
-/** A draw left two cards in `side`'s Contingency deck, so all its cards were shuffled back together. */
-export type ContingencyDeckReshuffled = { kind: "contingencyDeckReshuffled"; visibility: "public"; side: Side };
+/** A contingency was drawn: the top card of the Contingency deck `deck`, numbered `value`. */
+export type ContingencyDrawn = { kind: "contingencyDrawn"; visibility: "public"; deck: DeckId; value: number };
+/** A draw left two cards in the Contingency deck `deck`, so all its cards were shuffled back together. */
+export type ContingencyDeckReshuffled = { kind: "contingencyDeckReshuffled"; visibility: "public"; deck: DeckId };
 /** A `modifier` step ran: `source`'s effect made the rule change `mod`, in force until `expires`. */
 export type ModifierStarted = {
   kind: "modifierStarted";
@@ -186,7 +190,7 @@ export type Condition =
  * A card choice is only ever both sides at once: the turn's opening pick (turn.ts). Card effects may
  * not hold one (cardChecks.ts). `spendPoints` is how a play for points spends them (turn.ts):
  * TEMPORARY until the actions are designed, it only emits a pointsSpent event. `drawContingency`
- * draws from `side`'s Contingency deck (an LIO or SAE card may name either deck) and
+ * draws from `side`'s Contingency deck (an LIO or SAE card may name either deck; see Frame for the World deck) and
  * binds the number to `bind`, if given. `side` "player" is the side that played the card: a neutral
  * event's draws, and only theirs, name it (docs/design/contingency-deck.md, cardChecks.ts).
  * `addToNumber` adds the non-zero whole `amount` (negative subtracts) to the number bound to `var`.
@@ -227,9 +231,16 @@ export type ModifierExpiry = { kind: "turnEnd"; turn: number };
 export type ActiveModifier = { source: CardId; mod: ModifierSpec; expires: ModifierExpiry };
 /**
  * A trigger waiting for its hook: the card that set it, the hook, its reaction, and when it ends (as a modifier).
- * `player`, when its program had one, is who picked or played that card: its reaction runs with it (Frame, below).
+ * `player` and `worldFor`, when its program had them, go with its reaction too (Frame, below).
  */
-export type ActiveTrigger = { source: CardId; hook: HookId; do: Step[]; expires: ModifierExpiry; player?: Side };
+export type ActiveTrigger = {
+  source: CardId;
+  hook: HookId;
+  do: Step[];
+  expires: ModifierExpiry;
+  player?: Side;
+  worldFor?: Side;
+};
 
 export type Binding = { name: VarName; value: VarValue };
 /** The block a frame runs, the index of its next step, and the variables bound in it, in binding order. */
@@ -239,10 +250,12 @@ type FrameBase = { steps: Step[]; next: number; vars: Binding[] };
  * items and the index of the current one. Frames are public: they never hold hidden data. A program run
  * for a card's effect or play records that card as `source`; the blocks inside it read their program's.
  * A program no card started (a turn's opening pick) has none. A card's event also records `player`, the
- * side that picked or played the card (turn.ts), whose deck a neutral event's "player" draws use.
+ * side that picked or played the card (turn.ts), whose deck a neutral event's "player" draws use. When that
+ * side played the rival's card, `worldFor` is the rival: the draws it names from that side's deck come
+ * from the World deck instead (contingency-deck.md, "The World deck").
  */
 export type Frame =
-  | (FrameBase & { kind: "program"; source?: CardId; player?: Side })
+  | (FrameBase & { kind: "program"; source?: CardId; player?: Side; worldFor?: Side })
   | (FrameBase & { kind: "if" })
   | (FrameBase & { kind: "forEach"; bind: VarName; items: string[]; index: number });
 
@@ -272,8 +285,8 @@ export type PublicState = {
   /** The resolution stack, bottom first. A paused program waits on the top frame's `choose`. */
   stack: Frame[];
   status: GameStatus;
-  /** Each side's Contingency deck, the numbered cards drawn instead of rolling a die. The order is secret. */
-  contingency: Record<Side, ContingencyDeck>;
+  /** The Contingency decks, each side's and the World deck: numbered cards drawn instead of rolling a die. The order is secret. */
+  contingency: Record<DeckId, ContingencyDeck>;
   /** The rule changes in force, in the order they were made (modifiers.ts). */
   modifiers: ActiveModifier[];
   /** The triggers waiting for their hooks, in the order they were set (triggers.ts). */
@@ -297,9 +310,9 @@ export type PrivateState = { hand: CardId[]; picks: UnrevealedPick[] };
 export type EraEntry = { era: EraId; turn: number; cards: CardId[] };
 /**
  * Visible to the host only. `eras`: the eras still to enter, in the setup's order. `contingency`: the
- * order of the cards left in each side's Contingency deck, top card first.
+ * order of the cards left in each Contingency deck, the World deck's included, top card first.
  */
-export type SecretState = { rng: RngState; deck: CardId[]; eras: EraEntry[]; contingency: Record<Side, number[]> };
+export type SecretState = { rng: RngState; deck: CardId[]; eras: EraEntry[]; contingency: Record<DeckId, number[]> };
 export type MetaState = { ruleset: RulesetId; seedHash: string; seq: number };
 
 export type GameState = {
@@ -309,25 +322,7 @@ export type GameState = {
   meta: MetaState;
 };
 
-/** Sizes of everything a viewer cannot see. A hand the viewer cannot see is only ever a number. */
-export type HiddenCounts = { deck: number; hands: Record<Side, number> };
-/** Every meta field is public: `seedHash` is the published hash, never the seed. */
-export type PublicMeta = MetaState;
-/** What one viewer receives. `mine` is the viewer's own private compartment, or null for a spectator. */
-export type PlayerView = { public: PublicState; mine: PrivateState | null; counts: HiddenCounts; meta: PublicMeta };
-/**
- * What a replay's omniscient viewer receives: the public compartment, both sides' private compartments,
- * the counts and the meta. Never the secret compartment: a finished game's seed and move log recompute it.
- * It has no `mine`, so it can never stand in for a live frame's PlayerView.
- */
-export type OmniscientView = {
-  public: PublicState;
-  sides: Record<Side, PrivateState>;
-  counts: HiddenCounts;
-  meta: PublicMeta;
-};
-/** What `viewer` cannot see: the opponent's private compartment and the secret compartment. */
-export type HiddenPart = { viewer: Side; opponent: PrivateState; secret: SecretState };
+export type { HiddenCounts, HiddenPart, OmniscientView, PlayerView, PublicMeta } from "./viewTypes.ts";
 
 export type Setup = {
   seedHash: string;
@@ -344,6 +339,6 @@ export type Setup = {
   handSize: number;
   /** The eras after the first, each entering on its own turn, from 2 to the last. None when left out. */
   eras?: EraEntry[];
-  /** Each side's Contingency deck: whole numbers, 1 or more, at least 3 cards, in any order. */
-  contingency: Record<Side, number[]>;
+  /** Each Contingency deck, the World deck's too: whole numbers, 1 or more, at least 3 cards, in any order. */
+  contingency: Record<DeckId, number[]>;
 };

@@ -52,16 +52,18 @@ describe("createGame", () => {
     expect(build("seed-1", []).secret.deck).toEqual([]);
     expect(build("seed-1", ["p1"]).secret.deck).toEqual(["p1"]);
   });
-  it("secret.rng holds the generator state after the shuffles (draw pile, then LIO's and SAE's Contingency decks, each sorted first)", () => {
-    // Intended change (#64): the two Contingency decks are now shuffled after the draw pile.
+  it("secret.rng holds the generator state after the shuffles (draw pile, then LIO's, SAE's and the World Contingency decks, each sorted first)", () => {
+    // Intended changes: the Contingency decks are shuffled after the draw pile (#64), the World deck last (#131).
     const deck = ["p1", "p2"];
-    const setup: Setup = { ...makeSetup(deck), contingency: { lio: [10, 2, 9, 2], sae: [1, 2, 3, 4, 5, 6] } };
+    const decks = { lio: [10, 2, 9, 2], sae: [1, 2, 3, 4, 5, 6], world: [6, 5, 4] };
+    const setup: Setup = { ...makeSetup(deck), contingency: decks };
     const r = createGame(ruleset, setup, "seed-1");
     if (!r.ok) throw new Error("expected ok");
     const pile = shuffle(seedRng("seed-1"), deck);
     const lio = shuffle(pile.state, [2, 2, 9, 10]);
     const sae = shuffle(lio.state, [1, 2, 3, 4, 5, 6]);
-    expect(r.value.state.secret.rng).toEqual(sae.state);
+    const world = shuffle(sae.state, [4, 5, 6]);
+    expect(r.value.state.secret.rng).toEqual(world.state);
     expect(r.value.state.secret.rng).not.toEqual(seedRng("seed-1"));
   });
   it("missing hands, a missing side's hand, or a missing deck returns invalidSetup", () => {

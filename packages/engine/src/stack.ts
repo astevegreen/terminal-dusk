@@ -1,7 +1,7 @@
 // The resolution stack: runs program steps until one needs a player's choice, records that as the
 // pending decision (or, for both sides at once, a simultaneous pair) and stops. The answer resumes
 // exactly where it stopped. A step budget per call (createGame or apply) stops runaway programs.
-import { drawContingency } from "./contingency.ts";
+import { deckFor, drawContingency, worldFor } from "./contingency.ts";
 import { copyJson } from "./copy.ts";
 import { newDecision, newGroup } from "./decisions.ts";
 import { opsValue, startModifier } from "./modifiers.ts";
@@ -44,7 +44,8 @@ const problem = (code: EngineErrorCode, message: string): EngineError => ({ code
  * Starts `steps` as a program and runs it until it pauses or ends. If it pauses, its choice replaces
  * the pending decisions. Internal: index.ts does not export it. Engine tests start programs with it;
  * real games start them from the turn structure (turn.ts), through runProgram. `source`, if given, is
- * the card the program runs for, and `player` the side that played it (as in runProgram).
+ * the card the program runs for, and `player` the side that played it (as in runProgram); a rival's card
+ * draws from the World deck as in a real game.
  */
 export function startProgram(
   ruleset: Ruleset,
@@ -66,14 +67,19 @@ export function startProgram(
   const next = copyJson(state);
   next.meta.seq += 1;
   const events: GameEvent[] = [];
-  const error = runProgram(next, steps, events, newBudget(ruleset), source, player);
+  const world = worldFor(
+    ruleset.cards.find((c) => c.id === source),
+    player,
+  );
+  const error = runProgram(next, steps, events, newBudget(ruleset), source, player, world);
   return error ? { ok: false, error } : { ok: true, value: { state: next, events } };
 }
 
 /**
  * Pushes `steps` as a new program and runs it until it pauses or ends. `source` is the card whose effect
- * or play it runs, if any, and `player` the side that picked or played it, given for a card's event: the
- * frame records both. Edits `state`, a working copy.
+ * or play it runs, if any, and `player` the side that picked or played it, given for a card's event, and
+ * `world` the card's owner when `player` is its rival (contingency.ts, worldFor): the frame records all
+ * three. Edits `state`, a working copy.
  */
 export function runProgram(
   state: GameState,
@@ -82,10 +88,12 @@ export function runProgram(
   budget: Budget,
   source?: CardId,
   player?: Side,
+  world?: Side,
 ): EngineError | null {
   const frame: Frame = { kind: "program", steps: copyJson(steps), next: 0, vars: [] };
   if (source !== undefined) frame.source = source;
   if (player !== undefined) frame.player = player;
+  if (world !== undefined) frame.worldFor = world;
   state.public.stack.push(frame);
   return runStack(state, events, budget);
 }
@@ -171,20 +179,21 @@ function runStep(state: GameState, frame: Frame, step: Step, events: GameEvent[]
     }
     case "modifier":
     case "trigger": {
-      const { source, player } = programFrame(state.public.stack) ?? {};
+      const { source, player, worldFor: world } = programFrame(state.public.stack) ?? {};
       if (source === undefined) return problem("invalidProgram", `A ${step.op} step needs the card it runs for.`);
       if (step.op === "modifier") startModifier(state, source, step, events);
-      else setTrigger(state, source, step, events, player);
+      else setTrigger(state, source, step, events, player, world);
       frame.next += 1;
       return "ran";
     }
     case "addToNumber":
       return runAddToNumber(state.public.stack, frame, step);
     case "drawContingency": {
-      const side = step.side === "player" ? programFrame(state.public.stack)?.player : step.side;
+      const program = programFrame(state.public.stack);
+      const side = step.side === "player" ? program?.player : step.side;
       if (side === undefined)
         return problem("invalidProgram", "A draw from the player's deck needs the side that played the card.");
-      const value = drawContingency(state, side, events);
+      const value = drawContingency(state, deckFor(side, program?.worldFor), events);
       if (step.bind !== undefined) bind(frame, step.bind, value);
       frame.next += 1;
       return "ran";

@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { apply, createGame, hiddenPart, legalAnswers, reconstruct, seedHash, SIDES, viewFor } from "./index.ts";
 import type { Answer, GameState, PlayerView, Ruleset, Setup, Side, Step, Viewer } from "./index.ts";
 import { startProgram } from "./stack.ts";
+import { DECKS } from "./types.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
 import { choose, forEach, ifSaid, ifYes, marker, rulesetWith } from "./test/game.ts";
 
@@ -85,8 +86,9 @@ const gameArb: fc.Arbitrary<Game> = fc
     moves: fc.array(moveArb, { maxLength: 30 }),
     lioDeck: deckArb,
     saeDeck: deckArb,
+    worldDeck: deckArb,
   })
-  .map(({ ids, cutA, cutB, turns, playsPerTurn, seed, moves, lioDeck, saeDeck }) => {
+  .map(({ ids, cutA, cutB, turns, playsPerTurn, seed, moves, lioDeck, saeDeck, worldDeck }) => {
     const needed = turns * (1 + playsPerTurn);
     const lio = ids.slice(0, needed).map((n) => `l${n}z`);
     const sae = ids.slice(needed, 2 * needed).map((n) => `s${n}z`);
@@ -101,7 +103,7 @@ const gameArb: fc.Arbitrary<Game> = fc
       playsPerTurn,
       // The smallest hand size: the dealt hands never drop below it, so this test's games draw no cards.
       handSize: 1 + playsPerTurn,
-      contingency: { lio: lioDeck, sae: saeDeck },
+      contingency: { lio: lioDeck, sae: saeDeck, world: worldDeck },
     };
     return { setup, seed: `seed-${seed}-x`, moves };
   });
@@ -206,7 +208,7 @@ describe("views over random games", () => {
     fc.assert(
       fc.property(gameArb, (game) => {
         for (const s of play(game)) {
-          for (const side of SIDES) {
+          for (const side of DECKS) {
             const open = s.public.contingency[side];
             expect(open.cards).toEqual(ascending(game.setup.contingency[side]));
             expect(open.left).toEqual(ascending(s.secret.contingency[side]));

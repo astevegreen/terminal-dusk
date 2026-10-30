@@ -14,7 +14,9 @@ type TriggerStep = Extract<Step, { op: "trigger" }>;
 /**
  * Runs a `trigger` step for the card `source`: the trigger joins the end of the list, to end with the
  * current turn, and everyone is told. `player`, the side that picked or played the card, goes with it, so the
- * reaction's "player" draws (a neutral card's) use that side's deck. Edits `state`, a working copy.
+ * reaction's "player" draws (a neutral card's) use that side's deck. `world`, the card's owner when its rival
+ * played it, goes with it too, so the reaction draws from the World deck as the card's event does (Frame).
+ * Edits `state`, a working copy.
  */
 export function setTrigger(
   state: GameState,
@@ -22,10 +24,12 @@ export function setTrigger(
   step: TriggerStep,
   events: GameEvent[],
   player?: Side,
+  world?: Side,
 ): void {
   const expires = { kind: step.duration.kind, turn: state.public.turn };
   const trigger: ActiveTrigger = { source, hook: step.hook, do: copyJson(step.do), expires };
   if (player !== undefined) trigger.player = player;
+  if (world !== undefined) trigger.worldFor = world;
   state.public.triggers.push(trigger);
   events.push({ kind: "triggerSet", visibility: "public", source, hook: step.hook });
 }
@@ -74,6 +78,7 @@ function pushReactions(state: GameState, triggers: ActiveTrigger[], vars: Bindin
     const steps = copyJson(trigger.do);
     const frame: Frame = { kind: "program", steps, next: 0, vars: copyJson(vars), source: trigger.source };
     if (trigger.player !== undefined) frame.player = trigger.player;
+    if (trigger.worldFor !== undefined) frame.worldFor = trigger.worldFor;
     state.public.stack.push(frame);
   }
 }

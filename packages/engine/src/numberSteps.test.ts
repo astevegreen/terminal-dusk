@@ -34,7 +34,7 @@ const test = (op: "atLeast" | "atMost" | "equals", value: number, then: Step[], 
 /** A game at LIO's first play whose LIO Contingency deck is all `n`, so every draw gives `n`. */
 const drawing = (n: number, rs = ruleset, extra: { lio?: string[] } = {}): GameState =>
   openWith(
-    startGame(2, 1, rs, { ...setupPlus(extra), contingency: { lio: [n, n, n], sae: [1, 2, 3] } }),
+    startGame(2, 1, rs, { ...setupPlus(extra), contingency: { lio: [n, n, n], sae: [1, 2, 3], world: [1, 2, 3] } }),
     "l1",
     "s1",
     rs,
@@ -178,8 +178,10 @@ describe("a played card that draws, adds and branches", () => {
     const rs = withCards(
       sideCard("s9", 2, [{ op: "drawContingency", side: "sae", bind: "n" }, add(2), marker("n", "n")]),
     );
+    // A rival's card draws from the World deck for its owner's deck (#131), so that deck is all 2s too.
+    const decks = { lio: [1, 2, 3], sae: [2, 2, 2], world: [2, 2, 2] };
     const s = openWith(
-      startGame(2, 1, rs, { ...setupPlus({ lio: ["s9"] }), contingency: { lio: [1, 2, 3], sae: [2, 2, 2] } }),
+      startGame(2, 1, rs, { ...setupPlus({ lio: ["s9"] }), contingency: decks }),
       "l1",
       "s1",
       rs,

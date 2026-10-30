@@ -6,6 +6,7 @@
 // A play uses a card for its event or its points (decisions.ts lists the uses each card allows). A
 // rival's card is played for its points, and its event still happens: the player first says whether
 // before or after the points. A played card stays in `inPlay` until everything it triggered is done.
+import { worldFor } from "./contingency.ts";
 import { newDecision, whoseCard } from "./decisions.ts";
 import { enterEra } from "./eras.ts";
 import { refillHands } from "./refill.ts";
@@ -132,14 +133,9 @@ function endTurn(state: GameState, events: GameEvent[], budget: Budget): EngineE
  */
 function startEvent(ruleset: Ruleset, state: GameState, events: GameEvent[], budget: Budget): EngineError | null {
   const id = state.public.inPlay[0]!;
-  return runProgram(
-    state,
-    cardOf(ruleset, id)?.effect ?? [],
-    events,
-    budget,
-    id,
-    state.public.inPlayBy[0] ?? undefined,
-  );
+  const card = cardOf(ruleset, id);
+  const picker = state.public.inPlayBy[0] ?? undefined;
+  return runProgram(state, card?.effect ?? [], events, budget, id, picker, worldFor(card, picker));
 }
 
 /**
@@ -190,7 +186,7 @@ function playRival(
   // The printed ops: the modifiers in force when this step runs change them, its own event's included.
   const points = spendPoints(side, card?.ops ?? 0);
   const steps = event === "before" ? [...effect, points] : [points, ...effect];
-  return runProgram(state, steps, events, budget, id, side);
+  return runProgram(state, steps, events, budget, id, side, worldFor(card, side));
 }
 
 /** True while a rival's card is in play and its player has yet to say when its event happens. */

@@ -47,7 +47,7 @@ const gameArb = fc
       playsPerTurn,
       handSize,
       ...(era.length > 0 && turns >= 2 ? { eras: [{ era: "era2", turn: 2, cards: era }] } : {}),
-      contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6] },
+      contingency: { lio: [1, 2, 3, 4, 5, 6], sae: [1, 2, 3, 4, 5, 6], world: [1, 2, 3, 4, 5, 6] },
     };
     return { ruleset, setup, seed: s, picks };
   });

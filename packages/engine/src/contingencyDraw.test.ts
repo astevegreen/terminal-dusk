@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { drawContingency } from "./contingency.ts";
 import { copyJson } from "./copy.ts";
 import { createGame, seedHash } from "./index.ts";
-import type { GameEvent, GameState, Setup, Side } from "./index.ts";
+import type { DeckId, GameEvent, GameState, Setup } from "./index.ts";
 import { shuffle } from "./rng.ts";
 import { makeSetup, ruleset } from "./test/game.ts";
 
@@ -13,7 +13,7 @@ const ONE_TO_SIX = [1, 2, 3, 4, 5, 6];
 
 /** A new game with these Contingency decks. */
 function fresh(lio: number[], sae: number[] = ONE_TO_SIX): GameState {
-  const setup: Setup = { ...makeSetup(), contingency: { lio, sae } };
+  const setup: Setup = { ...makeSetup(), contingency: { lio, sae, world: ONE_TO_SIX } };
   const r = createGame(ruleset, { ...setup, seedHash: seedHash(SEED) }, SEED);
   if (!r.ok) throw new Error(`createGame failed: ${r.error.code}`);
   return r.value.state;
@@ -22,7 +22,7 @@ function fresh(lio: number[], sae: number[] = ONE_TO_SIX): GameState {
 type Drawn = { state: GameState; value: number; events: GameEvent[] };
 
 /** One draw for `side`, on a working copy of `state`, as apply would make. `state` itself is left alone. */
-function draw(state: GameState, side: Side): Drawn {
+function draw(state: GameState, side: DeckId): Drawn {
   const next = copyJson(state);
   const events: GameEvent[] = [];
   const value = drawContingency(next, side, events);
@@ -30,7 +30,7 @@ function draw(state: GameState, side: Side): Drawn {
 }
 
 /** `count` draws for `side` in a row, each from the state the last one left. */
-function drawMany(state: GameState, side: Side, count: number): Drawn[] {
+function drawMany(state: GameState, side: DeckId, count: number): Drawn[] {
   const out: Drawn[] = [];
   let current = state;
   for (let i = 0; i < count; i++) {
@@ -58,11 +58,11 @@ describe("drawing a contingency", () => {
     const draws = drawMany(fresh(ONE_TO_SIX), "lio", 4);
     expect(draws.map((d) => d.state.secret.contingency.lio.length)).toEqual([5, 4, 3, 6]);
     for (const d of draws.slice(0, 3)) {
-      expect(d.events).toEqual([{ kind: "contingencyDrawn", visibility: "public", side: "lio", value: d.value }]);
+      expect(d.events).toEqual([{ kind: "contingencyDrawn", visibility: "public", deck: "lio", value: d.value }]);
     }
     expect(draws[3]!.events).toEqual([
-      { kind: "contingencyDrawn", visibility: "public", side: "lio", value: draws[3]!.value },
-      { kind: "contingencyDeckReshuffled", visibility: "public", side: "lio" },
+      { kind: "contingencyDrawn", visibility: "public", deck: "lio", value: draws[3]!.value },
+      { kind: "contingencyDeckReshuffled", visibility: "public", deck: "lio" },
     ]);
   });
 
@@ -86,7 +86,7 @@ describe("drawing a contingency", () => {
     const [top, ...rest] = rebuilt.secret.contingency.lio;
     expect(draws[4]!.value).toBe(top);
     expect(draws[4]!.state.secret.contingency.lio).toEqual(rest);
-    expect(draws[4]!.events).toEqual([{ kind: "contingencyDrawn", visibility: "public", side: "lio", value: top }]);
+    expect(draws[4]!.events).toEqual([{ kind: "contingencyDrawn", visibility: "public", deck: "lio", value: top }]);
   });
 
   it("after draw 4 the secret order and generator equal shuffle(the generator before the reshuffle, [1..6]), the two left included", () => {
@@ -148,8 +148,8 @@ describe("drawing a contingency", () => {
     const d = draw(s, "lio");
     expect([3, 5, 7]).toContain(d.value);
     expect(d.events).toEqual([
-      { kind: "contingencyDrawn", visibility: "public", side: "lio", value: d.value },
-      { kind: "contingencyDeckReshuffled", visibility: "public", side: "lio" },
+      { kind: "contingencyDrawn", visibility: "public", deck: "lio", value: d.value },
+      { kind: "contingencyDeckReshuffled", visibility: "public", deck: "lio" },
     ]);
     expect(d.state.secret.contingency.lio).toEqual(shuffle(s.secret.rng, [3, 5, 7]).items);
     expect(d.state.public.contingency.lio).toEqual({ cards: [3, 5, 7], left: [3, 5, 7] });
@@ -181,12 +181,27 @@ describe("drawing a contingency", () => {
     }
   });
 
-  it("no event carries a deck order: only the side, and for a draw the number drawn", () => {
+  it("no event carries a deck order: only the deck, and for a draw the number drawn", () => {
     for (const d of drawMany(fresh([2, 5, 8]), "sae", 3)) {
       for (const event of d.events)
         expect(Object.keys(event).sort()).toEqual(
-          event.kind === "contingencyDrawn" ? ["kind", "side", "value", "visibility"] : ["kind", "side", "visibility"],
+          event.kind === "contingencyDrawn" ? ["deck", "kind", "value", "visibility"] : ["deck", "kind", "visibility"],
         );
+    }
+  });
+
+  it("the World deck reshuffles by the same rule as the side decks, and leaves the side decks alone", () => {
+    const s = fresh(ONE_TO_SIX);
+    const draws = drawMany(s, "world", 4);
+    expect(draws.map((d) => d.state.secret.contingency.world.length)).toEqual([5, 4, 3, 6]);
+    expect(draws[3]!.events).toEqual([
+      { kind: "contingencyDrawn", visibility: "public", deck: "world", value: draws[3]!.value },
+      { kind: "contingencyDeckReshuffled", visibility: "public", deck: "world" },
+    ]);
+    expect(draws[3]!.state.secret.contingency.world).toEqual(shuffle(draws[2]!.state.secret.rng, ONE_TO_SIX).items);
+    for (const side of ["lio", "sae"] as const) {
+      expect(draws[3]!.state.secret.contingency[side]).toEqual(s.secret.contingency[side]);
+      expect(draws[3]!.state.public.contingency[side]).toEqual(s.public.contingency[side]);
     }
   });
 });

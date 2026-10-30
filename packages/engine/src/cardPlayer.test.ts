@@ -4,7 +4,7 @@
 // six, so the fourth also reshuffles that deck: both events must name the picker, and the other deck stays as it was.
 import { describe, expect, it } from "vitest";
 import { legalAnswers, viewFor } from "./index.ts";
-import type { GameEvent, GameState, Ruleset, Side, Step } from "./index.ts";
+import type { DeckId, GameEvent, GameState, Ruleset, Side, Step } from "./index.ts";
 import { otherSide } from "./types.ts";
 import {
   answerYesNo,
@@ -30,11 +30,11 @@ const turnEnd = (steps: Step[]): Step => ({ op: "trigger", hook: "turnEnd", do: 
 /** The side each contingencyDrawn and contingencyDeckReshuffled names, in order, as "drawn:lio" and so on. */
 const deckEvents = (events: readonly GameEvent[]): string[] =>
   events.flatMap((e) => {
-    if (e.kind === "contingencyDrawn") return [`drawn:${e.side}`];
-    return e.kind === "contingencyDeckReshuffled" ? [`reshuffled:${e.side}`] : [];
+    if (e.kind === "contingencyDrawn") return [`drawn:${e.deck}`];
+    return e.kind === "contingencyDeckReshuffled" ? [`reshuffled:${e.deck}`] : [];
   });
-/** ONE_DECK for `side`'s deck. */
-const fromDeck = (side: Side): string[] => ONE_DECK.map((what) => `${what}:${side}`);
+/** ONE_DECK for `deck`. */
+const fromDeck = (deck: DeckId): string[] => ONE_DECK.map((what) => `${what}:${deck}`);
 
 /** Expects `side`'s Contingency deck, its order and the numbers left, to be as in `before`. */
 function untouched(before: GameState, after: GameState, side: Side): void {
@@ -140,17 +140,19 @@ describe("a cardPlayed trigger a neutral card sets draws from its player's deck 
   });
 });
 
-describe("an LIO card picked or played by SAE records SAE, and still draws from the deck it names", () => {
-  // l9's event sets a turnEnd trigger whose reaction draws from LIO's deck.
+describe("an LIO card picked or played by SAE records SAE, and its draws from LIO's deck come from the World deck", () => {
+  // l9's event sets a turnEnd trigger whose reaction draws from LIO's deck. Was: LIO's deck; the World
+  // deck (#131) replaced that rule, so LIO's and SAE's decks both stay as they were.
   const rs = withCards(card("l9", 2, [turnEnd([drawsFrom("lio")])]));
 
   it("picked by SAE as its opening card", () => {
     const s = startGame(2, 1, rs, setupPlus({ sae: ["l9"] }));
     const opened = openWith(s, "l1", "l9", rs);
-    expect(opened.state.public.triggers).toMatchObject([{ source: "l9", player: "sae" }]);
+    expect(opened.state.public.triggers).toMatchObject([{ source: "l9", player: "sae", worldFor: "lio" }]);
     const turn = playOutTurn(opened.state, rs);
-    expect(deckEvents(turn.events)).toEqual(fromDeck("lio"));
+    expect(deckEvents(turn.events)).toEqual(fromDeck("world"));
     untouched(s, turn.state, "sae");
+    untouched(s, turn.state, "lio");
   });
 
   it("played by SAE for its points", () => {
@@ -161,10 +163,11 @@ describe("an LIO card picked or played by SAE records SAE, and still draws from 
     const waiting = applied(lioPlayed, playAnswer(lioPlayed, "sae", "l9", "points"), rs).state;
     expect(waiting.public.inPlayBy).toEqual(["sae"]);
     const ran = applied(waiting, orderAnswer(waiting, "sae", "before"), rs).state;
-    expect(ran.public.triggers).toMatchObject([{ source: "l9", player: "sae" }]);
+    expect(ran.public.triggers).toMatchObject([{ source: "l9", player: "sae", worldFor: "lio" }]);
     const turn = playOutTurn(ran, rs);
-    expect(deckEvents(turn.events)).toEqual(fromDeck("lio"));
+    expect(deckEvents(turn.events)).toEqual(fromDeck("world"));
     untouched(s, turn.state, "sae");
+    untouched(s, turn.state, "lio");
   });
 });
 
