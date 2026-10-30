@@ -22,11 +22,11 @@ function withMarker(state: TestState, marker: number): TestState {
   return { ...state, public: { ...state.public, techRace: { ...state.public.techRace!, marker, reached } } };
 }
 
-type Seen = { extraPlays: TestState[]; passes: number; plays: number; oneSided: Record<Side, number> };
+type Seen = { extraPlays: TestState[]; passes: number; plays: number; oneSided: { rival: number; holder: number } };
 
 /** Plays a six-region game from `seed` with the marker starting at `marker`, noting the extra plays and one-sided picks. */
 function play(seed: number, marker: number, tier: "easy" | "medium"): Seen & { over: boolean } {
-  const seen: Seen = { extraPlays: [], passes: 0, plays: 0, oneSided: { lio: 0, sae: 0 } };
+  const seen: Seen = { extraPlays: [], passes: 0, plays: 0, oneSided: { rival: 0, holder: 0 } };
   const final = playEasy(
     FIRST_DECK_RULESET,
     withMarker(newSixRegionMapGame(seed), marker),
@@ -42,7 +42,12 @@ function play(seed: number, marker: number, tier: "easy" | "medium"): Seen & { o
           if (answer.value.kind === "pass") seen.passes++;
           else seen.plays++;
         }
-        if (decision.kind === "chooseCard" && before.public.pending.length === 1) seen.oneSided[decision.side]++;
+        // Quantum Computing's picks are one at a time, with no simultaneous group: the rival's with nothing in play,
+        // the holder's with the rival's card face up.
+        const held = Math.abs(before.public.techRace!.marker) === before.public.map!.techRace!.steps.length;
+        if (decision.kind === "chooseCard" && held && decision.simultaneousGroup === undefined) {
+          seen.oneSided[before.public.inPlay.length === 0 ? "rival" : "holder"]++;
+        }
       },
     },
   );
@@ -120,15 +125,12 @@ describe("the AI and the tech race step powers", () => {
 
   it("Easy and Medium answer Quantum Computing's one-sided opening pick, as the rival and as the holder", () => {
     for (const tier of ["easy", "medium"] as const) {
-      const oneSided = { lio: 0, sae: 0 };
       for (const marker of [-4, 4]) {
         const seen = play(1, marker, tier);
         expect(seen.over).toBe(true);
-        oneSided.lio += seen.oneSided.lio;
-        oneSided.sae += seen.oneSided.sae;
+        expect(seen.oneSided.rival, `${tier} ${marker}`).toBeGreaterThan(0);
+        expect(seen.oneSided.holder, `${tier} ${marker}`).toBeGreaterThan(0);
       }
-      expect(oneSided.lio, tier).toBeGreaterThan(0);
-      expect(oneSided.sae, tier).toBeGreaterThan(0);
     }
   });
 });
