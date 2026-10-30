@@ -6,6 +6,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { ReplayView } from "../../replay/ReplayScreen.tsx";
 import type { ReplayRecording } from "../../replay/recording.ts";
 import { cardAffiliation, cardName, cardQuestion } from "../../testMode/fixture.ts";
+import { TestModeView } from "../../testMode/TestModeScreen.tsx";
 import { createTestSession } from "../../testMode/session.ts";
 import { createVsAiSession } from "../../vsAi/session.ts";
 import { playOut } from "../../vsAi/test/scriptedHuman.ts";
@@ -61,6 +62,28 @@ describe("the game screen's era theme", () => {
   it("follows the latest era that started when the frame has no map, and so no era of its own", () => {
     expect(game(inEra(frame, undefined), "era-3")).toBe("dashboard");
     expect(game(inEra(frame, undefined), null)).toBe("terminal");
+  });
+});
+
+describe("test mode's era theme", () => {
+  const session = createTestSession(() => 0);
+  session.setViewer("lio");
+  const snapshot = session.getSnapshot();
+  const testMode = (frameEra: string | undefined, era: string | null): string | undefined =>
+    themeOf(
+      renderToString(
+        <TestModeView snapshot={{ ...snapshot, frame: inEra(snapshot.frame!, frameEra), era }} session={session} />,
+      ),
+      "game",
+    );
+  it("shows the theme of the frame's era", () => {
+    expect(testMode("era-1", null)).toBe("terminal");
+    expect(testMode("era-2", "era-2")).toBe("newsDesk");
+    expect(testMode("era-3", "era-3")).toBe("dashboard");
+  });
+  it("shows the theme of the latest era the session has seen when the frame has none", () => {
+    expect(testMode(undefined, null)).toBe("terminal");
+    expect(testMode(undefined, "era-2")).toBe("newsDesk");
   });
 });
 
