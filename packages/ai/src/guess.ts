@@ -63,3 +63,22 @@ export function guessHidden(ruleset: Ruleset, view: PlayerView, side: Side, rand
     },
   };
 }
+
+/**
+ * `hidden` with a guessed pick for the rival when it has already answered, in secret, the simultaneous decision
+ * `side` still has to answer (both open a turn this way): a card from the rival's guessed hand, at random. Without
+ * it a rebuilt state would wait forever on a pick it does not have. The rival's decision ID follows the engine's
+ * `d<seq>-<side>` for the group `g<seq>`. Any other decision gives `hidden` back unchanged.
+ */
+export function withRivalPick(hidden: HiddenPart, view: PlayerView, side: Side, random: () => number): HiddenPart {
+  const mine = view.public.pending.find((d) => d.side === side);
+  const group = mine?.simultaneousGroup;
+  if (mine === undefined || group === undefined || mine.kind !== "chooseCard") return hidden;
+  if (view.public.pending.some((d) => d.side !== side && d.simultaneousGroup === group)) return hidden;
+  const hand = hidden.opponent.hand;
+  if (hand.length === 0) return hidden;
+  const rival: Side = side === "lio" ? "sae" : "lio";
+  const card = hand[Math.floor(random() * hand.length)]!;
+  const pick = { group, decisionId: `d${group.slice(1)}-${rival}`, value: { kind: "chooseCard" as const, card } };
+  return { ...hidden, opponent: { ...hidden.opponent, picks: [pick] } };
+}

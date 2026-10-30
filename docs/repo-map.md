@@ -28,7 +28,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/ai/src/evaluate.ts` - The Medium tier's board evaluation: how good the map is for a side, in era-end region scoring terms (docs/design/map-and-points.md, "Scoring"). Exports: otherSide, regionPoints, controlProgress, regionFactor, techValue, boardValue.
 - `packages/ai/src/firstDeckMap.test.ts` - Easy with the real first-deck cards on the test map, so the sixteen R18 cards that move Escalation are in play (A11a, issue #359).
 - `packages/ai/src/guess.test.ts`
-- `packages/ai/src/guess.ts` - Guessing the cards a side cannot see, so the AI can rebuild a full state with `reconstruct`. Exports: seenCards, guessHidden.
+- `packages/ai/src/guess.ts` - Guessing the cards a side cannot see, so the AI can rebuild a full state with `reconstruct`. Exports: seenCards, guessHidden, withRivalPick.
 - `packages/ai/src/hard.test.ts` - The Hard tier (A18, issue #507): its search, its count budget and its clock, on the first deck and the test map.
 - `packages/ai/src/hard.ts` - The Hard tier (docs/architecture.md, Decision 8): for a card choice, Medium's best few answers are each played out a few card plays ahead (rollout.ts) on many… Exports: Clock, hardAnswer.
 - `packages/ai/src/index.ts` - Public entry point of the AI opponent (docs/architecture.md, Decision 8). Exports: easyAnswer, mediumAnswer, hardAnswer, guessHidden, EASY_WEIGHTS, MEDIUM_WEIGHTS, HARD_WEIGHTS, seededRandom, createEasyPlayer, createHardPlayer, createMediumPlayer, createAiWorkerHandler, ….
@@ -44,6 +44,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/ai/src/player.ts` - Ready-made Easy, Medium and Hard players and the plain-data protocol a worker uses to run them (Decision 8). Exports: PlayerOptions, createEasyPlayer, createMediumPlayer, createHardPlayer, AiTier, AiRequest, AiResponse, createAiWorkerHandler.
 - `packages/ai/src/random.ts` - The AI's own noise, kept apart from the game's randomness (which stays in the engine's PRNG). Exports: seededRandom.
 - `packages/ai/src/realign.test.ts` - Easy answers the action menu's realign (A11d, issue #372): the menu, then one realign decision per attempt, each a country or a stop (R16c).
+- `packages/ai/src/rivalPick.test.ts` - A guess fills in the rival's secret opening pick (A18, issue #507), so a rebuilt state can go on past it.
 - `packages/ai/src/rollout.test.ts` - A Hard rollout (A18, issue #507): it plays on from a candidate answer and stops where it should.
 - `packages/ai/src/rollout.ts` - One rollout of the Hard tier (docs/architecture.md, Decision 8): from a guessed full state, play a candidate answer, then both sides on as noise-free Medium pl… Exports: STEP_CAP, RolloutResult, rollout.
 - `packages/ai/src/safety.test.ts`

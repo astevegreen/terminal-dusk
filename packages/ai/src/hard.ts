@@ -5,7 +5,7 @@
 // when one is passed in, can only stop it early. The package never reads a clock itself.
 import { reconstruct } from "@terminal-dusk/engine";
 import type { AnswerValue, PlayerView, Ruleset, Side } from "@terminal-dusk/engine";
-import { guessHidden } from "./guess.ts";
+import { guessHidden, withRivalPick } from "./guess.ts";
 import { bestScored, scoredAnswers } from "./medium.ts";
 import type { Scored } from "./medium.ts";
 import { seededRandom } from "./random.ts";
@@ -53,7 +53,7 @@ export function hardAnswer(
   search: for (let g = 0; g < weights.guesses; g++) {
     if (outOfTime()) break;
     const luck = Math.floor(random() * 0x1_0000_0000);
-    const state = reconstruct(view, guessHidden(ruleset, view, side, random));
+    const state = reconstruct(view, withRivalPick(guessHidden(ruleset, view, side, random), view, side, random));
     const values: number[] = [];
     for (const candidate of candidates) {
       if (outOfTime()) break search;
