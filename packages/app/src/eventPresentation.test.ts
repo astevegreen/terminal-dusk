@@ -293,7 +293,7 @@ describe("eventPresentation", () => {
       side: "sae",
       value: 5,
     });
-    expect(line).toBe("Crisis: SAE draws 5; Escalation drops to 3.");
+    expect(line).toBe("Crisis: SAE draws 5. The score and Escalation lines that follow show the result.");
   });
   it("logs a regionScored with the region and each side's points", () => {
     expect(say({ kind: "regionScored", visibility: "public", region: "europe", lio: 5, sae: 1 })).toBe(
