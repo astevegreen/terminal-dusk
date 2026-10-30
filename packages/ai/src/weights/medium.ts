@@ -24,4 +24,12 @@ export const MEDIUM_WEIGHTS: MediumWeights = {
   tech: 1,
   /** A first-there +1 makes the next attempt likelier; it is used up by that attempt, whatever its result. */
   techBonus: 0.5,
+  /** Networks and Orbit: +1 in each realignment the side starts. Small: realignments are a share of its plays. */
+  techRealign: 0.5,
+  /** AI: +1 to each intervention's result. Small, as for realignments. */
+  techIntervene: 0.5,
+  /** Hypersonics: one more card play every turn, worth about a card's points. */
+  techExtraPlay: 2,
+  /** Quantum Computing: the rival picks its opening card first, face up. Its era score counts as a region point. */
+  techOpening: 0.5,
 };
