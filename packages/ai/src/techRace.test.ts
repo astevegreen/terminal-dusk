@@ -119,14 +119,17 @@ describe("the AI and the tech race", () => {
     for (const v of variants) expect([...v.hidden.secret.contingency[side]].sort()).toEqual([2, 5, 5, 7]);
   });
 
+  // Medium takes a sure attempt in only about 1 menu in 15, so this test samples eight games, not four: with Taiwan at
+  // LIO 2 (X15, #472) seeds 1-4 hold none, seeds 5-8 one.
   it("Medium makes sure attempts in some menus but not all: it weighs them against placing influence", () => {
     let attempts = 0;
-    for (const menu of MENUS) {
+    const menus = techMenus([1, 2, 3, 4, 5, 6, 7, 8]);
+    for (const menu of menus) {
       const side = techMenuSide(menu)!;
       if (isAttempt(medium(withDeck(menu, side, [9, 9, 9]), side, 1))) attempts++;
     }
     expect(attempts).toBeGreaterThan(0);
-    expect(attempts).toBeLessThan(MENUS.length);
+    expect(attempts).toBeLessThan(menus.length);
   });
 
   it("Medium does not enter Hypersonics on its own attempt when that makes a crisis", () => {

@@ -36,7 +36,7 @@ describe("Easy with the real first deck on the six-region map", () => {
     expect(status.kind).toBe("active");
     expect(map?.regions).toHaveLength(6);
     expect(map?.countries).toHaveLength(42);
-    expect(influence).toEqual(expect.arrayContaining([expect.objectContaining({ country: "taiwan", lio: 3, sae: 0 })]));
+    expect(influence).toEqual(expect.arrayContaining([expect.objectContaining({ country: "taiwan", lio: 2, sae: 0 })]));
   });
 
   it(`plays ${GAMES} seeded games on both sides with only legal answers, and every game ends`, () => {

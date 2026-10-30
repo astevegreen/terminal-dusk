@@ -1,4 +1,4 @@
-Proposal, not a rule
+Proposal, not a rule. Decided 29 Oct (owner): option 1, Taiwan starts at LIO 2; now in the map data (#472).
 
 # A balance pass on the six-region map
 

@@ -5,7 +5,8 @@
 // - stabilities: option A's ("A, tune later"), until a balance pass once Medium AI exists;
 // - battlegrounds: option A's list for each era ("A, move with history"); the future era keeps Era 3's;
 // - scoring: option A's weighted amounts, 20 steps to each end, starting in the middle ("Weighted, 20, middle");
-// - starting influence: Taiwan LIO 3, Crimea SAE 1, every other country empty ("LIO 3 / SAE 1").
+// - starting influence: Taiwan LIO 2, Crimea SAE 1, every other country empty (R24 "LIO 3 / SAE 1", then Taiwan
+//   lowered to LIO 2 by the X15 balance pass, option 1, owner 29 Oct, #472).
 // Still placeholders: turns, plays per turn and hand size are first-deck-test.json's.
 import { scenarioSchema } from "../schema/scenario.ts";
 import raw from "../scenarios/six-region-map.json" with { type: "json" };
