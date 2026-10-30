@@ -1,0 +1,99 @@
+/* Era 2 (2001-2008): the 24-hour news desk (#481; docs/design/art-direction.md). Deep blue, glossy panels with a
+   shine across their top, bold sans lettering, and a red "breaking" tag on the ticker of the latest moves (the L9
+   ticker, #489). It gives the map's and the furniture's settings new values and never a size, so the layout is the
+   same as in every era. Evokes the period; copies no real channel's graphics. */
+:is(.game, .replay)[data-theme="newsDesk"] {
+  /* The sides stay blue and red, bright as studio graphics, deep enough for white numbers. */
+  --map-lio: #1d5fd1;
+  --map-sae: #c8102e;
+  --map-none: #4f5b70;
+
+  --map-font: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --map-name-font: "Segoe UI", Roboto, Arial, "Liberation Sans", "Helvetica Neue", sans-serif;
+
+  --map-backdrop: #04102a;
+  --map-sea: #061a40;
+  --map-picture-filter: saturate(1.05) brightness(0.92);
+
+  --map-tone-0: #cfe0f5;
+  --map-tone-1: #f3e2c2;
+  --map-tone-2: #d2dcf0;
+  --map-tone-3: #f0d4d4;
+  --map-tone-4: #ddd6f0;
+  --map-tone-5: #cfe9ec;
+  --map-closed: #a9b1c0;
+  --map-area-edge: #3d5fa8;
+
+  --map-tint-0: #6fc2f0;
+  --map-tint-1: #f2c14e;
+  --map-tint-2: #8fa6ff;
+  --map-tint-3: #f08a7a;
+  --map-tint-4: #c39bf0;
+  --map-tint-5: #6fe0cf;
+  --map-tint-closed: #8a93a6;
+  --map-border: #ffffff;
+  --map-area-edge-on-picture: #dfe8ff;
+
+  --map-link: #3d5fa8;
+  --map-leader: #ffffff;
+  --map-place: #ffffff;
+  --map-place-edge: #04102a;
+
+  --map-region-text: #0b1f4d;
+  --map-region-text-closed: #4f5b70;
+  --map-region-text-on-picture: #ffffff;
+  --map-region-text-shadow: 0 1px 3px #000, 0 0 2px #04102a;
+  --map-credit-text: #b8c6e6;
+
+  --map-marker-edge: #e8eefc;
+  --map-marker-text: #ffffff;
+  --map-home-fill: #ffffff;
+  --map-badge-fill: #ffffff;
+  --map-battleground: #ffc629;
+  --map-touched: #ffc629;
+  --map-touched-glow: rgba(255, 198, 41, 0.45);
+  --map-pulse-glow: rgba(255, 198, 41, 0.85);
+  --map-focus: #ffffff;
+  --map-pick: #ffffff;
+  --map-pick-glow: rgba(120, 190, 255, 0.85);
+  --map-dim-filter: saturate(0.4);
+
+  --map-chip-text: #ffffff;
+  --map-chip-edge: #e8eefc;
+
+  /* The furniture: deep blue glass with a shine across the top, white lettering. */
+  --game-bg: #06163a;
+  --game-fg: #f2f6ff;
+  --game-font: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --game-bar-bg: linear-gradient(rgb(255 255 255 / 0.16), rgb(255 255 255 / 0) 55%), rgb(10 34 92 / 0.86);
+  --game-panel-bg: linear-gradient(rgb(255 255 255 / 0.1), rgb(255 255 255 / 0) 40px), rgb(8 28 74 / 0.96);
+  --game-edge: #4f74c4;
+  --game-ticker-bg: rgb(0 0 0 / 0.28);
+  --track-bg: #1a3a7a;
+  --track-middle: #ffffff;
+  --track-marker: #ffc629;
+  --track-marker-edge: #04102a;
+  --strip-chip-bg: linear-gradient(rgb(255 255 255 / 0.14), rgb(255 255 255 / 0) 60%), rgb(14 40 100 / 0.92);
+  --lifted-shadow: 0 4px 16px rgb(0 0 0 / 0.55);
+}
+
+:is(.game, .replay)[data-theme="newsDesk"] :is(.game-top, .game-banner) {
+  font-weight: 600;
+}
+/* Buttons on the furniture are glossy pills. The ticker and the hand's chips have their own look. */
+:is(.game, .replay)[data-theme="newsDesk"]
+  :is(.game-top, .game-banner, .game-drawer, .game-lifted, .game-menu-body, .dm-tools, .replay-controls)
+  button:not(.game-ticker) {
+  border: 1px solid var(--game-edge);
+  border-radius: 4px;
+  background: linear-gradient(rgb(255 255 255 / 0.2), rgb(255 255 255 / 0) 60%), rgb(20 56 140 / 0.95);
+  color: var(--game-fg);
+  font: inherit;
+}
+/* The ticker's mark is a red "breaking" tag: the mark itself, in white on red, with no new words. */
+:is(.game, .replay)[data-theme="newsDesk"] .game-ticker-mark {
+  padding: 2px 8px;
+  border-radius: 2px;
+  background: #c8102e;
+  color: #ffffff;
+}

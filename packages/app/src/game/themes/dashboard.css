@@ -1,0 +1,103 @@
+/* Era 3 (2008-2025), and the future cards until they have a theme of their own: the data dashboard (#481;
+   docs/design/art-direction.md). Charcoal, thin neon lines, a faint grid on the panels, glowing outlines, and
+   figures in even columns, like a live chart's. It gives the map's and the furniture's settings new values and never a
+   size, so the layout is the same as in every era. The world picture is dimmed a little so the neon reads over it
+   (the owner's decision on #481). Evokes the period; copies no real product. */
+:is(.game, .replay)[data-theme="dashboard"] {
+  /* The sides stay blue and red, as clear chart colours, deep enough for white numbers. */
+  --map-lio: #2160d8;
+  --map-sae: #c9252b;
+  --map-none: #4b5563;
+
+  --map-font: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --map-name-font: "Segoe UI", Roboto, Arial, "Liberation Sans", "Helvetica Neue", sans-serif;
+
+  --map-backdrop: #101317;
+  --map-sea: #0c1116;
+  --map-picture-filter: saturate(0.75) brightness(0.72);
+
+  --map-tone-0: #1f3a33;
+  --map-tone-1: #3a3420;
+  --map-tone-2: #1f2c44;
+  --map-tone-3: #3d2526;
+  --map-tone-4: #2e2544;
+  --map-tone-5: #1d3a3f;
+  --map-closed: #2a2e33;
+  --map-area-edge: #2dd4bf;
+
+  --map-tint-0: #34d399;
+  --map-tint-1: #fbbf24;
+  --map-tint-2: #60a5fa;
+  --map-tint-3: #fb7185;
+  --map-tint-4: #a78bfa;
+  --map-tint-5: #22d3ee;
+  --map-tint-closed: #4b5563;
+  --map-border: #5eead4;
+  --map-area-edge-on-picture: #99f6e4;
+
+  --map-link: #2dd4bf;
+  --map-leader: #99f6e4;
+  --map-place: #e6edf3;
+  --map-place-edge: #101317;
+
+  --map-region-text: #e6edf3;
+  --map-region-text-closed: #8b949e;
+  --map-region-text-on-picture: #f0fdfa;
+  --map-region-text-shadow: 0 0 6px #0f766e, 0 1px 2px #000;
+  --map-credit-text: #8b949e;
+
+  --map-marker-edge: #5eead4;
+  --map-marker-text: #ffffff;
+  --map-home-fill: #f0fdfa;
+  --map-badge-fill: #f0fdfa;
+  --map-battleground: #facc15;
+  --map-touched: #facc15;
+  --map-touched-glow: rgba(250, 204, 21, 0.45);
+  --map-pulse-glow: rgba(250, 204, 21, 0.85);
+  --map-focus: #5eead4;
+  --map-pick: #f0fdfa;
+  --map-pick-glow: rgba(45, 212, 191, 0.9);
+  --map-dim-filter: saturate(0.3) brightness(0.75);
+
+  --map-chip-text: #ffffff;
+  --map-chip-edge: #5eead4;
+
+  /* The furniture: charcoal glass with a faint grid, neon edges, light lettering. */
+  --game-bg: #15181d;
+  --game-fg: #e6edf3;
+  --game-font: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --game-bar-bg: rgb(21 24 29 / 0.84);
+  --game-panel-bg:
+    repeating-linear-gradient(90deg, rgb(94 234 212 / 0.05) 0 1px, rgb(0 0 0 / 0) 1px 24px),
+    repeating-linear-gradient(rgb(94 234 212 / 0.05) 0 1px, rgb(0 0 0 / 0) 1px 24px), rgb(21 24 29 / 0.96);
+  --game-edge: #2dd4bf;
+  --game-ticker-bg: rgb(45 212 191 / 0.08);
+  --track-bg: #1f242b;
+  --track-middle: #5eead4;
+  --track-marker: #f0fdfa;
+  --track-marker-edge: #2dd4bf;
+  --strip-chip-bg: rgb(28 33 40 / 0.92);
+  --lifted-shadow: 0 0 0 1px rgb(45 212 191 / 0.6), 0 0 14px rgb(45 212 191 / 0.35);
+}
+
+/* Numbers line up, as in a table of figures. */
+:is(.game, .replay)[data-theme="dashboard"] {
+  font-variant-numeric: tabular-nums;
+}
+/* The bars' edges glow faintly. */
+:is(.game, .replay)[data-theme="dashboard"] :is(.game-top, .game-strip, .game-banner) {
+  box-shadow: 0 0 10px rgb(45 212 191 / 0.18);
+}
+/* Buttons on the furniture are thin neon outlines. The ticker and the hand's chips have their own look. */
+:is(.game, .replay)[data-theme="dashboard"]
+  :is(.game-top, .game-banner, .game-drawer, .game-lifted, .game-menu-body, .dm-tools, .replay-controls)
+  button:not(.game-ticker) {
+  border: 1px solid var(--game-edge);
+  border-radius: 3px;
+  background: rgb(21 24 29 / 0.9);
+  color: var(--game-fg);
+  font: inherit;
+}
+:is(.game, .replay)[data-theme="dashboard"] .game-ticker-mark {
+  color: #5eead4;
+}

@@ -275,8 +275,10 @@ describe("screen-reader support", () => {
     const lio = frameFor("lio");
     const noMap = { ...lio.view.public };
     delete noMap.map;
-    expect(html({ ...lio, view: { ...lio.view, public: noMap } })).toContain('<div class="game game-no-map">');
-    expect(out).toContain('<div class="game">');
+    expect(html({ ...lio, view: { ...lio.view, public: noMap } })).toContain(
+      '<div class="game game-no-map" data-theme="terminal">',
+    );
+    expect(out).toContain('<div class="game" data-theme="terminal">');
   });
   it("lets the keyboard reach each scrolling element, each with a name", () => {
     // The hand strip scrolls sideways; its chips take the keyboard, so the strip itself needs no tabindex.

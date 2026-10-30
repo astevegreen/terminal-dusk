@@ -1,5 +1,12 @@
-/* Placeholder look only: system font, grey borders, no colours, no images. */
+/* Placeholder look only: system font, grey borders, no colours, no images. The colours and lettering are the game's
+   settings, so the era's theme (#481; src/game/themes/) restyles the replay as it does the game. */
 .replay {
+  --game-bg: #fff;
+  --game-fg: #000;
+  --game-edge: #999;
+  --game-font: system-ui, sans-serif;
+  background: var(--game-bg);
+  color: var(--game-fg);
   box-sizing: border-box;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
@@ -10,14 +17,14 @@
   gap: 4px;
   width: 100%;
   max-width: 100vw;
-  font-family: system-ui, sans-serif;
+  font-family: var(--game-font);
   font-size: 13px;
 }
 .replay > section,
 .replay .replay-side > section {
   box-sizing: border-box;
   min-width: 0;
-  border: 1px solid #999;
+  border: 1px solid var(--game-edge);
   padding: 4px;
 }
 .replay ul,

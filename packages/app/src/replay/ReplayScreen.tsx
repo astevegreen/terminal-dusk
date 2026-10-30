@@ -13,6 +13,7 @@ import type { CardRules } from "../displayText.ts";
 import { Contingency, HandCard, Log, Region, Table } from "../game/regions.tsx";
 import type { Label } from "../game/regions.tsx";
 import type { ReplayRecording } from "./recording.ts";
+import { themeFor } from "../game/themes/eraTheme.ts";
 import "./replayScreen.css";
 
 export type ReplayScreenProps = {
@@ -141,7 +142,7 @@ export function ReplayView({
     .flatMap((f) => f.events.map((event) => logLine(event, { card: label, era: eraText, ...mapNames(f.view.public) })));
   const era = eraAt(frames, index);
   return (
-    <div className="replay">
+    <div className="replay" data-theme={themeFor(pub.era ?? era)}>
       <Controls index={index} count={frames.length} onGo={onGo} onClose={onClose} />
       <Region id="status-bar" title="Status" className="replay-status">
         <span>{`Turn ${pub.turn} of ${pub.turns}`}</span>

@@ -1,0 +1,118 @@
+/* Era 1 (1991-2001): the green-screen terminal (#481; docs/design/art-direction.md). Glowing green lines on black,
+   faint scan lines on the furniture, a blinking cursor after the question, and fixed-width computer lettering. It
+   gives the map's and the furniture's settings new values and never a size, so the layout is the same as in every
+   era. The world picture takes a faint green cast (the owner's decision on #481: a theme may tint or dim it).
+   Evokes the period; copies no real product. */
+:is(.game, .replay)[data-theme="terminal"] {
+  /* The sides stay blue and red, a little deeper, so white numbers stay readable on them. */
+  --map-lio: #1f5fae;
+  --map-sae: #b3261e;
+  --map-none: #46564a;
+
+  --map-font: "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+  --map-name-font: "Segoe UI", Roboto, Arial, "Liberation Sans", "Helvetica Neue", sans-serif;
+
+  --map-backdrop: #020602;
+  --map-sea: #03140a;
+  --map-picture-filter: grayscale(0.7) sepia(0.6) hue-rotate(60deg) saturate(1.3) brightness(0.8);
+
+  --map-tone-0: #123a1a;
+  --map-tone-1: #2b3a12;
+  --map-tone-2: #0f3330;
+  --map-tone-3: #3a2a12;
+  --map-tone-4: #22213a;
+  --map-tone-5: #0f3a2a;
+  --map-closed: #262b26;
+  --map-area-edge: #2f8f3a;
+
+  --map-tint-0: #5fd36a;
+  --map-tint-1: #c9d65a;
+  --map-tint-2: #5fc7b8;
+  --map-tint-3: #d6a85a;
+  --map-tint-4: #8fa8d6;
+  --map-tint-5: #8fe39a;
+  --map-tint-closed: #3a3f3a;
+  --map-border: #8dff9a;
+  --map-area-edge-on-picture: #b8ffc0;
+
+  --map-link: #2f8f3a;
+  --map-leader: #b8ffc0;
+  --map-place: #b8ffc0;
+  --map-place-edge: #020602;
+
+  --map-region-text: #9dffa8;
+  --map-region-text-closed: #5f8f66;
+  --map-region-text-on-picture: #c8ffce;
+  --map-region-text-shadow: 0 0 4px #0b3d12, 0 1px 2px #000;
+  --map-credit-text: #5f8f66;
+
+  --map-marker-edge: #020602;
+  --map-marker-text: #ffffff;
+  --map-home-fill: #e9ffec;
+  --map-badge-fill: #e9ffec;
+  --map-battleground: #f0ff5a;
+  --map-touched: #f0ff5a;
+  --map-touched-glow: rgba(240, 255, 90, 0.45);
+  --map-pulse-glow: rgba(240, 255, 90, 0.85);
+  --map-focus: #9dffa8;
+  --map-pick: #c8ffce;
+  --map-pick-glow: rgba(90, 255, 120, 0.85);
+  --map-dim-filter: saturate(0.4) brightness(0.8);
+
+  --map-chip-text: #ffffff;
+  --map-chip-edge: #020602;
+
+  /* The furniture: black glass with green lettering, and faint scan lines on the bars. */
+  --game-bg: #050a05;
+  --game-fg: #9dffa8;
+  --game-font: "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
+  --game-bar-bg: repeating-linear-gradient(rgb(90 255 120 / 0.05) 0 1px, rgb(0 0 0 / 0) 1px 3px), rgb(3 12 4 / 0.84);
+  --game-panel-bg: rgb(3 12 4 / 0.95);
+  --game-edge: #2f8f3a;
+  --game-ticker-bg: rgb(90 255 120 / 0.08);
+  --track-bg: #0f2e14;
+  --track-middle: #9dffa8;
+  --track-marker: #c8ffce;
+  --track-marker-edge: #020602;
+  --strip-chip-bg: rgb(6 22 8 / 0.92);
+  --lifted-shadow: 0 0 12px rgb(90 255 120 / 0.35);
+}
+
+/* The lettering glows a little, as on a phosphor screen. */
+:is(.game, .replay)[data-theme="terminal"] :is(.game-top, .game-banner, .game-strip, .game-drawer, .game-lifted) {
+  text-shadow: 0 0 4px rgb(90 255 120 / 0.45);
+}
+/* Buttons on the furniture are green-outlined keys on black. The ticker and the hand's chips have their own look. */
+:is(.game, .replay)[data-theme="terminal"]
+  :is(.game-top, .game-banner, .game-drawer, .game-lifted, .game-menu-body, .dm-tools, .replay-controls)
+  button:not(.game-ticker) {
+  border: 1px solid var(--game-edge);
+  border-radius: 0;
+  background: rgb(3 12 4 / 0.9);
+  color: var(--game-fg);
+  font: inherit;
+}
+:is(.game, .replay)[data-theme="terminal"] .game-ticker-mark {
+  color: #c8ffce;
+}
+/* A blinking block cursor after the decision's question. It holds still for reduced motion. */
+:is(.game, .replay)[data-theme="terminal"] .game-banner > section > p:first-child::after {
+  content: "";
+  display: inline-block;
+  width: 0.55em;
+  height: 1em;
+  margin-left: 0.2em;
+  vertical-align: text-bottom;
+  background: currentcolor;
+  animation: terminal-blink 1.1s steps(1) infinite;
+}
+@keyframes terminal-blink {
+  50% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.game, .replay)[data-theme="terminal"] .game-banner > section > p:first-child::after {
+    animation: none;
+  }
+}
