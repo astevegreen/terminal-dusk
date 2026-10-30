@@ -70,7 +70,10 @@ async function handle(deps: SubmitHandlerDeps, request: HttpRequest): Promise<Ht
 }
 
 /** The caller's player id, or null for a missing or malformed header, an empty token, or a failed sign-in. */
-async function signedIn(deps: SubmitHandlerDeps, authorization: string | null): Promise<PlayerId | null> {
+export async function signedIn(
+  deps: Pick<SubmitHandlerDeps, "authenticate">,
+  authorization: string | null,
+): Promise<PlayerId | null> {
   const token = typeof authorization === "string" ? /^\s*Bearer\s+(\S+)\s*$/i.exec(authorization)?.[1] : undefined;
   if (token === undefined) return null;
   try {
@@ -110,7 +113,7 @@ function refused(
 const refusal = (code: HandlerErrorCode, message: string, status = STATUS[code] ?? 422): HttpReply =>
   reply(status, { ok: false, error: { code, message } });
 
-const reply = (status: number, body: unknown): HttpReply => ({
+export const reply = (status: number, body: unknown): HttpReply => ({
   status,
   headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
   body: JSON.stringify(body),
@@ -123,5 +126,5 @@ function log(deps: SubmitHandlerDeps, line: string): void {
   } catch {}
 }
 
-const isPlainObject = (v: unknown): v is Record<string, unknown> =>
+export const isPlainObject = (v: unknown): v is Record<string, unknown> =>
   typeof v === "object" && v !== null && !Array.isArray(v);
