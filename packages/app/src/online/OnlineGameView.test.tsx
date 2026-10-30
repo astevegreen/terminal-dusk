@@ -158,7 +158,7 @@ describe("the board", () => {
     expect(props.label).toBe(cardName);
     expect(props.question).toBe(cardQuestion);
     // The online rig's game has no map, so the board carries the no-map class (#412).
-    expect(page(s)).toContain('<div class="game game-no-map">');
+    expect(page(s)).toContain('<div class="game game-no-map" data-theme="terminal">');
   });
   it("passes onAnswer only on your move, and it answers through the session", async () => {
     const r = await started();

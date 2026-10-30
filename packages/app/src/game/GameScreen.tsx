@@ -22,6 +22,7 @@ import { LiftedCard, StripCounts, chipsOf } from "./handCards.tsx";
 import { HandStrip } from "./handStrip.tsx";
 import { Contingency, MapArea, Opponent, Region, StatusBar, Table } from "./regions.tsx";
 import type { Label } from "./regions.tsx";
+import { themeFor } from "./themes/eraTheme.ts";
 import { TopBar } from "./topBar.tsx";
 import { Tracks } from "./tracks.tsx";
 import type { CardPoints, CardRules } from "../displayText.ts";
@@ -121,7 +122,10 @@ export function GameScreen({
   const choices = waiting ? countryChoices(waiting, countryNames(frame.view.public.map)) : NO_CHOICES;
   return (
     // A game with no map gives its map box only its one line (gameScreen.css).
-    <div className={frame.view.public.map === undefined ? "game game-no-map" : "game"}>
+    <div
+      className={frame.view.public.map === undefined ? "game game-no-map" : "game"}
+      data-theme={themeFor(frame.view.public.era ?? era)}
+    >
       {/* Shown only on a screen taller than it is wide (gameScreen.css): the same layout, held the wrong way. */}
       <p className="game-rotate-hint">Turn your phone sideways to play.</p>
       {/* The top bar, the Details button and the ticker at its right end, and the panels they open (topBar.tsx):

@@ -72,6 +72,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e/bars/index.html`
 - `packages/app/e2e/details.e2e.ts` - The Details panel (L10, #490; docs/design/screen-layout.md), at 844x390, 1280x800 and 1920x1080 (sizes.ts).
 - `packages/app/e2e/drawnMap.e2e.ts` - The drawn map (L2, #465) in the six-region game against the AI, at the phone and desktop sizes: 42 markers and the two home boxes, all inside the map area with…
+- `packages/app/e2e/eraThemes.e2e.ts` - The era themes (#481), run at both configured sizes (844x390 and 1280x800): a whole first-deck game against the AI starts in the green-screen terminal of Era 1…
 - `packages/app/e2e/eraThemes.test.ts` - Guards the era themes (#481; docs/design/art-direction.md, "Era themes"): src/game/themes/*.css.
 - `packages/app/e2e/furnitureTheme.test.ts` - Guards the furniture's stylesheets (L10, #490): the top bar with its score track, the log drawer and the Details panel.
 - `packages/app/e2e/game.e2e.ts`
@@ -185,6 +186,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/themes/dashboard.css`
 - `packages/app/src/game/themes/eraTheme.test.ts` - Which era theme a game shows (#481; docs/design/art-direction.md, "Era themes").
 - `packages/app/src/game/themes/eraTheme.ts` - The era themes (#481; docs/design/art-direction.md, "Era themes"): one look per era, chosen by the era the game shows. Exports: THEMES, ThemeName, themeFor.
+- `packages/app/src/game/themes/eraThemeScreen.test.tsx` - The game screen and the replay wear the theme of the era their frame shows (#481): the game's root carries it as data-theme, which the stylesheets in this fold…
 - `packages/app/src/game/themes/newsDesk.css`
 - `packages/app/src/game/themes/terminal.css`
 - `packages/app/src/game/topBar.test.tsx` - The top bar's ticker and the log drawer (L9, #489): the ticker, the top bar's last item, shows the newest log line exactly as the log has it, and opens the ful…
