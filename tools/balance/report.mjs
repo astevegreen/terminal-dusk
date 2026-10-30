@@ -45,5 +45,20 @@ export function formatText(stats, title = "Balance report") {
     }),
   ]);
   lines.push(...table([header, ...rows]));
+  if (stats.byEra !== undefined) lines.push("", ...byEraLines(stats.byEra));
   return `${lines.join("\n")}\n`;
+}
+
+/** The "By era" section: one row per era, or "left out" for an era the run left out. */
+function byEraLines(byEra) {
+  const rows = byEra.map((e) =>
+    e.leftOut
+      ? [e.era, "left out", "", "", ""]
+      : [e.era, e.cards, e.averageCardsUsed, share(e.shareUsed), e.averageUses],
+  );
+  return [
+    "By era (cards: the era's cards in these games; used: distinct cards picked or played per game, by either side;",
+    "share: used / cards; uses: picks plus plays per game)",
+    ...table([["era", "cards", "used", "share", "uses"], ...rows]),
+  ];
 }
