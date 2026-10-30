@@ -26,8 +26,8 @@ function techMenuSide(state: TestState): Side | null {
 }
 
 /**
- * The six-region map as these tests were written against it (A17, #471): Taiwan at LIO 3, before X15 lowered it to
- * LIO 2 (#472). The menus below come from Easy's games on it, so a change to the map's numbers leaves them as they were.
+ * The six-region map with Taiwan back at LIO 3, its start when A17 (#471) wrote these tests, before X15 lowered it to
+ * LIO 2 (#472). It pins only Taiwan's start: any other change to the map can still move Easy's games (#516).
  */
 function a17Map() {
   const map = scenarioSetup(SIX_REGION_MAP_SCENARIO).map!;
