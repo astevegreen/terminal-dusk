@@ -99,10 +99,9 @@ describe("the Hard tier", () => {
     }
   });
 
-  it("keeps Medium's evaluation and searches Decision 8's size: 20 guesses, the best 8 answers, 1.5 s", () => {
+  it("keeps Medium's evaluation and searches the tuned size: 6 guesses, the best 4 answers, 1 round, 1.5 s", () => {
     const { guesses, candidates, rounds, timeMs, ...evaluation } = HARD_WEIGHTS;
     expect(evaluation).toEqual(MEDIUM_WEIGHTS);
-    expect({ guesses, candidates, timeMs }).toEqual({ guesses: 20, candidates: 8, timeMs: 1500 });
-    expect(rounds).toBeGreaterThan(0);
+    expect({ guesses, candidates, rounds, timeMs }).toEqual({ guesses: 6, candidates: 4, rounds: 1, timeMs: 1500 });
   });
 });

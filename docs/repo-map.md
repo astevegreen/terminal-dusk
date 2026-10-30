@@ -33,6 +33,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/ai/src/hard.ts` - The Hard tier (docs/architecture.md, Decision 8): for a card choice, Medium's best few answers are each played out a few card plays ahead (rollout.ts) on many… Exports: Clock, hardAnswer.
 - `packages/ai/src/index.ts` - Public entry point of the AI opponent (docs/architecture.md, Decision 8). Exports: easyAnswer, mediumAnswer, hardAnswer, guessHidden, EASY_WEIGHTS, MEDIUM_WEIGHTS, HARD_WEIGHTS, seededRandom, createEasyPlayer, createHardPlayer, createMediumPlayer, createAiWorkerHandler, ….
 - `packages/ai/src/intervening.test.ts` - Easy answers the action menu's intervene (A11c, issue #371): one chooseAction answer per country open to an intervention (R16b).
+- `packages/ai/src/lookahead.test.ts` - The Hard tier looks ahead (A18, issue #507): on a real position, Medium's greedy card hands the rival the score track within two card plays a side, and Hard pi…
 - `packages/ai/src/mapGames.test.ts` - Easy in games with a map, influence and the Escalation track (A11a, issue #359).
 - `packages/ai/src/markers.test.ts` - Easy on cards with lasting markers and `has` conditions (R4, issue #171).
 - `packages/ai/src/medium.test.ts` - The Medium tier (A16, issue #455): whole seeded games on the test map and the six-region map.
@@ -60,7 +61,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/ai/src/unseen.test.ts`
 - `packages/ai/src/unseen.ts` - Which cards a side has not seen yet, and what a card does to Escalation. Exports: unseenCards, escalationEffect.
 - `packages/ai/src/weights/easy.ts` - The Easy tier's weights, as plain data (docs/architecture.md, Decision 8). Exports: EASY_WEIGHTS.
-- `packages/ai/src/weights/hard.ts` - The Hard tier's weights, as plain data (docs/architecture.md, Decision 8). Exports: HARD_WEIGHTS.
+- `packages/ai/src/weights/hard.ts` - The Hard tier's weights, as plain data (docs/architecture.md, Decision 8: "targets to tune, not promises"). Exports: HARD_WEIGHTS.
 - `packages/ai/src/weights/medium.ts` - The Medium tier's weights, as plain data (docs/architecture.md, Decision 8). Exports: MEDIUM_WEIGHTS.
 - `packages/ai/tsconfig.json`
 

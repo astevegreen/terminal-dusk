@@ -175,6 +175,6 @@ not change. It needs a scenario with a map (`test-map` or `six-region`). Every p
 `node tools/balance/arena.mjs [--a <tier>] [--b <tier>] [--games <n>] [--seed <base>] [--scenario <name>] [--json]`
 plays n seeded games of tier A against tier B (Medium against Easy, 100 games on the six-region map, by default)
 through the match host, with the two tiers swapping sides every game. It prints each tier's win rate, each side's win
-rate, each tier's wins by the side it played, draws and the average game length. It checks the Decision 8 gate that
-applies today, Medium beats Easy in over 75% of games (draws count against), and exits 1 when it fails. 100 games take
-about 7 seconds. The Hard-beats-Medium gate waits for the Hard tier.
+rate, each tier's wins by the side it played, draws and the average game length. It checks the Decision 8 gate for the
+pairing: Medium beats Easy in over 75% of games, Hard beats Medium in over 65% (draws count against), and exits 1 when
+it fails. 100 Medium-vs-Easy games take about 7 seconds; 200 Hard-vs-Medium games take about 20 minutes.
