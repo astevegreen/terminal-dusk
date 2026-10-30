@@ -1,6 +1,7 @@
 // The AI and the tech race (A17, issue #471): Easy takes an attempt as one more legal answer; Medium weighs it by
 // the odds of its own Contingency deck, the first-there +1 and a crisis from entering Hypersonics.
-import { FIRST_DECK_RULESET } from "@terminal-dusk/content/first-deck";
+import { SIX_REGION_MAP_SCENARIO } from "@terminal-dusk/content";
+import { FIRST_DECK_RULESET, scenarioSetup } from "@terminal-dusk/content/first-deck";
 import { legalAnswers, viewFor } from "@terminal-dusk/engine";
 import type { AnswerValue, Side } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
@@ -9,7 +10,7 @@ import { guessHidden } from "./guess.ts";
 import { attemptValue, mediumAnswer } from "./medium.ts";
 import { seededRandom } from "./random.ts";
 import { drawVariants } from "./techRace.ts";
-import { newSixRegionMapGame } from "./test/mapGames.ts";
+import { newFirstDeckMapGame, newSixRegionMapGame } from "./test/mapGames.ts";
 import { playEasy } from "./test/playEasy.ts";
 import type { TestState } from "./test/testGames.ts";
 import { EASY_WEIGHTS } from "./weights/easy.ts";
@@ -24,11 +25,21 @@ function techMenuSide(state: TestState): Side | null {
   return menu.side;
 }
 
-/** Every state in Easy's six-region games `seeds` that waits on an action menu offering a tech race attempt. */
+/**
+ * The six-region map as these tests were written against it (A17, #471): Taiwan at LIO 3, before X15 lowered it to
+ * LIO 2 (#472). The menus below come from Easy's games on it, so a change to the map's numbers leaves them as they were.
+ */
+function a17Map() {
+  const map = scenarioSetup(SIX_REGION_MAP_SCENARIO).map!;
+  const startingInfluence = map.startingInfluence!.map((e) => (e.country === "taiwan" ? { ...e, lio: 3 } : e));
+  return { ...map, startingInfluence };
+}
+
+/** Every state in Easy's six-region games `seeds` (on a17Map) that waits on an action menu offering a tech race attempt. */
 function techMenus(seeds: number[]): TestState[] {
   const menus: TestState[] = [];
   for (const seed of seeds) {
-    playEasy(FIRST_DECK_RULESET, newSixRegionMapGame(seed), EASY_WEIGHTS, seededRandom(seed), {
+    playEasy(FIRST_DECK_RULESET, newFirstDeckMapGame(seed, a17Map()), EASY_WEIGHTS, seededRandom(seed), {
       applied: (before) => {
         if (techMenuSide(before) !== null) menus.push(before);
       },
@@ -119,17 +130,14 @@ describe("the AI and the tech race", () => {
     for (const v of variants) expect([...v.hidden.secret.contingency[side]].sort()).toEqual([2, 5, 5, 7]);
   });
 
-  // Medium takes a sure attempt in few menus (2 of 43 in seeds 1-12 with Taiwan at LIO 3, 1 of 44 at LIO 2), so this
-  // test samples eight games, not four: with Taiwan at LIO 2 (X15, #472) seeds 1-4 hold none, seeds 5-8 one.
   it("Medium makes sure attempts in some menus but not all: it weighs them against placing influence", () => {
     let attempts = 0;
-    const menus = techMenus([1, 2, 3, 4, 5, 6, 7, 8]);
-    for (const menu of menus) {
+    for (const menu of MENUS) {
       const side = techMenuSide(menu)!;
       if (isAttempt(medium(withDeck(menu, side, [9, 9, 9]), side, 1))) attempts++;
     }
     expect(attempts).toBeGreaterThan(0);
-    expect(attempts).toBeLessThan(menus.length);
+    expect(attempts).toBeLessThan(MENUS.length);
   });
 
   it("Medium does not enter Hypersonics on its own attempt when that makes a crisis", () => {
