@@ -119,8 +119,8 @@ describe("the AI and the tech race", () => {
     for (const v of variants) expect([...v.hidden.secret.contingency[side]].sort()).toEqual([2, 5, 5, 7]);
   });
 
-  // Medium takes a sure attempt in only about 1 menu in 15, so this test samples eight games, not four: with Taiwan at
-  // LIO 2 (X15, #472) seeds 1-4 hold none, seeds 5-8 one.
+  // Medium takes a sure attempt in few menus (2 of 43 in seeds 1-12 with Taiwan at LIO 3, 1 of 44 at LIO 2), so this
+  // test samples eight games, not four: with Taiwan at LIO 2 (X15, #472) seeds 1-4 hold none, seeds 5-8 one.
   it("Medium makes sure attempts in some menus but not all: it weighs them against placing influence", () => {
     let attempts = 0;
     const menus = techMenus([1, 2, 3, 4, 5, 6, 7, 8]);
