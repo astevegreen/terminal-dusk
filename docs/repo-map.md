@@ -44,6 +44,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/ai/src/safety.test.ts`
 - `packages/ai/src/safety.ts` - The Medium tier's Escalation safety (docs/design/map-and-points.md, "Escalation"): a raise to 6 is a crisis that costs the side that caused it the number it dr… Exports: expectedCrisisCost, crisisCost, crisisShare, safetyScore.
 - `packages/ai/src/sixRegionMap.test.ts` - Easy with the real first deck on the six-region map (A14, issue #439): seeded games, both sides Easy, end to end.
+- `packages/ai/src/techPowers.test.ts` - The AI and the tech race step powers (A18, issue #510; docs/design/tech-race.md, "What each step gives"): Medium weighs each power a side holds, takes Hyperson…
 - `packages/ai/src/techRace.test.ts` - The AI and the tech race (A17, issue #471): Easy takes an attempt as one more legal answer; Medium weighs it by the odds of its own Contingency deck, the first…
 - `packages/ai/src/techRace.ts` - The Medium tier's tech race odds (docs/design/tech-race.md, "Making an attempt"): an attempt draws from the side's own Contingency deck, whose numbers left are… Exports: DrawVariant, drawVariants.
 - `packages/ai/src/test/mapGames.ts` - Test helpers for map games (A11a, issue #359; A11b, #360): small rulesets whose cards move Escalation or spend event points, dealt with the test map, and first… Exports: testMap, escalationRuleset, newMapGame, pointsRuleset, newPointsMapGame, newFirstDeckMapGame, newSixRegionMapGame.
@@ -711,6 +712,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/src/hostTimeout.ts` - A missed deadline: the server's deadline job (never a player) tells the host that `side` was late. Exports: hostTimeout.
 - `packages/host/src/index.test.ts`
 - `packages/host/src/index.ts` - Public entry point of MatchHost (docs/architecture.md, Decision 3). Exports: hostCreate, hostSubmit, hostTimeout, hostDeadline, hostArchive, createOnlineRefusal, isEntitlement, isPlatform, PLATFORMS, Entitlement, Platform, DeadlineRule, ….
+- `packages/host/src/quantumOpening.test.ts` - The host and Quantum Computing's one-sided opening pick (A18, issue #510; docs/design/tech-race.md, "The opening-card power"): the holder's rival picks first a…
 - `packages/host/src/sixRegionMapConfig.test.ts` - The six-region map game as the host hands it to the app (A14, issue #439): the first deck's config with the six-region scenario's map, and nothing else of that…
 - `packages/host/src/test/clock.ts` - Test helpers for matches with deadlines. Exports: DAY, startedWith, lioToPlay, clockOf, withClock, swept.
 - `packages/host/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.

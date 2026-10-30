@@ -68,8 +68,9 @@ export function attemptValue(
 /**
  * The best-scoring legal answer for `side`, or null when nothing is pending for it. A score is Easy's
  * `ops * printed ops + rivalCard * (1 if the card is the rival's) + noise * random()`, plus for a card answer its
- * safety (safety.ts), for a tech race attempt its value over the draws it could make, and for any other answer the
- * board it leaves (evaluate.ts). Ties go to the earlier answer.
+ * safety (safety.ts), for a tech race attempt its value over the draws it could make, for passing Hypersonics' extra
+ * play nothing (so it is on the cards' scale, and a card safe to play beats it), and for any other answer the board it
+ * leaves (evaluate.ts). Ties go to the earlier answer.
  */
 export function mediumAnswer(
   ruleset: Ruleset,
@@ -91,7 +92,8 @@ export function mediumAnswer(
     if (card !== null) score += safetyScore(ruleset, view, side, card, answer, weights);
     else if (answer.kind === "chooseAction" && answer.action === "techRace") {
       score += attemptValue(ruleset, view, hidden, side, weights);
-    } else score += afterValue(ruleset, state, side, answer, weights, answer.kind === "chooseAction" ? 1 : 0);
+    } else if (answer.kind !== "pass")
+      score += afterValue(ruleset, state, side, answer, weights, answer.kind === "chooseAction" ? 1 : 0);
     if (score > bestScore) {
       best = answer;
       bestScore = score;

@@ -52,19 +52,38 @@ export function regionFactor(pub: PublicState, region: RegionId, weights: Medium
 }
 
 /**
+ * What the powers `side` holds are worth (docs/design/tech-race.md, "What each step gives"): the side the marker
+ * leans towards holds its step and every step below it. Networks and Orbit (step 1) and AI (step 2) are fixed by
+ * number, as in the engine; Hypersonics' extra play is the track's `escalateAt` step and the opening order its last.
+ */
+function powersValue(lean: number, escalateAt: number, steps: number, weights: MediumWeights): number {
+  const powers: [number, number][] = [
+    [1, weights.techRealign],
+    [2, weights.techIntervene],
+    [escalateAt, weights.techExtraPlay],
+    [steps, weights.techOpening],
+  ];
+  return powers.reduce((sum, [step, weight]) => sum + (Math.abs(lean) >= step ? weight : 0), 0);
+}
+
+/**
  * How good the tech race is for `side` (docs/design/tech-race.md): `tech` per step the marker leans its way (a rival
- * lead counts against it), `techBonus` for holding a first-there +1 (the rival's against it), and one era-end region
- * point for holding the track's end, Quantum Computing, which moves the score track 1 at each era's end. 0 with no
- * tech race.
+ * lead counts against it), the powers the leading side holds (powersValue; the rival's against it), `techBonus` for
+ * holding a first-there +1 (the rival's against it), and one era-end region point for holding the track's end,
+ * Quantum Computing, which moves the score track 1 at each era's end. 0 with no tech race.
  */
 export function techValue(pub: PublicState, side: Side, weights: MediumWeights): number {
   const race = pub.techRace;
-  const steps = pub.map?.techRace?.steps.length;
-  if (race === undefined || steps === undefined) return 0;
+  const track = pub.map?.techRace;
+  if (race === undefined || track === undefined) return 0;
+  const steps = track.steps.length;
   const lean = side === "lio" ? -race.marker : race.marker;
   const holds = (s: Side): number => (race.bonus.includes(s) ? 1 : 0);
   const end = Math.abs(lean) === steps ? Math.sign(lean) : 0;
-  return weights.tech * lean + weights.techBonus * (holds(side) - holds(otherSide(side))) + weights.region * end;
+  const powers = Math.sign(lean) * powersValue(lean, track.escalateAt, steps, weights);
+  return (
+    weights.tech * lean + powers + weights.techBonus * (holds(side) - holds(otherSide(side))) + weights.region * end
+  );
 }
 
 /**
