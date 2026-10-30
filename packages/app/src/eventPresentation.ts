@@ -56,23 +56,15 @@ export const eventPresentation: EventPresentation = {
   },
   realigned: {
     countries: itsCountry,
-    log: (event, names) => {
-      const total = (side: "lio" | "sae") =>
-        `${SIDE_NAME[side]} ${event.totals[side]}` +
-        (event.tech === 1 && event.side === side ? " (incl. + 1 tech)" : "");
-      return (
-        `${SIDE_NAME[event.side]} realigned in ${names.country(event.country)}: ${total("lio")}, ${total("sae")}. ` +
-        (event.loser === null
-          ? "A tie: nothing changed."
-          : `${SIDE_NAME[event.loser]} lost ${event.removed} influence.`)
-      );
-    },
+    log: (event, names) =>
+      `${SIDE_NAME[event.side]} realigned in ${names.country(event.country)}: LIO ${event.totals.lio}, SAE ${event.totals.sae}. ` +
+      (event.loser === null ? "A tie: nothing changed." : `${SIDE_NAME[event.loser]} lost ${event.removed} influence.`),
   },
   intervened: {
     countries: itsCountry,
     log: (event, names) =>
       `${SIDE_NAME[event.side]} intervened in ${names.country(event.country)}: draw ${event.draw} + ${event.points} point${event.points === 1 ? "" : "s"} - 2 x stability ` +
-      `${event.stability}${event.tech === 1 ? " + 1 tech" : ""} = ${event.result}` +
+      `${event.stability} = ${event.result}` +
       (event.result > 0 ? `; removed ${event.removed} rival influence, added ${event.added} own.` : "; no change."),
   },
   drawPileReshuffled: {
