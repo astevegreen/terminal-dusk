@@ -2,12 +2,13 @@
 // weighs each power a side holds, takes Hypersonics' extra play, and both tiers answer the extra play and Quantum
 // Computing's one-sided opening pick in whole games.
 import { FIRST_DECK_RULESET } from "@terminal-dusk/content/first-deck";
-import { viewFor } from "@terminal-dusk/engine";
+import { legalAnswers, viewFor } from "@terminal-dusk/engine";
 import type { AnswerValue, Side } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
-import { techValue } from "./evaluate.ts";
+import { otherSide, techValue } from "./evaluate.ts";
 import { mediumAnswer } from "./medium.ts";
 import { seededRandom } from "./random.ts";
+import { escalationEffect } from "./unseen.ts";
 import { newSixRegionMapGame } from "./test/mapGames.ts";
 import { playEasy } from "./test/playEasy.ts";
 import type { TestState } from "./test/testGames.ts";
@@ -53,6 +54,16 @@ function play(seed: number, marker: number, tier: "easy" | "medium"): Seen & { o
   );
   return { ...seen, over: final.public.status.kind === "over" };
 }
+
+/** Whether `side`'s play would cost it a crisis at Escalation 5: the card's event runs and raises Escalation. */
+const crisisFor =
+  (side: Side) =>
+  (a: AnswerValue): boolean => {
+    if (a.kind !== "playCardAs") return false;
+    const card = FIRST_DECK_RULESET.cards.find((c) => c.id === a.card)!;
+    const runs = a.as === "event" || (card.affiliation !== "neutral" && card.affiliation !== side);
+    return runs && escalationEffect(card).up > 0;
+  };
 
 const pubAt = (marker: number) => {
   const pub = newSixRegionMapGame(1).public;
@@ -121,6 +132,46 @@ describe("the AI and the tech race step powers", () => {
       }
     }
     expect(offered).toBeGreaterThan(0);
+  });
+
+  it("Medium passes Hypersonics' extra play rather than play a card that would cost it a crisis", () => {
+    let checked = 0;
+    for (const seed of [1, 2, 3]) {
+      for (const marker of [-3, 3]) {
+        for (const offer of play(seed, marker, "medium").extraPlays) {
+          const side = offer.public.pending[0]!.side;
+          // At Escalation 5 a card whose event runs and raises Escalation reaches 6: a crisis for the side playing it.
+          const state = { ...offer, public: { ...offer.public, escalation: 5 } };
+          const crisis = crisisFor(side);
+          const legal = legalAnswers(FIRST_DECK_RULESET, state, side);
+          if (!legal.some(crisis)) continue;
+          checked++;
+          const answer = mediumAnswer(FIRST_DECK_RULESET, viewFor(state, side), side, W, seededRandom(seed))!;
+          expect(crisis(answer)).toBe(false);
+        }
+      }
+    }
+    expect(checked).toBeGreaterThan(0);
+    // A hand of only the rival's cards that raise Escalation: every play runs such an event, so Medium passes.
+    const offer = play(1, -3, "medium").extraPlays[0]!;
+    const side = offer.public.pending[0]!.side;
+    const traps = FIRST_DECK_RULESET.cards
+      .filter((c) => c.affiliation === otherSide(side) && escalationEffect(c).up > 0)
+      .map((c) => c.id)
+      .slice(0, 2);
+    expect(traps.length).toBeGreaterThan(0);
+    const trapped = {
+      ...offer,
+      public: { ...offer.public, escalation: 5 },
+      private: { ...offer.private, [side]: { ...offer.private[side], hand: traps } },
+    };
+    expect(
+      legalAnswers(FIRST_DECK_RULESET, trapped, side)
+        .filter((a) => a.kind !== "pass")
+        .every(crisisFor(side)),
+    ).toBe(true);
+    const answer = mediumAnswer(FIRST_DECK_RULESET, viewFor(trapped, side), side, W, seededRandom(1));
+    expect(answer?.kind).toBe("pass");
   });
 
   it("Easy and Medium answer Quantum Computing's one-sided opening pick, as the rival and as the holder", () => {
