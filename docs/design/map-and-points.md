@@ -24,7 +24,7 @@ Not yet built. Numbers marked "open" are for the owner to set.
   influence. Russia's and China's borders decide which countries touch the SAE box (owner, 28 Oct, chosen in chat: H1): every
   country on the board that borders Russia or China by land or a short sea crossing touches it.
 - **Hong Kong** is part of China.
-- **Taiwan** starts LIO-aligned.
+- **Taiwan** starts LIO-aligned, not LIO-controlled (owner, 29 Oct: X15 option 1, #472).
 - **Crimea** starts as the history of 1991 says (owner), and is its own box on the map, not part of Ukraine
   (owner, 28 Oct).
 - **Region contents** (owner, 28 Oct, chosen in chat: option 2): the countries, regions and links of
@@ -58,8 +58,9 @@ Decided by the owner on 28 October 2026, in chat, answering the questions of `do
   6 in the Middle East and North Africa, 1 / 3 / 4 in Sub-Saharan Africa and 1 / 3 / 5 in the Americas.
 - **Score track** (owner: "20, middle"). 20 steps from the middle to each side's end, and the track **starts in
   the middle**, not option A's 2 steps towards LIO.
-- **Taiwan and Crimea at the start** (owner: "LIO 3 / SAE 1"). Taiwan LIO 3, which controls it at stability 3;
-  Crimea SAE 1, a foothold without control at stability 2. Every other country starts empty.
+- **Taiwan and Crimea at the start** (owner: "LIO 3 / SAE 1", then Taiwan lowered by the X15 balance pass). Taiwan
+  LIO 2, aligned but short of control at stability 3 (owner, 29 Oct: option 1 of `docs/proposals/map-balance.md`,
+  #472; LIO 3 won about 63% of Medium-vs-Medium games, LIO 2 about 54%); Crimea SAE 1, a foothold without control at stability 2. Every other country starts empty.
 - Open: the balance pass on the stabilities (above). Turns, plays per turn and hand size in the scenario are still the first deck's placeholders (era
   lengths).
 
@@ -230,7 +231,7 @@ Decided by the owner on 28 October 2026, choosing between the options in `docs/p
 3. Answered 28 Oct: the six-region map's content is option 2 of `docs/proposals/map-content/`, with H1, Crimea
    as its own box, and closing order C1; the order regions score in is S1 (Scoring section). Its numbers too
    (Map section's "Map numbers"): option A's stabilities and battleground lists, weighted amounts, a 20-step track
-   from the middle, Taiwan LIO 3 and Crimea SAE 1; a balance pass sets the final stabilities once the Medium AI
+   from the middle, Taiwan LIO 3 (LIO 2 since 29 Oct, X15) and Crimea SAE 1; a balance pass sets the final stabilities once the Medium AI
    exists ("A, tune later"). Still open: whether Kosovo and the Palestinian territories get a box (option 2 gives neither one), and
    whether every country must be reachable from both home boxes and long sea links are acceptable (option 2's tables
    assume yes; its Reach section shows the result).
