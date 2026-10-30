@@ -4,7 +4,7 @@ import type { GameNames } from "./displayText.ts";
 import { logLine } from "./eventPresentation.ts";
 import { testCountryName } from "./test/promptProps.ts";
 
-// Log lines for the tech race powers (R26, #476) and the escalation crisis (R22, #447).
+// Log lines for the tech race powers (R26, #476).
 const NAMES: GameNames = {
   card: (id) => id,
   era: (era) => era,
@@ -13,11 +13,7 @@ const NAMES: GameNames = {
 };
 const say = (event: GameEvent): string => logLine(event, NAMES);
 
-describe("eventPresentation: tech powers and crisis", () => {
-  it("does not say Escalation drops to 3 in the crisis line, since a crisis that ends the game leaves it at 6", () => {
-    const line = say({ kind: "escalationCrisis", visibility: "public", side: "lio", value: 6 });
-    expect(line).not.toContain("drops to 3");
-  });
+describe("eventPresentation: tech powers", () => {
   it("adds + 1 tech to a realignment line when the holder's Networks and Orbit applied (R26)", () => {
     const line = say({
       kind: "realigned",

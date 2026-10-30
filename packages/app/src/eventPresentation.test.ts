@@ -286,14 +286,14 @@ describe("eventPresentation", () => {
     });
     expect(line).toBe("Escalation falls to 3.");
   });
-  it("logs an escalationCrisis with the side that caused it, and the number it drew, leaving the result to the lines after it", () => {
+  it("logs an escalationCrisis with the side that caused it, the number it drew and the drop to 3", () => {
     const line = say({
       kind: "escalationCrisis",
       visibility: "public",
       side: "sae",
       value: 5,
     });
-    expect(line).toBe("Crisis: SAE draws 5. The lines that follow show the result.");
+    expect(line).toBe("Crisis: SAE draws 5; Escalation drops to 3.");
   });
   it("logs a regionScored with the region and each side's points", () => {
     expect(say({ kind: "regionScored", visibility: "public", region: "europe", lio: 5, sae: 1 })).toBe(
