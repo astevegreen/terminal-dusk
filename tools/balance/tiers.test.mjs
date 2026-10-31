@@ -13,8 +13,8 @@ test("--lio-tier and --sae-tier parse into this run's tiers; a side left out sta
 
 test("a tier that does not exist is refused with the allowed tiers and the usage line", () => {
   assert.throws(
-    () => parseArgs(["--lio-tier", "hard"]),
-    /--lio-tier must be one of easy, medium, not "hard"[\s\S]*Usage:/,
+    () => parseArgs(["--lio-tier", "expert"]),
+    /--lio-tier must be one of easy, medium, hard, not "expert"[\s\S]*Usage:/,
   );
   assert.throws(() => parseArgs(["--sae-tier"]), /--sae-tier needs a value/);
 });

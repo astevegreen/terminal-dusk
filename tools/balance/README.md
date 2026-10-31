@@ -30,7 +30,7 @@ node tools/balance/run.mjs --scenario six-region   # the six-region map (package
 
 ## Choosing each side's AI tier
 
-`--lio-tier` and `--sae-tier` (each `easy` or `medium`, Easy when left out) pick the AI tier of one side, so a run can
+`--lio-tier` and `--sae-tier` (each `easy`, `medium` or `hard`, Easy when left out) pick the AI tier of one side, so a run can
 pit Medium against Easy. A run that uses either option adds a line under the results by side with the tiers and how
 many Escalation crises each side caused (a crisis is Escalation reaching 6; the side that caused it draws the cost),
 and how many tech race attempts each side made (the public `techRaceAttempted` events; zero while the AI never picks
@@ -175,6 +175,6 @@ not change. It needs a scenario with a map (`test-map` or `six-region`). Every p
 `node tools/balance/arena.mjs [--a <tier>] [--b <tier>] [--games <n>] [--seed <base>] [--scenario <name>] [--json]`
 plays n seeded games of tier A against tier B (Medium against Easy, 100 games on the six-region map, by default)
 through the match host, with the two tiers swapping sides every game. It prints each tier's win rate, each side's win
-rate, each tier's wins by the side it played, draws and the average game length. It checks the Decision 8 gate that
-applies today, Medium beats Easy in over 75% of games (draws count against), and exits 1 when it fails. 100 games take
-about 7 seconds. The Hard-beats-Medium gate waits for the Hard tier.
+rate, each tier's wins by the side it played, draws and the average game length. It checks the Decision 8 gate for the
+pairing: Medium beats Easy in over 75% of games, Hard beats Medium in over 65% (draws count against), and exits 1 when
+it fails. 100 Medium-vs-Easy games take about 7 seconds; 200 Hard-vs-Medium games take about 21 minutes.

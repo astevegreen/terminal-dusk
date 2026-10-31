@@ -6,7 +6,7 @@ import { balanceConfig, SCENARIOS } from "./config.mjs";
 import { playBalanceGame, SIDES, TIERS } from "./play.mjs";
 
 export const USAGE =
-  "Usage: node tools/balance/arena.mjs [--a <easy or medium>] [--b <easy or medium>] " +
+  "Usage: node tools/balance/arena.mjs [--a <easy, medium or hard>] [--b <easy, medium or hard>] " +
   "[--games <positive whole number>] [--seed <base>] [--scenario <first-deck, test-map or six-region>] [--json]";
 const DEFAULTS = { a: "medium", b: "easy", games: 100, seed: "arena", scenario: "six-region", json: false };
 const VALUED = new Set(["--a", "--b", "--games", "--seed", "--scenario"]);
@@ -15,9 +15,12 @@ const refuse = (message) => new Error(`${message}\n${USAGE}`);
 
 /**
  * The Decision 8 gates that can be checked today. Each names the stronger tier, the weaker one and the share of
- * games (wins over all games, draws count against) the stronger must beat. Hard is not built yet.
+ * games (wins over all games, draws count against) the stronger must beat.
  */
-export const GATES = [{ strong: "medium", weak: "easy", over: 0.75 }];
+export const GATES = [
+  { strong: "medium", weak: "easy", over: 0.75 },
+  { strong: "hard", weak: "medium", over: 0.65 },
+];
 
 /** The side tier `"a"` or `"b"` plays in game `i`: A takes LIO in even games and SAE in odd ones. */
 export const sideOf = (which, i) => {

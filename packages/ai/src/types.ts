@@ -30,3 +30,11 @@ export type MediumWeights = Weights & {
   techExtraPlay: number;
   techOpening: number;
 };
+
+/**
+ * The Hard tier's weights: Medium's, plus the size of its search (hard.ts). `guesses`: how many hidden parts it
+ * guesses. `candidates`: how many of Medium's best card answers it tries on each. `rounds`: how many more card
+ * plays each side makes in a rollout (rollout.ts). `timeMs`: when a clock is given, the search stops once this many
+ * milliseconds have passed, keeping the guesses already finished.
+ */
+export type HardWeights = MediumWeights & { guesses: number; candidates: number; rounds: number; timeMs: number };

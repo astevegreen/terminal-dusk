@@ -14,7 +14,7 @@ import { balanceStats } from "./stats.mjs";
 export const USAGE =
   "Usage: node tools/balance/run.mjs [--scenario <first-deck, test-map or six-region>] " +
   "[--games <positive whole number>] [--seed <base>] [--turns <positive whole number>] " +
-  "[--plays <positive whole number>] [--era <era id>@<positive whole number or off>]... [--numbers <file>] [--lio-tier <easy or medium>] [--sae-tier <easy or medium>] [--json]";
+  "[--plays <positive whole number>] [--era <era id>@<positive whole number or off>]... [--numbers <file>] [--lio-tier <easy, medium or hard>] [--sae-tier <easy, medium or hard>] [--json]";
 const DEFAULTS = { games: 200, seed: "balance", json: false };
 const VALUED = new Set([
   "--scenario",
