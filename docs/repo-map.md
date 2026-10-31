@@ -111,7 +111,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/scripts/world-map/geometry.mjs` - The geometry behind `pnpm map:build` (L3, #479), kept pure so geometry.test.mjs can prove it on small shapes.
 - `packages/app/scripts/world-map/geometry.test.mjs` - What `pnpm map:build` does to Natural Earth's countries (L3, #479), shown on small made-up ones: the UN-recognised borders, Crimea, the crop, and whole-number…
 - `packages/app/src/App.test.tsx`
-- `packages/app/src/App.tsx` - The home screen: the game's name, a button to play against the AI, a button to play the six-region map against the AI (A14, #439), a button to play online and… Exports: AppProps, App, onlineRoute, Home.
+- `packages/app/src/App.tsx` - The home screen: the game's name, a button to play the six-region map against the AI (A14, #439) first, a button to play against the AI without a map, a button… Exports: AppProps, App, onlineRoute, Home.
 - `packages/app/src/chooseActionPrompt.test.tsx` - The chooseAction prompt (R16b, #316): all the points go to one action, placing or one intervention.
 - `packages/app/src/countryChoices.test.ts` - The choices that name a country (L7, #487): built only from the decision's options, in their order, and named by the map's names, never by the countries' ids.
 - `packages/app/src/countryChoices.ts` - The choices of a decision that each name one country (L7, #487): a placing, an intervention in the action menu, a realignment. Exports: CountryName, countryNames, countryChoices, picksByCountry.

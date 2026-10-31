@@ -1,5 +1,5 @@
-// The home screen: the game's name, a button to play against the AI, a button to play the six-region map against
-// the AI (A14, #439), a button to play online and a button into developer test mode. The AI games and test mode
+// The home screen: the game's name, a button to play the six-region map against the AI (A14, #439) first, a button
+// to play against the AI without a map, a button to play online and a button into developer test mode. The AI games and test mode
 // need no account; only Play online asks to sign in.
 import { useState } from "react";
 import { OnlineScreen } from "./online/OnlineScreen.tsx";
@@ -107,11 +107,11 @@ export function Home({ onPick }: Readonly<{ onPick: (screen: Screen) => void }>)
   return (
     <main>
       <h1>Terminal Dusk</h1>
-      <button type="button" style={TAP} onClick={() => onPick("vsAi")}>
-        Play against the AI
-      </button>
       <button type="button" style={TAP} onClick={() => onPick("vsAiMap")}>
         Play the six-region map
+      </button>
+      <button type="button" style={TAP} onClick={() => onPick("vsAi")}>
+        Play against the AI
       </button>
       <button type="button" style={TAP} onClick={() => onPick("online")}>
         Play online
