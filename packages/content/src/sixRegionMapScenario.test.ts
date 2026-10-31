@@ -268,10 +268,11 @@ describe("the six-region map scenario (#422)", () => {
     expect(reachableFrom(map.homeBox.sae).size).toBe(42);
   });
 
-  // R24 (owner, 28 Oct: "LIO 3 / SAE 1"): Taiwan LIO-controlled; Crimea an SAE foothold, not control.
-  it("starts Taiwan with LIO in control and Crimea with SAE influence, and every other country empty", () => {
+  // R24 (owner, 28 Oct: "LIO 3 / SAE 1"), then X15 option 1 (owner, 29 Oct, #472): Taiwan LIO-aligned at 2, below
+  // its stability 3, so not controlled; Crimea an SAE foothold, not control.
+  it("starts Taiwan LIO-aligned but not controlled and Crimea with SAE influence, and every other country empty", () => {
     expect(map.startingInfluence).toEqual([
-      { country: "taiwan", lio: 3, sae: 0 },
+      { country: "taiwan", lio: 2, sae: 0 },
       { country: "crimea", lio: 0, sae: 1 },
     ]);
     expect(byId.get("taiwan")?.stability).toBe(3);
@@ -290,7 +291,7 @@ describe("the six-region map scenario (#422)", () => {
     if (!result.ok) return;
     const influence = result.value.state.public.influence;
     expect(influence).toHaveLength(42);
-    expect(influence?.find((e) => e.country === "taiwan")).toEqual({ country: "taiwan", lio: 3, sae: 0 });
+    expect(influence?.find((e) => e.country === "taiwan")).toEqual({ country: "taiwan", lio: 2, sae: 0 });
     expect(influence?.find((e) => e.country === "crimea")).toEqual({ country: "crimea", lio: 0, sae: 1 });
     expect(result.value.state.public.map?.techRace).toEqual(map.techRace);
     expect(result.value.state.public.techRace).toEqual({ marker: 0, attempted: [], reached: [], bonus: [] });

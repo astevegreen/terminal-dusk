@@ -24,9 +24,10 @@ describe("the home screen", () => {
   it("offers the six-region map against the AI as its own button, which opens the vsAiMap screen (#439)", () => {
     const picked: string[] = [];
     const tree = treeOf(<Home onPick={(screen) => picked.push(screen)} />);
+    // The map game comes first: playtesters who took the first button got the map-less game and saw no map.
     expect(tree.buttons.map((b) => b.text)).toEqual([
-      "Play against the AI",
       "Play the six-region map",
+      "Play against the AI",
       "Play online",
       "Test mode",
     ]);

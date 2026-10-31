@@ -1,6 +1,7 @@
 // The AI and the tech race (A17, issue #471): Easy takes an attempt as one more legal answer; Medium weighs it by
 // the odds of its own Contingency deck, the first-there +1 and a crisis from entering Hypersonics.
-import { FIRST_DECK_RULESET } from "@terminal-dusk/content/first-deck";
+import { SIX_REGION_MAP_SCENARIO } from "@terminal-dusk/content";
+import { FIRST_DECK_RULESET, scenarioSetup } from "@terminal-dusk/content/first-deck";
 import { legalAnswers, viewFor } from "@terminal-dusk/engine";
 import type { AnswerValue, Side } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
@@ -9,7 +10,7 @@ import { guessHidden } from "./guess.ts";
 import { attemptValue, mediumAnswer } from "./medium.ts";
 import { seededRandom } from "./random.ts";
 import { drawVariants } from "./techRace.ts";
-import { newSixRegionMapGame } from "./test/mapGames.ts";
+import { newFirstDeckMapGame, newSixRegionMapGame } from "./test/mapGames.ts";
 import { playEasy } from "./test/playEasy.ts";
 import type { TestState } from "./test/testGames.ts";
 import { EASY_WEIGHTS } from "./weights/easy.ts";
@@ -24,11 +25,21 @@ function techMenuSide(state: TestState): Side | null {
   return menu.side;
 }
 
-/** Every state in Easy's six-region games `seeds` that waits on an action menu offering a tech race attempt. */
+/**
+ * The six-region map with Taiwan back at LIO 3, its start when A17 (#471) wrote these tests, before X15 lowered it to
+ * LIO 2 (#472). It pins only Taiwan's start: any other change to the map can still move Easy's games (#516).
+ */
+function a17Map() {
+  const map = scenarioSetup(SIX_REGION_MAP_SCENARIO).map!;
+  const startingInfluence = map.startingInfluence!.map((e) => (e.country === "taiwan" ? { ...e, lio: 3 } : e));
+  return { ...map, startingInfluence };
+}
+
+/** Every state in Easy's six-region games `seeds` (on a17Map) that waits on an action menu offering a tech race attempt. */
 function techMenus(seeds: number[]): TestState[] {
   const menus: TestState[] = [];
   for (const seed of seeds) {
-    playEasy(FIRST_DECK_RULESET, newSixRegionMapGame(seed), EASY_WEIGHTS, seededRandom(seed), {
+    playEasy(FIRST_DECK_RULESET, newFirstDeckMapGame(seed, a17Map()), EASY_WEIGHTS, seededRandom(seed), {
       applied: (before) => {
         if (techMenuSide(before) !== null) menus.push(before);
       },
@@ -157,12 +168,12 @@ describe("the AI and the tech race", () => {
     expect(boardValue(at(-2, []), "lio", MEDIUM_WEIGHTS)).toBeGreaterThan(boardValue(at(0, []), "lio", MEDIUM_WEIGHTS));
   });
 
-  it("counts holding Quantum Computing as one era-end region point more", () => {
+  it("counts holding Quantum Computing as one era-end region point more, besides its step and its opening power", () => {
     const pub = MENUS[0]!.public;
     const at = (marker: number) => ({ ...pub, techRace: { ...pub.techRace!, marker, bonus: [] } });
-    const step = techValue(at(-3), "lio", MEDIUM_WEIGHTS) - techValue(at(-2), "lio", MEDIUM_WEIGHTS);
     const end = techValue(at(-4), "lio", MEDIUM_WEIGHTS) - techValue(at(-3), "lio", MEDIUM_WEIGHTS);
-    expect(end - step).toBeCloseTo(MEDIUM_WEIGHTS.region);
+    const { tech, techOpening, region } = MEDIUM_WEIGHTS;
+    expect(end - tech - techOpening).toBeCloseTo(region);
     expect(techValue(at(4), "lio", MEDIUM_WEIGHTS)).toBeCloseTo(-techValue(at(-4), "lio", MEDIUM_WEIGHTS));
   });
 });

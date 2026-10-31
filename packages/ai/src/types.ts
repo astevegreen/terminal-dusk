@@ -11,7 +11,9 @@ export type Weights = { ops: number; rivalCard: number; noise: number };
  * (half of it for the region closing at the next Escalation level). `crisis`: per point of score a self-caused
  * crisis is expected to cost. `trap`: for raising Escalation to where the share of unseen cards that would cause the
  * rival a crisis is 1. `tech`: per step the tech race marker leans the side's way. `techBonus`: for holding a
- * first-there +1 on the next tech race draw.
+ * first-there +1 on the next tech race draw. `techRealign`, `techIntervene`, `techExtraPlay`, `techOpening`: for
+ * holding each step's power (docs/design/tech-race.md, "What each step gives"): +1 in realignments, +1 to
+ * interventions, Hypersonics' extra play, and seeing the rival's opening card first.
  */
 export type MediumWeights = Weights & {
   region: number;
@@ -23,6 +25,10 @@ export type MediumWeights = Weights & {
   trap: number;
   tech: number;
   techBonus: number;
+  techRealign: number;
+  techIntervene: number;
+  techExtraPlay: number;
+  techOpening: number;
 };
 
 /**

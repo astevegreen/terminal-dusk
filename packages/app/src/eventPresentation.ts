@@ -56,15 +56,23 @@ export const eventPresentation: EventPresentation = {
   },
   realigned: {
     countries: itsCountry,
-    log: (event, names) =>
-      `${SIDE_NAME[event.side]} realigned in ${names.country(event.country)}: LIO ${event.totals.lio}, SAE ${event.totals.sae}. ` +
-      (event.loser === null ? "A tie: nothing changed." : `${SIDE_NAME[event.loser]} lost ${event.removed} influence.`),
+    log: (event, names) => {
+      const total = (side: "lio" | "sae") =>
+        `${SIDE_NAME[side]} ${event.totals[side]}` +
+        (event.tech === 1 && event.side === side ? " (incl. + 1 tech)" : "");
+      return (
+        `${SIDE_NAME[event.side]} realigned in ${names.country(event.country)}: ${total("lio")}, ${total("sae")}. ` +
+        (event.loser === null
+          ? "A tie: nothing changed."
+          : `${SIDE_NAME[event.loser]} lost ${event.removed} influence.`)
+      );
+    },
   },
   intervened: {
     countries: itsCountry,
     log: (event, names) =>
       `${SIDE_NAME[event.side]} intervened in ${names.country(event.country)}: draw ${event.draw} + ${event.points} point${event.points === 1 ? "" : "s"} - 2 x stability ` +
-      `${event.stability} = ${event.result}` +
+      `${event.stability}${event.tech === 1 ? " + 1 tech" : ""} = ${event.result}` +
       (event.result > 0 ? `; removed ${event.removed} rival influence, added ${event.added} own.` : "; no change."),
   },
   drawPileReshuffled: {
@@ -93,7 +101,8 @@ export const eventPresentation: EventPresentation = {
     log: (event) => `Escalation ${event.to > event.from ? "rises" : "falls"} to ${event.to}.`,
   },
   escalationCrisis: {
-    log: (event) => `Crisis: ${SIDE_NAME[event.side]} draws ${event.value}; Escalation drops to 3.`,
+    // Escalation drops to 3, or the game ends with it still at 6, depending on the score track: the lines after this one say which.
+    log: (event) => `Crisis: ${SIDE_NAME[event.side]} draws ${event.value}. The lines that follow show the result.`,
   },
   regionScored: {
     log: (event, names) => `Era scoring, ${names.region(event.region)}: LIO ${event.lio}, SAE ${event.sae}.`,

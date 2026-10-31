@@ -1,4 +1,6 @@
-Proposal, not a rule
+Proposal, not a rule. Decided 29 Oct (owner): option 1, Taiwan starts at LIO 2; now in the map data (R27, #517).
+The figures below were measured on the map before that change (main at 086000b, Taiwan LIO 3): run the commands
+there to reproduce them. On today's map the first command gives option 1's result.
 
 # A balance pass on the six-region map
 

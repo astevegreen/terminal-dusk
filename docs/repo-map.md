@@ -50,6 +50,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/ai/src/safety.test.ts`
 - `packages/ai/src/safety.ts` - The Medium tier's Escalation safety (docs/design/map-and-points.md, "Escalation"): a raise to 6 is a crisis that costs the side that caused it the number it dr… Exports: expectedCrisisCost, crisisCost, crisisShare, safetyScore.
 - `packages/ai/src/sixRegionMap.test.ts` - Easy with the real first deck on the six-region map (A14, issue #439): seeded games, both sides Easy, end to end.
+- `packages/ai/src/techPowers.test.ts` - The AI and the tech race step powers (A18, issue #510; docs/design/tech-race.md, "What each step gives"): Medium weighs each power a side holds, takes Hyperson…
 - `packages/ai/src/techRace.test.ts` - The AI and the tech race (A17, issue #471): Easy takes an attempt as one more legal answer; Medium weighs it by the odds of its own Contingency deck, the first…
 - `packages/ai/src/techRace.ts` - The Medium tier's tech race odds (docs/design/tech-race.md, "Making an attempt"): an attempt draws from the side's own Contingency deck, whose numbers left are… Exports: DrawVariant, drawVariants.
 - `packages/ai/src/test/mapGames.ts` - Test helpers for map games (A11a, issue #359; A11b, #360): small rulesets whose cards move Escalation or spend event points, dealt with the test map, and first… Exports: testMap, escalationRuleset, newMapGame, pointsRuleset, newPointsMapGame, newFirstDeckMapGame, newSixRegionMapGame.
@@ -117,7 +118,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/scripts/world-map/geometry.mjs` - The geometry behind `pnpm map:build` (L3, #479), kept pure so geometry.test.mjs can prove it on small shapes.
 - `packages/app/scripts/world-map/geometry.test.mjs` - What `pnpm map:build` does to Natural Earth's countries (L3, #479), shown on small made-up ones: the UN-recognised borders, Crimea, the crop, and whole-number…
 - `packages/app/src/App.test.tsx`
-- `packages/app/src/App.tsx` - The home screen: the game's name, a button to play against the AI, a button to play the six-region map against the AI (A14, #439), a button to play online and… Exports: AppProps, App, onlineRoute, Home.
+- `packages/app/src/App.tsx` - The home screen: the game's name, a button to play the six-region map against the AI (A14, #439) first, a button to play against the AI without a map, a button… Exports: AppProps, App, onlineRoute, Home.
 - `packages/app/src/chooseActionPrompt.test.tsx` - The chooseAction prompt (R16b, #316): all the points go to one action, placing or one intervention.
 - `packages/app/src/countryChoices.test.ts` - The choices that name a country (L7, #487): built only from the decision's options, in their order, and named by the map's names, never by the countries' ids.
 - `packages/app/src/countryChoices.ts` - The choices of a decision that each name one country (L7, #487): a placing, an intervention in the action menu, a realignment. Exports: CountryName, countryNames, countryChoices, picksByCountry.
@@ -127,6 +128,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/displayText.ts` - The words the game screens share: side names and who each side is, era names, why a game ended, and what the log calls cards and eras. Exports: Label, GameNames, regionNamer, MapNames, mapNames, scoreText, ESCALATION_NAME, CardRules, CardPoints, pointsOf, SIDE_NAME, SIDE_WHO, ….
 - `packages/app/src/eventPresentation.test.ts`
 - `packages/app/src/eventPresentation.ts` - How each EventKind is presented. Exports: EventPresentation, eventPresentation, logLine, touchedCountries.
+- `packages/app/src/eventPresentationTech.test.ts`
 - `packages/app/src/game/GameScreen.test.tsx`
 - `packages/app/src/game/GameScreen.tsx` - The game screen: one whole game drawn from one frame, laid out for a phone held sideways (844x390; L1, #464). Exports: GameScreenProps, GameScreen.
 - `packages/app/src/game/MapView.test.tsx` - The map zoomed out (issue #364): badges per country, grouped by region, net influence, controller colour.
@@ -718,6 +720,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/src/hostTimeout.ts` - A missed deadline: the server's deadline job (never a player) tells the host that `side` was late. Exports: hostTimeout.
 - `packages/host/src/index.test.ts`
 - `packages/host/src/index.ts` - Public entry point of MatchHost (docs/architecture.md, Decision 3). Exports: hostCreate, hostSubmit, hostTimeout, hostDeadline, hostArchive, createOnlineRefusal, isEntitlement, isPlatform, PLATFORMS, Entitlement, Platform, DeadlineRule, ….
+- `packages/host/src/quantumOpening.test.ts` - The host and Quantum Computing's one-sided opening pick (A18, issue #510; docs/design/tech-race.md, "The opening-card power"): the holder's rival picks first a…
 - `packages/host/src/sixRegionMapConfig.test.ts` - The six-region map game as the host hands it to the app (A14, issue #439): the first deck's config with the six-region scenario's map, and nothing else of that…
 - `packages/host/src/test/clock.ts` - Test helpers for matches with deadlines. Exports: DAY, startedWith, lioToPlay, clockOf, withClock, swept.
 - `packages/host/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
@@ -1088,6 +1091,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `docs/design/screen-layout.md` - Screen layout: the map is the board
 - `docs/design/sides.md` - Sides
 - `docs/design/tech-race.md` - The tech race track: owner decisions (T1)
+- `docs/follow-ups.md` - Follow-ups
 - `docs/proposals/card-count-gap.md` - The LIO/SAE card-count gap and the missing Era 3 LIO Ops 4 card: options
 - `docs/proposals/card-rewording/README.md` - Card rules text once points have a use: wording rules
 - `docs/proposals/card-rewording/era-1.md` - Era 1 cards: rules text reworded now that points have a use
