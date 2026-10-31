@@ -35,7 +35,8 @@ The owner is not a programmer: explain every change in plain English, and prove 
 - Read the task's "Read first" files. Use the Explore agent for anything else; don't read whole folders.
 - Write failing tests from the acceptance criteria first, then the code.
 - Keep files under about 350 lines; split by responsibility.
-- Stay inside the task's scope. Add other problems to `docs/follow-ups.md` instead of fixing them.
+- Stay inside the task's scope. By day, add other problems to `docs/follow-ups.md` instead of fixing them; in a
+  night run or sprint lane, name them under UNSURE and the coordinator files the issue.
 - No new dependency without a reason in your summary.
 - Never ask the owner a technical question: how to build or structure it, APIs, tooling, tests, naming, placement,
   performance, refactors, or an architecture-doc update that changes no numbered Decision. Run the `architect`

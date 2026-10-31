@@ -48,11 +48,11 @@ Task: $ARGUMENTS (in a night run, the mode and number are in your prompt instead
   "Issue <n>, branch task/<n>." and `node tools/gemini-audit.mjs pr <pr>`, then follow CLAUDE.md, Finishing: fix
   their [blocker]s once, merge unless a [blocker] is left or the audit's verdict is `hold` or `retry`. [minor]
   concerns and agy's notes go on the pull request as a comment and never hold it.
-- Your final message: by day, CLAUDE.md's closing format (What changed, Tests, Unsure about). In a night run or
-  sprint lane, exactly:
+- Your final message: by day, CLAUDE.md's closing format (What changed, Tests, Follow-ups, Unsure about). In a
+  night run or sprint lane, exactly:
 STATUS: DONE | BLOCKED | GATE-FAILED | RETRY
 PR: <number or none>
 WHAT CHANGED: plain-English bullets, one per change the owner would notice
 TESTS: what now proves it
-UNSURE: anything the owner should check, or nothing
+UNSURE: what you tried to settle and could not, and problems outside the task; or nothing
 REJECTED GEMINI POINTS: each with a reason, or none

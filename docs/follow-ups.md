@@ -1,7 +1,7 @@
 # Follow-ups
 
 Known work that a session found outside its task. The list carries it forward, so session summaries stop repeating
-it. Sprint lanes keep filing follow-up issues; a sprint plan may turn an item here into an issue, deleting it here.
+it. Sessions add to it by day; sprint lanes file follow-up issues instead. Moving an item into an issue deletes it here.
 
 ## How to use
 
