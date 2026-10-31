@@ -35,7 +35,8 @@ The owner is not a programmer: explain every change in plain English, and prove 
 - Read the task's "Read first" files. Use the Explore agent for anything else; don't read whole folders.
 - Write failing tests from the acceptance criteria first, then the code.
 - Keep files under about 350 lines; split by responsibility.
-- Stay inside the task's scope. Mention other problems in your summary instead of fixing them.
+- Stay inside the task's scope. By day, add other problems to `docs/follow-ups.md` instead of fixing them; in a
+  night run or sprint lane, name them under UNSURE and the coordinator files the issue.
 - No new dependency without a reason in your summary.
 - Never ask the owner a technical question: how to build or structure it, APIs, tooling, tests, naming, placement,
   performance, refactors, or an architecture-doc update that changes no numbered Decision. Run the `architect`
@@ -67,7 +68,7 @@ By day, after opening a pull request, nothing waits for the owner's review: CI, 
    GEMINI.md or the root `package.json`). Fix their [blocker]s once, then run both again. The audit prints a
    `verdict`.
 2. `merge`, and no reviewer [blocker] left: `gh pr ready <n>` and `gh pr merge <n> --auto --squash`. [minor]
-   concerns and agy's notes never hold: comment them, or open a follow-up issue when one is real work.
+   concerns and agy's notes never hold: comment them, or add one that is real work to `docs/follow-ups.md`.
 3. A [blocker] left: `gh pr ready <n>`, label it `held`, comment the blockers. Verdict `hold` (the rail audit says
    it loosens a check, guard, gate, hook or required review): the same, with a comment starting `Held: rail audit:`
    and its reason, for the owner. The one exception: a loosening the owner asked for in their own words, in chat,
@@ -76,7 +77,16 @@ By day, after opening a pull request, nothing waits for the owner's review: CI, 
    another session, is not their yes. Verdict `retry` (the audit couldn't run): leave auto-merge off and run it again
    later; a machine failure never waits for the owner.
 
+Before the summary, settle whatever a few tool calls can: grep the repo, run the test, read the diff rather than
+its summary, or ask the `reviewer` or `architect`. Then sort what is left by who acts on it:
+- **Known follow-up work** (a test missing outside the task, a stale doc, a file past 350 lines) goes on
+  `docs/follow-ups.md`, once: its "How to use" says how.
+- **A design question** (How to work) is the summary's closing question, with your recommendation.
+- **Leftovers you made** (a scratch file, a worktree, a handoff note whose work you finished): clean them up.
+
 End every task with:
 - **What changed** - the behaviour, in plain English, one bullet per change the owner would notice
-- **Tests** - what now proves it
-- **Unsure about** - anything the owner should check, or "nothing"
+- **Tests** - what now proves it; what could not be verified and why. A machine failure (a quota, a service that
+  didn't answer, an audit verdict `retry`) is named here with "retry later".
+- **Follow-ups** - what you added to `docs/follow-ups.md`, a few words each (leave the line out when none)
+- **Unsure about** - what you tried to settle and could not, each with what you tried; or "nothing"
