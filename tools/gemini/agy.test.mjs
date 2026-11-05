@@ -9,6 +9,7 @@ import {
   FLASH,
   OPUS,
   ORDER,
+  RESUME_TIMEOUT,
   SONNET,
   TIMEOUT,
   askFirstAvailable,
@@ -333,6 +334,37 @@ test("a resumed run that tries a command again is passed on, and no other failur
   const quota = runs({ status: "ERROR", error: QUOTA });
   assert.throws(() => askModel(quota.run, "Audit this.", OPUS), { message: QUOTA });
   assert.equal(quota.asked.length, 1);
+});
+
+// The reply agy 1.5.1 gave on 2026-11-05 when --print-timeout cut a turn off (it also exits 3).
+const LATE = {
+  conversation_id: "c-2",
+  status: "ERROR",
+  response: "",
+  error: "print timeout after 10m0s with the turn still in progress; the response is partial",
+  finished_reason: "print_timeout",
+};
+
+test("a run that ran out of time is resumed once, told to answer from what it read, on the shorter limit", () => {
+  const { run, asked } = runs(LATE, { status: "SUCCESS", response: "No findings.\n" });
+  assert.equal(askModel(run, "Review this.", FLASH, ["--add-dir", "C:/tmp"]), "No findings.");
+  assert.match(asked[1][1], /^Your time is up: read nothing more/);
+  assert.deepEqual(asked[1].slice(-6), [
+    "--print-timeout",
+    RESUME_TIMEOUT,
+    "--add-dir",
+    "C:/tmp",
+    "--conversation",
+    "c-2",
+  ]);
+});
+
+test("a resumed run that runs out of time too is passed on, so the next model is asked", () => {
+  const twice = runs(LATE, { ...LATE, error: "print timeout after 6m0s with the turn still in progress" });
+  assert.throws(() => askModel(twice.run, "Review this.", FLASH), {
+    message: "the model ran out of time (6m0s) before finishing its answer",
+  });
+  assert.equal(twice.asked.length, 2);
 });
 
 test("a run cut off by the time limit is reported as unfinished, even if it printed part of an answer", () => {
