@@ -749,6 +749,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/edge.ts` - The glue every Edge Function shares: turning the runtime's fetch-style requests into the plain-data requests the handlers take and back, and the Supabase sign-… Exports: FetchRequest, MakeResponse, serveFetch, supabaseAuthenticate.
 - `packages/server/src/entitlementStore.test.ts`
 - `packages/server/src/entitlementStore.ts` - The entitlement port (docs/architecture.md, Decision 5): which full-game copies a player owns, and an in-memory store for tests. Exports: EntitlementRow, EntitlementStore, MemoryEntitlementStore.
+- `packages/server/src/functionDeps.test.ts` - The deps the submit and invite Edge Functions serve with.
+- `packages/server/src/functionDeps.ts` - The deps the submit and invite Edge Functions serve with, built from one service-role client. Exports: submitFunctionDeps, inviteFunctionDeps.
 - `packages/server/src/http.ts` - The plain-data HTTP pieces the Edge Function handlers share (docs/architecture.md, Decision 5): the request and reply shapes, the CORS headers, signing a calle… Exports: HttpRequest, HttpReply, Authenticate, CORS_HEADERS, preflight, signedIn, jsonObject, reply, refusal, isPlainObject.
 - `packages/server/src/index.test.ts`
 - `packages/server/src/index.ts` - Public entry point of the server package (docs/architecture.md, Decision 5). Exports: submit, ServerErrorCode, SubmitDeps, SubmitError, SubmitOutcome, SubmitRequest, MemoryStore, SupabaseStore, CommitResult, LoadedMatch, MatchStore, MatchWrite, ….

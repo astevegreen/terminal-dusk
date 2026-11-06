@@ -3,11 +3,9 @@
 // The Supabase runtime provides SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY; none are in the repository.
 // It does not log (.claude/rules/server.md).
 import { createClient } from "@supabase/supabase-js";
-import { supabaseAuthenticate } from "../../../src/edge.ts";
 import type { FetchRequest, MakeResponse } from "../../../src/edge.ts";
+import { inviteFunctionDeps } from "../../../src/functionDeps.ts";
 import { inviteFetchHandler, secureInviteRandom } from "../../../src/inviteEdge.ts";
-import { SupabaseEntitlementStore } from "../../../src/supabaseEntitlementStore.ts";
-import { SupabaseInviteStore } from "../../../src/supabaseInviteStore.ts";
 
 // The server's tsconfig has no Deno or DOM types, so the few runtime globals used are described here.
 type DenoRuntime = {
@@ -29,13 +27,7 @@ const db = createClient(required("SUPABASE_URL"), required("SUPABASE_SERVICE_ROL
 
 runtime.Deno.serve(
   inviteFetchHandler(
-    {
-      invites: new SupabaseInviteStore(db),
-      entitlements: new SupabaseEntitlementStore(db),
-      ...secureInviteRandom(),
-      authenticate: supabaseAuthenticate(db),
-      now: () => Date.now(),
-    },
+    inviteFunctionDeps(db, { now: () => Date.now(), random: secureInviteRandom() }),
     (body, init) => new runtime.Response(body, init),
   ),
 );
