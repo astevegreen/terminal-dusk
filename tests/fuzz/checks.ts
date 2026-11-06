@@ -28,6 +28,7 @@ import { deepFreeze } from "./deepFreeze.ts";
 import { checkEscalation } from "./escalationChecks.ts";
 import { checkModifiers, checkTriggers } from "./expiryChecks.ts";
 import { checkInfluence } from "./influenceChecks.ts";
+import { checkPlainJson, firstDifference } from "./jsonChecks.ts";
 import { checkKnowledge } from "./knowledgeChecks.ts";
 import type { KnowledgeBefore } from "./knowledgeChecks.ts";
 import { checkHasBranches, checkMarkers } from "./markerChecks.ts";
@@ -35,6 +36,7 @@ import { byCodeUnit } from "./order.ts";
 
 export { checkModifiers, checkTriggers } from "./expiryChecks.ts";
 export { checkInfluence } from "./influenceChecks.ts";
+export { checkPlainJson, firstDifference } from "./jsonChecks.ts";
 export { checkHasBranches, checkMarkers } from "./markerChecks.ts";
 export { checkKnowledge, knowledgeOf } from "./knowledgeChecks.ts";
 
@@ -61,7 +63,7 @@ export type History = { before: readonly string[] | null; allEvents: readonly Ga
 export const NEW_GAME: History = { before: null, allEvents: [], knowledge: null };
 
 /**
- * All the checks for one step: invariants 1, 3, 4 and 5, the Contingency decks, the lasting markers and `has`
+ * All the checks for one step: the state is plain JSON with integers only (hard rule 5, jsonChecks.ts), invariants 1, 3, 4 and 5, the Contingency decks, the lasting markers and `has`
  * branches (markerChecks.ts), knowledge and shown hands (knowledgeChecks.ts), and the map and influence
  * (influenceChecks.ts). `events` are the step's own.
  */
@@ -73,6 +75,7 @@ export function checkStep(
   seed: Seed,
   history: History,
 ): void {
+  checkPlainJson(state);
   checkLive(ruleset, state);
   checkModifiers(state);
   checkTriggers(state);
@@ -291,18 +294,6 @@ export function checkRebuilds(state: GameState): void {
 }
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
-
-/** Where two plain JSON values first differ, as a path starting at `path`, or null if they are equal. */
-export function firstDifference(a: unknown, b: unknown, path: string): string | null {
-  if (Object.is(a, b)) return null;
-  if (!isObject(a) || !isObject(b) || Array.isArray(a) !== Array.isArray(b)) return path;
-  for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) {
-    if (!Object.hasOwn(a, key) || !Object.hasOwn(b, key)) return `${path}.${key}`;
-    const diff = firstDifference(a[key], b[key], `${path}.${key}`);
-    if (diff !== null) return diff;
-  }
-  return null;
-}
 
 /**
  * verifyGame on a game that reached its end: it must accept the record and give the same final state and

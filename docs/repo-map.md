@@ -905,7 +905,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 - `tests/README.md` - Cross-package test suites
 - `tests/fuzz/cards.ts` - TEST-ONLY FIXTURES, never game content: the fuzz suite's cards, c1 to c85, and the sizes of a random game their number is worked out from. Exports: MAX_TURNS, MAX_PLAYS, MAX_EXTRA, MAX_PILE, MAX_ERA_CARDS, FUZZ_CARDS, baseEffectOf, removesAfterEvent, ruleset.
-- `tests/fuzz/checks.ts` - The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite"). Exports: checkModifiers, checkTriggers, checkInfluence, checkHasBranches, checkMarkers, checkKnowledge, knowledgeOf, VIEWERS, Secrets, attempt, History, NEW_GAME, ….
+- `tests/fuzz/checks.ts` - The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite"). Exports: checkModifiers, checkTriggers, checkInfluence, checkPlainJson, firstDifference, checkHasBranches, checkMarkers, checkKnowledge, knowledgeOf, VIEWERS, Secrets, attempt, ….
 - `tests/fuzz/contingency.test.ts` - Tests for the fuzz harness's Contingency deck checks (#64): the deck invariant and the structural leak check each catch a hand-corrupted state, and the random…
 - `tests/fuzz/deepFreeze.ts` - Freezes a value and everything inside it, so an engine call that changes its input throws. Exports: deepFreeze.
 - `tests/fuzz/easy.test.ts` - The Easy AI inside the fuzz suite (#91): every third game has it on one side, with every invariant checked.
@@ -922,6 +922,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/harness.test.ts` - Tests for the fuzz harness itself: each check catches what it should, so a green fuzz run means something.
 - `tests/fuzz/influence.test.ts` - The map and influence in the fuzz games (R15): the influence check (influenceChecks.ts) catches what it should, and random games started with the content test…
 - `tests/fuzz/influenceChecks.ts` - The fuzz checks for the map and influence (R15, docs/design/map-and-points.md, "Influence"): influence is never negative, has one entry per map country in the… Exports: checkInfluence.
+- `tests/fuzz/jsonChecks.ts` - Hard rule 5 for the fuzz suite: a state is plain JSON with integers only. Exports: firstDifference, checkPlainJson.
 - `tests/fuzz/knowledge.test.ts` - The fuzz checks for shown hands (#185): hiddenFrom lets a side see the rival cards it was shown, and only those; checkKnowledge catches knowledge that does not…
 - `tests/fuzz/knowledgeChecks.ts` - The fuzz check for knowledge and shown hands (R6a, #185): what each side knows of the rival's hand always matches the real hand, and a shown hand reaches only… Exports: KnowledgeBefore, knowledgeOf, checkKnowledge.
 - `tests/fuzz/lasting.test.ts` - The fuzz suite and the lasting effects, modifiers (#89) and triggers (#90): the fuzz cards make them, and the checks catch what they should.
@@ -931,6 +932,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/neutral.test.ts` - Neutral events in the fuzz games (#117): neutral cards draw from the deck of the side that picked or played them, in their events and in the reactions they set…
 - `tests/fuzz/order.test.ts`
 - `tests/fuzz/order.ts` - Compare function for sorting strings in UTF-16 code-unit order: the same order as a sort with no compare function, written out so the order is explicit. Exports: byCodeUnit.
+- `tests/fuzz/plainJson.test.ts` - Hard rule 5 in the fuzz checks: every state is plain JSON with integers only, and firstDifference never counts two values that are not plain JSON (NaN, undefin…
 - `tests/fuzz/play.ts` - Plays one game for the fuzz suite, random or recorded, and checks every invariant along the way. Exports: baseEffectOf, FUZZ_CARDS, ruleset, DEFAULT_GAMES, MAX_ANSWERS, GameRecord, Chooser, Played, gameCount, playFuzzGame, playRecorded, randomGame, ….
 - `tests/fuzz/playedBy.test.ts` - The fuzz suite and the playedBy condition of R5a (#170): the fuzz cards test who played them, at the top of an effect, nested in another if and in both kinds o…
 - `tests/fuzz/playedBy.ts` - TEST-ONLY FIXTURES, never game content: the `playedBy` conditions (R5a) the fuzz cards test, and the fuzz check that each test took exactly one branch, the rig… Exports: PLAYED_BY, Where, Branch, How, PlayRecord, Taken, branchLabel, playedByStep, nestedPlayedBy, announcedTest, branchTaken, notePlay, ….
