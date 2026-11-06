@@ -983,6 +983,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/gates/content-check.mjs` - `pnpm content:check [files...]`: validates content JSON against the schemas in packages/content/schema/.
 - `tools/gates/content-check.test.mjs`
 - `tools/gates/count-reporter.mjs` - node:test reporter for test-count.mjs: one JSON line per test that ran (suites left out), with its file, its name and whether it was skipped or todo.
+- `tools/gates/dependabot.test.mjs` - Dependabot's settings (.github/dependabot.yml) that the rest of the repo relies on.
 - `tools/gates/deps-report.mjs` - CI's dependency check (the `deps` job), which replaced the owner's review of package.json and the lockfile (owner's policy, 28 Oct 2026).
 - `tools/gates/deps-report.test.mjs` - Tests for CI's dependency check: the new-dependency report, failing on a new high or critical advisory, and failing when the audit gave no answer on a change t…
 - `tools/gates/gate.mjs` - `pnpm gate`: check only what changed, stage by stage, stopping at the first failure.
@@ -1163,6 +1164,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `.github/ISSUE_TEMPLATE/bug.yml`
 - `.github/ISSUE_TEMPLATE/config.yml`
 - `.github/ISSUE_TEMPLATE/task.yml`
+- `.github/dependabot.yml` - Automatic version updates: once a week, Dependabot opens pull requests for newer versions of the packages (package.json files and the catalog in pnpm-workspace…
 - `.github/pull_request_template.md` - What changed
 - `.github/workflows/ci.yml`
 - `.github/workflows/nightly.yml`

@@ -1,0 +1,29 @@
+# Automatic version updates: once a week, Dependabot opens pull requests for newer versions of the packages
+# (package.json files and the catalog in pnpm-workspace.yaml) and of the GitHub Actions the workflows use. Minor and
+# patch updates come grouped, one pull request per ecosystem; each major update gets its own. The cooldown matches
+# pnpm-workspace.yaml's minimumReleaseAge (10080 minutes, 7 days): nothing newer than a week is proposed, so pnpm
+# would install every version it proposes (tools/gates/dependabot.test.mjs). Security updates are not delayed.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # TypeScript moves by the TypeScript 7 plan in docs/follow-ups.md, not by Dependabot.
+      - dependency-name: typescript
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
