@@ -1,6 +1,6 @@
 // Test helper for leak checks against a whole MatchSecret, shared by the app's and the server's tests through
 // "@terminal-dusk/host/test/secret-leaks" (#396). It reads the game state through MatchSecret["state"], so its
-// callers never name the engine's state type (hard rule 2). The host's own tests use test/leaks.ts instead.
+// callers never name the engine's state type (hard rule 2).
 import { DECKS, SIDES } from "@terminal-dusk/engine";
 import type { Side } from "@terminal-dusk/engine";
 import type { MatchSecret } from "../types.ts";
