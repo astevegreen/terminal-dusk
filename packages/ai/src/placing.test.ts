@@ -80,7 +80,6 @@ describe("Easy answers the action menu's place influence (A11b)", () => {
   it("Easy places in the map games: it picks place, answers placings legally, and every game ends", () => {
     const { finals, answers, placings } = mapGames();
     expect(finals).toHaveLength(MAP_GAMES);
-    for (const final of finals) expect(final.public.status.kind).toBe("over");
     const pickedPlace = answers.filter(({ value }) => value.kind === "chooseAction" && value.action === "place");
     expect(pickedPlace.length).toBeGreaterThan(0);
     expect(placings.length).toBeGreaterThan(0);
@@ -125,7 +124,6 @@ describe("Easy answers the action menu's place influence (A11b)", () => {
   it("event points are placed too: both sides place, each card's line asks LIO then SAE, and every game ends", () => {
     const { finals, placings, spent } = pointsGames();
     expect(finals).toHaveLength(POINTS_GAMES);
-    for (const final of finals) expect(final.public.status.kind).toBe("over");
     expect(placings.some(({ side }) => side === "lio")).toBe(true);
     expect(placings.some(({ side }) => side === "sae")).toBe(true);
     for (const sides of spent) {

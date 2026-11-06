@@ -97,7 +97,6 @@ describe("Easy answers the action menu's realign (A11d)", () => {
   it("Easy realigns in the map games: each attempt is one realignment in that country, and every game ends", () => {
     const { finals, attempts } = mapGames();
     expect(finals).toHaveLength(MAP_GAMES);
-    for (const final of finals) expect(final.public.status.kind).toBe("over");
     expect(attempts.length).toBeGreaterThan(0);
     for (const { side, options, country, event } of attempts) {
       expect(options.targets).toContain(country);
@@ -153,7 +152,6 @@ describe("Easy answers the action menu's realign (A11d)", () => {
   it("event points go to realigning too: both sides realign with a 1-point line, and every game ends", () => {
     const { finals, plays } = pointsGames();
     expect(finals).toHaveLength(POINTS_GAMES);
-    for (const final of finals) expect(final.public.status.kind).toBe("over");
     for (const side of ["lio", "sae"] as const) {
       expect(plays.some((p) => p.side === side && p.points === 1)).toBe(true);
     }

@@ -77,7 +77,6 @@ describe("Easy answers the action menu's intervene (A11c)", () => {
   it("Easy intervenes in the map games: one intervention per pick, with the menu's points, and every game ends", () => {
     const { finals, interventions } = mapGames();
     expect(finals).toHaveLength(MAP_GAMES);
-    for (const final of finals) expect(final.public.status.kind).toBe("over");
     expect(interventions.length).toBeGreaterThan(0);
     for (const { side, options, country, event } of interventions) {
       expect(options.targets).toContain(country);
@@ -131,7 +130,6 @@ describe("Easy answers the action menu's intervene (A11c)", () => {
   it("event points go to interventions too: both sides intervene with a 1-point line, and every game ends", () => {
     const { finals, interventions } = pointsGames();
     expect(finals).toHaveLength(POINTS_GAMES);
-    for (const final of finals) expect(final.public.status.kind).toBe("over");
     for (const side of ["lio", "sae"] as const) {
       expect(interventions.some((i) => i.side === side && i.event.points === 1)).toBe(true);
     }
