@@ -59,6 +59,19 @@ export function gameCount(raw: string | undefined): number {
   return n;
 }
 
+/** The fewest games a slower suite (map games, neutral and reaction games) plays, when FUZZ_GAMES is at least this. */
+export const MAP_GAMES_FLOOR = 200;
+
+/**
+ * How many of the slower games to play: a fifth of FUZZ_GAMES, but at least min(FUZZ_GAMES, 200). A map game takes
+ * about three times as long as an engine.test.ts game, so at a fifth the four slower suites together cost about as
+ * much as the engine suite, and CI's 10,000-game run plays 2,000 of each instead of stopping at 200.
+ */
+export function mapGameCount(raw: string | undefined): number {
+  const games = gameCount(raw);
+  return Math.max(Math.min(games, MAP_GAMES_FLOOR), Math.floor(games / 5));
+}
+
 /**
  * Fuzz game `game`, played from its own seed. Every third game has the Easy AI on one side (LIO when
  * game % 6 is 0, SAE when it is 3) and the random chooser on the other; the rest are random on both.
