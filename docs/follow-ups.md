@@ -28,5 +28,10 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   check whether typescript-eslint supports it: if it does, move everything to 7.1 in one step; if not, run 7.x for
   `typecheck` only, beside 6.0 for lint and the boundary check. The Rust port tsrs was looked at and skipped: it
   is experimental and would save under a second here. [6 Nov 2026, owner's research request]
+- Planned, after the TypeScript 7 move: replace ESLint with Oxlint (Rust; `oxlint` 1.92, stable since mid-2025).
+  Measured 6 Nov 2026 on its default rules: about 0.1s for `packages/` and `tests/`, against 10.9s for
+  `pnpm -r run lint` today. Its type-aware rules need TypeScript 7 (`oxlint-tsgolint`). `npx @oxlint/migrate`
+  converts `eslint.config.js`; custom rules would need its JS plugins, still alpha; the output formatter
+  `tools/eslint-formatter.mjs` and the gate's failure filter would need checking. [6 Nov 2026, owner's research request]
 
 ## Docs
