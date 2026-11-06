@@ -21,6 +21,18 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   two sessions saving or claiming in the same instant can drop one entry (only the Sessions pane's note list
   loses it; the note itself is safe). A lock file or an append-only log would close it. [6 Nov 2026, reviewer on
   #523]
+- Planned: move the type check to TypeScript 7 (Microsoft's native compiler). Measured 6 Nov 2026: all six packages
+  pass with no errors and the type check drops from 19.4s to 3.4s. It stays on 6.0 for now because typescript-eslint
+  and `tools/gates/boundaries.mjs` need the compiler API that 7.0 lacks (`pnpm-workspace.yaml` catalog note).
+  TypeScript 7.1 brings that API (beta 20 Oct 2026; stable reported for late November 2026). Once 7.1 is stable,
+  check whether typescript-eslint supports it: if it does, move everything to 7.1 in one step; if not, run 7.x for
+  `typecheck` only, beside 6.0 for lint and the boundary check. The Rust port tsrs was looked at and skipped: it
+  is experimental and would save under a second here. [6 Nov 2026, owner's research request]
+- Planned, after the TypeScript 7 move: replace ESLint with Oxlint (Rust; `oxlint` 1.92, stable since mid-2025).
+  Measured 6 Nov 2026 on its default rules: about 0.1s for `packages/` and `tests/`, against 10.9s for
+  `pnpm -r run lint` today. Its type-aware rules need TypeScript 7 (`oxlint-tsgolint`). `npx @oxlint/migrate`
+  converts `eslint.config.js`; custom rules would need its JS plugins, still alpha; the output formatter
+  `tools/eslint-formatter.mjs` and the gate's failure filter would need checking. [6 Nov 2026, owner's research request]
 - Cloud sessions get HTTP 403 from GitHub's GraphQL API, and these still use it: `gh pr list` in
   `tools/gemini-audit.mjs` `prs()`, `gh issue list`, `create` and `pin` in its `pinnedIssue()`, and the `gh pr`
   and `gh issue` edit, ready and comment steps in `tools/sprint/moves.mjs`. `tools/github-rest.mjs` has the REST
