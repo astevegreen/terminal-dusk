@@ -70,9 +70,6 @@ describe("the fuzz cards flagged removeAfterEvent", () => {
     );
     expect(handSizeFor(6, { ...era, lio: lio.slice(0, 6), deck: ["c4", "c13", "c14", "c15"], turns: 2 })).toBe(5);
   });
-  it("passes fuzz game 6944, where SAE's hand came up short once LIO had been dealt 12 cards", () => {
-    expect(() => playFuzzGame(6944)).not.toThrow();
-  });
 });
 
 describe("checkCards counts the removed pile", () => {

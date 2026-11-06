@@ -26,7 +26,12 @@ describe("engine fuzz suite", () => {
     Math.max(30_000, GAMES * 100),
   );
 
-  it.each(FIXED_GAMES)("replays every answer of the fixed game $name with every check", ({ name, record }) => {
-    expect(playRecorded(name, record).record.answers).toHaveLength(record.answers.length);
-  });
+  it.each(FIXED_GAMES)(
+    "replays every answer of the fixed game $name with every check, to its recorded status and score",
+    ({ name, record, final }) => {
+      const played = playRecorded(name, record);
+      expect(played.record.answers).toHaveLength(record.answers.length);
+      expect({ status: played.final.public.status, score: played.final.public.score ?? null }).toEqual(final);
+    },
+  );
 });
