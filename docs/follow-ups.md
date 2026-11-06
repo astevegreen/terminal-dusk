@@ -33,5 +33,16 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   `pnpm -r run lint` today. Its type-aware rules need TypeScript 7 (`oxlint-tsgolint`). `npx @oxlint/migrate`
   converts `eslint.config.js`; custom rules would need its JS plugins, still alpha; the output formatter
   `tools/eslint-formatter.mjs` and the gate's failure filter would need checking. [6 Nov 2026, owner's research request]
+- Cloud sessions get HTTP 403 from GitHub's GraphQL API, and these still use it: `gh pr list` in
+  `tools/gemini-audit.mjs` `prs()`, `gh issue list`, `create` and `pin` in its `pinnedIssue()`, and the `gh pr`
+  and `gh issue` edit, ready and comment steps in `tools/sprint/moves.mjs`. `tools/github-rest.mjs` has the REST
+  reads and the comment; `gh pr ready` and auto-merge need the CCR routes the 403 names. [6 Nov 2026, REST fix for
+  the audit's `pr <n>`]
+- `agy` (the Gemini CLI) is not installed in cloud sessions, so `node tools/gemini-audit.mjs pr <n>` there always
+  ends in verdict `retry` and a cloud session's pull request waits for a local or workflow run. [6 Nov 2026, audit
+  of #524 from a cloud session]
+- `node tools/gemini-audit.mjs specs <n>` throws "ghRun is not a function": `specs()` calls `numbers.map(issueText)`
+  (`tools/gemini-audit.mjs:128`), so the array index lands in `issueText`'s `ghRun`. Already on main; no test covers
+  the specs path. [6 Nov 2026, reviewer on #525]
 
 ## Docs

@@ -47,7 +47,8 @@ export function report(arg, { gh = runGh } = {}) {
     const sha =
       want === "main"
         ? gh(["api", "repos/{owner}/{repo}/commits/main", "--jq", ".sha"]).trim()
-        : JSON.parse(gh(["pr", "view", want, "--json", "number,headRefOid"])).headRefOid;
+        : // REST, not `gh pr view`: cloud sessions can't reach GraphQL (tools/github-rest.mjs).
+          gh(["api", `repos/{owner}/{repo}/pulls/${want}`, "--jq", ".head.sha"]).trim();
     const short = sha.slice(0, 7);
     const { check_runs: runs } = JSON.parse(gh(["api", `repos/{owner}/{repo}/commits/${sha}/check-runs?per_page=100`]));
     const sonar = runs.filter((r) => /sonar/i.test(`${r.name} ${r.app?.slug ?? ""}`));
