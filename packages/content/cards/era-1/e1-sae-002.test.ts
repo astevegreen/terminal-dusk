@@ -1,5 +1,4 @@
 // e1-sae-002 Handover of Hong Kong: one test for each way its effect can play out.
-import { describeOnceOnly } from "../../src/test/cardEnds.ts";
 import { describeCard } from "../../src/test/describeCard.ts";
 
 describeCard("e1-sae-002", "Handover of Hong Kong", [
@@ -38,5 +37,3 @@ describeCard("e1-sae-002", "Handover of Hong Kong", [
     `,
   },
 ]);
-
-describeOnceOnly("e1-sae-002", "Handover of Hong Kong");

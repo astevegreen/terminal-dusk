@@ -512,7 +512,6 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/schema/card.ts` - The card schema: what one card file in packages/content/cards/ must hold (docs/architecture.md, section 4). Exports: CardStep, stepSchema, cardSchema.
 - `packages/content/schema/card.types.test.ts` - Type-level checks, run by `tsc` (the typecheck script): the card schema and the engine's types can't drift apart.
 - `packages/content/schema/cardSteps.test.ts` - The card schema's lasting steps: modifiers (#89), triggers (#90) and lasting markers (#141), at any depth; revealHand steps (#184); and discardFromHand steps (…
-- `packages/content/schema/index.test.ts`
 - `packages/content/schema/index.ts` - Content schemas, one per content folder of this package (cards/ is checked by schemas.cards, and so on). Exports: ContentIssue, ContentSchema, schemas.
 - `packages/content/schema/map.test.ts`
 - `packages/content/schema/map.ts` - The map a scenario can carry (docs/design/map-and-points.md, "Map", "Influence" and "Escalation"): regions, their closing order, countries, each era's battlegr… Exports: mapSchema.
@@ -539,7 +538,6 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/src/firstDeckScenario.ts` - The TEST scenario for the first deck. Exports: FIRST_DECK_SCENARIO.
 - `packages/content/src/future.test.ts`
 - `packages/content/src/futureFiles.ts` - The optional future cards (2025 to 2027), one JSON file each in cards/future/. Exports: FUTURE_CARDS.
-- `packages/content/src/index.test.ts`
 - `packages/content/src/index.ts` - Public entry point of the content package: the bundle of cards, map, scenarios and tutorial. Exports: DEFAULT_CONTINGENCY, scenarioSetup, ScenarioSetup, SIX_REGION_MAP_SCENARIO, TEST_MAP_SCENARIO.
 - `packages/content/src/lastingTags.test.ts` - The lasting tags of the first deck (#202, owner 21 Oct): exactly the eight tags a later card reads are recorded for the rest of the game; every other marker st…
 - `packages/content/src/onceOnly.test.ts` - The six Ops 4 cards are once-only events (deck-plan.md, wish W6; #204; Defence of Kyiv, Owner question 52): flagged removeAfterEvent, with the template sentenc…
@@ -753,7 +751,6 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/functionDeps.test.ts` - The deps the submit and invite Edge Functions serve with.
 - `packages/server/src/functionDeps.ts` - The deps the submit and invite Edge Functions serve with, built from one service-role client. Exports: submitFunctionDeps, inviteFunctionDeps.
 - `packages/server/src/http.ts` - The plain-data HTTP pieces the Edge Function handlers share (docs/architecture.md, Decision 5): the request and reply shapes, the CORS headers, signing a calle… Exports: HttpRequest, HttpReply, Authenticate, CORS_HEADERS, preflight, signedIn, jsonObject, reply, refusal, isPlainObject.
-- `packages/server/src/index.test.ts`
 - `packages/server/src/index.ts` - Public entry point of the server package (docs/architecture.md, Decision 5). Exports: submit, ServerErrorCode, SubmitDeps, SubmitError, SubmitOutcome, SubmitRequest, MemoryStore, SupabaseStore, CommitResult, LoadedMatch, MatchStore, MatchWrite, ….
 - `packages/server/src/invite.entitlement.test.ts` - O9c: a free player cannot create a private game.
 - `packages/server/src/invite.leaks.test.ts`

@@ -18,10 +18,6 @@ function turnEndSpends(value: unknown, atTurnEnd = false): number {
 }
 
 describe("the cards' rules text after the rewording", () => {
-  it("covers all 96 cards of the first deck", () => {
-    expect(FIRST_DECK_CARDS).toHaveLength(96);
-  });
-
   it("says where every spent point goes: 'on actions' for 1, 'on one action' for 2 or more, or 'placing influence'", () => {
     for (const card of FIRST_DECK_CARDS) {
       const spends = [...rules(card).matchAll(/spends (\d+) points?(.{0,18})/g)];

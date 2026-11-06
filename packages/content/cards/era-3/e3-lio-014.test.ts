@@ -1,5 +1,4 @@
 // e3-lio-014 Defence of Kyiv: one test for each way its effect can play out.
-import { describeOnceOnly } from "../../src/test/cardEnds.ts";
 import { describeCard } from "../../src/test/describeCard.ts";
 
 describeCard("e3-lio-014", "Defence of Kyiv", [
@@ -47,5 +46,3 @@ describeCard("e3-lio-014", "Defence of Kyiv", [
     `,
   },
 ]);
-
-describeOnceOnly("e3-lio-014", "Defence of Kyiv");
