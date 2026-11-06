@@ -8,13 +8,17 @@ import { startAtPlay, startWith } from "./test/game.ts";
 import { byCodeUnit } from "./test/sort.ts";
 import type { CardId, GameState, Side } from "./types.ts";
 
-/** Every card in the game: both hands, the draw pile, the discard pile, the cards in play and later eras. */
+/**
+ * Every card in the game: both hands, the draw pile, the discard pile, the cards in play, the cards removed from the
+ * game (R8a) and later eras.
+ */
 const allCards = (s: GameState): CardId[] => [
   ...s.private.lio.hand,
   ...s.private.sae.hand,
   ...s.secret.deck,
   ...s.public.discard,
   ...s.public.inPlay,
+  ...s.public.removed,
   ...s.secret.eras.flatMap((e) => e.cards),
 ];
 
