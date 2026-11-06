@@ -13,9 +13,40 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## Rules engine and content
 
+- No check ties each card's rules text to its numbers (points spent, Escalation moves, counts): the rewording tests
+  (`packages/content/src/rulesWording.test.ts`) check the wording's form, not that "spends 2 points" matches the
+  card's `spendPoints` amount. A check that reads the numbers out of the text and compares them with the effect
+  would catch a card whose text and data disagree. [6 Nov 2026, test-suite audit]
+
 ## App, host and server
 
+- `sweepTurnAlerts` (`packages/server/src/sweepTurnAlerts.ts:72`) sends the email before it marks the alert sent,
+  so two sweeps running at once (or a sweep that dies after sending) can send the same turn alert twice. Claiming
+  the alert first (a conditional update on `sent_at is null`) would make the job safe to run twice, as the server
+  rules require. Needs the local stack to prove. [6 Nov 2026, test-suite audit]
+- `remoteMatch` polling (`packages/app/src/transport/remoteMatch.ts:89`) treats a 401 like any failed read and keeps
+  polling, so an expired or revoked session shows a game that silently stops updating. It could surface
+  `notSignedIn` to the screen; how the screen shows it is a UI choice. [6 Nov 2026, test-suite audit]
+- No stack test checks row-level security across the whole table catalogue: each table's own migration test checks
+  its policies, but a new table with RLS left off would pass. A stack test that lists every public table and
+  proves a signed-in client can neither read another player's rows nor write any would close it. Stack-only, so
+  unverified in cloud sessions (no Docker). [6 Nov 2026, test-suite audit]
+- The in-memory stores (`MemoryStore`, `MemoryInviteStore`, `MemoryNotifyStore`) and their Supabase twins are tested
+  separately; one shared contract suite run against both (the Supabase run on the stack) would catch the fakes
+  drifting from the real tables. [6 Nov 2026, test-suite audit]
+
 ## Tests and tooling
+
+- The fuzz suites that prove random play "reaches" a feature (`tests/fuzz/easy.test.ts:56`, `reveals.test.ts`,
+  `removed.test.ts`, `neutral.test.ts`, `extraSteps.test.ts`) each replay their games again to count events. One
+  coverage pass that plays each game once and feeds every counter would save the replays; not merged yet because
+  each suite builds its games differently (rulesets, maps, choosers). [6 Nov 2026, test-suite audit]
+- `packages/engine/src/views.property.test.ts` and `views.test.ts` overlap (both check what each viewer sees);
+  consolidating them into one property suite with a few named examples would cut duplicate cases. [6 Nov 2026,
+  test-suite audit]
+- `tools/replay.mjs` is still a stub that says "no server code exists", which is out of date: the host now builds
+  replay archives (`hostArchive`). `pnpm replay <matchId>` should be built on them, or its message updated;
+  `tools/replay.test.mjs` tests the stub and goes with it. [6 Nov 2026, test-suite audit]
 
 - `recordSession` in `tools/handoff-notes.mjs` reads, adds to and renames the session-ids index with no lock, so
   two sessions saving or claiming in the same instant can drop one entry (only the Sessions pane's note list
