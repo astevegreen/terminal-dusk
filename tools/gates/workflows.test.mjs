@@ -34,6 +34,58 @@ test("the required gate job needs every other job but the Windows one, and fails
   assert.match(gate, /exit 1/);
 });
 
+// A job's steps, each as its text from its `      - ` line to the next.
+const steps = (job) => job.split(/^(?= {6}- )/m).slice(1);
+const name = (step) => /name: (.*)/.exec(step)?.[1].trim() ?? step.split("\n")[0].trim();
+
+test("the gate, the test count and the full fuzz run in parallel, each its own job", () => {
+  const ci = jobs(read("ci.yml"));
+  const where = (pattern) => [...ci].filter(([, text]) => pattern.test(text)).map(([id]) => id);
+  const homes = [/pnpm gate --all/, /tools\/gates\/test-count\.mjs --compare/, /pnpm run --if-present fuzz/].map(where);
+  for (const home of homes) assert.equal(home.length, 1, `in ${home.length} jobs`);
+  assert.equal(new Set(homes.flat()).size, 3, `one job holds two of them: ${homes.flat().join(", ")}`);
+});
+
+test("the test count fails closed: its job runs on every event, and on a push exits cleanly with nothing to compare", () => {
+  const ci = jobs(read("ci.yml"));
+  const [id, job] = [...ci].find(([, text]) => /test-count\.mjs --compare/.test(text));
+  // A job skipped by a job-level `if:` counts as passing, so the job itself is never conditional.
+  assert.doesNotMatch(job, /^ {4}if:/m, `${id} has a job-level if:`);
+  const count = steps(job).find((s) => /test-count\.mjs --compare/.test(s));
+  assert.match(count, /if: github\.event_name == 'pull_request'/);
+  const onPush = steps(job).filter((s) => /if: github\.event_name == 'push'/.test(s));
+  assert.equal(onPush.length, 1, "one step says why a push has nothing to count");
+  assert.doesNotMatch(onPush[0], /exit [1-9]/);
+  // Every step but that one is for pull requests only, so a push installs and runs nothing.
+  for (const s of steps(job).filter((x) => x !== onPush[0] && !/uses: actions\/checkout/.test(x)))
+    assert.match(s, /if: github\.event_name == 'pull_request'/, name(s));
+});
+
+test("the GitHub token is in one step, Who labelled held, before anything in its job installs packages", () => {
+  const ci = jobs(read("ci.yml"));
+  const holders = [...ci].flatMap(([id, job]) => steps(job).map((s) => [id, s])).filter(([, s]) => /GH_TOKEN/.test(s));
+  assert.deepEqual(
+    holders.map(([, s]) => name(s)),
+    ["Who labelled held"],
+  );
+  const [id] = holders[0];
+  const order = steps(ci.get(id));
+  const held = order.findIndex((s) => /GH_TOKEN/.test(s));
+  const firstInstall = order.findIndex((s) => /pnpm (--dir \S+ )?install/.test(s));
+  assert.ok(firstInstall > held, `${id}: step ${firstInstall} installs before the token step ${held}`);
+  assert.match(order[0], /persist-credentials: false/, `${id} leaves the token in .git/config`);
+});
+
+test("the test count has what it reads: the base commit in its checkout, and the label history in its own job", () => {
+  const [id, job] = [...jobs(read("ci.yml"))].find(([, text]) => /test-count\.mjs --compare/.test(text));
+  // `git worktree add "$BASE_SHA"` needs the whole history, not the one-commit default.
+  assert.match(steps(job)[0], /fetch-depth: 0/, `${id}: the base commit is not checked out`);
+  // Jobs don't share $RUNNER_TEMP, so the events file is written in the job that reads it.
+  const events = /--held-events "(\$RUNNER_TEMP\/[^"]+)"/.exec(job)?.[1];
+  assert.ok(events, `${id}: the compare step reads no label history`);
+  assert.ok(job.includes(`> "${events}"`), `${id}: nothing in the job writes ${events}`);
+});
+
 test("the database job applies every migration and fails when the stack gave no keys", () => {
   const db = jobs(read("ci.yml")).get("db");
   assert.match(db, /pnpm test:migrations/);

@@ -38,7 +38,7 @@ function fakeGh({ findings = [], runs = [sonarRun({ issues: findings.length })],
   const gh = (args) => {
     calls.push(args);
     if (fail) throw new Error(fail);
-    if (args[0] === "pr") return JSON.stringify({ number: 246, headRefOid: SHA });
+    if (args[1] === "repos/{owner}/{repo}/pulls/246") return `${SHA}\n`;
     if (args[1] === "repos/{owner}/{repo}/commits/main") return `${SHA}\n`;
     if (args.some((a) => a.includes("/check-runs?")))
       return JSON.stringify({ check_runs: [{ id: 1, name: "gate", app: { slug: "github-actions" } }, ...runs] });
@@ -75,7 +75,8 @@ test("a finished check prints the quality gate, the counts and every finding gro
 test("it asks gh for the PR's latest commit, that commit's checks, and every page of findings", () => {
   const { gh, calls } = fakeGh();
   report("#246", { gh });
-  assert.deepEqual(calls[0], ["pr", "view", "246", "--json", "number,headRefOid"]);
+  // REST, not `gh pr view`: cloud sessions can't reach GitHub's GraphQL API.
+  assert.deepEqual(calls[0], ["api", "repos/{owner}/{repo}/pulls/246", "--jq", ".head.sha"]);
   assert.deepEqual(calls[1], ["api", `repos/{owner}/{repo}/commits/${SHA}/check-runs?per_page=100`]);
   assert.deepEqual(calls[2], [
     "api",
