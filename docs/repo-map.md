@@ -231,7 +231,6 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/online/onlineGame.deadline.test.ts`
 - `packages/app/src/online/onlineGame.test.ts`
 - `packages/app/src/online/onlineGame.ts` - The client side of one online game, with no screen (docs/architecture.md, Decision 5): runs the remote transport with real timers, keeps the latest frame and t… Exports: OnlineTurn, OnlineGameSnapshot, OnlineGameOptions, OnlineGame, DEFAULT_POLL_MS, turnOf, createOnlineGame.
-- `packages/app/src/online/onlineGame.wiring.test.ts`
 - `packages/app/src/online/signIn.test.ts`
 - `packages/app/src/online/signIn.token.test.ts`
 - `packages/app/src/online/signIn.ts` - The state behind signing in by email code (docs/architecture.md, Decisions 5 and 7): asks for a code, trades it for a session through transport/emailAuth.ts, k… Exports: SESSION_KEY, SignInSnapshot, SignInOptions, SignIn, createSignIn.
@@ -727,7 +726,6 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/src/sixRegionMapConfig.test.ts` - The six-region map game as the host hands it to the app (A14, issue #439): the first deck's config with the six-region scenario's map, and nothing else of that…
 - `packages/host/src/test/clock.ts` - Test helpers for matches with deadlines. Exports: DAY, startedWith, lioToPlay, clockOf, withClock, swept.
 - `packages/host/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
-- `packages/host/src/test/leaks.ts` - Test helpers for leak checks, copying the idea of tests/fuzz/checks.ts (hiddenFrom, leaksIn). Exports: hiddenFrom, leaksIn.
 - `packages/host/src/test/match.ts` - Test helpers: a small ruleset, a match config with an era still to enter, and a seed. Exports: SEED, NOW, LATE_ERA_CARDS, ruleset, makeConfig.
 - `packages/host/src/test/order.test.ts`
 - `packages/host/src/test/order.ts` - Compare function for sorting strings in UTF-16 code-unit order: the same order as a sort with no compare function, written out so the order is explicit. Exports: byCodeUnit.
@@ -935,7 +933,6 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/markers.test.ts` - The fuzz suite and the lasting markers and `has` conditions of R4a (#142): the fuzz cards set and test them, the games take both branches, and the checks catch…
 - `tests/fuzz/markers.ts` - TEST-ONLY FIXTURES, never game content: the lasting markers (R4a) the fuzz cards set, and the `has` conditions that test them. Exports: LASTING_LABELS, HAS_BRANCH, REACTION_BRANCH, Branch, lastingMarker, branchLabel, hasStep, branchOf, isLasting.
 - `tests/fuzz/neutral.test.ts` - Neutral events in the fuzz games (#117): neutral cards draw from the deck of the side that picked or played them, in their events and in the reactions they set…
-- `tests/fuzz/order.test.ts`
 - `tests/fuzz/order.ts` - Compare function for sorting strings in UTF-16 code-unit order: the same order as a sort with no compare function, written out so the order is explicit. Exports: byCodeUnit.
 - `tests/fuzz/plainJson.test.ts` - Hard rule 5 in the fuzz checks: every state is plain JSON with integers only, and firstDifference never counts two values that are not plain JSON (NaN, undefin…
 - `tests/fuzz/play.ts` - Plays one game for the fuzz suite, random or recorded, and checks every invariant along the way. Exports: baseEffectOf, FUZZ_CARDS, ruleset, DEFAULT_GAMES, MAX_ANSWERS, GameRecord, Chooser, Played, gameCount, MAP_GAMES_FLOOR, mapGameCount, playFuzzGame, ….
