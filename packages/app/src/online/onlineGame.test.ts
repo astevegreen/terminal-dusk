@@ -4,7 +4,7 @@ import { logLine } from "../eventPresentation.ts";
 import { cardName } from "../testMode/fixture.ts";
 import { nextMove, POLL_MS, settle, watch } from "../transport/test/remoteGame.ts";
 import type { Frame } from "@terminal-dusk/host";
-import { turnOf } from "./onlineGame.ts";
+import { DEFAULT_POLL_MS, turnOf } from "./onlineGame.ts";
 import { onlineRig, play, poll } from "./test/onlineRig.ts";
 
 describe("createOnlineGame: frames, log and turn", () => {
@@ -27,6 +27,13 @@ describe("createOnlineGame: frames, log and turn", () => {
     expect(s.turn).toBe("mine");
     expect(listener).toHaveBeenCalled();
     expect(r.timers.waiting()).toEqual([POLL_MS]);
+  });
+
+  it("with pollMs left out, the next poll is set for 5000 ms, the session's default", async () => {
+    const r = onlineRig("alice", { clock: null }, true);
+    await settle();
+    expect(DEFAULT_POLL_MS).toBe(5_000);
+    expect(r.timers.waiting()).toEqual([5_000]);
   });
 
   it("the rival moving: a new frame arrives on the next poll and turn flips to mine", async () => {
