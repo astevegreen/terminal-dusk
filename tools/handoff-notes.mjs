@@ -14,6 +14,7 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { canonical, git, toPosix } from "./hooks/shared.mjs";
 
@@ -102,7 +103,7 @@ export function save(file, { cwd = process.cwd(), now = new Date() } = {}) {
   mkdirSync(store, { recursive: true });
   writeFileSync(dest, `${note.join("\n")}\n`);
   if (!same(source, dest)) rmSync(source);
-  return { code: 0, out: `saved ${name} in ${toPosix(store)}\n${header}` };
+  return { code: 0, out: `saved ${name} in ${toPosix(store)}\n${header}`, note: name, store };
 }
 
 export function list({ cwd = process.cwd() } = {}) {
@@ -135,7 +136,40 @@ export function claim(name, { cwd = process.cwd(), now = new Date() } = {}) {
   }
   appendFileSync(path.join(done, name), `Resumed: ${stamp(now).text}\n`);
   const text = readFileSync(path.join(done, name), "utf8").trimEnd();
-  return { code: 0, out: `${text}\n\n## Since the note\n${sinceNote(text.split(/\r?\n/)[1], cwd).join("\n")}` };
+  return {
+    code: 0,
+    out: `${text}\n\n## Since the note\n${sinceNote(text.split(/\r?\n/)[1], cwd).join("\n")}`,
+    note: name,
+    store,
+  };
+}
+
+// The session-ids mod's index of which session saved or claimed which note (<config dir>/session-ids/handoff.json),
+// so its Sessions pane lists the note even when the session that ran this doesn't load the mod. Only the command
+// line records, and only inside a Claude Code session (CLAUDE_CODE_SESSION_ID); a failure never changes the result.
+export function recordSession(kind, note, store, { env = process.env, now = new Date() } = {}) {
+  const session = env.CLAUDE_CODE_SESSION_ID;
+  if (!session || !note || !store) return false;
+  try {
+    const home = env.USERPROFILE || env.HOME || os.homedir();
+    const dir = path.join(env.CLAUDE_CONFIG_DIR || path.join(home, ".claude"), "session-ids");
+    const file = path.join(dir, "handoff.json");
+    let entries = [];
+    try {
+      const parsed = JSON.parse(readFileSync(file, "utf8"));
+      if (Array.isArray(parsed.entries)) entries = parsed.entries;
+    } catch {
+      // No index yet, or one mid-write: start from what can be read.
+    }
+    entries.push({ session, note, store: toPosix(store), kind, at: now.getTime() });
+    mkdirSync(dir, { recursive: true });
+    const tmp = `${file}.${process.pid}.tmp`;
+    writeFileSync(tmp, `${JSON.stringify({ entries: entries.slice(-500) }, null, 1)}\n`);
+    renameSync(tmp, file);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 // The worktree folder that has `branch` checked out, or null.
@@ -193,6 +227,7 @@ if (import.meta.main) {
   } catch (err) {
     r = { code: 1, out: `handoff-notes: ${err.message}` };
   }
+  if (r.code === 0 && r.note) recordSession(command === "save" ? "wrote" : "resumed", r.note, r.store);
   process.stdout.write(`${r.out}\n`);
   process.exit(r.code);
 }
