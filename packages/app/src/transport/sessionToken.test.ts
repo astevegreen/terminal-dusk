@@ -12,11 +12,12 @@ const SESSION: Session = {
   userId: "user-1",
 };
 
-type Rig = { fake: FakeAuth; e: AuthEndpoint; clock: { now: number }; saved: Session[] };
+type Rig = { fake: FakeAuth; e: AuthEndpoint; clock: { now: number }; saved: Session[]; refused: number };
 
 function rig(): Rig {
   const fake = createFakeAuth();
-  return { fake, e: { url: AUTH_URL, anonKey: AUTH_ANON_KEY, fetch: fake.fetch }, clock: { now: START }, saved: [] };
+  const e = { url: AUTH_URL, anonKey: AUTH_ANON_KEY, fetch: fake.fetch };
+  return { fake, e, clock: { now: START }, saved: [], refused: 0 };
 }
 
 const tokenFor = (r: Rig, session: Session = SESSION): (() => Promise<string | null>) =>
@@ -25,6 +26,7 @@ const tokenFor = (r: Rig, session: Session = SESSION): (() => Promise<string | n
     session,
     () => r.clock.now,
     (s) => r.saved.push(s),
+    () => r.refused++,
   );
 
 const settle = async (): Promise<void> => {
@@ -90,5 +92,32 @@ describe("sessionToken", () => {
     expect(r.fake.requests).toHaveLength(3);
     expect(r.fake.requests.every((q) => JSON.stringify(q.body) === '{"refresh_token":"refresh-0"}')).toBe(true);
     expect(r.saved).toHaveLength(1);
+  });
+
+  it("a refused refresh token (400) calls refused once; a thrown fetch, a 503 or a 429 never does", async () => {
+    const r = rig();
+    const token = tokenFor(r);
+    r.clock.now = SESSION.expiresAt;
+    for (const answer of ["throw", { status: 503, body: {} }, { status: 429, body: {} }] as const) {
+      r.fake.answerNext(answer);
+      expect(await token()).toBeNull();
+    }
+    expect(r.refused).toBe(0);
+    r.fake.answerNext({ status: 400, body: { msg: "Invalid Refresh Token" } });
+    expect(await token()).toBeNull();
+    expect(r.refused).toBe(1);
+  });
+
+  it("a refresh that fails for a moment while the old token still has time left returns the old token", async () => {
+    const r = rig();
+    const token = tokenFor(r);
+    r.clock.now = SESSION.expiresAt - 30_000;
+    r.fake.answerNext("throw");
+    expect(await token()).toBe("access-0");
+    r.fake.answerNext({ status: 503, body: {} });
+    expect(await token()).toBe("access-0");
+    expect(r.refused).toBe(0);
+    expect(r.saved).toHaveLength(0);
+    expect(await token()).toBe("access-r1");
   });
 });

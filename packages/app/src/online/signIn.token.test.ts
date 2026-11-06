@@ -48,6 +48,29 @@ describe("createSignIn: accessToken", () => {
   });
 });
 
+describe("createSignIn: a refresh that fails for a moment keeps the player signed in", () => {
+  for (const [name, answer] of [
+    ["a thrown fetch", "throw"],
+    ["a 503", { status: 503, body: {} }],
+  ] as const) {
+    it(`${name} keeps the session, the stored refresh token and the snapshot, and the next call retries`, async () => {
+      const r = await rigWith(STORED);
+      await r.signIn.start();
+      r.clock.now = STORED.expiresAt;
+      r.fake.answerNext(answer);
+      expect(await r.signIn.accessToken()).toBeNull();
+      await settle();
+      expect(JSON.parse((await r.store.get(SESSION_KEY)) ?? "null")).toEqual(STORED);
+      expect(r.signIn.getSnapshot()).toEqual({ kind: "signedIn", userId: "user-0", busy: false, refusal: null });
+      expect(await r.signIn.accessToken()).toBe("access-r1");
+      expect(r.fake.requests.map((q) => q.body)).toEqual([
+        { refresh_token: "refresh-0" },
+        { refresh_token: "refresh-0" },
+      ]);
+    });
+  }
+});
+
 describe("createSignIn: late results are ignored", () => {
   it("a refresh that resolves after signOut changes no snapshot and stores nothing", async () => {
     const r = await rigWith(STORED);
