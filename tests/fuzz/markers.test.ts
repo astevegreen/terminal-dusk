@@ -1,13 +1,13 @@
 // The fuzz suite and the lasting markers and `has` conditions of R4a (#142): the fuzz cards set and test
 // them, the games take both branches, and the checks catch a lost, moved or doubled marker and a wrong branch.
-import { apply, createGame, seedHash } from "@terminal-dusk/engine";
+import { createGame, seedHash } from "@terminal-dusk/engine";
 import type { GameEvent, GameState, Ruleset, Step } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { checkHasBranches, checkMarkers } from "./checks.ts";
 import { branchLabel, branchOf, isLasting, LASTING_LABELS } from "./markers.ts";
 import { DEFAULT_GAMES, playFuzzGame, ruleset } from "./play.ts";
-import type { GameRecord } from "./play.ts";
 import { playReactionGame, reactionsRuleset } from "./reactions.ts";
+import { eventsOf } from "./replayEvents.ts";
 
 const SEED = "marker-seed";
 const SETUP = {
@@ -127,21 +127,6 @@ describe("checkHasBranches", () => {
     expect(() => checkHasBranches([plain("x"), branch("x", "then")])).toThrow(/took "then"/);
   });
 });
-
-/** Every event of a played game, replayed answer by answer. */
-function eventsOf(rules: Ruleset, record: GameRecord): GameEvent[] {
-  const created = createGame(rules, record.setup, record.seed);
-  if (!created.ok) throw new Error(`createGame failed: ${created.error.code}`);
-  let state = created.value.state;
-  const events = [...created.value.events];
-  for (const answer of record.answers) {
-    const r = apply(rules, state, answer);
-    if (!r.ok) throw new Error(`apply failed: ${r.error.code}`);
-    state = r.value.state;
-    events.push(...r.value.events);
-  }
-  return events;
-}
 
 type Counts = { lasting: number; then: number; else: number };
 const zero = (): Counts => ({ lasting: 0, then: 0, else: 0 });

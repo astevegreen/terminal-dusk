@@ -944,6 +944,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/removed.test.ts` - The fuzz suite and R8a's once-only cards (#205): some fuzz cards are flagged removeAfterEvent, the card count includes the removed pile, the removed pile and t…
 - `tests/fuzz/removed.ts` - TEST-ONLY FIXTURES: the fuzz cards flagged removeAfterEvent (R8a; #205), how a random setup keeps enough cards that stay in the game, and how the tests sort ea… Exports: flaggedIn, LEAVING, FirstEra, refillFits, withStayingCards, handSizeFor, Use, noteUse, Left, flaggedLeft.
 - `tests/fuzz/removedChecks.ts` - The fuzz checks of the removed pile (R8a; #205) and of the turn-start refill, each comparing the state after a step with the state before it. Exports: checkRemoved, checkRefilled.
+- `tests/fuzz/replayEvents.ts` - Every event of a played game, from replaying its record answer by answer: the suites that count what random games reach (markers, neutral, extraSteps) read the… Exports: eventsOf.
 - `tests/fuzz/reveals.test.ts` - The fuzz suite and the revealHand step of R6a (#185): the fuzz cards show hands at the top level, inside an if and in both kinds of reaction, and the fuzz game…
 - `tests/fuzz/reveals.ts` - TEST-ONLY FIXTURES, never game content: the `revealHand` steps (R6a) the fuzz cards run. Exports: REVEAL, RevealWhere, revealStep, revealOf, revealTriggerOf, announcedReveal.
 - `tests/fuzz/testMap.ts` - The content test map (TEST_MAP_SCENARIO) in the fuzz games, with a battleground list for each random era (#429). Exports: onTestMap.

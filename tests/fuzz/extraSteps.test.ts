@@ -1,8 +1,6 @@
 // The steps real cards use that the base fuzz cards leave out (extraSteps.ts): discardFromHand in its three forms,
 // escalate up and down, addToNumber and the atLeast, atMost and equals tests. Random games with them, half on the
 // content test map (where Escalation moves), run every check at every step, and reach every kind and branch.
-import { apply, createGame } from "@terminal-dusk/engine";
-import type { GameEvent, Ruleset } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { announcedExtra, EXTRA_KINDS, extraStepsRuleset, withDiscardRoom } from "./extraSteps.ts";
 import type { ExtraKind } from "./extraSteps.ts";
@@ -10,6 +8,7 @@ import { mapGameCount, playGame, randomChooser, randomGame } from "./play.ts";
 import type { GameRecord } from "./play.ts";
 import { seededRng } from "./random.ts";
 import { onTestMap } from "./testMap.ts";
+import { eventsOf } from "./replayEvents.ts";
 
 // tests/ has no Node type definitions; this is the one Node global the suite reads.
 declare const process: { readonly env: Readonly<Record<string, string | undefined>> };
@@ -17,21 +16,6 @@ declare const process: { readonly env: Readonly<Record<string, string | undefine
 const GAMES = mapGameCount(process.env["FUZZ_GAMES"]);
 
 type Counts = Record<ExtraKind | "cardsDiscarded" | "escalationChanged", number>;
-
-/** Every event of a played game, from replaying its record. */
-function eventsOf(rules: Ruleset, record: GameRecord): GameEvent[] {
-  const created = createGame(rules, record.setup, record.seed);
-  if (!created.ok) throw new Error(`createGame failed: ${created.error.code}`);
-  let state = created.value.state;
-  const events = [...created.value.events];
-  for (const answer of record.answers) {
-    const r = apply(rules, state, answer);
-    if (!r.ok) throw new Error(`apply failed: ${r.error.code}`);
-    events.push(...r.value.events);
-    state = r.value.state;
-  }
-  return events;
-}
 
 /**
  * Extra-steps game `game`: fuzz game `game`'s setup with room in the hands for the discards (withDiscardRoom), on the

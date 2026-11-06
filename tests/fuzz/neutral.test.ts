@@ -1,13 +1,13 @@
 // Neutral events in the fuzz games (#117): neutral cards draw from the deck of the side that picked or played
 // them, in their events and in the reactions they set, and the whose-deck check (playerDraws.ts) catches a
 // draw from the wrong deck.
-import { apply, createGame } from "@terminal-dusk/engine";
 import type { CardId, DeckId, GameEvent, Ruleset, Side, Step } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { mapGameCount, playFuzzGame, ruleset } from "./play.ts";
-import type { GameRecord, Played } from "./play.ts";
+import type { Played } from "./play.ts";
 import { announcedDraw, checkPlayerDraws, PLAYER_DRAW } from "./playerDraws.ts";
 import { playReactionGame, reactionsRuleset } from "./reactions.ts";
+import { eventsOf } from "./replayEvents.ts";
 
 // tests/ has no Node type definitions; this is the one Node global the suite reads.
 declare const process: { readonly env: Readonly<Record<string, string | undefined>> };
@@ -73,21 +73,6 @@ describe("the fuzz cards", () => {
     },
   );
 });
-
-/** The events of a played game, replayed answer by answer. */
-function eventsOf(rules: Ruleset, record: GameRecord): GameEvent[] {
-  const created = createGame(rules, record.setup, record.seed);
-  if (!created.ok) throw new Error(`createGame failed: ${created.error.code}`);
-  let state = created.value.state;
-  const events = [...created.value.events];
-  for (const answer of record.answers) {
-    const r = apply(rules, state, answer);
-    if (!r.ok) throw new Error(`apply failed: ${r.error.code}`);
-    state = r.value.state;
-    events.push(...r.value.events);
-  }
-  return events;
-}
 
 type Counts = { neutralEvents: number; neutralOpenings: number; eventDraws: number; reactionDraws: number };
 
