@@ -15,16 +15,33 @@ export const HOW_TO_START =
 
 type Env = Record<string, string | undefined>;
 const env: Env = (globalThis as { process?: { env: Env } }).process?.env ?? {};
-const first = (...names: string[]) => names.map((n) => env[n]).find((v) => v !== undefined && v !== "");
+const first = (e: Env, ...names: string[]) => names.map((n) => e[n]).find((v) => v !== undefined && v !== "");
 
 export type StackKeys = { url: string; anonKey: string; serviceKey: string };
 
 /** The local stack's URL and keys, accepting the names `supabase status -o env` prints. */
-export function stackKeys(): StackKeys | null {
-  const url = first("SUPABASE_URL", "API_URL");
-  const anonKey = first("SUPABASE_ANON_KEY", "ANON_KEY", "PUBLISHABLE_KEY");
-  const serviceKey = first("SUPABASE_SERVICE_ROLE_KEY", "SERVICE_ROLE_KEY", "SECRET_KEY");
+export function stackKeys(e: Env = env): StackKeys | null {
+  const url = first(e, "SUPABASE_URL", "API_URL");
+  const anonKey = first(e, "SUPABASE_ANON_KEY", "ANON_KEY", "PUBLISHABLE_KEY");
+  const serviceKey = first(e, "SUPABASE_SERVICE_ROLE_KEY", "SERVICE_ROLE_KEY", "SECRET_KEY");
   return url && anonKey && serviceKey ? { url, anonKey, serviceKey } : null;
+}
+
+/** Whether the rehearsal must run: in CI with the stack's URL and keys set, as packages/server's stack tests. */
+export function stackRequired(e: Env = env): boolean {
+  const ci = e.CI;
+  return ci !== undefined && ci !== "" && ci !== "false" && ci !== "0" && stackKeys(e) !== null;
+}
+
+/** The one test when the rehearsal can't run: it fails when `required`, else warns why and how to start it. */
+export function didNotRun(
+  title: string,
+  why: string | null,
+  required: boolean = stackRequired(),
+  warn: (line: string) => void = (line) => console.warn(line),
+): void {
+  if (required) throw new Error(`${title} must run in CI, where the stack's keys are set, but ${why}.`);
+  warn(`${title}: did not run: ${why}. ${HOW_TO_START}`);
 }
 
 type Call = { method: "GET" | "POST" | "DELETE" | "OPTIONS"; key: string; token?: string; body?: unknown };

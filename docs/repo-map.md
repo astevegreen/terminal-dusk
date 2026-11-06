@@ -284,9 +284,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/transport/remoteMatch.test.ts`
 - `packages/app/src/transport/remoteMatch.ts` - The online transport (docs/architecture.md, Decisions 3 and 5): one caller's window onto one match on Supabase. Exports: RemoteMatchOptions, createRemoteMatch.
 - `packages/app/src/transport/sessionToken.test.ts`
+- `packages/app/src/transport/stackRequired.test.ts` - The rehearsal's "did not run" test fails in CI when the stack's keys are set, like packages/server's stack tests: a stack that does not answer there is a failu…
 - `packages/app/src/transport/test/fakeAuth.ts` - A fake Supabase Auth for the email-code client's tests: a fake `fetch` that records every request and answers with whatever the test queued, or a stock success… Exports: AUTH_URL, AUTH_ANON_KEY, AuthRequest, AuthAnswer, sessionBody, FakeAuth, createFakeAuth.
 - `packages/app/src/transport/test/fakeSupabase.ts` - A fake Supabase for the remote transport's tests: one match run by the real host, served over a fake `fetch`. Exports: URL_BASE, ANON_KEY, FakeRequest, FakeSupabase, createFakeSupabase.
-- `packages/app/src/transport/test/localStack.ts` - The phase 4 rehearsal's link to the local Supabase stack (docs/sprint.md, lane "online": no hosted project). Exports: HOW_TO_START, StackKeys, stackKeys, whyUnavailable, StackUser, makeUser, grantWeb, openMatch, serverSnapshot, cleanUp.
+- `packages/app/src/transport/test/localStack.ts` - The phase 4 rehearsal's link to the local Supabase stack (docs/sprint.md, lane "online": no hosted project). Exports: HOW_TO_START, StackKeys, stackKeys, stackRequired, didNotRun, whyUnavailable, StackUser, makeUser, grantWeb, openMatch, serverSnapshot, cleanUp.
 - `packages/app/src/transport/test/rehearsal.ts` - The phase 4 rehearsal (O13; docs/architecture.md, "Revised build order", phase 4): one Easy-vs-Easy game played through two real remote transports, one per sea… Exports: ServerSnapshot, GameRig, GameOptions, GameResult, playRehearsalGame.
 - `packages/app/src/transport/test/rehearsalReport.ts` - The phase 4 rehearsal's short report: what one run played and checked, and every problem it found, each with its match and seq. Exports: rehearsalReport.
 - `packages/app/src/transport/test/remoteGame.ts` - The remote transport tests' match: a small game on the fake Supabase, fake timers, and helpers to subscribe, wait and find the next legal move. Exports: POLL_MS, ruleset, config, TOKENS, fakeTimers, settle, Rig, rig, watch, nextMove.
@@ -785,7 +786,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/migrations/acceptInviteClock.test.ts` - The accept_invite clock migration (supabase/migrations/20261028000000_accept_invite_clock.sql).
 - `packages/server/src/migrations/commitMatch.test.ts` - The commit_match migration (supabase/migrations/20261021000000_commit_match.sql) on the local Supabase stack.
 - `packages/server/src/migrations/entitlement.test.ts` - The entitlement migration (supabase/migrations/20261027000000_entitlement.sql) on the local Supabase stack.
-- `packages/server/src/migrations/localStack.ts` - Connects the migration test to the local Supabase stack (docs/sprint.md, lane "online": no hosted project). Exports: HOW_TO_START, StackKeys, stackKeys, client, whyUnavailable, freshId.
+- `packages/server/src/migrations/localStack.test.ts` - When the stack checks must run: in CI with the stack's keys set, a stack that does not answer is a failure, never a quiet "did not run".
+- `packages/server/src/migrations/localStack.ts` - Connects the migration test to the local Supabase stack (docs/sprint.md, lane "online": no hosted project). Exports: HOW_TO_START, StackKeys, stackKeys, stackRequired, didNotRun, client, whyUnavailable, freshId.
 - `packages/server/src/migrations/matchInvite.test.ts` - The match_invite migration (supabase/migrations/20261022000000_match_invite.sql) on the local Supabase stack.
 - `packages/server/src/migrations/matchTables.test.ts` - The match tables migration (supabase/migrations/20261020000000_match_tables.sql) on the local Supabase stack.
 - `packages/server/src/migrations/notifyQueue.test.ts` - The notify_queue migration (supabase/migrations/20261024000000_notify_queue.sql).

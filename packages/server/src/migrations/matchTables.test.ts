@@ -5,7 +5,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import CLOCK_MIGRATION from "../../supabase/migrations/20261023000000_match_clock.sql?raw";
-import { HOW_TO_START, client, freshId, stackKeys, whyUnavailable, type StackKeys } from "./localStack.ts";
+import { client, didNotRun, freshId, stackKeys, whyUnavailable, type StackKeys } from "./localStack.ts";
 
 type Row = Record<string, unknown>;
 type Table = "match" | "match_secret" | "match_view" | "match_event";
@@ -69,10 +69,8 @@ const unavailable = await whyUnavailable(keys);
 
 if (unavailable !== null || keys === null) {
   describe("match tables migration on the local Supabase stack", () => {
-    it(`did not run, because ${unavailable} (the warning below says how to start it)`, () => {
-      (globalThis as { console?: { warn(m: string): void } }).console?.warn(
-        `Match tables migration checks did not run: ${unavailable}. ${HOW_TO_START}`,
-      );
+    it(`did not run, because ${unavailable} (fails in CI with the stack's keys set; otherwise a warning says how to start it)`, () => {
+      didNotRun("Match tables migration", unavailable);
       expect(unavailable).not.toBeNull();
     });
   });

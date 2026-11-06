@@ -8,7 +8,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createRemoteMatch } from "./remoteMatch.ts";
 import {
   cleanUp,
-  HOW_TO_START,
+  didNotRun,
   makeUser,
   openMatch,
   serverSnapshot,
@@ -29,8 +29,8 @@ const unavailable = await whyUnavailable(keys);
 
 if (unavailable !== null || keys === null) {
   describe(TITLE, () => {
-    it(`did not run, because ${unavailable} (the warning below says how to start it)`, () => {
-      console.warn(`${TITLE}: did not run: ${unavailable}. ${HOW_TO_START}`);
+    it(`did not run, because ${unavailable} (fails in CI with the stack's keys set; otherwise a warning says how to start it)`, () => {
+      didNotRun(TITLE, unavailable);
       expect(unavailable).not.toBeNull();
     });
   });
