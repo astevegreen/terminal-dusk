@@ -97,9 +97,10 @@ describe("the Medium player", () => {
     expect(legalAnswers(ruleset, state, "lio")).toContainEqual(player(view));
     const handler = createAiWorkerHandler();
     handler({ kind: "start", ruleset, side: "lio", seed: 1, tier: "medium" });
-    const reply = handler({ kind: "answer", id: 7, view });
-    expect(reply?.id).toBe(7);
-    expect(legalAnswers(ruleset, state, "lio")).toContainEqual(reply?.value);
+    const replies = Array.from({ length: ASKS }, (_, id) => handler({ kind: "answer", id, view }));
+    expect(replies.map((r) => r?.id)).toEqual(Array.from({ length: ASKS }, (_, id) => id));
+    // The same answers, in order, as a Medium player made with the same seed: the handler made a Medium player.
+    expect(replies.map((r) => r?.value)).toEqual(ask(createMediumPlayer(ruleset, "lio", 1)));
   });
 });
 
