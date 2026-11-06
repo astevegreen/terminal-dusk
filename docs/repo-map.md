@@ -918,6 +918,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/filtered.test.ts` - The reaction cards' filtered and once triggers (filtered.ts, #190): every variant is on a LIO, an SAE and a neutral card, and fuzz games fire them, skip them,…
 - `tests/fuzz/filtered.ts` - TEST-ONLY FIXTURES, never game content: the trigger `filter` and `once` (R7a) the reaction cards use (reactions.ts). Exports: FILTERED, VARIANTS, Variant, variantOf, filteredTriggerOf.
 - `tests/fuzz/fixedGames.ts` - Fixed games the fuzz suite replays, with every check, on every run, and whose final status and score it compares. Exports: FixedGame, FIXED_GAMES.
+- `tests/fuzz/foundGames.json`
 - `tests/fuzz/foundGames.ts` - The fuzz games found failing, recorded once fixed (fixedGames.ts replays them with every check). Exports: FOUND_GAMES.
 - `tests/fuzz/harness.test.ts` - Tests for the fuzz harness itself: each check catches what it should, so a green fuzz run means something.
 - `tests/fuzz/influence.test.ts` - The map and influence in the fuzz games (R15): the influence check (influenceChecks.ts) catches what it should, and random games started with the content test…

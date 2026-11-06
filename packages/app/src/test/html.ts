@@ -14,7 +14,7 @@ function attributesOf(tagText: string): Map<string, string> {
 
 /** Where the first `<tag>` holding every attribute in `attrs`, with those values, starts in `html`; -1 if none. */
 export function tagAt(html: string, tag: string, attrs: Attrs = {}): number {
-  for (const m of html.matchAll(new RegExp(`<${escapeRe(tag)}(?=[\\s>/])[^>]*>`, "g"))) {
+  for (const m of html.matchAll(new RegExp(String.raw`<${escapeRe(tag)}(?=[\s>/])[^>]*>`, "g"))) {
     const have = attributesOf(m[0]);
     if (Object.entries(attrs).every(([name, value]) => have.get(name) === value)) return m.index;
   }
