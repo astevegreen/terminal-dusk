@@ -76,6 +76,16 @@ test("the GitHub token is in one step, Who labelled held, before anything in its
   assert.match(order[0], /persist-credentials: false/, `${id} leaves the token in .git/config`);
 });
 
+test("the test count has what it reads: the base commit in its checkout, and the label history in its own job", () => {
+  const [id, job] = [...jobs(read("ci.yml"))].find(([, text]) => /test-count\.mjs --compare/.test(text));
+  // `git worktree add "$BASE_SHA"` needs the whole history, not the one-commit default.
+  assert.match(steps(job)[0], /fetch-depth: 0/, `${id}: the base commit is not checked out`);
+  // Jobs don't share $RUNNER_TEMP, so the events file is written in the job that reads it.
+  const events = /--held-events "(\$RUNNER_TEMP\/[^"]+)"/.exec(job)?.[1];
+  assert.ok(events, `${id}: the compare step reads no label history`);
+  assert.ok(job.includes(`> "${events}"`), `${id}: nothing in the job writes ${events}`);
+});
+
 test("the database job applies every migration and fails when the stack gave no keys", () => {
   const db = jobs(read("ci.yml")).get("db");
   assert.match(db, /pnpm test:migrations/);

@@ -16,8 +16,10 @@ function crossRepository(p) {
 }
 
 // Every comment on an issue or pull request, oldest first, as { author: { login }, authorAssociation, body }.
+// `tojson` prints each one on its own line even where gh would pretty-print (GH_FORCE_TTY).
 export function comments(gh, n) {
-  const out = gh(["api", "--paginate", `repos/{owner}/{repo}/issues/${n}/comments?per_page=100`, "--jq", ".[]"]);
+  const page = `repos/{owner}/{repo}/issues/${n}/comments?per_page=100`;
+  const out = gh(["api", "--paginate", page, "--jq", ".[] | tojson"]);
   return out
     .split(/\r?\n/)
     .filter((l) => l.trim())

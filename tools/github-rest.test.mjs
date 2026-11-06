@@ -42,7 +42,7 @@ test("comments reads every page, oldest first, as { author: { login }, authorAss
     [true, false],
   );
   assert.deepEqual(calls, [
-    ["api", "--paginate", "repos/{owner}/{repo}/issues/5/comments?per_page=100", "--jq", ".[]"],
+    ["api", "--paginate", "repos/{owner}/{repo}/issues/5/comments?per_page=100", "--jq", ".[] | tojson"],
   ]);
   assert.deepEqual(comments(answering("").gh, 5), []);
 });

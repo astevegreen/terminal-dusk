@@ -29,5 +29,8 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - `agy` (the Gemini CLI) is not installed in cloud sessions, so `node tools/gemini-audit.mjs pr <n>` there always
   ends in verdict `retry` and a cloud session's pull request waits for a local or workflow run. [6 Nov 2026, audit
   of #524 from a cloud session]
+- `node tools/gemini-audit.mjs specs <n>` throws "ghRun is not a function": `specs()` calls `numbers.map(issueText)`
+  (`tools/gemini-audit.mjs:128`), so the array index lands in `issueText`'s `ghRun`. Already on main; no test covers
+  the specs path. [6 Nov 2026, reviewer on #525]
 
 ## Docs
