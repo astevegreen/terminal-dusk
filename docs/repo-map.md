@@ -260,6 +260,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/replay/recording.test.ts`
 - `packages/app/src/replay/recording.ts` - What the app is allowed to hold of a finished game: the frames and the final status, but never the archive's seed, setup or move log (CLAUDE.md, Never). Exports: ReplayRecording, toRecording.
 - `packages/app/src/replay/replayScreen.css`
+- `packages/app/src/test/html.test.ts`
+- `packages/app/src/test/html.ts` - Test helper: finds an opening tag in rendered HTML by its name and attributes, in any attribute order, so a test says which attributes matter instead of pinnin… Exports: tagAt, hasTag.
 - `packages/app/src/test/order.test.ts`
 - `packages/app/src/test/order.ts` - Compare function for sorting strings in UTF-16 code-unit order: the same order as a sort with no compare function, written out so the order is explicit. Exports: byCodeUnit.
 - `packages/app/src/test/promptProps.ts` - Test helper: the props a decision prompt needs when the decision lists no cards (placing, action choice). Exports: testCountryName, promptProps.
@@ -285,7 +287,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/transport/remoteMatch.ts` - The online transport (docs/architecture.md, Decisions 3 and 5): one caller's window onto one match on Supabase. Exports: RemoteMatchOptions, createRemoteMatch.
 - `packages/app/src/transport/sessionToken.test.ts`
 - `packages/app/src/transport/stackRequired.test.ts` - The rehearsal's "did not run" test fails in CI when the stack's keys are set, like packages/server's stack tests: a stack that does not answer there is a failu…
-- `packages/app/src/transport/test/fakeAuth.ts` - A fake Supabase Auth for the email-code client's tests: a fake `fetch` that records every request and answers with whatever the test queued, or a stock success… Exports: AUTH_URL, AUTH_ANON_KEY, AuthRequest, AuthAnswer, sessionBody, FakeAuth, createFakeAuth.
+- `packages/app/src/transport/test/fakeAuth.ts` - A fake Supabase Auth for the email-code client's tests: a fake `fetch` that records every request and answers with whatever the test queued, or a stock reply f… Exports: AUTH_URL, AUTH_ANON_KEY, AuthRequest, AuthAnswer, sessionBody, FakeAuth, createFakeAuth.
 - `packages/app/src/transport/test/fakeSupabase.ts` - A fake Supabase for the remote transport's tests: one match run by the real host, served over a fake `fetch`. Exports: URL_BASE, ANON_KEY, FakeRequest, FakeSupabase, createFakeSupabase.
 - `packages/app/src/transport/test/localStack.ts` - The phase 4 rehearsal's link to the local Supabase stack (docs/sprint.md, lane "online": no hosted project). Exports: HOW_TO_START, StackKeys, stackKeys, stackRequired, didNotRun, whyUnavailable, StackUser, makeUser, grantWeb, openMatch, serverSnapshot, cleanUp.
 - `packages/app/src/transport/test/rehearsal.ts` - The phase 4 rehearsal (O13; docs/architecture.md, "Revised build order", phase 4): one Easy-vs-Easy game played through two real remote transports, one per sea… Exports: ServerSnapshot, GameRig, GameOptions, GameResult, playRehearsalGame.

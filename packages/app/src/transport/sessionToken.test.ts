@@ -15,7 +15,7 @@ const SESSION: Session = {
 type Rig = { fake: FakeAuth; e: AuthEndpoint; clock: { now: number }; saved: Session[]; refused: number };
 
 function rig(): Rig {
-  const fake = createFakeAuth();
+  const fake = createFakeAuth({ [SESSION.refreshToken]: SESSION.userId });
   const e = { url: AUTH_URL, anonKey: AUTH_ANON_KEY, fetch: fake.fetch };
   return { fake, e, clock: { now: START }, saved: [], refused: 0 };
 }

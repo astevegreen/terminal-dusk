@@ -31,7 +31,7 @@ describe("createSignIn: accessToken", () => {
       accessToken: "access-r1",
       refreshToken: "refresh-r1",
       expiresAt: STORED.expiresAt + 3_600_000,
-      userId: "user-1",
+      userId: "user-0",
     });
     expect(r.signIn.getSnapshot()).toEqual({ kind: "signedIn", userId: "user-0", busy: false, refusal: null });
   });

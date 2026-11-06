@@ -71,8 +71,11 @@ describe("the Web Worker opponent", () => {
     const second = ai.answer(view);
     FakeWorker.made[0]?.flush();
     const player = createEasyPlayer(fixtureRuleset, "sae", 42);
-    expect(await first).toEqual(player(view));
-    expect(await second).toEqual(player(view));
+    const [one, two] = [player(view), player(view)];
+    // The two answers differ, so a reply given to the wrong call (they arrive in reverse order) would be caught.
+    expect(one).not.toEqual(two);
+    expect(await first).toEqual(one);
+    expect(await second).toEqual(two);
     const ids = FakeWorker.made[0]?.sent.flatMap((r) => (r.kind === "answer" ? [r.id] : []));
     expect(ids).toHaveLength(2);
     expect(new Set(ids).size).toBe(2);

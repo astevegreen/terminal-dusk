@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { cardAffiliation, cardName, cardQuestion } from "../testMode/fixture.ts";
 import { buttonsOf } from "../testMode/promptTree.ts";
 import { createTestSession } from "../testMode/session.ts";
+import { hasTag, tagAt } from "../test/html.ts";
 import { GameScreen } from "./GameScreen.tsx";
 import type { GameScreenProps } from "./GameScreen.tsx";
 
@@ -111,16 +112,30 @@ describe("the top bar (L5, #485)", () => {
   const lio = frameFor("lio");
   it("holds the page's Menu, then the page's own items, then the status and the tracks", () => {
     const out = html(lio, { menu: <p>A note</p>, bar: <button type="button">Back</button> });
-    expect(out).toContain(
-      '<div class="game-top"><details class="game-menu"><summary>Menu</summary><div class="game-menu-body"><p>A note</p></div></details><button type="button">Back</button><div class="game-top-main"><section aria-label="Status" data-testid="status-bar"',
-    );
+    const order = [
+      tagAt(out, "div", { class: "game-top" }),
+      tagAt(out, "details", { class: "game-menu" }),
+      out.indexOf("<summary>Menu</summary>"),
+      out.indexOf("<p>A note</p>"),
+      tagAt(out, "button", { type: "button" }),
+      tagAt(out, "div", { class: "game-top-main" }),
+      tagAt(out, "section", { "aria-label": "Status", "data-testid": "status-bar" }),
+    ];
+    expect(order.every((at) => at >= 0)).toBe(true);
+    expect(order).toEqual(order.toSorted((a, b) => a - b));
+    // The Menu closes before the page's own items start: they sit in the bar, not inside the Menu.
+    expect(out.indexOf("</details>")).toBeLessThan(order[4]!);
     expect(out.indexOf('data-testid="tracks"')).toBeGreaterThan(out.indexOf('data-testid="status-bar"'));
     expect(out.indexOf('data-testid="tracks"')).toBeLessThan(out.indexOf('data-testid="map-area"'));
   });
   it("has no Menu when the page gives it nothing to hold", () => {
     const out = html(lio);
     expect(out).not.toContain("<details");
-    expect(out).toContain('<div class="game-top"><div class="game-top-main"><section aria-label="Status"');
+    const top = tagAt(out, "div", { class: "game-top" });
+    const main = tagAt(out, "div", { class: "game-top-main" });
+    expect(top).toBeGreaterThanOrEqual(0);
+    expect(out.slice(top, main).replace(/^<div[^>]*>/, "")).toBe("");
+    expect(tagAt(out, "section", { "aria-label": "Status" })).toBeGreaterThan(main);
   });
 });
 
@@ -263,30 +278,37 @@ describe("screen-reader support", () => {
     expect(out).toContain("<span>You play LIO (Liberal International Order)</span>");
   });
   it("announces the refusal as an alert, keeping its <output> and its Refused: text", () => {
-    expect(html(frameFor("lio"), { refusal: "stale_seq" })).toContain(
-      '<output role="alert">Refused: stale_seq</output>',
-    );
+    const refused = html(frameFor("lio"), { refusal: "stale_seq" });
+    const at = tagAt(refused, "output", { role: "alert" });
+    expect(at).toBeGreaterThanOrEqual(0);
+    expect(refused.slice(at)).toMatch(/^<output[^>]*>Refused: stale_seq<\/output>/);
   });
   it("gives the log section role=log and name Log, and keeps its <ol> a list, newest first", () => {
-    expect(out).toContain('<section aria-label="Log" data-testid="log" class="game-log" role="log">');
-    expect(out).toContain('<ol aria-label="Log entries" tabindex="0"><li>second</li><li>first</li></ol>');
+    expect(hasTag(out, "section", { "aria-label": "Log", "data-testid": "log", class: "game-log", role: "log" })).toBe(
+      true,
+    );
+    const list = tagAt(out, "ol", { "aria-label": "Log entries", tabindex: "0" });
+    expect(list).toBeGreaterThanOrEqual(0);
+    expect(out.slice(list)).toMatch(/^<ol[^>]*><li>second<\/li><li>first<\/li><\/ol>/);
   });
   it("marks a game with no map, so its empty map box takes only a line, and leaves a map game unmarked", () => {
     const lio = frameFor("lio");
     const noMap = { ...lio.view.public };
     delete noMap.map;
-    expect(html({ ...lio, view: { ...lio.view, public: noMap } })).toContain(
-      '<div class="game game-no-map" data-theme="terminal">',
+    expect(hasTag(html({ ...lio, view: { ...lio.view, public: noMap } }), "div", { class: "game game-no-map" })).toBe(
+      true,
     );
-    expect(out).toContain('<div class="game" data-theme="terminal">');
+    expect(hasTag(out, "div", { class: "game", "data-theme": "terminal" })).toBe(true);
   });
   it("lets the keyboard reach each scrolling element, each with a name", () => {
     // The hand strip scrolls sideways; its chips take the keyboard, so the strip itself needs no tabindex.
-    expect(out).toContain('<section aria-label="Your hand" data-testid="hand" class="game-strip">');
-    expect(out).toContain('<div role="toolbar" aria-label="Your cards" class="strip-cards">');
-    expect(out).toContain('<section aria-label="Map" data-testid="map-area" class="game-map" tabindex="0">');
-    expect(out).toContain('<ol aria-label="Log entries" tabindex="0">');
-    expect(out).toContain('<div class="game-details-body" role="group" aria-label="Details" tabindex="0">');
+    const hand = tagAt(out, "section", { "aria-label": "Your hand", "data-testid": "hand", class: "game-strip" });
+    expect(hand).toBeGreaterThanOrEqual(0);
+    expect(/^<section[^>]*>/.exec(out.slice(hand))?.[0]).not.toContain("tabindex");
+    expect(hasTag(out, "div", { role: "toolbar", "aria-label": "Your cards", class: "strip-cards" })).toBe(true);
+    expect(hasTag(out, "section", { "aria-label": "Map", "data-testid": "map-area", tabindex: "0" })).toBe(true);
+    expect(hasTag(out, "ol", { "aria-label": "Log entries", tabindex: "0" })).toBe(true);
+    expect(hasTag(out, "div", { role: "group", "aria-label": "Details", tabindex: "0" })).toBe(true);
   });
   it("gives a spectator's two open prompts different question ids", () => {
     const spectator = html(frameFor("spectator"));
