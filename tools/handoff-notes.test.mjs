@@ -1,7 +1,7 @@
-import { test } from "node:test";
+import { after, test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { claim, list, recordSession, save, sinceNote } from "./handoff-notes.mjs";
@@ -135,7 +135,15 @@ test("since the note sends the next session to the folder or branch that holds t
 // ---- the session-ids index ---------------------------------------------------------------------
 
 const SCRIPT = path.join(import.meta.dirname, "handoff-notes.mjs");
-const configDir = () => mkdtempSync(path.join(os.tmpdir(), "handoff-config-"));
+const configs = [];
+const configDir = () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "handoff-config-"));
+  configs.push(dir);
+  return dir;
+};
+after(() => {
+  for (const dir of configs) rmSync(dir, { recursive: true, force: true });
+});
 const indexOf = (config) => JSON.parse(readFileSync(path.join(config, "session-ids", "handoff.json"), "utf8")).entries;
 const run = (args, cwd, env) =>
   spawnSync(process.execPath, [SCRIPT, ...args], { cwd, encoding: "utf8", env: { ...process.env, ...env } });
@@ -194,4 +202,15 @@ test("recordSession adds to the index, keeps the last 500, and never throws", ()
   // An unwritable config folder (here, a file) is a quiet false.
   const blocked = path.join(config, "session-ids", "handoff.json");
   assert.equal(recordSession("wrote", "n.md", "s", { env: { ...env, CLAUDE_CONFIG_DIR: blocked } }), false);
+});
+
+test("an index that won't parse is left as it is, never replaced by one entry", () => {
+  const config = configDir();
+  const env = { CLAUDE_CODE_SESSION_ID: "session-a", CLAUDE_CONFIG_DIR: config };
+  const file = path.join(config, "session-ids", "handoff.json");
+  assert.equal(recordSession("wrote", "a.md", "s", { env }), true);
+  const half = '{"entries": [{"session": "session-a", "no';
+  writeFileSync(file, half);
+  assert.equal(recordSession("wrote", "b.md", "s", { env }), false);
+  assert.equal(readFileSync(file, "utf8"), half);
 });

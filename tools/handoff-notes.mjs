@@ -154,12 +154,13 @@ export function recordSession(kind, note, store, { env = process.env, now = new 
     const home = env.USERPROFILE || env.HOME || os.homedir();
     const dir = path.join(env.CLAUDE_CONFIG_DIR || path.join(home, ".claude"), "session-ids");
     const file = path.join(dir, "handoff.json");
+    // No index yet starts one. One that won't parse (another writer mid-write) is left alone: replacing it
+    // would drop every session's notes from the pane, and the throw below lands in the quiet false.
     let entries = [];
-    try {
+    if (existsSync(file)) {
       const parsed = JSON.parse(readFileSync(file, "utf8"));
-      if (Array.isArray(parsed.entries)) entries = parsed.entries;
-    } catch {
-      // No index yet, or one mid-write: start from what can be read.
+      if (!Array.isArray(parsed?.entries)) return false;
+      entries = parsed.entries;
     }
     entries.push({ session, note, store: toPosix(store), kind, at: now.getTime() });
     mkdirSync(dir, { recursive: true });
