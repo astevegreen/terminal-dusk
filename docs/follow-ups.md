@@ -17,4 +17,9 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## Tests and tooling
 
+- `recordSession` in `tools/handoff-notes.mjs` reads, adds to and renames the session-ids index with no lock, so
+  two sessions saving or claiming in the same instant can drop one entry (only the Sessions pane's note list
+  loses it; the note itself is safe). A lock file or an append-only log would close it. [6 Nov 2026, reviewer on
+  #523]
+
 ## Docs

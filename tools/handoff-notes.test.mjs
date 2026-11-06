@@ -1,8 +1,10 @@
-import { test } from "node:test";
+import { after, test } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
-import { claim, list, save, sinceNote } from "./handoff-notes.mjs";
+import { claim, list, recordSession, save, sinceNote } from "./handoff-notes.mjs";
 import { canonical, toPosix } from "./hooks/shared.mjs";
 import { sh, tempRepo, writeFiles } from "./hooks/test-helpers.mjs";
 
@@ -128,4 +130,87 @@ test("since the note sends the next session to the folder or branch that holds t
   const gone = sinceNote(header, repo).join("\n");
   assert.match(gone, /this folder is on main\. Run `git switch task\/9`/);
   assert.match(gone, /folder .* is gone, and its 1 uncommitted files with it\./);
+});
+
+// ---- the session-ids index ---------------------------------------------------------------------
+
+const SCRIPT = path.join(import.meta.dirname, "handoff-notes.mjs");
+const configs = [];
+const configDir = () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "handoff-config-"));
+  configs.push(dir);
+  return dir;
+};
+after(() => {
+  for (const dir of configs) rmSync(dir, { recursive: true, force: true });
+});
+const indexOf = (config) => JSON.parse(readFileSync(path.join(config, "session-ids", "handoff.json"), "utf8")).entries;
+const run = (args, cwd, env) =>
+  spawnSync(process.execPath, [SCRIPT, ...args], { cwd, encoding: "utf8", env: { ...process.env, ...env } });
+
+test("the command line records which session saved and claimed a note, for the session-ids pane", () => {
+  const repo = repoWithNotes();
+  const config = configDir();
+  const env = { CLAUDE_CODE_SESSION_ID: "session-a", CLAUDE_CONFIG_DIR: config };
+  writeFiles(repo, { ".handoff/card-draw.md": DRAFT });
+  const saved = run(["save", ".handoff/card-draw.md"], repo, env);
+  assert.equal(saved.status, 0, saved.stdout);
+  const name = /^saved (\S+\.md)/.exec(saved.stdout)[1];
+  const claimed = run(["claim", name], repo, { ...env, CLAUDE_CODE_SESSION_ID: "session-b" });
+  assert.equal(claimed.status, 0, claimed.stdout);
+
+  const store = posix(path.join(repo, ".handoff"));
+  const entries = indexOf(config).map((e) => [e.session, e.kind, e.note, toPosix(canonical(e.store))]);
+  assert.deepEqual(entries, [
+    ["session-a", "wrote", name, store],
+    ["session-b", "resumed", name, store],
+  ]);
+});
+
+test("outside a session, or on a refused save, nothing is recorded and the output is unchanged", () => {
+  const repo = repoWithNotes();
+  const config = configDir();
+  writeFiles(repo, { ".handoff/card-draw.md": DRAFT });
+  const saved = run(["save", ".handoff/card-draw.md"], repo, { CLAUDE_CODE_SESSION_ID: "", CLAUDE_CONFIG_DIR: config });
+  assert.equal(saved.status, 0, saved.stdout);
+  assert.match(saved.stdout, /^saved \S+\.md in /);
+  assert.equal(existsSync(path.join(config, "session-ids")), false);
+
+  writeFiles(repo, { ".handoff/thin.md": "# Handoff: thin\n" });
+  const refused = run(["save", ".handoff/thin.md"], repo, {
+    CLAUDE_CODE_SESSION_ID: "session-a",
+    CLAUDE_CONFIG_DIR: config,
+  });
+  assert.equal(refused.status, 1);
+  assert.equal(existsSync(path.join(config, "session-ids")), false);
+});
+
+test("recordSession adds to the index, keeps the last 500, and never throws", () => {
+  const config = configDir();
+  const env = { CLAUDE_CODE_SESSION_ID: "session-a", CLAUDE_CONFIG_DIR: config };
+  for (let i = 0; i < 502; i++)
+    assert.equal(recordSession("wrote", `n${i}.md`, "C:\\x\\.handoff", { env, now: NOW }), true);
+  const entries = indexOf(config);
+  assert.equal(entries.length, 500);
+  assert.deepEqual(entries[0], {
+    session: "session-a",
+    note: "n2.md",
+    store: "C:/x/.handoff",
+    kind: "wrote",
+    at: NOW.getTime(),
+  });
+  // An unwritable config folder (here, a file) is a quiet false.
+  const blocked = path.join(config, "session-ids", "handoff.json");
+  assert.equal(recordSession("wrote", "n.md", "s", { env: { ...env, CLAUDE_CONFIG_DIR: blocked } }), false);
+});
+
+test("an index that won't parse is left as it is, never replaced by one entry", () => {
+  const config = configDir();
+  const env = { CLAUDE_CODE_SESSION_ID: "session-a", CLAUDE_CONFIG_DIR: config };
+  const file = path.join(config, "session-ids", "handoff.json");
+  assert.equal(recordSession("wrote", "a.md", "s", { env }), true);
+  const half = '{"entries": [{"session": "session-a", "no';
+  writeFileSync(file, half);
+  assert.equal(recordSession("wrote", "b.md", "s", { env }), false);
+  assert.equal(readFileSync(file, "utf8"), half);
 });
