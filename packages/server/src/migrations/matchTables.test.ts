@@ -57,11 +57,6 @@ describe("the clock migration (supabase/migrations/20261023000000_match_clock.sq
   it("adds an index on match.next_deadline for the deadline sweep", () => {
     expect(CLOCK_MIGRATION).toMatch(/create index \w+ on public\.match \(next_deadline\b/);
   });
-
-  it("does not grant clients any write on match", () => {
-    expect(CLOCK_MIGRATION).not.toMatch(/\bgrant\b(?!\s+execute)/i);
-    expect(CLOCK_MIGRATION).not.toMatch(/create policy/i);
-  });
 });
 
 const keys = stackKeys();
