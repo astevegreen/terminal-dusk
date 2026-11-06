@@ -53,6 +53,20 @@ describe("the AI worker handler", () => {
     expect(createAiWorkerHandler()({ kind: "answer", id: 9, view })).toEqual({ kind: "answer", id: 9, value: null });
   });
 
+  it("answers value null, never throwing, when the player throws on a view, and still answers the next view", () => {
+    const handler = createAiWorkerHandler();
+    handler(start(1));
+    const broken = { ...view, public: undefined } as unknown as typeof view;
+    expect(handler({ kind: "answer", id: 5, view: broken })).toEqual({ kind: "answer", id: 5, value: null });
+    expect(handler({ kind: "answer", id: 6, view })?.value).not.toBeNull();
+  });
+
+  it("a start that throws leaves no player, so answers come back null instead of the worker failing", () => {
+    const handler = createAiWorkerHandler();
+    expect(handler({ kind: "start", ruleset: undefined as never, side: "lio", seed: 1, tier: "hard" })).toBeNull();
+    expect(handler({ kind: "answer", id: 2, view })).toEqual({ kind: "answer", id: 2, value: null });
+  });
+
   it("gives the same values as createEasyPlayer with the same seed", () => {
     const handler = createAiWorkerHandler();
     handler(start(8));

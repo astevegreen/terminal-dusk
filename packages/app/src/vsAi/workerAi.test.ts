@@ -14,6 +14,8 @@ class FakeWorker {
   sent: AiRequest[] = [];
   terminated = false;
   onmessage: ((event: { data: AiResponse }) => void) | null = null;
+  onerror: ((event: unknown) => void) | null = null;
+  onmessageerror: ((event: unknown) => void) | null = null;
   private readonly handle = createAiWorkerHandler();
   private replies: AiResponse[] = [];
   constructor(url: URL, options: unknown) {
@@ -84,4 +86,19 @@ describe("the Web Worker opponent", () => {
     expect(FakeWorker.made[0]?.terminated).toBe(true);
     expect(await pending).toBeNull();
   });
+
+  for (const failure of ["onerror", "onmessageerror"] as const) {
+    it(`a worker ${failure.slice(2)} settles every waiting answer as null, ends the worker, and later calls give null`, async () => {
+      vi.stubGlobal("Worker", FakeWorker);
+      const ai = createWorkerAi(fixtureRuleset, "sae", 42);
+      const pending = ai.answer(firstView());
+      const worker = FakeWorker.made[0]!;
+      worker[failure]?.({ message: "the AI script failed" });
+      expect(await pending).toBeNull();
+      expect(worker.terminated).toBe(true);
+      const sentBefore = worker.sent.length;
+      expect(await ai.answer(firstView())).toBeNull();
+      expect(worker.sent).toHaveLength(sentBefore);
+    });
+  }
 });
