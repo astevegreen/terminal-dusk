@@ -1,7 +1,7 @@
 // The turn structure (docs/design/core-loop.md). Each turn opens with both hands refilled to the hand
 // size, then both sides secretly picking a card, a neutral one too. Both are revealed together and their
 // events resolve, more ops first (under Quantum Computing the holder's rival picks first, face up). Then LIO and SAE take turns to play, until each has made
-// `playsPerTurn` plays. After the setup's number of turns the game is over.
+// `playsPerTurn` plays; a side with no card left passes the rest of its plays. After the setup's number of turns the game is over.
 //
 // A play uses a card for its event or its points (decisions.ts lists the uses each card allows). A
 // rival's card is played for its points, and its event still happens: the player first says whether
@@ -141,7 +141,7 @@ function revealOpening(
 /**
  * Runs the game on while nothing waits on the stack. The first card in play has finished its event (and
  * any reactions to it), so it leaves play (putAway) and the next card's event starts. With no card in
- * play, the next side plays. Once both have made all their plays, the side holding Hypersonics may make one more
+ * play, the next side plays, or passes with no card in hand. Once both have made all their plays, the side holding Hypersonics may make one more
  * (offerExtraPlay); then the turnEnd hook fires, and when its reactions have finished, the turn ends.
  */
 function settle(ruleset: Ruleset, state: GameState, events: GameEvent[], budget: Budget): EngineError | null {
@@ -168,7 +168,14 @@ function settleStep(
     return pub.inPlay.length > 0 ? startEvent(ruleset, state, events, budget) : null;
   }
   if (pub.playsMade < 2 * pub.playsPerTurn) {
-    pub.pending = [newDecision(state.meta.seq, pub.playsMade % 2 === 0 ? "lio" : "sae", "playCardAs")];
+    const side: Side = pub.playsMade % 2 === 0 ? "lio" : "sae";
+    // A side with no card left passes this play (owner, 7 Nov 2026). No card returns to a hand before the next
+    // refill, so it passes the rest of its plays this turn, one as each comes round.
+    if (state.private[side].hand.length === 0) {
+      pub.playsMade += 1;
+      return null;
+    }
+    pub.pending = [newDecision(state.meta.seq, side, "playCardAs")];
     return "waits";
   }
   if (!pub.turnEndFired) {

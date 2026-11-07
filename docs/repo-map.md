@@ -596,6 +596,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/discardChoice.ts` - Running a discardFromHand step (#186, #192). Exports: runDiscard, resumeDiscard.
 - `packages/engine/src/discardChoiceViews.test.ts` - Views of a discardFromHand pick (#192): the pending discardCards decision is public and lists no card IDs, the picker's knowledge is in its own view only, and…
 - `packages/engine/src/drawStep.test.ts` - The drawContingency step (#65): a card's effect draws from a named side's Contingency deck, and a later step of the same card can read the number drawn.
+- `packages/engine/src/emptyHand.test.ts` - A side with no card left for a play it owes passes the rest of its plays this turn (owner, 7 Nov 2026: "player passes the rest of their plays"; docs/design/cor…
 - `packages/engine/src/eraScoring.test.ts` - R21: era-end region scoring (docs/design/map-and-points.md, "Scoring").
 - `packages/engine/src/eras.test.ts` - A new era (#37): the setup's checks, its cards waiting in secret, and the shuffle into the draw pile only.
 - `packages/engine/src/eras.ts` - Eras after the first (docs/design/eras.md, "When a new era starts"). Exports: erasError, enterEra.
@@ -912,7 +913,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/escalationChecks.ts` - The fuzz check for the Escalation track (R17a, docs/design/map-and-points.md, "Escalation"): checkStep (checks.ts) runs it on every state. Exports: checkEscalation.
 - `tests/fuzz/expiryChecks.ts` - The fuzz checks that modifiers and triggers end with their turn (#89, #90). Exports: checkModifiers, checkTriggers.
 - `tests/fuzz/extraSteps.test.ts` - The steps real cards use that the base fuzz cards leave out (extraSteps.ts): discardFromHand in its three forms, escalate up and down, addToNumber and the atLe…
-- `tests/fuzz/extraSteps.ts` - TEST-ONLY FIXTURES, never game content: the fuzz cards with the steps real cards use that the base fuzz ruleset (cards.ts) leaves out: discardFromHand (random,… Exports: EXTRA, EXTRA_KINDS, ExtraKind, extraStepsOf, extraStepsRuleset, announcedExtra, withDiscardRoom.
+- `tests/fuzz/extraSteps.ts` - TEST-ONLY FIXTURES, never game content: the fuzz cards with the steps real cards use that the base fuzz ruleset (cards.ts) leaves out: discardFromHand (random,… Exports: EXTRA, EXTRA_KINDS, ExtraKind, extraStepsOf, extraStepsRuleset, announcedExtra.
 - `tests/fuzz/filterChecks.test.ts` - Tests for the trigger filter and once check (filterChecks.ts, #190), on small fixed games whose cards are defined here: it passes real steps, both kinds of pla…
 - `tests/fuzz/filterChecks.ts` - The fuzz check for trigger filters and once (R7a, #190): a filtered trigger fires only when its filter held at its hook, a waiting trigger whose filter held do… Exports: FilterCounts, checkTriggerFilters.
 - `tests/fuzz/filtered.test.ts` - The reaction cards' filtered and once triggers (filtered.ts, #190): every variant is on a LIO, an SAE and a neutral card, and fuzz games fire them, skip them,…
