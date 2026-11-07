@@ -34,12 +34,12 @@ const AMOUNTS = [2, -1, 1, -2];
  * A contingency draw bound to "x", a non-zero whole number added to it, and an if on one of the number tests, each
  * branch announced. A LIO or SAE card draws from its own deck; a neutral card from its player's.
  */
-function numberSteps(i: number, affiliation: Side | "neutral"): Step[] {
+function numberSteps(i: number, affiliation: Side | "neutral", setting: number): Step[] {
   const test = TESTS[Math.floor(i / 8) % 3]!;
   return [
     { op: "drawContingency", side: affiliation === "neutral" ? "player" : affiliation, bind: "x" },
     announce("addToNumber"),
-    { op: "addToNumber", var: "x", amount: AMOUNTS[i % 4]! },
+    { op: "addToNumber", var: "x", amount: AMOUNTS[setting % 4]! },
     {
       op: "if",
       cond: { op: test, var: "x", value: 1 + (i % 6) },
@@ -52,13 +52,13 @@ function numberSteps(i: number, affiliation: Side | "neutral"): Step[] {
 
 /**
  * Fuzz card `i`'s extra steps, by its index: eight kinds of card take turns (the last adds nothing), and 8 is coprime
- * to 3, so LIO, SAE and neutral cards all have each kind.
+ * to 3, so LIO, SAE and neutral cards all have each kind. `setting` picks a kind's settings (whose hand, by how much).
  */
-export function extraStepsOf(i: number, affiliation: Side | "neutral"): Step[] {
-  const other: Side = i % 2 === 0 ? "lio" : "sae";
+function extraStepsOf(i: number, affiliation: Side | "neutral", setting: number): Step[] {
+  const other: Side = setting % 2 === 0 ? "lio" : "sae";
   switch (i % 8) {
     case 0:
-      return [announce("escalate:up"), { op: "escalate", by: 1 + (i % 2) }];
+      return [announce("escalate:up"), { op: "escalate", by: 1 + (setting % 2) }];
     case 1:
       return [announce("escalate:down"), { op: "escalate", by: -1 }];
     case 2:
@@ -69,18 +69,35 @@ export function extraStepsOf(i: number, affiliation: Side | "neutral"): Step[] {
       return [announce("discard:player"), { op: "discardFromHand", side: other, count: 1, chosenBy: "player" }];
     case 5:
     case 6:
-      return numberSteps(i, affiliation);
+      return numberSteps(i, affiliation, setting);
     default:
       return [];
   }
 }
 
-/** The fuzz ruleset with each card's extra steps after its own effect. */
-export const extraStepsRuleset: Ruleset = deepFreeze({
-  ...ruleset,
-  id: "fuzz-extra-steps-ruleset",
-  cards: ruleset.cards.map((card, i) => ({ ...card, effect: [...card.effect, ...extraStepsOf(i, card.affiliation)] })),
-});
+/** The fuzz ruleset with each card's extra steps after its own effect, their settings picked by `setting(i)`. */
+function withExtraSteps(id: string, setting: (i: number) => number): Ruleset {
+  return deepFreeze({
+    ...ruleset,
+    id,
+    cards: ruleset.cards.map((card, i) => ({
+      ...card,
+      effect: [...card.effect, ...extraStepsOf(i, card.affiliation, setting(i))],
+    })),
+  });
+}
+
+/**
+ * The ruleset random games play. A kind's settings change with the round of eight, not with `i`'s parity, which
+ * each kind's place in the eight fixes: so both sides lose a card to each discard, and every amount is added.
+ */
+export const extraStepsRuleset: Ruleset = withExtraSteps("fuzz-extra-steps-ruleset-2", (i) => Math.floor(i / 8));
+
+/**
+ * The first ruleset, its settings picked by `i`'s parity, so each discard always took the same side's card. Kept,
+ * never played at random, so the fixed games recorded with it (fixedGames.ts) replay to the same end.
+ */
+export const firstExtraStepsRuleset: Ruleset = withExtraSteps("fuzz-extra-steps-ruleset", (i) => i);
 
 /** The extra step an event announces, or null. */
 export function announcedExtra(event: GameEvent): ExtraKind | null {
