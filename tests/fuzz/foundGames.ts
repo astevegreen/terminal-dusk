@@ -8,7 +8,7 @@
 //   from playFuzzGame(6944).
 // - extra-steps game 427: LIO's opening card made LIO discard its last card, and the game then waited on a play LIO
 //   had no card for; LIO now passes it (docs/design/core-loop.md, "No card left"; owner, 7 Nov 2026). Played with
-//   extraStepsRuleset; recorded from playExtraGame(427) in extraSteps.test.ts.
+//   firstExtraStepsRuleset; recorded from playExtraGame(427) in extraSteps.test.ts, when it played that ruleset.
 import type { FixedGame } from "./fixedGames.ts";
 import found from "./foundGames.json" with { type: "json" };
 

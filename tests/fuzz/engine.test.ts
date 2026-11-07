@@ -1,7 +1,7 @@
 // Fuzz suite: plays FUZZ_GAMES random games and checks invariants 1, 3, 4, 5 and 6 of
 // docs/architecture.md ("Guardrails", "Fuzz suite") at every step. See tests/fuzz/play.ts.
 import { describe, expect, it } from "vitest";
-import { extraStepsRuleset } from "./extraSteps.ts";
+import { extraStepsRuleset, firstExtraStepsRuleset } from "./extraSteps.ts";
 import { FIXED_GAMES } from "./fixedGames.ts";
 import { gameCount, playFuzzGame, playRecorded, ruleset } from "./play.ts";
 
@@ -10,7 +10,7 @@ declare const process: { readonly env: Readonly<Record<string, string | undefine
 
 const GAMES = gameCount(process.env["FUZZ_GAMES"]);
 /** The fuzz rulesets a fixed game may name by ID. */
-const RULESETS = [ruleset, extraStepsRuleset];
+const RULESETS = [ruleset, extraStepsRuleset, firstExtraStepsRuleset];
 
 describe("engine fuzz suite", () => {
   it(

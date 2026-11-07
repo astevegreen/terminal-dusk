@@ -41,6 +41,19 @@ describe("the extra steps in random games", () => {
     }
   });
 
+  it("each step's settings vary across the cards: both sides discard, escalate up by 1 and 2, every amount added", () => {
+    const steps = extraStepsRuleset.cards.flatMap((card) => card.effect);
+    const discarded = (chosenBy: string | undefined): Set<string> =>
+      new Set(steps.flatMap((s) => (s.op === "discardFromHand" && s.chosenBy === chosenBy ? [s.side] : [])));
+    for (const chosenBy of [undefined, "owner", "player"]) {
+      expect(discarded(chosenBy), `discard chosen by ${chosenBy ?? "random"}`).toEqual(new Set(["lio", "sae"]));
+    }
+    const ups = new Set(steps.flatMap((s) => (s.op === "escalate" && s.by > 0 ? [s.by] : [])));
+    expect(ups).toEqual(new Set([1, 2]));
+    const amounts = new Set(steps.flatMap((s) => (s.op === "addToNumber" ? [s.amount] : [])));
+    expect(amounts).toEqual(new Set([2, -1, 1, -2]));
+  });
+
   it(
     `plays ${GAMES} games to the end, every check at every step, and reaches every extra step and branch and a pass`,
     () => {
