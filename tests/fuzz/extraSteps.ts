@@ -45,7 +45,8 @@ function numberSteps(i: number, affiliation: Side | "neutral"): Step[] {
     {
       op: "if",
       cond: { op: test, var: "x", value: 1 + (i % 6) },
-      then: [announce(`${test}:then`)],
+      // The step schema's if/then/else, never awaited, so not a thenable.
+      then: [announce(`${test}:then`)], // NOSONAR (typescript:S7739)
       else: [announce(`${test}:else`)],
     },
   ];
