@@ -170,9 +170,10 @@ function settleStep(
   if (pub.playsMade < 2 * pub.playsPerTurn) {
     const side: Side = pub.playsMade % 2 === 0 ? "lio" : "sae";
     // A side with no card left passes this play (owner, 7 Nov 2026). No card returns to a hand before the next
-    // refill, so it passes the rest of its plays this turn, one as each comes round.
+    // refill, so it passes the rest of its plays this turn, one as each comes round. The game log shows each pass.
     if (state.private[side].hand.length === 0) {
       pub.playsMade += 1;
+      events.push({ kind: "playPassed", visibility: "public", side });
       return null;
     }
     pub.pending = [newDecision(state.meta.seq, side, "playCardAs")];

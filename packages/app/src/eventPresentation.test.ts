@@ -77,6 +77,10 @@ describe("eventPresentation", () => {
     });
     expect(line).toBe("SAE discarded no cards.");
   });
+  it("logs a passed play with the side that had no card left", () => {
+    expect(say({ kind: "playPassed", visibility: "public", side: "lio" })).toBe("LIO has no card left and passes.");
+    expect(say({ kind: "playPassed", visibility: "public", side: "sae" })).toBe("SAE has no card left and passes.");
+  });
   it("logs a marker with its label, and its value when it has one", () => {
     expect(say({ kind: "marker", visibility: "public", label: "item", value: "a" })).toBe("Marker item: a.");
     expect(say({ kind: "marker", visibility: "public", label: "done" })).toBe("Marker done.");

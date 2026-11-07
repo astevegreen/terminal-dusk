@@ -139,6 +139,8 @@ export type CardDrawn = {
 export type MarkerEvent = { kind: "marker"; visibility: "public"; label: string; value?: VarValue; lasting?: true };
 /** The draw pile ran out while a hand was refilling, so the discard pile's `cards` were shuffled into a new one. */
 export type DrawPileReshuffled = { kind: "drawPileReshuffled"; visibility: "public"; cards: number };
+/** `side` had no card left for a play it owed and passed it (turn.ts). Public: every view shows hand sizes. */
+export type PlayPassed = { kind: "playPassed"; visibility: "public"; side: Side };
 /** A new era started: `cardsAdded` of its cards were shuffled into the draw pile. Never which cards. */
 export type EraStarted = { kind: "eraStarted"; visibility: "public"; era: EraId; cardsAdded: number };
 /**
@@ -162,6 +164,7 @@ export type PublicEvent =
   | Realigned
   | EraStarted
   | DrawPileReshuffled
+  | PlayPassed
   | ContingencyDrawn
   | ContingencyDeckReshuffled
   | ModifierStarted

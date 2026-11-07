@@ -6,7 +6,6 @@
 import { describe, expect, it } from "vitest";
 import { announcedExtra, EXTRA_KINDS, extraStepsRuleset } from "./extraSteps.ts";
 import type { ExtraKind } from "./extraSteps.ts";
-import { passedPlaysOf } from "./passedPlays.ts";
 import { mapGameCount, playGame, randomChooser, randomGame } from "./play.ts";
 import type { GameRecord } from "./play.ts";
 import { seededRng } from "./random.ts";
@@ -18,7 +17,7 @@ declare const process: { readonly env: Readonly<Record<string, string | undefine
 
 const GAMES = mapGameCount(process.env["FUZZ_GAMES"]);
 
-type Counts = Record<ExtraKind | "cardsDiscarded" | "escalationChanged" | "playsPassed", number>;
+type Counts = Record<ExtraKind | "cardsDiscarded" | "escalationChanged" | "playPassed", number>;
 
 /**
  * Extra-steps game `game`: fuzz game `game`'s setup, on the test map when `game` is even, played at random. The hands
@@ -46,7 +45,7 @@ describe("the extra steps in random games", () => {
     `plays ${GAMES} games to the end, every check at every step, and reaches every extra step and branch and a pass`,
     () => {
       const counts = Object.fromEntries(
-        [...EXTRA_KINDS, "cardsDiscarded", "escalationChanged", "playsPassed"].map((k) => [k, 0]),
+        [...EXTRA_KINDS, "cardsDiscarded", "escalationChanged", "playPassed"].map((k) => [k, 0]),
       ) as Counts;
       for (let game = 1; game <= GAMES; game++) {
         // playGame runs every check on every step and throws with the game's record if one fails.
@@ -54,9 +53,10 @@ describe("the extra steps in random games", () => {
         for (const event of eventsOf(extraStepsRuleset, record)) {
           const kind = announcedExtra(event);
           if (kind !== null) counts[kind]++;
-          if (event.kind === "cardsDiscarded" || event.kind === "escalationChanged") counts[event.kind]++;
+          if (event.kind === "cardsDiscarded" || event.kind === "escalationChanged" || event.kind === "playPassed") {
+            counts[event.kind]++;
+          }
         }
-        counts.playsPassed += passedPlaysOf(extraStepsRuleset, record);
       }
       for (const [what, n] of Object.entries(counts)) expect(n, what).toBeGreaterThan(0);
     },

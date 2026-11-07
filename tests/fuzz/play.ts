@@ -19,6 +19,7 @@ import { FUZZ_CARDS, MAX_ERA_CARDS, MAX_EXTRA, MAX_PILE, MAX_PLAYS, MAX_TURNS, r
 import { attempt, checkStep, checkVerify, firstDifference, knowledgeOf } from "./checks.ts";
 import { deepFreeze } from "./deepFreeze.ts";
 import { checkTriggerFilters } from "./filterChecks.ts";
+import { checkPassedPlays } from "./passedPlays.ts";
 import { checkPlayedBy, notePlay } from "./playedBy.ts";
 import type { PlayRecord } from "./playedBy.ts";
 import { checkPlayerDraws, notePlayer } from "./playerDraws.ts";
@@ -214,7 +215,8 @@ export function easyChooser(rules: Ruleset, side: Side, rng: Rng): Chooser {
  * the deck of the side that last picked or played their card (playerDraws.ts), and each announced playedBy test
  * must take exactly one branch, the one matching that side (playedBy.ts). Each step's triggers fire only as their
  * filters and once allow, from the state before it, its events and the state after it (filterChecks.ts). Each
- * step's removed pile and turn-start refill are checked against the state before it (removedChecks.ts).
+ * step's removed pile and turn-start refill are checked against the state before it (removedChecks.ts), and its
+ * passed plays against its playPassed events (passedPlays.ts).
  */
 export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed, choose: Chooser): Played {
   const record: GameRecord = { setup: deepFreeze(setup), seed, answers: [] };
@@ -240,6 +242,7 @@ export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed
       checkTriggerFilters(rules, prior, events, state, answer);
       checkRemoved(rules, prior, answer, state);
       checkRefilled(setup, prior, state);
+      checkPassedPlays(prior, answer, events, state);
       checkPlayerDraws(events, players);
       checkPlayedBy(events, plays);
     }
