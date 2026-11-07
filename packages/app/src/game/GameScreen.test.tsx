@@ -295,9 +295,12 @@ describe("screen-reader support", () => {
     const lio = frameFor("lio");
     const noMap = { ...lio.view.public };
     delete noMap.map;
-    expect(hasTag(html({ ...lio, view: { ...lio.view, public: noMap } }), "div", { class: "game game-no-map" })).toBe(
-      true,
-    );
+    expect(
+      hasTag(html({ ...lio, view: { ...lio.view, public: noMap } }), "div", {
+        class: "game game-no-map",
+        "data-theme": "terminal",
+      }),
+    ).toBe(true);
     expect(hasTag(out, "div", { class: "game", "data-theme": "terminal" })).toBe(true);
   });
   it("lets the keyboard reach each scrolling element, each with a name", () => {
@@ -306,9 +309,13 @@ describe("screen-reader support", () => {
     expect(hand).toBeGreaterThanOrEqual(0);
     expect(/^<section[^>]*>/.exec(out.slice(hand))?.[0]).not.toContain("tabindex");
     expect(hasTag(out, "div", { role: "toolbar", "aria-label": "Your cards", class: "strip-cards" })).toBe(true);
-    expect(hasTag(out, "section", { "aria-label": "Map", "data-testid": "map-area", tabindex: "0" })).toBe(true);
+    expect(
+      hasTag(out, "section", { "aria-label": "Map", "data-testid": "map-area", class: "game-map", tabindex: "0" }),
+    ).toBe(true);
     expect(hasTag(out, "ol", { "aria-label": "Log entries", tabindex: "0" })).toBe(true);
-    expect(hasTag(out, "div", { role: "group", "aria-label": "Details", tabindex: "0" })).toBe(true);
+    expect(
+      hasTag(out, "div", { class: "game-details-body", role: "group", "aria-label": "Details", tabindex: "0" }),
+    ).toBe(true);
   });
   it("gives a spectator's two open prompts different question ids", () => {
     const spectator = html(frameFor("spectator"));
