@@ -36,8 +36,17 @@ export interface NotifyStore {
    * `queuedAt`, then match id, then player.
    */
   due(now: number): Promise<TurnAlert[]>;
-  /** Records the alert as sent at `now`, only when the stored alert still has the same seq. */
-  markSent(alert: TurnAlert, now: number): Promise<void>;
+  /**
+   * Claims the alert: records it as sent at `now`, only when the stored alert still has the same seq and is not
+   * sent yet. True when this call marked it; false when it was already sent (another sweep claimed it) or
+   * replaced. Two calls at once never both get true, so the sweep claims before it emails.
+   */
+  markSent(alert: TurnAlert, now: number): Promise<boolean>;
+  /**
+   * Gives back a claim `markSent` made at `sentAt`, after its email failed: marks the alert not sent, only when
+   * the stored alert still has the same seq and was marked sent at `sentAt`. Then it is due again.
+   */
+  release(alert: TurnAlert, sentAt: number): Promise<void>;
   /**
    * The stored `waitingSeq` of the alert's (match, player), as it is now: `null` when nothing is stored, the
    * stored alert has another seq, or it is already sent. The sweep re-reads it before marking an alert stale.
@@ -97,10 +106,19 @@ export class MemoryNotifyStore implements NotifyStore {
     );
   }
 
-  markSent(alert: TurnAlert, now: number): Promise<void> {
+  markSent(alert: TurnAlert, now: number): Promise<boolean> {
     return later(() => {
       const found = this.#alerts.get(keyOf(alert.matchId, alert.player));
-      if (found && found.alert.seq === alert.seq) found.sentAt = now;
+      if (!found || found.alert.seq !== alert.seq || found.sentAt !== null) return false;
+      found.sentAt = now;
+      return true;
+    });
+  }
+
+  release(alert: TurnAlert, sentAt: number): Promise<void> {
+    return later(() => {
+      const found = this.#alerts.get(keyOf(alert.matchId, alert.player));
+      if (found && found.alert.seq === alert.seq && found.sentAt === sentAt) found.sentAt = null;
     });
   }
 

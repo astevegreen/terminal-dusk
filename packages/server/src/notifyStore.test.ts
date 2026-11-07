@@ -179,8 +179,43 @@ describe("MemoryNotifyStore.markSent", () => {
     const store = new MemoryNotifyStore();
     await store.queue([alert("m1", "alice", 1)]);
     await store.queue([alert("m1", "alice", 2)]);
-    await store.markSent(alert("m1", "alice", 1), T + D);
+    expect(await store.markSent(alert("m1", "alice", 1), T + D)).toBe(false);
     expect(await store.due(T + D)).toEqual([alert("m1", "alice", 2)]);
+  });
+
+  it("is a claim: true for the call that marks it, false for any later one, which keeps the first time", async () => {
+    const store = new MemoryNotifyStore();
+    await store.queue([alert("m1", "alice", 1)]);
+    const claims = await Promise.all([
+      store.markSent(alert("m1", "alice", 1), T + D),
+      store.markSent(alert("m1", "alice", 1), T + D + 1),
+    ]);
+    expect(claims).toEqual([true, false]);
+    expect(store.stored("m1", "alice")?.sentAt).toBe(T + D);
+  });
+
+  it("is false when nothing is stored", async () => {
+    expect(await new MemoryNotifyStore().markSent(alert("m1", "alice", 1), T + D)).toBe(false);
+  });
+});
+
+describe("MemoryNotifyStore.release", () => {
+  it("gives back a claim made at sentAt, so the alert is due again", async () => {
+    const store = new MemoryNotifyStore();
+    await store.queue([alert("m1", "alice", 1)]);
+    await store.markSent(alert("m1", "alice", 1), T + D);
+    await store.release(alert("m1", "alice", 1), T + D);
+    expect(store.stored("m1", "alice")?.sentAt).toBeNull();
+    expect(await store.due(T + D)).toEqual([alert("m1", "alice", 1)]);
+  });
+
+  it("changes nothing for another seq or another claim time", async () => {
+    const store = new MemoryNotifyStore();
+    await store.queue([alert("m1", "alice", 2)]);
+    await store.markSent(alert("m1", "alice", 2), T + D);
+    await store.release(alert("m1", "alice", 1), T + D);
+    await store.release(alert("m1", "alice", 2), T + D + 1);
+    expect(store.stored("m1", "alice")?.sentAt).toBe(T + D);
   });
 });
 

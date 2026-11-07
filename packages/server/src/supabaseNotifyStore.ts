@@ -13,7 +13,7 @@ type QueueRow = Omit<AlertRow, "waiting_seq">;
 
 const ALERT_COLUMNS = "match_id, player, seq, queued_at, waiting_seq";
 
-type Step = "queue" | "seen" | "keep" | "due" | "markSent" | "waitingSeq";
+type Step = "queue" | "seen" | "keep" | "due" | "markSent" | "release" | "waitingSeq";
 
 /**
  * A turn alert storage failure. Its message names only the step, the match id (for a step about one match)
@@ -119,14 +119,38 @@ export class SupabaseNotifyStore implements NotifyStore {
     }));
   }
 
-  async markSent(alert: TurnAlert, now: number): Promise<void> {
-    await call("markSent", alert.matchId, () =>
+  /**
+   * One update, guarded so it changes only the unsent row with the alert's seq, giving back the rows it changed.
+   * Postgres re-checks `sent_at is null` on a row another update has just changed, so of two at once only one
+   * changes it.
+   */
+  async markSent(alert: TurnAlert, now: number): Promise<boolean> {
+    const data = await call("markSent", alert.matchId, () =>
       this.#db
         .from("notify_queue")
         .update({ sent_at: now })
         .eq("match_id", alert.matchId)
         .eq("player", alert.player)
-        .eq("seq", alert.seq),
+        .eq("seq", alert.seq)
+        .is("sent_at", null)
+        .select("seq"),
+    );
+    if (!Array.isArray(data)) {
+      throw new NotifyStorageError("markSent", alert.matchId, "the database gave an unexpected answer");
+    }
+    return data.length > 0;
+  }
+
+  /** One update, guarded so it clears only the row with the alert's seq that was marked sent at `sentAt`. */
+  async release(alert: TurnAlert, sentAt: number): Promise<void> {
+    await call("release", alert.matchId, () =>
+      this.#db
+        .from("notify_queue")
+        .update({ sent_at: null })
+        .eq("match_id", alert.matchId)
+        .eq("player", alert.player)
+        .eq("seq", alert.seq)
+        .eq("sent_at", sentAt),
     );
   }
 
