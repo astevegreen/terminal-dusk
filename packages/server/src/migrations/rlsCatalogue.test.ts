@@ -2,7 +2,8 @@
 // test checks its policies in detail; this one makes sure no table is left out. It lists every table the database
 // exposes and fails when one is missing from CATALOGUE below, so a new table must say here who may read its rows.
 // Then, for every table, a player of the test match, a signed-in stranger and a signed-out client:
-// - read only the rows CATALOGUE says anyone may read (the stranger and the signed-out client);
+// - read only the rows CATALOGUE says they may read: the player their own side's rows and their own entitlement,
+//   the stranger and the signed-out client only the rows anyone may read;
 // - can insert, update or delete nothing (all three: only the server writes, with the service role).
 // Without a running local stack, one test says so and how to start it.
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -36,6 +37,8 @@ type Entry = {
   scope: (s: Seeded) => [string, string];
   /** Whether a stranger or a signed-out client may read this row. */
   public: (row: Row) => boolean;
+  /** Whether the test match's LIO player may read this row (the seeded entitlement is theirs). */
+  player: (row: Row) => boolean;
   /** A new row the table would accept, made from a seeded one, for the insert attempt. */
   fresh: (row: Row, s: Seeded) => Row;
   /** A change to a seeded row, for the update attempt. */
@@ -45,48 +48,56 @@ type Entry = {
 const byMatch = (s: Seeded): [string, string] => ["match_id", s.matchId];
 const nobody = () => false;
 const spectator = (row: Row) => row.viewer === "spectator";
+const ownSide = (row: Row) => row.viewer === "spectator" || row.viewer === "lio";
 
 /** Every table the database exposes. A new table goes here, with who may read it; nobody but the server writes. */
 const CATALOGUE: Record<string, Entry> = {
   match: {
     scope: byMatch,
     public: () => true,
+    player: () => true,
     fresh: (row) => ({ ...row, match_id: `test-${freshId()}` }),
     touch: (row) => ({ updated_at: Number(row.updated_at) + 1 }),
   },
   match_secret: {
     scope: byMatch,
     public: nobody,
+    player: nobody,
     fresh: (row, s) => ({ ...row, match_id: s.spareId }),
     touch: () => ({ secret: { touched: true } }),
   },
   match_view: {
     scope: byMatch,
     public: spectator,
+    player: ownSide,
     fresh: (row, s) => ({ ...row, match_id: s.spareId }),
     touch: (row) => ({ seq: Number(row.seq) + 1 }),
   },
   match_event: {
     scope: byMatch,
     public: spectator,
+    player: ownSide,
     fresh: (row, s) => ({ ...row, match_id: s.spareId }),
     touch: () => ({ events: [] }),
   },
   match_invite: {
     scope: (s) => ["code", s.code],
     public: nobody,
+    player: nobody,
     fresh: (row) => ({ ...row, code: freshId() }),
     touch: (row) => ({ created_at: Number(row.created_at) + 1 }),
   },
   notify_queue: {
     scope: byMatch,
     public: nobody,
+    player: nobody,
     fresh: (row, s) => ({ ...row, match_id: s.spareId }),
     touch: () => ({ sent_at: NOW }),
   },
   entitlement: {
     scope: (s) => ["player", s.player],
     public: nobody,
+    player: () => true,
     fresh: (row) => Object.fromEntries(Object.entries(row).filter(([column]) => column !== "id")),
     touch: () => ({ source: "touched" }),
   },
@@ -135,22 +146,19 @@ await onLocalStack("row-level security across every table on the local Supabase 
 
   beforeAll(async () => {
     service = client(keys.url, keys.serviceKey);
-    const [lio, sae, stranger] = [
-      await makeUser(keys, service, "rls-lio"),
-      await makeUser(keys, service, "rls-sae"),
-      await makeUser(keys, service, "rls-stranger"),
-    ];
-    users.push(lio!, sae!, stranger!);
+    // Each id is kept for clean-up as soon as it exists, so a setup that fails part-way leaves nothing behind.
+    for (const name of ["rls-lio", "rls-sae", "rls-stranger"]) users.push(await makeUser(keys, service, name));
+    const [lio, sae, stranger] = users;
     clients.player = lio!.db;
     clients.stranger = stranger!.db;
     clients.signedOut = client(keys.url, keys.anonKey);
 
     const game = newGame({ lio: lio!.id, sae: sae!.id });
-    await putIn(service, writeOf(game));
     const spare = newGame({ lio: lio!.id, sae: sae!.id });
-    await insert("match", rowsFor(writeOf(spare)).match);
     seeded = { matchId: game.record.matchId, spareId: spare.record.matchId, code: freshId(), player: lio!.id };
     matchIds.push(seeded.matchId, seeded.spareId);
+    await putIn(service, writeOf(game));
+    await insert("match", rowsFor(writeOf(spare)).match);
     await insert("match_invite", {
       code: seeded.code,
       host_id: lio!.id,
@@ -184,6 +192,11 @@ await onLocalStack("row-level security across every table on the local Supabase 
     const expected = all.filter(CATALOGUE[table]!.public);
     expect(await rowsOf(clients.stranger, table)).toEqual(expected);
     expect(await rowsOf(clients.signedOut, table)).toEqual(expected);
+  });
+
+  it.each(TABLES)("%s: the LIO player reads only the rows CATALOGUE says they may read", async (table) => {
+    const all = await rowsOf(ready(service), table);
+    expect(await rowsOf(clients.player, table)).toEqual(all.filter(CATALOGUE[table]!.player));
   });
 
   it.each(TABLES)(
