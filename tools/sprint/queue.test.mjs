@@ -192,6 +192,13 @@ test("identity says whether the queue can run as the account gh is signed in as"
   const as = (login) => JSON.parse(main(["identity"], { gh: fakeGh({ login }).gh, docText: DOC_TEXT }).out);
   assert.deepEqual(as("greenbeanbot"), { login: "greenbeanbot", ok: true });
   assert.deepEqual(as("astevegreen"), { login: "astevegreen", ok: false });
+  const { gh, calls } = fakeGh({ login: "astevegreen" });
+  assert.match(
+    JSON.parse(main(["frobnicate"], { gh, docText: DOC_TEXT }).out).error,
+    /^usage:/,
+    "usage, not a refusal",
+  );
+  assert.deepEqual(calls, [], "a bad command line asks GitHub nothing");
 });
 
 test("env names the computer from docs/sprint.md without asking GitHub, and stops while it's a placeholder", () => {

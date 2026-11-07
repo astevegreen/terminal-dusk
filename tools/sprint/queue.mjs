@@ -224,6 +224,7 @@ export function identity(gh) {
   const login = gh(["api", "user", "--jq", ".login"]).trim();
   return { login, ok: login !== OWNER };
 }
+const READS_COMMENTS = new Set(["has-work", "night-shift", "next", "backlog", "status", "digest", "move"]);
 const ownerRefusal = (login) =>
   `gh is signed in as ${login}, the owner, so the queue would read the agents' own comments as the owner's answers. ` +
   "Sprints and the night shift wait until gh is signed in as another account; never run `gh auth switch` yourself";
@@ -267,8 +268,9 @@ export function main(
       return line(resumeAfter(stdin(), { lastEventAt: option(argv, "--last-event"), now: clock }));
     }
     if (argv[0] === "identity") return line(identity(gh));
-    // Every command below reads the issues' comments; a recorded sprint (--fixture) asks GitHub nothing.
-    if (!fixture) {
+    // These commands read the issues' comments; a recorded sprint (--fixture) asks GitHub nothing, and a bad command
+    // line gets the usage text below without asking GitHub.
+    if (!fixture && READS_COMMENTS.has(argv[0])) {
       const who = identity(gh);
       if (!who.ok) throw new Error(ownerRefusal(who.login));
     }
