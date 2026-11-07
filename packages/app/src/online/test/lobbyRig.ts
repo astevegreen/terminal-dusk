@@ -15,13 +15,15 @@ export type LobbyRig = {
   seen: LobbySnapshot[];
 };
 
-export function lobbyRig(token: string | null = TOKEN): LobbyRig {
+/** `token` is what every accessToken call gives; an Error makes each call reject with it, as a refresh that fails
+ * for a moment does once the old token has expired. */
+export function lobbyRig(token: string | null | Error = TOKEN): LobbyRig {
   const fake = createFakeLobby();
   const copied: string[] = [];
   const lobby = createLobbySession({
     endpoint: fake.endpoint,
     playerId: PLAYER,
-    accessToken: () => Promise.resolve(token),
+    accessToken: () => (token instanceof Error ? Promise.reject(token) : Promise.resolve(token)),
     platform: "web",
     copy: (text) => {
       copied.push(text);

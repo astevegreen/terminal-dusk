@@ -26,10 +26,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - The in-memory stores (`MemoryStore`, `MemoryInviteStore`, `MemoryNotifyStore`) and their Supabase twins are tested
   separately; one shared contract suite run against both (the Supabase run on the stack) would catch the fakes
   drifting from the real tables. [6 Nov 2026, test-suite audit]
-- With an access token already expired, a refresh that fails for a moment makes `accessToken()` return null while
-  the player still shows as signed in, so the game screen refuses with "Sign in to play." and the lobby with "You
-  are signed out." (`packages/app/src/transport/remoteMatch.ts:146`, `packages/app/src/online/lobby.ts:44`). A
-  network refusal is the honest message there; no test covers the path. [7 Nov 2026, PR #528 review]
 
 ## Tests and tooling
 

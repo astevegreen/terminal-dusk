@@ -58,7 +58,8 @@ describe("createSignIn: a refresh that fails for a moment keeps the player signe
       await r.signIn.start();
       r.clock.now = STORED.expiresAt;
       r.fake.answerNext(answer);
-      expect(await r.signIn.accessToken()).toBeNull();
+      // Rejects rather than resolving null: null would read as "signed out" to the lobby and the match.
+      await expect(r.signIn.accessToken()).rejects.toThrow();
       await settle();
       expect(JSON.parse((await r.store.get(SESSION_KEY)) ?? "null")).toEqual(STORED);
       expect(r.signIn.getSnapshot()).toEqual({ kind: "signedIn", userId: "user-0", busy: false, refusal: null });
@@ -87,6 +88,20 @@ describe("createSignIn: late results are ignored", () => {
     expect(r.fake.requests).toHaveLength(1);
     expect(await r.store.get(SESSION_KEY)).toBeNull();
     expect(r.seen).toHaveLength(seenAtSignOut);
+    expect(r.signIn.getSnapshot()).toEqual({ kind: "email", busy: false, refusal: null });
+  });
+
+  it("a refresh that fails for a moment after signOut resolves null, since the player is now signed out", async () => {
+    const r = await rigWith(STORED);
+    await r.signIn.start();
+    r.clock.now = STORED.expiresAt;
+    r.fake.answerNext("throw");
+    const release = r.fake.hold();
+    const token = r.signIn.accessToken();
+    await settle();
+    await r.signIn.signOut();
+    release();
+    expect(await token).toBeNull();
     expect(r.signIn.getSnapshot()).toEqual({ kind: "email", busy: false, refusal: null });
   });
 

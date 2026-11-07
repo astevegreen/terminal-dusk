@@ -104,6 +104,15 @@ describe("remote transport: sending", () => {
     expect(r.fake.current().record.seq).toBe(0);
   });
 
+  it("a token that can't be had for now (the refresh failed for a moment) gives networkError, not notSignedIn", async () => {
+    const r = rig();
+    const move = nextMove(r.fake.current());
+    const t = r.transportAs(move.player, r.fake.fetch, () => Promise.reject(new Error("refresh failed")));
+    expect(await t.submit(move.args)).toMatchObject({ ok: false, error: { code: "networkError" } });
+    expect(await t.resign()).toMatchObject({ ok: false, error: { code: "networkError" } });
+    expect(posts(r.fake.requests)).toHaveLength(0);
+  });
+
   it("two answers sent together are posted one after the other, in order", async () => {
     const r = rig();
     const move = nextMove(r.fake.current());

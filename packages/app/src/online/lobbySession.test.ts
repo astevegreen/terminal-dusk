@@ -240,6 +240,28 @@ describe("join", () => {
   });
 });
 
+describe("a token that can't be had for now (the refresh failed for a moment)", () => {
+  const unreachable = () => lobbyRig(new Error("the refresh failed for a moment"));
+  it("My games shows network, not notSignedIn, without a request", async () => {
+    const r = unreachable();
+    await r.lobby.start();
+    expect(r.lobby.getSnapshot().games).toEqual({ busy: false, list: null, refusal: "network" });
+    expect(r.fake.requests).toHaveLength(0);
+  });
+  it("create shows network, not notSignedIn, without a request", async () => {
+    const r = unreachable();
+    await r.lobby.create();
+    expect(r.lobby.getSnapshot().create).toEqual({ busy: false, code: null, refusal: "network" });
+    expect(r.fake.requests).toHaveLength(0);
+  });
+  it("join shows network, not notSignedIn, without a request", async () => {
+    const r = unreachable();
+    await r.lobby.join("abc123");
+    expect(r.lobby.getSnapshot().join).toEqual({ busy: false, askSide: null, joined: null, refusal: "network" });
+    expect(r.fake.requests).toHaveLength(0);
+  });
+});
+
 describe("secrets", () => {
   it("no snapshot ever holds the token", async () => {
     const r = await startedRig([matchRow()]);

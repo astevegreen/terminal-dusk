@@ -79,14 +79,14 @@ describe("sessionToken", () => {
     expect(r.saved).toHaveLength(1);
   });
 
-  it("resolves null after a failed refresh without calling save or throwing, and the next call tries again", async () => {
+  it("a refused refresh resolves null and one that fails for a moment rejects; neither saves, and the next call tries again", async () => {
     const r = rig();
     const token = tokenFor(r);
     r.clock.now = SESSION.expiresAt;
     r.fake.answerNext({ status: 400, body: { msg: "Invalid Refresh Token" } });
     expect(await token()).toBeNull();
     r.fake.answerNext("throw");
-    expect(await token()).toBeNull();
+    await expect(token()).rejects.toThrow();
     expect(r.saved).toHaveLength(0);
     expect(await token()).toBe("access-r1");
     expect(r.fake.requests).toHaveLength(3);
@@ -100,12 +100,31 @@ describe("sessionToken", () => {
     r.clock.now = SESSION.expiresAt;
     for (const answer of ["throw", { status: 503, body: {} }, { status: 429, body: {} }] as const) {
       r.fake.answerNext(answer);
-      expect(await token()).toBeNull();
+      await expect(token()).rejects.toThrow();
     }
     expect(r.refused).toBe(0);
     r.fake.answerNext({ status: 400, body: { msg: "Invalid Refresh Token" } });
     expect(await token()).toBeNull();
     expect(r.refused).toBe(1);
+  });
+
+  it("a refresh that fails for a moment after the old token expired rejects, naming no token, so the caller says the server can't be reached", async () => {
+    const r = rig();
+    const token = tokenFor(r);
+    r.clock.now = SESSION.expiresAt + 1;
+    for (const answer of ["throw", { status: 503, body: {} }, { status: 429, body: {} }] as const) {
+      r.fake.answerNext(answer);
+      const error = await token().then(
+        () => null,
+        (e: unknown) => e,
+      );
+      expect(error).toBeInstanceOf(Error);
+      for (const secret of [SESSION.accessToken, SESSION.refreshToken])
+        expect((error as Error).message).not.toContain(secret);
+    }
+    expect(r.refused).toBe(0);
+    expect(r.saved).toHaveLength(0);
+    expect(await token()).toBe("access-r1");
   });
 
   it("a refresh that fails for a moment while the old token still has time left returns the old token", async () => {
