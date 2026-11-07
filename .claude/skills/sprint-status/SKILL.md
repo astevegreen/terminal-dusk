@@ -1,6 +1,7 @@
 ---
 name: sprint-status
-description: Short sprint status, read from the sprint log's status block. Use when the owner asks how the sprint is going, whether it is running, or what waits on them.
+description: Short sprint status from the sprint log (sprint-only; invoke as /sprint-status).
+disable-model-invocation: true
 model: sonnet
 ---
 Read the status block: the body of the sprint log issue named in `docs/sprint.md`

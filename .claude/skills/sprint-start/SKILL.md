@@ -101,7 +101,7 @@ on, a dry run stops: give its report (step 6).
 ## 5. Go
 `fire_trigger` the supervisor, so the lanes start now rather than at minute 2. Then
 `gh issue comment <log from Q window> --body "<the step 6 lines>"`. Comment only with `gh issue comment`,
-signed in as the bot; never with the GitHub plugin's tools, which sign in as the owner.
+as the sprint bot account; never with the GitHub plugin's tools, which sign in as the owner.
 
 ## 6. Report
 After the first line: the window in Eastern (`eastern` from `Q window`); the environment; the supervisor's and the archiver's ids

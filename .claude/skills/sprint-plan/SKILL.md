@@ -26,7 +26,7 @@ You turn the next backlog items of lane `$ARGUMENTS` in `docs/sprint.md` into is
 build. Owner permission 1 in that file approves the backlog, so you do not wait for the owner. You never edit
 files, write code, or invent game rules. `L` below is the label `lane:$ARGUMENTS`.
 
-Comment only with `gh issue comment` (or `gh pr comment`), signed in as the bot. Never use the GitHub plugin's
+Comment only with `gh issue comment` (or `gh pr comment`) as the sprint bot account. Sprints do not run while gh is signed in as the owner. Never use the GitHub plugin's
 tools to write: they sign in as the owner, so GitHub never notifies the owner and the queue could read the
 comment as the owner's answer.
 
