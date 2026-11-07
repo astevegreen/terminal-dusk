@@ -4,7 +4,9 @@
 // Then, for every table, a player of the test match, a signed-in stranger and a signed-out client:
 // - read only the rows CATALOGUE says they may read: the player their own side's rows and their own entitlement,
 //   the stranger and the signed-out client only the rows anyone may read;
-// - are refused any insert, update or delete outright (only the server writes, with the service role).
+// - are refused any insert, update or delete outright (only the server writes, with the service role);
+// - read the active match's seed as null, since every match row is public.
+// A failing check prints row positions, never rows, so no secret state or seed reaches a CI log.
 // Without a running local stack, one test says so and how to start it.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, expect, it } from "vitest";
@@ -132,6 +134,16 @@ await onLocalStack("row-level security across every table on the local Supabase 
       .insert(row as never);
     if (error) throw new Error(`could not put in the ${table} test row: ${error.code}`);
   };
+  /**
+   * Where each of `read` sits in `all`, or -1 for a row not there. Checks compare these positions, never the rows
+   * themselves, so a failing check prints no secret state or seed into a public CI log.
+   */
+  const positions = (all: Row[], read: Row[]): number[] => {
+    const texts = all.map((row) => JSON.stringify(row));
+    return read.map((row) => texts.indexOf(JSON.stringify(row)));
+  };
+  const positionsWhere = (all: Row[], keep: (row: Row) => boolean): number[] =>
+    all.flatMap((row, i) => (keep(row) ? [i] : []));
   /** This test's rows of a table, as `db` reads them, in a fixed order; a permission error reads as no rows. */
   const rowsOf = async (db: SupabaseClient, table: string): Promise<Row[]> => {
     const [column, value] = CATALOGUE[table]!.scope(ready(seeded));
@@ -189,14 +201,24 @@ await onLocalStack("row-level security across every table on the local Supabase 
 
   it.each(TABLES)("%s: a stranger and a signed-out client read only the rows anyone may read", async (table) => {
     const all = await rowsOf(ready(service), table);
-    const expected = all.filter(CATALOGUE[table]!.public);
-    expect(await rowsOf(clients.stranger, table)).toEqual(expected);
-    expect(await rowsOf(clients.signedOut, table)).toEqual(expected);
+    const expected = positionsWhere(all, CATALOGUE[table]!.public);
+    expect(positions(all, await rowsOf(clients.stranger, table)), "stranger").toEqual(expected);
+    expect(positions(all, await rowsOf(clients.signedOut, table)), "signed out").toEqual(expected);
   });
 
   it.each(TABLES)("%s: the LIO player reads only the rows CATALOGUE says they may read", async (table) => {
     const all = await rowsOf(ready(service), table);
-    expect(await rowsOf(clients.player, table)).toEqual(all.filter(CATALOGUE[table]!.player));
+    expect(positions(all, await rowsOf(clients.player, table))).toEqual(positionsWhere(all, CATALOGUE[table]!.player));
+  });
+
+  it("the active test match's seed reads as null for everyone, the server included, until the game is over", async () => {
+    // Every match row is public, so the seed column must hold nothing while the game is active.
+    for (const [who, db] of [["service", ready(service)], ...WHO.map((w) => [w, clients[w]] as const)] as const) {
+      const { data, error } = await db.from("match").select("seed").eq("match_id", ready(seeded).matchId);
+      expect(error?.code, `${who} reading the match`).toBeUndefined();
+      const seeds = (data as { seed: unknown }[]).map((row) => (row.seed === null ? "null" : "a seed"));
+      expect(seeds, `${who} reading the seed`).toEqual(["null"]);
+    }
   });
 
   it.each(TABLES)(
@@ -209,7 +231,14 @@ await onLocalStack("row-level security across every table on the local Supabase 
       const sample = before[0]!;
       for (const who of WHO) {
         const db = clients[who];
-        const inserted = await db.from(table).insert(entry.fresh(sample, s) as never);
+        const row = entry.fresh(sample, s);
+        const inserted = await db.from(table).insert(row as never);
+        // A wrongly accepted insert is removed before the check fails, so a failing run leaves no stray row.
+        if (!inserted.error)
+          await ready(service)
+            .from(table)
+            .delete()
+            .eq(column, row[column] as string);
         expect(inserted.error?.code, `${who} inserting into ${table}`).toBe(PERMISSION_DENIED);
         // Refused outright, not just hidden by row-level security: every table revokes insert, update and delete
         // from clients, so an update or delete that merely changes zero rows means the grant was left in place.
@@ -223,7 +252,9 @@ await onLocalStack("row-level security across every table on the local Supabase 
         const deleted = await db.from(table).delete().eq(column, value);
         expect(deleted.error?.code, `${who} deleting from ${table}`).toBe(PERMISSION_DENIED);
       }
-      expect(await rowsOf(ready(service), table)).toEqual(before);
+      expect(positions(before, await rowsOf(ready(service), table)), `${table} rows unchanged`).toEqual(
+        before.map((_, i) => i),
+      );
     },
   );
 });
