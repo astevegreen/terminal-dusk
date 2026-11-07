@@ -383,7 +383,9 @@ test("an empty answer with no reason is still reported", () => {
 });
 
 test("when agy is missing or prints something that is not JSON, the reason is reported", () => {
-  assert.throws(() => parseReply({ error: { code: "ENOENT" } }), { message: "agy is not installed" });
+  assert.throws(() => parseReply({ error: { code: "ENOENT" } }), {
+    message: "agy is not installed, and GEMINI_API_KEY is not set for the Gemini API",
+  });
   assert.throws(() => parseReply({ status: 1, stdout: "", stderr: "sign in first\nmore detail" }), {
     message: "agy exited 1: sign in first",
   });
