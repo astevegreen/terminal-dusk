@@ -145,8 +145,14 @@ export function createVsAiSession(options: VsAiOptions): VsAiSession {
     if (aiStopped || !decision || frame.view.public.status.kind !== "active" || asked.has(decision.id)) return;
     asked.add(decision.id);
     // An AI that fails instead of answering counts as giving no answer, so the game never waits on it for ever.
-    void ai
-      .answer(frame.view)
+    // Asked at once, as before; an AI that throws before giving a promise fails the same way as one that rejects.
+    let answer: Promise<AnswerValue | null>;
+    try {
+      answer = ai.answer(frame.view);
+    } catch (error) {
+      answer = Promise.reject(error);
+    }
+    void answer
       .catch(() => null)
       .then((value) => send(decision.id, value))
       .catch(() => {
