@@ -27,10 +27,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - `remoteMatch` polling (`packages/app/src/transport/remoteMatch.ts:89`) treats a 401 like any failed read and keeps
   polling, so an expired or revoked session shows a game that silently stops updating. It could surface
   `notSignedIn` to the screen; how the screen shows it is a UI choice. [6 Nov 2026, test-suite audit]
-- No stack test checks row-level security across the whole table catalogue: each table's own migration test checks
-  its policies, but a new table with RLS left off would pass. A stack test that lists every public table and
-  proves a signed-in client can neither read another player's rows nor write any would close it. Stack-only, so
-  unverified in cloud sessions (no Docker). [6 Nov 2026, test-suite audit]
 - The in-memory stores (`MemoryStore`, `MemoryInviteStore`, `MemoryNotifyStore`) and their Supabase twins are tested
   separately; one shared contract suite run against both (the Supabase run on the stack) would catch the fakes
   drifting from the real tables. [6 Nov 2026, test-suite audit]
