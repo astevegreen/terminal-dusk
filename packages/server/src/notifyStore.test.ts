@@ -231,12 +231,18 @@ describe("MemoryNotifyStore.waitingSeq", () => {
     expect(await store.waitingSeq(read!)).toBe(3);
   });
 
-  it("gives null when nothing is stored, the stored alert has another seq, or it is sent", async () => {
+  it("gives null when nothing is stored or the stored alert has another seq", async () => {
     const store = new MemoryNotifyStore();
     expect(await store.waitingSeq(alert("m1", "alice", 1))).toBeNull();
     await store.queue([alert("m1", "alice", 2)]);
     expect(await store.waitingSeq(alert("m1", "alice", 1))).toBeNull();
+  });
+
+  it("answers for a sent (claimed) alert too, with any raise keep made while it was claimed", async () => {
+    const store = new MemoryNotifyStore();
+    await store.queue([alert("m1", "alice", 2)]);
     await store.markSent(alert("m1", "alice", 2), T + D);
-    expect(await store.waitingSeq(alert("m1", "alice", 2))).toBeNull();
+    await store.keep("m1", "alice", 4);
+    expect(await store.waitingSeq(alert("m1", "alice", 2))).toBe(4);
   });
 });

@@ -49,8 +49,9 @@ export interface NotifyStore {
    */
   release(alert: TurnAlert, sentAt: number): Promise<void>;
   /**
-   * The stored `waitingSeq` of the alert's (match, player), as it is now: `null` when nothing is stored, the
-   * stored alert has another seq, or it is already sent. The sweep re-reads it before marking an alert stale.
+   * The stored `waitingSeq` of the alert's (match, player), as it is now: `null` when nothing is stored or the
+   * stored alert has another seq. The sweep re-reads it before marking an alert stale. A sent alert answers too:
+   * it may be another sweep's claim whose email then fails, and marking it stale once given back would lose it.
    */
   waitingSeq(alert: TurnAlert): Promise<number | null>;
 }
@@ -126,7 +127,7 @@ export class MemoryNotifyStore implements NotifyStore {
   waitingSeq(alert: TurnAlert): Promise<number | null> {
     return later(() => {
       const found = this.#alerts.get(keyOf(alert.matchId, alert.player));
-      return found && found.alert.seq === alert.seq && found.sentAt === null ? found.alert.waitingSeq : null;
+      return found && found.alert.seq === alert.seq ? found.alert.waitingSeq : null;
     });
   }
 

@@ -174,7 +174,7 @@ describe("SupabaseNotifyStore.release", () => {
 });
 
 describe("SupabaseNotifyStore.waitingSeq", () => {
-  it("reads waiting_seq from the player's row for the match, only where the seq is the alert's and it is unsent", async () => {
+  it("reads waiting_seq from the player's row for the match, only where the seq is the alert's, sent or not", async () => {
     const { db, calls } = fakeClient({ data: { waiting_seq: 4 }, error: null });
     expect(await new SupabaseNotifyStore(db).waitingSeq(alert("m1", ALICE, 2))).toBe(4);
     expect(calls).toEqual([
@@ -183,7 +183,6 @@ describe("SupabaseNotifyStore.waitingSeq", () => {
       ["eq", "match_id", "m1"],
       ["eq", "player", ALICE],
       ["eq", "seq", 2],
-      ["is", "sent_at", null],
       ["maybeSingle"],
     ]);
   });

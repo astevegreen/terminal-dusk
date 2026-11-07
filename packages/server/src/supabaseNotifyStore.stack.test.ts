@@ -179,13 +179,13 @@ await onLocalStack("SupabaseNotifyStore on the local Supabase stack", (keys) => 
     expect(await dueOf(T + D, [m1!])).toEqual([alert(m1!, alice(), 2)]);
   }, 60_000);
 
-  it("waitingSeq gives the row's waiting_seq as it is now, or null for another seq or a sent alert", async () => {
+  it("waitingSeq gives the row's waiting_seq as it is now, sent (claimed) or not, or null for another seq", async () => {
     const [m1] = await matches(1);
     await store().queue([alert(m1!, alice(), 2), alert(m1!, bob(), 2)]);
     await store().keep(m1!, alice(), 4);
     await store().markSent(alert(m1!, bob(), 2), T + D);
     expect(await store().waitingSeq(alert(m1!, alice(), 2))).toBe(4);
     expect(await store().waitingSeq(alert(m1!, alice(), 1))).toBeNull();
-    expect(await store().waitingSeq(alert(m1!, bob(), 2))).toBeNull();
+    expect(await store().waitingSeq(alert(m1!, bob(), 2))).toBe(2);
   }, 60_000);
 });

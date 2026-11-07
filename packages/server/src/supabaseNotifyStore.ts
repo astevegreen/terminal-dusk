@@ -153,7 +153,7 @@ export class SupabaseNotifyStore implements NotifyStore {
     );
   }
 
-  /** One read of the alert's row, only where its seq is the alert's and it is unsent. */
+  /** One read of the alert's row, only where its seq is the alert's, claimed (sent) or not. */
   async waitingSeq(alert: TurnAlert): Promise<number | null> {
     const data = await call("waitingSeq", alert.matchId, () =>
       this.#db
@@ -162,7 +162,6 @@ export class SupabaseNotifyStore implements NotifyStore {
         .eq("match_id", alert.matchId)
         .eq("player", alert.player)
         .eq("seq", alert.seq)
-        .is("sent_at", null)
         .maybeSingle(),
     );
     if (data === null) return null;
