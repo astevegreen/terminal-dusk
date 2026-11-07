@@ -48,17 +48,31 @@ export type AiRequest =
 
 export type AiResponse = { kind: "answer"; id: number; value: AnswerValue | null };
 
-/** The worker's logic as a plain function: `start` makes the player, `answer` asks it. `options` goes to Hard. */
+/**
+ * The worker's logic as a plain function: `start` makes the player, `answer` asks it. `options` goes to Hard.
+ * It never throws, so the worker always replies: a start that throws leaves no player, and an answer whose player
+ * throws (or that comes with no player) is value null, which the app shows as the AI giving no answer.
+ */
 export function createAiWorkerHandler(options: PlayerOptions = {}): (request: AiRequest) => AiResponse | null {
   let player: ((view: PlayerView) => AnswerValue | null) | null = null;
   return (request) => {
     if (request.kind === "start") {
       const { ruleset, side, seed } = request;
-      if (request.tier === "hard") player = createHardPlayer(ruleset, side, seed, options);
-      else if (request.tier === "medium") player = createMediumPlayer(ruleset, side, seed);
-      else player = createEasyPlayer(ruleset, side, seed);
+      try {
+        if (request.tier === "hard") player = createHardPlayer(ruleset, side, seed, options);
+        else if (request.tier === "medium") player = createMediumPlayer(ruleset, side, seed);
+        else player = createEasyPlayer(ruleset, side, seed);
+      } catch {
+        player = null;
+      }
       return null;
     }
-    return { kind: "answer", id: request.id, value: player ? player(request.view) : null };
+    let value: AnswerValue | null;
+    try {
+      value = player ? player(request.view) : null;
+    } catch {
+      value = null;
+    }
+    return { kind: "answer", id: request.id, value };
   };
 }

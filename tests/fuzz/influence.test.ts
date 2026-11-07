@@ -6,7 +6,7 @@ import { createGame } from "@terminal-dusk/engine";
 import type { GameState, PublicState, Setup } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { checkInfluence } from "./checks.ts";
-import { gameCount, playGame, randomChooser, randomGame, ruleset } from "./play.ts";
+import { mapGameCount, playGame, randomChooser, randomGame, ruleset } from "./play.ts";
 import type { Played } from "./play.ts";
 import { seededRng } from "./random.ts";
 import { onTestMap } from "./testMap.ts";
@@ -14,8 +14,8 @@ import { onTestMap } from "./testMap.ts";
 // tests/ has no Node type definitions; this is the one Node global the suite reads.
 declare const process: { readonly env: Readonly<Record<string, string | undefined>> };
 
-// Capped, as neutral.test.ts is: these games run every check, the map's included, and take longer than engine.test.ts's.
-const GAMES = Math.min(gameCount(process.env["FUZZ_GAMES"]), 200);
+// A fifth of FUZZ_GAMES (mapGameCount): these games run every check, the map's included, and take longer than engine.test.ts's.
+const GAMES = mapGameCount(process.env["FUZZ_GAMES"]);
 
 /** A fresh copy of the content test map, as a Setup's `map`. */
 const testMap = (): NonNullable<Setup["map"]> => scenarioSetup(TEST_MAP_SCENARIO).map!;
@@ -109,19 +109,23 @@ describe("the influence check", () => {
 });
 
 describe("random games with the content test map", () => {
-  it(`plays ${GAMES} random games with TEST_MAP_SCENARIO's map to the end, and every check holds at every step`, () => {
-    let finished = 0;
-    let laterEra = 0;
-    for (let game = 1; game <= GAMES; game++) {
-      const { final, record } = playMapGame(game);
-      if (final.public.era !== record.setup.firstEra) laterEra++;
-      expect(final.public.influence!.map((e) => e.country)).toEqual(testMap().countries.map((c) => c.id));
-      // Escalation starts at 2 and falls by 1 at the end of every turn, the last included (R17a).
-      expect(final.public.escalation).toBe(Math.max(0, 2 - record.setup.turns));
-      if (final.public.status.kind === "over") finished++;
-    }
-    expect(finished).toBe(GAMES);
-    // Some games end in a later era, so the era check also runs after an era has entered.
-    expect(laterEra).toBeGreaterThan(0);
-  }, 120_000);
+  it(
+    `plays ${GAMES} random games with TEST_MAP_SCENARIO's map to the end, and every check holds at every step`,
+    () => {
+      let finished = 0;
+      let laterEra = 0;
+      for (let game = 1; game <= GAMES; game++) {
+        const { final, record } = playMapGame(game);
+        if (final.public.era !== record.setup.firstEra) laterEra++;
+        expect(final.public.influence!.map((e) => e.country)).toEqual(testMap().countries.map((c) => c.id));
+        // Escalation starts at 2 and falls by 1 at the end of every turn, the last included (R17a).
+        expect(final.public.escalation).toBe(Math.max(0, 2 - record.setup.turns));
+        if (final.public.status.kind === "over") finished++;
+      }
+      expect(finished).toBe(GAMES);
+      // Some games end in a later era, so the era check also runs after an era has entered.
+      expect(laterEra).toBeGreaterThan(0);
+    },
+    Math.max(120_000, GAMES * 300),
+  );
 });

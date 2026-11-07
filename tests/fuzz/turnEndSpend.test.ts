@@ -4,7 +4,7 @@
 import type { Ruleset, Side, Step } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { deepFreeze } from "./deepFreeze.ts";
-import { gameCount, playGame, randomChooser, randomGame, ruleset } from "./play.ts";
+import { mapGameCount, playGame, randomChooser, randomGame, ruleset } from "./play.ts";
 import type { Chooser } from "./play.ts";
 import { seededRng } from "./random.ts";
 import { onTestMap } from "./testMap.ts";
@@ -12,8 +12,8 @@ import { onTestMap } from "./testMap.ts";
 // tests/ has no Node type definitions; this is the one Node global the suite reads.
 declare const process: { readonly env: Readonly<Record<string, string | undefined>> };
 
-// Capped, as influence.test.ts is: map games run every check and take longer than engine.test.ts's.
-const GAMES = Math.min(gameCount(process.env["FUZZ_GAMES"]), 200);
+// A fifth of FUZZ_GAMES (mapGameCount), as influence.test.ts: map games run every check and take longer.
+const GAMES = mapGameCount(process.env["FUZZ_GAMES"]);
 
 /** Card `i`'s turn-end payment, on every third card: 1 or 2 points, for LIO or SAE in turn. */
 function paymentOf(i: number): Step[] {
@@ -31,20 +31,24 @@ const paymentRuleset: Ruleset = deepFreeze({
 });
 
 describe("turn-end payment fuzz games (#426)", () => {
-  it(`plays ${GAMES} map games with turn-end payments to the end, every check at every step, and the payments place influence`, () => {
-    let placedAtTurnEnd = 0;
-    for (let game = 1; game <= GAMES; game++) {
-      const rng = seededRng(game);
-      const { setup, seed } = randomGame(rng, game);
-      const random = randomChooser(paymentRuleset, rng);
-      const counting: Chooser = (state) => {
-        const asked = state.public.pending.some((d) => d.kind === "placeInfluence");
-        if (state.public.turnEndFired && asked) placedAtTurnEnd++;
-        return random(state);
-      };
-      const { final } = playGame(paymentRuleset, `Turn-end payment game ${game}`, onTestMap(setup), seed, counting);
-      expect(final.public.status.kind).toBe("over");
-    }
-    expect(placedAtTurnEnd).toBeGreaterThan(0);
-  }, 120_000); // The same limit as influence.test.ts's map games, also capped at 200.
+  it(
+    `plays ${GAMES} map games with turn-end payments to the end, every check at every step, and the payments place influence`,
+    () => {
+      let placedAtTurnEnd = 0;
+      for (let game = 1; game <= GAMES; game++) {
+        const rng = seededRng(game);
+        const { setup, seed } = randomGame(rng, game);
+        const random = randomChooser(paymentRuleset, rng);
+        const counting: Chooser = (state) => {
+          const asked = state.public.pending.some((d) => d.kind === "placeInfluence");
+          if (state.public.turnEndFired && asked) placedAtTurnEnd++;
+          return random(state);
+        };
+        const { final } = playGame(paymentRuleset, `Turn-end payment game ${game}`, onTestMap(setup), seed, counting);
+        expect(final.public.status.kind).toBe("over");
+      }
+      expect(placedAtTurnEnd).toBeGreaterThan(0);
+    },
+    Math.max(120_000, GAMES * 300),
+  ); // As influence.test.ts's map games: room for about 300 ms a game.
 });

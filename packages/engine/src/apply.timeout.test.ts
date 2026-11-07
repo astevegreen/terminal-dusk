@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { apply } from "./apply.ts";
 import type { Answer, GameState, Side } from "./index.ts";
 import { otherSide } from "./types.ts";
-import { deepFreeze } from "./test/deepFreeze.ts";
 import { accepted, cardAnswer, playAnswers, ruleset, startAtPlay, startGame } from "./test/game.ts";
 
 const code = (r: ReturnType<typeof apply>) => (r.ok ? "ok" : r.error.code);
@@ -67,10 +66,5 @@ describe("apply: timeout", () => {
     expect(over.public.status.kind).toBe("over");
     expect(code(apply(ruleset, over, timeout("lio")))).toBe("gameOver");
     expect(code(apply(ruleset, over, timeout("sae")))).toBe("gameOver");
-  });
-  it("never changes deep-frozen inputs", () => {
-    const s = deepFreeze(startGame());
-    const r = apply(deepFreeze({ ...ruleset }), s, deepFreeze(timeout("lio")));
-    expect(r.ok).toBe(true);
   });
 });

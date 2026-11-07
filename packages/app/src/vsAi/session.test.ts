@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { fixtureConfig, fixtureRuleset } from "../testMode/fixture.ts";
 import { createLocalMatch } from "../transport/localMatch.ts";
 import type { LocalMatch } from "../transport/localMatch.ts";
-import { createVsAiSession } from "./session.ts";
+import { createVsAiSession, NO_ANSWER } from "./session.ts";
 import type { VsAiSession } from "./session.ts";
 import { flush, playOut, pressFirst } from "./test/scriptedHuman.ts";
 import { standInAi } from "./test/standInAi.ts";
@@ -149,6 +149,27 @@ describe("a refused AI answer", () => {
     await flush();
     expect(standIn.asked).toHaveLength(1);
     expect(session.getSnapshot().refusal).toBeNull();
+  });
+});
+
+describe("an AI that fails instead of answering", () => {
+  it("sets aiRefusal and stops the AI, so the game does not wait on it for ever", async () => {
+    let stops = 0;
+    const session = createVsAiSession({
+      human: "lio",
+      gameSeed: GAME_SEED,
+      aiSeed: 11,
+      clock,
+      makeAi: () => ({
+        answer: () => Promise.reject(new Error("the AI crashed")),
+        stop: () => {
+          stops++;
+        },
+      }),
+    });
+    await flush();
+    expect(session.getSnapshot().aiRefusal).toBe(NO_ANSWER);
+    expect(stops).toBe(1);
   });
 });
 

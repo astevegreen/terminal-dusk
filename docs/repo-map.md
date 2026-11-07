@@ -231,7 +231,6 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/online/onlineGame.deadline.test.ts`
 - `packages/app/src/online/onlineGame.test.ts`
 - `packages/app/src/online/onlineGame.ts` - The client side of one online game, with no screen (docs/architecture.md, Decision 5): runs the remote transport with real timers, keeps the latest frame and t… Exports: OnlineTurn, OnlineGameSnapshot, OnlineGameOptions, OnlineGame, DEFAULT_POLL_MS, turnOf, createOnlineGame.
-- `packages/app/src/online/onlineGame.wiring.test.ts`
 - `packages/app/src/online/signIn.test.ts`
 - `packages/app/src/online/signIn.token.test.ts`
 - `packages/app/src/online/signIn.ts` - The state behind signing in by email code (docs/architecture.md, Decisions 5 and 7): asks for a code, trades it for a session through transport/emailAuth.ts, k… Exports: SESSION_KEY, SignInSnapshot, SignInOptions, SignIn, createSignIn.
@@ -260,6 +259,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/replay/recording.test.ts`
 - `packages/app/src/replay/recording.ts` - What the app is allowed to hold of a finished game: the frames and the final status, but never the archive's seed, setup or move log (CLAUDE.md, Never). Exports: ReplayRecording, toRecording.
 - `packages/app/src/replay/replayScreen.css`
+- `packages/app/src/test/html.test.ts`
+- `packages/app/src/test/html.ts` - Test helper: finds an opening tag in rendered HTML by its name and attributes, in any attribute order, so a test says which attributes matter instead of pinnin… Exports: tagAt, hasTag.
 - `packages/app/src/test/order.test.ts`
 - `packages/app/src/test/order.ts` - Compare function for sorting strings in UTF-16 code-unit order: the same order as a sort with no compare function, written out so the order is explicit. Exports: byCodeUnit.
 - `packages/app/src/test/promptProps.ts` - Test helper: the props a decision prompt needs when the decision lists no cards (placing, action choice). Exports: testCountryName, promptProps.
@@ -284,9 +285,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/transport/remoteMatch.test.ts`
 - `packages/app/src/transport/remoteMatch.ts` - The online transport (docs/architecture.md, Decisions 3 and 5): one caller's window onto one match on Supabase. Exports: RemoteMatchOptions, createRemoteMatch.
 - `packages/app/src/transport/sessionToken.test.ts`
-- `packages/app/src/transport/test/fakeAuth.ts` - A fake Supabase Auth for the email-code client's tests: a fake `fetch` that records every request and answers with whatever the test queued, or a stock success… Exports: AUTH_URL, AUTH_ANON_KEY, AuthRequest, AuthAnswer, sessionBody, FakeAuth, createFakeAuth.
+- `packages/app/src/transport/stackRequired.test.ts` - The rehearsal's "did not run" test fails in CI when the stack's keys are set, like packages/server's stack tests: a stack that does not answer there is a failu…
+- `packages/app/src/transport/test/fakeAuth.ts` - A fake Supabase Auth for the email-code client's tests: a fake `fetch` that records every request and answers with whatever the test queued, or a stock reply f… Exports: AUTH_URL, AUTH_ANON_KEY, AuthRequest, AuthAnswer, sessionBody, FakeAuth, createFakeAuth.
 - `packages/app/src/transport/test/fakeSupabase.ts` - A fake Supabase for the remote transport's tests: one match run by the real host, served over a fake `fetch`. Exports: URL_BASE, ANON_KEY, FakeRequest, FakeSupabase, createFakeSupabase.
-- `packages/app/src/transport/test/localStack.ts` - The phase 4 rehearsal's link to the local Supabase stack (docs/sprint.md, lane "online": no hosted project). Exports: HOW_TO_START, StackKeys, stackKeys, whyUnavailable, StackUser, makeUser, grantWeb, openMatch, serverSnapshot, cleanUp.
+- `packages/app/src/transport/test/localStack.ts` - The phase 4 rehearsal's link to the local Supabase stack (docs/sprint.md, lane "online": no hosted project). Exports: HOW_TO_START, StackKeys, stackKeys, stackRequired, didNotRun, whyUnavailable, StackUser, makeUser, grantWeb, openMatch, serverSnapshot, cleanUp.
 - `packages/app/src/transport/test/rehearsal.ts` - The phase 4 rehearsal (O13; docs/architecture.md, "Revised build order", phase 4): one Easy-vs-Easy game played through two real remote transports, one per sea… Exports: ServerSnapshot, GameRig, GameOptions, GameResult, playRehearsalGame.
 - `packages/app/src/transport/test/rehearsalReport.ts` - The phase 4 rehearsal's short report: what one run played and checked, and every problem it found, each with its match and seq. Exports: rehearsalReport.
 - `packages/app/src/transport/test/remoteGame.ts` - The remote transport tests' match: a small game on the fake Supabase, fake timers, and helpers to subscribe, wait and find the next legal move. Exports: POLL_MS, ruleset, config, TOKENS, fakeTimers, settle, Rig, rig, watch, nextMove.
@@ -510,7 +512,6 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/schema/card.ts` - The card schema: what one card file in packages/content/cards/ must hold (docs/architecture.md, section 4). Exports: CardStep, stepSchema, cardSchema.
 - `packages/content/schema/card.types.test.ts` - Type-level checks, run by `tsc` (the typecheck script): the card schema and the engine's types can't drift apart.
 - `packages/content/schema/cardSteps.test.ts` - The card schema's lasting steps: modifiers (#89), triggers (#90) and lasting markers (#141), at any depth; revealHand steps (#184); and discardFromHand steps (…
-- `packages/content/schema/index.test.ts`
 - `packages/content/schema/index.ts` - Content schemas, one per content folder of this package (cards/ is checked by schemas.cards, and so on). Exports: ContentIssue, ContentSchema, schemas.
 - `packages/content/schema/map.test.ts`
 - `packages/content/schema/map.ts` - The map a scenario can carry (docs/design/map-and-points.md, "Map", "Influence" and "Escalation"): regions, their closing order, countries, each era's battlegr… Exports: mapSchema.
@@ -537,7 +538,6 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/src/firstDeckScenario.ts` - The TEST scenario for the first deck. Exports: FIRST_DECK_SCENARIO.
 - `packages/content/src/future.test.ts`
 - `packages/content/src/futureFiles.ts` - The optional future cards (2025 to 2027), one JSON file each in cards/future/. Exports: FUTURE_CARDS.
-- `packages/content/src/index.test.ts`
 - `packages/content/src/index.ts` - Public entry point of the content package: the bundle of cards, map, scenarios and tutorial. Exports: DEFAULT_CONTINGENCY, scenarioSetup, ScenarioSetup, SIX_REGION_MAP_SCENARIO, TEST_MAP_SCENARIO.
 - `packages/content/src/lastingTags.test.ts` - The lasting tags of the first deck (#202, owner 21 Oct): exactly the eight tags a later card reads are recorded for the rest of the game; every other marker st…
 - `packages/content/src/onceOnly.test.ts` - The six Ops 4 cards are once-only events (deck-plan.md, wish W6; #204; Defence of Kyiv, Owner question 52): flagged removeAfterEvent, with the template sentenc…
@@ -596,6 +596,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/engine/src/discardChoice.ts` - Running a discardFromHand step (#186, #192). Exports: runDiscard, resumeDiscard.
 - `packages/engine/src/discardChoiceViews.test.ts` - Views of a discardFromHand pick (#192): the pending discardCards decision is public and lists no card IDs, the picker's knowledge is in its own view only, and…
 - `packages/engine/src/drawStep.test.ts` - The drawContingency step (#65): a card's effect draws from a named side's Contingency deck, and a later step of the same card can read the number drawn.
+- `packages/engine/src/emptyHand.test.ts` - A side with no card left for a play it owes passes the rest of its plays this turn (owner, 7 Nov 2026: "player passes the rest of their plays"; docs/design/cor…
 - `packages/engine/src/eraScoring.test.ts` - R21: era-end region scoring (docs/design/map-and-points.md, "Scoring").
 - `packages/engine/src/eras.test.ts` - A new era (#37): the setup's checks, its cards waiting in secret, and the shuffle into the draw pile only.
 - `packages/engine/src/eras.ts` - Eras after the first (docs/design/eras.md, "When a new era starts"). Exports: erasError, enterEra.
@@ -724,7 +725,6 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/host/src/sixRegionMapConfig.test.ts` - The six-region map game as the host hands it to the app (A14, issue #439): the first deck's config with the six-region scenario's map, and nothing else of that…
 - `packages/host/src/test/clock.ts` - Test helpers for matches with deadlines. Exports: DAY, startedWith, lioToPlay, clockOf, withClock, swept.
 - `packages/host/src/test/deepFreeze.ts` - Test helper: freezes a value and everything inside it, so any accidental change throws in tests. Exports: deepFreeze.
-- `packages/host/src/test/leaks.ts` - Test helpers for leak checks, copying the idea of tests/fuzz/checks.ts (hiddenFrom, leaksIn). Exports: hiddenFrom, leaksIn.
 - `packages/host/src/test/match.ts` - Test helpers: a small ruleset, a match config with an era still to enter, and a seed. Exports: SEED, NOW, LATE_ERA_CARDS, ruleset, makeConfig.
 - `packages/host/src/test/order.test.ts`
 - `packages/host/src/test/order.ts` - Compare function for sorting strings in UTF-16 code-unit order: the same order as a sort with no compare function, written out so the order is explicit. Exports: byCodeUnit.
@@ -749,8 +749,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/edge.ts` - The glue every Edge Function shares: turning the runtime's fetch-style requests into the plain-data requests the handlers take and back, and the Supabase sign-… Exports: FetchRequest, MakeResponse, serveFetch, supabaseAuthenticate.
 - `packages/server/src/entitlementStore.test.ts`
 - `packages/server/src/entitlementStore.ts` - The entitlement port (docs/architecture.md, Decision 5): which full-game copies a player owns, and an in-memory store for tests. Exports: EntitlementRow, EntitlementStore, MemoryEntitlementStore.
+- `packages/server/src/functionDeps.test.ts` - The deps the submit and invite Edge Functions serve with.
+- `packages/server/src/functionDeps.ts` - The deps the submit and invite Edge Functions serve with, built from one service-role client. Exports: submitFunctionDeps, inviteFunctionDeps.
 - `packages/server/src/http.ts` - The plain-data HTTP pieces the Edge Function handlers share (docs/architecture.md, Decision 5): the request and reply shapes, the CORS headers, signing a calle… Exports: HttpRequest, HttpReply, Authenticate, CORS_HEADERS, preflight, signedIn, jsonObject, reply, refusal, isPlainObject.
-- `packages/server/src/index.test.ts`
 - `packages/server/src/index.ts` - Public entry point of the server package (docs/architecture.md, Decision 5). Exports: submit, ServerErrorCode, SubmitDeps, SubmitError, SubmitOutcome, SubmitRequest, MemoryStore, SupabaseStore, CommitResult, LoadedMatch, MatchStore, MatchWrite, ….
 - `packages/server/src/invite.entitlement.test.ts` - O9c: a free player cannot create a private game.
 - `packages/server/src/invite.leaks.test.ts`
@@ -783,7 +784,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/migrations/acceptInviteClock.test.ts` - The accept_invite clock migration (supabase/migrations/20261028000000_accept_invite_clock.sql).
 - `packages/server/src/migrations/commitMatch.test.ts` - The commit_match migration (supabase/migrations/20261021000000_commit_match.sql) on the local Supabase stack.
 - `packages/server/src/migrations/entitlement.test.ts` - The entitlement migration (supabase/migrations/20261027000000_entitlement.sql) on the local Supabase stack.
-- `packages/server/src/migrations/localStack.ts` - Connects the migration test to the local Supabase stack (docs/sprint.md, lane "online": no hosted project). Exports: HOW_TO_START, StackKeys, stackKeys, client, whyUnavailable, freshId.
+- `packages/server/src/migrations/localStack.test.ts` - When the stack checks must run: in CI with the stack's keys set, a stack that does not answer is a failure, never a quiet "did not run".
+- `packages/server/src/migrations/localStack.ts` - Connects the migration test to the local Supabase stack (docs/sprint.md, lane "online": no hosted project). Exports: HOW_TO_START, StackKeys, stackKeys, stackRequired, didNotRun, client, whyUnavailable, freshId.
 - `packages/server/src/migrations/matchInvite.test.ts` - The match_invite migration (supabase/migrations/20261022000000_match_invite.sql) on the local Supabase stack.
 - `packages/server/src/migrations/matchTables.test.ts` - The match tables migration (supabase/migrations/20261020000000_match_tables.sql) on the local Supabase stack.
 - `packages/server/src/migrations/notifyQueue.test.ts` - The notify_queue migration (supabase/migrations/20261024000000_notify_queue.sql).
@@ -901,7 +903,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 
 - `tests/README.md` - Cross-package test suites
 - `tests/fuzz/cards.ts` - TEST-ONLY FIXTURES, never game content: the fuzz suite's cards, c1 to c85, and the sizes of a random game their number is worked out from. Exports: MAX_TURNS, MAX_PLAYS, MAX_EXTRA, MAX_PILE, MAX_ERA_CARDS, FUZZ_CARDS, baseEffectOf, removesAfterEvent, ruleset.
-- `tests/fuzz/checks.ts` - The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite"). Exports: checkModifiers, checkTriggers, checkInfluence, checkHasBranches, checkMarkers, checkKnowledge, knowledgeOf, VIEWERS, Secrets, attempt, History, NEW_GAME, ….
+- `tests/fuzz/checks.ts` - The invariant checks the fuzz suite runs on every state (docs/architecture.md, "Guardrails", "Fuzz suite"). Exports: checkModifiers, checkTriggers, checkInfluence, checkPlainJson, firstDifference, checkHasBranches, checkMarkers, checkKnowledge, knowledgeOf, VIEWERS, Secrets, attempt, ….
 - `tests/fuzz/contingency.test.ts` - Tests for the fuzz harness's Contingency deck checks (#64): the deck invariant and the structural leak check each catch a hand-corrupted state, and the random…
 - `tests/fuzz/deepFreeze.ts` - Freezes a value and everything inside it, so an engine call that changes its input throws. Exports: deepFreeze.
 - `tests/fuzz/easy.test.ts` - The Easy AI inside the fuzz suite (#91): every third game has it on one side, with every invariant checked.
@@ -910,14 +912,19 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/escalation.test.ts` - The Escalation check (escalationChecks.ts, R17a) catches what it should.
 - `tests/fuzz/escalationChecks.ts` - The fuzz check for the Escalation track (R17a, docs/design/map-and-points.md, "Escalation"): checkStep (checks.ts) runs it on every state. Exports: checkEscalation.
 - `tests/fuzz/expiryChecks.ts` - The fuzz checks that modifiers and triggers end with their turn (#89, #90). Exports: checkModifiers, checkTriggers.
+- `tests/fuzz/extraSteps.test.ts` - The steps real cards use that the base fuzz cards leave out (extraSteps.ts): discardFromHand in its three forms, escalate up and down, addToNumber and the atLe…
+- `tests/fuzz/extraSteps.ts` - TEST-ONLY FIXTURES, never game content: the fuzz cards with the steps real cards use that the base fuzz ruleset (cards.ts) leaves out: discardFromHand (random,… Exports: EXTRA, EXTRA_KINDS, ExtraKind, extraStepsOf, extraStepsRuleset, announcedExtra.
 - `tests/fuzz/filterChecks.test.ts` - Tests for the trigger filter and once check (filterChecks.ts, #190), on small fixed games whose cards are defined here: it passes real steps, both kinds of pla…
 - `tests/fuzz/filterChecks.ts` - The fuzz check for trigger filters and once (R7a, #190): a filtered trigger fires only when its filter held at its hook, a waiting trigger whose filter held do… Exports: FilterCounts, checkTriggerFilters.
 - `tests/fuzz/filtered.test.ts` - The reaction cards' filtered and once triggers (filtered.ts, #190): every variant is on a LIO, an SAE and a neutral card, and fuzz games fire them, skip them,…
 - `tests/fuzz/filtered.ts` - TEST-ONLY FIXTURES, never game content: the trigger `filter` and `once` (R7a) the reaction cards use (reactions.ts). Exports: FILTERED, VARIANTS, Variant, variantOf, filteredTriggerOf.
-- `tests/fuzz/fixedGames.ts` - Fixed games the fuzz suite replays, with every check, on every run. Exports: FIXED_GAMES.
+- `tests/fuzz/fixedGames.ts` - Fixed games the fuzz suite replays, with every check, on every run, and whose final status and score it compares. Exports: FixedGame, FIXED_GAMES.
+- `tests/fuzz/foundGames.json`
+- `tests/fuzz/foundGames.ts` - The fuzz games found failing, recorded once fixed (fixedGames.ts replays them with every check). Exports: FOUND_GAMES.
 - `tests/fuzz/harness.test.ts` - Tests for the fuzz harness itself: each check catches what it should, so a green fuzz run means something.
 - `tests/fuzz/influence.test.ts` - The map and influence in the fuzz games (R15): the influence check (influenceChecks.ts) catches what it should, and random games started with the content test…
 - `tests/fuzz/influenceChecks.ts` - The fuzz checks for the map and influence (R15, docs/design/map-and-points.md, "Influence"): influence is never negative, has one entry per map country in the… Exports: checkInfluence.
+- `tests/fuzz/jsonChecks.ts` - Hard rule 5 for the fuzz suite: a state is plain JSON with integers only. Exports: firstDifference, checkPlainJson.
 - `tests/fuzz/knowledge.test.ts` - The fuzz checks for shown hands (#185): hiddenFrom lets a side see the rival cards it was shown, and only those; checkKnowledge catches knowledge that does not…
 - `tests/fuzz/knowledgeChecks.ts` - The fuzz check for knowledge and shown hands (R6a, #185): what each side knows of the rival's hand always matches the real hand, and a shown hand reaches only… Exports: KnowledgeBefore, knowledgeOf, checkKnowledge.
 - `tests/fuzz/lasting.test.ts` - The fuzz suite and the lasting effects, modifiers (#89) and triggers (#90): the fuzz cards make them, and the checks catch what they should.
@@ -925,9 +932,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/markers.test.ts` - The fuzz suite and the lasting markers and `has` conditions of R4a (#142): the fuzz cards set and test them, the games take both branches, and the checks catch…
 - `tests/fuzz/markers.ts` - TEST-ONLY FIXTURES, never game content: the lasting markers (R4a) the fuzz cards set, and the `has` conditions that test them. Exports: LASTING_LABELS, HAS_BRANCH, REACTION_BRANCH, Branch, lastingMarker, branchLabel, hasStep, branchOf, isLasting.
 - `tests/fuzz/neutral.test.ts` - Neutral events in the fuzz games (#117): neutral cards draw from the deck of the side that picked or played them, in their events and in the reactions they set…
-- `tests/fuzz/order.test.ts`
 - `tests/fuzz/order.ts` - Compare function for sorting strings in UTF-16 code-unit order: the same order as a sort with no compare function, written out so the order is explicit. Exports: byCodeUnit.
-- `tests/fuzz/play.ts` - Plays one game for the fuzz suite, random or recorded, and checks every invariant along the way. Exports: baseEffectOf, FUZZ_CARDS, ruleset, DEFAULT_GAMES, MAX_ANSWERS, GameRecord, Chooser, Played, gameCount, playFuzzGame, playRecorded, randomGame, ….
+- `tests/fuzz/passedPlays.ts` - The fuzz check of passed plays (docs/design/core-loop.md, "No card left"; owner, 7 Nov 2026): a side with no card left passes a play it owes, and the game log… Exports: checkPassedPlays.
+- `tests/fuzz/plainJson.test.ts` - Hard rule 5 in the fuzz checks: every state is plain JSON with integers only, and firstDifference never counts two values that are not plain JSON (NaN, undefin…
+- `tests/fuzz/play.ts` - Plays one game for the fuzz suite, random or recorded, and checks every invariant along the way. Exports: baseEffectOf, FUZZ_CARDS, ruleset, DEFAULT_GAMES, MAX_ANSWERS, GameRecord, Chooser, Played, gameCount, MAP_GAMES_FLOOR, mapGameCount, playFuzzGame, ….
 - `tests/fuzz/playedBy.test.ts` - The fuzz suite and the playedBy condition of R5a (#170): the fuzz cards test who played them, at the top of an effect, nested in another if and in both kinds o…
 - `tests/fuzz/playedBy.ts` - TEST-ONLY FIXTURES, never game content: the `playedBy` conditions (R5a) the fuzz cards test, and the fuzz check that each test took exactly one branch, the rig… Exports: PLAYED_BY, Where, Branch, How, PlayRecord, Taken, branchLabel, playedByStep, nestedPlayedBy, announcedTest, branchTaken, notePlay, ….
 - `tests/fuzz/playerDraws.ts` - Whose deck a neutral card's draws come from (docs/design/contingency-deck.md, "Whose deck"): a neutral event's "player" draw, and one in a reaction it set, use… Exports: PLAYER_DRAW, REACTION_DRAW, playerDraw, announcedDraw, notePlayer, checkPlayerDraws.
@@ -938,6 +946,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tests/fuzz/removed.test.ts` - The fuzz suite and R8a's once-only cards (#205): some fuzz cards are flagged removeAfterEvent, the card count includes the removed pile, the removed pile and t…
 - `tests/fuzz/removed.ts` - TEST-ONLY FIXTURES: the fuzz cards flagged removeAfterEvent (R8a; #205), how a random setup keeps enough cards that stay in the game, and how the tests sort ea… Exports: flaggedIn, LEAVING, FirstEra, refillFits, withStayingCards, handSizeFor, Use, noteUse, Left, flaggedLeft.
 - `tests/fuzz/removedChecks.ts` - The fuzz checks of the removed pile (R8a; #205) and of the turn-start refill, each comparing the state after a step with the state before it. Exports: checkRemoved, checkRefilled.
+- `tests/fuzz/replayEvents.ts` - Every event of a played game, from replaying its record answer by answer: the suites that count what random games reach (markers, neutral, extraSteps) read the… Exports: eventsOf.
 - `tests/fuzz/reveals.test.ts` - The fuzz suite and the revealHand step of R6a (#185): the fuzz cards show hands at the top level, inside an if and in both kinds of reaction, and the fuzz game…
 - `tests/fuzz/reveals.ts` - TEST-ONLY FIXTURES, never game content: the `revealHand` steps (R6a) the fuzz cards run. Exports: REVEAL, RevealWhere, revealStep, revealOf, revealTriggerOf, announcedReveal.
 - `tests/fuzz/testMap.ts` - The content test map (TEST_MAP_SCENARIO) in the fuzz games, with a battleground list for each random era (#429). Exports: onTestMap.

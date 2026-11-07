@@ -1,5 +1,4 @@
 // e3-sae-004 Full-Scale Invasion: one test for each way its effect can play out.
-import { describeOnceOnly } from "../../src/test/cardEnds.ts";
 import { describeCard } from "../../src/test/describeCard.ts";
 
 /** LIO's first play when LIO plays the card: its 4 points for points, or a filler's 2 after picking it to open. */
@@ -79,5 +78,3 @@ describeCard("e3-sae-004", "Full-Scale Invasion", [
     `,
   },
 ]);
-
-describeOnceOnly("e3-sae-004", "Full-Scale Invasion");

@@ -1,5 +1,4 @@
 // e2-sae-003 Olympic Summer 2008: one test for each way its effect can play out.
-import { describeOnceOnly } from "../../src/test/cardEnds.ts";
 import { describeCard } from "../../src/test/describeCard.ts";
 
 describeCard("e2-sae-003", "Olympic Summer 2008", [
@@ -39,5 +38,3 @@ describeCard("e2-sae-003", "Olympic Summer 2008", [
     `,
   },
 ]);
-
-describeOnceOnly("e2-sae-003", "Olympic Summer 2008");

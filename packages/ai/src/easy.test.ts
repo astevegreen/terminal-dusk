@@ -16,8 +16,8 @@ describe("the Easy tier", () => {
 
   it("plays 100 seeded games on both sides with only legal answers, and every game ends", () => {
     for (let seed = 1; seed <= 100; seed++) {
-      const final = playEasy(ruleset, newGame(seed), EASY_WEIGHTS, seededRandom(seed));
-      expect(final.public.status.kind).toBe("over");
+      // playEasy throws if an answer is refused or the game does not end.
+      playEasy(ruleset, newGame(seed), EASY_WEIGHTS, seededRandom(seed));
     }
   });
 
@@ -86,10 +86,9 @@ describe("the Easy tier", () => {
 
   it("answers every decision of a 10-turn game in under 200 ms", () => {
     const slowest: number[] = [];
-    const final = playEasy(ruleset, newGame(11, 10), EASY_WEIGHTS, seededRandom(11), {
+    playEasy(ruleset, newGame(11, 10), EASY_WEIGHTS, seededRandom(11), {
       timed: (ms) => slowest.push(ms),
     });
-    expect(final.public.status.kind).toBe("over");
     expect(slowest.length).toBeGreaterThan(20);
     expect(Math.max(...slowest)).toBeLessThan(200);
   });

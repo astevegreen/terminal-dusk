@@ -1,4 +1,4 @@
-import { viewFor } from "@terminal-dusk/engine";
+import { apply, legalAnswers, pendingFor, viewFor } from "@terminal-dusk/engine";
 import type { CardDef, Step } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { escalationRuleset, newMapGame } from "./test/mapGames.ts";
@@ -8,14 +8,27 @@ const card = (effect: Step[]): CardDef => ({ id: "t", era: "test", ops: 1, affil
 const up = (by: number): Step => ({ op: "escalate", by });
 
 describe("unseenCards", () => {
-  it("leaves out the cards the viewer holds, and no other", () => {
+  it("leaves out exactly the cards the viewer holds at the start, when nothing is in play or discarded", () => {
     const view = viewFor(newMapGame(3), "lio");
     const hand = view.mine?.hand ?? [];
-    const unseen = unseenCards(escalationRuleset, view).map((c) => c.id);
     expect(hand.length).toBeGreaterThan(0);
-    for (const id of hand) expect(unseen).not.toContain(id);
-    expect(unseen.length).toBeLessThan(escalationRuleset.cards.length);
-    expect(unseen.length).toBeGreaterThan(escalationRuleset.cards.length - 40);
+    expect([view.public.inPlay, view.public.discard, view.public.removed]).toEqual([[], [], []]);
+    const unseen = unseenCards(escalationRuleset, view).map((c) => c.id);
+    expect(unseen).toEqual(escalationRuleset.cards.map((c) => c.id).filter((id) => !hand.includes(id)));
+  });
+
+  it("with an unrevealed opening pick in the view's picks, leaves out the picked card and every held card, and no other", () => {
+    const state = newMapGame(3);
+    const decision = pendingFor(state, "lio")!;
+    const value = legalAnswers(escalationRuleset, state, "lio")[0]!;
+    const picked = apply(escalationRuleset, state, { decisionId: decision.id, side: "lio", value });
+    if (!picked.ok) throw new Error(picked.error.code);
+    const view = viewFor(picked.value.state, "lio");
+    const pick = view.mine?.picks[0]?.value;
+    if (pick?.kind !== "chooseCard") throw new Error("LIO has no opening pick");
+    const held = new Set([...(view.mine?.hand ?? []), pick.card]);
+    const unseen = unseenCards(escalationRuleset, view).map((c) => c.id);
+    expect(unseen).toEqual(escalationRuleset.cards.map((c) => c.id).filter((id) => !held.has(id)));
   });
 });
 

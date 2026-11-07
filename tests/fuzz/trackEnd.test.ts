@@ -4,7 +4,7 @@
 // step of them.
 import type { Setup } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
-import { gameCount, playGame, randomChooser, randomGame, ruleset } from "./play.ts";
+import { mapGameCount, playGame, randomChooser, randomGame, ruleset } from "./play.ts";
 import type { Played } from "./play.ts";
 import { seededRng } from "./random.ts";
 import { onTestMap } from "./testMap.ts";
@@ -12,8 +12,8 @@ import { onTestMap } from "./testMap.ts";
 // tests/ has no Node type definitions; this is the one Node global the suite reads.
 declare const process: { readonly env: Readonly<Record<string, string | undefined>> };
 
-// Capped, as influence.test.ts is: these games run every check, the map's included.
-const GAMES = Math.min(gameCount(process.env["FUZZ_GAMES"]), 200);
+// A fifth of FUZZ_GAMES (mapGameCount), as influence.test.ts: these games run every check, the map's included.
+const GAMES = mapGameCount(process.env["FUZZ_GAMES"]);
 
 /** The short track: each side's end is 2 points from the middle, where the game starts. */
 const SHORT_END = 2;
@@ -34,20 +34,24 @@ function playShortTrackGame(game: number): Played {
 }
 
 describe("random games on the test map with a short score track", () => {
-  it(`plays ${GAMES} random games to the end, some end at a track end, and every check holds at every step`, () => {
-    let atEnd = 0;
-    for (let game = 1; game <= GAMES; game++) {
-      const { final } = playShortTrackGame(game);
-      const { status, score } = final.public;
-      expect(status.kind).toBe("over");
-      expect(Math.abs(score!)).toBeLessThanOrEqual(SHORT_END);
-      if (status.kind !== "over" || status.reason !== "trackEnd") continue;
-      atEnd++;
-      // The game stopped where it ended: on the winner's end, with nothing left waiting.
-      expect(score).toBe(status.winner === "lio" ? -SHORT_END : SHORT_END);
-      expect(final.public.pending).toEqual([]);
-      expect(final.public.stack).toEqual([]);
-    }
-    expect(atEnd).toBeGreaterThan(0);
-  }, 120_000);
+  it(
+    `plays ${GAMES} random games to the end, some end at a track end, and every check holds at every step`,
+    () => {
+      let atEnd = 0;
+      for (let game = 1; game <= GAMES; game++) {
+        const { final } = playShortTrackGame(game);
+        const { status, score } = final.public;
+        expect(status.kind).toBe("over");
+        expect(Math.abs(score!)).toBeLessThanOrEqual(SHORT_END);
+        if (status.kind !== "over" || status.reason !== "trackEnd") continue;
+        atEnd++;
+        // The game stopped where it ended: on the winner's end, with nothing left waiting.
+        expect(score).toBe(status.winner === "lio" ? -SHORT_END : SHORT_END);
+        expect(final.public.pending).toEqual([]);
+        expect(final.public.stack).toEqual([]);
+      }
+      expect(atEnd).toBeGreaterThan(0);
+    },
+    Math.max(120_000, GAMES * 300),
+  );
 });

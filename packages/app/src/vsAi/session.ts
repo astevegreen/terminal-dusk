@@ -144,7 +144,15 @@ export function createVsAiSession(options: VsAiOptions): VsAiSession {
     const decision = frame.decision;
     if (aiStopped || !decision || frame.view.public.status.kind !== "active" || asked.has(decision.id)) return;
     asked.add(decision.id);
-    void ai.answer(frame.view).then((value) => send(decision.id, value));
+    // An AI that fails instead of answering counts as giving no answer, so the game never waits on it for ever.
+    void ai
+      .answer(frame.view)
+      .catch(() => null)
+      .then((value) => send(decision.id, value))
+      .catch(() => {
+        if (!aiStopped) publish({ aiRefusal: NO_ANSWER });
+        stopAi();
+      });
   };
 
   const unsubscribeHuman = humanTransport.subscribe(onHumanFrame);

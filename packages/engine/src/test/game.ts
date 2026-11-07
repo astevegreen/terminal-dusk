@@ -4,6 +4,7 @@ import { createGame } from "../createGame.ts";
 import { legalAnswers, pendingFor } from "../decisions.ts";
 import { seedHash } from "../sha256.ts";
 import { startProgram } from "../stack.ts";
+import { deepFreeze } from "./deepFreeze.ts";
 import { SIDES } from "../types.ts";
 import type { Answer, CardDef, CardId, GameEvent, GameState, PlayUse, Ruleset, Setup, Side, Step } from "../types.ts";
 
@@ -41,8 +42,11 @@ const affiliationOf = (id: CardId): Side | "neutral" => {
   return id.startsWith("s") ? "sae" : "neutral";
 };
 
-/** The test ruleset: l1-l12, s1-s12, neutral n1 and n2, and neutral z1-z3 for the draw pile. */
-export const ruleset: Ruleset = rulesetWith([...LIO_CARDS, ...SAE_CARDS, "n1", "n2", "z1", "z2", "z3"]);
+/**
+ * The test ruleset: l1-l12, s1-s12, neutral n1 and n2, and neutral z1-z3 for the draw pile. Deep-frozen once here,
+ * so every test that uses it hands the engine a frozen ruleset and any change to it throws.
+ */
+export const ruleset: Ruleset = deepFreeze(rulesetWith([...LIO_CARDS, ...SAE_CARDS, "n1", "n2", "z1", "z2", "z3"]));
 
 /** A card for the test ruleset with its affiliation from its ID, as in rulesetWith. */
 export const sideCard = (id: CardId, ops: number, effect: Step[] = []): CardDef =>

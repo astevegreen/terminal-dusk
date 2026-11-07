@@ -88,11 +88,15 @@ export function createSignIn({ auth, store, now }: SignInOptions): SignIn {
     const save = (s: Session): void => {
       if (epoch === mine) void store.set(SESSION_KEY, sessionJson(s));
     };
-    const get = sessionToken(auth, session, now, save);
+    // Only Auth refusing the refresh token signs the player out; a failure for a moment keeps the session.
+    let refused = false;
+    const get = sessionToken(auth, session, now, save, () => {
+      refused = true;
+    });
     token = async () => {
       const value = await get();
       if (epoch !== mine) return null;
-      if (value === null) {
+      if (refused) {
         toEmail();
         await store.remove(SESSION_KEY);
       }

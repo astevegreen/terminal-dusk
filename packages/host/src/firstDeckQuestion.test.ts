@@ -12,7 +12,6 @@ function asksYesNo(value: unknown): boolean {
 }
 
 const yesNoCards = FIRST_DECK_CARDS.filter((card) => asksYesNo(card.effect));
-const nested = [{ op: "if", then: [{ op: "trigger", do: [{ op: "choose", decision: { kind: "yesNo" } }] }] }];
 
 describe("firstDeckCardQuestion", () => {
   it("returns the question after 'chooses: ' up to and including the first question mark", () => {
@@ -26,11 +25,8 @@ describe("firstDeckCardQuestion", () => {
     expect(silent).toBeDefined();
     expect(firstDeckCardQuestion(silent!.id)).toBeUndefined();
   });
-  it("finds the yes/no cards, including a choose step nested inside blocks", () => {
-    expect(yesNoCards.length).toBeGreaterThan(0);
-    expect(asksYesNo(nested)).toBe(true);
-  });
   it("gives every first-deck yes/no card a question ending in '?', from rules text holding 'chooses: ' once", () => {
+    expect(yesNoCards.length).toBeGreaterThan(0);
     for (const card of yesNoCards) {
       expect(firstDeckCardQuestion(card.id), card.id).toMatch(/^\S.*\?$/);
       expect(card.text.rules.split("chooses: ").length - 1, card.id).toBe(1);

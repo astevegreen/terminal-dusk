@@ -16,7 +16,7 @@ import {
 } from "./checks.ts";
 import { FIXED_GAMES } from "./fixedGames.ts";
 import { byCodeUnit } from "./order.ts";
-import { checkReplay, gameCount, playFuzzGame, playRecorded, randomGame, ruleset } from "./play.ts";
+import { checkReplay, gameCount, mapGameCount, playFuzzGame, playRecorded, randomGame, ruleset } from "./play.ts";
 import type { GameRecord } from "./play.ts";
 import { seededRng } from "./random.ts";
 
@@ -68,6 +68,14 @@ describe("how many games the suite plays", () => {
     expect(gameCount("1000")).toBe(1000);
     expect(() => gameCount("lots")).toThrow(/FUZZ_GAMES/);
     expect(() => gameCount("0")).toThrow(/FUZZ_GAMES/);
+  });
+
+  it("plays a fifth as many of the slower map games, never fewer than min(FUZZ_GAMES, 200)", () => {
+    expect(mapGameCount(undefined)).toBe(100);
+    expect(mapGameCount("50")).toBe(50);
+    expect(mapGameCount("1000")).toBe(200);
+    expect(mapGameCount("10000")).toBe(2000);
+    expect(() => mapGameCount("lots")).toThrow(/FUZZ_GAMES/);
   });
 });
 

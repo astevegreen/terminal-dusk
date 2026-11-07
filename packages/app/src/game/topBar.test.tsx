@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { buttonsOf } from "../testMode/promptTree.ts";
+import { tagAt } from "../test/html.ts";
 import { TopBar } from "./topBar.tsx";
 
 const tickerOf = (html: string): string => /<button[^>]*class="game-ticker"[^>]*>.*?<\/button>/.exec(html)?.[0] ?? "";
@@ -19,7 +20,9 @@ const bar = (log: string[], waitingId: string | null = null, items: ReactNode = 
 describe("the ticker", () => {
   const out = bar(["LIO placed 1 influence in Poland for 1 point.", "SAE spent 2 points."], "d1");
   it("is the top bar's last item, after the bar's other items", () => {
-    expect(out).toMatch(/^<div class="game-top"><p>Status<\/p><button[^>]*class="game-ticker"[^]*?<\/button><\/div>/);
+    expect(tagAt(out, "div", { class: "game-top" })).toBe(0);
+    expect(out).toMatch(/^<div[^>]*><p>Status<\/p><button[^>]*>[^]*?<\/button><\/div>/);
+    expect(tagAt(out, "button", { class: "game-ticker" })).toBe(out.indexOf("<button"));
   });
   it("shows the newest log line, word for word, and no other", () => {
     expect(tickerOf(out)).toContain('<span class="game-ticker-line">SAE spent 2 points.</span>');

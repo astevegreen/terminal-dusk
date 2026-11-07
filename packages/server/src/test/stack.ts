@@ -3,7 +3,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { HostResult, MatchConfig } from "@terminal-dusk/host";
 import { describe, expect, it } from "vitest";
-import { client, freshId, HOW_TO_START, stackKeys, whyUnavailable, type StackKeys } from "../migrations/localStack.ts";
+import { client, didNotRun, freshId, stackKeys, whyUnavailable, type StackKeys } from "../migrations/localStack.ts";
 import { rowsFor } from "../rows.ts";
 import type { MatchEventRow, MatchRow, MatchViewRow } from "../rows.ts";
 import type { MatchWrite } from "../store.ts";
@@ -11,7 +11,7 @@ import { created } from "./match.ts";
 
 /**
  * Runs `define` with the stack's keys when the local stack answers. Otherwise one test says why the
- * checks did not run and how to start the stack, the way O3's migration test does. `probe`, when given, is a
+ * checks did not run and how to start the stack, and fails in CI when the stack's keys are set (`didNotRun`). `probe`, when given, is a
  * further check once the stack answers (an Edge Function being served, say): why it can't be used, or null.
  */
 export async function onLocalStack(
@@ -27,12 +27,8 @@ export async function onLocalStack(
     return;
   }
   describe(title, () => {
-    it(`did not run, because ${unavailable} (the warning below says how to start it)`, () => {
-      (globalThis as { console?: { warn(m: string): void } }).console?.warn(
-        `${title}: checks did not run: ${unavailable}. ${HOW_TO_START} ` +
-          "With the stack up, `pnpm test:stack` in packages/server runs these checks too, holding the stack so " +
-          "another folder's `pnpm test:migrations` can't empty the database under them.",
-      );
+    it(`did not run, because ${unavailable} (fails in CI with the stack's keys set; otherwise a warning says how to start it)`, () => {
+      didNotRun(title, unavailable);
       expect(unavailable).not.toBeNull();
     });
   });

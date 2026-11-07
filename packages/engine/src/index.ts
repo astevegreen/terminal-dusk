@@ -71,6 +71,7 @@ export type {
   OmniscientView,
   PlaceOptions,
   PlayerView,
+  PlayPassed,
   PlayUse,
   PlayUses,
   PointsAction,

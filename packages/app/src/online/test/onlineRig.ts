@@ -37,17 +37,24 @@ export function onlineRig(player: string | null = "alice", initial: ClockMode = 
   /** Every request the session made, clock reads included, in order. */
   const sent: string[] = [];
 
+  // With holdEachClock, each clock read keeps the mode it was sent under and waits for its own release.
+  let holdEach = false;
+  const heldReads: (() => void)[] = [];
+
   const fetch: FetchLike = async (url, init) => {
     sent.push(url);
     if (!isClockRead(url)) return fake.fetch(url, init);
     clockUrls.push(url);
-    if (gate !== null) await gate;
-    if ("fail" in mode) {
-      if (mode.fail === "throw") throw new TypeError("fake network failure");
-      return reply(mode.fail, { message: "fake error status" });
+    const sentUnder = mode;
+    if (holdEach) await new Promise<void>((resolve) => heldReads.push(resolve));
+    else if (gate !== null) await gate;
+    const answer = holdEach ? sentUnder : mode;
+    if ("fail" in answer) {
+      if (answer.fail === "throw") throw new TypeError("fake network failure");
+      return reply(answer.fail, { message: "fake error status" });
     }
-    if ("malformed" in mode) return reply(200, mode.malformed);
-    return reply(200, [{ clock: mode.clock }]);
+    if ("malformed" in answer) return reply(200, answer.malformed);
+    return reply(200, [{ clock: answer.clock }]);
   };
 
   const time = { now: NOW };
@@ -75,6 +82,14 @@ export function onlineRig(player: string | null = "alice", initial: ClockMode = 
     sent,
     setClock(next: ClockMode) {
       mode = next;
+    },
+    /**
+     * Holds each clock read from now on separately, answered with the clock set when it was sent. `release(i)` lets
+     * the i-th held read (0 is the first) reply, so tests can release reads out of order.
+     */
+    holdEachClock(): { release(i: number): void } {
+      holdEach = true;
+      return { release: (i) => heldReads[i]?.() };
     },
     /** Holds every clock read until the returned function is called. */
     holdClock(): () => void {

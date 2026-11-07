@@ -54,10 +54,17 @@ export function createLocalMatch(
   let archive: ReplayArchive | null = null;
   let archiveError: string | null = null;
 
+  // Each subscriber is called on its own: one that throws neither refuses the move (it is already made) nor keeps
+  // the frame from the subscribers after it.
   const deliver = (): void => {
     for (const viewer of VIEWERS) {
       for (const onFrame of [...subscribers[viewer]]) {
-        if (subscribers[viewer].has(onFrame)) onFrame(current.frames[viewer]);
+        if (!subscribers[viewer].has(onFrame)) continue;
+        try {
+          onFrame(current.frames[viewer]);
+        } catch {
+          // That subscriber's own failure; the match and the other subscribers carry on.
+        }
       }
     }
   };

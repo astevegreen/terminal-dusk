@@ -4,8 +4,8 @@ import { logLine } from "../eventPresentation.ts";
 import { cardName } from "../testMode/fixture.ts";
 import { nextMove, POLL_MS, settle, watch } from "../transport/test/remoteGame.ts";
 import type { Frame } from "@terminal-dusk/host";
-import { turnOf } from "./onlineGame.ts";
-import { onlineRig, play, poll } from "./test/onlineRig.ts";
+import { DEFAULT_POLL_MS, turnOf } from "./onlineGame.ts";
+import { isClockRead, onlineRig, play, poll } from "./test/onlineRig.ts";
 
 describe("createOnlineGame: frames, log and turn", () => {
   it("the first frame: turn is loading before it, then the frame arrives and the listener is called", async () => {
@@ -27,6 +27,13 @@ describe("createOnlineGame: frames, log and turn", () => {
     expect(s.turn).toBe("mine");
     expect(listener).toHaveBeenCalled();
     expect(r.timers.waiting()).toEqual([POLL_MS]);
+  });
+
+  it("with pollMs left out, the next poll is set for 5000 ms, the session's default", async () => {
+    const r = onlineRig("alice", { clock: null }, true);
+    await settle();
+    expect(DEFAULT_POLL_MS).toBe(5_000);
+    expect(r.timers.waiting()).toEqual([5_000]);
   });
 
   it("the rival moving: a new frame arrives on the next poll and turn flips to mine", async () => {
@@ -193,5 +200,27 @@ describe("createOnlineGame: close", () => {
     await settle();
     expect(r.game.getSnapshot().refusal).toBeNull();
     expect(listener).not.toHaveBeenCalled();
+  });
+});
+
+describe("createOnlineGame: one transport", () => {
+  it("polls through one transport however many frames arrive: one timer, and the same requests on every quiet poll", async () => {
+    const r = onlineRig();
+    await settle();
+    await play(r);
+    await play(r);
+    expect(r.game.getSnapshot().frame?.seq).toBe(2);
+    // A second transport or subscription would keep its own poll timer and send its own reads.
+    expect(r.timers.waiting()).toEqual([POLL_MS]);
+    const perPoll: string[][] = [];
+    for (let i = 0; i < 3; i++) {
+      const before = r.sent.length;
+      await poll(r);
+      perPoll.push(r.sent.slice(before).filter((url) => !isClockRead(url)));
+    }
+    expect(perPoll[0]).toHaveLength(1);
+    expect(perPoll[1]).toEqual(perPoll[0]);
+    expect(perPoll[2]).toEqual(perPoll[0]);
+    expect(r.timers.waiting()).toEqual([POLL_MS]);
   });
 });

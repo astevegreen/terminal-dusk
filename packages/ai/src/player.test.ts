@@ -53,6 +53,20 @@ describe("the AI worker handler", () => {
     expect(createAiWorkerHandler()({ kind: "answer", id: 9, view })).toEqual({ kind: "answer", id: 9, value: null });
   });
 
+  it("answers value null, never throwing, when the player throws on a view, and still answers the next view", () => {
+    const handler = createAiWorkerHandler();
+    handler(start(1));
+    const broken = { ...view, public: undefined } as unknown as typeof view;
+    expect(handler({ kind: "answer", id: 5, view: broken })).toEqual({ kind: "answer", id: 5, value: null });
+    expect(handler({ kind: "answer", id: 6, view })?.value).not.toBeNull();
+  });
+
+  it("a start that throws leaves no player, so answers come back null instead of the worker failing", () => {
+    const handler = createAiWorkerHandler();
+    expect(handler({ kind: "start", ruleset: undefined as never, side: "lio", seed: 1, tier: "hard" })).toBeNull();
+    expect(handler({ kind: "answer", id: 2, view })).toEqual({ kind: "answer", id: 2, value: null });
+  });
+
   it("gives the same values as createEasyPlayer with the same seed", () => {
     const handler = createAiWorkerHandler();
     handler(start(8));
@@ -83,9 +97,10 @@ describe("the Medium player", () => {
     expect(legalAnswers(ruleset, state, "lio")).toContainEqual(player(view));
     const handler = createAiWorkerHandler();
     handler({ kind: "start", ruleset, side: "lio", seed: 1, tier: "medium" });
-    const reply = handler({ kind: "answer", id: 7, view });
-    expect(reply?.id).toBe(7);
-    expect(legalAnswers(ruleset, state, "lio")).toContainEqual(reply?.value);
+    const replies = Array.from({ length: ASKS }, (_, id) => handler({ kind: "answer", id, view }));
+    expect(replies.map((r) => r?.id)).toEqual(Array.from({ length: ASKS }, (_, id) => id));
+    // The same answers, in order, as a Medium player made with the same seed: the handler made a Medium player.
+    expect(replies.map((r) => r?.value)).toEqual(ask(createMediumPlayer(ruleset, "lio", 1)));
   });
 });
 

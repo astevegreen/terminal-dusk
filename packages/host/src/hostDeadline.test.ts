@@ -147,7 +147,7 @@ function expectDraw(host: HostResult, now: number): void {
   expect(next.secret.log).toEqual([...host.secret.log, { system: "timeout", side: "both" }]);
   expect(clockOf(next).deadlines).toEqual({ lio: null, sae: null });
   expect(clockOf(next).graceUsed).toEqual(clockOf(host).graceUsed);
-  expect(next.record.seed).toBeDefined();
+  expect(next.record.seed).toBe(host.secret.seed);
   expect(next.effects).toEqual([{ finalize: true }]);
 }
 

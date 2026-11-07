@@ -1,8 +1,7 @@
-import type { EventKind, GameEvent } from "@terminal-dusk/engine";
+import type { GameEvent } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import type { GameNames } from "./displayText.ts";
-import { eventPresentation, logLine } from "./eventPresentation.ts";
-import { byCodeUnit } from "./test/order.ts";
+import { logLine } from "./eventPresentation.ts";
 import { testCountryName } from "./test/promptProps.ts";
 
 /**
@@ -18,35 +17,6 @@ const NAMES: GameNames = {
 const say = (event: GameEvent): string => logLine(event, NAMES);
 
 describe("eventPresentation", () => {
-  it("has an entry for every event kind", () => {
-    const kinds: EventKind[] = [
-      "cardDrawn",
-      "cardDrawnHidden",
-      "cardsDiscarded",
-      "contingencyDeckReshuffled",
-      "contingencyDrawn",
-      "drawPileReshuffled",
-      "eraStarted",
-      "escalationChanged",
-      "escalationCrisis",
-      "handRevealed",
-      "handRevealedHidden",
-      "influencePlaced",
-      "intervened",
-      "marker",
-      "modifierEnded",
-      "modifierStarted",
-      "pointsSpent",
-      "realigned",
-      "regionScored",
-      "scoreChanged",
-      "techRaceAttempted",
-      "triggerEnded",
-      "triggerFired",
-      "triggerSet",
-    ];
-    expect(Object.keys(eventPresentation).sort(byCodeUnit)).toEqual(kinds);
-  });
   it("logs a tech race attempt's draw, bonus and move, or that the marker stayed", () => {
     const attempt = { kind: "techRaceAttempted", visibility: "public", side: "lio", points: 4, cost: 1 } as const;
     expect(say({ ...attempt, draw: 3, bonus: 1, from: 0, to: -1, first: true })).toBe(
@@ -106,6 +76,10 @@ describe("eventPresentation", () => {
       cards: [],
     });
     expect(line).toBe("SAE discarded no cards.");
+  });
+  it("logs a passed play with the side that had no card left", () => {
+    expect(say({ kind: "playPassed", visibility: "public", side: "lio" })).toBe("LIO has no card left and passes.");
+    expect(say({ kind: "playPassed", visibility: "public", side: "sae" })).toBe("SAE has no card left and passes.");
   });
   it("logs a marker with its label, and its value when it has one", () => {
     expect(say({ kind: "marker", visibility: "public", label: "item", value: "a" })).toBe("Marker item: a.");

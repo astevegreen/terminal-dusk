@@ -4,9 +4,9 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Ruleset } from "@terminal-dusk/engine";
 import { firstDeckRuleset } from "@terminal-dusk/host/first-deck";
-import { fetchHandler, supabaseAuthenticate } from "../../../src/submitEdge.ts";
+import { submitFunctionDeps } from "../../../src/functionDeps.ts";
+import { fetchHandler } from "../../../src/submitEdge.ts";
 import type { FetchRequest, MakeResponse } from "../../../src/submitEdge.ts";
-import { SupabaseStore } from "../../../src/supabaseStore.ts";
 
 // The server's tsconfig has no Deno or DOM types, so the few runtime globals used are described here.
 type DenoRuntime = {
@@ -35,13 +35,11 @@ const db = createClient(required("SUPABASE_URL"), required("SUPABASE_SERVICE_ROL
 
 runtime.Deno.serve(
   fetchHandler(
-    {
-      store: new SupabaseStore(db),
-      ruleset: (id) => RULESETS.find((ruleset) => ruleset.id === id),
-      authenticate: supabaseAuthenticate(db),
+    submitFunctionDeps(db, {
+      rulesets: RULESETS,
       now: () => Date.now(),
       log: (line) => runtime.console.log(line),
-    },
+    }),
     (body, init) => new runtime.Response(body, init),
   ),
 );

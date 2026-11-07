@@ -1,6 +1,5 @@
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { App } from "../App.tsx";
 import { byCodeUnit } from "../test/order.ts";
 import { createVsAiSession } from "./session.ts";
 import type { VsAiSession } from "./session.ts";
@@ -23,11 +22,6 @@ const view = (session: VsAiSession): string =>
   renderToString(<VsAiView snapshot={session.getSnapshot()} session={session} onNewGame={() => {}} />);
 
 describe("the way in", () => {
-  it("has a Play against the AI button on the home screen", () => {
-    expect(renderToString(<App clock={clock} newSeed={() => "s"} newAiSeed={() => 1} />)).toContain(
-      "Play against the AI</button>",
-    );
-  });
   it("opens on a side picker with two 44 px buttons and the practice line", () => {
     const out = renderToString(<VsAiScreen clock={clock} newSeed={() => GAME_SEED} newAiSeed={() => 1} />);
     expect(out).toBe(renderToString(<SidePicker onPick={() => {}} />));

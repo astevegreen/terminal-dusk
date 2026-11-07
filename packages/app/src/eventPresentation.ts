@@ -97,6 +97,7 @@ export const eventPresentation: EventPresentation = {
     log: (event) => `${SIDE_NAME[event.side]}'s hand of ${event.cards} cards was shown to the other side.`,
   },
   cardsDiscarded: { log: (event, names) => `${SIDE_NAME[event.side]} discarded ${cardList(event.cards, names)}.` },
+  playPassed: { log: (event) => `${SIDE_NAME[event.side]} has no card left and passes.` },
   escalationChanged: {
     log: (event) => `Escalation ${event.to > event.from ? "rises" : "falls"} to ${event.to}.`,
   },
