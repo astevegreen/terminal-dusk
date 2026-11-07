@@ -52,7 +52,7 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   test-suite audit]
 - `tools/replay.mjs` is still a stub that says "no server code exists", which is out of date: the host now builds
   replay archives (`hostArchive`). `pnpm replay <matchId>` should be built on them, or its message updated
-  (`tools/replay.mjs:3`); `tools/replay.test.mjs` tests the stub and goes with it. [6 Nov 2026, test-suite audit]
+  (`tools/replay.mjs:3,10-11`); `tools/replay.test.mjs` tests the stub and goes with it. [6 Nov 2026, test-suite audit]
 - `recordSession` in `tools/handoff-notes.mjs:150` reads, adds to and renames the session-ids index with no lock, so
   two sessions saving or claiming in the same instant can drop one entry (only the Sessions pane's note list
   loses it; the note itself is safe). A lock file or an append-only log would close it. [6 Nov 2026, reviewer on
@@ -71,9 +71,13 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   `tools/eslint-formatter.mjs` and the gate's failure filter would need checking. [6 Nov 2026, owner's research request]
 - Cloud sessions get HTTP 403 from GitHub's GraphQL API, and these still use it: `gh pr list` in
   `tools/gemini-audit.mjs:211` `prs()`, `gh issue list`, `create` and `pin` in its `pinnedIssue()` (`:106`), and the
-  `gh pr` and `gh issue` edit, ready and comment steps in `tools/sprint/moves.mjs:38-70`. `tools/github-rest.mjs` has the REST
-  reads and the comment; `gh pr ready` and auto-merge need the CCR routes the 403 names. [6 Nov 2026, REST fix for
-  the audit's `pr <n>`]
+  `gh issue` and `gh pr` edit, ready and comment steps in `tools/sprint/moves.mjs`'s `issueMove` (`:24`) and `prMove`
+  (`:90`). `tools/github-rest.mjs` has the REST reads and the comment; `gh pr ready` and auto-merge need the CCR
+  routes the 403 names. [6 Nov 2026, REST fix for the audit's `pr <n>`]
+- In a cloud session the Gemini API fallback (#529) reviews an ordinary `pr <n>`, but three audits still end in
+  verdict `retry` there: the rail audit (`tools/gemini-audit.mjs:181-185`), a diff too long to send whole
+  (`tools/gemini/agy.mjs:199`), and spec and repo audits (`agy.mjs:219`). Each is a choice the code comments explain;
+  a PR touching a rail waits for a local run. [7 Nov 2026, reviewer on #538]
 - `node tools/gemini-audit.mjs specs <n>` throws "ghRun is not a function": `specs()` calls `numbers.map(issueText)`
   (`tools/gemini-audit.mjs:131`), so the array index lands in `issueText`'s `ghRun`. Already on main; no test covers
   the specs path. [6 Nov 2026, reviewer on #525]
