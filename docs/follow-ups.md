@@ -46,6 +46,13 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - `tools/gates/test-count.mjs` reads the base counts file (`--compare`, line 184) only after it has run the pull
   request's own tests (line 179), so a test could rewrite `$RUNNER_TEMP/base-counts.json` (ci.yml's test-count job) before it is read. Read the
   file first, or keep it where the tests can't write. [7 Nov 2026, CI-speed session, test-count cache]
+- `docs/repo-map.md` is still tracked, but the pre-commit hook no longer refreshes it, so it goes stale until someone
+  runs `pnpm repo-map` (in a small PR of its own, not inside feature PRs). Next step: `git rm --cached` it, add it to
+  `.gitignore`, and generate it into the working tree (plain `node tools/repo-map.mjs`) from new
+  `tools/git-hooks/post-checkout` and `post-merge` hooks (post-checkout fires on `git worktree add` too) and the root
+  `prepare` script, each tested like `pre-commit.test.mjs`. Then fix the wording that says every commit refreshes it:
+  `tools/repo-map.mjs` `renderMap` header, `docs/workflow.md:244,376`, `.claude/agents/reviewer.md:41`,
+  `tools/gemini/prompts/pr-audit.md:3`; and drop `repo-map.mjs --staged`, which nothing calls now. [7 Nov 2026, CI-speed session, Decision (architect)]
 - `tools/gemini/agy.mjs` is 435 lines: its Gemini API half (`apiPrompt`, `parseApiReply`, the HTTPS post,
   `geminiApi`) belongs in its own file, split the same way in all three repos. [7 Nov 2026, Gemini API fallback]
 - A proxy tunnel that stays open but carries nothing makes `postApi` (`tools/gemini/agy.mjs:311`) wait its full

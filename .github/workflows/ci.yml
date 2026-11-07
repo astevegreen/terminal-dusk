@@ -158,6 +158,15 @@ jobs:
         run: pnpm --filter @terminal-dusk/app exec playwright install --with-deps chromium
       - name: Playwright smoke tests
         run: pnpm --filter @terminal-dusk/app test:e2e
+      # The report holds each failed test's retry trace (playwright.config.ts): what the test's browser showed, logged
+      # and fetched from the local e2e server while it played a throwaway local game. No real match or secret is in it.
+      - name: Upload the Playwright report
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report
+          path: packages/app/playwright-report/
+          retention-days: 14
 
   # Every migration applied to an empty database on a local Supabase stack, then the migration tests (which hold the
   # row-level security checks) and the other stack tests. There is no hosted project, so this replaced the owner's
