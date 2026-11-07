@@ -233,7 +233,8 @@ await onLocalStack("row-level security across every table on the local Supabase 
         const db = clients[who];
         const row = entry.fresh(sample, s);
         const inserted = await db.from(table).insert(row as never);
-        // A wrongly accepted insert is removed before the check fails, so a failing run leaves no stray row.
+        // A wrongly accepted insert is removed before the check fails, with every row sharing its scope value (for
+        // entitlement, the seeded one too, which afterAll would remove anyway), so a failing run leaves no stray row.
         if (!inserted.error)
           await ready(service)
             .from(table)
