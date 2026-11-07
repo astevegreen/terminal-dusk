@@ -91,4 +91,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   (`tools/gemini-audit.mjs:131`), so the array index lands in `issueText`'s `ghRun`. Already on main; no test covers
   the specs path. [6 Nov 2026, reviewer on #525]
 
+- `tools/hooks/no-plugin-writes.mjs:16` still says "signed in as the bot"; reword like the sprint skills (hooks edits ask the owner). [7 Nov 2026, reviewer on #542]
+
 ## Docs
