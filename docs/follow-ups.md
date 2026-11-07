@@ -43,6 +43,9 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   issues then, or mark agent comments so the queue stops relying on the author (7 Nov 2026, review of #540).
 - `tools/gates/test-count.mjs:153-159` `heldByOwner` trusts a `held` label added by astevegreen, which agents now add
   too while gh is signed in as the owner, so a PR an agent held may drop tests (7 Nov 2026, review of #540).
+- `tools/gates/test-count.mjs` reads the base counts file (`--compare`, line 184) only after it has run the pull
+  request's own tests (line 179), so a test could rewrite `$RUNNER_TEMP/test-counts.json` before it is read. Read the
+  file first, or keep it where the tests can't write. [7 Nov 2026, CI-speed session, test-count cache]
 - `tools/gemini/agy.mjs` is 435 lines: its Gemini API half (`apiPrompt`, `parseApiReply`, the HTTPS post,
   `geminiApi`) belongs in its own file, split the same way in all three repos. [7 Nov 2026, Gemini API fallback]
 - A proxy tunnel that stays open but carries nothing makes `postApi` (`tools/gemini/agy.mjs:311`) wait its full

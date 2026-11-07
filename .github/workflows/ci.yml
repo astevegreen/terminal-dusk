@@ -35,10 +35,12 @@ jobs:
       - name: Gate (all packages)
         run: pnpm gate --all
 
-  # Pull requests: runs the tests on the base branch and here and counts them. Fails if this branch has fewer, unless
-  # the repository owner labelled the pull request held (a held label the night shift added doesn't count), and fails
-  # if any test skipped itself while running, held or not. The job has no job-level `if:`: a skipped job counts as
-  # passing, so it runs on every event and, on a push to main, says there is nothing to compare and exits cleanly.
+  # Pull requests: counts the tests on the base branch and here. Fails if this branch has fewer, unless the repository
+  # owner labelled the pull request held (a held label the night shift added doesn't count), and fails if any test
+  # skipped itself while running, held or not. The base's counts come from the cache that the push to main which made
+  # the base commit saved, so a pull request no longer installs and runs the base's whole suite; with no cached counts,
+  # or when the pull request changes how tests are counted, it counts the base itself as before. Only pushes to main
+  # save counts; a pull request only reads them. The job has no job-level `if:`: a skipped job counts as passing.
   test-count:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -61,29 +63,52 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/events" --jq '.[] | tojson' > "$RUNNER_TEMP/pr-events.ndjson"
-      - name: Nothing to count on a push
-        if: github.event_name == 'push'
-        run: echo "A push to main has no base branch to compare with; the pull request that brought it was counted."
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
-        if: github.event_name == 'pull_request'
       - uses: actions/setup-node@v7
-        if: github.event_name == 'pull_request'
         with:
           node-version: 24
       - name: Install
-        if: github.event_name == 'pull_request'
         run: |
           if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm install --no-frozen-lockfile; fi
+      # Restore only, never save: a pull request can't write the counts a later pull request compares with.
+      - name: Base counts from the cache
+        id: base-counts
+        if: github.event_name == 'pull_request'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/test-counts.json
+          key: test-count-${{ github.event.pull_request.base.sha }}
       - name: Test count (no fewer tests than the base branch)
         if: github.event_name == 'pull_request'
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          CACHE_HIT: ${{ steps.base-counts.outputs.cache-hit }}
           OWNER: ${{ github.repository_owner }}
         run: |
-          git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA"
-          pnpm --dir "$RUNNER_TEMP/base" install --frozen-lockfile
-          node tools/gates/test-count.mjs --root "$RUNNER_TEMP/base" --save "$RUNNER_TEMP/base-tests.json"
-          node tools/gates/test-count.mjs --compare "$RUNNER_TEMP/base-tests.json" --held-events "$RUNNER_TEMP/pr-events.ndjson" --owner "$OWNER"
+          counts="$RUNNER_TEMP/test-counts.json"
+          # Cached counts were made by main's counting code: a pull request that changes it counts the base itself.
+          if [ "$CACHE_HIT" = "true" ] && [ -s "$counts" ] && \
+            ! git diff --name-only "$BASE_SHA" HEAD | grep -qE '^tools/gates/(test-count|count-reporter)\.mjs$'; then
+            echo "Base counts for $BASE_SHA came from the cache."
+          else
+            git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA"
+            pnpm --dir "$RUNNER_TEMP/base" install --frozen-lockfile
+            node tools/gates/test-count.mjs --root "$RUNNER_TEMP/base" --save "$counts"
+          fi
+          node tools/gates/test-count.mjs --compare "$counts" --held-events "$RUNNER_TEMP/pr-events.ndjson" --owner "$OWNER"
+      # A push to main counts its own tests, for the pull requests whose base it becomes. A failure here only means
+      # they count the base themselves, so it doesn't fail main.
+      - name: Count main's tests for later pull requests
+        id: main-counts
+        if: github.event_name == 'push'
+        continue-on-error: true
+        run: node tools/gates/test-count.mjs --save "$RUNNER_TEMP/test-counts.json"
+      - name: Save main's counts
+        if: github.event_name == 'push' && steps.main-counts.outcome == 'success'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/test-counts.json
+          key: test-count-${{ github.sha }}
 
   # The full fuzz: 10,000 random games, on pull requests and on main.
   fuzz:

@@ -46,19 +46,45 @@ test("the gate, the test count and the full fuzz run in parallel, each its own j
   assert.equal(new Set(homes.flat()).size, 3, `one job holds two of them: ${homes.flat().join(", ")}`);
 });
 
-test("the test count fails closed: its job runs on every event, and on a push exits cleanly with nothing to compare", () => {
+test("the test count fails closed: its job runs on every event, and the compare runs on every pull request", () => {
   const ci = jobs(read("ci.yml"));
   const [id, job] = [...ci].find(([, text]) => /test-count\.mjs --compare/.test(text));
   // A job skipped by a job-level `if:` counts as passing, so the job itself is never conditional.
   assert.doesNotMatch(job, /^ {4}if:/m, `${id} has a job-level if:`);
   const count = steps(job).find((s) => /test-count\.mjs --compare/.test(s));
-  assert.match(count, /if: github\.event_name == 'pull_request'/);
-  const onPush = steps(job).filter((s) => /if: github\.event_name == 'push'/.test(s));
-  assert.equal(onPush.length, 1, "one step says why a push has nothing to count");
-  assert.doesNotMatch(onPush[0], /exit [1-9]/);
-  // Every step but that one is for pull requests only, so a push installs and runs nothing.
-  for (const s of steps(job).filter((x) => x !== onPush[0] && !/uses: actions\/checkout/.test(x)))
-    assert.match(s, /if: github\.event_name == 'pull_request'/, name(s));
+  assert.match(count, /if: github\.event_name == 'pull_request'\n/, "the compare is skipped on no pull request");
+  // The compare's last line runs whether or not the base counts came from the cache.
+  assert.match(count, /\n {10}fi\n {10}node tools\/gates\/test-count\.mjs --compare "\$counts"/);
+});
+
+test("base counts come from a cache that only pushes to main write, and a miss counts the base itself", () => {
+  const [id, job] = [...jobs(read("ci.yml"))].find(([, text]) => /test-count\.mjs --compare/.test(text));
+  const all = steps(job);
+  // actions/cache (not /restore) saves at the end of the job, so a pull request would write counts.
+  assert.doesNotMatch(job, /uses: actions\/cache@/, `${id} uses the cache action that also saves`);
+  const restore = all.filter((s) => /uses: actions\/cache\/restore@/.test(s));
+  const save = all.filter((s) => /uses: actions\/cache\/save@/.test(s));
+  assert.equal(restore.length, 1);
+  assert.equal(save.length, 1);
+  assert.match(restore[0], /if: github\.event_name == 'pull_request'\n/);
+  assert.match(restore[0], /key: test-count-\$\{\{ github\.event\.pull_request\.base\.sha \}\}\n/);
+  assert.match(save[0], /if: github\.event_name == 'push' && steps\.main-counts\.outcome == 'success'\n/);
+  assert.match(save[0], /key: test-count-\$\{\{ github\.sha \}\}\n/);
+  const pathOf = (s) => /path: (.*)/.exec(s)?.[1];
+  assert.equal(pathOf(restore[0]), pathOf(save[0]));
+  // The saved file is the one main's count step wrote.
+  const mainCount = all.find((s) => /id: main-counts/.test(s));
+  assert.match(mainCount, /if: github\.event_name == 'push'\n/);
+  assert.match(mainCount, /run: node tools\/gates\/test-count\.mjs --save "\$RUNNER_TEMP\/test-counts\.json"/);
+  // Without a hit, or when the pull request changes the counting code, it counts the base as before.
+  const count = all.find((s) => /test-count\.mjs --compare/.test(s));
+  assert.match(count, /CACHE_HIT: \$\{\{ steps\.base-counts\.outputs\.cache-hit \}\}/);
+  assert.match(count, /if \[ "\$CACHE_HIT" = "true" \] && \[ -s "\$counts" \] &&/);
+  assert.match(count, /grep -qE '\^tools\/gates\/\(test-count\|count-reporter\)\\\.mjs\$'/);
+  assert.match(
+    count,
+    /else\n\s+git worktree add --detach "\$RUNNER_TEMP\/base" "\$BASE_SHA"\n\s+pnpm --dir "\$RUNNER_TEMP\/base" install --frozen-lockfile\n\s+node tools\/gates\/test-count\.mjs --root "\$RUNNER_TEMP\/base" --save "\$counts"\n\s+fi/,
+  );
 });
 
 test("the GitHub token is in one step, Who labelled held, before anything in its job installs packages", () => {
