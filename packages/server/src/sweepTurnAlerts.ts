@@ -22,7 +22,8 @@ export type TurnAlertDeps = {
 /**
  * One due alert's outcome. `sent`: claimed, then emailed. `stale`: the match moved on past the alert's
  * `waitingSeq`, ended or is gone, so it was marked sent without an email. `noAddress`: the player has no
- * address; marked sent, no email. `taken`: another sweep running at the same time claimed it first; no email.
+ * address; marked sent, no email. `taken`: another sweep running at the same time claimed it first, or a newer
+ * alert replaced it since `due` read it (that one stays due); no email.
  * `failed`: something went wrong; the alert stays due for the next sweep, except when its claim could not be
  * given back after a failed email (then it is never emailed: one lost email rather than two).
  */

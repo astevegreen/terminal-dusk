@@ -1,7 +1,6 @@
 // The sweep claims an alert before it emails, so two sweeps running at once (the scheduled job fired twice, or a
 // slow run overlapping the next) send each turn alert once (.claude/rules/server.md: scheduled jobs are safe to
-// run twice). supabaseNotifyStore.stack.test.ts and sweepTurnAlerts.claim.stack.test.ts prove the claim on the
-// real table.
+// run twice). sweepTurnAlerts.claim.stack.test.ts proves the claim on the real table.
 import { describe, expect, it } from "vitest";
 import { turnAlertEmail } from "./mailMessages.ts";
 import { TURN_ALERT_DELAY_MS } from "./notifyStore.ts";
