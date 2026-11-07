@@ -9,6 +9,7 @@ import os from "node:os";
 import path from "node:path";
 import {
   DEEP_PATHS,
+  NO_API,
   ORDER,
   apiFor,
   askFirstAvailable,
@@ -59,9 +60,10 @@ function signedIn() {
 }
 
 // what: what is reviewed, for pickDepth; deepPaths: extra path prefixes that make it a deep review; models: the
-// models to ask in order, instead of the depth's ORDER (the rail audit's RAIL_MODELS). Returns
+// models to ask in order, instead of the depth's ORDER (the rail audit's RAIL_MODELS); api: askModel's `api`, instead
+// of apiFor(what.kind) (the rail audit's NO_API). Returns
 // { model, response, passed, depth, why }, so the comment can say which model answered and why it was chosen.
-function askGemini(promptName, material, what, { deepPaths = DEEP_PATHS, models } = {}) {
+function askGemini(promptName, material, what, { deepPaths = DEEP_PATHS, models, api = apiFor(what.kind) } = {}) {
   const text = readFileSync(path.join(ROOT, "tools", "gemini", "prompts", `${promptName}.md`), "utf8");
   let file;
   if (material) {
@@ -71,7 +73,7 @@ function askGemini(promptName, material, what, { deepPaths = DEEP_PATHS, models 
   const prompt = buildPrompt(text, file);
   const pick = pickDepth(what, deepPaths);
   const answer = askFirstAvailable(models ?? ORDER[pick.depth], (model) =>
-    askModel((args) => run("agy", args), prompt, model, ["--add-dir", tmpDir()], apiFor(what.kind)),
+    askModel((args) => run("agy", args), prompt, model, ["--add-dir", tmpDir()], api),
   );
   return { ...answer, ...pick };
 }
@@ -174,8 +176,11 @@ export function auditPr(number, io = { gh, ask: askGemini, post, me: signedIn })
   };
   const review = ask("pr-audit");
   // Argon, Opus or Flash may answer a rail audit, never Sonnet; with none of the three available it can't run, and
-  // the verdict is retry.
-  const rail = hits.length ? ask("rail-audit", { deepPaths: hits.map((h) => h.file), models: RAIL_MODELS }) : null;
+  // the verdict is retry. It never goes to the Gemini API, which sees only the diff and the rules files: rails wait
+  // for agy (owner, 7 Nov: "Rails wait for the PC").
+  const rail = hits.length
+    ? ask("rail-audit", { deepPaths: hits.map((h) => h.file), models: RAIL_MODELS, api: NO_API })
+    : null;
   const verdict = { sha: pr.headRefOid, ...decide({ review, rail, hits }) };
   const parts = [verdictMarker(verdict), review.ok ? report("pull request", review) : skipped(new Error(review.error))];
   if (rail) {
