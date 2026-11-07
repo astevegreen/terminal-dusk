@@ -13,7 +13,14 @@ const NOW = new Date("2026-10-21T12:00:00Z");
 
 // author: who opened issue #5. strangers: add what someone without access to the repository can write now it is
 // public: an issue of their own (#6), a comment on pull request #104, and a pull request from a fork (#106).
-function fakeGh({ fail, labels = ["lane:rules", "sprint-ready"], author = "greenbeanbot", strangers = false } = {}) {
+// login: the account gh is signed in as.
+function fakeGh({
+  fail,
+  labels = ["lane:rules", "sprint-ready"],
+  author = "greenbeanbot",
+  strangers = false,
+  login = "greenbeanbot",
+} = {}) {
   const calls = [];
   const by = (login, authorAssociation, body) => ({
     author: { login },
@@ -103,6 +110,9 @@ function fakeGh({ fail, labels = ["lane:rules", "sprint-ready"], author = "green
         ...(strangers ? [{ ...fork, state: "OPEN" }] : []),
       ]);
     if (key.startsWith("pr list --state open --search")) return "[]";
+    if (key === "api user --jq .login")
+      return `${login}
+`;
     if (key.startsWith("api repos/{owner}/{repo}/collaborators")) return "astevegreen\ngreenbeanbot\n";
     if (args[0] === "api") return "2026-10-21T11:00:00Z\n";
     if (key.startsWith("issue view")) return JSON.stringify({ body: "" });
@@ -154,6 +164,34 @@ test("a refused move exits 1 with error and do; a failure exits 2 and says to st
   });
   assert.equal(main(["next", "everything"], { gh: fakeGh().gh, docText: DOC_TEXT, now: NOW }).code, 2);
   assert.match(JSON.parse(main(["frobnicate"], { gh: fakeGh().gh, docText: DOC_TEXT, now: NOW }).out).error, /^usage:/);
+});
+
+test("signed in as the owner, every command that reads comments refuses before reading GitHub", () => {
+  for (const argv of [
+    ["next", "rules"],
+    ["next", "night"],
+    ["has-work", "Sprint lane: rules"],
+    ["move", "104", "merging"],
+    ["digest"],
+    ["status"],
+    ["night-shift"],
+    ["backlog", "rules"],
+  ]) {
+    const { gh, calls } = fakeGh({ login: "astevegreen" });
+    const r = main(argv, { gh, docText: DOC_TEXT, now: NOW, freeMb: 16000 });
+    assert.equal(r.code, 2, argv.join(" "));
+    assert.match(
+      JSON.parse(r.out).error,
+      /^gh is signed in as astevegreen, the owner, so the queue would read the agents' own comments/,
+    );
+    assert.deepEqual(calls, [["api", "user", "--jq", ".login"]], `${argv.join(" ")} asked GitHub nothing else`);
+  }
+});
+
+test("identity says whether the queue can run as the account gh is signed in as", () => {
+  const as = (login) => JSON.parse(main(["identity"], { gh: fakeGh({ login }).gh, docText: DOC_TEXT }).out);
+  assert.deepEqual(as("greenbeanbot"), { login: "greenbeanbot", ok: true });
+  assert.deepEqual(as("astevegreen"), { login: "astevegreen", ok: false });
 });
 
 test("env names the computer from docs/sprint.md without asking GitHub, and stops while it's a placeholder", () => {

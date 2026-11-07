@@ -15,6 +15,7 @@
 //   started "<session title>" <trigger id>    records a trigger the supervisor created; sessions [--all] reads them
 //   night-shift                    {"active", "building", "reason"}: night-shift tasks still in flight
 //   resume - --last-event <ISO>   the end of a run's log on stdin; {"start", "after", "restartAt", "reason"}
+//   identity                       {"login", "ok"}: ok unless gh is signed in as the owner (see ownerRefusal)
 // The rules are in rules.mjs (and moves.mjs, cue.mjs, usage-limit.mjs); this file loads GitHub's state and runs
 // the planned gh commands. docs/sprint.md is read as origin/main has it; the window is this computer's own
 // (local-state.mjs), which /sprint-start sets.
@@ -40,7 +41,7 @@ import { resumeAfter } from "./usage-limit.mjs";
 const ROOT = path.resolve(import.meta.dirname, "..", "..");
 const STOP = "Stop and report this error to the owner; don't fall back to the prose rules.";
 const USAGE =
-  'usage: queue.mjs has-work "<title>" [--started <k>] | next <lane|night> [--fixes-done <k>] | move <n> <state> [--note "…"] [--conflict | --rail | --blocker] [--dry-run] | digest [--dry-run] | backlog <lane> | status [--need "…"] [--write] | env | window [start [hours] [--environment <env_…>] | ids [--supervisor|--archiver|--wake <trig_…>] | stop | archived] | wake [--resets-at <epoch s>] | started "<title>" <trigger id> | sessions [--all] | night-shift | resume - --last-event <ISO> (the log on stdin)';
+  'usage: queue.mjs has-work "<title>" [--started <k>] | next <lane|night> [--fixes-done <k>] | move <n> <state> [--note "…"] [--conflict | --rail | --blocker] [--dry-run] | digest [--dry-run] | backlog <lane> | status [--need "…"] [--write] | env | window [start [hours] [--environment <env_…>] | ids [--supervisor|--archiver|--wake <trig_…>] | stop | archived] | wake [--resets-at <epoch s>] | started "<title>" <trigger id> | sessions [--all] | night-shift | resume - --last-event <ISO> (the log on stdin) | identity';
 const SESSION_MB = 1536; // what one new session is counted as using before it shows in free memory
 
 export function runGh(args) {
@@ -216,6 +217,17 @@ function mainDoc() {
   return existsSync(file) ? readFileSync(file, "utf8") : "";
 }
 
+// The queue tells the agents' comments from the owner's answers by who wrote them (comments.mjs, isSprint), so it
+// works only while gh is signed in as another account. Signed in as the owner, every "Held:" or "Blocked:" comment
+// an agent posts would read as the owner's reply and release the work it held.
+export function identity(gh) {
+  const login = gh(["api", "user", "--jq", ".login"]).trim();
+  return { login, ok: login !== OWNER };
+}
+const ownerRefusal = (login) =>
+  `gh is signed in as ${login}, the owner, so the queue would read the agents' own comments as the owner's answers. ` +
+  "Sprints and the night shift wait until gh is signed in as another account; never run `gh auth switch` yourself";
+
 function option(args, name) {
   const i = args.indexOf(name);
   return i < 0 ? undefined : args[i + 1];
@@ -253,6 +265,12 @@ export function main(
     if (argv[0] === "resume") {
       if (argv[1] !== "-") throw new Error(USAGE);
       return line(resumeAfter(stdin(), { lastEventAt: option(argv, "--last-event"), now: clock }));
+    }
+    if (argv[0] === "identity") return line(identity(gh));
+    // Every command below reads the issues' comments; a recorded sprint (--fixture) asks GitHub nothing.
+    if (!fixture) {
+      const who = identity(gh);
+      if (!who.ok) throw new Error(ownerRefusal(who.login));
     }
     const freeOpt = option(argv, "--free-mb");
     const S = fixture
