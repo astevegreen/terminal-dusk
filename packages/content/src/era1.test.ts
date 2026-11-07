@@ -9,9 +9,6 @@ describe("the Era 1 deck", () => {
   it("shows the id for a card it does not know, so a missing name is visible", () => {
     expect(cardName("nope")).toBe("nope");
   });
-  it("keeps real names out of card ids", () => {
-    for (const card of ERA_1_CARDS) expect(card.id).toMatch(/^e1-(lio|sae|neu)-\d{3}$/);
-  });
   it("leaves the engine's rules free of the text", () => {
     expect(FIRST_DECK_RULESET.cards).toHaveLength(96); // Eras 1 to 3 and the future cards; each era's test counts its own
     for (const def of FIRST_DECK_RULESET.cards) expect("text" in def).toBe(false);

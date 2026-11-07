@@ -35,18 +35,45 @@ const marked = (login, v, sha = SHA) => ({
   body: `<!-- gemini-audit -->\n${verdictMarker({ sha, blockers: [], notes: [], why: "x", ...v })}\n`,
 });
 
-// answers: the reply to each prompt, or an Error when agy can't answer it.
-function fake({ comments = [], diff = diffOf("packages/app/src/x.ts"), answers = {}, fork = false } = {}) {
-  const calls = { ask: [], post: [], me: 0 };
+// GitHub's REST answers for pull request 7 and its comments, as `gh api` prints them (the comments one per line).
+const REPO = { full_name: "astevegreen/terminal-dusk" };
+const restPr = ({ fork, body = "" }) => ({
+  number: 7,
+  body,
+  head: { sha: SHA, repo: fork ? { full_name: "stranger/terminal-dusk" } : REPO },
+  base: { repo: REPO },
+});
+const restComments = (comments) =>
+  comments
+    .map((c) => JSON.stringify({ user: c.author, author_association: c.authorAssociation ?? "OWNER", body: c.body }))
+    .join("\n");
+
+// answers: the reply to each prompt, or an Error when agy can't answer it. issues: the REST answer for each issue.
+function fake({
+  comments = [],
+  diff = diffOf("packages/app/src/x.ts"),
+  answers = {},
+  fork = false,
+  body,
+  issues = {},
+} = {}) {
+  const calls = { ask: [], post: [], me: 0, gh: [] };
   const io = {
     gh: (...args) => {
-      if (args[0] === "pr" && args[1] === "view")
-        return JSON.stringify({ number: 7, body: "", headRefOid: SHA, isCrossRepository: fork, comments });
+      calls.gh.push(args);
+      // Every read is REST: `gh pr view` and `gh issue view` need GraphQL, which cloud sessions can't reach.
+      if (args[0] === "pr" && args[1] === "view") throw new Error("HTTP 403: GitHub GraphQL is not available");
+      if (args[0] === "api" && args[1] === "repos/{owner}/{repo}/pulls/7")
+        return JSON.stringify(restPr({ fork, body }));
+      if (args[0] === "api" && args[2] === "repos/{owner}/{repo}/issues/7/comments?per_page=100")
+        return restComments(comments);
+      const issue = /^repos\/\{owner\}\/\{repo\}\/issues\/(\d+)$/.exec(args[1] ?? "")?.[1];
+      if (args[0] === "api" && issues[issue]) return JSON.stringify(issues[issue]);
       if (args[0] === "pr" && args[1] === "diff") return diff;
       throw new Error(`unexpected gh ${args.join(" ")}`);
     },
     ask: (prompt, material, what, opts = {}) => {
-      calls.ask.push({ prompt, opts });
+      calls.ask.push({ prompt, opts, material });
       const a = answers[prompt] ?? "No findings.";
       if (a instanceof Error) throw a;
       return { model: "m", response: a, passed: [], depth: "deep", why: "x" };
@@ -116,6 +143,24 @@ test("auditPr: agy's review can't run on a change that touches no rail, so it re
   const r = auditPr(7, io);
   assert.equal(r.verdict, "retry");
   assert.match(calls.post[0].body, /Gemini audit skipped: agy is not installed/);
+});
+
+test("auditPr reads the pull request, its comments and its linked task spec through REST, never GraphQL", () => {
+  const spec = { number: 12, title: "The spec", body: "Do the thing." };
+  const { io, calls } = fake({ body: "Closes #12", issues: { 12: spec } });
+  const r = auditPr(7, io);
+  assert.equal(r.verdict, "merge");
+  assert.match(calls.ask[0].material, /# #12 The spec\n\nDo the thing\./);
+  assert.ok(
+    calls.gh.every((a) => a[0] === "api" || (a[0] === "pr" && a[1] === "diff")),
+    JSON.stringify(calls.gh),
+  );
+});
+
+test("auditPr reads REST comments as gh's { author: { login } }, so its own verdict is still found", () => {
+  const { io, calls } = fake({ comments: [marked(ME, { verdict: "merge" })] });
+  assert.equal(auditPr(7, io).reused, true);
+  assert.equal(calls.me, 1);
 });
 
 // --- the repository is public: what strangers write never reaches agy --------------------------------------------

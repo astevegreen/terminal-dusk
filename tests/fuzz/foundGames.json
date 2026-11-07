@@ -1,0 +1,207 @@
+[
+  {
+    "name": "fuzz game 16: a card played in the open shuffled back in the same step",
+    "record": {
+      "setup": {
+        "seedHash": "9b346c2127278775eb14d2754631f738fed8882d5948b5aa0ef3903174c574dd",
+        "hands": {
+          "lio": ["c38", "c45", "c36", "c75", "c69", "c6", "c47", "c82", "c80", "c76", "c46", "c83", "c66"],
+          "sae": ["c20", "c16", "c40", "c32", "c51", "c5", "c2"]
+        },
+        "deck": [],
+        "turns": 3,
+        "playsPerTurn": 1,
+        "handSize": 3,
+        "contingency": {
+          "lio": [2, 11, 12],
+          "sae": [12, 11, 12, 5],
+          "world": [7, 7, 7, 11, 2, 2, 7, 6]
+        }
+      },
+      "seed": "fuzz-16",
+      "answers": [
+        { "decisionId": "d0-sae", "side": "sae", "value": { "kind": "chooseCard", "card": "c5" } },
+        { "decisionId": "d0-lio", "side": "lio", "value": { "kind": "chooseCard", "card": "c46" } },
+        { "decisionId": "d2", "side": "lio", "value": { "kind": "playCardAs", "card": "c82", "as": "points" } },
+        { "decisionId": "d3", "side": "sae", "value": { "kind": "playCardAs", "card": "c40", "as": "points" } },
+        { "decisionId": "d4", "side": "sae", "value": { "kind": "rivalEventOrder", "event": "before" } },
+        { "decisionId": "d5", "side": "sae", "value": { "kind": "yesNo", "yes": false } },
+        { "decisionId": "d6-sae", "side": "sae", "value": { "kind": "chooseCard", "card": "c51" } },
+        { "decisionId": "d6-lio", "side": "lio", "value": { "kind": "chooseCard", "card": "c83" } },
+        { "decisionId": "d8", "side": "lio", "value": { "kind": "playCardAs", "card": "c69", "as": "event" } },
+        { "decisionId": "d9-lio", "side": "lio", "value": { "kind": "yesNo", "yes": false } },
+        { "decisionId": "d9-sae", "side": "sae", "value": { "kind": "yesNo", "yes": true } },
+        { "decisionId": "d11", "side": "sae", "value": { "kind": "playCardAs", "card": "c16", "as": "points" } },
+        { "decisionId": "d12", "side": "sae", "value": { "kind": "rivalEventOrder", "event": "after" } },
+        { "decisionId": "d13", "side": "sae", "value": { "kind": "yesNo", "yes": true } },
+        { "decisionId": "d14-lio", "side": "lio", "value": { "kind": "chooseCard", "card": "c36" } },
+        { "decisionId": "d14-sae", "side": "sae", "value": { "kind": "chooseCard", "card": "c20" } },
+        { "decisionId": "d16", "side": "lio", "value": { "kind": "yesNo", "yes": false } },
+        { "decisionId": "d17", "side": "lio", "value": { "kind": "yesNo", "yes": false } },
+        { "decisionId": "d18", "side": "lio", "value": { "kind": "playCardAs", "card": "c6", "as": "event" } },
+        { "decisionId": "d19", "side": "sae", "value": { "kind": "playCardAs", "card": "c32", "as": "points" } }
+      ]
+    },
+    "final": { "status": { "kind": "over", "winner": null, "reason": "turnLimitReached" }, "score": null }
+  },
+  {
+    "name": "fuzz game 955: a card played in the open shuffled back in the same step",
+    "record": {
+      "setup": {
+        "seedHash": "79a28a9bc83db798e65b9131f391eb2265f8e2540b555e6f87f6f2345e8abdec",
+        "hands": {
+          "lio": ["c80", "c53", "c14", "c7", "c22", "c55", "c40", "c2", "c62", "c4", "c32", "c73"],
+          "sae": ["c35", "c85", "c67", "c17", "c76", "c58", "c25", "c19", "c5", "c15", "c1", "c64", "c77"]
+        },
+        "deck": [],
+        "turns": 4,
+        "playsPerTurn": 2,
+        "handSize": 3,
+        "eras": [
+          {
+            "era": "fuzz",
+            "turn": 2,
+            "cards": ["c54"]
+          }
+        ],
+        "contingency": {
+          "lio": [3, 4, 6, 5, 2, 1],
+          "sae": [7, 10, 2, 4, 8],
+          "world": [6, 3, 4, 1, 5, 2]
+        }
+      },
+      "seed": "fuzz-955",
+      "answers": [
+        { "decisionId": "d0-sae", "side": "sae", "value": { "kind": "chooseCard", "card": "c5" } },
+        { "decisionId": "d0-lio", "side": "lio", "value": { "kind": "chooseCard", "card": "c62" } },
+        { "decisionId": "d2", "side": "lio", "value": { "kind": "playCardAs", "card": "c7", "as": "event" } },
+        { "decisionId": "d3", "side": "sae", "value": { "kind": "playCardAs", "card": "c15", "as": "event" } },
+        { "decisionId": "d4", "side": "lio", "value": { "kind": "playCardAs", "card": "c40", "as": "event" } },
+        { "decisionId": "d5", "side": "sae", "value": { "kind": "yesNo", "yes": true } },
+        { "decisionId": "d6", "side": "sae", "value": { "kind": "playCardAs", "card": "c76", "as": "points" } },
+        { "decisionId": "d7", "side": "sae", "value": { "kind": "rivalEventOrder", "event": "after" } },
+        { "decisionId": "d8", "side": "lio", "value": { "kind": "yesNo", "yes": false } },
+        { "decisionId": "d9-sae", "side": "sae", "value": { "kind": "chooseCard", "card": "c77" } },
+        { "decisionId": "d9-lio", "side": "lio", "value": { "kind": "chooseCard", "card": "c73" } },
+        { "decisionId": "d11", "side": "lio", "value": { "kind": "playCardAs", "card": "c4", "as": "points" } },
+        { "decisionId": "d12", "side": "sae", "value": { "kind": "playCardAs", "card": "c35", "as": "points" } },
+        { "decisionId": "d13", "side": "lio", "value": { "kind": "playCardAs", "card": "c14", "as": "points" } },
+        { "decisionId": "d14", "side": "lio", "value": { "kind": "rivalEventOrder", "event": "before" } },
+        { "decisionId": "d15", "side": "sae", "value": { "kind": "playCardAs", "card": "c64", "as": "points" } },
+        { "decisionId": "d16", "side": "sae", "value": { "kind": "rivalEventOrder", "event": "before" } },
+        { "decisionId": "d17", "side": "sae", "value": { "kind": "yesNo", "yes": false } },
+        { "decisionId": "d18-sae", "side": "sae", "value": { "kind": "chooseCard", "card": "c67" } },
+        { "decisionId": "d18-lio", "side": "lio", "value": { "kind": "chooseCard", "card": "c55" } },
+        { "decisionId": "d20", "side": "lio", "value": { "kind": "playCardAs", "card": "c32", "as": "points" } },
+        { "decisionId": "d21", "side": "lio", "value": { "kind": "rivalEventOrder", "event": "after" } },
+        { "decisionId": "d22", "side": "sae", "value": { "kind": "yesNo", "yes": true } },
+        { "decisionId": "d23", "side": "sae", "value": { "kind": "playCardAs", "card": "c17", "as": "event" } },
+        { "decisionId": "d24", "side": "lio", "value": { "kind": "playCardAs", "card": "c22", "as": "points" } },
+        { "decisionId": "d25", "side": "sae", "value": { "kind": "playCardAs", "card": "c85", "as": "points" } },
+        { "decisionId": "d26", "side": "sae", "value": { "kind": "rivalEventOrder", "event": "before" } },
+        { "decisionId": "d27-lio", "side": "lio", "value": { "kind": "chooseCard", "card": "c53" } },
+        { "decisionId": "d27-sae", "side": "sae", "value": { "kind": "chooseCard", "card": "c1" } },
+        { "decisionId": "d29", "side": "lio", "value": { "kind": "playCardAs", "card": "c80", "as": "points" } },
+        { "decisionId": "d30", "side": "lio", "value": { "kind": "rivalEventOrder", "event": "after" } },
+        { "decisionId": "d31", "side": "sae", "value": { "kind": "yesNo", "yes": true } },
+        { "decisionId": "d32", "side": "sae", "value": { "kind": "playCardAs", "card": "c25", "as": "points" } },
+        { "decisionId": "d33", "side": "sae", "value": { "kind": "rivalEventOrder", "event": "after" } },
+        { "decisionId": "d34", "side": "lio", "value": { "kind": "playCardAs", "card": "c2", "as": "points" } },
+        { "decisionId": "d35", "side": "lio", "value": { "kind": "rivalEventOrder", "event": "after" } },
+        { "decisionId": "d36", "side": "sae", "value": { "kind": "playCardAs", "card": "c19", "as": "points" } },
+        { "decisionId": "d37", "side": "sae", "value": { "kind": "rivalEventOrder", "event": "before" } }
+      ]
+    },
+    "final": { "status": { "kind": "over", "winner": null, "reason": "turnLimitReached" }, "score": null }
+  },
+  {
+    "name": "fuzz game 6944: SAE's hand came up short once LIO had been dealt 12 cards",
+    "record": {
+      "setup": {
+        "seedHash": "f58bd63ad6c66c695d9a1f08de5860eed0677aa500effca34b43456eeb0df40a",
+        "hands": {
+          "lio": ["c3", "c54", "c80", "c11", "c81", "c4", "c9", "c85", "c42", "c43", "c72", "c6"],
+          "sae": ["c8", "c83", "c26", "c17"]
+        },
+        "deck": [],
+        "turns": 2,
+        "playsPerTurn": 1,
+        "handSize": 3,
+        "contingency": {
+          "lio": [12, 7, 4, 9],
+          "sae": [9, 7, 6, 3, 9, 5, 10, 8],
+          "world": [3, 10, 12, 2]
+        }
+      },
+      "seed": "fuzz-6944",
+      "answers": [
+        { "decisionId": "d0-lio", "side": "lio", "value": { "kind": "chooseCard", "card": "c11" } },
+        { "decisionId": "d0-sae", "side": "sae", "value": { "kind": "chooseCard", "card": "c17" } },
+        { "decisionId": "d2", "side": "lio", "value": { "kind": "playCardAs", "card": "c81", "as": "event" } },
+        { "decisionId": "d3-sae", "side": "sae", "value": { "kind": "yesNo", "yes": false } },
+        { "decisionId": "d3-lio", "side": "lio", "value": { "kind": "yesNo", "yes": false } },
+        { "decisionId": "d5", "side": "sae", "value": { "kind": "playCardAs", "card": "c8", "as": "points" } },
+        { "decisionId": "d6-sae", "side": "sae", "value": { "kind": "chooseCard", "card": "c8" } },
+        { "decisionId": "d6-lio", "side": "lio", "value": { "kind": "chooseCard", "card": "c72" } },
+        { "decisionId": "d8", "side": "sae", "value": { "kind": "yesNo", "yes": false } },
+        { "decisionId": "d9", "side": "sae", "value": { "kind": "yesNo", "yes": false } },
+        { "decisionId": "d10", "side": "lio", "value": { "kind": "playCardAs", "card": "c43", "as": "event" } },
+        { "decisionId": "d11", "side": "sae", "value": { "kind": "playCardAs", "card": "c83", "as": "event" } }
+      ]
+    },
+    "final": { "status": { "kind": "over", "winner": null, "reason": "turnLimitReached" }, "score": null }
+  },
+  {
+    "name": "extra-steps game 427: a discard took LIO's last card before its play, which LIO passes",
+    "ruleset": "fuzz-extra-steps-ruleset",
+    "record": {
+      "setup": {
+        "seedHash": "da44132d6e96834a346d0a5742150ba5cb06f612de42103d88cdf0711eff5d23",
+        "hands": { "lio": ["c43", "c58"], "sae": ["c29", "c6", "c24", "c41", "c33", "c48", "c38"] },
+        "deck": [
+          "c5",
+          "c59",
+          "c2",
+          "c53",
+          "c20",
+          "c79",
+          "c65",
+          "c32",
+          "c11",
+          "c27",
+          "c13",
+          "c56",
+          "c42",
+          "c9",
+          "c54",
+          "c28",
+          "c83",
+          "c45",
+          "c22",
+          "c75",
+          "c19",
+          "c73",
+          "c61",
+          "c23",
+          "c34",
+          "c70",
+          "c40",
+          "c26",
+          "c37",
+          "c25"
+        ],
+        "turns": 1,
+        "playsPerTurn": 1,
+        "handSize": 2,
+        "contingency": { "lio": [6, 12, 1, 1, 6, 10, 2, 1], "sae": [1, 10, 4], "world": [10, 4, 11, 3, 10, 10] }
+      },
+      "seed": "fuzz-427",
+      "answers": [
+        { "decisionId": "d0-lio", "side": "lio", "value": { "kind": "chooseCard", "card": "c43" } },
+        { "decisionId": "d0-sae", "side": "sae", "value": { "kind": "chooseCard", "card": "c6" } },
+        { "decisionId": "d2", "side": "sae", "value": { "kind": "playCardAs", "card": "c29", "as": "points" } }
+      ]
+    },
+    "final": { "status": { "kind": "over", "winner": null, "reason": "turnLimitReached" }, "score": null }
+  }
+]

@@ -1,8 +1,22 @@
-// Fixed games the fuzz suite replays, with every check, on every run. When a fuzz game fails, its report
-// prints the game's record; once the bug is fixed, add that record here so the bug can't come back.
+// Fixed games the fuzz suite replays, with every check, on every run, and whose final status and score it compares.
+// When a fuzz game fails, its report prints the game's record; once the bug is fixed, add that record to
+// foundGames.ts, with the final status and score the fixed engine gives, so the bug can't come back.
+import type { GameStatus } from "@terminal-dusk/engine";
+import { FOUND_GAMES } from "./foundGames.ts";
 import type { GameRecord } from "./play.ts";
 
-export const FIXED_GAMES: { name: string; record: GameRecord }[] = [
+/**
+ * A recorded game and how it ends: its status, and its score (null for a game with no score track). `ruleset`, when
+ * given, is the ID of the fuzz ruleset it was played with (engine.test.ts); without it, the base fuzz ruleset.
+ */
+export type FixedGame = {
+  name: string;
+  ruleset?: string;
+  record: GameRecord;
+  final: { status: GameStatus; score: number | null };
+};
+
+export const FIXED_GAMES: FixedGame[] = [
   {
     // Not a found failure: an example of the format, which also pins one order of a simultaneous pair.
     // SAE's c5 (4 ops) resolves before LIO's c1 (0 ops); then LIO plays its c7 for its event and SAE
@@ -26,5 +40,7 @@ export const FIXED_GAMES: { name: string; record: GameRecord }[] = [
         { decisionId: "d3", side: "sae", value: { kind: "playCardAs", card: "c2", as: "points" } },
       ],
     },
+    final: { status: { kind: "over", winner: null, reason: "turnLimitReached" }, score: null },
   },
+  ...FOUND_GAMES,
 ];

@@ -97,21 +97,30 @@ export async function refreshSession(e: AuthEndpoint, refreshToken: string, now:
 
 /**
  * A `RemoteMatchOptions.accessToken` for a session: the stored token while it has more than a minute
- * left, else one shared refresh whose new session goes to `save`. A failed refresh resolves null (signed
- * out) without calling `save`; the next call tries again. It never throws.
+ * left, else one shared refresh whose new session goes to `save`. Only Auth refusing the refresh token (a 4xx
+ * other than 429) means the session is over: `refused` is called and the call resolves null. Any other failure
+ * (no reply, a 5xx, a 429, an unreadable reply) keeps the session: the old token while it has not expired, else
+ * null, and the next call tries again. Neither failure calls `save`. It never throws.
  */
 export function sessionToken(
   e: AuthEndpoint,
   session: Session,
   now: () => number,
   save: (session: Session) => void,
+  refused: () => void = () => {},
 ): () => Promise<string | null> {
   let current = session;
   let refreshing: Promise<string | null> | null = null;
 
   const refresh = async (): Promise<string | null> => {
     const result = await refreshSession(e, current.refreshToken, now());
-    if (!result.ok) return null;
+    if (!result.ok) {
+      if (result.error.code === "wrongCode") {
+        refused();
+        return null;
+      }
+      return current.expiresAt > now() ? current.accessToken : null;
+    }
     current = result.value;
     try {
       save(result.value);

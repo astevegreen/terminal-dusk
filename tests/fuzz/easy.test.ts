@@ -45,12 +45,6 @@ function playedByBranches(record: GameRecord): { then: number; else: number } {
 }
 
 describe("Easy in the fuzz games", () => {
-  it("plays games 0, 6, 12 as LIO and 3, 9, 15 as SAE, and every one of them ends", () => {
-    for (const game of [0, 3, 6, 9, 12, 15]) {
-      expect(playFuzzGame(game).final.public.status.kind).toBe("over");
-    }
-  });
-
   it("answers its own side's decisions with the AI on either side, and the game still passes every check", () => {
     for (const easy of SIDES) {
       const finals = easyFinals(easy);

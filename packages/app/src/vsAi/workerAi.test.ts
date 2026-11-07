@@ -14,6 +14,8 @@ class FakeWorker {
   sent: AiRequest[] = [];
   terminated = false;
   onmessage: ((event: { data: AiResponse }) => void) | null = null;
+  onerror: ((event: unknown) => void) | null = null;
+  onmessageerror: ((event: unknown) => void) | null = null;
   private readonly handle = createAiWorkerHandler();
   private replies: AiResponse[] = [];
   constructor(url: URL, options: unknown) {
@@ -69,8 +71,11 @@ describe("the Web Worker opponent", () => {
     const second = ai.answer(view);
     FakeWorker.made[0]?.flush();
     const player = createEasyPlayer(fixtureRuleset, "sae", 42);
-    expect(await first).toEqual(player(view));
-    expect(await second).toEqual(player(view));
+    const [one, two] = [player(view), player(view)];
+    // The two answers differ, so a reply given to the wrong call (they arrive in reverse order) would be caught.
+    expect(one).not.toEqual(two);
+    expect(await first).toEqual(one);
+    expect(await second).toEqual(two);
     const ids = FakeWorker.made[0]?.sent.flatMap((r) => (r.kind === "answer" ? [r.id] : []));
     expect(ids).toHaveLength(2);
     expect(new Set(ids).size).toBe(2);
@@ -84,4 +89,19 @@ describe("the Web Worker opponent", () => {
     expect(FakeWorker.made[0]?.terminated).toBe(true);
     expect(await pending).toBeNull();
   });
+
+  for (const failure of ["onerror", "onmessageerror"] as const) {
+    it(`a worker ${failure.slice(2)} settles every waiting answer as null, ends the worker, and later calls give null`, async () => {
+      vi.stubGlobal("Worker", FakeWorker);
+      const ai = createWorkerAi(fixtureRuleset, "sae", 42);
+      const pending = ai.answer(firstView());
+      const worker = FakeWorker.made[0]!;
+      worker[failure]?.({ message: "the AI script failed" });
+      expect(await pending).toBeNull();
+      expect(worker.terminated).toBe(true);
+      const sentBefore = worker.sent.length;
+      expect(await ai.answer(firstView())).toBeNull();
+      expect(worker.sent).toHaveLength(sentBefore);
+    });
+  }
 });

@@ -120,19 +120,9 @@ describe("apply: accepted answers", () => {
       expect(code(apply(ruleset, paused, a))).toBe("illegalAnswer");
     }
   });
-  it("state stays plain JSON with integers only", () => {
-    const s = playAnswers(startGame(), 3);
-    expect(JSON.parse(JSON.stringify(s))).toEqual(s);
-    expect(Number.isInteger(s.public.turn) && Number.isInteger(s.meta.seq)).toBe(true);
-  });
 });
 
 describe("apply: resign", () => {
-  it("never changes deep-frozen inputs", () => {
-    const s = deepFreeze(startGame());
-    const r = apply(deepFreeze({ ...ruleset }), s, deepFreeze({ system: "resign", side: "lio" } as Answer));
-    expect(r.ok).toBe(true);
-  });
   it("ends the game with the other side as winner", () => {
     for (const [side, winner] of [
       ["lio", "sae"],
@@ -221,9 +211,5 @@ describe("apply: both sides time out on a simultaneous pick", () => {
       const a = { system, side: "both" } as unknown as Answer;
       expect(code(apply(ruleset, startGame(), a))).toBe("unknownDecision");
     }
-  });
-  it("never changes deep-frozen inputs", () => {
-    const r = apply(deepFreeze({ ...ruleset }), deepFreeze(startGame()), deepFreeze({ ...both }));
-    expect(r.ok).toBe(true);
   });
 });

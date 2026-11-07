@@ -29,7 +29,7 @@ export type Rig = {
 };
 
 export function rig(store: KeyValueStore = memoryStore()): Rig {
-  const fake = createFakeAuth();
+  const fake = createFakeAuth({ [STORED.refreshToken]: STORED.userId });
   const clock = { now: START };
   const signIn = createSignIn({
     auth: { url: AUTH_URL, anonKey: AUTH_ANON_KEY, fetch: fake.fetch },

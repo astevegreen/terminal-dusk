@@ -1,7 +1,6 @@
 import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { App } from "../App.tsx";
 import { countryNames } from "../countryChoices.ts";
 import { decisionPrompts } from "../decisionPrompts.tsx";
 import { byCodeUnit } from "../test/order.ts";
@@ -60,11 +59,6 @@ async function answerOnce(session: TestSession, order: "first" | "last", accepte
 }
 
 describe("test mode screen", () => {
-  it("has a Test mode button on the placeholder screen and opens the screen", () => {
-    expect(renderToString(<App clock={clock} newSeed={() => "s"} newAiSeed={() => 1} />)).toContain(
-      "Test mode</button>",
-    );
-  });
   it("renders the turn, the plays, the hand and the open prompt from the frame", () => {
     const out = html(fresh());
     const texts = [

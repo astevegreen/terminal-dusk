@@ -15,8 +15,31 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # The full gate, the test count and the fuzz. Its result reaches main through the "gate" job at the end.
+  # The full gate, the test count and the full fuzz run as three jobs side by side, so CI takes as long as the slowest
+  # of them, not their sum. Each one's result reaches main through the "gate" job at the end.
   checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Later steps run test code, so don't leave the token in .git/config.
+          persist-credentials: false
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Install
+        run: |
+          if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm install --no-frozen-lockfile; fi
+      - name: Gate (all packages)
+        run: pnpm gate --all
+
+  # Pull requests: runs the tests on the base branch and here and counts them. Fails if this branch has fewer, unless
+  # the repository owner labelled the pull request held (a held label the night shift added doesn't count), and fails
+  # if any test skipped itself while running, held or not. The job has no job-level `if:`: a skipped job counts as
+  # passing, so it runs on every event and, on a push to main, says there is nothing to compare and exits cleanly.
+  test-count:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -30,26 +53,27 @@ jobs:
           fetch-depth: 0
           # Later steps run test code, so don't leave the token in .git/config. Every git command after this is local.
           persist-credentials: false
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-      - name: Install
-        run: |
-          if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm install --no-frozen-lockfile; fi
-      - name: Gate (all packages)
-        run: pnpm gate --all
-      # Pull requests only. The token is used here and nowhere else: the next step installs packages and runs test code,
-      # so it gets no token.
+      # The token is used here and nowhere else, before any package is installed: the steps after it install packages
+      # and run test code, so they get no token.
       - name: Who labelled held
         if: github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/events" --jq '.[] | tojson' > "$RUNNER_TEMP/pr-events.ndjson"
-      # Pull requests only. Runs the tests on the base branch and here and counts them. Fails if this branch has fewer,
-      # unless the repository owner labelled the pull request held (a held label the night shift added doesn't count),
-      # and fails if any test skipped itself while running, held or not. A step, not a job: a skipped job counts as passing.
+      - name: Nothing to count on a push
+        if: github.event_name == 'push'
+        run: echo "A push to main has no base branch to compare with; the pull request that brought it was counted."
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        if: github.event_name == 'pull_request'
+      - uses: actions/setup-node@v7
+        if: github.event_name == 'pull_request'
+        with:
+          node-version: 24
+      - name: Install
+        if: github.event_name == 'pull_request'
+        run: |
+          if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm install --no-frozen-lockfile; fi
       - name: Test count (no fewer tests than the base branch)
         if: github.event_name == 'pull_request'
         env:
@@ -60,6 +84,22 @@ jobs:
           pnpm --dir "$RUNNER_TEMP/base" install --frozen-lockfile
           node tools/gates/test-count.mjs --root "$RUNNER_TEMP/base" --save "$RUNNER_TEMP/base-tests.json"
           node tools/gates/test-count.mjs --compare "$RUNNER_TEMP/base-tests.json" --held-events "$RUNNER_TEMP/pr-events.ndjson" --owner "$OWNER"
+
+  # The full fuzz: 10,000 random games, on pull requests and on main.
+  fuzz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Install
+        run: |
+          if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm install --no-frozen-lockfile; fi
       - name: Full fuzz (10,000 games)
         run: pnpm run --if-present fuzz
 
@@ -163,10 +203,11 @@ jobs:
         run: node --test "tools/**/*.test.mjs"
 
   # Required status check for main (the ruleset): keep the job name "gate". It passes only when every job it needs
-  # passed, so e2e, the database and the dependency check gate merges without a ruleset change. `!cancelled()` makes it
-  # run, and fail, when one of them failed: a skipped required job would count as passing.
+  # passed, so the test count, the fuzz, e2e, the database and the dependency check gate merges without a ruleset
+  # change. `!cancelled()` makes it run, and fail, when one of them failed: a skipped required job would count as
+  # passing.
   gate:
-    needs: [checks, e2e, db, deps]
+    needs: [checks, test-count, fuzz, e2e, db, deps]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -181,4 +222,4 @@ jobs:
             echo "$failed"
             exit 1
           fi
-          echo "checks, e2e, db and deps all passed."
+          echo "checks, test-count, fuzz, e2e, db and deps all passed."

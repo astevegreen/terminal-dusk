@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { hiddenFrom, leaksIn } from "./test/leaks.ts";
-import { SEED } from "./test/match.ts";
+import { leaksFor } from "./test/secretLeaks.ts";
 import { accept, nextSide, started, submissionFor } from "./test/play.ts";
 import type { HostResult } from "./types.ts";
 
@@ -19,19 +18,17 @@ function allSteps(): HostResult[] {
 describe("hostSubmit: nothing hidden leaves the secret", () => {
   it("after every step, the record holds no seed (until the game ends), generator state or hidden card", () => {
     for (const step of allSteps()) {
-      const { state } = step.secret;
       const { seed: revealed, ...rest } = step.record; // the seed is revealed once the game is over
       expect(revealed === undefined || step.record.status.kind === "over").toBe(true);
-      expect(leaksIn(JSON.stringify(rest), SEED, state, hiddenFrom(state, "spectator"))).toEqual([]);
+      expect(leaksFor(JSON.stringify(rest), step.secret, "spectator")).toEqual([]);
     }
   });
 
   it("after every step, each frame holds no seed, generator state or card that viewer may not see", () => {
     for (const step of allSteps()) {
       for (const viewer of VIEWERS) {
-        const { state } = step.secret;
         const text = JSON.stringify(step.frames[viewer]);
-        expect(leaksIn(text, SEED, state, hiddenFrom(state, viewer)), `${viewer} at ${step.record.seq}`).toEqual([]);
+        expect(leaksFor(text, step.secret, viewer), `${viewer} at ${step.record.seq}`).toEqual([]);
       }
     }
   });

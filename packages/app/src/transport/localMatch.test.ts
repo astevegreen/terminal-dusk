@@ -95,6 +95,26 @@ describe("local transport: subscribing", () => {
   });
 });
 
+describe("local transport: a subscriber that throws", () => {
+  it("still accepts the submit, and every later subscriber of every viewer gets the new frame", async () => {
+    const { match, mirror } = setup();
+    let thrown = 0;
+    match.transportFor("lio").subscribe((frame) => {
+      if (frame.seq > 0) {
+        thrown++;
+        throw new Error("a broken screen");
+      }
+    });
+    const lio = record(match, "lio");
+    const sae = record(match, "sae");
+    const spectator = record(match, "spectator");
+    const move = nextMove(mirror.current);
+    expect(await match.transportFor(move.s).submit(move.args)).toEqual({ ok: true });
+    expect(thrown).toBe(1);
+    for (const r of [lio, sae, spectator]) expect(r.frames.map((f) => f.seq)).toEqual([0, 1]);
+  });
+});
+
 describe("local transport: playing", () => {
   it("plays a short game; every new frame reaches that viewer's subscribers, equal to the host's frame", async () => {
     const { match, mirror } = setup();

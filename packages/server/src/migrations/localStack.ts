@@ -22,16 +22,43 @@ export const HOW_TO_START =
 type Env = Record<string, string | undefined>;
 // The server's tsconfig has no Node types, so process is read through globalThis.
 const env: Env = (globalThis as { process?: { env: Env } }).process?.env ?? {};
-const first = (...names: string[]) => names.map((n) => env[n]).find((v) => v !== undefined && v !== "");
+const first = (e: Env, ...names: string[]) => names.map((n) => e[n]).find((v) => v !== undefined && v !== "");
 
 export type StackKeys = { url: string; anonKey: string; serviceKey: string };
 
 /** The local stack's URL and keys, accepting the names `supabase status -o env` prints. */
-export function stackKeys(): StackKeys | null {
-  const url = first("SUPABASE_URL", "API_URL");
-  const anonKey = first("SUPABASE_ANON_KEY", "ANON_KEY", "PUBLISHABLE_KEY");
-  const serviceKey = first("SUPABASE_SERVICE_ROLE_KEY", "SERVICE_ROLE_KEY", "SECRET_KEY");
+export function stackKeys(e: Env = env): StackKeys | null {
+  const url = first(e, "SUPABASE_URL", "API_URL");
+  const anonKey = first(e, "SUPABASE_ANON_KEY", "ANON_KEY", "PUBLISHABLE_KEY");
+  const serviceKey = first(e, "SUPABASE_SERVICE_ROLE_KEY", "SERVICE_ROLE_KEY", "SECRET_KEY");
   return url && anonKey && serviceKey ? { url, anonKey, serviceKey } : null;
+}
+
+/**
+ * Whether the stack checks must run: in CI with the stack's URL and keys set (CI's stack job sets them; its jobs
+ * without a stack don't). There a stack or served function that does not answer fails instead of passing quietly.
+ */
+export function stackRequired(e: Env = env): boolean {
+  const ci = e.CI;
+  return ci !== undefined && ci !== "" && ci !== "false" && ci !== "0" && stackKeys(e) !== null;
+}
+
+/**
+ * The one test a stack test file has when its checks can't run: it fails when they are `required`, else it warns
+ * why they did not run and how to start the stack.
+ */
+export function didNotRun(
+  title: string,
+  why: string | null,
+  required: boolean = stackRequired(),
+  warn: (line: string) => void = (line) => (globalThis as { console?: { warn(m: string): void } }).console?.warn(line),
+): void {
+  if (required) throw new Error(`${title} must run in CI, where the stack's keys are set, but ${why}.`);
+  warn(
+    `${title}: checks did not run: ${why}. ${HOW_TO_START} ` +
+      "With the stack up, `pnpm test:stack` in packages/server runs these checks too, holding the stack so " +
+      "another folder's `pnpm test:migrations` can't empty the database under them.",
+  );
 }
 
 export const client = (url: string, key: string): SupabaseClient =>

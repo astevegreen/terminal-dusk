@@ -19,6 +19,7 @@ import { FUZZ_CARDS, MAX_ERA_CARDS, MAX_EXTRA, MAX_PILE, MAX_PLAYS, MAX_TURNS, r
 import { attempt, checkStep, checkVerify, firstDifference, knowledgeOf } from "./checks.ts";
 import { deepFreeze } from "./deepFreeze.ts";
 import { checkTriggerFilters } from "./filterChecks.ts";
+import { checkPassedPlays } from "./passedPlays.ts";
 import { checkPlayedBy, notePlay } from "./playedBy.ts";
 import type { PlayRecord } from "./playedBy.ts";
 import { checkPlayerDraws, notePlayer } from "./playerDraws.ts";
@@ -59,6 +60,19 @@ export function gameCount(raw: string | undefined): number {
   return n;
 }
 
+/** The fewest games a slower suite (map games, neutral and reaction games) plays, when FUZZ_GAMES is at least this. */
+export const MAP_GAMES_FLOOR = 200;
+
+/**
+ * How many of the slower games to play: a fifth of FUZZ_GAMES, but at least min(FUZZ_GAMES, 200). A map game takes
+ * about three times as long as an engine.test.ts game, so at a fifth the four slower suites together cost about as
+ * much as the engine suite, and CI's 10,000-game run plays 2,000 of each instead of stopping at 200.
+ */
+export function mapGameCount(raw: string | undefined): number {
+  const games = gameCount(raw);
+  return Math.max(Math.min(games, MAP_GAMES_FLOOR), Math.floor(games / 5));
+}
+
 /**
  * Fuzz game `game`, played from its own seed. Every third game has the Easy AI on one side (LIO when
  * game % 6 is 0, SAE when it is 3) and the random chooser on the other; the rest are random on both.
@@ -71,10 +85,10 @@ export function playFuzzGame(game: number, rules: Ruleset = ruleset, again = "pl
   return playGame(rules, `Fuzz game ${game} (${again}(${game}) plays it again)`, setup, seed, choose);
 }
 
-/** A recorded game, answer by answer, with every check. It may stop before the game ends. */
-export function playRecorded(name: string, record: GameRecord): Played {
+/** A recorded game, answer by answer, with every check (with the base fuzz ruleset, or `rules`). It may stop early. */
+export function playRecorded(name: string, record: GameRecord, rules: Ruleset = ruleset): Played {
   let next = 0;
-  return playGame(ruleset, `Fixed game "${name}"`, record.setup, record.seed, () => record.answers[next++] ?? null);
+  return playGame(rules, `Fixed game "${name}"`, record.setup, record.seed, () => record.answers[next++] ?? null);
 }
 
 /**
@@ -201,7 +215,8 @@ export function easyChooser(rules: Ruleset, side: Side, rng: Rng): Chooser {
  * the deck of the side that last picked or played their card (playerDraws.ts), and each announced playedBy test
  * must take exactly one branch, the one matching that side (playedBy.ts). Each step's triggers fire only as their
  * filters and once allow, from the state before it, its events and the state after it (filterChecks.ts). Each
- * step's removed pile and turn-start refill are checked against the state before it (removedChecks.ts).
+ * step's removed pile and turn-start refill are checked against the state before it (removedChecks.ts), and its
+ * passed plays against its playPassed events (passedPlays.ts).
  */
 export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed, choose: Chooser): Played {
   const record: GameRecord = { setup: deepFreeze(setup), seed, answers: [] };
@@ -227,6 +242,7 @@ export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed
       checkTriggerFilters(rules, prior, events, state, answer);
       checkRemoved(rules, prior, answer, state);
       checkRefilled(setup, prior, state);
+      checkPassedPlays(prior, answer, events, state);
       checkPlayerDraws(events, players);
       checkPlayedBy(events, plays);
     }

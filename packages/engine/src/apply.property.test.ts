@@ -153,6 +153,17 @@ function step(s: GameState, m: Move): GameState {
 const turnsArb = fc.integer({ min: 1, max: 4 });
 const playsArb = fc.integer({ min: 1, max: 2 });
 
+describe("apply: the inputs it is given are deep-frozen", () => {
+  it("the shared test ruleset is deep-frozen from the start, so every apply call here gets a frozen ruleset", () => {
+    expect(Object.isFrozen(ruleset)).toBe(true);
+    expect(Object.isFrozen(ruleset.cards)).toBe(true);
+    for (const card of ruleset.cards) {
+      expect(Object.isFrozen(card), card.id).toBe(true);
+      expect(Object.isFrozen(card.effect), card.id).toBe(true);
+    }
+  });
+});
+
 describe("apply: invariants over random answer streams", () => {
   it("every answer gets exactly the expected outcome; accepted ones add 1 to seq; refused ones change nothing; state stays plain integer JSON", () => {
     fc.assert(

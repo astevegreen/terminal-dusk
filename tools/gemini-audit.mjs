@@ -20,6 +20,7 @@ import {
   pickDepth,
 } from "./gemini/agy.mjs";
 import { RAIL_MODELS, decide, railHits, readVerdict, reusableVerdict, verdictMarker } from "./gemini/rails.mjs";
+import { comment, comments, issue, pullRequest } from "./github-rest.mjs";
 import { collaborators, fromFork, trustedComment, trustedIssue } from "./github-trust.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
@@ -83,7 +84,8 @@ function post(kind, number, text) {
   if (DRY) return console.log(`--- would comment on ${kind} #${number} ---\n${body}`);
   const file = path.join(tmpDir(), `comment-${kind}-${number}.md`);
   writeFileSync(file, body);
-  gh(kind, "comment", String(number), "--body-file", file);
+  // Through REST, not `gh <kind> comment`, which needs GraphQL (tools/github-rest.mjs).
+  comment((args) => gh(...args), number, file);
 }
 
 // The answering model may be a Claude model when a Gemini model ahead of it in the order could not answer;
@@ -92,7 +94,7 @@ const report = (label, answer) => `**Gemini audit: ${label}**\n_${byLine(answer)
 const skipped = (err) => `Gemini audit skipped: ${err.message}`;
 
 function issueText(n, ghRun = gh) {
-  const i = JSON.parse(ghRun("issue", "view", String(n), "--json", "number,title,body"));
+  const i = issue((args) => ghRun(...args), n);
   return `# #${i.number} ${i.title}\n\n${i.body}\n`;
 }
 
@@ -152,13 +154,14 @@ function prMaterial(pr, diff, ghRun) {
 
 // The merge gate for one pull request: agy's review, plus the deep rail audit when the diff touches a rail. A
 // verdict this script already posted for the same commit is reused, unless it was a retry (rails.mjs,
-// reusableVerdict). io stands in for gh, agy, the comment and the signed-in login in the tests.
+// reusableVerdict). io stands in for gh, agy, the comment and the signed-in login in the tests. It reads through
+// REST, so it runs in cloud sessions too, where GraphQL (`gh pr view`) is refused (tools/github-rest.mjs).
 export function auditPr(number, io = { gh, ask: askGemini, post, me: signedIn }) {
-  const pr = JSON.parse(
-    io.gh("pr", "view", String(number), "--json", "number,body,headRefOid,isCrossRepository,comments"),
-  );
+  const ghArgs = (args) => io.gh(...args);
+  const pr = pullRequest(ghArgs, number);
   // The repository is public: a stranger's diff and description never reach agy, and get no verdict.
   if (fromFork(pr)) throw new Error(`pull request #${pr.number} is from a fork, so it is not audited`);
+  pr.comments = comments(ghArgs, number);
   // Who this script posts as is asked only when a comment carries a verdict, so a first audit costs no extra call.
   const marked = pr.comments.some((c) => readVerdict(c.body));
   const old = marked ? reusableVerdict(pr.comments, pr.headRefOid, io.me()) : null;

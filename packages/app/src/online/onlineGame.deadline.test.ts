@@ -109,6 +109,22 @@ describe("createOnlineGame: the deadline", () => {
     expect(r.game.getSnapshot().frame?.seq).toBe(modes.length);
   });
 
+  it("two clock reads that reply out of order: the newer read's deadline wins", async () => {
+    const r = onlineRig("alice", { clock: BOTH });
+    const held = r.holdEachClock();
+    await settle();
+    expect(r.clockUrls).toHaveLength(1);
+    r.setClock({ clock: clockWith({ lio: null, sae: 333_000 }) });
+    await play(r);
+    expect(r.clockUrls).toHaveLength(2);
+    held.release(1);
+    await settle();
+    expect(r.game.getSnapshot().deadline?.at).toBe(333_000);
+    held.release(0);
+    await settle();
+    expect(r.game.getSnapshot().deadline?.at).toBe(333_000);
+  });
+
   it("a clock read still in flight at close changes nothing and calls no listener", async () => {
     const r = onlineRig("alice", { clock: BOTH });
     const release = r.holdClock();

@@ -86,9 +86,6 @@ describe("invariant 4 with a reshuffle: the cards shuffled back were face up unt
     const events = [reshuffle, lioDraws, named("c9")];
     expect(() => checkNoLeaks(afterReshuffle(), events, SEED)).toThrow(/events for 'sae' show card "c9"/);
   });
-  it("passes fuzz games 16 and 955, which failed when a card played in the open was shuffled back in the same step", () => {
-    for (const game of [16, 955]) expect(() => playFuzzGame(game)).not.toThrow();
-  });
   it("fails an event before the reshuffle that names a card in the rival's hand, which was never shuffled", () => {
     const events = [named("c2"), reshuffle, lioDraws];
     expect(() => checkNoLeaks(afterReshuffle(), events, SEED)).toThrow(/events for 'lio' show card "c2"/);

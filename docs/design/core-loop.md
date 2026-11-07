@@ -2,8 +2,8 @@
 
 Promoted on 2026-10-16 from the Decided section of the Notion page "Core loop", plus seven answers the owner
 gave that day. Promoted again the same day with four calls from the engine spec review, and on 2026-10-19 with
-the refill rule (owner, deck plan Owner questions 5 and 27). From now on this file is the source of truth;
-change it in Notion and promote again.
+the refill rule (owner, deck plan Owner questions 5 and 27), and on 2026-11-07 with the "No card left" rule
+(owner, in chat). From now on this file is the source of truth; change it in Notion and promote again.
 
 ## A turn
 
@@ -53,6 +53,10 @@ change it in Notion and promote again.
   - the player who played the card chooses whether the event happens **before or after** they spend the points;
   - the event runs exactly as if the **rival** had played it, except that its Contingency draws from the
     rival's own deck come from the World deck (docs/design/contingency-deck.md).
+- **No card left.** When a side owes a play this turn but has no card in its hand (a discard took its last
+  cards), it passes the rest of its plays for the turn. The other side makes its remaining plays as usual, and the
+  turn then goes on to its end. Cards come back to a hand only at the next turn's refill (owner, 7 Nov 2026:
+  "player passes the rest of their plays").
 - **Who answers a choice in an event.** Each choice goes to the side the card names, for opening cards and
   card plays alike. A card names LIO or SAE, never "the player who played this card", so who played a card
   never changes who answers. Example: SAE plays an LIO card whose event says "SAE chooses a country"; SAE chooses.

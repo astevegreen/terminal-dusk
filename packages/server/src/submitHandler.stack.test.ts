@@ -2,7 +2,7 @@
 // and a stranger or a signed-out call is refused with every stored row unchanged. Without a running stack and
 // `supabase functions serve`, one test says so and how to start them.
 import { legalAnswers, pendingFor } from "@terminal-dusk/engine";
-import { hostCreate } from "@terminal-dusk/host";
+import { hostCreate, hostSubmit } from "@terminal-dusk/host";
 import type { HostResult } from "@terminal-dusk/host";
 import { firstDeckConfig, firstDeckRuleset } from "@terminal-dusk/host/first-deck";
 import { beforeAll, expect, it } from "vitest";
@@ -54,6 +54,42 @@ await onLocalStack(
       const stored = await storedRows(game.service, matchId);
       expect(stored.match[0]!.seq).toBe(1);
     }, 60_000);
+
+    it("a move that hands the other player their turn queues that player's turn alert in notify_queue", async () => {
+      let state = await firstDeckMatch();
+      const matchId = state.record.matchId;
+      const userOf = { lio: game.users[0]!, sae: game.users[1]! };
+      // Plays each pending side's first legal answer through the function, mirroring each move with the host to
+      // know whom it notifies, until a move notifies the player who did not make it.
+      for (let move = 0; move < 12; move++) {
+        const side = pendingFor(state.secret.state, "lio") ? "lio" : "sae";
+        const other = userOf[side === "lio" ? "sae" : "lio"].id;
+        const decision = pendingFor(state.secret.state, side)!;
+        const value = legalAnswers(firstDeckRuleset, state.secret.state, side)[0];
+        if (value === undefined) throw new Error(`${side} has nothing to answer at seq ${state.record.seq}`);
+        const submission = { decisionId: decision.id, expectedSeq: state.record.seq, value };
+        const reply = await callFunction(keys, "submit", {
+          method: "POST",
+          token: await accessToken(userOf[side]),
+          body: { matchId, submission },
+        });
+        expect(reply.status).toBe(200);
+        const next = hostSubmit(
+          firstDeckRuleset,
+          state.record,
+          state.secret,
+          { player: userOf[side].id, ...submission },
+          NOW,
+        );
+        if (!next.ok) throw new Error(`the host refused the mirrored answer: ${next.error.code}`);
+        state = next.value;
+        if (!state.effects.some((effect) => "notify" in effect && effect.notify === other)) continue;
+        const { data } = await game.service.from("notify_queue").select("player, seq").eq("match_id", matchId);
+        expect(data).toContainEqual({ player: other, seq: state.record.seq });
+        return;
+      }
+      throw new Error("no move in the first 12 notified the other player");
+    }, 120_000);
 
     it("a signed-in stranger gets 403 notPlayer, and no stored row changes", async () => {
       const start = await firstDeckMatch();
