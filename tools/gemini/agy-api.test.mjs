@@ -1,30 +1,34 @@
 // The Gemini API fallback in agy.mjs: used only where agy is not installed (a cloud session) and a key is set.
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
+import path from "node:path";
 import {
   API,
+  API_NOTE,
   ARGON,
+  CONTEXT,
   FLASH,
+  NO_API,
   OPUS,
   SONNET,
-  askFirstAvailable,
-  postApi,
-  askModel,
   apiPrompt,
+  askFirstAvailable,
+  askModel,
   buildPrompt,
   geminiApi,
   parseApiReply,
+  parseReply,
+  postApi,
 } from "./agy.mjs";
 
 const NOW = Date.parse("2026-11-07T12:00:00Z");
 const memory = () => ({ outUntil: () => null, markOut: () => {} });
 const missing = () => ({ error: { code: "ENOENT" } });
-const ok = (answer) => ({
+const ok = (answer, finishReason = "STOP") => ({
   status: 200,
   text: JSON.stringify({
-    candidates: [
-      { content: { parts: [{ text: "thinking…", thought: true }, { text: answer }] }, finishReason: "STOP" },
-    ],
+    candidates: [{ content: { parts: [{ text: "thinking…", thought: true }, { text: answer }] }, finishReason }],
   }),
 });
 const failed = (status, message) => ({ status, text: JSON.stringify({ error: { code: status, message } }) });
@@ -40,35 +44,53 @@ function posts(...replies) {
 }
 
 const material = "C:/tmp/gemini-audit-x/material.md";
-const read = (file) => (file === material ? "diff --git a/x b/x\n+one line" : assert.fail(`read ${file}`));
+const DIFF = "diff --git a/x b/x\n+one line";
+// Reads the material, and any rules file as a stand-in that names the findings format.
+const reader =
+  (text = DIFF) =>
+  (file) =>
+    file === material ? text : `Start each finding with [blocker] or [note]. (${path.basename(file)})`;
+const read = reader();
+const textOf = (sent) => sent.body.contents[0].parts[0].text;
+const viaApi = (post, prompt) => (model) => askModel(missing, prompt, model, [], geminiApi("k", post, read, []));
 
-test("the API prompt says nothing can be read, and carries the material's text in place of its path", () => {
-  const text = apiPrompt(buildPrompt("Review this change.", material), read);
-  assert.match(text, /^You are answering through the Gemini API: you cannot read files or run commands/);
-  assert.doesNotMatch(text, /You are running headless|each file read takes/);
-  assert.match(text, /Review this change\.\n\nThe material follows, in full\.\n\ndiff --git a\/x b\/x\n\+one line\n$/);
-  assert.doesNotMatch(text, /The material is in/);
+test("the API prompt carries the repo's rules, the task and the material's text, and says nothing can be read", () => {
+  const text = apiPrompt(buildPrompt("Review this change.", material), read, ["GEMINI.md"]);
+  assert.match(text, /^# The repository's rules\n\n## GEMINI\.md\n\nStart each finding with \[blocker\] or \[note\]/);
+  assert.match(text, /# The task\n\nYou are answering through the Gemini API: you cannot read files or run commands/);
+  assert.doesNotMatch(text, /You are running headless|each file read takes|The material is in/);
+  assert.match(text, /Review this change\.\n\n# The material, in full\n\ndiff --git a\/x b\/x\n\+one line\n$/);
 });
 
-test("an audit with no material is refused on the API, which cannot read the repository", () => {
-  assert.throws(() => apiPrompt(buildPrompt("Audit the repo."), read), /cannot read the repository/);
+test("the rules the API is given are the ones agy reads by itself, and they exist", () => {
+  assert.deepEqual(CONTEXT, ["GEMINI.md"]);
+  for (const file of CONTEXT) assert.ok(existsSync(path.join(import.meta.dirname, "..", "..", file)), file);
 });
 
-test("where agy is not installed and a key is set, the Gemini API answers with the same model", () => {
+test("the API refuses an audit with no material, a truncated diff, and a whole-repo audit", () => {
+  assert.throws(() => apiPrompt(buildPrompt("Audit the repo."), read, []), /cannot read the repository/);
+  const cut = reader(`${DIFF}\n... (diff truncated; read the rest from disk)\n`);
+  assert.throws(() => apiPrompt(buildPrompt("Review this.", material), cut, []), /truncated diff/);
+  const ask = (model) => askModel(missing, buildPrompt("Tour the code.", material), model, [], NO_API);
+  assert.throws(() => askFirstAvailable([ARGON, FLASH], ask, memory(), () => NOW), {
+    message: "Gemini 4 Argon (high): the Gemini API cannot read the repository, which this audit reads",
+  });
+});
+
+test("where agy is not installed and a key is set, the same model answers, and the answer says how", () => {
   const { post, sent } = posts(ok("No findings.\n"));
-  const api = geminiApi("test-key", post, read);
+  const api = geminiApi("test-key", post, read, []);
   const answer = askModel(missing, buildPrompt("Review this.", material), FLASH, ["--add-dir", "C:/tmp"], api);
-  assert.equal(answer, "No findings.");
-  assert.match(sent[0].body.contents[0].parts[0].text, /\+one line\n$/);
+  assert.equal(answer, `No findings.\n\n${API_NOTE}`);
   assert.equal(sent[0].url, `${API}/gemini-3.8-flash:generateContent`);
   assert.equal(sent[0].key, "test-key");
   assert.deepEqual(sent[0].body.generationConfig.thinkingConfig, { thinkingLevel: "high" });
+  assert.match(textOf(sent[0]), /\+one line\n$/);
 });
 
 test("with agy installed, the API is never asked, even with a key", () => {
   const run = () => ({ status: 0, stdout: JSON.stringify({ status: "SUCCESS", response: "From agy." }), stderr: "" });
-  const api = () => assert.fail("the API was asked");
-  assert.equal(askModel(run, "Review this.", FLASH, [], api), "From agy.");
+  assert.equal(askModel(run, "Review this.", FLASH, [], NO_API), "From agy.");
 });
 
 test("with no key there is no API, and a missing agy says how to use one", () => {
@@ -76,17 +98,34 @@ test("with no key there is no API, and a missing agy says how to use one", () =>
   assert.throws(() => askModel(missing, "Review this.", FLASH, [], null), {
     message: "agy is not installed, and GEMINI_API_KEY is not set for the Gemini API",
   });
+  assert.throws(() => parseReply({ error: { code: "ENOENT" } }), /GEMINI_API_KEY is not set/);
 });
 
-test("on the API a deep review passes over Claude's models to the Gemini ones", () => {
-  // Argon is busy (a 429), Opus is not on the API and costs no request, Flash answers.
-  const { post, sent } = posts(failed(429, "Resource has been exhausted (e.g. check quota)."), ok("Deep findings."));
-  const api = geminiApi("test-key", post, read);
-  const prompt = buildPrompt("Review this spec.", material);
-  const ask = (model) => askModel(missing, prompt, model, [], api);
-  const result = askFirstAvailable([ARGON, OPUS, FLASH, SONNET], ask, memory(), () => NOW);
+test("a busy model, a 5xx and a model the API lacks pass the review on; Claude's models cost no request", () => {
+  const { post, sent } = posts(
+    failed(429, "Resource has been exhausted (e.g. check quota)."),
+    failed(404, "models/gemini-3.8-flash is not found"),
+  );
+  const ask = viaApi(post, buildPrompt("Review this spec.", material));
+  assert.throws(() => askFirstAvailable([ARGON, OPUS, FLASH, SONNET], ask, memory(), () => NOW), {
+    message:
+      "no model answered: Gemini 4 Argon (high) was too busy; Claude Opus 5.5 (high) is not on the Gemini API; " +
+      "Gemini 3.8 Flash (high) is not on the Gemini API; Claude Sonnet 5.5 (high) is not on the Gemini API",
+  });
+  assert.equal(sent.length, 2);
+  assert.throws(() => parseApiReply(failed(503, "The model is overloaded.")), /overloaded \(503\)/);
+});
+
+test("on the API a deep review passes a busy Argon and Opus over to Flash", () => {
+  const { post } = posts(failed(429, "Too many requests."), ok("Deep findings."));
+  const result = askFirstAvailable(
+    [ARGON, OPUS, FLASH, SONNET],
+    viaApi(post, buildPrompt("Review this spec.", material)),
+    memory(),
+    () => NOW,
+  );
   assert.equal(result.model, FLASH);
-  assert.equal(result.response, "Deep findings.");
+  assert.equal(result.response, `Deep findings.\n\n${API_NOTE}`);
   assert.deepEqual(
     result.passed.map((p) => [p.model, p.why]),
     [
@@ -94,44 +133,61 @@ test("on the API a deep review passes over Claude's models to the Gemini ones", 
       [OPUS, "is not on the Gemini API"],
     ],
   );
-  assert.deepEqual(
-    sent.map((s) => s.url),
-    [`${API}/gemini-4-argon:generateContent`, `${API}/gemini-3.8-flash:generateContent`],
-  );
 });
 
-test("a project with no credit stops the review instead of passing it on", () => {
-  // What the API answered on 2026-11-07, when the key's project had no prepaid credit.
-  const broke = posts(failed(402, "Your prepayment credits are depleted. Please go to AI Studio to manage billing."));
-  const api = geminiApi("test-key", broke.post, read);
-  const ask = (model) => askModel(missing, buildPrompt("Review this.", material), model, [], api);
-  assert.throws(() => askFirstAvailable([FLASH, SONNET], ask, memory(), () => NOW), {
-    message: /^Gemini 3\.8 Flash \(high\): the Gemini API project has no credit left: Your prepayment credits/,
-  });
-  assert.equal(broke.sent.length, 1);
+test("no credit, a bad key or a forbidden project stops the review, whatever Google's words say", () => {
+  // The 402 is what the API answered on 2026-11-07, when the key's project had no prepaid credit.
+  const replies = [
+    [failed(402, "Your prepayment credits are depleted. Please go to AI Studio to manage billing."), /no credit left/],
+    [failed(400, "API key not valid."), /refused the request \(400\): API key not valid/],
+    [failed(403, "Quota project lacks capacity permission."), /refused the request \(403\)/],
+  ];
+  for (const [reply, message] of replies) {
+    const { post, sent } = posts(reply);
+    const ask = viaApi(post, buildPrompt("Review this.", material));
+    assert.throws(
+      () => askFirstAvailable([FLASH, ARGON], ask, memory(), () => NOW),
+      (err) => /^Gemini 3\.8 Flash \(high\): /.test(err.message) && message.test(err.message),
+    );
+    assert.equal(sent.length, 1);
+  }
 });
 
-test("a bad key, an unreachable API, a cut-off answer and an empty one are each reported", () => {
-  assert.throws(() => parseApiReply(failed(400, "API key not valid.")), {
-    message: "the Gemini API answered 400: API key not valid.",
-  });
+test("only a finished reply is an answer: a cut-off, blocked or empty one is reported, never returned", () => {
+  for (const reason of ["SAFETY", "RECITATION", "OTHER", "BLOCKLIST"])
+    assert.throws(() => parseApiReply(ok("[note] half a review", reason)), {
+      message: `the model gave no finished answer (Gemini API reason ${reason})`,
+    });
+  assert.throws(() => parseApiReply(ok("Half", "MAX_TOKENS")), /ran out of room/);
+  const blocked = { promptFeedback: { blockReason: "SAFETY" } };
+  assert.throws(() => parseApiReply({ status: 200, text: JSON.stringify(blocked) }), /reason SAFETY/);
+  assert.throws(() => parseApiReply(ok("  ")), /gave no answer/);
+  assert.equal(parseApiReply(ok("Fine.")), "Fine.");
+});
+
+test("an unreachable API stops the review; a request that ran out of time passes it on", () => {
   assert.throws(() => parseApiReply({ status: 0, text: "getaddrinfo ENOTFOUND" }), {
     message: "the Gemini API could not be reached (no answer): getaddrinfo ENOTFOUND",
   });
-  const cut = { candidates: [{ content: { parts: [{ text: "Half" }] }, finishReason: "MAX_TOKENS" }] };
-  assert.throws(() => parseApiReply({ status: 200, text: JSON.stringify(cut) }), /ran out of room/);
-  const blocked = { promptFeedback: { blockReason: "SAFETY" } };
-  assert.throws(() => parseApiReply({ status: 200, text: JSON.stringify(blocked) }), {
-    message: "the model gave no answer (Gemini API reason SAFETY)",
-  });
+  const late = () => parseApiReply({ status: 0, text: "the model ran out of time before finishing its answer" });
+  assert.throws(late, (err) => !err.stop && /ran out of time/.test(err.message));
+});
+
+test("the key reaches the child node in its environment, never on its command line", () => {
+  let seen;
+  const spawn = (cmd, args, opts) => {
+    seen = { cmd, args, opts };
+    return { stdout: JSON.stringify({ status: 200, text: "{}" }) };
+  };
+  postApi(`${API}/x:generateContent`, { contents: [] }, "secret-key", spawn);
+  assert.equal(seen.cmd, process.execPath);
+  assert.ok(!JSON.stringify(seen.args).includes("secret-key"));
+  assert.ok(!seen.opts.input.includes("secret-key"));
+  assert.equal(seen.opts.env.GEMINI_API_KEY, "secret-key");
 });
 
 test("a request runs in a child node and a refused connection comes back as a reason, not a crash", () => {
   const r = postApi("https://127.0.0.1:9/v1beta/models/x:generateContent", { contents: [] }, "test-key");
   assert.equal(r.status, 0);
   assert.match(r.text, /ECONNREFUSED/);
-  assert.throws(
-    () => parseApiReply(r),
-    /^Error: the Gemini API could not be reached \(no answer\): connect ECONNREFUSED/,
-  );
 });
