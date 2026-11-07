@@ -45,6 +45,11 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## Tests and tooling
 
+- `tools/gemini/agy.mjs` is 426 lines: its Gemini API half (`apiPrompt`, `parseApiReply`, the HTTPS post,
+  `geminiApi`) belongs in its own file, split the same way in all three repos. [7 Nov 2026, Gemini API fallback]
+- The "(diff truncated; read the rest from disk)" line is written in `tools/gemini-audit.mjs` and matched by
+  `TRUNCATED` in `tools/gemini/agy.mjs`: one shared constant would stop a reworded marker from sending part of a diff to
+  the API. [7 Nov 2026, Gemini API fallback]
 - The fuzz suites that prove random play "reaches" a feature (`tests/fuzz/easy.test.ts:56`, `reveals.test.ts`,
   `removed.test.ts`, `neutral.test.ts`, `extraSteps.test.ts`) each replay their games again to count events. One
   coverage pass that plays each game once and feeds every counter would save the replays; not merged yet because
