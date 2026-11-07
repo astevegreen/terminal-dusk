@@ -57,30 +57,37 @@ test("the test count fails closed: its job runs on every event, and the compare 
   assert.match(count, /\n {10}fi\n {10}node tools\/gates\/test-count\.mjs --compare "\$counts"/);
 });
 
-test("base counts come from a cache that only pushes to main write, and a miss counts the base itself", () => {
+test("base counts come from main's own push run, never a cache a pull request could write, and else from the base", () => {
   const [id, job] = [...jobs(read("ci.yml"))].find(([, text]) => /test-count\.mjs --compare/.test(text));
   const all = steps(job);
-  // actions/cache (not /restore) saves at the end of the job, so a pull request would write counts.
-  assert.doesNotMatch(job, /uses: actions\/cache@/, `${id} uses the cache action that also saves`);
-  const restore = all.filter((s) => /uses: actions\/cache\/restore@/.test(s));
-  const save = all.filter((s) => /uses: actions\/cache\/save@/.test(s));
-  assert.equal(restore.length, 1);
-  assert.equal(save.length, 1);
-  assert.match(restore[0], /if: github\.event_name == 'pull_request'\n/);
-  assert.match(restore[0], /key: test-count-\$\{\{ github\.event\.pull_request\.base\.sha \}\}\n/);
-  assert.match(save[0], /if: github\.event_name == 'push' && steps\.main-counts\.outcome == 'success'\n/);
-  assert.match(save[0], /key: test-count-\$\{\{ github\.sha \}\}\n/);
-  const pathOf = (s) => /path: (.*)/.exec(s)?.[1];
-  assert.equal(pathOf(restore[0]), pathOf(save[0]));
-  // The saved file is the one main's count step wrote.
+  // A pull request's run reads its own cache scope first, so one commit could save the counts a later one reads.
+  assert.doesNotMatch(job, /actions\/cache/, `${id} reads counts from the Actions cache`);
+  // Read from a run a push to main made, for the base commit itself.
+  const held = all.find((s) => name(s) === "Who labelled held");
+  assert.match(held, /gh run list --repo "\$GITHUB_REPOSITORY" --workflow ci\.yml --branch main --event push --commit "\$BASE_SHA"/);
+  assert.match(held, /select\(\.headSha == \\"\$BASE_SHA\\" and \.event == \\"push\\"\)/);
+  assert.match(held, /gh run download "\$run" --repo "\$GITHUB_REPOSITORY" --name test-counts --dir "\$RUNNER_TEMP\/main-counts"/);
+  assert.match(job, /\n {6}actions: read\n/);
+  // Written only by a push: its count may fail without failing main, and the upload only follows a good count.
   const mainCount = all.find((s) => /id: main-counts/.test(s));
   assert.match(mainCount, /if: github\.event_name == 'push'\n/);
+  assert.match(mainCount, /continue-on-error: true\n/);
   assert.match(mainCount, /run: node tools\/gates\/test-count\.mjs --save "\$RUNNER_TEMP\/test-counts\.json"/);
-  // Without a hit, or when the pull request changes the counting code, it counts the base as before.
+  const upload = all.filter((s) => /uses: actions\/upload-artifact@/.test(s));
+  assert.equal(upload.length, 1);
+  assert.match(upload[0], /if: github\.event_name == 'push' && steps\.main-counts\.outcome == 'success'\n/);
+  assert.match(upload[0], /continue-on-error: true\n/);
+  assert.match(upload[0], /name: test-counts\n/);
+  assert.match(upload[0], /path: \$\{\{ runner\.temp \}\}\/test-counts\.json\n/);
+  // Without main's counts, or when the pull request changes the counting code, it counts the base as before.
   const count = all.find((s) => /test-count\.mjs --compare/.test(s));
-  assert.match(count, /CACHE_HIT: \$\{\{ steps\.base-counts\.outputs\.cache-hit \}\}/);
-  assert.match(count, /if \[ "\$CACHE_HIT" = "true" \] && \[ -s "\$counts" \] &&/);
-  assert.match(count, /grep -qE '\^tools\/gates\/\(test-count\|count-reporter\)\\\.mjs\$'/);
+  assert.match(count, /main="\$RUNNER_TEMP\/main-counts\/test-counts\.json"/);
+  // The diff is its own command, so a failed diff stops the step instead of reading as "unchanged".
+  assert.match(count, /\n\s+changed=\$\(git diff --name-only "\$BASE_SHA" HEAD\)\n/);
+  assert.match(
+    count,
+    /if \[ -s "\$main" \] && ! grep -qE '\^tools\/gates\/\(test-count\|count-reporter\)\\.mjs\$' <<< "\$changed"; then\n/,
+  );
   assert.match(
     count,
     /else\n\s+git worktree add --detach "\$RUNNER_TEMP\/base" "\$BASE_SHA"\n\s+pnpm --dir "\$RUNNER_TEMP\/base" install --frozen-lockfile\n\s+node tools\/gates\/test-count\.mjs --root "\$RUNNER_TEMP\/base" --save "\$counts"\n\s+fi/,
