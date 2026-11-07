@@ -63,7 +63,7 @@ test("the API prompt carries the repo's rules, the task and the material's text,
 });
 
 test("the rules the API is given are the ones agy reads by itself, and they exist", () => {
-  assert.deepEqual(CONTEXT, ["GEMINI.md"]);
+  assert.deepEqual(CONTEXT, ["GEMINI.md", "CLAUDE.md", ".claude/rules/", "docs/architecture.md"]);
   for (const file of CONTEXT) assert.ok(existsSync(path.join(import.meta.dirname, "..", "..", file)), file);
 });
 
@@ -190,4 +190,13 @@ test("a request runs in a child node and a refused connection comes back as a re
   const r = postApi("https://127.0.0.1:9/v1beta/models/x:generateContent", { contents: [] }, "test-key");
   assert.equal(r.status, 0);
   assert.match(r.text, /ECONNREFUSED/);
+});
+
+test("a rules folder in the context stands for its .md files, in name order", () => {
+  const list = (dir) => (dir === ".claude/rules/" ? ["b.md", "notes.txt", "a.md"] : assert.fail(dir));
+  const text = apiPrompt(buildPrompt("Review this.", material), read, ["GEMINI.md", ".claude/rules/"], list);
+  assert.deepEqual(
+    [...text.matchAll(/^## (.+)$/gm)].map((m) => m[1]),
+    ["GEMINI.md", ".claude/rules/a.md", ".claude/rules/b.md"],
+  );
 });
