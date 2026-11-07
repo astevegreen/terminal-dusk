@@ -34,12 +34,12 @@
     "@terminal-dusk/content": "workspace:*",
     "@terminal-dusk/engine": "workspace:*",
     "@terminal-dusk/host": "workspace:*",
-    "eslint": "^10.0.0",
+    "eslint": "^10.14.0",
     "globals": "^17.0.0",
     "lint-staged": "^17.0.0",
-    "prettier": "^3.0.0",
+    "prettier": "^3.9.10",
     "typescript": "catalog:",
-    "typescript-eslint": "^8.0.0",
+    "typescript-eslint": "^8.72.1",
     "vitest": "catalog:"
   }
 }
