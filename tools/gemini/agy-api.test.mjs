@@ -59,6 +59,7 @@ test("the API prompt carries the repo's rules, the task and the material's text,
   assert.match(text, /^# The repository's rules\n\n## GEMINI\.md\n\nStart each finding with \[blocker\] or \[note\]/);
   assert.match(text, /# The task\n\nYou are answering through the Gemini API: you cannot read files or run commands/);
   assert.doesNotMatch(text, /You are running headless|each file read takes|The material is in/);
+  assert.match(text, /is never passed: report it, naming the file, as a blocking finding/);
   assert.match(text, /Review this change\.\n\n# The material, in full\n\ndiff --git a\/x b\/x\n\+one line\n$/);
 });
 
