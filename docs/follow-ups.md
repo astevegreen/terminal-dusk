@@ -47,12 +47,14 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 - `tools/gemini/agy.mjs` is 435 lines: its Gemini API half (`apiPrompt`, `parseApiReply`, the HTTPS post,
   `geminiApi`) belongs in its own file, split the same way in all three repos. [7 Nov 2026, Gemini API fallback]
-- The tunnel fix in `postApi` (`tools/gemini/agy.mjs`: no `agent: false`, so the request really goes through the
-  proxy's tunnel) must be copied to `blockchain-technology-course/tools/agy.mjs` and `YODC/scripts/lib/agy.mjs`,
-  which share these rules; this session could reach only this repository. [7 Nov 2026, Gemini API tunnel fix]
+- The tunnel fix in `postApi` (no `agent: false`, so the request really goes through the proxy's tunnel) is still
+  missing from YODC's `scripts/lib/agy.mjs`: a cloud session made it, with tests, but YODC's push hook runs the
+  Firefox and WebKit end-to-end tests, which cloud sessions can't install, so it was never pushed. Redo it from the
+  PC (blockchain-technology-course#39 has the same change). [7 Nov 2026, Gemini API tunnel fix]
 - A proxy tunnel that stays open but carries nothing makes `postApi` (`tools/gemini/agy.mjs`) wait its full
   10-minute idle timeout before passing to the next model; a short limit on the TLS handshake alone would end it in
-  seconds. The cloud proxy cuts idle tunnels, so it has not happened. [7 Nov 2026, Gemini API tunnel fix review]
+  seconds, in all three repos. The cloud proxy cuts idle tunnels, so it has not happened. [7 Nov 2026, Gemini API
+  tunnel fix review]
 - The "(diff truncated; read the rest from disk)" line is written in `tools/gemini-audit.mjs` and matched by
   `TRUNCATED` in `tools/gemini/agy.mjs`: one shared constant would stop a reworded marker from sending part of a diff to
   the API. [7 Nov 2026, Gemini API fallback]
