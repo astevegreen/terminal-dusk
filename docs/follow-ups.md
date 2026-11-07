@@ -29,8 +29,12 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## Tests and tooling
 
-- `tools/gemini/agy.mjs` is 426 lines: its Gemini API half (`apiPrompt`, `parseApiReply`, the HTTPS post,
+- `tools/gemini/agy.mjs` is 435 lines: its Gemini API half (`apiPrompt`, `parseApiReply`, the HTTPS post,
   `geminiApi`) belongs in its own file, split the same way in all three repos. [7 Nov 2026, Gemini API fallback]
+- A proxy tunnel that stays open but carries nothing makes `postApi` (`tools/gemini/agy.mjs`) wait its full
+  10-minute idle timeout before passing to the next model; a short limit on the TLS handshake alone would end it in
+  seconds, in all three repos. The cloud proxy cuts idle tunnels, so it has not happened. [7 Nov 2026, Gemini API
+  tunnel fix review]
 - The "(diff truncated; read the rest from disk)" line is written in `tools/gemini-audit.mjs` and matched by
   `TRUNCATED` in `tools/gemini/agy.mjs`: one shared constant would stop a reworded marker from sending part of a diff to
   the API. [7 Nov 2026, Gemini API fallback]
