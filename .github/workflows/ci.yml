@@ -109,6 +109,8 @@ jobs:
         run: |
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
             games=$(node tools/gates/fuzz-games.mjs --base "$BASE_SHA")
+            # The pull request's own copy of the sizing script can't shorten its own run.
+            if git diff --name-only "$BASE_SHA" HEAD | grep -qx 'tools/gates/fuzz-games\.mjs'; then games=10000; fi
           else
             games=$(node tools/gates/fuzz-games.mjs --all)
           fi

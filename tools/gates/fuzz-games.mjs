@@ -14,7 +14,9 @@ const CORE = [
   /^packages\/(engine|content|host|ai)\//,
   /^tests\//,
   /^tools\/gates\/(suites|fuzz-games)\.mjs$/,
-  /^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|tsconfig[^/]*\.json|vitest\.config\.[^/]+)$/,
+  // The fuzz job's own settings (Node version, install) live in ci.yml.
+  /^\.github\/workflows\/ci\.yml$/,
+  /^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|tsconfig[^/]*\.json|(vite|vitest)\.config\.[^/]+|vitest\.workspace\.[^/]+)$/,
 ];
 
 // files: the changed paths, or null when they are unknown.

@@ -20,12 +20,16 @@ test("a change to anything the fuzz plays or is built from plays the full 10,000
     "pnpm-lock.yaml",
     "pnpm-workspace.yaml",
     "tsconfig.base.json",
+    "vite.config.ts",
+    "vitest.config.mts",
+    "vitest.workspace.ts",
+    ".github/workflows/ci.yml",
   ]) assert.equal(fuzzGames(["docs/x.md", f]), FULL_GAMES, f);
   assert.equal(FULL_GAMES, 10000);
 });
 
 test("a change elsewhere plays 2,000 games", () => {
-  assert.equal(fuzzGames(["packages/app/src/Board.tsx", "docs/follow-ups.md", ".github/workflows/ci.yml"]), PR_GAMES);
+  assert.equal(fuzzGames(["packages/app/src/Board.tsx", "docs/follow-ups.md", ".github/workflows/preview.yml"]), PR_GAMES);
   assert.equal(fuzzGames(["packages/app/package.json", "tools/gates/gate.mjs", "packages/engineering/x.ts"]), PR_GAMES);
   assert.equal(PR_GAMES, 2000);
 });

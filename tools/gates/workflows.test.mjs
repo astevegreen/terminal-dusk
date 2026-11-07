@@ -53,9 +53,11 @@ test("the fuzz plays 10,000 games on main and sizes a pull request's run by what
   const run = steps(job).find((s) => /suites\.mjs fuzz --games/.test(s));
   assert.match(
     run,
-    /if \[ "\$GITHUB_EVENT_NAME" = "pull_request" \]; then\n\s+games=\$\(node tools\/gates\/fuzz-games\.mjs --base "\$BASE_SHA"\)\n\s+else\n\s+games=\$\(node tools\/gates\/fuzz-games\.mjs --all\)/,
+    /if \[ "\$GITHUB_EVENT_NAME" = "pull_request" \]; then\n\s+games=\$\(node tools\/gates\/fuzz-games\.mjs --base "\$BASE_SHA"\)\n(?:\s+[#i].*\n)*\s+else\n\s+games=\$\(node tools\/gates\/fuzz-games\.mjs --all\)/,
   );
   assert.match(run, /BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/);
+  // A change to the sizing script plays the full run whatever the changed script says.
+  assert.match(run, /grep -qx 'tools\/gates\/fuzz-games\\\.mjs'; then games=10000; fi/);
   assert.match(run, /--games "\$games"/);
   assert.match(read("nightly.yml"), /run: pnpm fuzz\r?\n/, "nightly plays the full 10,000");
 });
