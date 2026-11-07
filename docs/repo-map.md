@@ -1021,7 +1021,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/gemini/prompts/weekly-audit.md`
 - `tools/gemini/rails.mjs` - agy's second look as a merge gate (owner's policy, 28 Oct 2026): which changes touch a rail, how a review's findings and the rail audit's answer are read, and…
 - `tools/gemini/rails.test.mjs` - Tests for agy's merge gate: which diffs touch a rail, how findings and the rail answer are read, and the verdict.
-- `tools/git-hooks/pre-commit` - Git pre-commit hook: formats the staged files with Prettier, then refreshes docs/repo-map.md.
+- `tools/git-hooks/pre-commit` - Git pre-commit hook: formats the staged files with Prettier.
 - `tools/git-hooks/pre-commit.test.mjs`
 - `tools/github-rest.mjs` - Pull request and issue reads and comments through GitHub's REST API (`gh api`).
 - `tools/github-rest.test.mjs` - The REST reads that stand in for `gh pr view`, `gh issue view` and `gh pr comment` (GraphQL, refused in cloud sessions): each gives the shape the GraphQL comma…
