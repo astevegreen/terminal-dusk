@@ -38,6 +38,11 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## Tests and tooling
 
+- Agents comment as astevegreen while greenbeanbot is suspended, so after the bot returns a `Blocked:` comment an
+  agent posted as the owner can read as the owner's answer (`tools/sprint/rules.mjs:207` `ownerAnswer`): check blocked
+  issues then, or mark agent comments so the queue stops relying on the author (7 Nov 2026, review of #540).
+- `tools/gates/test-count.mjs:153-159` `heldByOwner` trusts a `held` label added by astevegreen, which agents now add
+  too while gh is signed in as the owner, so a PR an agent held may drop tests (7 Nov 2026, review of #540).
 - `tools/gemini/agy.mjs` is 435 lines: its Gemini API half (`apiPrompt`, `parseApiReply`, the HTTPS post,
   `geminiApi`) belongs in its own file, split the same way in all three repos. [7 Nov 2026, Gemini API fallback]
 - A proxy tunnel that stays open but carries nothing makes `postApi` (`tools/gemini/agy.mjs:311`) wait its full

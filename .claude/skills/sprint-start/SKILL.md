@@ -47,6 +47,8 @@ In the main checkout:
    `git pull --ff-only` (in a dry run, `git fetch origin main`, and say so when `HEAD` is behind `origin/main`).
    Then `tools/sprint/cue.mjs` exists. Reasons: `the main checkout is on <branch>`, `the main checkout has
    uncommitted changes`, `the sprint machinery is not on main yet (#289)`.
+   Then `Q identity` prints `"ok": true`: the queue reads the owner's comments as answers, so it never runs as
+   the owner. Never run `gh auth switch`. Reason: `gh is signed in as <login>, the owner`.
 2. **Environment:** call `list_environments` (claude-code-remote; load the remote tools with ToolSearch) at
    every start, since the id changes when the bridge is set up again. The sprint's environment is the one with
    `kind` `bridge`, `state` `active`, and a `name` containing `:C:\Antigravity\terminal-dusk:` (this checkout).
