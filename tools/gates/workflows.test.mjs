@@ -108,3 +108,19 @@ test("the nightly run comments on and closes only the failure issue it opened: a
   assert.equal(lists.length, 2, "one list to comment on the issue, one to close it");
   for (const list of lists) assert.match(list, /--author app\/github-actions\b/);
 });
+
+test("an e2e failure in CI is retried once with a trace, still fails when only the retry passed, and uploads the report", () => {
+  const config = readFileSync(path.join(ROOT, "packages", "app", "playwright.config.ts"), "utf8");
+  assert.match(config, /\n {2}retries: process\.env\.CI \? 1 : 0,\n/);
+  // Without it a test that fails then passes is "flaky" and the run passes: the retry would hide the failure.
+  assert.match(config, /\n {2}failOnFlakyTests: !!process\.env\.CI,\n/);
+  assert.match(config, /trace: "on-first-retry"/);
+  assert.match(config, /\["html", \{ open: "never" \}\]/);
+  const all = steps(jobs(read("ci.yml")).get("e2e"));
+  const run = all.findIndex((s) => /test:e2e/.test(s));
+  const upload = all.findIndex((s) => /uses: actions\/upload-artifact@/.test(s));
+  assert.ok(run >= 0 && upload > run, "the report upload comes after the tests");
+  assert.match(all[upload], /if: failure\(\)\n/);
+  assert.match(all[upload], /path: packages\/app\/playwright-report\/\n/);
+  assert.doesNotMatch(all[run], /continue-on-error/);
+});
