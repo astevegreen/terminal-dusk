@@ -15,16 +15,24 @@ export const HOW_TO_START =
 
 type Env = Record<string, string | undefined>;
 const env: Env = (globalThis as { process?: { env: Env } }).process?.env ?? {};
-const first = (e: Env, ...names: string[]) => names.map((n) => e[n]).find((v) => v !== undefined && v !== "");
-
 export type StackKeys = { url: string; anonKey: string; serviceKey: string };
 
-/** The local stack's URL and keys, accepting the names `supabase status -o env` prints. */
+/** Each key's environment names, the first set one winning: ours, then those `supabase status -o env` prints. */
+const KEY_NAMES: Readonly<Record<keyof StackKeys, readonly string[]>> = {
+  url: ["SUPABASE_URL", "API_URL"],
+  anonKey: ["SUPABASE_ANON_KEY", "ANON_KEY", "PUBLISHABLE_KEY"],
+  serviceKey: ["SUPABASE_SERVICE_ROLE_KEY", "SERVICE_ROLE_KEY", "SECRET_KEY"],
+};
+
+/** The local stack's URL and keys from `e`, or null when any of them is unset. */
 export function stackKeys(e: Env = env): StackKeys | null {
-  const url = first(e, "SUPABASE_URL", "API_URL");
-  const anonKey = first(e, "SUPABASE_ANON_KEY", "ANON_KEY", "PUBLISHABLE_KEY");
-  const serviceKey = first(e, "SUPABASE_SERVICE_ROLE_KEY", "SERVICE_ROLE_KEY", "SECRET_KEY");
-  return url && anonKey && serviceKey ? { url, anonKey, serviceKey } : null;
+  const keys: Partial<StackKeys> = {};
+  for (const [key, names] of Object.entries(KEY_NAMES) as [keyof StackKeys, readonly string[]][]) {
+    const value = names.map((n) => e[n]).find((v) => v !== undefined && v !== "");
+    if (value === undefined) return null;
+    keys[key] = value;
+  }
+  return keys as StackKeys;
 }
 
 /** Whether the rehearsal must run: in CI with the stack's URL and keys set, as packages/server's stack tests. */
