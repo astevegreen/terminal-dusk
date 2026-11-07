@@ -29,7 +29,7 @@ ToolSearch), and read your usage limit and keep your wake with the claude-code-r
 `archive_session`. Step 2b ends finished and stuck sessions' local processes instead, which frees their bridge
 slots, and the sprint archiver (`docs/sprint.md`, Machinery) archives them. Finish in a few minutes.
 
-Comment only with `gh issue comment`, signed in as the bot. Never use the GitHub plugin's tools to write: they
+Comment only with `gh issue comment`, as the sprint bot account (sprints do not run while gh is signed in as the owner). Never use the GitHub plugin's tools to write: they
 sign in as the owner, so GitHub never notifies the owner of the comment and the queue could read it as the
 owner's answer.
 
