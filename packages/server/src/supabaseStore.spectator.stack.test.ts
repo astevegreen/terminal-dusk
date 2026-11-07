@@ -57,7 +57,7 @@ await onLocalStack("a signed-out watcher on the local Supabase stack", (keys) =>
       await expectOnlyPublic(writeOf(start));
 
       const { store, saved } = recording(new SupabaseStore(game.service));
-      const deps = { store, ruleset: (id: string) => (id === ruleset.id ? ruleset : undefined) };
+      const deps = { store, ruleset: (id: string) => (id === ruleset.id ? ruleset : undefined), notify: undefined };
       let now = NOW;
       let steps = 0;
       for (;;) {

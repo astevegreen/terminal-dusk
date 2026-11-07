@@ -46,7 +46,7 @@ export async function insertSaeLate(
   insertMatch(store, matchId, rule, at);
   const loaded = (await store.load(matchId))!;
   const body = bodyFor(0, loaded.secret, "lio");
-  const deps = { store, ruleset: (id: RulesetId) => rulesetFor(id) ?? undefined };
+  const deps = { store, ruleset: (id: RulesetId) => rulesetFor(id) ?? undefined, notify: undefined };
   const result = await submit(deps, { matchId, player: "alice", body, now: at + 1 });
   if (!result.ok) throw new Error(`LIO's opening pick was refused: ${result.error.code}`);
 }

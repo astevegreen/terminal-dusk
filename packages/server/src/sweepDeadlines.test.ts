@@ -6,7 +6,11 @@ import { sweepDeadlines } from "./sweepDeadlines.ts";
 import { DAY, insertMatch, insertSaeLate, rulesetFor } from "./test/deadlines.ts";
 import { bodyFor, NOW, SEED } from "./test/match.ts";
 
-const deps = (store: MemoryStore) => ({ store, ruleset: (id: string) => rulesetFor(id) ?? undefined });
+const deps = (store: MemoryStore) => ({
+  store,
+  ruleset: (id: string) => rulesetFor(id) ?? undefined,
+  notify: undefined,
+});
 
 describe("sweepDeadlines: single matches", () => {
   it("no due match: returns nothing and changes nothing", async () => {

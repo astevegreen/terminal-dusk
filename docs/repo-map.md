@@ -755,6 +755,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/index.ts` - Public entry point of the server package (docs/architecture.md, Decision 5). Exports: submit, ServerErrorCode, SubmitDeps, SubmitError, SubmitOutcome, SubmitRequest, MemoryStore, SupabaseStore, CommitResult, LoadedMatch, MatchStore, MatchWrite, ….
 - `packages/server/src/invite.entitlement.test.ts` - O9c: a free player cannot create a private game.
 - `packages/server/src/invite.leaks.test.ts`
+- `packages/server/src/invite.notify.stack.test.ts` - The invite path queues turn alerts on the local Supabase stack.
 - `packages/server/src/invite.refusals.test.ts`
 - `packages/server/src/invite.test.ts`
 - `packages/server/src/invite.ts` - Private games (docs/architecture.md, Decision 5): a host creates an invite and shares its code, anyone with the code can see how the sides will be assigned, an… Exports: InviteDeps, InviteErrorCode, InviteError, InviteOutcome, CreateInviteRequest, JoinInviteRequest, JoinedInvite, CODE_TRIES, createInvite, previewInvite, joinInvite, sideModeOf.

@@ -62,6 +62,7 @@ await onLocalStack("SupabaseInviteStore on the local Supabase stack: invites for
       const submitDeps = {
         store,
         ruleset: (id: string) => (id === firstDeckRuleset.id ? firstDeckRuleset : undefined),
+        notify: undefined,
       };
       const waiting = SIDES.find((s) => pendingFor(start.secret.state, s) !== null)!;
       const decision = pendingFor(start.secret.state, waiting)!;

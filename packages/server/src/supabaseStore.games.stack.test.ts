@@ -32,7 +32,7 @@ await onLocalStack("SupabaseStore on the local Supabase stack: whole games", (ke
     await expectStored(writeOf(start), events);
 
     const { store, saved } = recording(new SupabaseStore(game.service));
-    const deps = { store, ruleset: (id: string) => (id === ruleset.id ? ruleset : undefined) };
+    const deps = { store, ruleset: (id: string) => (id === ruleset.id ? ruleset : undefined), notify: undefined };
     let now = NOW;
     for (let answers = 0; ; answers++) {
       const loaded = (await store.load(matchId))!;
