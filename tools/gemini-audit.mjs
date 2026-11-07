@@ -9,8 +9,8 @@ import os from "node:os";
 import path from "node:path";
 import {
   DEEP_PATHS,
-  NO_API,
   ORDER,
+  apiFor,
   askFirstAvailable,
   askModel,
   buildPrompt,
@@ -71,13 +71,7 @@ function askGemini(promptName, material, what, { deepPaths = DEEP_PATHS, models 
   const prompt = buildPrompt(text, file);
   const pick = pickDepth(what, deepPaths);
   const answer = askFirstAvailable(models ?? ORDER[pick.depth], (model) =>
-    askModel(
-      (args) => run("agy", args),
-      prompt,
-      model,
-      ["--add-dir", tmpDir()],
-      what.kind === "repo" ? NO_API : undefined,
-    ),
+    askModel((args) => run("agy", args), prompt, model, ["--add-dir", tmpDir()], apiFor(what.kind)),
   );
   return { ...answer, ...pick };
 }
