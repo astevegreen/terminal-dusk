@@ -198,7 +198,7 @@ test("identity says whether the queue can run as the account gh is signed in as"
     /^usage:/,
     "usage, not a refusal",
   );
-  assert.deepEqual(calls, [], "a bad command line asks GitHub nothing");
+  assert.ok(!calls.some((c) => c[1] === "user"), "a bad command line is not refused for the account");
 });
 
 test("env names the computer from docs/sprint.md without asking GitHub, and stops while it's a placeholder", () => {

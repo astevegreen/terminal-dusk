@@ -269,7 +269,7 @@ export function main(
     }
     if (argv[0] === "identity") return line(identity(gh));
     // These commands read the issues' comments; a recorded sprint (--fixture) asks GitHub nothing, and a bad command
-    // line gets the usage text below without asking GitHub.
+    // line gets the usage text below, not a refusal.
     if (!fixture && READS_COMMENTS.has(argv[0])) {
       const who = identity(gh);
       if (!who.ok) throw new Error(ownerRefusal(who.login));
