@@ -24,7 +24,7 @@ export type SweepTurnAlertsDeps = SweepAccess & { alerts: TurnAlertDeps };
 
 /** Every status each sweep can give, in the order the reply lists them. */
 export const DEADLINE_STATUSES = ["extended", "timedOut", "conflict", "skipped"] as const;
-export const TURN_ALERT_STATUSES = ["sent", "stale", "noAddress", "failed"] as const;
+export const TURN_ALERT_STATUSES = ["sent", "stale", "noAddress", "taken", "failed"] as const;
 
 type Counts<S extends string> = Record<S, number>;
 

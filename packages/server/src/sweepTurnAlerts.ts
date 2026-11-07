@@ -20,17 +20,23 @@ export type TurnAlertDeps = {
 };
 
 /**
- * One due alert's outcome. `sent`: emailed and marked sent. `stale`: the match moved on past the alert's
+ * One due alert's outcome. `sent`: claimed, then emailed. `stale`: the match moved on past the alert's
  * `waitingSeq`, ended or is gone, so it was marked sent without an email. `noAddress`: the player has no
- * address; marked sent, no email.
- * `failed`: something went wrong; the alert stays due for the next sweep.
+ * address; marked sent, no email. `taken`: another sweep running at the same time claimed it first, or since
+ * `due` read it a newer alert replaced it (that one stays due) or its match was deleted; no email.
+ * `failed`: something went wrong; the alert stays due for the next sweep, except when its claim could not be
+ * given back after a failed email (then it is never emailed: one lost email rather than two).
  */
-export type TurnAlertResult = { matchId: string; player: PlayerId; status: "sent" | "stale" | "noAddress" | "failed" };
+export type TurnAlertResult = {
+  matchId: string;
+  player: PlayerId;
+  status: "sent" | "stale" | "noAddress" | "taken" | "failed";
+};
 
 /**
  * Handles every alert `notify.due(now)` gives, one at a time in that order, and returns one result per
  * alert. One alert's failure never stops the sweep, and the sweep never throws. Running it twice at the
- * same `now` sends nothing the second time.
+ * same `now`, one after the other or at once, sends each alert once: each email waits for its alert's claim.
  */
 export async function sweepTurnAlerts(deps: TurnAlertDeps, now: number): Promise<TurnAlertResult[]> {
   const due = await attempt(() => deps.notify.due(now));
@@ -69,12 +75,18 @@ async function sweepOne(
   const address = await attempt(async () => deps.emailOf(alert.player));
   if (!address.ok) return "failed";
   if (address.value === null) return markSent(deps, alert, now, "noAddress");
+  const claimed = await markSent(deps, alert, now, "sent");
+  if (claimed !== "sent") return claimed;
   const sent = await attempt(() => deps.mailer.send(turnAlertEmail(address.value as string, deps.appUrl)));
-  if (!sent.ok || !sent.value.ok) return "failed";
-  return markSent(deps, alert, now, "sent");
+  if (sent.ok && sent.value.ok) return "sent";
+  await attempt(() => deps.notify.release(alert, now));
+  return "failed";
 }
 
-/** Marks the alert sent and answers `status`, or `failed` when marking throws (the alert stays due). */
+/**
+ * Claims the alert (marks it sent) and answers `status`; `taken` when another sweep marked it first, or
+ * `failed` when marking throws (the alert stays due).
+ */
 async function markSent(
   deps: TurnAlertDeps,
   alert: TurnAlert,
@@ -82,7 +94,8 @@ async function markSent(
   status: "sent" | "stale" | "noAddress",
 ): Promise<TurnAlertResult["status"]> {
   const marked = await attempt(() => deps.notify.markSent(alert, now));
-  return marked.ok ? status : "failed";
+  if (!marked.ok) return "failed";
+  return marked.value ? status : "taken";
 }
 
 /** Runs one call. A throw or a rejection becomes `{ ok: false }`, with none of the thrown text. */

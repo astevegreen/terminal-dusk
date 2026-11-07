@@ -89,7 +89,7 @@ describe("MemoryNotifyStore.seen", () => {
 });
 
 describe("MemoryNotifyStore.keep", () => {
-  it("raises an unsent alert's waitingSeq to seq, leaving its seq, queuedAt and seen flag", async () => {
+  it("raises the alert's waitingSeq to seq, leaving its seq, queuedAt and seen flag", async () => {
     const store = new MemoryNotifyStore();
     await store.queue([alert("m1", "alice", 2), alert("m1", "bob", 2)]);
     await store.seen("m1", "bob", 2);
@@ -110,12 +110,14 @@ describe("MemoryNotifyStore.keep", () => {
     expect(store.stored("m1", "alice")?.alert).toEqual(alert("m1", "alice", 2, T, 5));
   });
 
-  it("changes nothing on a sent alert", async () => {
+  it("raises a sent (claimed) alert too, so a claim given back after a failed email keeps the raise", async () => {
     const store = new MemoryNotifyStore();
     await store.queue([alert("m1", "alice", 2)]);
     await store.markSent(alert("m1", "alice", 2), T + D);
     await store.keep("m1", "alice", 3);
-    expect(store.stored("m1", "alice")).toEqual({ alert: alert("m1", "alice", 2), seen: false, sentAt: T + D });
+    expect(store.stored("m1", "alice")).toEqual({ alert: alert("m1", "alice", 2, T, 3), seen: false, sentAt: T + D });
+    await store.release(alert("m1", "alice", 2), T + D);
+    expect(await store.due(T + D)).toEqual([alert("m1", "alice", 2, T, 3)]);
   });
 
   it("changes nothing for another match or player, and stores nothing when there is no alert", async () => {
@@ -179,8 +181,43 @@ describe("MemoryNotifyStore.markSent", () => {
     const store = new MemoryNotifyStore();
     await store.queue([alert("m1", "alice", 1)]);
     await store.queue([alert("m1", "alice", 2)]);
-    await store.markSent(alert("m1", "alice", 1), T + D);
+    expect(await store.markSent(alert("m1", "alice", 1), T + D)).toBe(false);
     expect(await store.due(T + D)).toEqual([alert("m1", "alice", 2)]);
+  });
+
+  it("is a claim: true for the call that marks it, false for any later one, which keeps the first time", async () => {
+    const store = new MemoryNotifyStore();
+    await store.queue([alert("m1", "alice", 1)]);
+    const claims = await Promise.all([
+      store.markSent(alert("m1", "alice", 1), T + D),
+      store.markSent(alert("m1", "alice", 1), T + D + 1),
+    ]);
+    expect(claims).toEqual([true, false]);
+    expect(store.stored("m1", "alice")?.sentAt).toBe(T + D);
+  });
+
+  it("is false when nothing is stored", async () => {
+    expect(await new MemoryNotifyStore().markSent(alert("m1", "alice", 1), T + D)).toBe(false);
+  });
+});
+
+describe("MemoryNotifyStore.release", () => {
+  it("gives back a claim made at sentAt, so the alert is due again", async () => {
+    const store = new MemoryNotifyStore();
+    await store.queue([alert("m1", "alice", 1)]);
+    await store.markSent(alert("m1", "alice", 1), T + D);
+    await store.release(alert("m1", "alice", 1), T + D);
+    expect(store.stored("m1", "alice")?.sentAt).toBeNull();
+    expect(await store.due(T + D)).toEqual([alert("m1", "alice", 1)]);
+  });
+
+  it("changes nothing for another seq or another claim time", async () => {
+    const store = new MemoryNotifyStore();
+    await store.queue([alert("m1", "alice", 2)]);
+    await store.markSent(alert("m1", "alice", 2), T + D);
+    await store.release(alert("m1", "alice", 1), T + D);
+    await store.release(alert("m1", "alice", 2), T + D + 1);
+    expect(store.stored("m1", "alice")?.sentAt).toBe(T + D);
   });
 });
 
@@ -194,12 +231,18 @@ describe("MemoryNotifyStore.waitingSeq", () => {
     expect(await store.waitingSeq(read!)).toBe(3);
   });
 
-  it("gives null when nothing is stored, the stored alert has another seq, or it is sent", async () => {
+  it("gives null when nothing is stored or the stored alert has another seq", async () => {
     const store = new MemoryNotifyStore();
     expect(await store.waitingSeq(alert("m1", "alice", 1))).toBeNull();
     await store.queue([alert("m1", "alice", 2)]);
     expect(await store.waitingSeq(alert("m1", "alice", 1))).toBeNull();
+  });
+
+  it("answers for a sent (claimed) alert too, with any raise keep made while it was claimed", async () => {
+    const store = new MemoryNotifyStore();
+    await store.queue([alert("m1", "alice", 2)]);
     await store.markSent(alert("m1", "alice", 2), T + D);
-    expect(await store.waitingSeq(alert("m1", "alice", 2))).toBeNull();
+    await store.keep("m1", "alice", 4);
+    expect(await store.waitingSeq(alert("m1", "alice", 2))).toBe(4);
   });
 });

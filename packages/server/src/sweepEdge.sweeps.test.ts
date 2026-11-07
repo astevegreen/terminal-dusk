@@ -23,7 +23,7 @@ import {
 
 const resultsOf = (reply: HttpReply): unknown => JSON.parse(reply.body);
 const ZERO_DEADLINES = { extended: 0, timedOut: 0, conflict: 0, skipped: 0 };
-const ZERO_ALERTS = { sent: 0, stale: 0, noAddress: 0, failed: 0 };
+const ZERO_ALERTS = { sent: 0, stale: 0, noAddress: 0, taken: 0, failed: 0 };
 const failure = () => Promise.reject(new Error(`database down at ${DEADLINE_MATCH} ${ALERT_MATCH}`));
 
 /** Checks the reply holds none of the match ids, player ids, addresses, seed or key. */

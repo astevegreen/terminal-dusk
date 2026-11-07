@@ -20,10 +20,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## App, host and server
 
-- `sweepTurnAlerts` (`packages/server/src/sweepTurnAlerts.ts:72`) sends the email before it marks the alert sent,
-  so two sweeps running at once (or a sweep that dies after sending) can send the same turn alert twice. Claiming
-  the alert first (a conditional update on `sent_at is null`) would make the job safe to run twice, as the server
-  rules require. Needs the local stack to prove. [6 Nov 2026, test-suite audit]
 - `remoteMatch` polling (`packages/app/src/transport/remoteMatch.ts:89`) treats a 401 like any failed read and keeps
   polling, so an expired or revoked session shows a game that silently stops updating. It could surface
   `notSignedIn` to the screen; how the screen shows it is a UI choice. [6 Nov 2026, test-suite audit]

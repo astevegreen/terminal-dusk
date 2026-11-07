@@ -50,6 +50,12 @@ describe("a failure inside an in-memory store method rejects the promise instead
     await expect(called(() => store.markSent(missing, 5))).rejects.toThrow(TypeError);
   });
 
+  it("MemoryNotifyStore.release given no alert rejects", async () => {
+    const store = new MemoryNotifyStore();
+    const missing = null as unknown as TurnAlert;
+    await expect(called(() => store.release(missing, 5))).rejects.toThrow(TypeError);
+  });
+
   it("MemoryNotifyStore.queue given no list rejects", async () => {
     const store = new MemoryNotifyStore();
     const missing = null as unknown as TurnAlert[];

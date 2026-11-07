@@ -91,7 +91,7 @@ describe("SupabaseNotifyStore.seen", () => {
 });
 
 describe("SupabaseNotifyStore.keep", () => {
-  it("sets waiting_seq on the player's row for the match, only where it is unsent and its waiting_seq is lower", async () => {
+  it("sets waiting_seq on the player's row for the match, sent or not, only where its waiting_seq is lower", async () => {
     const { db, calls } = fakeClient(ok);
     await new SupabaseNotifyStore(db).keep("m1", ALICE, 4);
     expect(calls).toEqual([
@@ -99,7 +99,6 @@ describe("SupabaseNotifyStore.keep", () => {
       ["update", { waiting_seq: 4 }],
       ["eq", "match_id", "m1"],
       ["eq", "player", ALICE],
-      ["is", "sent_at", null],
       ["lt", "waiting_seq", 4],
     ]);
   });
@@ -134,21 +133,48 @@ describe("SupabaseNotifyStore.due", () => {
 });
 
 describe("SupabaseNotifyStore.markSent", () => {
-  it("sets sent_at on the player's row for the match, only where the seq is the alert's", async () => {
-    const { db, calls } = fakeClient(ok);
-    await new SupabaseNotifyStore(db).markSent(alert("m1", ALICE, 2), T + D);
+  it("sets sent_at on the player's row for the match, only where the seq is the alert's and it is unsent", async () => {
+    const { db, calls } = fakeClient({ data: [{ seq: 2 }], error: null });
+    expect(await new SupabaseNotifyStore(db).markSent(alert("m1", ALICE, 2), T + D)).toBe(true);
     expect(calls).toEqual([
       ["from", "notify_queue"],
       ["update", { sent_at: T + D }],
       ["eq", "match_id", "m1"],
       ["eq", "player", ALICE],
       ["eq", "seq", 2],
+      ["is", "sent_at", null],
+      ["select", "seq"],
+    ]);
+  });
+
+  it("is false when no row was changed: another sweep claimed it, or it was replaced", async () => {
+    const store = new SupabaseNotifyStore(fakeClient({ data: [], error: null }).db);
+    expect(await store.markSent(alert("m1", ALICE, 2), T + D)).toBe(false);
+  });
+
+  it("rejects when the database gives no list of changed rows", async () => {
+    const store = new SupabaseNotifyStore(fakeClient({ data: null, error: null }).db);
+    expect(shown(await thrown(() => store.markSent(alert("m1", ALICE, 2), T + D)))).toContain("markSent");
+  });
+});
+
+describe("SupabaseNotifyStore.release", () => {
+  it("clears sent_at on the player's row, only where the seq and the claim's time are the alert's", async () => {
+    const { db, calls } = fakeClient(ok);
+    await new SupabaseNotifyStore(db).release(alert("m1", ALICE, 2), T + D);
+    expect(calls).toEqual([
+      ["from", "notify_queue"],
+      ["update", { sent_at: null }],
+      ["eq", "match_id", "m1"],
+      ["eq", "player", ALICE],
+      ["eq", "seq", 2],
+      ["eq", "sent_at", T + D],
     ]);
   });
 });
 
 describe("SupabaseNotifyStore.waitingSeq", () => {
-  it("reads waiting_seq from the player's row for the match, only where the seq is the alert's and it is unsent", async () => {
+  it("reads waiting_seq from the player's row for the match, only where the seq is the alert's, sent or not", async () => {
     const { db, calls } = fakeClient({ data: { waiting_seq: 4 }, error: null });
     expect(await new SupabaseNotifyStore(db).waitingSeq(alert("m1", ALICE, 2))).toBe(4);
     expect(calls).toEqual([
@@ -157,7 +183,6 @@ describe("SupabaseNotifyStore.waitingSeq", () => {
       ["eq", "match_id", "m1"],
       ["eq", "player", ALICE],
       ["eq", "seq", 2],
-      ["is", "sent_at", null],
       ["maybeSingle"],
     ]);
   });
@@ -185,6 +210,7 @@ describe("SupabaseNotifyStore: a database error rejects with a storage error tha
     keep: (store: SupabaseNotifyStore) => store.keep("m1", ALICE, 3),
     due: (store: SupabaseNotifyStore) => store.due(T + D),
     markSent: (store: SupabaseNotifyStore) => store.markSent(alert("m1", ALICE, 2), T + D),
+    release: (store: SupabaseNotifyStore) => store.release(alert("m1", ALICE, 2), T + D),
     waitingSeq: (store: SupabaseNotifyStore) => store.waitingSeq(alert("m1", ALICE, 2)),
   };
   const cases = Object.keys(steps).flatMap((step) => [
@@ -202,11 +228,12 @@ describe("SupabaseNotifyStore: a database error rejects with a storage error tha
     for (const hidden of [ALICE, FAKE_KEY, "bad row", String(T)]) expect(text).not.toContain(hidden);
   });
 
-  it("names the match for seen, keep, markSent and waitingSeq, which are about one match", async () => {
+  it("names the match for seen, keep, markSent, release and waitingSeq, which are about one match", async () => {
     const store = new SupabaseNotifyStore(fakeClient(quoting).db);
     expect(shown(await thrown(() => steps.seen(store)))).toContain("match m1");
     expect(shown(await thrown(() => steps.keep(store)))).toContain("match m1");
     expect(shown(await thrown(() => steps.markSent(store)))).toContain("match m1");
+    expect(shown(await thrown(() => steps.release(store)))).toContain("match m1");
     expect(shown(await thrown(() => steps.waitingSeq(store)))).toContain("match m1");
   });
 
