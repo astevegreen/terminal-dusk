@@ -95,12 +95,21 @@ export async function refreshSession(e: AuthEndpoint, refreshToken: string, now:
   return refuse(failure(reply.status, "wrongCode"));
 }
 
+/** The session's token has expired and Auth could not be reached to refresh it; the player is still signed in. */
+export class TokenUnavailableError extends Error {
+  constructor() {
+    super("The session could not be refreshed for now; try again.");
+    this.name = "TokenUnavailableError";
+  }
+}
+
 /**
  * A `RemoteMatchOptions.accessToken` for a session: the stored token while it has more than a minute
  * left, else one shared refresh whose new session goes to `save`. Only Auth refusing the refresh token (a 4xx
  * other than 429) means the session is over: `refused` is called and the call resolves null. Any other failure
- * (no reply, a 5xx, a 429, an unreadable reply) keeps the session: the old token while it has not expired, else
- * null, and the next call tries again. Neither failure calls `save`. It never throws.
+ * (no reply, a 5xx, a 429, an unreadable reply) keeps the session, and the next call tries again: the call gives
+ * the old token while it has not expired, else rejects with `TokenUnavailableError`, so a caller shows that the
+ * server can't be reached rather than that the player is signed out. Neither failure calls `save`.
  */
 export function sessionToken(
   e: AuthEndpoint,
@@ -119,7 +128,8 @@ export function sessionToken(
         refused();
         return null;
       }
-      return current.expiresAt > now() ? current.accessToken : null;
+      if (current.expiresAt > now()) return current.accessToken;
+      throw new TokenUnavailableError();
     }
     current = result.value;
     try {

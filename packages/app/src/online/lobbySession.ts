@@ -6,6 +6,7 @@ import type { Side } from "@terminal-dusk/engine";
 import type { DeadlineRule, MatchDeadline, Platform } from "@terminal-dusk/host";
 import { createGame, joinGame, previewInvite } from "./lobby.ts";
 import type { Joined, SideMode } from "./lobby.ts";
+import { refuse } from "./lobbyHttp.ts";
 import type { LobbyEndpoint, LobbyRefusal, LobbyResult } from "./lobbyHttp.ts";
 import { myGames } from "./myGames.ts";
 import type { MyGame } from "./myGames.ts";
@@ -26,6 +27,7 @@ export type LobbyOptions = {
   endpoint: LobbyEndpoint;
   /** The signed-in player's id. */
   playerId: string;
+  /** Null when signed out; rejects when the token can't be had for now, which is refused as `network`. */
   accessToken: () => Promise<string | null>;
   /** The platform the game is created on; made in main.tsx. */
   platform: Platform;
@@ -81,18 +83,24 @@ export function createLobbySession(options: LobbyOptions): LobbySession {
   };
   const setJoin = (change: Partial<LobbySnapshot["join"]>): void => publish({ join: { ...snapshot.join, ...change } });
 
-  const token = async (): Promise<string | null> => {
+  /**
+   * Runs `call` with the player's token. A token that can't be had for now (the refresh failed for a moment) is
+   * refused as `network`, not `notSignedIn`: the player is still signed in, and trying again may work.
+   */
+  const withToken = async <T>(call: (token: string | null) => Promise<LobbyResult<T>>): Promise<LobbyResult<T>> => {
+    let token: string | null;
     try {
-      return await options.accessToken();
+      token = await options.accessToken();
     } catch {
-      return null;
+      return refuse("network");
     }
+    return call(token);
   };
 
   const readGames = async (): Promise<void> => {
     const id = ++reads;
     publish({ games: { ...snapshot.games, busy: true } });
-    const result = await myGames(endpoint, await token(), playerId);
+    const result = await withToken((token) => myGames(endpoint, token, playerId));
     if (id !== reads) return;
     publish({
       games: result.ok
@@ -141,7 +149,7 @@ export function createLobbySession(options: LobbyOptions): LobbySession {
       if (snapshot.create.busy) return;
       const { sides, deadline } = snapshot;
       publish({ create: { busy: true, code: null, refusal: null } });
-      const result = await createGame(endpoint, await token(), { sides, deadline, platform });
+      const result = await withToken((token) => createGame(endpoint, token, { sides, deadline, platform }));
       publish({
         create: result.ok
           ? { busy: false, code: result.value, refusal: null }
@@ -163,8 +171,7 @@ export function createLobbySession(options: LobbyOptions): LobbySession {
       if (snapshot.join.busy) return;
       const normal = normalCode(code);
       setJoin({ busy: true, askSide: null, joined: null, refusal: null });
-      const access = await token();
-      const preview = await previewInvite(endpoint, access, normal);
+      const preview = await withToken((token) => previewInvite(endpoint, token, normal));
       if (!preview.ok) {
         setJoin({ busy: false, refusal: preview.error.code });
         return;
@@ -173,14 +180,14 @@ export function createLobbySession(options: LobbyOptions): LobbySession {
         setJoin({ busy: false, askSide: normal });
         return;
       }
-      await finishJoin(await joinGame(endpoint, access, normal));
+      await finishJoin(await withToken((token) => joinGame(endpoint, token, normal)));
     },
 
     async pickSide(side) {
       const code = snapshot.join.askSide;
       if (code === null || snapshot.join.busy) return;
       setJoin({ busy: true, refusal: null });
-      await finishJoin(await joinGame(endpoint, await token(), code, side));
+      await finishJoin(await withToken((token) => joinGame(endpoint, token, code, side)));
     },
 
     codeChanged() {

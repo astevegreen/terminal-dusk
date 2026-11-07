@@ -73,23 +73,27 @@ export const settle = (): Promise<void> => new Promise((resolve) => setTimeout(r
 export type Rig = {
   fake: FakeSupabase;
   timers: ReturnType<typeof fakeTimers>;
-  transportAs: (p: string | null, fetch?: FetchLike) => MatchTransport;
+  transportAs: (p: string | null, fetch?: FetchLike, accessToken?: () => Promise<string | null>) => MatchTransport;
 };
 
 /**
  * A fresh match on a fresh fake server, and a maker of transports for a player (null: signed out). A test may
- * pass its own fetch, usually one that wraps the fake's.
+ * pass its own fetch, usually one that wraps the fake's, and its own accessToken.
  */
 export function rig(): Rig {
   const fake = createFakeSupabase(ruleset, config, "remote-seed-1", TOKENS);
   const timers = fakeTimers();
-  const transportAs = (player: string | null, fetch: FetchLike = fake.fetch): MatchTransport =>
+  const transportAs = (
+    player: string | null,
+    fetch: FetchLike = fake.fetch,
+    accessToken = () => Promise.resolve(player === null ? null : (TOKEN_OF[player] ?? null)),
+  ): MatchTransport =>
     createRemoteMatch({
       url: URL_BASE,
       anonKey: ANON_KEY,
       matchId: config.matchId,
       playerId: player,
-      accessToken: () => Promise.resolve(player === null ? null : (TOKEN_OF[player] ?? null)),
+      accessToken,
       pollMs: POLL_MS,
       fetch,
       setTimer: timers.setTimer,

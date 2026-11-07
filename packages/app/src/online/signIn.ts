@@ -34,7 +34,11 @@ export type SignIn = {
   resendCode(): Promise<void>;
   /** Forgets the stored session (no server call) and goes back to asking for an address. */
   signOut(): Promise<void>;
-  /** The access token to pass to createRemoteMatch, refreshed when near expiry; null unless signed in. */
+  /**
+   * The access token to pass to createRemoteMatch, refreshed when near expiry; null unless signed in. Rejects when
+   * the token has expired and the refresh failed for a moment: the player is still signed in, and the next call
+   * tries again.
+   */
   accessToken(): Promise<string | null>;
 };
 
@@ -94,7 +98,14 @@ export function createSignIn({ auth, store, now }: SignInOptions): SignIn {
       refused = true;
     });
     token = async () => {
-      const value = await get();
+      let value: string | null;
+      try {
+        value = await get();
+      } catch (error) {
+        // Signed out meanwhile: there is no session left to be unreachable.
+        if (epoch !== mine) return null;
+        throw error;
+      }
       if (epoch !== mine) return null;
       if (refused) {
         toEmail();

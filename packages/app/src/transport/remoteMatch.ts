@@ -15,7 +15,7 @@ export type RemoteMatchOptions = {
   matchId: string;
   /** The signed-in player's id, or null when signed out. */
   playerId: string | null;
-  /** The caller's access token, or null when signed out. */
+  /** The caller's access token, or null when signed out; a rejection (the refresh failed for a moment) reads as networkError. */
   accessToken: () => Promise<string | null>;
   /** How long to wait between polls, in milliseconds. */
   pollMs: number;

@@ -273,7 +273,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/testMode/testModeMap.test.tsx` - Test mode plays on R14's test map (issue #366): the first frame carries the map and influence, and the screen draws the map's badges for LIO, SAE and the spect…
 - `packages/app/src/touchedCountries.test.ts` - Follow-along on the drawn map (L2, #465): the countries a frame's events touched, from the event presentation entries that name a country (influence placed, in…
 - `packages/app/src/transport/emailAuth.test.ts`
-- `packages/app/src/transport/emailAuth.ts` - Email sign-in codes (docs/architecture.md, Decisions 5 and 7): asks Supabase Auth to email a 6-digit code, trades the code for a session and refreshes that ses… Exports: AuthEndpoint, Session, AuthRefusal, AuthResult, REFRESH_MARGIN_MS, requestCode, verifyCode, refreshSession, sessionToken.
+- `packages/app/src/transport/emailAuth.ts` - Email sign-in codes (docs/architecture.md, Decisions 5 and 7): asks Supabase Auth to email a 6-digit code, trades the code for a session and refreshes that ses… Exports: AuthEndpoint, Session, AuthRefusal, AuthResult, REFRESH_MARGIN_MS, requestCode, verifyCode, refreshSession, TokenUnavailableError, sessionToken.
 - `packages/app/src/transport/localMatch.test.ts`
 - `packages/app/src/transport/localMatch.ts` - A match run entirely in memory: it keeps the host's record and secret, and gives each viewer a transport. Exports: ArchiveWith, LocalMatch, createLocalMatch.
 - `packages/app/src/transport/matchTransport.ts` - What the screens talk to: one viewer's window onto a match. Exports: ServerErrorCode, TransportError, SubmitResult, MatchTransport.
