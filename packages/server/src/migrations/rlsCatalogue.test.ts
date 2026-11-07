@@ -4,7 +4,7 @@
 // Then, for every table, a player of the test match, a signed-in stranger and a signed-out client:
 // - read only the rows CATALOGUE says they may read: the player their own side's rows and their own entitlement,
 //   the stranger and the signed-out client only the rows anyone may read;
-// - can insert, update or delete nothing (all three: only the server writes, with the service role).
+// - are refused any insert, update or delete outright (only the server writes, with the service role).
 // Without a running local stack, one test says so and how to start it.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, expect, it } from "vitest";
@@ -200,7 +200,7 @@ await onLocalStack("row-level security across every table on the local Supabase 
   });
 
   it.each(TABLES)(
-    "%s: a player, a stranger and a signed-out client can insert, update or delete nothing",
+    "%s: a player, a stranger and a signed-out client are refused any insert, update or delete",
     async (table) => {
       const entry = CATALOGUE[table]!;
       const s = ready(seeded);
@@ -211,17 +211,17 @@ await onLocalStack("row-level security across every table on the local Supabase 
         const db = clients[who];
         const inserted = await db.from(table).insert(entry.fresh(sample, s) as never);
         expect(inserted.error?.code, `${who} inserting into ${table}`).toBe(PERMISSION_DENIED);
-        // An update or delete that row-level security hides changes zero rows without an error.
+        // Refused outright, not just hidden by row-level security: every table revokes insert, update and delete
+        // from clients, so an update or delete that merely changes zero rows means the grant was left in place.
+        // On a table clients may read, a write grant left in place shows here as no error; on one they may not,
+        // Postgres refuses the filter anyway, and the read checks above cover it.
         const updated = await db
           .from(table)
           .update(entry.touch(sample) as never)
-          .eq(column, value)
-          .select();
-        if (updated.error) expect(updated.error.code, `${who} updating ${table}`).toBe(PERMISSION_DENIED);
-        else expect(updated.data, `${who} updating ${table}`).toEqual([]);
-        const deleted = await db.from(table).delete().eq(column, value).select();
-        if (deleted.error) expect(deleted.error.code, `${who} deleting from ${table}`).toBe(PERMISSION_DENIED);
-        else expect(deleted.data, `${who} deleting from ${table}`).toEqual([]);
+          .eq(column, value);
+        expect(updated.error?.code, `${who} updating ${table}`).toBe(PERMISSION_DENIED);
+        const deleted = await db.from(table).delete().eq(column, value);
+        expect(deleted.error?.code, `${who} deleting from ${table}`).toBe(PERMISSION_DENIED);
       }
       expect(await rowsOf(ready(service), table)).toEqual(before);
     },
