@@ -153,24 +153,36 @@ describe("a refused AI answer", () => {
 });
 
 describe("an AI that fails instead of answering", () => {
-  it("sets aiRefusal and stops the AI, so the game does not wait on it for ever", async () => {
-    let stops = 0;
-    const session = createVsAiSession({
-      human: "lio",
-      gameSeed: GAME_SEED,
-      aiSeed: 11,
-      clock,
-      makeAi: () => ({
-        answer: () => Promise.reject(new Error("the AI crashed")),
-        stop: () => {
-          stops++;
-        },
-      }),
-    });
-    await flush();
-    expect(session.getSnapshot().aiRefusal).toBe(NO_ANSWER);
-    expect(stops).toBe(1);
-  });
+  const failures: [string, () => Promise<never>][] = [
+    ["rejects", () => Promise.reject(new Error("the AI crashed"))],
+    [
+      "throws before giving a promise",
+      () => {
+        throw new Error("the AI crashed at once");
+      },
+    ],
+  ];
+  it.each(failures)(
+    "that %s sets aiRefusal and stops the AI, so the game does not wait on it for ever",
+    async (_, answer) => {
+      let stops = 0;
+      const session = createVsAiSession({
+        human: "lio",
+        gameSeed: GAME_SEED,
+        aiSeed: 11,
+        clock,
+        makeAi: () => ({
+          answer,
+          stop: () => {
+            stops++;
+          },
+        }),
+      });
+      await flush();
+      expect(session.getSnapshot().aiRefusal).toBe(NO_ANSWER);
+      expect(stops).toBe(1);
+    },
+  );
 });
 
 describe("a refused human answer", () => {
