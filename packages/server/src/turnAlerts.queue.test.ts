@@ -14,7 +14,8 @@ const failingQueue: NotifyStore = {
   seen: async () => undefined,
   keep: async () => undefined,
   due: async () => [],
-  markSent: async () => undefined,
+  markSent: async () => false,
+  release: async () => undefined,
   waitingSeq: async () => null,
 };
 

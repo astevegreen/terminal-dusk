@@ -86,8 +86,9 @@ describe("a simultaneous pick: the player still waiting keeps their turn alert",
     });
     const moved = await answer(world, world.submitDeps, first.side, NOW + D + MINUTE);
     expect(notified(moved.effects)).toEqual([]);
+    // keep raises a sent alert too (in case it is a claim given back later); still sent, so never due again.
     expect(world.notify.stored(MATCH, other.player)).toMatchObject({
-      alert: { seq: 0, waitingSeq: 0 },
+      alert: { seq: 0, waitingSeq: moved.seq },
       sentAt: NOW + D,
     });
     expect(await sweepTurnAlerts(world.deps, NOW + 2 * D + MINUTE)).toEqual([]);
@@ -129,7 +130,7 @@ describe("submit keeps alerts after a saved move only", () => {
       await submit({ ...deps, store: conflicting }, { matchId: MATCH, player: first.player, body, now: NOW }),
       await submit({ ...deps, store: failing }, { matchId: MATCH, player: first.player, body, now: NOW }),
     ];
-    const plain = { store: world.store, ruleset: world.submitDeps.ruleset };
+    const plain = { store: world.store, ruleset: world.submitDeps.ruleset, notify: undefined };
     expect(await submit(plain, { matchId: MATCH, player: first.player, body, now: NOW })).toMatchObject({ ok: true });
     refusals.push(await submit(deps, { matchId: MATCH, player: first.player, body, now: NOW + 1 }));
     expect(refusals.map((r) => r.ok)).toEqual([false, false, false, false, false]);

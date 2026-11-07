@@ -20,6 +20,7 @@ await onLocalStack("SupabaseStore on the local Supabase stack: guards and errors
   const deps = (store: SupabaseStore | ReturnType<typeof loadTogether>) => ({
     store,
     ruleset: (id: string) => (id === ruleset.id ? ruleset : undefined),
+    notify: undefined,
   });
 
   /** The write the host makes for LIO's legal answer number `pick` at seq 0. */

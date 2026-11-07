@@ -115,6 +115,7 @@ export function inviteStack(keys: StackKeys): InviteStack {
         matchId: () => stack.matchId(),
         seed: () => STACK_SEED,
         randomHostSide: () => randomHostSide,
+        notify: undefined,
       };
     },
   };

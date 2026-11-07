@@ -60,7 +60,7 @@ export function setup(): { store: MemoryStore; deps: SubmitDeps; start: HostResu
   const start = created();
   const store = new MemoryStore();
   store.insert(MATCH, { record: start.record, secret: start.secret, frames: start.frames });
-  const deps: SubmitDeps = { store, ruleset: (id) => (id === ruleset.id ? ruleset : undefined) };
+  const deps: SubmitDeps = { store, ruleset: (id) => (id === ruleset.id ? ruleset : undefined), notify: undefined };
   return { store, deps, start };
 }
 

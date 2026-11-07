@@ -755,6 +755,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/index.ts` - Public entry point of the server package (docs/architecture.md, Decision 5). Exports: submit, ServerErrorCode, SubmitDeps, SubmitError, SubmitOutcome, SubmitRequest, MemoryStore, SupabaseStore, CommitResult, LoadedMatch, MatchStore, MatchWrite, ….
 - `packages/server/src/invite.entitlement.test.ts` - O9c: a free player cannot create a private game.
 - `packages/server/src/invite.leaks.test.ts`
+- `packages/server/src/invite.notify.stack.test.ts` - The invite path queues turn alerts on the local Supabase stack.
 - `packages/server/src/invite.refusals.test.ts`
 - `packages/server/src/invite.test.ts`
 - `packages/server/src/invite.ts` - Private games (docs/architecture.md, Decision 5): a host creates an invite and shares its code, anyone with the code can see how the sides will be assigned, an… Exports: InviteDeps, InviteErrorCode, InviteError, InviteOutcome, CreateInviteRequest, JoinInviteRequest, JoinedInvite, CODE_TRIES, createInvite, previewInvite, joinInvite, sideModeOf.
@@ -849,6 +850,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/sweepEdge.sweeps.test.ts`
 - `packages/server/src/sweepEdge.test.ts`
 - `packages/server/src/sweepEdge.ts` - The sweep Edge Functions' handlers (docs/architecture.md, Decision 5, "Scheduled jobs"): `sweep-deadlines` runs `sweepDeadlines` and `sweep-turn-alerts` runs `… Exports: SweepAccess, SweepDeadlinesDeps, SweepTurnAlertsDeps, DEADLINE_STATUSES, TURN_ALERT_STATUSES, handleSweepDeadlines, handleSweepTurnAlerts, sweepDeadlinesFetchHandler, sweepTurnAlertsFetchHandler.
+- `packages/server/src/sweepTurnAlerts.claim.stack.test.ts` - The turn-alert claim on the local Supabase stack: SupabaseNotifyStore.markSent is a claim that only one of several calls at once wins, release gives a claim ba…
+- `packages/server/src/sweepTurnAlerts.claim.test.ts` - The sweep claims an alert before it emails, so two sweeps running at once (the scheduled job fired twice, or a slow run overlapping the next) send each turn al…
 - `packages/server/src/sweepTurnAlerts.recheck.test.ts` - O11c (#309): the sweep re-reads an alert's waitingSeq just before marking it stale, so a `keep` that lands after the sweep read the alert, but before it marks…
 - `packages/server/src/sweepTurnAlerts.test.ts`
 - `packages/server/src/sweepTurnAlerts.ts` - The turn alert sweep (docs/architecture.md, Decision 5, "Scheduled jobs", Notifications): email each player whose turn is still waiting and still unseen 20 min… Exports: TurnAlertDeps, TurnAlertResult, sweepTurnAlerts.

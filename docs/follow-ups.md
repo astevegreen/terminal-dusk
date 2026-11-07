@@ -20,10 +20,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## App, host and server
 
-- `sweepTurnAlerts` (`packages/server/src/sweepTurnAlerts.ts:72`) sends the email before it marks the alert sent,
-  so two sweeps running at once (or a sweep that dies after sending) can send the same turn alert twice. Claiming
-  the alert first (a conditional update on `sent_at is null`) would make the job safe to run twice, as the server
-  rules require. Needs the local stack to prove. [6 Nov 2026, test-suite audit]
 - `remoteMatch` polling (`packages/app/src/transport/remoteMatch.ts:89`) treats a 401 like any failed read and keeps
   polling, so an expired or revoked session shows a game that silently stops updating. It could surface
   `notSignedIn` to the screen; how the screen shows it is a UI choice. [6 Nov 2026, test-suite audit]
@@ -34,10 +30,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - The in-memory stores (`MemoryStore`, `MemoryInviteStore`, `MemoryNotifyStore`) and their Supabase twins are tested
   separately; one shared contract suite run against both (the Supabase run on the stack) would catch the fakes
   drifting from the real tables. [6 Nov 2026, test-suite audit]
-- `notify` is optional in the submit and invite deps types (`packages/server/src/submit.ts:17`,
-  `packages/server/src/invite.ts:30`), so an Edge entry that builds its deps inline again would silently stop turn
-  alerts; `functionDeps.test.ts` tests only the helper, and the invite path has no stack test. Making it a required
-  `NotifyStore | undefined` lets the type checker catch it. [7 Nov 2026, PR #528 review]
 
 ## Tests and tooling
 

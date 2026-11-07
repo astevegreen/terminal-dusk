@@ -13,7 +13,7 @@ type QueueRow = Omit<AlertRow, "waiting_seq">;
 
 const ALERT_COLUMNS = "match_id, player, seq, queued_at, waiting_seq";
 
-type Step = "queue" | "seen" | "keep" | "due" | "markSent" | "waitingSeq";
+type Step = "queue" | "seen" | "keep" | "due" | "markSent" | "release" | "waitingSeq";
 
 /**
  * A turn alert storage failure. Its message names only the step, the match id (for a step about one match)
@@ -84,7 +84,7 @@ export class SupabaseNotifyStore implements NotifyStore {
     );
   }
 
-  /** One update, guarded so it changes only an unsent alert whose `waiting_seq` is below `seq`. */
+  /** One update, guarded so it changes only an alert, sent or not, whose `waiting_seq` is below `seq`. */
   async keep(matchId: string, player: PlayerId, seq: number): Promise<void> {
     await call("keep", matchId, () =>
       this.#db
@@ -92,7 +92,6 @@ export class SupabaseNotifyStore implements NotifyStore {
         .update({ waiting_seq: seq })
         .eq("match_id", matchId)
         .eq("player", player)
-        .is("sent_at", null)
         .lt("waiting_seq", seq),
     );
   }
@@ -119,18 +118,42 @@ export class SupabaseNotifyStore implements NotifyStore {
     }));
   }
 
-  async markSent(alert: TurnAlert, now: number): Promise<void> {
-    await call("markSent", alert.matchId, () =>
+  /**
+   * One update, guarded so it changes only the unsent row with the alert's seq, giving back the rows it changed.
+   * Postgres re-checks `sent_at is null` on a row another update has just changed, so of two at once only one
+   * changes it.
+   */
+  async markSent(alert: TurnAlert, now: number): Promise<boolean> {
+    const data = await call("markSent", alert.matchId, () =>
       this.#db
         .from("notify_queue")
         .update({ sent_at: now })
         .eq("match_id", alert.matchId)
         .eq("player", alert.player)
-        .eq("seq", alert.seq),
+        .eq("seq", alert.seq)
+        .is("sent_at", null)
+        .select("seq"),
+    );
+    if (!Array.isArray(data)) {
+      throw new NotifyStorageError("markSent", alert.matchId, "the database gave an unexpected answer");
+    }
+    return data.length > 0;
+  }
+
+  /** One update, guarded so it clears only the row with the alert's seq that was marked sent at `sentAt`. */
+  async release(alert: TurnAlert, sentAt: number): Promise<void> {
+    await call("release", alert.matchId, () =>
+      this.#db
+        .from("notify_queue")
+        .update({ sent_at: null })
+        .eq("match_id", alert.matchId)
+        .eq("player", alert.player)
+        .eq("seq", alert.seq)
+        .eq("sent_at", sentAt),
     );
   }
 
-  /** One read of the alert's row, only where its seq is the alert's and it is unsent. */
+  /** One read of the alert's row, only where its seq is the alert's, claimed (sent) or not. */
   async waitingSeq(alert: TurnAlert): Promise<number | null> {
     const data = await call("waitingSeq", alert.matchId, () =>
       this.#db
@@ -139,7 +162,6 @@ export class SupabaseNotifyStore implements NotifyStore {
         .eq("match_id", alert.matchId)
         .eq("player", alert.player)
         .eq("seq", alert.seq)
-        .is("sent_at", null)
         .maybeSingle(),
     );
     if (data === null) return null;

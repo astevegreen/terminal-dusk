@@ -43,7 +43,7 @@ describe("sweepTurnAlerts: when an email goes out", () => {
     const world = await alertWorld();
     const side = nextSide(world.start.secret);
     const mover = world.start.record.players[side];
-    const plainDeps = { store: world.store, ruleset: world.submitDeps.ruleset };
+    const plainDeps = { store: world.store, ruleset: world.submitDeps.ruleset, notify: undefined };
     const body = bodyFor(0, world.start.secret, side);
     expect(await submit(plainDeps, { matchId: MATCH, player: mover, body, now: NOW + 1 })).toMatchObject({ ok: true });
     const others = world.waiting.filter((p) => p !== mover);
@@ -71,7 +71,7 @@ describe("sweepTurnAlerts: alerts marked sent without an email", () => {
     const side = nextSide(world.start.secret);
     const body = bodyFor(0, world.start.secret, side);
     const player = world.start.record.players[side];
-    const plainDeps = { store: world.store, ruleset: world.submitDeps.ruleset };
+    const plainDeps = { store: world.store, ruleset: world.submitDeps.ruleset, notify: undefined };
     expect(await submit(plainDeps, { matchId: MATCH, player, body, now: NOW + 1 })).toMatchObject({ ok: true });
     expect(await sweepTurnAlerts(world.deps, NOW + D)).toEqual(results(world.waiting, "stale"));
     expect(world.mailer.sent).toEqual([]);
@@ -80,7 +80,7 @@ describe("sweepTurnAlerts: alerts marked sent without an email", () => {
 
   it("an alert for a match that ended is stale", async () => {
     const world = await alertWorld();
-    const plainDeps = { store: world.store, ruleset: world.submitDeps.ruleset };
+    const plainDeps = { store: world.store, ruleset: world.submitDeps.ruleset, notify: undefined };
     const resigned = await submit(plainDeps, { matchId: MATCH, player: "alice", body: { resign: true }, now: NOW });
     expect(resigned).toMatchObject({ ok: true });
     expect(world.store.stored(MATCH)?.record.status.kind).toBe("over");

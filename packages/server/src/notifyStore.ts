@@ -26,9 +26,10 @@ export interface NotifyStore {
   /** Marks the player's alert for the match seen, when its seq is at most `seq`. */
   seen(matchId: string, player: PlayerId, seq: number): Promise<void>;
   /**
-   * The player is still waiting on their alerted turn now that the match is at `seq`: when their alert for the
-   * match is not sent and its `waitingSeq` is below `seq`, raises `waitingSeq` to `seq`. Its seq, queuedAt and
-   * seen flag do not change, so it is still emailed 20 minutes after the turn began, unless seen.
+   * The player is still waiting on their alerted turn now that the match is at `seq`: when their alert's
+   * `waitingSeq` is below `seq`, raises it to `seq`. Its seq, queuedAt and seen flag do not change, so it is still
+   * emailed 20 minutes after the turn began, unless seen. A sent alert is raised too: it may be a sweep's claim
+   * whose email then fails, and the claim given back must keep the raise, or the next sweep finds it stale.
    */
   keep(matchId: string, player: PlayerId, seq: number): Promise<void>;
   /**
@@ -36,11 +37,21 @@ export interface NotifyStore {
    * `queuedAt`, then match id, then player.
    */
   due(now: number): Promise<TurnAlert[]>;
-  /** Records the alert as sent at `now`, only when the stored alert still has the same seq. */
-  markSent(alert: TurnAlert, now: number): Promise<void>;
   /**
-   * The stored `waitingSeq` of the alert's (match, player), as it is now: `null` when nothing is stored, the
-   * stored alert has another seq, or it is already sent. The sweep re-reads it before marking an alert stale.
+   * Claims the alert: records it as sent at `now`, only when the stored alert still has the same seq and is not
+   * sent yet. True when this call marked it; false when it was already sent (another sweep claimed it) or
+   * replaced. Two calls at once never both get true, so the sweep claims before it emails.
+   */
+  markSent(alert: TurnAlert, now: number): Promise<boolean>;
+  /**
+   * Gives back a claim `markSent` made at `sentAt`, after its email failed: marks the alert not sent, only when
+   * the stored alert still has the same seq and was marked sent at `sentAt`. Then it is due again.
+   */
+  release(alert: TurnAlert, sentAt: number): Promise<void>;
+  /**
+   * The stored `waitingSeq` of the alert's (match, player), as it is now: `null` when nothing is stored or the
+   * stored alert has another seq. The sweep re-reads it before marking an alert stale. A sent alert answers too:
+   * it may be another sweep's claim whose email then fails, and marking it stale once given back would lose it.
    */
   waitingSeq(alert: TurnAlert): Promise<number | null>;
 }
@@ -82,7 +93,7 @@ export class MemoryNotifyStore implements NotifyStore {
   keep(matchId: string, player: PlayerId, seq: number): Promise<void> {
     return later(() => {
       const found = this.#alerts.get(keyOf(matchId, player));
-      if (found && found.sentAt === null && found.alert.waitingSeq < seq) found.alert.waitingSeq = seq;
+      if (found && found.alert.waitingSeq < seq) found.alert.waitingSeq = seq;
     });
   }
 
@@ -97,17 +108,26 @@ export class MemoryNotifyStore implements NotifyStore {
     );
   }
 
-  markSent(alert: TurnAlert, now: number): Promise<void> {
+  markSent(alert: TurnAlert, now: number): Promise<boolean> {
     return later(() => {
       const found = this.#alerts.get(keyOf(alert.matchId, alert.player));
-      if (found && found.alert.seq === alert.seq) found.sentAt = now;
+      if (!found || found.alert.seq !== alert.seq || found.sentAt !== null) return false;
+      found.sentAt = now;
+      return true;
+    });
+  }
+
+  release(alert: TurnAlert, sentAt: number): Promise<void> {
+    return later(() => {
+      const found = this.#alerts.get(keyOf(alert.matchId, alert.player));
+      if (found && found.alert.seq === alert.seq && found.sentAt === sentAt) found.sentAt = null;
     });
   }
 
   waitingSeq(alert: TurnAlert): Promise<number | null> {
     return later(() => {
       const found = this.#alerts.get(keyOf(alert.matchId, alert.player));
-      return found && found.alert.seq === alert.seq && found.sentAt === null ? found.alert.waitingSeq : null;
+      return found && found.alert.seq === alert.seq ? found.alert.waitingSeq : null;
     });
   }
 
