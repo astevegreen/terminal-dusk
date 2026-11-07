@@ -110,7 +110,7 @@ await onLocalStack("SupabaseNotifyStore on the local Supabase stack", (keys) => 
     expect(await row(m1!, alice())).toMatchObject({ seq: 6, queued_at: T + 9, sent_at: null, waiting_seq: 6 });
   }, 60_000);
 
-  it("keep changes nothing when waiting_seq is at or above seq, or the alert is sent", async () => {
+  it("keep changes nothing when waiting_seq is at or above seq, and raises a sent (claimed) alert too", async () => {
     const [m1] = await matches(1);
     await store().queue([alert(m1!, alice(), 2), alert(m1!, bob(), 2)]);
     await store().keep(m1!, alice(), 5);
@@ -118,7 +118,7 @@ await onLocalStack("SupabaseNotifyStore on the local Supabase stack", (keys) => 
     await store().markSent(alert(m1!, bob(), 2), T + D);
     await store().keep(m1!, bob(), 3);
     expect((await row(m1!, alice()))?.waiting_seq).toBe(5);
-    expect(await row(m1!, bob())).toMatchObject({ seq: 2, sent_at: T + D, waiting_seq: 2 });
+    expect(await row(m1!, bob())).toMatchObject({ seq: 2, sent_at: T + D, waiting_seq: 3 });
   }, 60_000);
 
   it("seen marks the alert when its seq is at most the seen seq", async () => {

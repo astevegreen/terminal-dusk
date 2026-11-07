@@ -3,6 +3,7 @@
 import type { PlayerId } from "@terminal-dusk/host";
 import { describe, expect, it } from "vitest";
 import { turnAlertEmail } from "./mailMessages.ts";
+import type { Mailer } from "./mailer.ts";
 import { TURN_ALERT_DELAY_MS } from "./notifyStore.ts";
 import { submit } from "./submit.ts";
 import { sweepTurnAlerts } from "./sweepTurnAlerts.ts";
@@ -62,6 +63,30 @@ describe("sweepTurnAlerts re-checks an alert before marking it stale", () => {
     expect(await world.notify.due(NOW + D)).toHaveLength(world.waiting.length);
     for (const player of others) await world.notify.keep(MATCH, player, 1);
     expect(await sweepTurnAlerts(world.deps, NOW + D)).toEqual([
+      ...results([mover], "stale"),
+      ...results(others, "sent"),
+    ]);
+    expect(world.mailer.sent).toEqual(sentTo(others));
+  });
+
+  it("a keep that lands while the email is in flight, which then fails, is not lost when the claim is given back", async () => {
+    const world = await alertWorld();
+    const mover = world.start.record.players[nextSide(world.start.secret)];
+    let others: PlayerId[] = [];
+    // Every email of the first sweep fails. While the first one to a player still waiting is in flight, its
+    // alert is claimed, and the other player's move saves seq 1 and keeps everyone still waiting.
+    const failing: Mailer = {
+      send: async (email) => {
+        if (others.length === 0 && email.to !== ADDRESSES[mover]) {
+          ({ others } = await moveWithoutKeep(world));
+          for (const player of others) await world.notify.keep(MATCH, player, 1);
+        }
+        return { ok: false, code: "unavailable" };
+      },
+    };
+    await sweepTurnAlerts({ ...world.deps, mailer: failing }, NOW + D);
+    expect(others.length).toBeGreaterThan(0);
+    expect(await sweepTurnAlerts(world.deps, NOW + D + 1)).toEqual([
       ...results([mover], "stale"),
       ...results(others, "sent"),
     ]);

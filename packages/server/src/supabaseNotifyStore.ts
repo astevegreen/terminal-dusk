@@ -84,7 +84,7 @@ export class SupabaseNotifyStore implements NotifyStore {
     );
   }
 
-  /** One update, guarded so it changes only an unsent alert whose `waiting_seq` is below `seq`. */
+  /** One update, guarded so it changes only an alert, sent or not, whose `waiting_seq` is below `seq`. */
   async keep(matchId: string, player: PlayerId, seq: number): Promise<void> {
     await call("keep", matchId, () =>
       this.#db
@@ -92,7 +92,6 @@ export class SupabaseNotifyStore implements NotifyStore {
         .update({ waiting_seq: seq })
         .eq("match_id", matchId)
         .eq("player", player)
-        .is("sent_at", null)
         .lt("waiting_seq", seq),
     );
   }

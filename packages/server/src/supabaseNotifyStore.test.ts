@@ -91,7 +91,7 @@ describe("SupabaseNotifyStore.seen", () => {
 });
 
 describe("SupabaseNotifyStore.keep", () => {
-  it("sets waiting_seq on the player's row for the match, only where it is unsent and its waiting_seq is lower", async () => {
+  it("sets waiting_seq on the player's row for the match, sent or not, only where its waiting_seq is lower", async () => {
     const { db, calls } = fakeClient(ok);
     await new SupabaseNotifyStore(db).keep("m1", ALICE, 4);
     expect(calls).toEqual([
@@ -99,7 +99,6 @@ describe("SupabaseNotifyStore.keep", () => {
       ["update", { waiting_seq: 4 }],
       ["eq", "match_id", "m1"],
       ["eq", "player", ALICE],
-      ["is", "sent_at", null],
       ["lt", "waiting_seq", 4],
     ]);
   });

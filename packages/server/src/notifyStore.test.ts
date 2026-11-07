@@ -89,7 +89,7 @@ describe("MemoryNotifyStore.seen", () => {
 });
 
 describe("MemoryNotifyStore.keep", () => {
-  it("raises an unsent alert's waitingSeq to seq, leaving its seq, queuedAt and seen flag", async () => {
+  it("raises the alert's waitingSeq to seq, leaving its seq, queuedAt and seen flag", async () => {
     const store = new MemoryNotifyStore();
     await store.queue([alert("m1", "alice", 2), alert("m1", "bob", 2)]);
     await store.seen("m1", "bob", 2);
@@ -110,12 +110,14 @@ describe("MemoryNotifyStore.keep", () => {
     expect(store.stored("m1", "alice")?.alert).toEqual(alert("m1", "alice", 2, T, 5));
   });
 
-  it("changes nothing on a sent alert", async () => {
+  it("raises a sent (claimed) alert too, so a claim given back after a failed email keeps the raise", async () => {
     const store = new MemoryNotifyStore();
     await store.queue([alert("m1", "alice", 2)]);
     await store.markSent(alert("m1", "alice", 2), T + D);
     await store.keep("m1", "alice", 3);
-    expect(store.stored("m1", "alice")).toEqual({ alert: alert("m1", "alice", 2), seen: false, sentAt: T + D });
+    expect(store.stored("m1", "alice")).toEqual({ alert: alert("m1", "alice", 2, T, 3), seen: false, sentAt: T + D });
+    await store.release(alert("m1", "alice", 2), T + D);
+    expect(await store.due(T + D)).toEqual([alert("m1", "alice", 2, T, 3)]);
   });
 
   it("changes nothing for another match or player, and stores nothing when there is no alert", async () => {

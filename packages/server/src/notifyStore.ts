@@ -26,9 +26,10 @@ export interface NotifyStore {
   /** Marks the player's alert for the match seen, when its seq is at most `seq`. */
   seen(matchId: string, player: PlayerId, seq: number): Promise<void>;
   /**
-   * The player is still waiting on their alerted turn now that the match is at `seq`: when their alert for the
-   * match is not sent and its `waitingSeq` is below `seq`, raises `waitingSeq` to `seq`. Its seq, queuedAt and
-   * seen flag do not change, so it is still emailed 20 minutes after the turn began, unless seen.
+   * The player is still waiting on their alerted turn now that the match is at `seq`: when their alert's
+   * `waitingSeq` is below `seq`, raises it to `seq`. Its seq, queuedAt and seen flag do not change, so it is still
+   * emailed 20 minutes after the turn began, unless seen. A sent alert is raised too: it may be a sweep's claim
+   * whose email then fails, and the claim given back must keep the raise, or the next sweep finds it stale.
    */
   keep(matchId: string, player: PlayerId, seq: number): Promise<void>;
   /**
@@ -91,7 +92,7 @@ export class MemoryNotifyStore implements NotifyStore {
   keep(matchId: string, player: PlayerId, seq: number): Promise<void> {
     return later(() => {
       const found = this.#alerts.get(keyOf(matchId, player));
-      if (found && found.sentAt === null && found.alert.waitingSeq < seq) found.alert.waitingSeq = seq;
+      if (found && found.alert.waitingSeq < seq) found.alert.waitingSeq = seq;
     });
   }
 
