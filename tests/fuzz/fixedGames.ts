@@ -5,8 +5,16 @@ import type { GameStatus } from "@terminal-dusk/engine";
 import { FOUND_GAMES } from "./foundGames.ts";
 import type { GameRecord } from "./play.ts";
 
-/** A recorded game and how it ends: its status, and its score (null for a game with no score track). */
-export type FixedGame = { name: string; record: GameRecord; final: { status: GameStatus; score: number | null } };
+/**
+ * A recorded game and how it ends: its status, and its score (null for a game with no score track). `ruleset`, when
+ * given, is the ID of the fuzz ruleset it was played with (engine.test.ts); without it, the base fuzz ruleset.
+ */
+export type FixedGame = {
+  name: string;
+  ruleset?: string;
+  record: GameRecord;
+  final: { status: GameStatus; score: number | null };
+};
 
 export const FIXED_GAMES: FixedGame[] = [
   {

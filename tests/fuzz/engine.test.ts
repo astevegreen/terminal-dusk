@@ -1,13 +1,16 @@
 // Fuzz suite: plays FUZZ_GAMES random games and checks invariants 1, 3, 4, 5 and 6 of
 // docs/architecture.md ("Guardrails", "Fuzz suite") at every step. See tests/fuzz/play.ts.
 import { describe, expect, it } from "vitest";
+import { extraStepsRuleset } from "./extraSteps.ts";
 import { FIXED_GAMES } from "./fixedGames.ts";
-import { gameCount, playFuzzGame, playRecorded } from "./play.ts";
+import { gameCount, playFuzzGame, playRecorded, ruleset } from "./play.ts";
 
 // tests/ has no Node type definitions; this is the one Node global the suite reads.
 declare const process: { readonly env: Readonly<Record<string, string | undefined>> };
 
 const GAMES = gameCount(process.env["FUZZ_GAMES"]);
+/** The fuzz rulesets a fixed game may name by ID. */
+const RULESETS = [ruleset, extraStepsRuleset];
 
 describe("engine fuzz suite", () => {
   it(
@@ -28,8 +31,10 @@ describe("engine fuzz suite", () => {
 
   it.each(FIXED_GAMES)(
     "replays every answer of the fixed game $name with every check, to its recorded status and score",
-    ({ name, record, final }) => {
-      const played = playRecorded(name, record);
+    ({ name, ruleset: id = ruleset.id, record, final }) => {
+      const rules = RULESETS.find((r) => r.id === id);
+      expect(rules, `the ruleset ${id}`).toBeDefined();
+      const played = playRecorded(name, record, rules);
       expect(played.record.answers).toHaveLength(record.answers.length);
       expect({ status: played.final.public.status, score: played.final.public.score ?? null }).toEqual(final);
     },

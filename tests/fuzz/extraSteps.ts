@@ -2,11 +2,9 @@
 // (cards.ts) leaves out: discardFromHand (random, chosen by the owner, chosen by the player), escalate up and down,
 // addToNumber, and if on atLeast, atMost and equals. A separate ruleset, so the games in fixedGames.ts keep their
 // decisions. Each step is announced by a marker, so the suite counts from the events alone what random play reached.
-import type { CardId, GameEvent, Ruleset, Setup, Side, Step } from "@terminal-dusk/engine";
-import { FUZZ_CARDS } from "./cards.ts";
+import type { GameEvent, Ruleset, Side, Step } from "@terminal-dusk/engine";
 import { deepFreeze } from "./deepFreeze.ts";
 import { ruleset } from "./play.ts";
-import { LEAVING, refillFits } from "./removed.ts";
 
 /** Starts every announcement's label; then what the next step is. */
 export const EXTRA = "extra:";
@@ -89,35 +87,4 @@ export function announcedExtra(event: GameEvent): ExtraKind | null {
   if (event.kind !== "marker" || !event.label.startsWith(EXTRA)) return null;
   const kind = event.label.slice(EXTRA.length);
   return (EXTRA_KINDS as readonly string[]).includes(kind) ? (kind as ExtraKind) : null;
-}
-
-/**
- * `setup` with room in each hand for every discard a turn can bring. A turn plays 2 * (1 + playsPerTurn) cards, and
- * each may make one side discard one card, so a hand of 3 * (1 + playsPerTurn) can lose them all and still make its
- * own plays. The draw pile is topped up with unused cards that stay in the game until both hands always refill to
- * that size. What a side does when a discard leaves it no card to play is a rules question the design does not
- * answer yet (raised with the owner on 6 Nov 2026): without this room the engine then has no legal answer.
- */
-export function withDiscardRoom(setup: Setup): Setup {
-  const handSize = 3 * (1 + setup.playsPerTurn);
-  const used = new Set<CardId>([
-    ...setup.hands.lio,
-    ...setup.hands.sae,
-    ...setup.deck,
-    ...(setup.eras ?? []).flatMap((entry) => entry.cards),
-  ]);
-  const spare = FUZZ_CARDS.filter((card) => !used.has(card) && !LEAVING.has(card));
-  const era = {
-    lio: [...setup.hands.lio],
-    sae: [...setup.hands.sae],
-    turns: setup.turns,
-    playsPerTurn: setup.playsPerTurn,
-  };
-  const deck = [...setup.deck];
-  while (!refillFits({ ...era, deck }, handSize)) {
-    const card = spare.shift();
-    if (card === undefined) throw new Error("not enough spare fuzz cards for the discard room");
-    deck.push(card);
-  }
-  return { ...setup, deck, handSize };
 }

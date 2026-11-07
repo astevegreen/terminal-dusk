@@ -150,5 +150,58 @@
       ]
     },
     "final": { "status": { "kind": "over", "winner": null, "reason": "turnLimitReached" }, "score": null }
+  },
+  {
+    "name": "extra-steps game 427: a discard took LIO's last card before its play, which LIO passes",
+    "ruleset": "fuzz-extra-steps-ruleset",
+    "record": {
+      "setup": {
+        "seedHash": "da44132d6e96834a346d0a5742150ba5cb06f612de42103d88cdf0711eff5d23",
+        "hands": { "lio": ["c43", "c58"], "sae": ["c29", "c6", "c24", "c41", "c33", "c48", "c38"] },
+        "deck": [
+          "c5",
+          "c59",
+          "c2",
+          "c53",
+          "c20",
+          "c79",
+          "c65",
+          "c32",
+          "c11",
+          "c27",
+          "c13",
+          "c56",
+          "c42",
+          "c9",
+          "c54",
+          "c28",
+          "c83",
+          "c45",
+          "c22",
+          "c75",
+          "c19",
+          "c73",
+          "c61",
+          "c23",
+          "c34",
+          "c70",
+          "c40",
+          "c26",
+          "c37",
+          "c25"
+        ],
+        "turns": 1,
+        "playsPerTurn": 1,
+        "handSize": 2,
+        "contingency": { "lio": [6, 12, 1, 1, 6, 10, 2, 1], "sae": [1, 10, 4], "world": [10, 4, 11, 3, 10, 10] }
+      },
+      "seed": "fuzz-427",
+      "answers": [
+        { "decisionId": "d0-lio", "side": "lio", "value": { "kind": "chooseCard", "card": "c43" } },
+        { "decisionId": "d0-sae", "side": "sae", "value": { "kind": "chooseCard", "card": "c6" } },
+        { "decisionId": "d2", "side": "sae", "value": { "kind": "playCardAs", "card": "c29", "as": "points" } }
+      ]
+    },
+    "final": { "status": { "kind": "over", "winner": null, "reason": "turnLimitReached" }, "score": null }
   }
 ]

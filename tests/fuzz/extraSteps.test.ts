@@ -1,9 +1,12 @@
 // The steps real cards use that the base fuzz cards leave out (extraSteps.ts): discardFromHand in its three forms,
 // escalate up and down, addToNumber and the atLeast, atMost and equals tests. Random games with them, half on the
-// content test map (where Escalation moves), run every check at every step, and reach every kind and branch.
+// content test map (where Escalation moves), run every check at every step, and reach every kind and branch. A
+// discard can empty a hand mid-turn, and the side then passes the rest of its plays (docs/design/core-loop.md, "No
+// card left"): the games reach that too.
 import { describe, expect, it } from "vitest";
-import { announcedExtra, EXTRA_KINDS, extraStepsRuleset, withDiscardRoom } from "./extraSteps.ts";
+import { announcedExtra, EXTRA_KINDS, extraStepsRuleset } from "./extraSteps.ts";
 import type { ExtraKind } from "./extraSteps.ts";
+import { passedPlaysOf } from "./passedPlays.ts";
 import { mapGameCount, playGame, randomChooser, randomGame } from "./play.ts";
 import type { GameRecord } from "./play.ts";
 import { seededRng } from "./random.ts";
@@ -15,16 +18,15 @@ declare const process: { readonly env: Readonly<Record<string, string | undefine
 
 const GAMES = mapGameCount(process.env["FUZZ_GAMES"]);
 
-type Counts = Record<ExtraKind | "cardsDiscarded" | "escalationChanged", number>;
+type Counts = Record<ExtraKind | "cardsDiscarded" | "escalationChanged" | "playsPassed", number>;
 
 /**
- * Extra-steps game `game`: fuzz game `game`'s setup with room in the hands for the discards (withDiscardRoom), on the
- * test map when `game` is even, played at random.
+ * Extra-steps game `game`: fuzz game `game`'s setup, on the test map when `game` is even, played at random. The hands
+ * get no room for the discards, so a discard can leave a side no card for a play it owes.
  */
 function playExtraGame(game: number): GameRecord {
   const rng = seededRng(game);
-  const { setup: base, seed } = randomGame(rng, game);
-  const setup = withDiscardRoom(base);
+  const { setup, seed } = randomGame(rng, game);
   const label = `Extra-steps game ${game} (playExtraGame(${game}) in extraSteps.test.ts plays it again)`;
   const chooser = randomChooser(extraStepsRuleset, rng);
   return playGame(extraStepsRuleset, label, game % 2 === 0 ? onTestMap(setup) : setup, seed, chooser).record;
@@ -41,18 +43,20 @@ describe("the extra steps in random games", () => {
   });
 
   it(
-    `plays ${GAMES} games to the end, every check at every step, and reaches every extra step and branch`,
+    `plays ${GAMES} games to the end, every check at every step, and reaches every extra step and branch and a pass`,
     () => {
       const counts = Object.fromEntries(
-        [...EXTRA_KINDS, "cardsDiscarded", "escalationChanged"].map((k) => [k, 0]),
+        [...EXTRA_KINDS, "cardsDiscarded", "escalationChanged", "playsPassed"].map((k) => [k, 0]),
       ) as Counts;
       for (let game = 1; game <= GAMES; game++) {
         // playGame runs every check on every step and throws with the game's record if one fails.
-        for (const event of eventsOf(extraStepsRuleset, playExtraGame(game))) {
+        const record = playExtraGame(game);
+        for (const event of eventsOf(extraStepsRuleset, record)) {
           const kind = announcedExtra(event);
           if (kind !== null) counts[kind]++;
           if (event.kind === "cardsDiscarded" || event.kind === "escalationChanged") counts[event.kind]++;
         }
+        counts.playsPassed += passedPlaysOf(extraStepsRuleset, record);
       }
       for (const [what, n] of Object.entries(counts)) expect(n, what).toBeGreaterThan(0);
     },

@@ -84,10 +84,10 @@ export function playFuzzGame(game: number, rules: Ruleset = ruleset, again = "pl
   return playGame(rules, `Fuzz game ${game} (${again}(${game}) plays it again)`, setup, seed, choose);
 }
 
-/** A recorded game, answer by answer, with every check. It may stop before the game ends. */
-export function playRecorded(name: string, record: GameRecord): Played {
+/** A recorded game, answer by answer, with every check (with the base fuzz ruleset, or `rules`). It may stop early. */
+export function playRecorded(name: string, record: GameRecord, rules: Ruleset = ruleset): Played {
   let next = 0;
-  return playGame(ruleset, `Fixed game "${name}"`, record.setup, record.seed, () => record.answers[next++] ?? null);
+  return playGame(rules, `Fixed game "${name}"`, record.setup, record.seed, () => record.answers[next++] ?? null);
 }
 
 /**
