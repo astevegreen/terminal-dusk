@@ -8,13 +8,14 @@ import { keepWaiting, queueAlerts } from "./queueAlerts.ts";
 import type { LoadedMatch, MatchStore, MatchWrite } from "./store.ts";
 
 /**
- * What the handler needs: where matches live, and the rulesets this server can run, by id. With `notify`,
- * a saved move queues its turn alerts there.
+ * What the handler needs: where matches live, and the rulesets this server can run, by id. A saved move queues
+ * its turn alerts in `notify`. Every deps names it, `undefined` only where no alert is wanted (tests), so a deps
+ * built without it does not type-check and cannot silently stop turn alerts.
  */
 export type SubmitDeps = {
   store: MatchStore;
   ruleset: (id: RulesetId) => Ruleset | undefined;
-  notify?: NotifyStore | undefined;
+  notify: NotifyStore | undefined;
 };
 
 /**

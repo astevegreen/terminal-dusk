@@ -25,7 +25,7 @@ describe("DeadlineStore.due on MemoryStore", () => {
     const plain = created("no-clock");
     store.insert("no-clock", { record: plain.record, secret: plain.secret, frames: plain.frames });
     insertMatch(store, "over", "lossOnTime", NOW);
-    const deps = { store, ruleset: (id: string) => rulesetFor(id) ?? undefined };
+    const deps = { store, ruleset: (id: string) => rulesetFor(id) ?? undefined, notify: undefined };
     const resigned = await submit(deps, { matchId: "over", player: "alice", body: { resign: true }, now: NOW + 1 });
     expect(resigned.ok).toBe(true);
     expect(await store.due(NOW + 10 * DAY)).toEqual([]);

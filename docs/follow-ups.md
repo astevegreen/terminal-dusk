@@ -38,10 +38,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   the player still shows as signed in, so the game screen refuses with "Sign in to play." and the lobby with "You
   are signed out." (`packages/app/src/transport/remoteMatch.ts:146`, `packages/app/src/online/lobby.ts:44`). A
   network refusal is the honest message there; no test covers the path. [7 Nov 2026, PR #528 review]
-- `notify` is optional in the submit and invite deps types (`packages/server/src/submit.ts:17`,
-  `packages/server/src/invite.ts:30`), so an Edge entry that builds its deps inline again would silently stop turn
-  alerts; `functionDeps.test.ts` tests only the helper, and the invite path has no stack test. Making it a required
-  `NotifyStore | undefined` lets the type checker catch it. [7 Nov 2026, PR #528 review]
 
 ## Tests and tooling
 

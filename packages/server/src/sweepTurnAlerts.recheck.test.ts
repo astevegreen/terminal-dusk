@@ -18,7 +18,7 @@ const results = (players: string[], status: string) => players.map((player) => (
 async function moveWithoutKeep(world: AlertWorld): Promise<{ mover: PlayerId; others: PlayerId[] }> {
   const side = nextSide(world.start.secret);
   const mover = world.start.record.players[side];
-  const plainDeps = { store: world.store, ruleset: world.submitDeps.ruleset };
+  const plainDeps = { store: world.store, ruleset: world.submitDeps.ruleset, notify: undefined };
   const body = bodyFor(0, world.start.secret, side);
   const moved = await submit(plainDeps, { matchId: MATCH, player: mover, body, now: NOW + 1 });
   if (!moved.ok) throw new Error(`submit refused: ${moved.error.code}`);
@@ -70,7 +70,7 @@ describe("sweepTurnAlerts re-checks an alert before marking it stale", () => {
 
   it("an alert for a match that ended is marked stale without a re-check", async () => {
     const world = await alertWorld();
-    const plainDeps = { store: world.store, ruleset: world.submitDeps.ruleset };
+    const plainDeps = { store: world.store, ruleset: world.submitDeps.ruleset, notify: undefined };
     const resigned = await submit(plainDeps, { matchId: MATCH, player: "alice", body: { resign: true }, now: NOW });
     expect(resigned).toMatchObject({ ok: true });
     const notify = withNotify(world.notify, { waitingSeq: () => Promise.reject(new Error("not expected")) });

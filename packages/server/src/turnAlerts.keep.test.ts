@@ -129,7 +129,7 @@ describe("submit keeps alerts after a saved move only", () => {
       await submit({ ...deps, store: conflicting }, { matchId: MATCH, player: first.player, body, now: NOW }),
       await submit({ ...deps, store: failing }, { matchId: MATCH, player: first.player, body, now: NOW }),
     ];
-    const plain = { store: world.store, ruleset: world.submitDeps.ruleset };
+    const plain = { store: world.store, ruleset: world.submitDeps.ruleset, notify: undefined };
     expect(await submit(plain, { matchId: MATCH, player: first.player, body, now: NOW })).toMatchObject({ ok: true });
     refusals.push(await submit(deps, { matchId: MATCH, player: first.player, body, now: NOW + 1 }));
     expect(refusals.map((r) => r.ok)).toEqual([false, false, false, false, false]);

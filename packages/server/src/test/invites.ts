@@ -45,10 +45,12 @@ export function inviteWorld(randomHostSide: Side = "lio"): InviteWorld {
     matchId: counter("match-"),
     seed: counter("seed-"),
     randomHostSide: sequence([randomHostSide]),
+    notify: undefined,
   };
   const submitDeps: SubmitDeps = {
     store: matches,
     ruleset: (id) => (id === firstDeckRuleset.id ? firstDeckRuleset : undefined),
+    notify: undefined,
   };
   return { matches, invites, entitlements, deps, submitDeps };
 }

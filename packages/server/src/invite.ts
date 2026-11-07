@@ -17,8 +17,9 @@ import type { MatchWrite } from "./store.ts";
  * What the invite functions need: where invites (and the matches they make) live, and the random parts,
  * injected so tests are repeatable: a fresh match id, a fresh seed, the side the host gets in a random
  * invite, and the invite code (defaults to `inviteCode`, a secure random 8-character code). `entitlements` is
- * read only when creating: joining and previewing never check them (docs/architecture.md, Decision 5). With
- * `notify`, a joined invite queues the new match's turn alerts there.
+ * read only when creating: joining and previewing never check them (docs/architecture.md, Decision 5). A joined
+ * invite queues the new match's turn alerts in `notify`; like `SubmitDeps`, every deps names it, `undefined`
+ * only where no alert is wanted (tests).
  */
 export type InviteDeps = {
   invites: InviteStore;
@@ -27,7 +28,7 @@ export type InviteDeps = {
   seed: () => Seed;
   randomHostSide: () => Side;
   code?: () => string;
-  notify?: NotifyStore | undefined;
+  notify: NotifyStore | undefined;
 };
 
 export type InviteErrorCode =

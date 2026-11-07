@@ -20,7 +20,7 @@ const wrap = (inner: MemoryStore, change: Partial<SweepStore>): SweepStore => ({
 
 /** A store where, right after each load, a player resigns the match, so its seq moves on before the save. */
 function resignAfterLoad(inner: MemoryStore): SweepStore {
-  const deps = { store: inner, ruleset: (id: string) => rulesetFor(id) ?? undefined };
+  const deps = { store: inner, ruleset: (id: string) => rulesetFor(id) ?? undefined, notify: undefined };
   return wrap(inner, {
     async load(id) {
       const loaded = await inner.load(id);
