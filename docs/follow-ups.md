@@ -42,10 +42,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   `packages/server/src/invite.ts:30`), so an Edge entry that builds its deps inline again would silently stop turn
   alerts; `functionDeps.test.ts` tests only the helper, and the invite path has no stack test. Making it a required
   `NotifyStore | undefined` lets the type checker catch it. [7 Nov 2026, PR #528 review]
-- Nothing checks that an online game opens one transport and one subscription (two would double polling traffic):
-  `onlineGame.wiring.test.ts` counted it through a mock and went in PR #528; `onFrame` drops repeated frames by
-  seq, so the log can't show it. Count the rig's match reads over one poll interval instead
-  (`packages/app/src/online/onlineGame.ts:124`). [7 Nov 2026, PR #528 review]
 
 ## Tests and tooling
 

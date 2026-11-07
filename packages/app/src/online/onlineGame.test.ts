@@ -5,7 +5,7 @@ import { cardName } from "../testMode/fixture.ts";
 import { nextMove, POLL_MS, settle, watch } from "../transport/test/remoteGame.ts";
 import type { Frame } from "@terminal-dusk/host";
 import { DEFAULT_POLL_MS, turnOf } from "./onlineGame.ts";
-import { onlineRig, play, poll } from "./test/onlineRig.ts";
+import { isClockRead, onlineRig, play, poll } from "./test/onlineRig.ts";
 
 describe("createOnlineGame: frames, log and turn", () => {
   it("the first frame: turn is loading before it, then the frame arrives and the listener is called", async () => {
@@ -200,5 +200,27 @@ describe("createOnlineGame: close", () => {
     await settle();
     expect(r.game.getSnapshot().refusal).toBeNull();
     expect(listener).not.toHaveBeenCalled();
+  });
+});
+
+describe("createOnlineGame: one transport", () => {
+  it("polls through one transport however many frames arrive: one timer, and the same requests on every quiet poll", async () => {
+    const r = onlineRig();
+    await settle();
+    await play(r);
+    await play(r);
+    expect(r.game.getSnapshot().frame?.seq).toBe(2);
+    // A second transport or subscription would keep its own poll timer and send its own reads.
+    expect(r.timers.waiting()).toEqual([POLL_MS]);
+    const perPoll: string[][] = [];
+    for (let i = 0; i < 3; i++) {
+      const before = r.sent.length;
+      await poll(r);
+      perPoll.push(r.sent.slice(before).filter((url) => !isClockRead(url)));
+    }
+    expect(perPoll[0]).toHaveLength(1);
+    expect(perPoll[1]).toEqual(perPoll[0]);
+    expect(perPoll[2]).toEqual(perPoll[0]);
+    expect(r.timers.waiting()).toEqual([POLL_MS]);
   });
 });
