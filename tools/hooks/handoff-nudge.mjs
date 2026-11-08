@@ -3,12 +3,13 @@
 // before the turn ends (exit 2). Fires once per session, and again only after the context drops below the
 // line (a compaction) and climbs past it again. Held while background work runs, so a note never says
 // "still running"; skipped for the night shift, which has no owner to resume it.
-// SessionStart (startup, clear): tell the owner about open notes. Shown to the owner only, never to Claude.
+// SessionStart (startup, clear): file open notes that leave nothing to do, tell the owner about open notes, and
+// tell Claude which are over STALE_DAYS old so it can close the finished ones when asked.
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { readInput } from "./shared.mjs";
-import { openNotes, storeDir } from "../handoff-notes.mjs";
+import { openNotes, STALE_DAYS, storeDir, sweep } from "../handoff-notes.mjs";
 
 const SHARE = 0.6;
 const STALE_MS = 2 * 60 * 60 * 1000;
@@ -18,16 +19,35 @@ else stop();
 
 function sessionStart() {
   let notes = [];
+  let swept = { filed: [], stale: [] };
   try {
-    notes = openNotes(storeDir(input.cwd ?? process.cwd()));
+    const cwd = input.cwd ?? process.cwd();
+    swept = sweep({ cwd });
+    notes = openNotes(storeDir(cwd));
   } catch {
     process.exit(0);
   }
-  if (notes.length === 0) process.exit(0);
-  const message = notes.length === 1
-    ? `Open handoff note: ${notes[0].name}. Type /handoff resume to continue it.`
-    : `${notes.length} open handoff notes, newest ${notes[0].name}. Type /handoff resume to pick one.`;
-  process.stdout.write(JSON.stringify({ systemMessage: message }));
+  const lines = [];
+  if (swept.filed.length) lines.push(`Filed ${swept.filed.length} handoff note(s) that said Complete with nothing outstanding.`);
+  if (notes.length > 0)
+    lines.push(
+      notes.length === 1
+        ? `Open handoff note: ${notes[0].name}. Type /handoff resume to continue it.`
+        : `${notes.length} open handoff notes, newest ${notes[0].name}. Type /handoff resume to pick one.`,
+    );
+  if (lines.length === 0) process.exit(0);
+  const out = {};
+  if (swept.stale.length) {
+    lines.push(`${swept.stale.length} of them are over ${STALE_DAYS} days old; ask Claude to close the finished ones.`);
+    out.hookSpecificOutput = {
+      hookEventName: "SessionStart",
+      additionalContext:
+        `Open handoff notes over ${STALE_DAYS} days old: ${swept.stale.join(", ")}. When the owner asks, check each ` +
+        "against the repo and close the finished or overtaken ones: `node tools/handoff-notes.mjs close <name> <reason>`.",
+    };
+  }
+  out.systemMessage = lines.join(" ");
+  process.stdout.write(JSON.stringify(out));
   process.exit(0);
 }
 
@@ -62,7 +82,9 @@ function stop() {
     `The conversation is ${Math.round(context / 1000)}k tokens, past the handoff line ` +
       `(${Math.round(line / 1000)}k, 60% of the auto-compact window). Before this turn ends, write a handoff ` +
       `with the handoff skill (/handoff). If the gate is red, get it green first; a question you were about ` +
-      `to ask the owner goes under Decide first.\n`,
+      `to ask the owner goes under Decide first. If the task is finished and nothing waits on the owner or a ` +
+      `run, write no note: put future work on docs/follow-ups.md, close this session's own open notes, and ` +
+      `tell the owner in one line that nothing is left to hand off.\n`,
   );
   process.exit(2);
 }

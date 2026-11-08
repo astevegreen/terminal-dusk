@@ -15,6 +15,10 @@ Two branches: **write** (the default) and **resume** (the argument starts with `
 
 ## Write
 
+A note exists only for work still open. **Nothing outstanding means no note**: when the task is finished and nothing waits on the owner or a run, put any future work on `docs/follow-ups.md`, close this session's open notes, and tell the owner in one line that nothing is left to hand off. `save` refuses a note whose **Next** reads `Complete` with no **Decide first** or **Waiting on**.
+
+**Close notes whose work is done.** Before writing a new note, and when this session finishes work an open note lists (`list` shows them), file that note: `node tools/handoff-notes.mjs close <name> <reason>`, with the reason in a few words ("finished in this session", "overtaken by <sha>"). It moves the note to `.handoff/done/` with a `Closed:` line; nothing is deleted. At session start the hook files open notes that leave nothing to do and lists those older than 3 days: when the owner asks, check each against the repo and close the finished ones.
+
 1. **Stop at a green point.** The gate hook won't let a turn end on a failing gate, so finish the step in hand until it passes, or go back to the last step that did and put the rest under **Next**. Background work (a test run, an agent) finishes first: end the turn saying what it waits on, and write the note when its notification arrives, with the result under **Verification**.
 2. **Settle the work.** Commit what is finished, in the normal flow. Work in progress stays uncommitted and is listed by file, with its state, under **Done**; save records which folder it is in. A question whose answer changes what gets committed goes to the owner now; every other question goes under **Decide first**. Game-rule questions are always the owner's: carry them, never settle them.
 3. **Send durable facts to memory.** A fact that outlives this task (an owner preference, a tooling gotcha) goes to the memory directory; the note carries only what this task needs.
@@ -55,7 +59,7 @@ Two branches: **write** (the default) and **resume** (the argument starts with `
     ## Verification
     - pnpm gate: green on <sha> | failing: <one line> | not run
 
-Keep **Goal** and **Next** always; drop any other section that would be empty. When the work is finished, **Next** reads `Complete`.
+Keep **Goal** and **Next** always; drop any other section that would be empty. `Complete` only while a **Decide first** or **Waiting on** remains (finished work with an owner answer or a run still pending); with neither, write no note.
 
 **Model** follows the table in `docs/workflow.md`: Opus for design, specs, rules questions and engine-core work; Sonnet for implementation with a clear spec. Effort follows the hardest step in **Next**: low for mechanical edits, medium for a specified change, high for tracing a cause or open design. Omit the section when **Next** reads `Complete`.
 
