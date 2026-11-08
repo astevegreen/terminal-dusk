@@ -318,3 +318,7 @@ test("a Next that only starts with the word Complete is still open work", () => 
   assert.equal(list({ cwd: repo }).out.split("\n").length, 1);
   assert.equal(saveDraft(repo, "real", NOW, withNext("1. Complete the migration")).code, 0);
 });
+
+test("a Next with more than the one Complete line is open work", () => {
+  assert.equal(nothingOutstanding(["## Next", "1. Complete", "2. Run the fuzz"]), false);
+});
