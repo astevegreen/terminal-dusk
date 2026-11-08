@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { runHook, tempRepo, writeFiles } from "./test-helpers.mjs";
@@ -37,6 +37,7 @@ test("past the line, sends Claude back to write the handoff, once per session", 
   assert.equal(r.status, 2);
   assert.match(r.stderr, /125k tokens, past the handoff line \(120k/);
   assert.match(r.stderr, /\/handoff/);
+  assert.match(r.stderr, /write no note: put future work on docs\/follow-ups\.md, close this session's own open notes/);
   assert.equal(stop([owner("Go on."), said(130_000)], { session }).status, 0, "already asked in this session");
 });
 
@@ -78,7 +79,7 @@ test("doesn't ask when this turn already saved a handoff", () => {
   const r = stop([
     owner("/handoff"),
     said(125_000, [toolUse("toolu_C1", "Bash", { command: "node tools/handoff-notes.mjs save .handoff/card-draw.md" })]),
-    result("toolu_C1", "saved 2026-10-17-1405-card-draw.md"),
+    result("toolu_C1", "saved FRESH1-card-draw.md"),
     said(125_000),
   ]);
   assert.equal(r.status, 0);
@@ -96,18 +97,58 @@ test("finishes quietly on input it can't read", () => {
 
 const sessionStart = (cwd) => runHook("handoff-nudge.mjs", { hook_event_name: "SessionStart", source: "clear", cwd });
 
+// Note file names carry their save time; the hook judges age against the real clock, so build them from it.
+const pad2 = (n) => String(n).padStart(2, "0");
+const stampAgo = (days, minutes = 0) => {
+  const d = new Date(Date.now() - days * 86_400_000 - minutes * 60_000);
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}-${pad2(d.getHours())}${pad2(d.getMinutes())}`;
+};
+const note = (next) => `# Handoff: t\nheader\n\n## Goal\ng\n\n## Next\n${next}\n`;
+
 test("at session start, tells the owner about open notes and how to resume them", () => {
   const repo = tempRepo({ ".gitignore": ".handoff/\n" });
   assert.equal(sessionStart(repo).stdout, "", "no notes, no message");
 
+  const first = `${stampAgo(0, 10)}-card-draw.md`;
+  const second = `${stampAgo(0, 5)}-scoring.md`;
   writeFiles(repo, {
-    ".handoff/2026-10-17-1405-card-draw.md": "# Handoff: card draw\nheader\n",
+    [`.handoff/${first}`]: note("1. Edit it"),
     ".handoff/done/2026-10-16-0900-old.md": "# Handoff: old\nheader\nResumed: 2026-10-16 10:00\n",
   });
-  assert.equal(sessionStart(repo).json?.systemMessage, "Open handoff note: 2026-10-17-1405-card-draw.md. Type /handoff resume to continue it.");
+  assert.equal(sessionStart(repo).json?.systemMessage, `Open handoff note: ${first}. Type /handoff resume to continue it.`);
 
-  writeFiles(repo, { ".handoff/2026-10-17-1530-scoring.md": "# Handoff: scoring\nheader\n" });
-  assert.match(sessionStart(repo).json?.systemMessage, /^2 open handoff notes, newest 2026-10-17-1530-scoring\.md\. Type \/handoff resume/);
+  writeFiles(repo, { [`.handoff/${second}`]: note("1. Edit it") });
+  assert.match(sessionStart(repo).json?.systemMessage, new RegExp(`^2 open handoff notes, newest ${second}\. Type /handoff resume`));
+});
+
+test("at session start, files notes with nothing outstanding and names the old open ones to Claude", () => {
+  const repo = tempRepo({ ".gitignore": ".handoff/\n" });
+  const finished = `${stampAgo(0, 20)}-finished.md`;
+  const old = `${stampAgo(5)}-old-open.md`;
+  const fresh = `${stampAgo(0, 5)}-fresh-open.md`;
+  writeFiles(repo, {
+    [`.handoff/${finished}`]: note("Complete"),
+    [`.handoff/${old}`]: note("1. Still to do"),
+    [`.handoff/${fresh}`]: note("1. Still to do"),
+  });
+  const r = sessionStart(repo);
+  assert.equal(r.status, 0);
+  assert.match(r.json.systemMessage, /^Filed 1 handoff note\(s\) that said Complete with nothing outstanding\. 2 open handoff notes/);
+  assert.match(r.json.systemMessage, /1 of them are over 3 days old/);
+  const context = r.json.hookSpecificOutput.additionalContext;
+  assert.equal(r.json.hookSpecificOutput.hookEventName, "SessionStart");
+  assert.ok(context.includes(old) && !context.includes(fresh), context);
+  assert.match(context, /handoff-notes\.mjs close <name> <reason>/);
+  assert.ok(existsSync(path.join(repo, ".handoff", "done", finished)));
+  assert.ok(!existsSync(path.join(repo, ".handoff", finished)));
+});
+
+test("at session start, a note that only said Complete is filed quietly for Claude", () => {
+  const repo = tempRepo({ ".gitignore": ".handoff/\n" });
+  writeFiles(repo, { [`.handoff/${stampAgo(0, 5)}-finished.md`]: note("Complete") });
+  const r = sessionStart(repo);
+  assert.match(r.json.systemMessage, /^Filed 1 handoff note\(s\)/);
+  assert.equal(r.json.hookSpecificOutput, undefined);
 });
 
 test("at session start outside a git repository, says nothing", () => {

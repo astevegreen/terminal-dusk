@@ -4,7 +4,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { claim, list, recordSession, save, sinceNote } from "./handoff-notes.mjs";
+import { claim, close, list, nothingOutstanding, recordSession, save, sinceNote, sweep } from "./handoff-notes.mjs";
 import { canonical, toPosix } from "./hooks/shared.mjs";
 import { sh, tempRepo, writeFiles } from "./hooks/test-helpers.mjs";
 
@@ -213,4 +213,117 @@ test("an index that won't parse is left as it is, never replaced by one entry", 
   writeFileSync(file, half);
   assert.equal(recordSession("wrote", "b.md", "s", { env }), false);
   assert.equal(readFileSync(file, "utf8"), half);
+});
+
+// ---- no note when nothing is outstanding: save, close and the SessionStart sweep -----------------
+
+const withNext = (next, extra = "") => DRAFT.replace("1. Edit packages/engine/src/draw.ts", next) + extra;
+const doneNote = (repo, name) => readFileSync(path.join(repo, ".handoff", "done", name), "utf8");
+
+test("nothingOutstanding: Complete alone, numbered or with trailing words", () => {
+  for (const next of ["Complete", "1. Complete", "Complete.", "complete, nothing left"])
+    assert.equal(nothingOutstanding(["## Next", next]), true, next);
+});
+
+test("nothingOutstanding: open work, or Complete with something pending", () => {
+  assert.equal(nothingOutstanding(["## Next", "1. Run the tests"]), false);
+  assert.equal(nothingOutstanding(["## Next", "Complete", "", "## Waiting on", "- run 123"]), false);
+  assert.equal(nothingOutstanding(["## Decide first", "- merge? - recommend: yes", "## Next", "Complete"]), false);
+  assert.equal(
+    nothingOutstanding(["## Next", "Complete", "## Waiting on", ""]),
+    true,
+    "an empty section is no section",
+  );
+});
+
+test("save refuses a note with nothing outstanding, keeps the draft and files nothing", () => {
+  const repo = repoWithNotes();
+  const r = saveDraft(repo, "done-work", NOW, withNext("Complete"));
+  assert.equal(r.code, 1);
+  assert.match(r.out, /nothing is outstanding/);
+  assert.match(r.out, /docs\/follow-ups\.md/);
+  assert.ok(existsSync(path.join(repo, ".handoff", "done-work.md")));
+  assert.equal(list({ cwd: repo }).out, "no open handoff notes");
+});
+
+test("save files a Complete note that still waits on a run or an owner answer", () => {
+  const repo = repoWithNotes();
+  assert.equal(saveDraft(repo, "waiting", NOW, withNext("Complete", "\n## Waiting on\n- run 42\n")).code, 0);
+  assert.equal(
+    saveDraft(repo, "asking", LATER, withNext("Complete", "\n## Decide first\n- merge? - recommend: yes\n")).code,
+    0,
+  );
+});
+
+test("close files the note in done/ with its reason, by full name or slug", () => {
+  const repo = repoWithNotes();
+  saveDraft(repo, "card-draw");
+  saveDraft(repo, "scoring", LATER);
+  const r = close("card-draw", "finished in this session", { cwd: repo, now: LATER });
+  assert.equal(r.code, 0, r.out);
+  assert.match(doneNote(repo, "2026-10-17-1405-card-draw.md"), /Closed: 2026-10-17 15:30: finished in this session\n$/);
+  assert.equal(close("2026-10-17-1530-scoring.md", "overtaken", { cwd: repo, now: LATER }).code, 0);
+  assert.equal(list({ cwd: repo }).out, "no open handoff notes");
+});
+
+test("close needs a reason, and a note already in done/ gives exit 3", () => {
+  const repo = repoWithNotes();
+  saveDraft(repo, "card-draw");
+  assert.equal(close("card-draw", "", { cwd: repo }).code, 1, "a reason is required");
+  assert.equal(close("card-draw", "  ", { cwd: repo }).code, 1);
+  assert.equal(close("card-draw", "done", { cwd: repo }).code, 0);
+  assert.equal(close("2026-10-17-1405-card-draw.md", "again", { cwd: repo }).code, 3);
+  assert.equal(close("no-such-note", "x", { cwd: repo }).code, 1);
+});
+
+test("the command line closes a note and does not record it in the session-ids index", () => {
+  const repo = repoWithNotes();
+  const config = configDir();
+  const env = { CLAUDE_CODE_SESSION_ID: "session-a", CLAUDE_CONFIG_DIR: config };
+  writeFiles(repo, { ".handoff/card-draw.md": DRAFT });
+  const name = /^saved (\S+\.md)/.exec(run(["save", ".handoff/card-draw.md"], repo, env).stdout)[1];
+  const closed = run(["close", name, "finished", "in", "this", "session"], repo, env);
+  assert.equal(closed.status, 0, closed.stdout);
+  assert.match(doneNote(repo, name), /Closed: .*: finished in this session\n$/);
+  assert.deepEqual(
+    indexOf(config).map((e) => e.kind),
+    ["wrote"],
+  );
+});
+
+test("sweep files Complete notes and lists old ones, leaving them open", () => {
+  const repo = repoWithNotes();
+  const put = (name, next) =>
+    writeFiles(repo, { [`.handoff/${name}`]: `# Handoff: t\nheader\n\n## Goal\ng\n\n## Next\n${next}\n` });
+  put("2026-11-08-0900-finished.md", "Complete");
+  put("2026-11-01-0900-old-open.md", "1. Still to do");
+  put("2026-11-08-0800-fresh-open.md", "1. Still to do");
+  const r = sweep({ cwd: repo, now: new Date(2026, 10, 8, 12, 0) });
+  assert.deepEqual(r.filed, ["2026-11-08-0900-finished.md"]);
+  assert.deepEqual(r.stale, ["2026-11-01-0900-old-open.md"]);
+  assert.equal(list({ cwd: repo }).out.split("\n").length, 2);
+  assert.match(doneNote(repo, "2026-11-08-0900-finished.md"), /Closed: .*: swept, nothing outstanding\n$/);
+});
+
+test("a Next that only starts with the word Complete is still open work", () => {
+  assert.equal(nothingOutstanding(["## Next", "1. Complete the migration of X"]), false);
+  assert.equal(nothingOutstanding(["## Next", "Complete step 3 of the plan"]), false);
+  const repo = repoWithNotes();
+  writeFiles(repo, {
+    ".handoff/2026-11-08-0900-real-work.md":
+      "# Handoff: t\nheader\n\n## Goal\ng\n\n## Next\n1. Complete the migration\n",
+  });
+  const r = sweep({ cwd: repo, now: new Date(2026, 10, 8, 12, 0) });
+  assert.deepEqual(r.filed, []);
+  assert.equal(list({ cwd: repo }).out.split("\n").length, 1);
+  assert.equal(saveDraft(repo, "real", NOW, withNext("1. Complete the migration")).code, 0);
+});
+
+test("a Next with more than the one Complete line is open work", () => {
+  assert.equal(nothingOutstanding(["## Next", "1. Complete", "2. Run the fuzz"]), false);
+});
+
+test("a step that starts with the word Complete is open work", () => {
+  assert.equal(nothingOutstanding(["## Next", "1. Complete the quiz questions"]), false);
+  assert.equal(nothingOutstanding(["## Next", "Complete - nothing left"]), true);
 });
