@@ -4,6 +4,9 @@ name: Sonar findings
 # which `node tools/sonar.mjs <pr|main>` reads (tools/sonar-mirror.mjs). SonarCloud's own check carries only
 # some findings, and its API needs SONAR_TOKEN, a repository secret the owner sets once; no agent sees it.
 # GitHub runs check_run workflows from main's copy only, so a pull request can't change what this does with it.
+# GitHub starts this workflow for every check that finishes on a commit (CI jobs, CodeQL, Sonar, this one), and
+# `on:` can't filter by check name, so the job's `if` below does it. Every run you see as "skipped" is some other
+# check finishing; only SonarCloud's own check does the work. That is expected, not a missed run.
 on:
   check_run:
     types: [completed]

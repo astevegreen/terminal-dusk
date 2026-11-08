@@ -101,10 +101,4 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   (`tools/gemini-audit.mjs:131`), so the array index lands in `issueText`'s `ghRun`. Already on main; no test covers
   the specs path. [6 Nov 2026, reviewer on #525]
 
-- `tools/hooks/no-plugin-writes.mjs:16` still says "signed in as the bot"; reword like the sprint skills (hooks edits ask the owner). [7 Nov 2026, reviewer on #542]
-
 ## Docs
-
-- `CLAUDE.md:10` says "CI runs 10,000 with `pnpm fuzz`" and `tests/README.md:7` says `pnpm fuzz` runs "in CI": since
-  the fuzz sizing (`tools/gates/fuzz-games.mjs`) a pull request that leaves the engine, content, host, AI and tests/
-  alone plays 2,000; main and Nightly still play 10,000. [7 Nov 2026, CI-speed session]

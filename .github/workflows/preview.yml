@@ -21,6 +21,8 @@ concurrency:
 
 jobs:
   deploy:
+    # A "skipped" run here is correct: it means the CI run that woke it was red, cancelled (a newer push replaced it)
+    # or came from a pull request, so there is nothing to deploy. The commit's own green push run deploys it.
     # Only a green CI run from a push to this repository's main, never one from a pull request or a fork.
     if: >-
       github.event_name == 'workflow_dispatch' ||
