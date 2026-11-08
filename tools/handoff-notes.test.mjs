@@ -322,3 +322,8 @@ test("a Next that only starts with the word Complete is still open work", () => 
 test("a Next with more than the one Complete line is open work", () => {
   assert.equal(nothingOutstanding(["## Next", "1. Complete", "2. Run the fuzz"]), false);
 });
+
+test("a step that starts with the word Complete is open work", () => {
+  assert.equal(nothingOutstanding(["## Next", "1. Complete the quiz questions"]), false);
+  assert.equal(nothingOutstanding(["## Next", "Complete - nothing left"]), true);
+});

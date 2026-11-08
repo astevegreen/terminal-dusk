@@ -84,7 +84,8 @@ function section(lines, title) {
 // True when a note leaves nothing to do: Next starts with "Complete" and nothing waits on the owner or a run.
 export function nothingOutstanding(lines) {
   const next = section(lines, "Next");
-  if (next.length !== 1 || !/^(1\.\s*)?complete\s*([.,;:!]|$)/i.test(next[0]?.trim() ?? "")) return false;
+  // "Complete", "Complete." or "Complete, nothing left", never a step such as "1. Complete the quiz questions".
+  if (next.length !== 1 || !/^(1\.\s*)?complete(\s*$|\s*[.,;:!—–-])/i.test(next[0].trim())) return false;
   return section(lines, "Decide first").length === 0 && section(lines, "Waiting on").length === 0;
 }
 
