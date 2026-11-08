@@ -207,9 +207,9 @@ env` prints it from there, and the supervisor starts sessions with it.
   2. RemoteTrigger list_runs on each id. Archive each run that is not this session and is finished (not
      running, last event over 60 minutes ago) or stuck (running with no event in 60 minutes, or waiting
      for an answer for 30). Leave every other run.
-  3. When the window says "after" and no run is left running, RemoteTrigger update its archiver id with
-     {"enabled": false}, then run `node tools/sprint/queue.mjs window archived`, then
-     `node tools/stack-stop.mjs`.
+  3. When the window says "after" and no run is left running, run `node tools/stack-stop.mjs`. Only when
+     it exits 0, RemoteTrigger update its archiver id with {"enabled": false}, then run
+     `node tools/sprint/queue.mjs window archived`; otherwise leave both, so next hour's run tries again.
   Reply with one line: "Archived <n>: <titles>" (mark stuck ones "(stuck)"), or "Archived 0", then the
   line stack-stop printed, when it ran.
   ```
