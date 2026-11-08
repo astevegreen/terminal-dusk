@@ -1023,7 +1023,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/gemini/prompts/weekly-audit.md`
 - `tools/gemini/rails.mjs` - agy's second look as a merge gate (owner's policy, 28 Oct 2026): which changes touch a rail, how a review's findings and the rail audit's answer are read, and…
 - `tools/gemini/rails.test.mjs` - Tests for agy's merge gate: which diffs touch a rail, how findings and the rail answer are read, and the verdict.
-- `tools/git-hooks/pre-commit` - Git pre-commit hook: formats the staged files with Prettier, then refreshes docs/repo-map.md.
+- `tools/git-hooks/pre-commit` - Git pre-commit hook: formats the staged files with Prettier.
 - `tools/git-hooks/pre-commit.test.mjs`
 - `tools/github-rest.mjs` - Pull request and issue reads and comments through GitHub's REST API (`gh api`).
 - `tools/github-rest.test.mjs` - The REST reads that stand in for `gh pr view`, `gh issue view` and `gh pr comment` (GraphQL, refused in cloud sessions): each gives the shape the GraphQL comma…
@@ -1170,7 +1170,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `.claude/skills/sprint-lane/SKILL.md` - Coordinator for one lane of the sprint in docs/sprint.md. Run only as /sprint-lane <lane>, from a session the sprint supervisor started.
 - `.claude/skills/sprint-plan/SKILL.md` - Writes specs for the next backlog items of one lane of the sprint in docs/sprint.md. Run only as /sprint-plan <lane>, from a session the sprint supervisor star…
 - `.claude/skills/sprint-start/SKILL.md` - Cue the sprint in docs/sprint.md now - check the computer, open the window, make the supervisor and the archiver. Run only as /sprint-start [hours] [--dry-run].
-- `.claude/skills/sprint-status/SKILL.md` - Short sprint status, read from the sprint log's status block. Use when the owner asks how the sprint is going, whether it is running, or what waits on them.
+- `.claude/skills/sprint-status/SKILL.md` - Short sprint status from the sprint log (sprint-only; invoke as /sprint-status).
 - `.claude/skills/sprint-stop/SKILL.md` - End the sprint's window now and switch its supervisor off; sessions already running finish their task. Run only as /sprint-stop.
 - `.claude/skills/sprint-supervisor/SKILL.md` - Hourly supervisor for the sprint in docs/sprint.md. Starts and restarts the lane and plan sessions. Run only from the "TD sprint supervisor" scheduled task or…
 - `.claude/skills/triage/SKILL.md` - Turn the week's playtest feedback into design questions and bug issues. Run as /triage.

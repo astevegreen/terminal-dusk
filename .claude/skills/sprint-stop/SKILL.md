@@ -39,5 +39,5 @@ Your last message starts with exactly one of `STOPPED terminal-dusk at <end>` or
    through it, so only `RemoteTrigger` can change them). One that is enabled with a `run_once_at` still to come is a
    restart the supervisor scheduled after a usage limit: `update` it with `{"enabled": false}`.
 5. `gh issue comment <log from Q window> --body "Sprint stopped at <end>. <the lane lines of Q status>"`.
-   Comment only with `gh issue comment`, signed in as the bot; never with the GitHub plugin's tools, which sign
+   Comment only with `gh issue comment`, as the sprint bot account; never with the GitHub plugin's tools, which sign
    in as the owner, so GitHub never notifies the owner and the queue could read the comment as the owner's.

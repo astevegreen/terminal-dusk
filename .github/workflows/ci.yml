@@ -35,16 +35,21 @@ jobs:
       - name: Gate (all packages)
         run: pnpm gate --all
 
-  # Pull requests: runs the tests on the base branch and here and counts them. Fails if this branch has fewer, unless
-  # the repository owner labelled the pull request held (a held label the night shift added doesn't count), and fails
-  # if any test skipped itself while running, held or not. The job has no job-level `if:`: a skipped job counts as
-  # passing, so it runs on every event and, on a push to main, says there is nothing to compare and exits cleanly.
+  # Pull requests: counts the tests on the base branch and here. Fails if this branch has fewer, unless the repository
+  # owner labelled the pull request held (a held label the night shift added doesn't count), and fails if any test
+  # skipped itself while running, held or not. The base's counts come from the artifact that main's own CI run for the
+  # base commit uploaded, so a pull request no longer installs and runs the base's whole suite. Not the Actions cache:
+  # a pull request's run reads its own cache scope before main's, so one commit could save counts that a later commit
+  # compares with. Only a push to main makes a run that the artifact is read from. With no such artifact, or when the
+  # pull request changes how tests are counted, it counts the base itself as before. The job has no job-level `if:`:
+  # a skipped job counts as passing.
   test-count:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       contents: read
-      # "Who labelled held" reads the pull request's label history.
+      # "Who labelled held" reads the pull request's label history and main's counts for the base commit.
+      actions: read
       issues: read
       pull-requests: read
     steps:
@@ -60,18 +65,21 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/events" --jq '.[] | tojson' > "$RUNNER_TEMP/pr-events.ndjson"
-      - name: Nothing to count on a push
-        if: github.event_name == 'push'
-        run: echo "A push to main has no base branch to compare with; the pull request that brought it was counted."
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/events" --jq '.[] | tojson' > "$RUNNER_TEMP/pr-events.ndjson"
+          # main's counts for the base commit, from a run that a push to main made: no pull request can upload to one.
+          run=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow ci.yml --branch main --event push --commit "$BASE_SHA" \
+            --json databaseId,headSha,event --jq "[.[] | select(.headSha == \"$BASE_SHA\" and .event == \"push\")][0].databaseId // empty")
+          if [ -n "$run" ]; then
+            gh run download "$run" --repo "$GITHUB_REPOSITORY" --name test-counts --dir "$RUNNER_TEMP/main-counts" ||
+              echo "main's run $run for $BASE_SHA has no counts."
+          fi
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
-        if: github.event_name == 'pull_request'
       - uses: actions/setup-node@v7
-        if: github.event_name == 'pull_request'
         with:
           node-version: 24
       - name: Install
-        if: github.event_name == 'pull_request'
         run: |
           if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm install --no-frozen-lockfile; fi
       - name: Test count (no fewer tests than the base branch)
@@ -80,10 +88,36 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           OWNER: ${{ github.repository_owner }}
         run: |
-          git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA"
-          pnpm --dir "$RUNNER_TEMP/base" install --frozen-lockfile
-          node tools/gates/test-count.mjs --root "$RUNNER_TEMP/base" --save "$RUNNER_TEMP/base-tests.json"
-          node tools/gates/test-count.mjs --compare "$RUNNER_TEMP/base-tests.json" --held-events "$RUNNER_TEMP/pr-events.ndjson" --owner "$OWNER"
+          main="$RUNNER_TEMP/main-counts/test-counts.json"
+          counts="$RUNNER_TEMP/base-counts.json"
+          # A failed diff stops the step here (bash -e), rather than reading as "the counting code is unchanged".
+          changed=$(git diff --name-only "$BASE_SHA" HEAD)
+          # main's counts were made by main's counting code: a pull request that changes it counts the base itself.
+          # A here-string, not a pipe: with pipefail, grep -q quitting early could fail the writer and read as no match.
+          if [ -s "$main" ] && ! grep -qE '^tools/gates/(test-count|count-reporter)\.mjs$' <<< "$changed"; then
+            echo "Base counts for $BASE_SHA came from main's CI run."
+            cp "$main" "$counts"
+          else
+            git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA"
+            pnpm --dir "$RUNNER_TEMP/base" install --frozen-lockfile
+            node tools/gates/test-count.mjs --root "$RUNNER_TEMP/base" --save "$counts"
+          fi
+          node tools/gates/test-count.mjs --compare "$counts" --held-events "$RUNNER_TEMP/pr-events.ndjson" --owner "$OWNER"
+      # A push to main counts its own tests, for the pull requests whose base it becomes. A failure here only means
+      # they count the base themselves, so it doesn't fail main.
+      - name: Count main's tests for later pull requests
+        id: main-counts
+        if: github.event_name == 'push'
+        continue-on-error: true
+        run: node tools/gates/test-count.mjs --save "$RUNNER_TEMP/test-counts.json"
+      - name: Upload main's counts
+        if: github.event_name == 'push' && steps.main-counts.outcome == 'success'
+        continue-on-error: true
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-counts
+          path: ${{ runner.temp }}/test-counts.json
+          if-no-files-found: error
 
   # The fuzz: 10,000 random games on main, and on a pull request that changes the engine, content, host, AI, tests/
   # or the root install; 2,000 on any other pull request (tools/gates/fuzz-games.mjs). Nightly plays 10,000 on main.
@@ -138,6 +172,15 @@ jobs:
         run: pnpm --filter @terminal-dusk/app exec playwright install --with-deps chromium
       - name: Playwright smoke tests
         run: pnpm --filter @terminal-dusk/app test:e2e
+      # The report holds each failed test's retry trace (playwright.config.ts): what the test's browser showed, logged
+      # and fetched from the local e2e server while it played a throwaway local game. No real match or secret is in it.
+      - name: Upload the Playwright report
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report
+          path: packages/app/playwright-report/
+          retention-days: 14
 
   # Every migration applied to an empty database on a local Supabase stack, then the migration tests (which hold the
   # row-level security checks) and the other stack tests. There is no hosted project, so this replaced the owner's

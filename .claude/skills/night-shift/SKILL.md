@@ -29,7 +29,7 @@ held pull request the owner answered, "Depends on") and prints one line of JSON.
 move: do what its `do` says. Exit code 2, or no JSON at all: stop, and give the error in step 4. Never decide
 by hand instead.
 
-Comment only with `gh issue comment` (or `gh pr comment`), signed in as the bot. Never use the GitHub plugin's
+Comment only with `gh issue comment` (or `gh pr comment`) as the sprint bot account. Sprints do not run while gh is signed in as the owner. Never use the GitHub plugin's
 tools to write: they sign in as the owner, so GitHub never notifies the owner and the queue could read the
 comment as the owner's answer.
 

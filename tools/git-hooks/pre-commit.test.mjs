@@ -27,7 +27,7 @@ function repoWithHook() {
 }
 const committed = (repo, file) => sh("git", ["show", `HEAD:${file}`], repo);
 
-test("a commit formats the staged code, leaves Locked files alone and refreshes the repo map", () => {
+test("a commit formats the staged code, leaves Locked files alone and leaves the repo map to `pnpm repo-map`", () => {
   const repo = repoWithHook();
   const locked = "#  Rules\n*   keep   this   exactly\n";
   writeFiles(repo, {
@@ -39,7 +39,9 @@ test("a commit formats the staged code, leaves Locked files alone and refreshes 
 
   assert.equal(committed(repo, "packages/engine/src/a.ts"), "// Adds one.\nexport const add = (n: number) => n + 1;");
   assert.equal(committed(repo, "CLAUDE.md"), locked.trimEnd());
-  assert.match(committed(repo, "docs/repo-map.md"), /`packages\/engine\/src\/a\.ts` - Adds one\. Exports: add\./);
+  // The map generator is in the repository, but the commit adds no map: regenerating it in every commit made parallel
+  // pull requests conflict on it.
+  assert.throws(() => committed(repo, "docs/repo-map.md"));
   assert.equal(sh("git", ["status", "--porcelain"], repo), "");
   assert.equal(readFileSync(path.join(repo, "CLAUDE.md"), "utf8"), locked);
 });

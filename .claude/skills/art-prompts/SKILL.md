@@ -4,7 +4,7 @@ description: Write image-generation prompts for cards from their data and the ar
 disable-model-invocation: true
 argument-hint: "[era, or card ids]"
 ---
-1. Read docs/design/art-style.md in full. If it doesn't exist, stop and say so.
+1. Read docs/design/art-direction.md in full. If it doesn't exist, stop and say so.
 2. Collect the cards for $ARGUMENTS: every card in packages/content/cards/<era>/, or the listed ids.
    Use each card's name, history note and art reference only. Never use its rules text or numbers.
 3. Write one prompt per card to assets/prompts/<era>.md, in card-id order:
