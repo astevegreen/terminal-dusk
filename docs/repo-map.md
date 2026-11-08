@@ -1087,10 +1087,13 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/sprint/usage-limit.test.mjs` - Tests for usage-limit.mjs: when a session that stopped on a usage limit may start again.
 - `tools/sprint/wake.mjs` - While a usage limit is on, a scheduled supervisor run fails before it starts, so lanes it stopped would wait for the next hourly run.
 - `tools/sprint/wake.test.mjs` - Tests for the supervisor's wake after a usage limit (wake.mjs, after-sprint fix 1), through `queue.mjs wake` and `window ids --wake`: when it is armed, when th…
+- `tools/stack-config.test.mjs` - The local Supabase stack (packages/server/supabase/config.toml) runs on the owner's computer, so it must not carry services that only burn CPU there.
 - `tools/stack-lock-command.mjs` - How stack-lock.mjs runs its command: in a shell, as one group of programs that can be stopped together, so a stopped run never leaves part of its command on th…
 - `tools/stack-lock.mjs` - Runs a command while holding the computer's one local Supabase stack, so two folders never use it at once: a `supabase db reset` from one would empty the datab…
 - `tools/stack-lock.test.mjs` - stack-lock.mjs lets one folder at a time use the computer's local Supabase stack.
 - `tools/stack-ports.test.mjs` - The local Supabase stack's ports (packages/server/supabase/config.toml) must stay out of the TCP range Windows reserves for itself (54280-54379 on this machine…
+- `tools/stack-stop.mjs` - Stops the computer's local Supabase stack and keeps its data.
+- `tools/stack-stop.test.mjs` - stack-stop.mjs stops the computer's local Supabase stack at a sprint's end, keeping its data.
 - `tools/test.mjs` - `pnpm test`: unit tests.
 - `tools/test.test.mjs`
 

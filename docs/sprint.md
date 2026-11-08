@@ -123,7 +123,7 @@ for tests and fuzz, and every number the file marks "open" is scenario data, not
 
 There is still no hosted Supabase project. Build and test only against the local Supabase CLI and in-memory
 fakes: no hosted project, no project keys, no deploy steps. Docker and the local stack run for the whole window
-(Preflight), so the stack tests run instead of skipping; a pull request whose stack tests did not run says so in
+(Preflight) and the archiver stops the stack after it, so the stack tests run instead of skipping; a pull request whose stack tests did not run says so in
 its first line.
 
 The computer has one stack, shared by every folder. Only this lane uses it, and always through
@@ -199,16 +199,19 @@ env` prints it from there, and the supervisor starts sessions with it.
   archiver used 12.9 M tokens in 25 hours in October), so its prompt is short, and an archive can be undone
   (`unarchive_session`). Exactly this prompt:
   ```
-  TD sprint archiver. In the main checkout, use only Bash for `node tools/sprint/queue.mjs`, RemoteTrigger
+  TD sprint archiver. In the main checkout, use only Bash for `node tools/sprint/queue.mjs` and
+  `node tools/stack-stop.mjs`, RemoteTrigger
   (list_runs and update) and archive_session; load them with ToolSearch if they are not listed.
   1. `node tools/sprint/queue.mjs window`, then `node tools/sprint/queue.mjs sessions --all`: the
      supervisor's and wake's ids (skip a null one) and the ids of the triggers it started this sprint.
   2. RemoteTrigger list_runs on each id. Archive each run that is not this session and is finished (not
      running, last event over 60 minutes ago) or stuck (running with no event in 60 minutes, or waiting
      for an answer for 30). Leave every other run.
-  3. When the window says "after" and no run is left running, RemoteTrigger update its archiver id with
-     {"enabled": false}, then run `node tools/sprint/queue.mjs window archived`.
-  Reply with one line: "Archived <n>: <titles>" (mark stuck ones "(stuck)"), or "Archived 0".
+  3. When the window says "after" and no run is left running, run `node tools/stack-stop.mjs`. Only when
+     it exits 0, RemoteTrigger update its archiver id with {"enabled": false}, then run
+     `node tools/sprint/queue.mjs window archived`; otherwise leave both, so next hour's run tries again.
+  Reply with one line: "Archived <n>: <titles>" (mark stuck ones "(stuck)"), or "Archived 0", then the
+  line stack-stop printed, when it ran.
   ```
 - Progress and questions go to the sprint log, issue `#290`: an issue for this sprint alone, not #2, which the
   night shift shares. (It is not pinned yet: GitHub allows three pinned issues, and #2, #3 and #4 hold them.)
@@ -265,8 +268,8 @@ names what is short:
    with the window. (October's laptop id had disappeared by 24 Oct.)
 7. No window is open already.
 8. At least 30 GB of free disk and 8 GB of free memory; fewer than 10 sessions on the rc host.
-9. Docker is running and the local Supabase stack starts, so the online lane's stack tests run (in October they
-   skipped in 8 pull requests).
+9. Docker is running and the local Supabase stack starts (it runs until the archiver stops it at the window's
+   end), so the online lane's stack tests run (in October they skipped in 8 pull requests).
 10. The night shift's task in flight, if any (`queue.mjs night-shift`): it finishes, and builds nothing more.
 
 A test that times out during the window is rerun once before anyone blames the code: the computer is shared.
@@ -276,6 +279,6 @@ A test that times out during the window is rerun once before anyone blames the c
 - Stop: `/sprint-stop` ends the window now (recorded as `stoppedBy: sprint-stop`, so the supervisor reports
   "Sprint stopped by /sprint-stop" rather than a fault) and switches the supervisor and its wake off with
   `update_trigger`. Running sessions finish their current task, and the archiver switches itself off once none
-  is left.
+  is left and stops the local stack (`node tools/stack-stop.mjs`; its data is kept).
 - Afterwards: one pull request deletes this file, `.claude/skills/sprint-*`, the sprint lines in the `implement-issue`
   and `night-shift` skills and the `reviewer` agent, and deletes the `lane:*` and `sprint-ready` labels.
