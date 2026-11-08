@@ -304,3 +304,17 @@ test("sweep files Complete notes and lists old ones, leaving them open", () => {
   assert.equal(list({ cwd: repo }).out.split("\n").length, 2);
   assert.match(doneNote(repo, "2026-11-08-0900-finished.md"), /Closed: .*: swept, nothing outstanding\n$/);
 });
+
+test("a Next that only starts with the word Complete is still open work", () => {
+  assert.equal(nothingOutstanding(["## Next", "1. Complete the migration of X"]), false);
+  assert.equal(nothingOutstanding(["## Next", "Complete step 3 of the plan"]), false);
+  const repo = repoWithNotes();
+  writeFiles(repo, {
+    ".handoff/2026-11-08-0900-real-work.md":
+      "# Handoff: t\nheader\n\n## Goal\ng\n\n## Next\n1. Complete the migration\n",
+  });
+  const r = sweep({ cwd: repo, now: new Date(2026, 10, 8, 12, 0) });
+  assert.deepEqual(r.filed, []);
+  assert.equal(list({ cwd: repo }).out.split("\n").length, 1);
+  assert.equal(saveDraft(repo, "real", NOW, withNext("1. Complete the migration")).code, 0);
+});
