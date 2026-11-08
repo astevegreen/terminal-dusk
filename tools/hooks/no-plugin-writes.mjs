@@ -13,6 +13,6 @@ const READS = /^(get|list|search)_|^(issue|pull_request)_read$/;
 if (!tool.startsWith("mcp__plugin_github_") || !READS.test(verb)) {
   deny(
     `Blocked by no-plugin-writes: ${verb || "this tool"} writes to GitHub as the owner. ` +
-      "Comment and edit with gh (gh issue comment, gh pr comment), signed in as the bot.",
+      "Comment and edit with gh (gh issue comment, gh pr comment), as the sprint bot account (sprints do not run while gh is signed in as the owner).",
   );
 }

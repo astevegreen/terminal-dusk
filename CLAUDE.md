@@ -6,7 +6,7 @@ The owner is not a programmer: explain every change in plain English, and prove 
 ## Commands
 - `pnpm gate` - full local check of changed packages; prints failures only; must pass before you finish
 - `pnpm test --filter <package>` - unit tests for one package
-- `pnpm fuzz:quick` - 1,000 random games (CI runs 10,000 with `pnpm fuzz`)
+- `pnpm fuzz:quick` - 1,000 random games (CI runs 10,000 with `pnpm fuzz` on main and on pull requests that touch the core (engine, content, host, AI, tests or the install); 2,000 on other pull requests)
 - `pnpm content:check` - validate all cards and scenarios against the schemas
 - `pnpm golden:update` - re-record golden replays; only for an intended rules change
 - `pnpm replay <matchId>` - turn a reported game into a test fixture
