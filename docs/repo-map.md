@@ -1000,6 +1000,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/gates/dependabot.test.mjs` - Dependabot's settings (.github/dependabot.yml) that the rest of the repo relies on.
 - `tools/gates/deps-report.mjs` - CI's dependency check (the `deps` job), which replaced the owner's review of package.json and the lockfile (owner's policy, 28 Oct 2026).
 - `tools/gates/deps-report.test.mjs` - Tests for CI's dependency check: the new-dependency report, failing on a new high or critical advisory, and failing when the audit gave no answer on a change t…
+- `tools/gates/fuzz-games.mjs` - How many games CI's fuzz job plays.
+- `tools/gates/fuzz-games.test.mjs`
 - `tools/gates/gate.mjs` - `pnpm gate`: check only what changed, stage by stage, stopping at the first failure.
 - `tools/gates/gate.test.mjs`
 - `tools/gates/skipped-tests.mjs` - Fails when any test is skipped, marked todo or focused with only, so every test always runs.

@@ -41,9 +41,25 @@ const name = (step) => /name: (.*)/.exec(step)?.[1].trim() ?? step.split("\n")[0
 test("the gate, the test count and the full fuzz run in parallel, each its own job", () => {
   const ci = jobs(read("ci.yml"));
   const where = (pattern) => [...ci].filter(([, text]) => pattern.test(text)).map(([id]) => id);
-  const homes = [/pnpm gate --all/, /tools\/gates\/test-count\.mjs --compare/, /pnpm run --if-present fuzz/].map(where);
+  const homes = [/pnpm gate --all/, /tools\/gates\/test-count\.mjs --compare/, /node tools\/gates\/suites\.mjs fuzz --games/].map(where);
   for (const home of homes) assert.equal(home.length, 1, `in ${home.length} jobs`);
   assert.equal(new Set(homes.flat()).size, 3, `one job holds two of them: ${homes.flat().join(", ")}`);
+});
+
+test("the fuzz plays 10,000 games on main and sizes a pull request's run by what it changed", () => {
+  const [id, job] = [...jobs(read("ci.yml"))].find(([, text]) => /suites\.mjs fuzz --games/.test(text));
+  assert.doesNotMatch(job, /^ {4}if:/m, `${id} has a job-level if:`);
+  assert.match(steps(job)[0], /fetch-depth: 0/, `${id}: the base commit is not checked out`);
+  const run = steps(job).find((s) => /suites\.mjs fuzz --games/.test(s));
+  assert.match(
+    run,
+    /if \[ "\$GITHUB_EVENT_NAME" = "pull_request" \]; then\n\s+games=\$\(node tools\/gates\/fuzz-games\.mjs --base "\$BASE_SHA"\)\n(?:\s+[#i].*\n)*\s+else\n\s+games=\$\(node tools\/gates\/fuzz-games\.mjs --all\)/,
+  );
+  assert.match(run, /BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/);
+  // A change to the sizing script plays the full run whatever the changed script says.
+  assert.match(run, /grep -qx 'tools\/gates\/fuzz-games\\\.mjs'; then games=10000; fi/);
+  assert.match(run, /--games "\$games"/);
+  assert.match(read("nightly.yml"), /run: pnpm fuzz\r?\n/, "nightly plays the full 10,000");
 });
 
 test("the test count fails closed: its job runs on every event, and the compare runs on every pull request", () => {
