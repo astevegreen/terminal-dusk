@@ -37,11 +37,11 @@ export function verdict({ code, stdout, stderr }) {
   const output = `${stdout}\n${stderr}`;
   if (DOCKER_DOWN.test(output))
     return { exit: 0, line: "stack-stop: Docker isn't running, so the stack is already down." };
+  // stack-lock's "waiting" notice comes before the stop ran, so it never stands for the stop's own failure.
   const last = output
     .split(/\r?\n/)
     .map((l) => l.trim())
-    .filter(Boolean)
-    .at(-1);
+    .findLast((l) => l && !l.startsWith("stack-lock: waiting"));
   if (last?.startsWith("stack-lock:")) return { exit: 1, line: last };
   return {
     exit: 1,

@@ -78,6 +78,16 @@ test("any other failure exits 1 with the tool's last line", () => {
     exit: 1,
     line: `stack-stop: the stop failed: ${stderr.trim()}`,
   });
+  const waited =
+    'stack-lock: waiting for the local Supabase stack, which C:/td-1 is using for "vitest run" (since x).\n';
+  assert.deepEqual(verdict({ code: 1, stdout: "failed to stop container\n", stderr: waited }), {
+    exit: 1,
+    line: "stack-stop: the stop failed: failed to stop container",
+  });
+  assert.deepEqual(verdict({ code: 1, stdout: "", stderr: waited }), {
+    exit: 1,
+    line: "stack-stop: the stop failed with exit code 1.",
+  });
   assert.deepEqual(verdict({ code: 2, stdout: "", stderr: "" }), {
     exit: 1,
     line: "stack-stop: the stop failed with exit code 2.",
