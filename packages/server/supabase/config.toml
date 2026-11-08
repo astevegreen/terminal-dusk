@@ -20,7 +20,10 @@ port = 44323
 [local_smtp]
 port = 44324
 
+# Off: no test reads the stack's logs, and on Windows its log collector (vector) cannot reach Docker, so it
+# exits and restarts about once a minute while the stack runs (tools/stack-config.test.mjs).
 [analytics]
+enabled = false
 port = 44327
 
 # Sign-in uses a 6-digit email code, not a magic link (docs/architecture.md, Decision 5).
