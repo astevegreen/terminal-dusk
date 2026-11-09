@@ -9,9 +9,7 @@ import os from "node:os";
 import path from "node:path";
 import {
   DEEP_PATHS,
-  NO_API,
   ORDER,
-  apiFor,
   askFirstAvailable,
   askModel,
   buildPrompt,
@@ -19,6 +17,7 @@ import {
   diffStats,
   pickDepth,
 } from "./gemini/agy.mjs";
+import { NO_API, apiFor } from "./gemini/gemini-api.mjs";
 import { RAIL_MODELS, decide, railHits, readVerdict, reusableVerdict, verdictMarker } from "./gemini/rails.mjs";
 import { comment, comments, issue, pullRequest } from "./github-rest.mjs";
 import { collaborators, fromFork, trustedComment, trustedIssue } from "./github-trust.mjs";

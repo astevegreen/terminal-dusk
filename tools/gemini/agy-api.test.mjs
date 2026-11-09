@@ -1,28 +1,11 @@
-// The Gemini API fallback in agy.mjs: used only where agy is not installed (a cloud session) and a key is set.
+// The Gemini API fallback in gemini-api.mjs: used only where agy is not installed (a cloud session) and a key is set.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import {
-  API,
-  API_NOTE,
-  ARGON,
-  CONTEXT,
-  FLASH,
-  NO_API,
-  apiFor,
-  OPUS,
-  SONNET,
-  apiPrompt,
-  askFirstAvailable,
-  askModel,
-  buildPrompt,
-  geminiApi,
-  parseApiReply,
-  parseReply,
-  postApi,
-} from "./agy.mjs";
+import { ARGON, FLASH, OPUS, SONNET, askFirstAvailable, askModel, buildPrompt, parseReply } from "./agy.mjs";
+import { API, API_NOTE, CONTEXT, NO_API, apiFor, apiPrompt, geminiApi, parseApiReply, postApi } from "./gemini-api.mjs";
 
 const NOW = Date.parse("2026-11-07T12:00:00Z");
 const memory = () => ({ outUntil: () => null, markOut: () => {} });
