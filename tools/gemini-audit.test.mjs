@@ -5,7 +5,8 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { auditPr, duePrs, pinnedIssueOf } from "./gemini-audit.mjs";
-import { ARGON, FLASH, NO_API, OPUS, SONNET } from "./gemini/agy.mjs";
+import { ARGON, FLASH, OPUS, SONNET } from "./gemini/agy.mjs";
+import { NO_API } from "./gemini/gemini-api.mjs";
 import { verdictMarker } from "./gemini/rails.mjs";
 
 const SCRIPT = path.join(import.meta.dirname, "gemini-audit.mjs");

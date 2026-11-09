@@ -1013,9 +1013,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/gates/workflows.test.mjs` - The CI workflow's shape that merges depend on (owner's policy, 28 Oct 2026): the required "gate" job passes only when every other Linux job passed, so e2e, the…
 - `tools/gemini-audit.mjs` - Hands Gemini (agy, headless) read-only material and posts its answer to GitHub itself.
 - `tools/gemini-audit.test.mjs` - The audit script: its command line (these runs stop before any gh or agy call), and auditPr with gh, agy and the comment stood in for.
-- `tools/gemini/agy-api.test.mjs` - The Gemini API fallback in agy.mjs: used only where agy is not installed (a cloud session) and a key is set.
+- `tools/gemini/agy-api.test.mjs` - The Gemini API fallback in gemini-api.mjs: used only where agy is not installed (a cloud session) and a key is set.
 - `tools/gemini/agy.mjs` - How the audits talk to agy: which model reviews what, what every prompt starts with, and how a reply is read.
 - `tools/gemini/agy.test.mjs`
+- `tools/gemini/gemini-api.mjs` - The Gemini API half of agy.mjs: how a model is asked through the API where agy is not installed (a cloud session).
 - `tools/gemini/prompts/narrative.md`
 - `tools/gemini/prompts/pr-audit.md`
 - `tools/gemini/prompts/rail-audit.md`

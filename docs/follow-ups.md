@@ -53,14 +53,12 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   `prepare` script, each tested like `pre-commit.test.mjs`. Then fix the wording that says every commit refreshes it:
   `tools/repo-map.mjs` `renderMap` header, `docs/workflow.md:244,376`, `.claude/agents/reviewer.md:41`,
   `tools/gemini/prompts/pr-audit.md:3`; and drop `repo-map.mjs --staged`, which nothing calls now. [7 Nov 2026, CI-speed session, Decision (architect)]
-- `tools/gemini/agy.mjs` is 435 lines: its Gemini API half (`apiPrompt`, `parseApiReply`, the HTTPS post,
-  `geminiApi`) belongs in its own file, split the same way in all three repos. [7 Nov 2026, Gemini API fallback]
-- A proxy tunnel that stays open but carries nothing makes `postApi` (`tools/gemini/agy.mjs:311`) wait its full
+- A proxy tunnel that stays open but carries nothing makes `postApi` (`tools/gemini/gemini-api.mjs:157`) wait its full
   10-minute idle timeout before passing to the next model; a short limit on the TLS handshake alone would end it in
   seconds, in all three repos. The cloud proxy cuts idle tunnels, so it has not happened. [7 Nov 2026, Gemini API
   tunnel fix review]
 - The "(diff truncated; read the rest from disk)" line is written in `tools/gemini-audit.mjs:151` and matched by
-  `TRUNCATED` in `tools/gemini/agy.mjs:180`: one shared constant would stop a reworded marker from sending part of a diff to
+  `TRUNCATED` in `tools/gemini/gemini-api.mjs:26`: one shared constant would stop a reworded marker from sending part of a diff to
   the API. [7 Nov 2026, Gemini API fallback]
 - The fuzz suites that prove random play "reaches" a feature (`tests/fuzz/easy.test.ts:56`, `reveals.test.ts`,
   `removed.test.ts`, `neutral.test.ts`, `extraSteps.test.ts`) each replay their games again to count events. One
@@ -95,7 +93,7 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   routes the 403 names. [6 Nov 2026, REST fix for the audit's `pr <n>`]
 - In a cloud session the Gemini API fallback (#529) reviews an ordinary `pr <n>`, but three audits still end in
   verdict `retry` there: the rail audit (`tools/gemini-audit.mjs:181-185`), a diff too long to send whole
-  (`tools/gemini/agy.mjs:199`), and spec and repo audits (`agy.mjs:220`). Each is a choice the code comments explain;
+  (`tools/gemini/gemini-api.mjs:60`), and spec and repo audits (`gemini-api.mjs:66`). Each is a choice the code comments explain;
   a PR touching a rail waits for a local run. [7 Nov 2026, reviewer on #538]
 - `node tools/gemini-audit.mjs specs <n>` throws "ghRun is not a function": `specs()` calls `numbers.map(issueText)`
   (`tools/gemini-audit.mjs:131`), so the array index lands in `issueText`'s `ghRun`. Already on main; no test covers
