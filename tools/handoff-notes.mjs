@@ -154,11 +154,11 @@ function resolve(name, store) {
 
 // Move an open note to done/ and append a line. A rename is atomic, so when two sessions take the same note only
 // one of them gets it.
-function file(store, name, line) {
+function file(store, name, line, rename = renameSync) {
   const done = path.join(store, "done");
   mkdirSync(done, { recursive: true });
   try {
-    renameRetry(path.join(store, name), path.join(done, name));
+    renameRetry(path.join(store, name), path.join(done, name), { rename });
   } catch {
     return existsSync(path.join(done, name))
       ? { code: 3, out: `already claimed: another session took ${name}` }
@@ -168,7 +168,7 @@ function file(store, name, line) {
   return null;
 }
 
-export function claim(name, { cwd = process.cwd(), now = new Date() } = {}) {
+export function claim(name, { cwd = process.cwd(), now = new Date(), rename = renameSync } = {}) {
   const store = storeDir(cwd);
   if (!name) {
     const notes = openNotes(store);
@@ -183,7 +183,7 @@ export function claim(name, { cwd = process.cwd(), now = new Date() } = {}) {
   const r = resolve(name, store);
   if (r.code) return r;
   name = r.name;
-  const failed = file(store, name, `Resumed: ${stamp(now).text}`);
+  const failed = file(store, name, `Resumed: ${stamp(now).text}`, rename);
   if (failed) return failed;
   const text = readFileSync(path.join(store, "done", name), "utf8").trimEnd();
   return {

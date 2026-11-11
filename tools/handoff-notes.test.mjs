@@ -1,7 +1,7 @@
 import { after, test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { claim, close, list, nothingOutstanding, recordSession, save, sinceNote, sweep } from "./handoff-notes.mjs";
@@ -202,20 +202,6 @@ test("recordSession adds to the index, keeps the last 500, and never throws", ()
   // An unwritable config folder (here, a file) is a quiet false.
   const blocked = path.join(config, "session-ids", "handoff.json");
   assert.equal(recordSession("wrote", "n.md", "s", { env: { ...env, CLAUDE_CONFIG_DIR: blocked } }), false);
-});
-
-test("recordSession retries a rename that Windows refuses for a moment, instead of dropping the entry", () => {
-  const config = configDir();
-  const env = { CLAUDE_CODE_SESSION_ID: "session-a", CLAUDE_CONFIG_DIR: config };
-  let calls = 0;
-  const rename = (from, to) => {
-    calls++;
-    if (calls < 3) throw Object.assign(new Error("EPERM"), { code: "EPERM" });
-    renameSync(from, to);
-  };
-  assert.equal(recordSession("wrote", "a.md", "s", { env, now: NOW, rename }), true);
-  assert.equal(calls, 3);
-  assert.equal(indexOf(config).length, 1);
 });
 
 test("an index that won't parse is left as it is, never replaced by one entry", () => {

@@ -1,6 +1,6 @@
-import { test } from "node:test";
+import { after, test } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { renameRetry } from "./rename-retry.mjs";
@@ -18,8 +18,14 @@ function flaky(...codes) {
   return fake;
 }
 
+const dirs = [];
+after(() => {
+  for (const dir of dirs) rmSync(dir, { recursive: true, force: true });
+});
+
 function tempFile() {
   const dir = mkdtempSync(path.join(os.tmpdir(), "rename-retry-"));
+  dirs.push(dir);
   const from = path.join(dir, "a.tmp");
   writeFileSync(from, "new\n");
   return { from, to: path.join(dir, "a.json") };
