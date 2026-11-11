@@ -20,6 +20,7 @@ import {
 import os from "node:os";
 import path from "node:path";
 import { canonical, git, toPosix } from "./hooks/shared.mjs";
+import { renameRetry } from "./rename-retry.mjs";
 
 const MAX_LINES = 40;
 export const STALE_DAYS = 3;
@@ -157,7 +158,7 @@ function file(store, name, line) {
   const done = path.join(store, "done");
   mkdirSync(done, { recursive: true });
   try {
-    renameSync(path.join(store, name), path.join(done, name));
+    renameRetry(path.join(store, name), path.join(done, name));
   } catch {
     return existsSync(path.join(done, name))
       ? { code: 3, out: `already claimed: another session took ${name}` }
@@ -229,7 +230,7 @@ export function sweep({ cwd = process.cwd(), now = new Date() } = {}) {
 // The session-ids mod's index of which session saved or claimed which note (<config dir>/session-ids/handoff.json),
 // so its Sessions pane lists the note even when the session that ran this doesn't load the mod. Only the command
 // line records, and only inside a Claude Code session (CLAUDE_CODE_SESSION_ID); a failure never changes the result.
-export function recordSession(kind, note, store, { env = process.env, now = new Date() } = {}) {
+export function recordSession(kind, note, store, { env = process.env, now = new Date(), rename = renameSync } = {}) {
   const session = env.CLAUDE_CODE_SESSION_ID;
   if (!session || !note || !store) return false;
   try {
@@ -248,7 +249,7 @@ export function recordSession(kind, note, store, { env = process.env, now = new 
     mkdirSync(dir, { recursive: true });
     const tmp = `${file}.${process.pid}.tmp`;
     writeFileSync(tmp, `${JSON.stringify({ entries: entries.slice(-500) }, null, 1)}\n`);
-    renameSync(tmp, file);
+    renameRetry(tmp, file, { rename });
     return true;
   } catch {
     return false;
