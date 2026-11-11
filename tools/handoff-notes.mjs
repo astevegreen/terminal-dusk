@@ -213,7 +213,7 @@ export function sweep({ cwd = process.cwd(), now = new Date() } = {}) {
   for (const n of openNotes(store)) {
     let lines;
     try {
-      lines = readFileSync(path.join(store, n.name), "utf8").replace(/\r\n/g, "\n").split("\n");
+      lines = readFileSync(path.join(store, n.name), "utf8").replaceAll("\r\n", "\n").split("\n");
     } catch {
       continue;
     }
