@@ -74,6 +74,10 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   two sessions saving or claiming in the same instant can drop one entry (only the Sessions pane's note list
   loses it; the note itself is safe). A lock file or an append-only log would close it. [6 Nov 2026, reviewer on
   #523]
+- `writeJson` in `tools/sprint/local-state.mjs:36` writes a temp file then renames it with plain `renameSync`,
+  which on Windows fails now and then with EPERM while something (often antivirus) holds the new file; a sprint
+  state write would then throw. `renameRetry` (`tools/rename-retry.mjs`) waits that out. [11 Nov 2026, found
+  while fixing the same flake in `tools/handoff-notes.mjs`]
 - Planned: move the type check to TypeScript 7 (Microsoft's native compiler). Measured 6 Nov 2026: all six packages
   pass with no errors and the type check drops from 19.4s to 3.4s. It stays on 6.0 for now because typescript-eslint
   and `tools/gates/boundaries.mjs` need the compiler API that 7.0 lacks (`pnpm-workspace.yaml` catalog note).
