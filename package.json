@@ -35,7 +35,7 @@
     "@terminal-dusk/engine": "workspace:*",
     "@terminal-dusk/host": "workspace:*",
     "eslint": "^10.14.0",
-    "globals": "^17.0.0",
+    "globals": "^17.14.0",
     "lint-staged": "^17.0.0",
     "prettier": "^3.9.10",
     "typescript": "catalog:",
