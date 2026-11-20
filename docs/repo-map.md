@@ -1014,6 +1014,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/gemini-audit.mjs` - Hands Gemini (agy, headless) read-only material and posts its answer to GitHub itself.
 - `tools/gemini-audit.test.mjs` - The audit script: its command line (these runs stop before any gh or agy call), and auditPr with gh, agy and the comment stood in for.
 - `tools/gemini/agy-api.test.mjs` - The Gemini API fallback in gemini-api.mjs: used only where agy is not installed (a cloud session) and a key is set.
+- `tools/gemini/agy-models.test.mjs` - Which models a review asks: read from `agy models`, Gemini's fast families only, and agy's Opus and Sonnet (agy.mjs, LIGHT, HEAVY and ORDERS).
 - `tools/gemini/agy.mjs` - How the audits talk to agy: which model reviews what, what every prompt starts with, and how a reply is read.
 - `tools/gemini/agy.test.mjs`
 - `tools/gemini/gemini-api.mjs` - The Gemini API half of agy.mjs: how a model is asked through the API where agy is not installed (a cloud session).
@@ -1030,6 +1031,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/github-rest.test.mjs` - The REST reads that stand in for `gh pr view`, `gh issue view` and `gh pr comment` (GraphQL, refused in cloud sessions): each gives the shape the GraphQL comma…
 - `tools/github-trust.mjs` - Whose words on GitHub the tools read.
 - `tools/github-trust.test.mjs` - Whose words on GitHub the tools read, now the repository is public (github-trust.mjs).
+- `tools/handoff-notes-retry.test.mjs` - handoff-notes' two renames (the session index, and a claimed note into done/) wait out Windows' brief locks (tools/rename-retry.mjs) instead of failing.
 - `tools/handoff-notes.mjs` - Handoff notes for the /handoff skill.
 - `tools/handoff-notes.test.mjs`
 - `tools/hooks/bash-guard.mjs` - PreToolUse (Bash): catch disguised versions of denied commands anywhere in a command line.
@@ -1058,6 +1060,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/hooks/test-helpers.mjs` - Shared helpers for the hook tests (tools/hooks/*.test.mjs).
 - `tools/lib/run.mjs` - Helpers for the tool scripts: start pnpm and other commands the same way on Windows, macOS and Linux.
 - `tools/lib/run.test.mjs`
+- `tools/rename-retry.mjs` - A rename that waits out Windows' brief locks.
+- `tools/rename-retry.test.mjs`
 - `tools/replay.mjs` - `pnpm replay <matchId>`: will turn a reported online game into a test fixture.
 - `tools/replay.test.mjs`
 - `tools/repo-map.mjs` - `pnpm repo-map`: writes docs/repo-map.md, a one-line-per-file index of the repository.
@@ -1158,12 +1162,14 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `.claude/agents/architect.md` - Decides one technical question on a task (how to build it, structure, APIs, tooling, tests, naming, placement, performance, refactors) so it never waits for th…
 - `.claude/agents/implementer.md` - Builds one GitHub issue or fixes one pull request, with tests, in its own worktree. Only for night-shift and sprint-lane runs, never for interactive work.
 - `.claude/agents/reviewer.md` - Read-only review of one task's diff against its spec and the architecture rules. Returns PASS or a numbered list of concerns.
+- `.claude/launch.json`
 - `.claude/rules/app.md` - App and shell rules
 - `.claude/rules/content.md` - Content rules
 - `.claude/rules/engine.md` - Engine rules
 - `.claude/rules/server.md` - Server rules
 - `.claude/rules/tests.md` - Test rules
 - `.claude/settings.json`
+- `.claude/settings.local.json.bak-2026-11-13-2102`
 - `.claude/skills/art-prompts/SKILL.md` - Write image-generation prompts for cards from their data and the art style guide. Run as /art-prompts.
 - `.claude/skills/card/SKILL.md` - Add or change a card in packages/content - data, test and history note. Use for any card work.
 - `.claude/skills/handoff/SKILL.md` - Write a handoff note so a fresh session can pick up the work, or resume from one. Use when the owner says handoff, wrap up or resume, when the handoff hook say…

@@ -4,13 +4,8 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
-  ARGON,
   DEEP_PATHS,
-  FLASH,
-  OPUS,
-  ORDER,
   RESUME_TIMEOUT,
-  SONNET,
   TIMEOUT,
   askFirstAvailable,
   askModel,
@@ -23,6 +18,13 @@ import {
   quotaFile,
   resetsAt,
 } from "./agy.mjs";
+
+// Sample ids, as agy names them. Which models a review asks is tested in agy-models.test.mjs; these stand for any
+// model a quota file or an old report may still name.
+const FLASH = "gemini-3.8-flash-high";
+const ARGON = "gemini-4-argon-high";
+const OPUS = "claude-opus-5-5-high";
+const SONNET = "claude-sonnet-5-5-high";
 
 // The message agy actually returned when the Argon quota ran out (2026-10-16).
 const QUOTA =
@@ -59,15 +61,12 @@ const ask = (models, outcomes, store = memory()) => {
 
 const reply = (json, status = 0) => ({ status, stdout: JSON.stringify(json), stderr: "" });
 
-test("every model runs at high effort", () => {
-  for (const model of [ARGON, OPUS, FLASH, SONNET]) assert.match(model, /-high$/);
+test("a model's name is read from its id", () => {
+  assert.equal(modelName("gemini-4-hydrogen-high"), "Gemini 4 Hydrogen (high)");
+  assert.equal(modelName(FLASH), "Gemini 3.8 Flash (high)");
   assert.equal(modelName(ARGON), "Gemini 4 Argon (high)");
   assert.equal(modelName(SONNET), "Claude Sonnet 5.5 (high)");
-});
-
-test("a deep review spends Argon first; a standard review starts on Flash and never spends Argon", () => {
-  assert.deepEqual(ORDER.deep, [ARGON, OPUS, FLASH, SONNET]);
-  assert.deepEqual(ORDER.standard, [FLASH, SONNET, OPUS]);
+  assert.equal(modelName("a"), "a");
 });
 
 test("specs get a deep review and whole-repo audits a standard one", () => {

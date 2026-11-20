@@ -4,9 +4,16 @@ import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { ARGON, FLASH, OPUS, SONNET, askFirstAvailable, askModel, buildPrompt, parseReply } from "./agy.mjs";
+import { askFirstAvailable, askModel, buildPrompt, lightModels, parseReply } from "./agy.mjs";
 import { API, API_NOTE, CONTEXT, NO_API, apiFor, apiPrompt, geminiApi, parseApiReply, postApi } from "./gemini-api.mjs";
 
+// Sample ids, as agy names them. Only the fast Gemini ones are ever asked (agy.mjs, LIGHT); the rest show how the
+// API treats any other id.
+const HYDROGEN = "gemini-4-hydrogen-high";
+const FLASH = "gemini-3.8-flash-high";
+const ARGON = "gemini-4-argon-high";
+const OPUS = "claude-opus-5-5-high";
+const SONNET = "claude-sonnet-5-5-high";
 const NOW = Date.parse("2026-11-07T12:00:00Z");
 const memory = () => ({ outUntil: () => null, markOut: () => {} });
 const missing = () => ({ error: { code: "ENOENT" } });
@@ -69,6 +76,10 @@ test("where agy is not installed and a key is set, the same model answers, and t
   const answer = askModel(missing, buildPrompt("Review this.", material), FLASH, ["--add-dir", "C:/tmp"], api);
   assert.equal(answer, `No findings.\n\n${API_NOTE}`);
   assert.equal(sent[0].url, `${API}/gemini-3.8-flash:generateContent`);
+  // The API's id is agy's without the effort, so a new model needs no table here.
+  const next = posts(ok("No findings."));
+  askModel(missing, buildPrompt("Review this.", material), HYDROGEN, [], geminiApi("k", next.post, read, []));
+  assert.equal(next.sent[0].url, `${API}/gemini-4-hydrogen:generateContent`);
   assert.equal(sent[0].key, "test-key");
   assert.deepEqual(sent[0].body.generationConfig.thinkingConfig, { thinkingLevel: "high" });
   assert.match(textOf(sent[0]), /\+one line\n$/);
@@ -87,7 +98,7 @@ test("with no key there is no API, and a missing agy says how to use one", () =>
   assert.throws(() => parseReply({ error: { code: "ENOENT" } }), /GEMINI_API_KEY is not set/);
 });
 
-test("a busy model, and a 5xx, even as a page, pass the review on; Claude's models cost no request", () => {
+test("a busy model, and a 5xx, even as a page, pass the review on; a model that is not Gemini's costs no request", () => {
   const { post, sent } = posts(failed(429, "Resource has been exhausted (e.g. check quota)."), {
     status: 503,
     text: "<html>Service Unavailable</html>",
@@ -102,7 +113,7 @@ test("a busy model, and a 5xx, even as a page, pass the review on; Claude's mode
   assert.throws(() => parseApiReply(failed(503, "The model is overloaded.")), /overloaded \(503\)/);
 });
 
-test("on the API a deep review passes a busy Argon and Opus over to Flash", () => {
+test("on the API a busy model, and one that is not Gemini's, pass the review to the next", () => {
   const { post } = posts(failed(429, "Too many requests."), ok("Deep findings."));
   const result = askFirstAvailable(
     [ARGON, OPUS, FLASH, SONNET],
@@ -192,11 +203,23 @@ test("the cut-off marker counts only on a line of its own, not quoted inside a d
   assert.match(apiPrompt(buildPrompt("Review this.", material), quoted, []), /\+const TRUNCATED/);
 });
 
-test("a 5xx page that is not JSON passes on; a wrong model id (404) stops", () => {
+test("a 5xx page that is not JSON passes on, and so does a model the API no longer has (404)", () => {
   const page = () => parseApiReply({ status: 503, text: "<html>Service Unavailable</html>" });
   assert.throws(page, (err) => !err.stop && /overloaded \(503\)/.test(err.message));
-  const wrong = () => parseApiReply(failed(404, "models/gemini-4-argon is not found"));
-  assert.throws(wrong, (err) => err.stop && /no model by that id \(404\)/.test(err.message));
+  const wrong = () => parseApiReply(failed(404, "models/gemini-3.8-flash is not found"));
+  assert.throws(wrong, (err) => !err.stop && /not on the Gemini API \(404\)/.test(err.message));
+  // With no agy to list the models, a retired one is still asked: the review moves on to the next, and is never
+  // answered by nobody.
+  const retired = posts(failed(404, "models/gemini-3.8-flash is not found"), ok("No findings."));
+  const prompt = buildPrompt("Review this.", material);
+  const result = askFirstAvailable([FLASH, HYDROGEN], viaApi(retired.post, prompt), memory(), () => NOW);
+  assert.equal(result.model, HYDROGEN);
+  assert.deepEqual(result.passed, [{ model: FLASH, why: "is not on the Gemini API" }]);
+  const allGone = posts(failed(404, "not found"), failed(404, "not found"));
+  assert.throws(
+    () => askFirstAvailable(lightModels(null), viaApi(allGone.post, prompt), memory(), () => NOW),
+    /no model answered: Gemini 4 Hydrogen \(high\) is not on the Gemini API; Gemini 3\.8 Flash \(high\) is not on the Gemini API$/,
+  );
 });
 
 // A proxy in its own process (postApi blocks this one) that refuses every tunnel and prints its port.

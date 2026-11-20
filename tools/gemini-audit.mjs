@@ -9,16 +9,16 @@ import os from "node:os";
 import path from "node:path";
 import {
   DEEP_PATHS,
-  ORDER,
   askFirstAvailable,
   askModel,
   buildPrompt,
   byLine,
   diffStats,
   pickDepth,
+  reviewModels,
 } from "./gemini/agy.mjs";
 import { NO_API, apiFor } from "./gemini/gemini-api.mjs";
-import { RAIL_MODELS, decide, railHits, readVerdict, reusableVerdict, verdictMarker } from "./gemini/rails.mjs";
+import { decide, railHits, readVerdict, reusableVerdict, verdictMarker } from "./gemini/rails.mjs";
 import { comment, comments, issue, pullRequest } from "./github-rest.mjs";
 import { collaborators, fromFork, trustedComment, trustedIssue } from "./github-trust.mjs";
 
@@ -59,11 +59,15 @@ function signedIn() {
   return gh("api", "user", "--jq", ".login").trim();
 }
 
-// what: what is reviewed, for pickDepth; deepPaths: extra path prefixes that make it a deep review; models: the
-// models to ask in order, instead of the depth's ORDER (the rail audit's RAIL_MODELS); api: askModel's `api`, instead
-// of apiFor(what.kind) (the rail audit's NO_API). Returns
-// { model, response, passed, depth, why }, so the comment can say which model answered and why it was chosen.
-function askGemini(promptName, material, what, { deepPaths = DEEP_PATHS, models, api = apiFor(what.kind) } = {}) {
+// The models agy offers, asked of `agy models` once per run however many audits it makes (agy.mjs, reviewModels).
+let listing;
+const agyModels = (args) => (listing ??= run("agy", args));
+
+// what: what is reviewed, for pickDepth; deepPaths: extra path prefixes that make it a deep review; order: which of
+// agy.mjs's ORDERS asks, instead of the depth's (the rail audit's "rail"); api: askModel's `api`, instead of
+// apiFor(what.kind) (the rail audit's NO_API). Returns { model, response, passed, depth, why, note }, so the
+// comment can say which model answered and why it was chosen, and name a Gemini model nobody has sorted yet.
+function askGemini(promptName, material, what, { deepPaths = DEEP_PATHS, order, api = apiFor(what.kind) } = {}) {
   const text = readFileSync(path.join(ROOT, "tools", "gemini", "prompts", `${promptName}.md`), "utf8");
   let file;
   if (material) {
@@ -72,10 +76,11 @@ function askGemini(promptName, material, what, { deepPaths = DEEP_PATHS, models,
   }
   const prompt = buildPrompt(text, file);
   const pick = pickDepth(what, deepPaths);
-  const answer = askFirstAvailable(models ?? ORDER[pick.depth], (model) =>
+  const picked = reviewModels(agyModels, order ?? pick.depth);
+  const answer = askFirstAvailable(picked.models, (model) =>
     askModel((args) => run("agy", args), prompt, model, ["--add-dir", tmpDir()], api),
   );
-  return { ...answer, ...pick };
+  return { ...answer, ...pick, note: picked.note };
 }
 
 function post(kind, number, text) {
@@ -87,9 +92,10 @@ function post(kind, number, text) {
   comment((args) => gh(...args), number, file);
 }
 
-// The answering model may be a Claude model when a Gemini model ahead of it in the order could not answer;
-// the by-line names it.
-const report = (label, answer) => `**Gemini audit: ${label}**\n_${byLine(answer)}_\n\n${answer.response}`;
+// The answering model may be a Claude model (agy.mjs, ORDERS); the by-line names it. A note (agy lists a Gemini
+// model nobody has sorted, or none of the fast ones) ends the report.
+const report = (label, answer) =>
+  `**Gemini audit: ${label}**\n_${byLine(answer)}_\n\n${answer.response}${answer.note ? `\n\n_${answer.note}_` : ""}`;
 const skipped = (err) => `Gemini audit skipped: ${err.message}`;
 
 function issueText(n, ghRun = gh) {
@@ -177,11 +183,11 @@ export function auditPr(number, io = { gh, ask: askGemini, post, me: signedIn })
     }
   };
   const review = ask("pr-audit");
-  // Argon, Opus or Flash may answer a rail audit, never Sonnet; with none of the three available it can't run, and
-  // the verdict is retry. It never goes to the Gemini API, which sees only the diff and the rules files: rails wait
+  // Opus or Gemini's fast models may answer a rail audit, never Sonnet (agy.mjs, ORDERS.rail); with none of them
+  // available it can't run, and the verdict is retry. It never goes to the Gemini API, which sees only the diff and the rules files: rails wait
   // for agy (owner, 7 Nov: "Rails wait for the PC").
   const rail = hits.length
-    ? ask("rail-audit", { deepPaths: hits.map((h) => h.file), models: RAIL_MODELS, api: NO_API })
+    ? ask("rail-audit", { deepPaths: hits.map((h) => h.file), order: "rail", api: NO_API })
     : null;
   const verdict = { sha: pr.headRefOid, ...decide({ review, rail, hits }) };
   const parts = [verdictMarker(verdict), review.ok ? report("pull request", review) : skipped(new Error(review.error))];
