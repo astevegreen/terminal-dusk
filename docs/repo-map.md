@@ -1018,6 +1018,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/gemini/agy.mjs` - How the audits talk to agy: which model reviews what, what every prompt starts with, and how a reply is read.
 - `tools/gemini/agy.test.mjs`
 - `tools/gemini/gemini-api.mjs` - The Gemini API half of agy.mjs: how a model is asked through the API where agy is not installed (a cloud session).
+- `tools/gemini/gemini-proxy.test.mjs` - How gemini-api.mjs's postApi sends a request: from a child node, through HTTPS_PROXY as cloud sessions require.
 - `tools/gemini/prompts/narrative.md`
 - `tools/gemini/prompts/pr-audit.md`
 - `tools/gemini/prompts/rail-audit.md`
