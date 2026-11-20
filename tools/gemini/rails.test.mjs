@@ -1,9 +1,8 @@
 // Tests for agy's merge gate: which diffs touch a rail, how findings and the rail answer are read, and the verdict.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { ARGON, FLASH, OPUS, SONNET, askFirstAvailable } from "./agy.mjs";
+import { askFirstAvailable, reviewModels } from "./agy.mjs";
 import {
-  RAIL_MODELS,
   decide,
   diffFiles,
   findings,
@@ -134,9 +133,16 @@ test("an audit that could not run retries by itself: it never merges unaudited o
   assert.equal(decide({ review: failed, rail: ok("LOOSENS: yes\nDrops a job."), hits }).verdict, "hold");
 });
 
-test("a rail audit asks Argon, Opus, then Flash and never Sonnet; with none of the three available it retries", () => {
-  assert.deepEqual(RAIL_MODELS, [ARGON, OPUS, FLASH]);
-  assert.ok(!RAIL_MODELS.includes(SONNET));
+// Owner, 28 Oct 2026: the rail audit asks Argon, then Opus, then Flash, and never Sonnet (the Claude reviewer covers
+// that family). Owner, 19 Nov 2026: Gemini's deep models are never asked ("extremely limited usage"), only its
+// "flash" type models, and agy's Opus stays ("you should also use those models for 2nd review"). With all of them
+// out, no model answered: the audit is retried.
+const RAIL_MODELS = reviewModels(() => ({ error: { code: "ENOENT" } }), "rail").models;
+const [OPUS, HYDROGEN, FLASH] = RAIL_MODELS;
+
+test("a rail audit asks Opus, then Gemini's fast models, never Sonnet or a deep Gemini model; none available retries", () => {
+  assert.deepEqual(RAIL_MODELS, ["claude-opus-5-5-high", "gemini-4-hydrogen-high", "gemini-3.8-flash-high"]);
+  assert.ok(!RAIL_MODELS.some((model) => /sonnet|argon|carbon|neon/.test(model)));
   const asked = [];
   const outOfUsage = (model) => {
     asked.push(model);
@@ -144,13 +150,12 @@ test("a rail audit asks Argon, Opus, then Flash and never Sonnet; with none of t
   };
   const store = { outUntil: () => null, markOut: () => {} };
   assert.throws(() => askFirstAvailable(RAIL_MODELS, outOfUsage, store, () => 0), /^Error: no model answered/);
-  assert.deepEqual(asked, [ARGON, OPUS, FLASH]);
-  assert.ok(!asked.includes(SONNET));
-  const error = "no model answered: all three are out of usage";
+  assert.deepEqual(asked, [OPUS, HYDROGEN, FLASH]);
+  const error = "no model answered: all of them are out of usage";
   assert.equal(decide({ review: ok("No findings."), rail: { ok: false, error }, hits }).verdict, "retry");
 });
 
-test("a rail audit doesn't wait for the deep models: Flash answers when Argon and Opus are out of usage", () => {
+test("a rail audit doesn't wait on any one model: Flash answers when Opus and Hydrogen are out of usage", () => {
   const asked = [];
   const ask = (model) => {
     asked.push(model);
@@ -160,10 +165,10 @@ test("a rail audit doesn't wait for the deep models: Flash answers when Argon an
   const store = { outUntil: () => null, markOut: () => {} };
   const answer = askFirstAvailable(RAIL_MODELS, ask, store, () => 0);
   assert.equal(answer.model, FLASH);
-  assert.deepEqual(asked, [ARGON, OPUS, FLASH]);
+  assert.deepEqual(asked, [OPUS, HYDROGEN, FLASH]);
   assert.deepEqual(
     answer.passed.map((p) => p.model),
-    [ARGON, OPUS],
+    [OPUS, HYDROGEN],
   );
   assert.equal(railAnswer(answer.response).loosens, false);
 });

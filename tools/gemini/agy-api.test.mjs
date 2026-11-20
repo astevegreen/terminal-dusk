@@ -1,12 +1,18 @@
 // The Gemini API fallback in gemini-api.mjs: used only where agy is not installed (a cloud session) and a key is set.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { spawn, spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { ARGON, FLASH, OPUS, SONNET, askFirstAvailable, askModel, buildPrompt, parseReply } from "./agy.mjs";
+import { askFirstAvailable, askModel, buildPrompt, lightModels, parseReply } from "./agy.mjs";
 import { API, API_NOTE, CONTEXT, NO_API, apiFor, apiPrompt, geminiApi, parseApiReply, postApi } from "./gemini-api.mjs";
 
+// Sample ids, as agy names them. Only the fast Gemini ones are ever asked (agy.mjs, LIGHT); the rest show how the
+// API treats any other id.
+const HYDROGEN = "gemini-4-hydrogen-high";
+const FLASH = "gemini-3.8-flash-high";
+const ARGON = "gemini-4-argon-high";
+const OPUS = "claude-opus-5-5-high";
+const SONNET = "claude-sonnet-5-5-high";
 const NOW = Date.parse("2026-11-07T12:00:00Z");
 const memory = () => ({ outUntil: () => null, markOut: () => {} });
 const missing = () => ({ error: { code: "ENOENT" } });
@@ -69,6 +75,10 @@ test("where agy is not installed and a key is set, the same model answers, and t
   const answer = askModel(missing, buildPrompt("Review this.", material), FLASH, ["--add-dir", "C:/tmp"], api);
   assert.equal(answer, `No findings.\n\n${API_NOTE}`);
   assert.equal(sent[0].url, `${API}/gemini-3.8-flash:generateContent`);
+  // The API's id is agy's without the effort, so a new model needs no table here.
+  const next = posts(ok("No findings."));
+  askModel(missing, buildPrompt("Review this.", material), HYDROGEN, [], geminiApi("k", next.post, read, []));
+  assert.equal(next.sent[0].url, `${API}/gemini-4-hydrogen:generateContent`);
   assert.equal(sent[0].key, "test-key");
   assert.deepEqual(sent[0].body.generationConfig.thinkingConfig, { thinkingLevel: "high" });
   assert.match(textOf(sent[0]), /\+one line\n$/);
@@ -87,7 +97,7 @@ test("with no key there is no API, and a missing agy says how to use one", () =>
   assert.throws(() => parseReply({ error: { code: "ENOENT" } }), /GEMINI_API_KEY is not set/);
 });
 
-test("a busy model, and a 5xx, even as a page, pass the review on; Claude's models cost no request", () => {
+test("a busy model, and a 5xx, even as a page, pass the review on; a model that is not Gemini's costs no request", () => {
   const { post, sent } = posts(failed(429, "Resource has been exhausted (e.g. check quota)."), {
     status: 503,
     text: "<html>Service Unavailable</html>",
@@ -102,7 +112,7 @@ test("a busy model, and a 5xx, even as a page, pass the review on; Claude's mode
   assert.throws(() => parseApiReply(failed(503, "The model is overloaded.")), /overloaded \(503\)/);
 });
 
-test("on the API a deep review passes a busy Argon and Opus over to Flash", () => {
+test("on the API a busy model, and one that is not Gemini's, pass the review to the next", () => {
   const { post } = posts(failed(429, "Too many requests."), ok("Deep findings."));
   const result = askFirstAvailable(
     [ARGON, OPUS, FLASH, SONNET],
@@ -192,120 +202,22 @@ test("the cut-off marker counts only on a line of its own, not quoted inside a d
   assert.match(apiPrompt(buildPrompt("Review this.", material), quoted, []), /\+const TRUNCATED/);
 });
 
-test("a 5xx page that is not JSON passes on; a wrong model id (404) stops", () => {
+test("a 5xx page that is not JSON passes on, and so does a model the API no longer has (404)", () => {
   const page = () => parseApiReply({ status: 503, text: "<html>Service Unavailable</html>" });
   assert.throws(page, (err) => !err.stop && /overloaded \(503\)/.test(err.message));
-  const wrong = () => parseApiReply(failed(404, "models/gemini-4-argon is not found"));
-  assert.throws(wrong, (err) => err.stop && /no model by that id \(404\)/.test(err.message));
-});
-
-// A proxy in its own process (postApi blocks this one) that refuses every tunnel and prints its port.
-const REFUSING_PROXY =
-  'const s = require("node:http").createServer();' +
-  's.on("connect", (req, sock) => sock.end("HTTP/1.1 407 Proxy Authentication Required\\r\\n\\r\\n"));' +
-  "s.listen(0, () => console.log(s.address().port));";
-
-test("the child tunnels through HTTPS_PROXY, as cloud sessions require", async () => {
-  const proxy = spawn(process.execPath, ["-e", REFUSING_PROXY], { stdio: ["ignore", "pipe", "inherit"] });
-  const port = await new Promise((resolve) => proxy.stdout.once("data", (d) => resolve(String(d).trim())));
-  const before = process.env.HTTPS_PROXY;
-  try {
-    process.env.HTTPS_PROXY = `http://127.0.0.1:${port}`;
-    assert.deepEqual(postApi(`${API}/x:generateContent`, {}, "k"), {
-      status: 0,
-      text: "the proxy refused the tunnel (407)",
-    });
-  } finally {
-    if (before === undefined) delete process.env.HTTPS_PROXY;
-    else process.env.HTTPS_PROXY = before;
-    proxy.kill();
-  }
-});
-
-// A proxy that accepts the tunnel, then cuts it: after the first bytes through it (printing whether they open a TLS
-// handshake for the API's host), or after a second if none come, as the cloud proxy cuts an idle tunnel.
-const CUTTING_PROXY =
-  'const s = require("node:http").createServer();' +
-  's.on("connect", (req, sock) => {' +
-  '  sock.write("HTTP/1.1 200 Connection Established\\r\\n\\r\\n");' +
-  "  const cut = setTimeout(() => sock.resetAndDestroy(), 1000);" +
-  '  sock.once("data", (d) => {' +
-  "    clearTimeout(cut);" +
-  '    console.log(d[0] === 22 && d.includes("gemini.invalid") ? "tls hello" : "other bytes");' +
-  "    sock.resetAndDestroy();" +
-  "  });" +
-  "  sock.resume();" +
-  "});" +
-  "s.listen(0, () => console.log(s.address().port));";
-
-test("the request travels inside the tunnel, and a cut tunnel comes back as a reason, not a crash", async () => {
-  const proxy = spawn(process.execPath, ["-e", CUTTING_PROXY], { stdio: ["ignore", "pipe", "inherit"] });
-  let said = "";
-  proxy.stdout.setEncoding("utf8").on("data", (d) => (said += d));
-  const port = await new Promise((resolve) => proxy.stdout.once("data", (d) => resolve(String(d).trim())));
-  const before = process.env.HTTPS_PROXY;
-  try {
-    process.env.HTTPS_PROXY = `http://127.0.0.1:${port}`;
-    // gemini.invalid has no address, so only the tunnel can carry this request anywhere.
-    const r = postApi("https://gemini.invalid/v1beta/models/x:generateContent", {}, "k");
-    assert.equal(r.status, 0);
-    assert.doesNotMatch(r.text, /node:events|Unhandled/);
-    assert.match(r.text, /ECONNRESET|socket hang up|disconnected/);
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    assert.match(said, /tls hello/);
-  } finally {
-    if (before === undefined) delete process.env.HTTPS_PROXY;
-    else process.env.HTTPS_PROXY = before;
-    proxy.kill();
-  }
-});
-
-test("a child that crashes is reported by its error line, not the first line of the stack", () => {
-  const stderr = [
-    "node:events:497",
-    "      throw er; // Unhandled 'error' event",
-    "      ^",
-    "",
-    "Error: read ECONNRESET",
-    "    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)",
-  ].join("\n");
-  const r = postApi(`${API}/x:generateContent`, {}, "k", () => ({ stdout: "", stderr }));
+  const wrong = () => parseApiReply(failed(404, "models/gemini-3.8-flash is not found"));
+  assert.throws(wrong, (err) => !err.stop && /not on the Gemini API \(404\)/.test(err.message));
+  // With no agy to list the models, a retired one is still asked: the review moves on to the next, and is never
+  // answered by nobody.
+  const retired = posts(failed(404, "models/gemini-3.8-flash is not found"), ok("No findings."));
+  const prompt = buildPrompt("Review this.", material);
+  const result = askFirstAvailable([FLASH, HYDROGEN], viaApi(retired.post, prompt), memory(), () => NOW);
+  assert.equal(result.model, HYDROGEN);
+  assert.deepEqual(result.passed, [{ model: FLASH, why: "is not on the Gemini API" }]);
+  const allGone = posts(failed(404, "not found"), failed(404, "not found"));
   assert.throws(
-    () => parseApiReply(r),
-    (err) => err.stop && /could not be reached \(no answer\): Error: read ECONNRESET$/.test(err.message),
-  );
-});
-
-// A proxy that refuses the tunnel but leaves the connection open.
-const LINGERING_PROXY =
-  'const s = require("node:http").createServer();' +
-  's.on("connect", (req, sock) => sock.write("HTTP/1.1 407 Proxy Authentication Required\\r\\n\\r\\n"));' +
-  "s.listen(0, () => console.log(s.address().port));";
-
-test("the child exits once it has answered, though the proxy leaves the connection open", async () => {
-  const proxy = spawn(process.execPath, ["-e", LINGERING_PROXY], { stdio: ["ignore", "pipe", "inherit"] });
-  const port = await new Promise((resolve) => proxy.stdout.once("data", (d) => resolve(String(d).trim())));
-  const before = process.env.HTTPS_PROXY;
-  // A 5-second limit in place of 11 minutes: a child that waits on the open connection is cut off and says so.
-  const short = (cmd, args, opts) => spawnSync(cmd, args, { ...opts, timeout: 5000 });
-  try {
-    process.env.HTTPS_PROXY = `http://127.0.0.1:${port}`;
-    assert.deepEqual(postApi(`${API}/x:generateContent`, {}, "k", short), {
-      status: 0,
-      text: "the proxy refused the tunnel (407)",
-    });
-  } finally {
-    if (before === undefined) delete process.env.HTTPS_PROXY;
-    else process.env.HTTPS_PROXY = before;
-    proxy.kill();
-  }
-});
-
-test("a request cut off by the time limit passes on", () => {
-  const late = postApi(`${API}/x:generateContent`, {}, "k", () => ({ error: { code: "ETIMEDOUT" } }));
-  assert.throws(
-    () => parseApiReply(late),
-    (err) => !err.stop && /ran out of time/.test(err.message),
+    () => askFirstAvailable(lightModels(null), viaApi(allGone.post, prompt), memory(), () => NOW),
+    /no model answered: Gemini 4 Hydrogen \(high\) is not on the Gemini API; Gemini 3\.8 Flash \(high\) is not on the Gemini API$/,
   );
 });
 

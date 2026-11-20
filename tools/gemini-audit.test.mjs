@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { auditPr, duePrs, pinnedIssueOf } from "./gemini-audit.mjs";
-import { ARGON, FLASH, OPUS, SONNET } from "./gemini/agy.mjs";
+import { ORDERS } from "./gemini/agy.mjs";
 import { NO_API } from "./gemini/gemini-api.mjs";
 import { verdictMarker } from "./gemini/rails.mjs";
 
@@ -123,16 +123,20 @@ test("auditPr asks who it is signed in as only when a comment carries a verdict"
   assert.equal(calls.me, 0);
 });
 
-test("auditPr's rail audit asks Argon, Opus and Flash, never Sonnet; when none answers, the verdict is retry", () => {
+test("auditPr's rail audit asks the rail order (Opus, then Gemini's fast models, never Sonnet); none answering is retry", () => {
   const { io, calls } = fake({
     diff: diffOf(".github/workflows/ci.yml"),
-    answers: { "rail-audit": new Error("no model answered: Gemini 4 Argon is out of usage") },
+    answers: { "rail-audit": new Error("no model answered: Claude Opus 5.5 (high) is out of usage") },
   });
   const r = auditPr(7, io);
   const rail = calls.ask.find((a) => a.prompt === "rail-audit");
-  assert.deepEqual(rail.opts.models, [ARGON, OPUS, FLASH]);
-  assert.ok(!rail.opts.models.includes(SONNET));
-  assert.equal(calls.ask.find((a) => a.prompt === "pr-audit").opts.models, undefined, "the review keeps its order");
+  assert.equal(rail.opts.order, "rail");
+  assert.ok(Object.hasOwn(ORDERS, rail.opts.order));
+  assert.equal(
+    calls.ask.find((a) => a.prompt === "pr-audit").opts?.order,
+    undefined,
+    "the review keeps its depth's order",
+  );
   assert.equal(rail.opts.api, NO_API, "a rail audit never goes to the Gemini API");
   assert.equal(calls.ask.find((a) => a.prompt === "pr-audit").opts.api, undefined, "the review may");
   assert.equal(r.verdict, "retry");
