@@ -243,7 +243,7 @@ Decided by the owner on 28 October 2026, choosing between the options in `docs/p
 3. Answered 28 Oct: the six-region map's content is option 2 of `docs/proposals/map-content/`, with H1, Crimea
    as its own box, and closing order C1; the order regions score in is S1 (Scoring section). Its numbers too
    (Map section's "Map numbers"): option A's stabilities and battleground lists, weighted amounts, a 20-step track
-   from the middle, Taiwan LIO 3 (LIO 2 since 29 Oct, X15) and Crimea SAE 1; a balance pass sets the final stabilities once the Medium AI
+   from the middle (7 towards SAE since 21 Nov, #515), Taiwan LIO 3 (LIO 2 since 29 Oct, X15) and Crimea SAE 1; a balance pass sets the final stabilities once the Medium AI
    exists ("A, tune later"). Answered 21 Nov 2026 (owner, in chat: "Take all recommendations"): Kosovo and the
    Palestinian territories get no box (option 2 gives neither one), and every country must be reachable from both
    home boxes, with long sea links acceptable (option 2's tables assume yes; its Reach section shows the result).

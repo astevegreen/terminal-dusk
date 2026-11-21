@@ -4,7 +4,8 @@
 // Its numbers are option A of docs/proposals/map-numbers/ as the owner chose it on 28 Oct (R24, #458):
 // - stabilities: option A's ("A, tune later"), until a balance pass once Medium AI exists;
 // - battlegrounds: option A's list for each era ("A, move with history"); the future era keeps Era 3's;
-// - scoring: option A's weighted amounts, 20 steps to each end, starting in the middle ("Weighted, 20, middle");
+// - scoring: option A's weighted amounts, 20 steps to each end ("Weighted, 20, middle"); the start moved from the
+//   middle to 7 steps towards SAE by the #515 balance pass (owner, 21 Nov: "Shift track start");
 // - starting influence: Taiwan LIO 2, Crimea SAE 1, every other country empty (R24 "LIO 3 / SAE 1", then Taiwan
 //   lowered to LIO 2 by the X15 balance pass, option 1, owner 29 Oct, #472).
 // Its turns, plays per turn and hand size are the base game's (base-game.json; owner, 21 Nov 2026).

@@ -35,8 +35,10 @@ for (const size of SIZES) {
   });
 }
 
-// R24 (#458): the six-region map has its own scoring now, 20 steps to each end, starting in the middle.
-test("the six-region map shows its 20-step score track, starting even, with no sideways scroll", async ({ page }) => {
+// R24 (#458): the six-region map has its own scoring now, 20 steps to each end; since #515 it starts 7 steps towards SAE.
+test("the six-region map shows its 20-step score track, starting 7 steps towards SAE, with no sideways scroll", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 375, height: 667 });
   await page.goto("/");
   await page.getByRole("button", { name: "Play the six-region map" }).click();
@@ -44,7 +46,8 @@ test("the six-region map shows its 20-step score track, starting even, with no s
   await expect(page.getByTestId("decision")).toBeVisible();
   const tracks = page.getByTestId("tracks");
   await expect(tracks.getByRole("meter", { name: "Score track" })).toHaveAttribute("aria-valuemax", "20");
-  await expect(tracks).toContainText("Score: even");
+  await expect(tracks.getByRole("meter", { name: "Score track" })).toHaveAttribute("aria-valuenow", "7");
+  await expect(tracks).toContainText("Score: SAE 7");
   await expect(tracks).toContainText("LIO wins at -20");
   await expect(tracks).toContainText("SAE wins at +20");
   expect(await noSideScroll(page)).toBe(true);

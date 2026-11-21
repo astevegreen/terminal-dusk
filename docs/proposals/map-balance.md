@@ -180,7 +180,8 @@ the track start is the easiest number to retune later.
 ## Second pass: the real turn structure and the Hard AI (#515)
 
 With Taiwan at LIO 2, the real turn structure (10 turns of 2 plays, #578) and the Hard AI on both sides, LIO still won
-about 69% of games from the middle of the track. The owner chose to move the track's start towards SAE (21 Nov).
+about 69% of games from the middle of the track in the first #515 runs (71% in the 150-game batch below). Medium
+against Medium gave about the same share then. The owner chose to move the track's start towards SAE (21 Nov).
 Each run below is Hard against Hard, in batches of 50 games (a single 300-game run once crashed the process), on the
 same seeds for every start, so the starts differ only by the number:
 
