@@ -80,7 +80,11 @@ export function deadlineStoreContract(setup: () => DeadlineStoreHarness, timeout
       const plain = h.plain();
       await h.putIn(writeOf(plain));
       const start = await stored("lossOnTime", T + 1_000);
-      const over = answered(start, h.players[0], { resign: true }, T + 1_001);
+      expect(await ours(T + 10 * DAY, [plain, start])).toEqual([start.record.matchId]);
+      // The record that ends the match still carries deadlines, so only its status can leave it out.
+      const resigned = answered(start, h.players[0], { resign: true }, T + 1_001);
+      expect(resigned.record.status.kind).not.toBe("active");
+      const over = { ...resigned, record: withDeadlines(resigned.record, T + 1_000 + DAY, T + 1_000 + DAY, T + 1_001) };
       expect(await s.commit(start.record.matchId, 0, writeOf(over))).toBe("saved");
       expect(await ours(T + 10 * DAY, [plain, start])).toEqual([]);
     },
@@ -92,13 +96,16 @@ export function deadlineStoreContract(setup: () => DeadlineStoreHarness, timeout
     async () => {
       const { h, s, ours, stored } = fresh();
       const start = await stored("lossOnTime", T + 2_000);
-      // LIO answers a day later, so its new deadline moves on and only SAE's stays at T + 2_000 + DAY.
-      const next = answered(start, h.players[0], bodyFor(0, start.secret, "lio"), T + 2_000 + DAY - 1);
+      const old = T + 2_000 + DAY;
+      expect(await ours(old, [start])).toEqual([start.record.matchId]);
+      // LIO answers; the committed record's deadlines are both moved four days on, so the old one must stop counting.
+      const answer = answered(start, h.players[0], bodyFor(0, start.secret, "lio"), T + 2_001);
+      const later = old + 4 * DAY;
+      const next = { ...answer, record: withDeadlines(answer.record, later, later, T + 2_001) };
       expect(await s.commit(start.record.matchId, 0, writeOf(next))).toBe("saved");
-      const { lio, sae } = next.record.clock!.deadlines;
-      const earliest = Math.min(...[lio, sae].filter((t): t is number => typeof t === "number"));
-      expect(await ours(earliest - 1, [start])).toEqual([]);
-      expect(await ours(earliest, [start])).toEqual([start.record.matchId]);
+      expect(await ours(old, [start])).toEqual([]);
+      expect(await ours(later - 1, [start])).toEqual([]);
+      expect(await ours(later, [start])).toEqual([start.record.matchId]);
     },
     timeout,
   );
