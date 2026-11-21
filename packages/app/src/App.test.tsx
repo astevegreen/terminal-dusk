@@ -28,12 +28,14 @@ describe("the home screen", () => {
     expect(tree.buttons.map((b) => b.text)).toEqual([
       "Play the six-region map",
       "Play against the AI",
+      "Play the free Era 1 game",
       "Play online",
       "Test mode",
     ]);
     button(tree, "Play the six-region map").press();
     button(tree, "Play against the AI").press();
-    expect(picked).toEqual(["vsAiMap", "vsAi"]);
+    button(tree, "Play the free Era 1 game").press();
+    expect(picked).toEqual(["vsAiMap", "vsAi", "vsAiFree"]);
   });
 });
 
