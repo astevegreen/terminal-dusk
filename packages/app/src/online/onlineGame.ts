@@ -29,6 +29,8 @@ export type OnlineGameSnapshot = {
   deadline: OnlineDeadline | null;
   /** Why the last answer was refused, or null. */
   refusal: TransportError | null;
+  /** True while the server refuses the caller as signed out (#536); only a later read that succeeds clears it. */
+  signedOut: boolean;
 };
 
 export type OnlineGameOptions = {
@@ -92,6 +94,7 @@ export function createOnlineGame(options: OnlineGameOptions): OnlineGame {
     turn: "loading",
     deadline: null,
     refusal: null,
+    signedOut: false,
   };
 
   const publish = (change: Partial<OnlineGameSnapshot>): void => {
@@ -142,7 +145,9 @@ export function createOnlineGame(options: OnlineGameOptions): OnlineGame {
     setTimer: timers.setTimer,
     clearTimer: timers.clearTimer,
   });
-  const unsubscribe = transport.subscribe(onFrame);
+  const unsubscribe = transport.subscribe(onFrame, (status) => {
+    if (!closed) publish({ signedOut: status === "notSignedIn" });
+  });
 
   return {
     getSnapshot: () => snapshot,

@@ -19,6 +19,7 @@ describe("createOnlineGame: frames, log and turn", () => {
       turn: "loading",
       deadline: null,
       refusal: null,
+      signedOut: false,
     });
     await settle();
     const s = r.game.getSnapshot();

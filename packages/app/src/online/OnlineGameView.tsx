@@ -6,6 +6,7 @@ import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
 import type { CardPoints, CardRules } from "../displayText.ts";
 import { GameScreen } from "../game/GameScreen.tsx";
 import { deadlineText, turnText } from "./gameText.ts";
+import { LOBBY_REFUSAL } from "./lobbyText.ts";
 import type { OnlineGame, OnlineGameSnapshot } from "./onlineGame.ts";
 
 const TAP = { minHeight: 44, minWidth: 44 } as const;
@@ -53,6 +54,7 @@ export function OnlineGameView({
       </button>
       <p role="status">{turnText(snapshot)}</p>
       {deadlineLine !== null && <p>{deadlineLine}</p>}
+      {snapshot.signedOut && <p role="alert">{LOBBY_REFUSAL.notSignedIn}</p>}
     </>
   );
   // In a game the lines go in the game's top bar, so the map gets the whole screen (L5, #485).
