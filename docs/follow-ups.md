@@ -22,8 +22,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   game reaches the future cards yet; only their own card tests and the scenario's play-through test cover them.
   Era 3's one scoring, at the end of turn 11, uses the map's `future` battleground list; only the six-region map is
   checked to have it equal Era 3's, so the host config that starts this game needs the same check. [21 Nov 2026, #582]
-- The free player's Era 1 game (`packages/content/scenarios/era-1-free.json`, `ERA_1_FREE_SCENARIO`, #575) is data
-  and tests only: no host config (`packages/host/src/firstDeck.ts`) or app screen starts it yet. [21 Nov 2026, #575]
 - `docs/design/map-and-points.md` ("Map numbers", Open) still says the scenario data has not been changed to the
   21 Nov rules; the scenario is `packages/content/scenarios/base-game.json` since #575. Fix it at the next Notion
   promotion. [21 Nov 2026, #575]
@@ -34,9 +32,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   `NotifyStore`, but not the `DeadlineStore` half (`due`, `saveClock`) that `MemoryStore` and `SupabaseStore` both
   implement. Add a deadline contract so the fake can't drift from the `clock` and `next_deadline` columns.
   [21 Nov 2026, agy on #567]
-- A subscriber that throws in a local match is skipped silently (`packages/app/src/transport/localMatch.ts:65`): the
-  match carries on, as it should, but nothing records the error. An optional `onSubscriberError` for the caller to
-  log would make such a bug visible. [6 Nov 2026, test-suite audit]
 
 ## Tests and tooling
 
@@ -51,9 +46,10 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   issues then, or mark agent comments so the queue stops relying on the author (7 Nov 2026, review of #540).
 - `tools/gates/test-count.mjs:153-159` `heldByOwner` trusts a `held` label added by astevegreen, which agents now add
   too while gh is signed in as the owner, so a PR an agent held may drop tests (7 Nov 2026, review of #540).
-- `tools/gates/test-count.mjs` reads the base counts file (`--compare`, line 184) only after it has run the pull
-  request's own tests (line 179), so a test could rewrite `$RUNNER_TEMP/base-counts.json` (ci.yml's test-count job) before it is read. Read the
-  file first, or keep it where the tests can't write. [7 Nov 2026, CI-speed session, test-count cache]
+- ci.yml's test-count job writes `$RUNNER_TEMP/pr-events.ndjson` (the `held` label history) before the pull
+  request's own `pnpm install` runs, so an install script from the pull request could rewrite it before
+  `tools/gates/test-count.mjs` reads it (#587 only covers the tests the script runs). Fetch the events after the
+  install, or keep them where the pull request's code can't write. [21 Nov 2026, agy on #589]
 - `docs/repo-map.md` is still tracked, but the pre-commit hook no longer refreshes it, so it goes stale until someone
   runs `pnpm repo-map` (in a small PR of its own, not inside feature PRs). Next step: `git rm --cached` it, add it to
   `.gitignore`, and generate it into the working tree (plain `node tools/repo-map.mjs`) from new
