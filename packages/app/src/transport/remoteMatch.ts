@@ -3,8 +3,8 @@
 // submit function, and tells the seen function when a turn that waits for the caller has been shown. Everything it talks to is passed in, so it holds no URL, key, token or platform code.
 import type { Viewer } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
-import type { MatchTransport, SubmitResult, TransportError } from "./matchTransport.ts";
-import { postSeen, postSubmission, readEvents, readFrame, readSeats } from "./remoteHttp.ts";
+import type { MatchTransport, SubmitResult, TransportError, TransportStatus } from "./matchTransport.ts";
+import { isSignedOutRefusal, postSeen, postSubmission, readEvents, readFrame, readSeats } from "./remoteHttp.ts";
 import type { Endpoint, FetchLike, Seats } from "./remoteHttp.ts";
 
 export type RemoteMatchOptions = {
@@ -25,7 +25,14 @@ export type RemoteMatchOptions = {
 };
 
 /** One subscriber and the seq of the last frame it was given (null before its first). */
-type Subscriber = { onFrame: (frame: Frame) => void; last: number | null };
+type Subscriber = {
+  onFrame: (frame: Frame) => void;
+  onStatus?: (status: TransportStatus) => void;
+  last: number | null;
+};
+
+/** How many polls in a row must be refused as signed out before the subscribers are told (#536). */
+const SIGNED_OUT_AFTER = 2;
 
 const refuse = (code: TransportError["code"], message: string): SubmitResult => ({
   ok: false,
@@ -53,6 +60,9 @@ export function createRemoteMatch(options: RemoteMatchOptions): MatchTransport {
   let queue: Promise<unknown> = Promise.resolve();
   // The last seq this transport told the seen function about; null before the first.
   let seenSeq: number | null = null;
+  // Polls in a row the server refused as signed out, and the status last reported.
+  let refusals = 0;
+  let status: TransportStatus = "live";
 
   const token = async (): Promise<string | null> => (playerId === null ? null : await accessToken());
 
@@ -85,6 +95,13 @@ export function createRemoteMatch(options: RemoteMatchOptions): MatchTransport {
     void postSeen(endpoint, t, frame.seq);
   };
 
+  /** Tells every subscriber when the status changes. */
+  const setStatus = (next: TransportStatus): void => {
+    if (status === next) return;
+    status = next;
+    for (const s of [...subscribers]) if (subscribers.has(s)) s.onStatus?.(next);
+  };
+
   /** One poll: reads the latest frame and gives it, with the events each subscriber has not had, to each. */
   const pollOnce = async (): Promise<void> => {
     const t = await token();
@@ -115,8 +132,12 @@ export function createRemoteMatch(options: RemoteMatchOptions): MatchTransport {
     pollAgain = false;
     try {
       await pollOnce();
-    } catch {
-      // A failed read gives nothing; the next poll tries again.
+      refusals = 0;
+      setStatus("live");
+    } catch (error: unknown) {
+      // A failed read gives nothing; the next poll tries again. Only refusals in a row count (#536).
+      refusals = isSignedOutRefusal(error) ? refusals + 1 : 0;
+      if (refusals >= SIGNED_OUT_AFTER) setStatus("notSignedIn");
     }
     polling = false;
     if (subscribers.size === 0) return;
@@ -167,9 +188,12 @@ export function createRemoteMatch(options: RemoteMatchOptions): MatchTransport {
   };
 
   return {
-    subscribe(onFrame) {
-      const subscriber: Subscriber = { onFrame, last: null };
+    subscribe(onFrame, onStatus) {
+      const subscriber: Subscriber =
+        onStatus === undefined ? { onFrame, last: null } : { onFrame, onStatus, last: null };
       subscribers.add(subscriber);
+      // A subscriber joining while the server refuses the caller is told at once, as it is given the latest frame.
+      if (status === "notSignedIn") onStatus?.(status);
       // A new subscriber is read for at once: now if no poll is running, else straight after the running one.
       if (polling) pollAgain = true;
       else {

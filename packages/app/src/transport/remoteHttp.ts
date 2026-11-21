@@ -27,13 +27,27 @@ const headers = (anonKey: string, token: string | null): Record<string, string> 
   ...(token === null ? {} : { Authorization: `Bearer ${token}` }),
 });
 
-/** GETs one table with PostgREST filters. A thrown error or an error status throws. */
+/** A read the server answered with an error status. */
+export class ReadRefused extends Error {
+  readonly status: number;
+  constructor(table: string, status: number) {
+    super(`read ${table}: status ${status}`);
+    this.name = "ReadRefused";
+    this.status = status;
+  }
+}
+
+/** True for a read the server refused because the caller is not (or no longer) signed in: 401 or 403. */
+export const isSignedOutRefusal = (error: unknown): boolean =>
+  error instanceof ReadRefused && (error.status === 401 || error.status === 403);
+
+/** GETs one table with PostgREST filters. A thrown error throws; an error status throws `ReadRefused`. */
 async function select(e: Endpoint, token: string | null, table: string, query: string[]): Promise<unknown[]> {
   const reply = await e.fetch(`${e.url}/rest/v1/${table}?${query.join("&")}`, {
     method: "GET",
     headers: headers(e.anonKey, token),
   });
-  if (!reply.ok) throw new Error(`read ${table}: status ${reply.status}`);
+  if (!reply.ok) throw new ReadRefused(table, reply.status);
   const rows = await reply.json();
   if (!Array.isArray(rows)) throw new Error(`read ${table}: not a list`);
   return rows;

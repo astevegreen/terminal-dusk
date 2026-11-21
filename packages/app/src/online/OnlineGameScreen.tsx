@@ -32,6 +32,7 @@ export const LOADING_SNAPSHOT: OnlineGameSnapshot = {
   turn: "loading",
   deadline: null,
   refusal: null,
+  signedOut: false,
 };
 
 /** What the session for `matchId` is built from: the setup's project, the sign-in's token, the clock and timers. */

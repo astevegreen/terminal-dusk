@@ -260,3 +260,28 @@ describe("secrets", () => {
     for (const out of pages) for (const token of ["token-alice", "token-bob"]) expect(out).not.toContain(token);
   });
 });
+
+describe("signed out (#536)", () => {
+  const alert = (out: string): string | undefined => /<p role="alert">([^<]*)<\/p>/.exec(out)?.[1];
+  const SIGNED_OUT = "You are signed out. Sign in again, then try again.";
+
+  it("shows the signed-out alert in the game's bar while polls are refused, and not once a read succeeds", async () => {
+    const r = await started();
+    expect(alert(page(r.game.getSnapshot()))).toBeUndefined();
+    r.fake.failNext(401);
+    await poll(r);
+    r.fake.failNext(401);
+    await poll(r);
+    const out = page(r.game.getSnapshot());
+    expect(alert(out)).toBe(SIGNED_OUT);
+    expect(turnLine(out)).toBe("Your move");
+    await play(r);
+    expect(alert(page(r.game.getSnapshot()))).toBeUndefined();
+  });
+
+  it("shows the alert while the game is still loading", () => {
+    const out = page({ ...LOADING_SNAPSHOT, signedOut: true });
+    expect(alert(out)).toBe(SIGNED_OUT);
+    expect(turnLine(out)).toBe("Loading the game");
+  });
+});
