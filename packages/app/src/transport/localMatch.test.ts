@@ -115,6 +115,51 @@ describe("local transport: a subscriber that throws", () => {
   });
 });
 
+describe("local transport: telling the caller about a subscriber that throws (O15)", () => {
+  const breakLio = (match: LocalMatch, error: unknown): void => {
+    match.transportFor("lio").subscribe((frame) => {
+      if (frame.seq > 0) throw error;
+    });
+  };
+  const made = (onError?: (error: unknown, viewer: Viewer) => void) => {
+    tick = 0;
+    const m = createLocalMatch(ruleset, config, SEED, clock, hostArchive, onError);
+    if (!m.ok) throw new Error(m.error.code);
+    const first = hostCreate(ruleset, config, SEED, T0);
+    if (!first.ok) throw new Error(first.error.code);
+    return { match: m.value, mirror: first.value };
+  };
+  it("passes the error and the viewer to onSubscriberError, and the match carries on", async () => {
+    const seen: { error: unknown; viewer: Viewer }[] = [];
+    const { match, mirror } = made((error, viewer) => seen.push({ error, viewer }));
+    const boom = new Error("a broken screen");
+    breakLio(match, boom);
+    const sae = record(match, "sae");
+    const move = nextMove(mirror);
+    expect(await match.transportFor(move.s).submit(move.args)).toEqual({ ok: true });
+    expect(seen).toEqual([{ error: boom, viewer: "lio" }]);
+    expect(sae.frames.map((f) => f.seq)).toEqual([0, 1]);
+  });
+  it("is not called when no subscriber throws", async () => {
+    let calls = 0;
+    const { match, mirror } = made(() => calls++);
+    record(match, "lio");
+    const move = nextMove(mirror);
+    await match.transportFor(move.s).submit(move.args);
+    expect(calls).toBe(0);
+  });
+  it("carries on when onSubscriberError itself throws", async () => {
+    const { match, mirror } = made(() => {
+      throw new Error("a broken logger");
+    });
+    breakLio(match, new Error("a broken screen"));
+    const sae = record(match, "sae");
+    const move = nextMove(mirror);
+    expect(await match.transportFor(move.s).submit(move.args)).toEqual({ ok: true });
+    expect(sae.frames.map((f) => f.seq)).toEqual([0, 1]);
+  });
+});
+
 describe("local transport: playing", () => {
   it("plays a short game; every new frame reaches that viewer's subscribers, equal to the host's frame", async () => {
     const { match, mirror } = setup();
