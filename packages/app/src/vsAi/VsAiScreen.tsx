@@ -238,6 +238,11 @@ export function VsAiScreen(props: Readonly<VsAiScreenProps>) {
       live = false;
     };
   }, [store]);
+  // Starting a game also settles the difficulty, so a late read of the saved one never restarts it.
+  const pickSide = (next: Side) => {
+    picked.current = true;
+    setSide(next);
+  };
   const chooseTier = (next: AiTier) => {
     picked.current = true;
     setTier(next);
@@ -247,6 +252,6 @@ export function VsAiScreen(props: Readonly<VsAiScreenProps>) {
     () => createVsAiSession(vsAiOptions(side ?? "lio", { clock, newSeed, newAiSeed, makeAi, game, tier })),
     [side, newSeed, newAiSeed, clock, makeAi, game, tier],
   );
-  if (!side) return <SidePicker onPick={setSide} note={game?.note} tier={tier} onTier={chooseTier} />;
+  if (!side) return <SidePicker onPick={pickSide} note={game?.note} tier={tier} onTier={chooseTier} />;
   return <Playing start={start} onNewGame={() => setSide(null)} game={game} />;
 }
