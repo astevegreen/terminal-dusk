@@ -6,7 +6,7 @@ import type { EngineError, GameEvent, GameState, Setup } from "./types.ts";
 
 /**
  * Why the setup's eras are unusable, or null. Each needs a name, a list of at least one card, and a whole-number
- * turn from 2 to the last turn, no two on the same turn. Two eras may share a name: they share its battleground
+ * turn from 2 to the last turn, no two on the same turn, and an extendsEra of true or none. Two eras may share a name: they share its battleground
  * list (battlegrounds.ts); the content schema keeps a scenario's names apart. setupCardsError checks the cards
  * themselves: each in the ruleset, and none used twice anywhere in the setup.
  */
@@ -23,6 +23,9 @@ export function erasError(setup: Setup): EngineError | null {
       return invalidSetup(`Era ${entry.era} must enter on a whole-number turn from 2 to ${setup.turns}.`);
     }
     if (turns.has(entry.turn)) return invalidSetup(`Two eras enter on turn ${entry.turn}.`);
+    if (Object.hasOwn(entry, "extendsEra") && entry.extendsEra !== true) {
+      return invalidSetup(`Era ${entry.era}'s extendsEra must be true, or left out.`);
+    }
     turns.add(entry.turn);
   }
   return null;
