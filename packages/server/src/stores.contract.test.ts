@@ -1,0 +1,49 @@
+// The store contracts (test/contracts/) run against the in-memory stores; stores.contract.stack.test.ts runs the
+// same contracts against their Supabase twins, so the fakes cannot drift from the real tables unseen.
+import { describe } from "vitest";
+import { inviteCode } from "./inviteCode.ts";
+import { MemoryInviteStore } from "./inviteStore.ts";
+import { MemoryNotifyStore } from "./notifyStore.ts";
+import { MemoryStore } from "./store.ts";
+import { inviteStoreContract } from "./test/contracts/inviteStore.ts";
+import { matchStoreContract } from "./test/contracts/matchStore.ts";
+import { notifyStoreContract } from "./test/contracts/notifyStore.ts";
+import { created } from "./test/match.ts";
+import { writeOf } from "./test/stack.ts";
+
+let ids = 0;
+const freshMatchId = (): string => `contract-${(ids += 1)}`;
+
+describe("MemoryStore keeps the MatchStore contract", () => {
+  matchStoreContract(() => {
+    const store = new MemoryStore();
+    return {
+      store,
+      fresh: () => created(freshMatchId()),
+      putIn: (write) => Promise.resolve(store.insert(write.record.matchId, write)),
+    };
+  });
+});
+
+describe("MemoryInviteStore keeps the InviteStore contract", () => {
+  inviteStoreContract(() => {
+    const matches = new MemoryStore();
+    return {
+      store: new MemoryInviteStore(matches),
+      matches,
+      host: "host-hana",
+      joiner: "joiner-jo",
+      third: "third-tess",
+      code: () => inviteCode(),
+      write: (players) => writeOf(created(freshMatchId(), players)),
+    };
+  });
+});
+
+describe("MemoryNotifyStore keeps the NotifyStore contract", () => {
+  notifyStoreContract(() => ({
+    store: new MemoryNotifyStore(),
+    players: ["player-alice", "player-bob"],
+    matches: (count) => Promise.resolve(Array.from({ length: count }, freshMatchId)),
+  }));
+});
