@@ -53,8 +53,15 @@ for (const tier of ["Easy", "Medium", "Hard"]) {
     await page.getByRole("button", { name: "Play against the AI" }).click();
     await page.getByRole("radio", { name: tier }).check();
     await page.getByRole("button", { name: "Play as SAE" }).click();
-    // The human's first decision shows: the game started, with the worker AI made at this tier.
-    await expect(page.getByTestId("decision")).toBeVisible();
+    // The first decision is answered by both sides at once, so it shows before the AI has played. Answer until the
+    // log has a line of the AI's own (it plays LIO), which proves the worker AI made at this tier answers.
+    const aiPlayed = page.getByTestId("log").getByText(/^LIO /);
+    for (let step = 0; step < 20 && (await aiPlayed.count()) === 0; step++) {
+      await yourDecision(page).waitFor();
+      await answerOnce(page);
+    }
+    await expect(aiPlayed.first()).toBeAttached();
+    await yourDecision(page).waitFor();
     await page.getByRole("button", { name: "Details" }).click();
     await expect(
       page.getByRole("dialog", { name: "Game details" }).getByText(`AI difficulty: ${tier}`, { exact: true }),
