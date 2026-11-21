@@ -177,12 +177,14 @@ if (import.meta.main) {
     const [save, compare, eventsFile, owner] = ["--save", "--compare", "--held-events", "--owner"].map(option);
     if (Boolean(save) === Boolean(compare)) throw new Error("Pass either --save <file> or --compare <base file>.");
     if (eventsFile && !owner) throw new Error("--held-events needs --owner <login>.");
+    // Read the base counts and held events before running any test, so a test can't rewrite them.
+    const base = compare ? readJson(compare) : null;
+    const held = compare && eventsFile ? heldByOwner(readEvents(eventsFile), owner) : false;
     const counts = countTests(option("--root") ?? path.resolve(import.meta.dirname, "..", ".."));
     if (save) {
       writeFileSync(save, JSON.stringify(counts, null, 2) + "\n");
     } else {
-      const held = eventsFile ? heldByOwner(readEvents(eventsFile), owner) : false;
-      const problems = compareCounts(readJson(compare), counts, { held });
+      const problems = compareCounts(base, counts, { held });
       if (problems.length) {
         process.stdout.write(problems.join("\n") + "\n");
         process.exit(1);
