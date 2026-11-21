@@ -10,6 +10,9 @@ test("play against the AI: pick LIO and tap through a whole game against the wor
   // The game against the AI deals the real first deck (FIRST_DECK_NOTE in packages/host/src/firstDeck.ts), not the
   // developer fixture that test mode keeps.
   await expect(page.getByText(FIRST_DECK_NOTE, { exact: true })).toBeVisible();
+  // A new player meets Medium; this game is against Easy, to check the choice is kept for the next game (#508).
+  await expect(page.getByRole("radio", { name: "Medium" })).toBeChecked();
+  await page.getByRole("radio", { name: "Easy" }).check();
   await page.getByRole("button", { name: "Play as LIO" }).click();
   await expect(page.getByTestId("decision")).toBeVisible();
 
@@ -34,12 +37,31 @@ test("play against the AI: pick LIO and tap through a whole game against the wor
   // The finished game can be watched back, and Close returns to it.
   await page.getByRole("button", { name: "Watch replay" }).click();
   await expect(page.getByText(/^Step 1 of \d+$/)).toBeVisible();
+  await expect(page.getByText("AI difficulty: Easy", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Close" }).click();
   await expect(gameOver).toBeVisible();
   await expect(page.getByRole("button", { name: "New game" })).toBeVisible();
   await page.getByRole("button", { name: "New game" }).click();
   await expect(page.getByRole("button", { name: "Play as SAE" })).toBeVisible();
+  // New game offers the difficulty last chosen.
+  await expect(page.getByRole("radio", { name: "Easy" })).toBeChecked();
 });
+
+for (const tier of ["Easy", "Medium", "Hard"]) {
+  test(`against the AI, choosing ${tier} starts a game whose Details name ${tier} (#508)`, async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Play against the AI" }).click();
+    await page.getByRole("radio", { name: tier }).check();
+    await page.getByRole("button", { name: "Play as SAE" }).click();
+    // The human's first decision shows: the game started, with the worker AI made at this tier.
+    await expect(page.getByTestId("decision")).toBeVisible();
+    await page.getByRole("button", { name: "Details" }).click();
+    await expect(
+      page.getByRole("dialog", { name: "Game details" }).getByText(`AI difficulty: ${tier}`, { exact: true }),
+    ).toBeVisible();
+    await expect(page.getByText(/^AI refused:/)).toHaveCount(0);
+  });
+}
 
 test("against the AI, the side picker says who each side is and each card shows its rules when lifted", async ({
   page,

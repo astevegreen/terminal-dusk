@@ -11,10 +11,13 @@ import { toRecording } from "../replay/recording.ts";
 import type { ReplayRecording } from "../replay/recording.ts";
 import { createLocalMatch } from "../transport/localMatch.ts";
 import type { LocalMatch } from "../transport/localMatch.ts";
-import type { MakeAi } from "./aiOpponent.ts";
+import type { AiTier, MakeAi } from "./aiOpponent.ts";
+import { DEFAULT_TIER } from "./difficulty.tsx";
 
 export type VsAiSnapshot = {
   human: Side;
+  /** The AI's difficulty in this game (#508). */
+  tier: AiTier;
   /** The human's latest frame, or null when the match could not be made. */
   frame: Frame | null;
   /** The game's events as log lines for the human, oldest first. */
@@ -35,6 +38,8 @@ export type VsAiOptions = {
   aiSeed: number;
   clock: () => number;
   makeAi: MakeAi;
+  /** The AI's difficulty (#508); Medium when left out. */
+  tier?: AiTier;
   /** The rules the match and the AI use; the developer fixture when left out. Must fit what makeMatch makes. */
   ruleset?: Ruleset;
   /** Makes the match; the developer fixture when left out. Tests use it to watch the transports. */
@@ -61,10 +66,12 @@ export const NO_ANSWER = "noAnswer";
 
 export function createVsAiSession(options: VsAiOptions): VsAiSession {
   const { human, clock } = options;
+  const tier = options.tier ?? DEFAULT_TIER;
   const aiSide: Side = human === "lio" ? "sae" : "lio";
   const listeners = new Set<() => void>();
   let snapshot: VsAiSnapshot = {
     human,
+    tier,
     frame: null,
     log: [],
     era: null,
@@ -93,7 +100,7 @@ export function createVsAiSession(options: VsAiOptions): VsAiSession {
   }
   const humanTransport = made.value.transportFor(human);
   const aiTransport = made.value.transportFor(aiSide);
-  const ai = options.makeAi(options.ruleset ?? fixtureRuleset, aiSide, options.aiSeed);
+  const ai = options.makeAi(options.ruleset ?? fixtureRuleset, aiSide, options.aiSeed, tier);
   let stopped = false;
   let aiStopped = false;
   let lastSeq = -1;
@@ -178,7 +185,8 @@ export function createVsAiSession(options: VsAiOptions): VsAiSession {
     },
     replay() {
       const archive = made.value.archive();
-      return archive ? toRecording(archive) : null;
+      // The replay names the AI's difficulty, which explains how the AI played (#508).
+      return archive ? { ...toRecording(archive), aiTier: tier } : null;
     },
     stop() {
       stopped = true;

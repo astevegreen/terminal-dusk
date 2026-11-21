@@ -9,5 +9,8 @@ export type AiOpponent = {
   stop(): void;
 };
 
-/** Makes an opponent playing `side` from `seed`. */
-export type MakeAi = (ruleset: Ruleset, side: Side, seed: number) => AiOpponent;
+/** How strong the AI plays (#508): the worker's `tier`, the same names as the AI package's AiTier. */
+export type AiTier = "easy" | "medium" | "hard";
+
+/** Makes an opponent playing `side` from `seed` at difficulty `tier`. */
+export type MakeAi = (ruleset: Ruleset, side: Side, seed: number, tier: AiTier) => AiOpponent;
