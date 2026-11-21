@@ -4,7 +4,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
-import { auditPr, duePrs, pinnedIssueOf } from "./gemini-audit.mjs";
+import { auditPr, duePrs, pinnedIssueOf, specMaterial } from "./gemini-audit.mjs";
 import { ORDERS } from "./gemini/agy.mjs";
 import { NO_API } from "./gemini/gemini-api.mjs";
 import { verdictMarker } from "./gemini/rails.mjs";
@@ -198,4 +198,10 @@ test("the weekly and narrative audits post on the issue a collaborator opened, n
   const issue = (number, login) => ({ number, title: "Gemini weekly audit", author: { login } });
   assert.equal(pinnedIssueOf([issue(9, "stranger"), issue(4, "greenbeanbot")], "Gemini weekly audit", team), 4);
   assert.equal(pinnedIssueOf([issue(9, "stranger")], "Gemini weekly audit", team), undefined, "so it opens its own");
+});
+
+test("specs reads every issue it is given through gh, one spec after another (not the list index as gh)", () => {
+  const issues = { 11: { number: 11, title: "First", body: "one" }, 12: { number: 12, title: "Second", body: "two" } };
+  const gh = (...args) => JSON.stringify(issues[/issues\/(\d+)$/.exec(args[1])[1]]);
+  assert.equal(specMaterial(["11", "12"], gh), "# #11 First\n\none\n\n---\n\n# #12 Second\n\ntwo\n");
 });
