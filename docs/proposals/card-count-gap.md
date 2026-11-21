@@ -69,7 +69,8 @@ Arithmetic done by hand from the counts above (simple proportions; they ignore d
 ### What the balance tool saw
 
 Command: `node tools/balance/run.mjs --json` (200 games, base seed "balance"). These are Easy AI games of the
-TEST scenario `first-deck-test` (4 turns, 1 play each, hand size 8, all placeholders) with **no victory rule**:
+TEST scenario as it stood then (`first-deck-test`: 4 turns, 1 play each, hand size 8, all placeholders; since #575 it is
+`packages/content/scenarios/base-game.json`, 10 turns of 2 plays) with **no victory rule**:
 every game ended at the turn limit with no winner. The Easy AI does not weigh the rival-card dilemma the way a
 person would, so these numbers show how often each side met rival cards, not what a good player would do.
 
