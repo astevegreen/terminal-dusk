@@ -39,25 +39,38 @@ export type TestUser = { id: string; db: SupabaseClient };
 
 /**
  * Makes and signs in a fresh test user. A sign-in that fails deletes the user it just made, since the caller never
- * gets it to clean up; a delete that fails too still reports the sign-in failure.
+ * gets it to clean up; a delete that fails too (rejecting or answering an error) still reports the sign-in failure,
+ * and names the user left behind. `makeClient` makes the sign-in client; tests pass a fake.
  */
-export async function makeUser(keys: StackKeys, service: SupabaseClient, name: string): Promise<TestUser> {
+export async function makeUser(
+  keys: StackKeys,
+  service: SupabaseClient,
+  name: string,
+  makeClient: (url: string, key: string) => SupabaseClient = client,
+): Promise<TestUser> {
   const email = `${name}-${freshId()}@terminal-dusk.test`;
   const password = freshId();
   const made = await service.auth.admin.createUser({ email, password, email_confirm: true });
   if (made.error || !made.data.user) throw new Error(`could not create the ${name} test user: ${made.error?.message}`);
   const id = made.data.user.id;
-  const db = client(keys.url, keys.anonKey);
+  const db = makeClient(keys.url, keys.anonKey);
   const signedIn = await db.auth.signInWithPassword({ email, password });
   if (signedIn.error) {
-    try {
-      await service.auth.admin.deleteUser(id);
-    } catch {
-      // The sign-in failure is the error worth reporting.
-    }
-    throw new Error(`could not sign in the ${name} test user: ${signedIn.error.message}`);
+    const stray = await whyNotDeleted(service, id);
+    const left = stray === null ? "" : `; and test user ${id} was left behind: ${stray}`;
+    throw new Error(`could not sign in the ${name} test user: ${signedIn.error.message}${left}`);
   }
   return { id, db };
+}
+
+/** Deletes a test user: null once it is gone, or why it could not be deleted. */
+async function whyNotDeleted(service: SupabaseClient, id: string): Promise<string | null> {
+  try {
+    const { error } = await service.auth.admin.deleteUser(id);
+    return error ? error.message : null;
+  } catch (error) {
+    return error instanceof Error ? error.message : String(error);
+  }
 }
 
 /** The test user's current access token, as an Edge Function call sends it. */

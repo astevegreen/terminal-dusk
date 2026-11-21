@@ -2,6 +2,14 @@ Proposal, not a rule
 
 # How "the AI plays the missed turn" could work online: options
 
+**Decided 21 Nov 2026** (owner, in chat: "Take all recommendations"): option C, a stand-in default
+answer with no AI, for now. Decision 8 stays as it is; option B (the server runs the AI) may come later.
+The other questions were answered the same day (owner, in chat: "Take all my recommendations"), except question 7,
+which is the architect's; each is marked below. **In short, for option C:** the late side gets the default answer for
+the rest of that turn and plays again itself from the next turn; the default answer is pass where the rules allow
+it, otherwise the cheapest legal answer; both sides late ends the game in a draw; both players see the stand-in's
+moves as a marked log line; grace and the default answer are not combined.
+
 Sprint backlog X8. The product call on missed deadlines (docs/architecture.md, "Product calls") lets whoever
 sets up a private game pick one of three rules: loss on time; one grace extension, then loss on time; or "the AI
 plays the missed turn". Ranked games always use loss on time. The same row says the third rule is still open,
@@ -270,18 +278,31 @@ check what the rival's device sends.
 ## Questions for the owner
 
 1. Which option, if any? Or a mix, for example B while Decision 8 is changed, and C until then?
+   **Decided:** C, the default answer (owner, 21 Nov 2026). Decision 8 is kept; B is for later.
 2. How much does the AI cover once a side is late: one Decision, the rest of that turn, or every Decision until
    the player makes a move of their own again?
+   **Decided:** the default answer covers the late side for the rest of that turn; the player is back from the
+   next turn (owner, 21 Nov 2026, in chat).
 3. For Option C: which default answer counts as fair for each kind of Decision (pass, the first legal answer, the
    cheapest, something else)? That is a game-design choice.
+   **Decided:** pass where the rules allow it, otherwise the cheapest legal answer (owner, 21 Nov 2026, in chat).
+   The build lists the answer this gives for each Decision kind.
 4. For Option A: how long may a side stay "AI due" before it loses on time anyway?
+   **Does not apply:** option A was not chosen.
 5. Which AI tier plays: always Easy, the tier the game's creator picks in the lobby, or (Option A) the player's
    own?
+   **Does not apply for now:** option C plays no AI. It comes back if option B is taken later.
 6. When both sides are late and both are being played for, does the game carry on (AI against AI), end in a draw
    as a missed simultaneous pick does today, or something else?
+   **Decided:** the game ends in a draw, as a missed simultaneous pick does today (owner, 21 Nov 2026, in chat).
 7. Hard rule 7 says only `submit` writes game state. Today's deadline sweep already writes through the same host
    and seq-checked commit. Should an autoplayed answer count as written "through `submit`" on the same footing,
    or must it literally call the `submit` function?
+   **For the architect:** a technical question, not the owner's; it is decided when C is built.
 8. Should both players see which moves the AI (or the stand-in) made, or only the player it played for?
+   **Decided:** both players see the stand-in's moves, as a marked log line; nothing secret is shown (owner, 21
+   Nov 2026, in chat).
 9. Does a late side that the AI played for keep or lose its grace extension, and can the AI rule be combined with
    a grace extension at all (grace first, then the AI)?
+   **Decided:** grace and the default answer are not combined for now; whoever sets up the game picks one of the
+   three rules (owner, 21 Nov 2026, in chat).

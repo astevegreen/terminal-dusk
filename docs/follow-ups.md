@@ -17,6 +17,16 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   (`packages/content/src/rulesWording.test.ts`) check the wording's form, not that "spends 2 points" matches the
   card's `spendPoints` amount. A check that reads the numbers out of the text and compares them with the effect
   would catch a card whose text and data disagree. [6 Nov 2026, test-suite audit]
+- The scenarios still use the old placeholder lengths: `packages/content/scenarios/first-deck-test.json:4-5`,
+  `six-region-map.json:4-5` and `test-map.json:4-5` have 4 turns and 1 play per turn (only `first-deck-test.json` lists
+  eras, entering on turns 2, 3 and 4). The owner's answers of 21 Nov (`docs/design/eras.md`) are 2 plays per turn and a 10-turn base game,
+  Era 2 entering on turn 4 and Era 3 on turn 6; the free player's Era 1 game (3 turns) and the 2025-2027 game
+  (11 turns, scored at the end of 2027) have no scenario yet. Golden replays change with it. [21 Nov 2026, recording
+  the owner's answers]
+- The 2025-2027 scenario scores Era 3 only once, at the end of 2027 (`docs/design/eras.md`), but today's engine
+  would score it at the end of turn 10 too: `eraEnds` (`packages/engine/src/scoring.ts:61-64`) counts the turn
+  before a waiting era enters as an era's end, and the future cards enter on turn 11. That scenario's build must
+  stop the extra scoring. [21 Nov 2026, recording the owner's answers]
 
 ## App, host and server
 
@@ -24,10 +34,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   `NotifyStore`, but not the `DeadlineStore` half (`due`, `saveClock`) that `MemoryStore` and `SupabaseStore` both
   implement. Add a deadline contract so the fake can't drift from the `clock` and `next_deadline` columns.
   [21 Nov 2026, agy on #567]
-- `makeUser` (`packages/server/src/test/stack.ts`) ignores a `deleteUser` that answers `{ error }` rather than
-  rejecting, so that stray user goes unreported; and `stack.makeUser.test.ts` signs in against `127.0.0.1:9`, which
-  would hang if something listened there. Check the delete's `error`, and fake the sign-in client too.
-  [21 Nov 2026, agy on #564]
 - The AI's difficulty (#508) is kept only in `VsAiScreen`'s state (`packages/app/src/vsAi/VsAiScreen.tsx`): it
   survives New game, but going back to the home screen or reloading resets it to Medium. Saving it through
   `Platform.storage` (Decision 7) would keep it across visits. [21 Nov 2026, reviewer and agy on #573]
