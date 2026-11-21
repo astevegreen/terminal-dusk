@@ -1,6 +1,8 @@
 // The era themes (#481), run at both configured sizes (844x390 and 1280x800): a whole first-deck game against the AI
 // starts in the green-screen terminal of Era 1, turns into the news desk when Era 2 starts and into the data
-// dashboard when Era 3 starts, and stays there for the future cards. Each theme's stylesheet really reaches the
+// dashboard when Era 3 starts, and stays there to the end of the base game (which has no future cards since #575;
+// the future cards' theme is covered by the unit tests eraTheme.test.ts and eraThemeScreen.test.tsx). Each theme's
+// stylesheet really reaches the
 // screen, and the layout is the same in every era: the top bar and the hand strip keep their size. A screenshot of
 // each theme at each size is saved in the test's output folder and attached.
 import { expect, test } from "@playwright/test";

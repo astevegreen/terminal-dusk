@@ -5,7 +5,7 @@ import type { CardId } from "@terminal-dusk/engine";
 import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
 import type { CardPoints, CardRules } from "../displayText.ts";
 import { GameScreen } from "../game/GameScreen.tsx";
-import { deadlineText, turnText } from "./gameText.ts";
+import { deadlineDetail, deadlineText, turnText } from "./gameText.ts";
 import { LOBBY_REFUSAL } from "./lobbyText.ts";
 import type { OnlineGame, OnlineGameSnapshot } from "./onlineGame.ts";
 
@@ -42,7 +42,8 @@ export function OnlineGameView({
 }: Readonly<OnlineGameViewProps>) {
   const { frame, turn, deadline } = snapshot;
   const showing = frame !== null && turn !== "loading";
-  const deadlineLine = showing && turn !== "over" && deadline !== null ? deadlineText(deadline) : null;
+  const timed = showing && turn !== "over" && deadline !== null ? deadline : null;
+  const deadlineLine = timed === null ? null : deadlineText(timed);
   const back = (): void => {
     game?.close();
     onBack();
@@ -73,6 +74,10 @@ export function OnlineGameView({
           onAnswer={turn === "mine" && game !== null ? (value) => void game.answer(value) : undefined}
           refusal={snapshot.refusal?.code ?? null}
           bar={items}
+          // The bar's deadline line may be cut short on a phone; Details shows it in full (#504).
+          extraDetails={
+            timed === null ? undefined : <p data-testid="deadline-detail">{deadlineDetail(timed, frame.viewer)}</p>
+          }
         />
       ) : (
         <div style={BAR}>{items}</div>

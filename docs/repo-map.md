@@ -83,6 +83,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e/drawnMap.e2e.ts` - The drawn map (L2, #465) in the six-region game against the AI, at the phone and desktop sizes: 42 markers and the two home boxes, all inside the map area with…
 - `packages/app/e2e/eraThemes.e2e.ts` - The era themes (#481), run at both configured sizes (844x390 and 1280x800): a whole first-deck game against the AI starts in the green-screen terminal of Era 1…
 - `packages/app/e2e/eraThemes.test.ts` - Guards the era themes (#481; docs/design/art-direction.md, "Era themes"): src/game/themes/*.css.
+- `packages/app/e2e/finishGame.ts` - Plays a first-deck game against the AI to its end, for the replay tests (not a test file: only *.e2e.ts files are tests). Exports: playToGameOver.
 - `packages/app/e2e/furnitureTheme.test.ts` - Guards the furniture's stylesheets (L10, #490): the top bar with its score track, the log drawer and the Details panel.
 - `packages/app/e2e/game.e2e.ts`
 - `packages/app/e2e/handStrip.e2e.ts` - The hand strip (L6, #486), run at both configured sizes (844x390 and 1280x800): the hand is a slim strip along the bottom edge, each card a chip at least 44 px…
@@ -94,10 +95,12 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e/mapTheme.test.ts` - Guards src/game/map/mapTheme.css, drawnMap.css, regionChips.css and gameScreen.css.
 - `packages/app/e2e/measure.ts` - Shared measurements for the Playwright smoke tests of the map-first screen (not a test file: only *.e2e.ts files are tests). Exports: box, expectNoPageScroll, backgroundAlpha, coveredOnMap, expectTapTargets, shoot.
 - `packages/app/e2e/narrow.e2e.ts` - The game screen on a phone held upright (375x667), found in the phase 3 gate playtest of 28 Oct: a game with no map kept a full-size empty map box (#412).
+- `packages/app/e2e/oneOpen.e2e.ts` - One thing open at a time (#503; docs/design/screen-layout.md, principle 5), run at both configured sizes in the six-region game against the AI.
 - `packages/app/e2e/online.e2e.ts`
 - `packages/app/e2e/onlineBars.e2e.ts` - The Online and Watch screens' top bars (L10, #490), measured without the online stack on a test page (bars/) that draws the real OnlineGameView and WatchView f…
 - `packages/app/e2e/regionChips.e2e.ts` - Region standings chips on the map (L8, #488), in the six-region game against the AI at both configured sizes (844x390 and 1280x800): six chips, one under each…
 - `packages/app/e2e/replay.e2e.ts`
+- `packages/app/e2e/replayMap.e2e.ts` - The replay viewer on the map-first game screen (#493; docs/design/screen-layout.md), run at both configured sizes (844x390 and 1280x800).
 - `packages/app/e2e/server.test.ts` - The Playwright run's own port (server.ts): a free one, kept for the run's workers, never a server already running.
 - `packages/app/e2e/server.ts` - Where the Playwright smoke tests serve the app (playwright.config.ts). Exports: e2ePort, e2eServer.
 - `packages/app/e2e/sixRegionMap.e2e.ts` - The six-region map against the AI (A14, #439): 6 regions and 42 boxes, Crimea in its own box, and the two home boxes, readable and tappable on a phone held upr…
@@ -190,6 +193,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/map/world/worldArt.json`
 - `packages/app/src/game/map/world/worldArt.test.ts` - The real-geography map's artwork (L3, #479), as `pnpm map:build` made it: every country of the six-region game has a shape, and the shape is around the country…
 - `packages/app/src/game/map/world/worldArt.ts` - The real-geography map's artwork (L3, #479), made by `pnpm map:build` from the sources in SOURCES.md: the Blue Marble picture, and each game country's shape an… Exports: WORLD_ART.
+- `packages/app/src/game/openOne.test.ts`
+- `packages/app/src/game/openOne.ts` - One thing open at a time (principle 5, docs/design/screen-layout.md; #503), by keyboard as well as by touch. Exports: Opener, announceOpen, onOtherOpen.
 - `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, HandCard, Opponent, Table, Contingency, Log.
 - `packages/app/src/game/sixRegionMapView.test.tsx` - The real six-region map on screen (A14, issue #439): 6 region buttons and 42 badges zoomed out, each region's boxes zoomed in, Crimea's own box, and both home…
 - `packages/app/src/game/test/mapFixture.ts` - Test helper: a hand-written two-region map, its influence, and test-mode frames with and without it. Exports: map, influence, baseFrame, withMap, withoutMap.
@@ -218,7 +223,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/online/OnlineScreen.tsx` - The online screen (docs/architecture.md, Decision 7, "Guest mode": sign-in only when going online). Exports: OnlineSetup, openingActions, backToLobby, lobbyOptions, lobbyStep, LobbyFlow, onlineStep, SignInFlow, OnlineScreenProps, OnlineScreen.
 - `packages/app/src/online/SignInView.tsx` - The sign-in screen drawn from a sign-in snapshot (online/signIn.ts): the email step, the code step and the signed-in step, each with a Back button home. Exports: NOT_SET_UP, REFUSAL_MESSAGE, SignInActions, SignInView.
 - `packages/app/src/online/gameText.test.ts` - The online game screen's words as tables: time left before a deadline, the extra-deadline note, whose turn.
-- `packages/app/src/online/gameText.ts` - The online game screen's words: whose turn it is, and how long the waiting side has before its deadline. Exports: timeLeft, deadlineText, turnText.
+- `packages/app/src/online/gameText.ts` - The online game screen's words: whose turn it is, and how long the waiting side has before its deadline. Exports: timeLeft, deadlineText, deadlineDetail, turnText.
 - `packages/app/src/online/lobby.refusals.test.ts`
 - `packages/app/src/online/lobby.test.ts`
 - `packages/app/src/online/lobby.ts` - The online lobby's invite calls (docs/architecture.md, Decision 5): create a private game, preview an invite by its code, and join it, through the invite Edge… Exports: SideMode, NewGame, Joined, createGame, previewInvite, joinGame.
@@ -258,7 +263,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/promptPlace.test.tsx` - Where a prompt draws its choices (L6, #486): the choices that use a card in the hand go on that card when it is lifted from the hand strip, and the decision's…
 - `packages/app/src/realignPrompts.test.tsx` - The action menu and realign prompts (R16c, #317): one choice per action, and one per country to realign in.
 - `packages/app/src/replay/ReplayScreen.test.tsx`
-- `packages/app/src/replay/ReplayScreen.tsx` - The replay viewer: steps through a finished game's recorded frames, both hands showing. Exports: ReplayScreenProps, ReplayView, ReplayScreen.
+- `packages/app/src/replay/ReplayScreen.tsx` - The replay viewer: steps through a finished game's recorded frames, both hands showing. Exports: ReplayScreenProps, spectatorFrame, ReplayView, ReplayScreen.
 - `packages/app/src/replay/recording.test.ts`
 - `packages/app/src/replay/recording.ts` - What the app is allowed to hold of a finished game: the frames and the final status, but never the archive's seed, setup or move log (CLAUDE.md, Never). Exports: ReplayRecording, toRecording.
 - `packages/app/src/replay/replayScreen.css`
@@ -989,7 +994,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/balance/map-stats.test.mjs` - The map numbers from a hand-made public view and events: influence, control through the engine's controller, points per action from the public events, and the…
 - `tools/balance/numbers.mjs` - A numbers file (--numbers): a proposal's stabilities, battleground lists and starting influence, laid over a map scenario's own for one run.
 - `tools/balance/numbers.test.mjs` - The --numbers option (X12, #438): a numbers file's stabilities, battleground lists and starting influence laid over a map scenario for one run, its refusals, a…
-- `tools/balance/options.test.mjs` - The run options --turns, --plays and --era: parsing, refusals, the host's own refusals, the report title, and a small seeded run with fewer turns and two eras…
+- `tools/balance/options.test.mjs` - The run options --turns, --plays and --era: parsing, refusals, the host's own refusals, the report title, and a small seeded run with fewer turns, one era move…
 - `tools/balance/play.mjs` - Plays one seeded Easy-vs-Easy game of the first deck through the match host, as a real match would run.
 - `tools/balance/region-stats.mjs` - Region levels at each era's end, on a scenario with a map.
 - `tools/balance/region-stats.test.mjs` - The region levels at each era's end (X12, #438): the highest level per side and region, with control from the engine and the battlegrounds of the era that is e…

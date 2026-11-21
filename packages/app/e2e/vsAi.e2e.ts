@@ -36,8 +36,12 @@ test("play against the AI: pick LIO and tap through a whole game against the wor
   // The finished game can be watched back, and Close returns to it.
   await page.getByRole("button", { name: "Watch replay" }).click();
   await expect(page.getByText(/^Step 1 of \d+$/)).toBeVisible();
-  await expect(page.getByText("AI difficulty: Easy", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Close" }).click();
+  // The replay's Details panel names the difficulty, as the game's does (#493).
+  await page.getByRole("button", { name: "Details" }).click();
+  const details = page.getByRole("dialog", { name: "Game details" });
+  await expect(details.getByText("AI difficulty: Easy", { exact: true })).toBeVisible();
+  await details.getByRole("button", { name: "Close" }).click();
+  await page.getByRole("navigation", { name: "Replay controls" }).getByRole("button", { name: "Close" }).click();
   await expect(gameOver).toBeVisible();
   await expect(page.getByRole("button", { name: "New game" })).toBeVisible();
   await page.getByRole("button", { name: "New game" }).click();

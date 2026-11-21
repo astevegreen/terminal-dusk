@@ -7,7 +7,7 @@ import { logLine } from "../eventPresentation.ts";
 import { createVsAiSession } from "../vsAi/session.ts";
 import { playOut } from "../vsAi/test/scriptedHuman.ts";
 import { standInAi } from "../vsAi/test/standInAi.ts";
-import { ReplayView } from "./ReplayScreen.tsx";
+import { ReplayView, spectatorFrame } from "./ReplayScreen.tsx";
 import type { ReplayRecording } from "./recording.ts";
 
 const GAME_SEED = "replay-seed-never-shown-5d20";
@@ -225,5 +225,25 @@ describe("the replay viewer on a finished fixture game", () => {
 
   it("never renders the game seed", () => {
     for (let i = 0; i < recording.frames.length; i++) expect(html(i)).not.toContain(GAME_SEED);
+  });
+});
+
+describe("the replay on the game screen (#493)", () => {
+  it("draws each step as a spectator's frame: public state, counts and that step's events, no hand, no decision", () => {
+    const frame = recording.frames[3]!;
+    const spectator = spectatorFrame(recording, frame);
+    expect(spectator.viewer).toBe("spectator");
+    expect(spectator.view.mine).toBeNull();
+    expect(spectator.decision).toBeNull();
+    expect(spectator.view.public).toBe(frame.view.public);
+    expect(spectator.events).toBe(frame.events);
+    expect(spectator.seq).toBe(frame.seq);
+  });
+  it("is the game screen: the map area, the status bar and one replay controls landmark", () => {
+    const out = html(0);
+    expect(out).toContain('data-testid="map-area"');
+    expect(out).toContain('data-testid="status-bar"');
+    expect(out.match(/aria-label="Replay controls"/g)).toHaveLength(1);
+    expect(out).toContain("Spectating");
   });
 });

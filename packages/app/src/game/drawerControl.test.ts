@@ -111,6 +111,17 @@ describe("dismissPanel", () => {
     s.doc.fire("pointerdown", { target: s.inOpener });
     expect(s.closed()).toBe(0);
   });
+  it("stays open on a tap on a part it keeps, such as the ticker for Details, leaving that tap to it (#503)", () => {
+    const doc = new FakeDocument();
+    const inTicker = {};
+    let closed = 0;
+    const opener = { ...part(), focus: () => {} };
+    dismissPanel(doc as unknown as EventTarget, { panel: part(), opener, keep: [part(inTicker)] }, () => void closed++);
+    doc.fire("pointerdown", { target: inTicker });
+    expect(closed).toBe(0);
+    doc.fire("pointerdown", { target: {} });
+    expect(closed).toBe(1);
+  });
   it("removes both of its listeners when disposed", () => {
     const s = setup();
     expect(s.doc.listeners.map((l) => l.type).sort()).toEqual(["keydown", "pointerdown"]);

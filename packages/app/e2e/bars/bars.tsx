@@ -63,13 +63,15 @@ function screen(view: string) {
     };
     return <WatchView snapshot={snapshot} replay={null} {...display} />;
   }
-  const mine = view === "online-mine";
+  // online-used: your move, with the extra deadline already used, the Details panel's longest deadline line (#504).
+  const mine = view === "online-mine" || view === "online-used";
+  const deadline = mine ? { ...DEADLINE, graceLeft: view !== "online-used" } : { ...DEADLINE, side: "sae" as const };
   const snapshot: OnlineGameSnapshot = {
     frame: frameFor("lio"),
     log: LOG,
     era: "era-1",
     turn: mine ? "mine" : "rival",
-    deadline: DEADLINE,
+    deadline,
     refusal: null,
   };
   const game = { answer: () => Promise.resolve(), close: () => undefined };
