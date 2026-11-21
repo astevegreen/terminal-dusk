@@ -1,6 +1,8 @@
 // The Hard tier looks ahead (A18, issue #507): on a real position, Medium's greedy card hands the rival the score
-// track within two card plays a side, and Hard picks another. The position is game 2 of the first deck on the test
-// map, at its first decision: LIO's opening pick, where Medium takes the rival's card e1-sae-006.
+// track within two card plays a side, and Hard picks another. The position is game 5 of the base game on the test
+// map, played by noise-free Medium up to LIO's first card play of turn 3, the last turn of Era 1, so the track is
+// scored as Era 1 ends (2 plays per turn, Era 2 entering on turn 4; owner, 21 Nov 2026). There Medium plays
+// e1-lio-004 for its event, and SAE takes the track.
 import { FIRST_DECK_RULESET } from "@terminal-dusk/content/first-deck";
 import { apply, viewFor } from "@terminal-dusk/engine";
 import type { AnswerValue, Side } from "@terminal-dusk/engine";
@@ -41,15 +43,29 @@ function trackMoveAfter(state: TestState, side: Side, first: AnswerValue): numbe
   return lean(s) - lean(state);
 }
 
+/** Game `seed` played by noise-free Medium up to LIO's first card play of `turn`. */
+function lioFirstPlayOf(seed: number, turn: number): TestState {
+  let s = newFirstDeckMapGame(seed);
+  for (let n = 0; s.public.status.kind === "active"; n++) {
+    const d = s.public.pending[0]!;
+    if (s.public.turn === turn && d.side === "lio" && d.kind === "playCardAs") return s;
+    const value = mediumAnswer(rules, viewFor(s, d.side), d.side, QUIET, seededRandom(n))!;
+    const next = apply(rules, s, { decisionId: d.id, side: d.side, value });
+    if (!next.ok) throw new Error(`refused ${JSON.stringify(value)}`);
+    s = next.value.state;
+  }
+  throw new Error(`game ${seed} ended before LIO played a card on turn ${turn}`);
+}
+
 describe("the Hard tier's lookahead", () => {
   it("avoids the card that lets the rival take the score track within 2 rounds, which Medium plays", () => {
-    const state = newFirstDeckMapGame(2);
+    const state = lioFirstPlayOf(5, 3);
     const decision = state.public.pending.find((d) => d.side === "lio")!;
     const view = viewFor(state, "lio");
     const medium = mediumAnswer(rules, view, "lio", MEDIUM_WEIGHTS, seededRandom(7));
-    expect(medium).toEqual({ kind: "chooseCard", card: "e1-sae-006" });
+    expect(medium).toEqual({ kind: "playCardAs", card: "e1-lio-004", as: "event" });
     const hard = hardAnswer(rules, view, "lio", LOOK, seededRandom(7));
-    expect(decision.kind).toBe("chooseCard");
+    expect(decision.kind).toBe("playCardAs");
     expect(hard).not.toEqual(medium);
     // Medium's card lets SAE move the track far its way; Hard's keeps it nearly level.
     expect(trackMoveAfter(state, "lio", medium!)).toBeLessThanOrEqual(-10);

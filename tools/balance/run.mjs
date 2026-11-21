@@ -1,6 +1,6 @@
 // `node tools/balance/run.mjs [--scenario <first-deck|test-map|six-region>] [--games <n>] [--seed <base>]
 // [--turns <n>] [--plays <n>] [--era <id>@<turn|off>] [--numbers <file>] [--json]`: plays n seeded Easy-vs-Easy
-// games of the chosen scenario (by default the first-deck TEST scenario) and prints results by side, per-card
+// games of the chosen scenario (by default the first deck's base game) and prints results by side, per-card
 // statistics, per-era card use and, on a scenario with a map, the map numbers and the region levels at each era's
 // end. See tools/balance/README.md.
 import { firstDeckCardName, firstDeckRuleset } from "@terminal-dusk/host/first-deck";
@@ -115,7 +115,7 @@ export function sumBySide(summaries, key) {
 }
 
 const SCENARIO_TITLES = {
-  "first-deck": "first deck TEST scenario (placeholder numbers)",
+  "first-deck": "first deck, the base game",
   "test-map": "test-map scenario (a made-up test map, not the game's map: a smoke check, not a verdict on balance)",
   "six-region":
     "six-region map with the first deck (a smoke check of influence and control, and of the score track when a " +

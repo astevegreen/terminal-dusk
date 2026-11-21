@@ -1,14 +1,14 @@
 {
-  "id": "first-deck-test",
-  "name": "TEST scenario for the first deck (hands of 8; placeholder numbers: 4 turns, 1 play each, Era 2 enters on turn 2, Era 3 on turn 3, the future cards on turn 4)",
-  "turns": 4,
-  "playsPerTurn": 1,
+  "id": "base-game",
+  "name": "The base game, 1991 to 2025 (10 turns, 2 plays each per turn, hands of 8; Era 2 enters on turn 4, Era 3 on turn 6)",
+  "turns": 10,
+  "playsPerTurn": 2,
   "handSize": 8,
   "firstEra": "era-1",
   "eras": [
     {
       "era": "era-2",
-      "turn": 2,
+      "turn": 4,
       "cards": [
         "e2-lio-002",
         "e2-lio-004",
@@ -44,7 +44,7 @@
     },
     {
       "era": "era-3",
-      "turn": 3,
+      "turn": 6,
       "cards": [
         "e3-lio-001",
         "e3-lio-002",
@@ -78,11 +78,6 @@
         "e3-neu-008",
         "e3-neu-009"
       ]
-    },
-    {
-      "era": "future",
-      "turn": 4,
-      "cards": ["ef-lio-001", "ef-lio-002", "ef-sae-001", "ef-sae-002", "ef-neu-001", "ef-neu-002"]
     }
   ]
 }

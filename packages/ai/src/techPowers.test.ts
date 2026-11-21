@@ -15,6 +15,9 @@ import type { TestState } from "./test/testGames.ts";
 import { EASY_WEIGHTS } from "./weights/easy.ts";
 import { MEDIUM_WEIGHTS } from "./weights/medium.ts";
 
+// A test that plays whole games takes a few seconds on a slower CI runner, past the 5-second default.
+const WHOLE_GAMES_MS = 60_000;
+
 const W = MEDIUM_WEIGHTS;
 
 /** `state` with the tech race marker at `marker` and every step up to it already reached. */
@@ -109,79 +112,91 @@ describe("the AI and the tech race step powers", () => {
     expect(plays * 2).toBeGreaterThan(offered);
   });
 
-  it("Medium makes Hypersonics' extra play whenever a card in its hand is safe to play", () => {
-    let offered = 0;
-    for (const seed of [1, 2]) {
-      for (const marker of [-3, 3]) {
-        const seen = play(seed, marker, "medium");
-        expect(seen.over).toBe(true);
-        for (const state of seen.extraPlays) {
-          // Below Escalation 3 no first-deck card can raise it to 6, so every card in hand is safe.
-          if ((state.public.escalation ?? 0) > 2) continue;
-          offered++;
-          const side = state.public.pending[0]!.side;
-          const answer: AnswerValue | null = mediumAnswer(
-            FIRST_DECK_RULESET,
-            viewFor(state, side),
-            side,
-            W,
-            seededRandom(7),
-          );
-          expect(answer?.kind).not.toBe("pass");
+  it(
+    "Medium makes Hypersonics' extra play whenever a card in its hand is safe to play",
+    () => {
+      let offered = 0;
+      for (const seed of [1, 2]) {
+        for (const marker of [-3, 3]) {
+          const seen = play(seed, marker, "medium");
+          expect(seen.over).toBe(true);
+          for (const state of seen.extraPlays) {
+            // Below Escalation 3 no first-deck card can raise it to 6, so every card in hand is safe.
+            if ((state.public.escalation ?? 0) > 2) continue;
+            offered++;
+            const side = state.public.pending[0]!.side;
+            const answer: AnswerValue | null = mediumAnswer(
+              FIRST_DECK_RULESET,
+              viewFor(state, side),
+              side,
+              W,
+              seededRandom(7),
+            );
+            expect(answer?.kind).not.toBe("pass");
+          }
         }
       }
-    }
-    expect(offered).toBeGreaterThan(0);
-  });
+      expect(offered).toBeGreaterThan(0);
+    },
+    WHOLE_GAMES_MS,
+  );
 
-  it("Medium passes Hypersonics' extra play rather than play a card that would cost it a crisis", () => {
-    let checked = 0;
-    for (const seed of [1, 2, 3]) {
-      for (const marker of [-3, 3]) {
-        for (const offer of play(seed, marker, "medium").extraPlays) {
-          const side = offer.public.pending[0]!.side;
-          // At Escalation 5 a card whose event runs and raises Escalation reaches 6: a crisis for the side playing it.
-          const state = { ...offer, public: { ...offer.public, escalation: 5 } };
-          const crisis = crisisFor(side);
-          const legal = legalAnswers(FIRST_DECK_RULESET, state, side);
-          if (!legal.some(crisis)) continue;
-          checked++;
-          const answer = mediumAnswer(FIRST_DECK_RULESET, viewFor(state, side), side, W, seededRandom(seed))!;
-          expect(crisis(answer)).toBe(false);
+  it(
+    "Medium passes Hypersonics' extra play rather than play a card that would cost it a crisis",
+    () => {
+      let checked = 0;
+      for (const seed of [1, 2, 3]) {
+        for (const marker of [-3, 3]) {
+          for (const offer of play(seed, marker, "medium").extraPlays) {
+            const side = offer.public.pending[0]!.side;
+            // At Escalation 5 a card whose event runs and raises Escalation reaches 6: a crisis for the side playing it.
+            const state = { ...offer, public: { ...offer.public, escalation: 5 } };
+            const crisis = crisisFor(side);
+            const legal = legalAnswers(FIRST_DECK_RULESET, state, side);
+            if (!legal.some(crisis)) continue;
+            checked++;
+            const answer = mediumAnswer(FIRST_DECK_RULESET, viewFor(state, side), side, W, seededRandom(seed))!;
+            expect(crisis(answer)).toBe(false);
+          }
         }
       }
-    }
-    expect(checked).toBeGreaterThan(0);
-    // A hand of only the rival's cards that raise Escalation: every play runs such an event, so Medium passes.
-    const offer = play(1, -3, "medium").extraPlays[0]!;
-    const side = offer.public.pending[0]!.side;
-    const traps = FIRST_DECK_RULESET.cards
-      .filter((c) => c.affiliation === otherSide(side) && escalationEffect(c).up > 0)
-      .map((c) => c.id)
-      .slice(0, 2);
-    expect(traps.length).toBeGreaterThan(0);
-    const trapped = {
-      ...offer,
-      public: { ...offer.public, escalation: 5 },
-      private: { ...offer.private, [side]: { ...offer.private[side], hand: traps } },
-    };
-    expect(
-      legalAnswers(FIRST_DECK_RULESET, trapped, side)
-        .filter((a) => a.kind !== "pass")
-        .every(crisisFor(side)),
-    ).toBe(true);
-    const answer = mediumAnswer(FIRST_DECK_RULESET, viewFor(trapped, side), side, W, seededRandom(1));
-    expect(answer?.kind).toBe("pass");
-  });
+      expect(checked).toBeGreaterThan(0);
+      // A hand of only the rival's cards that raise Escalation: every play runs such an event, so Medium passes.
+      const offer = play(1, -3, "medium").extraPlays[0]!;
+      const side = offer.public.pending[0]!.side;
+      const traps = FIRST_DECK_RULESET.cards
+        .filter((c) => c.affiliation === otherSide(side) && escalationEffect(c).up > 0)
+        .map((c) => c.id)
+        .slice(0, 2);
+      expect(traps.length).toBeGreaterThan(0);
+      const trapped = {
+        ...offer,
+        public: { ...offer.public, escalation: 5 },
+        private: { ...offer.private, [side]: { ...offer.private[side], hand: traps } },
+      };
+      expect(
+        legalAnswers(FIRST_DECK_RULESET, trapped, side)
+          .filter((a) => a.kind !== "pass")
+          .every(crisisFor(side)),
+      ).toBe(true);
+      const answer = mediumAnswer(FIRST_DECK_RULESET, viewFor(trapped, side), side, W, seededRandom(1));
+      expect(answer?.kind).toBe("pass");
+    },
+    WHOLE_GAMES_MS,
+  );
 
-  it("Easy and Medium answer Quantum Computing's one-sided opening pick, as the rival and as the holder", () => {
-    for (const tier of ["easy", "medium"] as const) {
-      for (const marker of [-4, 4]) {
-        const seen = play(1, marker, tier);
-        expect(seen.over).toBe(true);
-        expect(seen.oneSided.rival, `${tier} ${marker}`).toBeGreaterThan(0);
-        expect(seen.oneSided.holder, `${tier} ${marker}`).toBeGreaterThan(0);
+  it(
+    "Easy and Medium answer Quantum Computing's one-sided opening pick, as the rival and as the holder",
+    () => {
+      for (const tier of ["easy", "medium"] as const) {
+        for (const marker of [-4, 4]) {
+          const seen = play(1, marker, tier);
+          expect(seen.over).toBe(true);
+          expect(seen.oneSided.rival, `${tier} ${marker}`).toBeGreaterThan(0);
+          expect(seen.oneSided.holder, `${tier} ${marker}`).toBeGreaterThan(0);
+        }
       }
-    }
-  });
+    },
+    WHOLE_GAMES_MS,
+  );
 });

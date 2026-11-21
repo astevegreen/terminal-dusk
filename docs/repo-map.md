@@ -11,6 +11,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `.prettierrc.json`
 - `CLAUDE.md` - Terminal Dusk
 - `GEMINI.md` - Terminal Dusk - Gemini's role
+- `LICENSE`
 - `README.md` - terminal-dusk
 - `SECURITY.md` - Security
 - `eslint.config.js` - ESLint for the whole repository: each package's `lint` script and the edit-time quick check use it.
@@ -82,6 +83,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e/drawnMap.e2e.ts` - The drawn map (L2, #465) in the six-region game against the AI, at the phone and desktop sizes: 42 markers and the two home boxes, all inside the map area with…
 - `packages/app/e2e/eraThemes.e2e.ts` - The era themes (#481), run at both configured sizes (844x390 and 1280x800): a whole first-deck game against the AI starts in the green-screen terminal of Era 1…
 - `packages/app/e2e/eraThemes.test.ts` - Guards the era themes (#481; docs/design/art-direction.md, "Era themes"): src/game/themes/*.css.
+- `packages/app/e2e/finishGame.ts` - Plays a first-deck game against the AI to its end, for the replay tests (not a test file: only *.e2e.ts files are tests). Exports: playToGameOver.
 - `packages/app/e2e/furnitureTheme.test.ts` - Guards the furniture's stylesheets (L10, #490): the top bar with its score track, the log drawer and the Details panel.
 - `packages/app/e2e/game.e2e.ts`
 - `packages/app/e2e/handStrip.e2e.ts` - The hand strip (L6, #486), run at both configured sizes (844x390 and 1280x800): the hand is a slim strip along the bottom edge, each card a chip at least 44 px…
@@ -93,15 +95,17 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/e2e/mapTheme.test.ts` - Guards src/game/map/mapTheme.css, drawnMap.css, regionChips.css and gameScreen.css.
 - `packages/app/e2e/measure.ts` - Shared measurements for the Playwright smoke tests of the map-first screen (not a test file: only *.e2e.ts files are tests). Exports: box, expectNoPageScroll, backgroundAlpha, coveredOnMap, expectTapTargets, shoot.
 - `packages/app/e2e/narrow.e2e.ts` - The game screen on a phone held upright (375x667), found in the phase 3 gate playtest of 28 Oct: a game with no map kept a full-size empty map box (#412).
+- `packages/app/e2e/oneOpen.e2e.ts` - One thing open at a time (#503; docs/design/screen-layout.md, principle 5), run at both configured sizes in the six-region game against the AI.
 - `packages/app/e2e/online.e2e.ts`
 - `packages/app/e2e/onlineBars.e2e.ts` - The Online and Watch screens' top bars (L10, #490), measured without the online stack on a test page (bars/) that draws the real OnlineGameView and WatchView f…
 - `packages/app/e2e/regionChips.e2e.ts` - Region standings chips on the map (L8, #488), in the six-region game against the AI at both configured sizes (844x390 and 1280x800): six chips, one under each…
 - `packages/app/e2e/replay.e2e.ts`
+- `packages/app/e2e/replayMap.e2e.ts` - The replay viewer on the map-first game screen (#493; docs/design/screen-layout.md), run at both configured sizes (844x390 and 1280x800).
 - `packages/app/e2e/server.test.ts` - The Playwright run's own port (server.ts): a free one, kept for the run's workers, never a server already running.
 - `packages/app/e2e/server.ts` - Where the Playwright smoke tests serve the app (playwright.config.ts). Exports: e2ePort, e2eServer.
 - `packages/app/e2e/sixRegionMap.e2e.ts` - The six-region map against the AI (A14, #439): 6 regions and 42 boxes, Crimea in its own box, and the two home boxes, readable and tappable on a phone held upr…
 - `packages/app/e2e/sizes.ts` - The screen sizes the L10 (#490) tests check (not a test file: only *.e2e.ts files are tests). Exports: Size, LARGE_MONITOR, sizesFor, isLarge.
-- `packages/app/e2e/start.ts` - Shared starts for the Playwright smoke tests (not a test file: only *.e2e.ts files are tests). Exports: startSixRegionGame, pageSize.
+- `packages/app/e2e/start.ts` - Shared starts for the Playwright smoke tests (not a test file: only *.e2e.ts files are tests). Exports: fixRandom, startSixRegionGame, pageSize.
 - `packages/app/e2e/testMode.e2e.ts`
 - `packages/app/e2e/ticker.e2e.ts` - The ticker, the log drawer and the pulse (L9, #489), run at both configured sizes (844x390 and 1280x800) in the six-region game against the AI.
 - `packages/app/e2e/tracks.e2e.ts` - The score track and Escalation on screen (A15, #448): test mode's map has scoring, so the region shows there at a phone held upright, held sideways and at desk…
@@ -189,6 +193,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/game/map/world/worldArt.json`
 - `packages/app/src/game/map/world/worldArt.test.ts` - The real-geography map's artwork (L3, #479), as `pnpm map:build` made it: every country of the six-region game has a shape, and the shape is around the country…
 - `packages/app/src/game/map/world/worldArt.ts` - The real-geography map's artwork (L3, #479), made by `pnpm map:build` from the sources in SOURCES.md: the Blue Marble picture, and each game country's shape an… Exports: WORLD_ART.
+- `packages/app/src/game/openOne.test.ts`
+- `packages/app/src/game/openOne.ts` - One thing open at a time (principle 5, docs/design/screen-layout.md; #503), by keyboard as well as by touch. Exports: Opener, announceOpen, onOtherOpen.
 - `packages/app/src/game/regions.tsx` - The small regions of the game screen. Exports: Label, Region, StatusBar, MapArea, HandCard, Opponent, Table, Contingency, Log.
 - `packages/app/src/game/sixRegionMapView.test.tsx` - The real six-region map on screen (A14, issue #439): 6 region buttons and 42 badges zoomed out, each region's boxes zoomed in, Crimea's own box, and both home…
 - `packages/app/src/game/test/mapFixture.ts` - Test helper: a hand-written two-region map, its influence, and test-mode frames with and without it. Exports: map, influence, baseFrame, withMap, withoutMap.
@@ -217,7 +223,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/online/OnlineScreen.tsx` - The online screen (docs/architecture.md, Decision 7, "Guest mode": sign-in only when going online). Exports: OnlineSetup, openingActions, backToLobby, lobbyOptions, lobbyStep, LobbyFlow, onlineStep, SignInFlow, OnlineScreenProps, OnlineScreen.
 - `packages/app/src/online/SignInView.tsx` - The sign-in screen drawn from a sign-in snapshot (online/signIn.ts): the email step, the code step and the signed-in step, each with a Back button home. Exports: NOT_SET_UP, REFUSAL_MESSAGE, SignInActions, SignInView.
 - `packages/app/src/online/gameText.test.ts` - The online game screen's words as tables: time left before a deadline, the extra-deadline note, whose turn.
-- `packages/app/src/online/gameText.ts` - The online game screen's words: whose turn it is, and how long the waiting side has before its deadline. Exports: timeLeft, deadlineText, turnText.
+- `packages/app/src/online/gameText.ts` - The online game screen's words: whose turn it is, and how long the waiting side has before its deadline. Exports: timeLeft, deadlineText, deadlineDetail, turnText.
 - `packages/app/src/online/lobby.refusals.test.ts`
 - `packages/app/src/online/lobby.test.ts`
 - `packages/app/src/online/lobby.ts` - The online lobby's invite calls (docs/architecture.md, Decision 5): create a private game, preview an invite by its code, and join it, through the invite Edge… Exports: SideMode, NewGame, Joined, createGame, previewInvite, joinGame.
@@ -229,7 +235,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/online/myGames.test.ts`
 - `packages/app/src/online/myGames.ts` - The signed-in player's games, for the lobby (docs/architecture.md, Decision 5): their `match` rows over Supabase's REST endpoint, never the `seed` column, newe… Exports: MyGame, MY_GAMES_COLUMNS, myGames.
 - `packages/app/src/online/onlineGame.deadline.test.ts`
+- `packages/app/src/online/onlineGame.signedOut.test.ts` - Issue #536: an online game whose polls the server refuses as signed out says so in its snapshot, and the next read that succeeds (after signing in again) clear…
 - `packages/app/src/online/onlineGame.test.ts`
+- `packages/app/src/online/onlineGame.token.test.ts` - #534 follow-up: an access token that rejects (the refresh failed for a moment after expiry) while the deadline is read keeps the deadline as it was, never thro…
 - `packages/app/src/online/onlineGame.ts` - The client side of one online game, with no screen (docs/architecture.md, Decision 5): runs the remote transport with real timers, keeps the latest frame and t… Exports: OnlineTurn, OnlineGameSnapshot, OnlineGameOptions, OnlineGame, DEFAULT_POLL_MS, turnOf, createOnlineGame.
 - `packages/app/src/online/signIn.test.ts`
 - `packages/app/src/online/signIn.token.test.ts`
@@ -255,7 +263,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/promptPlace.test.tsx` - Where a prompt draws its choices (L6, #486): the choices that use a card in the hand go on that card when it is lifted from the hand strip, and the decision's…
 - `packages/app/src/realignPrompts.test.tsx` - The action menu and realign prompts (R16c, #317): one choice per action, and one per country to realign in.
 - `packages/app/src/replay/ReplayScreen.test.tsx`
-- `packages/app/src/replay/ReplayScreen.tsx` - The replay viewer: steps through a finished game's recorded frames, both hands showing. Exports: ReplayScreenProps, ReplayView, ReplayScreen.
+- `packages/app/src/replay/ReplayScreen.tsx` - The replay viewer: steps through a finished game's recorded frames, both hands showing. Exports: ReplayScreenProps, spectatorFrame, ReplayView, ReplayScreen.
 - `packages/app/src/replay/recording.test.ts`
 - `packages/app/src/replay/recording.ts` - What the app is allowed to hold of a finished game: the frames and the final status, but never the archive's seed, setup or move log (CLAUDE.md, Never). Exports: ReplayRecording, toRecording.
 - `packages/app/src/replay/replayScreen.css`
@@ -276,13 +284,15 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/transport/emailAuth.ts` - Email sign-in codes (docs/architecture.md, Decisions 5 and 7): asks Supabase Auth to email a 6-digit code, trades the code for a session and refreshes that ses… Exports: AuthEndpoint, Session, AuthRefusal, AuthResult, REFRESH_MARGIN_MS, requestCode, verifyCode, refreshSession, TokenUnavailableError, sessionToken.
 - `packages/app/src/transport/localMatch.test.ts`
 - `packages/app/src/transport/localMatch.ts` - A match run entirely in memory: it keeps the host's record and secret, and gives each viewer a transport. Exports: ArchiveWith, LocalMatch, createLocalMatch.
-- `packages/app/src/transport/matchTransport.ts` - What the screens talk to: one viewer's window onto a match. Exports: ServerErrorCode, TransportError, SubmitResult, MatchTransport.
+- `packages/app/src/transport/matchTransport.ts` - What the screens talk to: one viewer's window onto a match. Exports: ServerErrorCode, TransportError, SubmitResult, TransportStatus, MatchTransport.
 - `packages/app/src/transport/rehearsal.stack.test.ts` - The phase 4 gate, rehearsed (O13; docs/architecture.md, "Revised build order", phase 4): 50 games on the local Supabase stack, each made through the invite fun…
 - `packages/app/src/transport/rehearsal.test.ts` - The phase 4 rehearsal's harness (O13), proved on the fake Supabase with the real first deck: a game plays to its end with every step checked, a frame that diff…
-- `packages/app/src/transport/remoteHttp.ts` - The online transport's HTTP side (docs/architecture.md, Decision 5): the client-readable rows it reads through Supabase's REST endpoints, and the submit and se… Exports: FetchReply, FetchLike, Endpoint, Seats, StepEvents, readSeats, readFrame, readEvents, PostReply, postSubmission, postSeen.
+- `packages/app/src/transport/remoteHttp.ts` - The online transport's HTTP side (docs/architecture.md, Decision 5): the client-readable rows it reads through Supabase's REST endpoints, and the submit and se… Exports: FetchReply, FetchLike, Endpoint, Seats, StepEvents, ReadRefused, isSignedOutRefusal, readSeats, readFrame, readEvents, PostReply, postSubmission, ….
 - `packages/app/src/transport/remoteMatch.seen.test.ts` - The app's half of "unseen" for turn alerts (docs/architecture.md, Decision 5, Notifications): the remote transport tells the seen function once for each turn t…
+- `packages/app/src/transport/remoteMatch.status.test.ts` - Issue #536: polls the server refuses as signed out (401 or 403) are reported through `onStatus`, so the online game screen can say so instead of silently stopp…
 - `packages/app/src/transport/remoteMatch.submit.test.ts`
 - `packages/app/src/transport/remoteMatch.test.ts`
+- `packages/app/src/transport/remoteMatch.token.test.ts` - #534 follow-up: an access token that can't be had for now (the refresh failed for a moment after expiry) makes a poll fail quietly.
 - `packages/app/src/transport/remoteMatch.ts` - The online transport (docs/architecture.md, Decisions 3 and 5): one caller's window onto one match on Supabase. Exports: RemoteMatchOptions, createRemoteMatch.
 - `packages/app/src/transport/sessionToken.test.ts`
 - `packages/app/src/transport/stackRequired.test.ts` - The rehearsal's "did not run" test fails in CI when the stack's keys are set, like packages/server's stack tests: a stack that does not answer there is a failu…
@@ -293,9 +303,10 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/app/src/transport/test/rehearsalReport.ts` - The phase 4 rehearsal's short report: what one run played and checked, and every problem it found, each with its match and seq. Exports: rehearsalReport.
 - `packages/app/src/transport/test/remoteGame.ts` - The remote transport tests' match: a small game on the fake Supabase, fake timers, and helpers to subscribe, wait and find the next legal move. Exports: POLL_MS, ruleset, config, TOKENS, fakeTimers, settle, Rig, rig, watch, nextMove.
 - `packages/app/src/vsAi/VsAiScreen.test.tsx`
-- `packages/app/src/vsAi/VsAiScreen.tsx` - Playing against the Easy AI: a side picker, then the game screen for the human's side. Exports: PRACTICE_NOTE, VsAiGame, SidePicker, VsAiView, openSession, VsAiScreenProps, vsAiOptions, VsAiScreen.
+- `packages/app/src/vsAi/VsAiScreen.tsx` - Playing against the AI: a difficulty and a side picker, then the game screen for the human's side. Exports: PRACTICE_NOTE, VsAiGame, SidePicker, VsAiView, openSession, VsAiScreenProps, vsAiOptions, VsAiScreen.
 - `packages/app/src/vsAi/ai.worker.ts` - The AI's Web Worker: it only passes each message to the AI package's handler and posts the reply back.
-- `packages/app/src/vsAi/aiOpponent.ts` - What the vs-AI session talks to: an opponent that answers one view at a time (docs/architecture.md, Decision 8). Exports: AiOpponent, MakeAi.
+- `packages/app/src/vsAi/aiOpponent.ts` - What the vs-AI session talks to: an opponent that answers one view at a time (docs/architecture.md, Decision 8). Exports: AiOpponent, AiTier, MakeAi.
+- `packages/app/src/vsAi/difficulty.tsx` - The AI's difficulty (#508): Easy, Medium or Hard, chosen before a game against the AI. Exports: AI_TIERS, DEFAULT_TIER, TIER_NAME, difficultyText, DifficultyPicker.
 - `packages/app/src/vsAi/firstDeckGame.test.ts`
 - `packages/app/src/vsAi/session.test.ts`
 - `packages/app/src/vsAi/session.ts` - The state behind a game against the AI: one local match on the developer fixture, the human's latest frame and log, and the AI side's frames, which the session… Exports: VsAiSnapshot, VsAiOptions, VsAiSession, NO_ANSWER, createVsAiSession.
@@ -503,7 +514,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/cards/future/ef-sae-002.json`
 - `packages/content/cards/future/ef-sae-002.test.ts` - ef-sae-002 Cable Cut in the Baltic: one test for each way its effect can play out.
 - `packages/content/package.json`
-- `packages/content/scenarios/first-deck-test.json`
+- `packages/content/scenarios/base-game.json`
+- `packages/content/scenarios/era-1-free.json`
 - `packages/content/scenarios/six-region-map.json`
 - `packages/content/scenarios/test-map.json`
 - `packages/content/schema/battlegrounds.test.ts` - Battlegrounds by era in a scenario (#429): the map holds one list per era, matched by name, and the scenario names its first era.
@@ -532,10 +544,11 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/src/era3Files.ts` - The Era 3 cards (2008 to 2025), one JSON file each in cards/era-3/. Exports: ERA_3_CARDS.
 - `packages/content/src/eraNames.test.ts`
 - `packages/content/src/eraNames.ts` - The eras' shown names: each era's number and years, and the future cards' years (docs/design/eras.md). Exports: ERA_NAMES.
+- `packages/content/src/eraOneFreeScenario.ts` - The free player's game against the AI (docs/design/eras.md, "The free player's game"): Era 1 only, as long as Era 1 in the base game, 3 turns, with 2 plays eac… Exports: ERA_1_FREE_SCENARIO.
 - `packages/content/src/escalationCards.test.ts` - R18b (#345): the sixteen cards that move Escalation by 1 (map-and-points.md, "Cards that move it"), on top of what each already does.
-- `packages/content/src/firstDeck.ts` - What the game screens need of the first deck: the cards as engine rules, their names, the era names and the TEST scenario. Exports: ERA_1_CARDS, cardDef, Card, ERA_2_CARDS, ERA_3_CARDS, FUTURE_CARDS, FIRST_DECK_CARDS, FIRST_DECK_RULESET, cardName, FIRST_DECK_SCENARIO, ERA_NAMES, scenarioSetup.
+- `packages/content/src/firstDeck.ts` - What the game screens need of the first deck: the cards as engine rules, their names, the era names and the scenarios: the base game and the free player's Era… Exports: ERA_1_CARDS, cardDef, Card, ERA_2_CARDS, ERA_3_CARDS, FUTURE_CARDS, FIRST_DECK_CARDS, FIRST_DECK_RULESET, cardName, FIRST_DECK_SCENARIO, ERA_1_FREE_SCENARIO, ERA_NAMES, ….
 - `packages/content/src/firstDeckRules.ts` - The ruleset and card names of the first deck: Era 1, Era 2, Era 3 and the optional future cards. Exports: FIRST_DECK_CARDS, FIRST_DECK_RULESET, cardName.
-- `packages/content/src/firstDeckScenario.ts` - The TEST scenario for the first deck. Exports: FIRST_DECK_SCENARIO.
+- `packages/content/src/firstDeckScenario.ts` - The base game with the first deck (docs/design/eras.md, "The base game"): 10 turns, 2 plays each per turn (docs/design/core-loop.md), Era 2 entering on turn 4… Exports: FIRST_DECK_SCENARIO.
 - `packages/content/src/future.test.ts`
 - `packages/content/src/futureFiles.ts` - The optional future cards (2025 to 2027), one JSON file each in cards/future/. Exports: FUTURE_CARDS.
 - `packages/content/src/index.ts` - Public entry point of the content package: the bundle of cards, map, scenarios and tutorial. Exports: DEFAULT_CONTINGENCY, scenarioSetup, ScenarioSetup, SIX_REGION_MAP_SCENARIO, TEST_MAP_SCENARIO.
@@ -545,6 +558,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/content/src/rulesWording.test.ts` - #418: the reworded card rules text (docs/proposals/card-rewording/, approved by the owner on 28 Oct).
 - `packages/content/src/scenario.test.ts`
 - `packages/content/src/scenario.ts` - Turns a scenario file into the parts of the engine's Setup it decides. Exports: DEFAULT_CONTINGENCY, ScenarioSetup, scenarioSetup.
+- `packages/content/src/scenarioLengths.test.ts` - The turn structure the owner decided on 21 Nov 2026, in the scenarios that are the real game: 2 plays each per turn in the order LIO, SAE, LIO, SAE (docs/desig…
 - `packages/content/src/sixRegionMapScenario.test.ts` - #422: the six-region map as scenario data (docs/design/map-and-points.md, "Map"; owner, 28 Oct: option 2 of docs/proposals/map-content/, H1, Crimea its own box…
 - `packages/content/src/sixRegionMapScenario.ts` - The six-region map (#422; docs/design/map-and-points.md, "Map"): option 2 of docs/proposals/map-content/, home-box option H1, Crimea its own box, closing order… Exports: SIX_REGION_MAP_SCENARIO.
 - `packages/content/src/test/cardEnds.ts` - Test helper: where a real card ends up once a one-turn game is over, by the way it was used. Exports: CardUse, placeOf, whereCardEnds, describeOnceOnly.
@@ -813,6 +827,8 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/sideModeOf.test.ts` - O12, acceptance criterion 1: `sideModeOf` sorts its keys with an explicit compare function, and its results are unchanged.
 - `packages/server/src/store.test.ts`
 - `packages/server/src/store.ts` - The storage port behind `submit` (docs/architecture.md, Decision 5), and an in-memory store for tests. Exports: LoadedMatch, MatchWrite, CommitResult, MatchStore, MemoryStore.
+- `packages/server/src/stores.contract.stack.test.ts` - The store contracts (test/contracts/) run against the Supabase stores on the local Supabase stack, as stores.contract.test.ts runs them against the in-memory s…
+- `packages/server/src/stores.contract.test.ts` - The store contracts (test/contracts/) run against the in-memory stores; stores.contract.stack.test.ts runs the same contracts against their Supabase twins, so…
 - `packages/server/src/submit.leaks.test.ts`
 - `packages/server/src/submit.storage.test.ts`
 - `packages/server/src/submit.test.ts`
@@ -858,6 +874,9 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/sweepTurnAlerts.ts` - The turn alert sweep (docs/architecture.md, Decision 5, "Scheduled jobs", Notifications): email each player whose turn is still waiting and still unseen 20 min… Exports: TurnAlertDeps, TurnAlertResult, sweepTurnAlerts.
 - `packages/server/src/test/alerts.ts` - Test helpers for turn alerts: the test match in a MemoryStore, its first alerts queued in a MemoryNotifyStore, a MemoryMailer, and addresses for alice and bob. Exports: APP_URL, ADDRESSES, AlertWorld, withNotify, moveUntilNotified, alertWorld.
 - `packages/server/src/test/authEmail.ts` - Test helpers for the auth-email hook: a test secret, a send-email payload, a correctly signed hook request and a handler wired to a MemoryMailer and a recorded… Exports: TEST_SECRET, TEST_CODE, TEST_TOKEN_HASH, TEST_EMAIL, NOW_MS, NOW_SECONDS, payload, signedRequest, authEmailWorld.
+- `packages/server/src/test/contracts/inviteStore.ts` - The InviteStore contract: what both MemoryInviteStore and SupabaseInviteStore must do, checked only through the ports, so one suite runs against the fake (stor… Exports: InviteStoreHarness, inviteStoreContract.
+- `packages/server/src/test/contracts/matchStore.ts` - The MatchStore contract: what both MemoryStore and SupabaseStore must do, checked only through the port, so one suite runs against the fake (stores.contract.te… Exports: MatchStoreHarness, matchStoreContract.
+- `packages/server/src/test/contracts/notifyStore.ts` - The NotifyStore contract: what both MemoryNotifyStore and SupabaseNotifyStore must do, checked only through the port, so one suite runs against the fake (store… Exports: NotifyStoreHarness, notifyStoreContract.
 - `packages/server/src/test/deadlines.ts` - Test helpers for the deadline sweep: matches with deadlines in an in-memory store. Exports: DAY, rulesetFor, createdWithClock, insertMatch, insertSaeLate.
 - `packages/server/src/test/entitlementStack.ts` - The shared setup for the entitlement tests on the local Supabase stack: a service-role client and two fresh test users made before the tests, and their entitle… Exports: EntitlementStack, EntitlementInsert, entitlementStack.
 - `packages/server/src/test/errors.test.ts` - O12, acceptance criterion 2: `shown` prints a plain-object cause by its fields, never "[object Object]".
@@ -870,6 +889,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `packages/server/src/test/invites.ts` - Test helpers for invites: an in-memory invite store over O1's MemoryStore, with repeatable codes, match ids, seeds and random sides, and submit deps that run t… Exports: HOST, JOINER, INVITE_NOW, sequence, InviteWorld, inviteWorld.
 - `packages/server/src/test/match.ts` - Test helpers: a small ruleset and a match in an in-memory store, copying the idea of the host's tests. Exports: SEED, NOW, MATCH, ruleset, makeConfig, created, setup, bodyFor, nextSide.
 - `packages/server/src/test/seen.ts` - Test helpers for the seen handler: "match-1" at seq 0 with its first turn alerts queued (alerts.ts), behind a match store and a notify store that record every… Exports: TOKEN_OF, recordingStore, recordingNotify, SeenWorld, seenWorld.
+- `packages/server/src/test/stack.makeUser.test.ts` - makeUser creates the auth user before signing it in; a sign-in that fails must not leave that user behind, since the caller never gets it to clean up (follow-u…
 - `packages/server/src/test/stack.ts` - Test helpers for the SupabaseStore checks on the local Supabase stack (O3's localStack.ts finds it). Exports: onLocalStack, TestUser, makeUser, accessToken, freshMatchId, newGame, writeOf, putIn, Stored, storedRows, cleanUp.
 - `packages/server/src/test/stackGame.ts` - The shared setup for the tests on the local Supabase stack: a service-role client and two fresh test users made before the tests, and every test match and user… Exports: StackGame, stackGame, answered, expectStoredAs.
 - `packages/server/src/test/stores.ts` - Test helpers that wrap any MatchStore, for the in-memory and the Supabase store alike. Exports: loadTogether, recording.
@@ -966,7 +986,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/balance/README.md` - Balance tool
 - `tools/balance/arena.mjs` - `node tools/balance/arena.mjs [--a <tier>] [--b <tier>] [--games <n>] [--seed <base>] [--scenario <name>] [--json]`: the AI arena of Decision 8.
 - `tools/balance/arena.test.mjs` - The AI arena (X14, Decision 8): side alternation, tallying, the Medium-beats-Easy and Hard-beats-Medium gates, arguments and report shape.
-- `tools/balance/config.mjs` - The run's match config: the chosen scenario (the first-deck TEST scenario, the test map scenario with the first deck's Era 1 cards, or the six-region map with…
+- `tools/balance/config.mjs` - The run's match config: the chosen scenario (the first deck's base game, the test map scenario with the first deck's Era 1 cards, or the six-region map with th…
 - `tools/balance/era-stats.test.mjs` - The "By era" numbers from hand-made game summaries: distinct cards used per game, their share of the era, and picks plus plays per game, including a card both…
 - `tools/balance/fixtures/first-deck-3-games.txt`
 - `tools/balance/fixtures/first-deck-short.json`
@@ -974,7 +994,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/balance/map-stats.test.mjs` - The map numbers from a hand-made public view and events: influence, control through the engine's controller, points per action from the public events, and the…
 - `tools/balance/numbers.mjs` - A numbers file (--numbers): a proposal's stabilities, battleground lists and starting influence, laid over a map scenario's own for one run.
 - `tools/balance/numbers.test.mjs` - The --numbers option (X12, #438): a numbers file's stabilities, battleground lists and starting influence laid over a map scenario for one run, its refusals, a…
-- `tools/balance/options.test.mjs` - The run options --turns, --plays and --era: parsing, refusals, the host's own refusals, the report title, and a small seeded run with fewer turns and two eras…
+- `tools/balance/options.test.mjs` - The run options --turns, --plays and --era: parsing, refusals, the host's own refusals, the report title, and a small seeded run with fewer turns, one era move…
 - `tools/balance/play.mjs` - Plays one seeded Easy-vs-Easy game of the first deck through the match host, as a real match would run.
 - `tools/balance/region-stats.mjs` - Region levels at each era's end, on a scenario with a map.
 - `tools/balance/region-stats.test.mjs` - The region levels at each era's end (X12, #438): the highest level per side and region, with control from the engine and the battlegrounds of the era that is e…
@@ -1078,6 +1098,7 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `tools/sprint/fixtures/october-sprint.md` - Sprint: 20–22 October 2026
 - `tools/sprint/fixtures/october.jsonl`
 - `tools/sprint/local-state.mjs` - What a sprint keeps on its own computer, in the git folder every worktree shares (`git rev-parse --git-common-dir`), never committed.
+- `tools/sprint/local-state.test.mjs` - local-state's writes wait out Windows' brief locks on the renamed file (tools/rename-retry.mjs) instead of throwing.
 - `tools/sprint/moves.mjs` - `queue.mjs move <n> <state>`: the label changes and standard comment for each change of state, planned as gh commands from a snapshot.
 - `tools/sprint/moves.test.mjs` - Tests for the sprint's label moves (moves.mjs): which gh commands each move plans, and which moves are refused with what to do instead.
 - `tools/sprint/policy.test.mjs` - Tests for the owner's policy of 28 Oct 2026 in the queue (rules.mjs, moves.mjs, status.mjs, decisions.mjs): P1 only a [blocker] holds, P2 a machine failure ret…
@@ -1163,14 +1184,12 @@ each line comes from the file's first comment, its Markdown heading or descripti
 - `.claude/agents/architect.md` - Decides one technical question on a task (how to build it, structure, APIs, tooling, tests, naming, placement, performance, refactors) so it never waits for th…
 - `.claude/agents/implementer.md` - Builds one GitHub issue or fixes one pull request, with tests, in its own worktree. Only for night-shift and sprint-lane runs, never for interactive work.
 - `.claude/agents/reviewer.md` - Read-only review of one task's diff against its spec and the architecture rules. Returns PASS or a numbered list of concerns.
-- `.claude/launch.json`
 - `.claude/rules/app.md` - App and shell rules
 - `.claude/rules/content.md` - Content rules
 - `.claude/rules/engine.md` - Engine rules
 - `.claude/rules/server.md` - Server rules
 - `.claude/rules/tests.md` - Test rules
 - `.claude/settings.json`
-- `.claude/settings.local.json.bak-2026-11-13-2102`
 - `.claude/skills/art-prompts/SKILL.md` - Write image-generation prompts for cards from their data and the art style guide. Run as /art-prompts.
 - `.claude/skills/card/SKILL.md` - Add or change a card in packages/content - data, test and history note. Use for any card work.
 - `.claude/skills/handoff/SKILL.md` - Write a handoff note so a fresh session can pick up the work, or resume from one. Use when the owner says handoff, wrap up or resume, when the handoff hook say…

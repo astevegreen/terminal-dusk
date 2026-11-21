@@ -13,6 +13,8 @@ import { MEDIUM_WEIGHTS } from "./weights/medium.ts";
 
 /** The slowest answer allowed, in milliseconds (Decision 8). */
 const SLOWEST_MS = 500;
+// A test that plays whole games takes a few seconds on a slower CI runner, past the 5-second default.
+const WHOLE_GAMES_MS = 60_000;
 
 /** Plays `start` to its end with Medium on both sides: the last state and the slowest answer. */
 function playMedium(rules: Ruleset, start: TestState, name: string) {
@@ -81,13 +83,17 @@ describe("the Medium tier", () => {
     }
   });
 
-  it("plays whole games with the real first deck on the test map and the six-region map", () => {
-    const starts = [newFirstDeckMapGame(1), newSixRegionMapGame(1), newSixRegionMapGame(2)];
-    starts.forEach((start, i) => {
-      const { slowest } = playMedium(FIRST_DECK_RULESET, start, `first-deck game ${i}`);
-      expect(slowest).toBeLessThan(SLOWEST_MS);
-    });
-  });
+  it(
+    "plays whole games with the real first deck on the test map and the six-region map",
+    () => {
+      const starts = [newFirstDeckMapGame(1), newSixRegionMapGame(1), newSixRegionMapGame(2)];
+      starts.forEach((start, i) => {
+        const { slowest } = playMedium(FIRST_DECK_RULESET, start, `first-deck game ${i}`);
+        expect(slowest).toBeLessThan(SLOWEST_MS);
+      });
+    },
+    WHOLE_GAMES_MS,
+  );
 
   it("does not open with a card that raises Escalation to 6 when Escalation is at 5 and a safe card is in hand", () => {
     const base = viewFor(newMapGame(2), "lio");

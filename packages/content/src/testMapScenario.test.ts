@@ -3,7 +3,7 @@ import type { CardDef } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { scenarioSchema } from "../schema/scenario.ts";
 import type { Scenario } from "../schema/scenario.ts";
-import firstDeckRaw from "../scenarios/first-deck-test.json" with { type: "json" };
+import firstDeckRaw from "../scenarios/base-game.json" with { type: "json" };
 import { TEST_MAP_SCENARIO as exported } from "./index.ts";
 import { scenarioSetup } from "./scenario.ts";
 import { TEST_MAP_SCENARIO } from "./testMapScenario.ts";
@@ -120,7 +120,7 @@ describe("scenarioSetup with a map", () => {
     expect(pub.influence?.find((e) => e.country === "test-e1")).toEqual({ country: "test-e1", lio: 0, sae: 2 });
     expect(pub.influence?.find((e) => e.country === "test-d1")).toEqual({ country: "test-d1", lio: 0, sae: 0 });
   });
-  it("keeps first-deck-test.json valid, with no map", () => {
+  it("keeps base-game.json valid, with no map", () => {
     expect("map" in firstDeckRaw).toBe(false);
     expect(scenarioSchema.safeParse(firstDeckRaw).success).toBe(true);
     expect("map" in scenarioSetup(scenarioSchema.parse(firstDeckRaw))).toBe(false);

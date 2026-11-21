@@ -1,4 +1,4 @@
-// The run's match config: the chosen scenario (the first-deck TEST scenario, the test map scenario with the first
+// The run's match config: the chosen scenario (the first deck's base game, the test map scenario with the first
 // deck's Era 1 cards, or the six-region map with the whole first deck), with the turns, plays per turn, era arrival
 // turns and map numbers (numbers.mjs) the command line asked for. Only this run's config changes; the scenario
 // files, the hand size and the cards do not. The game rules about eras (turn 2 or later, not after the last turn,
@@ -16,7 +16,7 @@ export const DEFAULT_SCENARIO = SCENARIOS[0];
 /**
  * A fresh match config of `scenario` as its file has it. "test-map" is the first deck's config (empty hands, the
  * Era 1 draw pile) with the test map scenario's own numbers, map and starting influence in place of the TEST
- * scenario's (content's scenarioSetup); that scenario has no later eras, so only Era 1 cards play. "six-region" is
+ * base game's (content's scenarioSetup); that scenario has no later eras, so only Era 1 cards play. "six-region" is
  * the first deck's config with the six-region map scenario's own numbers, map and starting influence; it keeps the
  * first deck's eras (their cards and arrival turns), since the map scenario has a battleground list for each of
  * them but no cards of its own.

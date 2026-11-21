@@ -10,7 +10,7 @@ describe("the era names players see", () => {
       future: "Future cards (2025–2027)",
     });
   });
-  it("cover every era a first-deck card or the TEST scenario names", () => {
+  it("cover every era a first-deck card or the base game names", () => {
     const joining = FIRST_DECK_SCENARIO.eras ?? [];
     expect(joining.length).toBeGreaterThan(0);
     const eras = new Set([...FIRST_DECK_CARDS.map((c) => c.era), ...joining.map((e) => e.era)]);

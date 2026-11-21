@@ -38,7 +38,7 @@ describe("the once-only cards", () => {
   });
 });
 
-describe("the first-deck TEST scenario with once-only cards", () => {
+describe("the base game with once-only cards", () => {
   it("keeps 27 of Era 1's 29 cards in the game, at least twice the hand size of 8", () => {
     expect(ERA_1_CARDS).toHaveLength(29);
     const staying = ERA_1_CARDS.filter((card) => card.flags?.removeAfterEvent !== true);

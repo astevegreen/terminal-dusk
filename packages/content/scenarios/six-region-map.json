@@ -1,8 +1,8 @@
 {
   "id": "six-region-map",
-  "name": "Six-region map (option 2, H1, Crimea its own box, closing order C1; map-numbers option A as the owner chose it on 28 Oct, track starting in the middle; placeholder turns, plays and hand size)",
-  "turns": 4,
-  "playsPerTurn": 1,
+  "name": "Six-region map (option 2, H1, Crimea its own box, closing order C1; map-numbers option A as the owner chose it on 28 Oct, track starting in the middle; the base game's 10 turns, 2 plays each per turn and hands of 8)",
+  "turns": 10,
+  "playsPerTurn": 2,
   "handSize": 8,
   "firstEra": "era-1",
   "map": {

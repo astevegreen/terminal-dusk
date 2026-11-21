@@ -25,7 +25,7 @@ export const matchSeed = (base, i) => `${base}-${i}`;
  * map-stats.mjs or null when the game has no map, and `eraEnds`, region-stats.mjs's levels at each era's end, in
  * order, empty when the game has no map, and `score`, score-stats.mjs's numbers or null when the map has no scoring).
  * Throws on any refusal, and when a player throws or gives no
- * answer. `config` is the run's match config (see config.mjs); by default the first-deck TEST scenario as it is.
+ * answer. `config` is the run's match config (see config.mjs); by default the first deck's base game as it is.
  * `createPlayer(ruleset, side, seed)` makes each side's player; by default the Easy AI. `tiers` (optional,
  * { lio, sae } of TIERS names) picks each side's tier instead; `createPlayer` wins over it. The summary's `crises`
  * counts the escalation crises each side caused, and `techRaces` the tech race attempts each side made.

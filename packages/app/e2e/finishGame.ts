@@ -4,8 +4,7 @@ import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { answerOnce, yourDecision } from "./answer.ts";
 
-const FIRST_DECK_NOTE =
-  "First deck, Eras 1 to 3 and the future cards (TEST scenario with placeholder numbers; they join on turns 2, 3 and 4)";
+const FIRST_DECK_NOTE = "First deck, the base game: 10 turns, Eras 1 to 3 (Era 2 joins on turn 4, Era 3 on turn 6)";
 
 /**
  * Plays a game against the Easy AI as LIO to its end and returns the end screen's "Game over: ..." line: the first
