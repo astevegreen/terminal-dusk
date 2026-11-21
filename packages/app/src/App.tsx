@@ -9,6 +9,7 @@ import type { OnlineSetup } from "./online/OnlineScreen.tsx";
 import { pointsOf } from "./displayText.ts";
 import { realTimers } from "./online/timers.ts";
 import type { Timers } from "./online/timers.ts";
+import type { KeyValueStore } from "./platform/storage.ts";
 import { TestModeScreen } from "./testMode/TestModeScreen.tsx";
 import { VsAiScreen } from "./vsAi/VsAiScreen.tsx";
 import type { VsAiGame } from "./vsAi/VsAiScreen.tsx";
@@ -23,6 +24,10 @@ export type AppProps = {
   game?: VsAiGame;
   /** The game on the six-region map against the AI; the same as `game` when left out. */
   mapGame?: VsAiGame;
+  /** The free player's Era 1 game against the AI (L12); the same as `game` when left out. */
+  freeGame?: VsAiGame;
+  /** Where the AI's difficulty is kept between visits (Platform.storage); left out, it is not kept. */
+  store?: KeyValueStore;
   /** Supabase Auth and the session store; left out when this build has no online play set up. */
   online?: OnlineSetup;
   /** The timers an online game polls with; main.tsx passes the real ones, which are also the default. */
@@ -33,7 +38,7 @@ export type AppProps = {
 
 const TAP = { minHeight: 44, minWidth: 44 } as const;
 
-type Screen = "vsAi" | "vsAiMap" | "online" | "testMode";
+type Screen = "vsAi" | "vsAiMap" | "vsAiFree" | "online" | "testMode";
 
 export function App({
   clock,
@@ -41,6 +46,8 @@ export function App({
   newAiSeed,
   game,
   mapGame,
+  freeGame,
+  store,
   online,
   timers = realTimers,
   watch,
@@ -61,8 +68,8 @@ export function App({
     );
   }
   if (screen === "testMode") return <TestModeScreen clock={clock} />;
-  if (screen === "vsAi" || screen === "vsAiMap") {
-    const played = screen === "vsAiMap" ? (mapGame ?? game) : game;
+  if (screen === "vsAi" || screen === "vsAiMap" || screen === "vsAiFree") {
+    const played = screen === "vsAiMap" ? (mapGame ?? game) : screen === "vsAiFree" ? (freeGame ?? game) : game;
     return (
       <VsAiScreen
         key={screen}
@@ -70,6 +77,7 @@ export function App({
         newSeed={newSeed}
         newAiSeed={newAiSeed}
         {...(played ? { game: played } : {})}
+        {...(store ? { store } : {})}
       />
     );
   }
@@ -112,6 +120,9 @@ export function Home({ onPick }: Readonly<{ onPick: (screen: Screen) => void }>)
       </button>
       <button type="button" style={TAP} onClick={() => onPick("vsAi")}>
         Play against the AI
+      </button>
+      <button type="button" style={TAP} onClick={() => onPick("vsAiFree")}>
+        Play the free Era 1 game
       </button>
       <button type="button" style={TAP} onClick={() => onPick("online")}>
         Play online

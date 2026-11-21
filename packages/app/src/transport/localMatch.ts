@@ -22,6 +22,9 @@ export type ArchiveWith = (
   secret: MatchSecret,
 ) => { ok: true; value: ReplayArchive } | { ok: false; error: HostError };
 
+/** Told when a subscriber throws while a frame is delivered: the error and whose subscriber it was. */
+export type OnSubscriberError = (error: unknown, viewer: Viewer) => void;
+
 export type LocalMatch = {
   transportFor(viewer: Viewer): MatchTransport;
   /** The replay archive once the game is over, else null. Only the transport and the sessions may read it. */
@@ -39,6 +42,7 @@ export function createLocalMatch(
   seed: Seed,
   clock: () => number,
   archiveWith: ArchiveWith = hostArchive,
+  onSubscriberError?: OnSubscriberError,
 ): { ok: true; value: LocalMatch } | { ok: false; error: HostError } {
   const created = hostCreate(ruleset, config, seed, clock());
   if (!created.ok) return created;
@@ -62,8 +66,14 @@ export function createLocalMatch(
         if (!subscribers[viewer].has(onFrame)) continue;
         try {
           onFrame(current.frames[viewer]);
-        } catch {
-          // That subscriber's own failure; the match and the other subscribers carry on.
+        } catch (error) {
+          // That subscriber's own failure; the match and the other subscribers carry on. The caller may log it, and
+          // a callback that throws too changes nothing.
+          try {
+            onSubscriberError?.(error, viewer);
+          } catch {
+            // Nothing more to do with an error handler that fails.
+          }
         }
       }
     }

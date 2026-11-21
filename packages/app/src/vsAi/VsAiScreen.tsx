@@ -2,7 +2,7 @@
 // Web Worker (createWorkerAi) unless a test passes another opponent. Seeds and the clock come from main.tsx.
 import { SIDES } from "@terminal-dusk/engine";
 import type { CardId, Ruleset, Side } from "@terminal-dusk/engine";
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { FocusingGameScreen } from "../game/decisionFocus.tsx";
 import { ReplayScreen } from "../replay/ReplayScreen.tsx";
 import type { ReplayRecording } from "../replay/recording.ts";
@@ -11,7 +11,8 @@ import { SIDE_NAME, SIDE_WHO, pointsOf, sideFullName } from "../displayText.ts";
 import type { CardPoints, CardRules } from "../displayText.ts";
 import { cardAffiliation as fixtureAffiliation, cardName, cardQuestion, fixtureRuleset } from "../testMode/fixture.ts";
 import type { AiTier, MakeAi } from "./aiOpponent.ts";
-import { DEFAULT_TIER, DifficultyPicker, difficultyText } from "./difficulty.tsx";
+import type { KeyValueStore } from "../platform/storage.ts";
+import { DEFAULT_TIER, DifficultyPicker, difficultyText, loadTier, saveTier } from "./difficulty.tsx";
 import { createVsAiSession } from "./session.ts";
 import type { VsAiOptions } from "./session.ts";
 import type { VsAiSession, VsAiSnapshot } from "./session.ts";
@@ -192,6 +193,8 @@ export type VsAiScreenProps = {
   makeAi?: MakeAi;
   /** The game to play; the developer fixture when left out. */
   game?: VsAiGame;
+  /** Where the chosen difficulty is kept between visits (Platform.storage); left out, it is not kept. */
+  store?: KeyValueStore;
 };
 
 type SessionInputs = Readonly<
@@ -219,14 +222,36 @@ export function vsAiOptions(
 }
 
 export function VsAiScreen(props: Readonly<VsAiScreenProps>) {
-  const { clock, newSeed, newAiSeed, makeAi, game } = props;
+  const { clock, newSeed, newAiSeed, makeAi, game, store } = props;
   const [side, setSide] = useState<Side | null>(null);
   // Kept here, above the game, so New game offers the difficulty last chosen (#508).
   const [tier, setTier] = useState<AiTier>(DEFAULT_TIER);
+  // The saved difficulty replaces Medium once it is read, unless the player has already picked one by then.
+  const picked = useRef(false);
+  useEffect(() => {
+    if (!store) return;
+    let live = true;
+    void loadTier(store).then((saved) => {
+      if (live && !picked.current) setTier(saved);
+    });
+    return () => {
+      live = false;
+    };
+  }, [store]);
+  // Starting a game also settles the difficulty, so a late read of the saved one never restarts it.
+  const pickSide = (next: Side) => {
+    picked.current = true;
+    setSide(next);
+  };
+  const chooseTier = (next: AiTier) => {
+    picked.current = true;
+    setTier(next);
+    if (store) void saveTier(store, next);
+  };
   const start = useCallback(
     () => createVsAiSession(vsAiOptions(side ?? "lio", { clock, newSeed, newAiSeed, makeAi, game, tier })),
     [side, newSeed, newAiSeed, clock, makeAi, game, tier],
   );
-  if (!side) return <SidePicker onPick={setSide} note={game?.note} tier={tier} onTier={setTier} />;
+  if (!side) return <SidePicker onPick={pickSide} note={game?.note} tier={tier} onTier={chooseTier} />;
   return <Playing start={start} onNewGame={() => setSide(null)} game={game} />;
 }

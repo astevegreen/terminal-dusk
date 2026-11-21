@@ -36,6 +36,15 @@ describe("scenarioSetup", () => {
   it("returns an object with no eras key when the scenario has no eras", () => {
     expect("eras" in scenarioSetup(base)).toBe(false);
   });
+  it("passes an era's extendsEra through, and adds none to an era without it", () => {
+    const eras = [
+      { era: "mid", turn: 2, cards: ["a"] },
+      { era: "late", turn: 3, cards: ["b"], extendsEra: true as const },
+    ];
+    const got = scenarioSetup({ ...base, turns: 4, eras }).eras!;
+    expect(got).toEqual(eras);
+    expect(Object.hasOwn(got[0]!, "extendsEra")).toBe(false);
+  });
   it("keeps eras: [] and the eras it is given", () => {
     expect(scenarioSetup({ ...base, eras: [] }).eras).toEqual([]);
     expect(scenarioSetup(withEras).eras).toEqual(withEras.eras);

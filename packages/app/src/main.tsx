@@ -4,10 +4,12 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import {
   FIRST_DECK_NOTE,
+  ERA_1_FREE_NOTE,
   SIX_REGION_MAP_NOTE,
   firstDeckCardName,
   firstDeckCardQuestion,
   firstDeckCardRules,
+  era1FreeConfig,
   firstDeckConfig,
   firstDeckRuleset,
   sixRegionMapConfig,
@@ -36,6 +38,13 @@ const sixRegionMapGame: VsAiGame = {
   ...firstDeckGame,
   makeMatch: (seed, clock) => createLocalMatch(firstDeckRuleset, sixRegionMapConfig(), seed, clock),
   note: SIX_REGION_MAP_NOTE,
+};
+
+/** The free player's game (L12, #575): Era 1's cards only, 3 turns, against the AI. No sign-in or paywall yet. */
+const era1FreeGame: VsAiGame = {
+  ...firstDeckGame,
+  makeMatch: (seed, clock) => createLocalMatch(firstDeckRuleset, era1FreeConfig(), seed, clock),
+  note: ERA_1_FREE_NOTE,
 };
 
 /**
@@ -71,6 +80,8 @@ createRoot(root).render(
       newAiSeed={newAiSeed}
       game={firstDeckGame}
       mapGame={sixRegionMapGame}
+      freeGame={era1FreeGame}
+      store={webStore(localStorage)}
       timers={realTimers}
       {...(watchId === null ? {} : { watch: watchId })}
       {...(online ? { online } : {})}

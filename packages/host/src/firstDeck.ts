@@ -8,6 +8,7 @@ import {
   ERA_NAMES,
   FIRST_DECK_CARDS,
   FIRST_DECK_RULESET,
+  ERA_1_FREE_SCENARIO,
   FIRST_DECK_SCENARIO,
   cardName,
   scenarioSetup,
@@ -18,6 +19,7 @@ import type { MatchConfig } from "./types.ts";
 
 export const FIRST_DECK_NOTE =
   "First deck, the base game: 10 turns, Eras 1 to 3 (Era 2 joins on turn 4, Era 3 on turn 6)";
+export const ERA_1_FREE_NOTE = "The free game: Era 1 only, 1991 to 2001, 3 turns";
 export const SIX_REGION_MAP_NOTE =
   "First deck on the six-region map (placeholder stabilities, battlegrounds and starting influence)";
 export const firstDeckRuleset: Ruleset = FIRST_DECK_RULESET;
@@ -71,6 +73,22 @@ export function firstDeckConfig(): MatchConfig {
       hands: { lio: [], sae: [] },
       deck: ERA_1_CARDS.map((c) => c.id),
       ...scenarioSetup(FIRST_DECK_SCENARIO),
+    },
+  };
+}
+
+/**
+ * The free player's game (L12, #575; docs/design/eras.md): the Era 1 draw pile and the free scenario's numbers, so 3
+ * turns with no later era entering. Everything else is the first deck's.
+ */
+export function era1FreeConfig(): MatchConfig {
+  return {
+    matchId: "era-1-free",
+    players: { lio: "player-lio", sae: "player-sae" },
+    setup: {
+      hands: { lio: [], sae: [] },
+      deck: ERA_1_CARDS.map((c) => c.id),
+      ...scenarioSetup(ERA_1_FREE_SCENARIO),
     },
   };
 }

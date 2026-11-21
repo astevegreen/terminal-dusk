@@ -17,48 +17,37 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   Medium is unmeasured at that start (`node tools/balance/run.mjs --scenario six-region --lio-tier medium --sae-tier
 medium`, in 50-game batches). Recheck both tiers when the cards' rewording or the AI changes, and retune
   `map.scoring.track.start` in `packages/content/scenarios/six-region-map.json`. [21 Nov 2026, #515 balance pass]
-- No check ties each card's rules text to its numbers (points spent, Escalation moves, counts): the rewording tests
-  (`packages/content/src/rulesWording.test.ts`) check the wording's form, not that "spends 2 points" matches the
-  card's `spendPoints` amount. A check that reads the numbers out of the text and compares them with the effect
-  would catch a card whose text and data disagree. [6 Nov 2026, test-suite audit]
-- The 2025-2027 game (11 turns, the future cards entering on turn 11, scored at the end of 2027;
-  `docs/design/eras.md`) has no scenario yet, so the future cards are in the ruleset but in no game since #575
-  took them out of the base game (`packages/content/scenarios/base-game.json`). No whole game (fuzz, AI, balance or
-  the app's vs-AI game) reaches them until then; only their own card tests cover them. That game scores Era 3 only once, at the
-  end of 2027, but today's engine would score it at the end of turn 10 too: `eraEnds`
-  (`packages/engine/src/scoring.ts:61-64`) counts the turn before a waiting era enters as an era's end. That
-  scenario's build must stop the extra scoring. [21 Nov 2026, recording the owner's answers; #575]
-- The free player's Era 1 game (`packages/content/scenarios/era-1-free.json`, `ERA_1_FREE_SCENARIO`, #575) is data
-  and tests only: no host config (`packages/host/src/firstDeck.ts`) or app screen starts it yet. [21 Nov 2026, #575]
-- Design and proposal docs still name the old scenario file `first-deck-test.json` and its placeholder turns:
-  `docs/design/cards/deck-plan.md`, `era-2.md`, `era-3.md`, `progress.md` and `docs/proposals/card-count-gap.md`. It is
-  `packages/content/scenarios/base-game.json` since #575; and `docs/design/map-and-points.md` ("Map numbers", Open)
-  still says the scenario data has not been changed to the 21 Nov rules. Fix both at the next Notion promotion.
-  [21 Nov 2026, #575]
+- The 2025-2027 game (`packages/content/scenarios/2025-2027.json`, `SCENARIO_2025_2027`, #582) is data and tests
+  only: no host config (`packages/host/src/firstDeck.ts`) or app screen starts it, so no fuzz, AI, balance or vs-AI
+  game reaches the future cards yet; only their own card tests and the scenario's play-through test cover them.
+  Era 3's one scoring, at the end of turn 11, uses the map's `future` battleground list; only the six-region map is
+  checked to have it equal Era 3's, so the host config that starts this game needs the same check. [21 Nov 2026, #582]
+- `docs/design/map-and-points.md` ("Map numbers", Open) still says the scenario data has not been changed to the
+  21 Nov rules; the scenario is `packages/content/scenarios/base-game.json` since #575. Fix it at the next Notion
+  promotion. [21 Nov 2026, #575]
 
 ## App, host and server
 
-- The store contracts (`packages/server/src/test/contracts/`, #567) cover `MatchStore`, `InviteStore` and
-  `NotifyStore`, but not the `DeadlineStore` half (`due`, `saveClock`) that `MemoryStore` and `SupabaseStore` both
-  implement. Add a deadline contract so the fake can't drift from the `clock` and `next_deadline` columns.
-  [21 Nov 2026, agy on #567]
-- The AI's difficulty (#508) is kept only in `VsAiScreen`'s state (`packages/app/src/vsAi/VsAiScreen.tsx`): it
-  survives New game, but going back to the home screen or reloading resets it to Medium. Saving it through
-  `Platform.storage` (Decision 7) would keep it across visits. [21 Nov 2026, reviewer and agy on #573]
-- A subscriber that throws in a local match is skipped silently (`packages/app/src/transport/localMatch.ts:65`): the
-  match carries on, as it should, but nothing records the error. An optional `onSubscriberError` for the caller to
-  log would make such a bug visible. [6 Nov 2026, test-suite audit]
-
 ## Tests and tooling
+
+- The rules-text numbers check (`packages/content/src/rulesNumbers.test.ts`, #584) compares each kind's distinct numbers,
+  not which side or branch each belongs to: text giving LIO's "2 fewer" to SAE and SAE's "1 fewer" to LIO would pass.
+  Tying each number to its side and branch would close that gap. [21 Nov 2026, #584 review]
+- `pnpm gate`'s quick fuzz failed once in `tests/fuzz/extraSteps.test.ts`: "Extra-steps game 188 ... failed at answer
+  27: the view for 'sae' shows sae's Contingency deck with a count left that is not the secret order's"
+  (`tests/fuzz/checks.ts:256`, `checkNoLeaks`). Each game is seeded from its number, yet the next gate and three
+  1,000-game runs of that file passed, so something in that check or the game is not deterministic. Find what.
+  [21 Nov 2026, gate run on #583 while a balance run loaded the PC]
 
 - Agents comment as astevegreen while greenbeanbot is suspended, so after the bot returns a `Blocked:` comment an
   agent posted as the owner can read as the owner's answer (`tools/sprint/rules.mjs:207` `ownerAnswer`): check blocked
   issues then, or mark agent comments so the queue stops relying on the author (7 Nov 2026, review of #540).
 - `tools/gates/test-count.mjs:153-159` `heldByOwner` trusts a `held` label added by astevegreen, which agents now add
   too while gh is signed in as the owner, so a PR an agent held may drop tests (7 Nov 2026, review of #540).
-- `tools/gates/test-count.mjs` reads the base counts file (`--compare`, line 184) only after it has run the pull
-  request's own tests (line 179), so a test could rewrite `$RUNNER_TEMP/base-counts.json` (ci.yml's test-count job) before it is read. Read the
-  file first, or keep it where the tests can't write. [7 Nov 2026, CI-speed session, test-count cache]
+- ci.yml's test-count job writes `$RUNNER_TEMP/pr-events.ndjson` (the `held` label history) before the pull
+  request's own `pnpm install` runs, so an install script from the pull request could rewrite it before
+  `tools/gates/test-count.mjs` reads it (#587 only covers the tests the script runs). Fetch the events after the
+  install, or keep them where the pull request's code can't write. [21 Nov 2026, agy on #589]
 - `docs/repo-map.md` is still tracked, but the pre-commit hook no longer refreshes it, so it goes stale until someone
   runs `pnpm repo-map` (in a small PR of its own, not inside feature PRs). Next step: `git rm --cached` it, add it to
   `.gitignore`, and generate it into the working tree (plain `node tools/repo-map.mjs`) from new
@@ -70,9 +59,6 @@ medium`, in 50-game batches). Recheck both tiers when the cards' rewording or th
   10-minute idle timeout before passing to the next model; a short limit on the TLS handshake alone would end it in
   seconds, in all three repos. The cloud proxy cuts idle tunnels, so it has not happened. [7 Nov 2026, Gemini API
   tunnel fix review]
-- `tools/gemini/gemini-api.mjs` now exports `CUT_LINE`, the diff-cut marker the audit imports (this repo, PR for
-  the shared marker); its header says the file is the same in blockchain-technology-course and YODC, so copy it
-  there and have their audit scripts import it too. [21 Nov 2026, AI and tools lane]
 - The fuzz suites that prove random play "reaches" a feature (`tests/fuzz/easy.test.ts:56`, `reveals.test.ts`,
   `removed.test.ts`, `neutral.test.ts`, `extraSteps.test.ts`) each replay their games again to count events. One
   coverage pass that plays each game once and feeds every counter would save the replays; not merged yet because
