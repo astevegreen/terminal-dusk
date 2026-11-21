@@ -179,7 +179,7 @@ if (import.meta.main) {
     if (eventsFile && !owner) throw new Error("--held-events needs --owner <login>.");
     // Read the base counts and held events before running any test, so a test can't rewrite them.
     const base = compare ? readJson(compare) : null;
-    const held = eventsFile ? heldByOwner(readEvents(eventsFile), owner) : false;
+    const held = compare && eventsFile ? heldByOwner(readEvents(eventsFile), owner) : false;
     const counts = countTests(option("--root") ?? path.resolve(import.meta.dirname, "..", ".."));
     if (save) {
       writeFileSync(save, JSON.stringify(counts, null, 2) + "\n");

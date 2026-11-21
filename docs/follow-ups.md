@@ -50,6 +50,10 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   issues then, or mark agent comments so the queue stops relying on the author (7 Nov 2026, review of #540).
 - `tools/gates/test-count.mjs:153-159` `heldByOwner` trusts a `held` label added by astevegreen, which agents now add
   too while gh is signed in as the owner, so a PR an agent held may drop tests (7 Nov 2026, review of #540).
+- ci.yml's test-count job writes `$RUNNER_TEMP/pr-events.ndjson` (the `held` label history) before the pull
+  request's own `pnpm install` runs, so an install script from the pull request could rewrite it before
+  `tools/gates/test-count.mjs` reads it (#587 only covers the tests the script runs). Fetch the events after the
+  install, or keep them where the pull request's code can't write. [21 Nov 2026, agy on #589]
 - `docs/repo-map.md` is still tracked, but the pre-commit hook no longer refreshes it, so it goes stale until someone
   runs `pnpm repo-map` (in a small PR of its own, not inside feature PRs). Next step: `git rm --cached` it, add it to
   `.gitignore`, and generate it into the working tree (plain `node tools/repo-map.mjs`) from new
