@@ -43,15 +43,26 @@ describe("createOnlineGame: signed out (#536)", () => {
     expect(r.game.getSnapshot().signedOut).toBe(false);
   });
 
-  it("after close, refused polls change nothing", async () => {
+  it("a second refusal still in flight at close changes nothing and calls no listener", async () => {
     const r = onlineRig();
     await settle();
     r.fake.failNext(401);
     await poll(r);
-    const before = r.game.getSnapshot();
-    r.game.close();
+    // The second refused poll reaches the server, and is held there until after close.
+    const release = r.fake.hold();
+    const requests = r.fake.requests.length;
     r.fake.failNext(401);
     await poll(r);
+    expect(r.fake.requests.length).toBe(requests + 1);
+    const before = r.game.getSnapshot();
+    const listener = vi.fn();
+    r.game.subscribe(listener);
+    r.game.close();
+    release();
+    await settle();
     expect(r.game.getSnapshot()).toBe(before);
+    expect(r.game.getSnapshot().signedOut).toBe(false);
+    expect(listener).not.toHaveBeenCalled();
+    expect(r.timers.waiting()).toEqual([]);
   });
 });
