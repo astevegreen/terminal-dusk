@@ -121,22 +121,26 @@ test("counts Vitest tests in each package and in tests/, one per table row, with
 });
 
 // Another spelling of dir: on Windows its short 8.3 name (CI's temp folder is C:\Users\RUNNER~1), elsewhere a link.
-function otherSpelling(dir) {
+function otherSpelling(t, dir) {
   if (process.platform !== "win32") {
     symlinkSync(dir, `${dir}-link`);
+    t.after(() => unlinkSync(`${dir}-link`));
     return `${dir}-link`;
   }
   const r = spawnSync("cmd", ["/d", "/s", "/c", `"for %I in ("${dir}") do @echo %~sI"`], {
     encoding: "utf8",
     windowsVerbatimArguments: true,
   });
-  return r.stdout.trim();
+  assert.equal(r.status, 0, `cmd couldn't give the short name of ${dir}: ${r.stderr}`);
+  const short = r.stdout.trim();
+  assert.notEqual(short, dir, "this drive keeps no 8.3 short names, so the test would prove nothing here");
+  return short;
 }
 
 test("names files from the root however its path is spelt, as Vitest names them by the long spelling", (t) => {
   const dir = path.join(tempDir(), "a-long-folder-name");
   mkdirSync(dir);
-  assert.deepEqual(countTests(otherSpelling(vitestFolder(t, dir))), vitestCounts);
+  assert.deepEqual(countTests(otherSpelling(t, vitestFolder(t, dir))), vitestCounts);
 });
 
 test("a package whose tests aren't run by Vitest can't be counted, so counting stops", () => {
