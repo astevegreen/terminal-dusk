@@ -7,6 +7,7 @@ import { memo, useEffect, useId, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 import type { CardId } from "@terminal-dusk/engine";
 import { ChipFace, chipName } from "./handCards.tsx";
+import { announceOpen, onOtherOpen } from "./openOne.ts";
 import type { StripChip } from "./handCards.tsx";
 
 /** The chip the keyboard moves to from chip `index` of `count` on `key`, or null for a key the strip ignores. */
@@ -53,7 +54,8 @@ function HandStripInner({
   }, [liftedAt]);
 
   // While a card is lifted, Escape drops it (the keyboard's place goes back to its chip), and a tap anywhere but on
-  // the card or the strip's chips drops it too.
+  // the card or the strip's chips drops it too, as does a top-bar panel opening by any means, the keyboard too
+  // (openOne.ts, #503).
   useEffect(() => {
     if (liftedAt < 0) return undefined;
     const onKey = (event: globalThis.KeyboardEvent): void => {
@@ -68,9 +70,11 @@ function HandStripInner({
     };
     document.addEventListener("keydown", onKey);
     document.addEventListener("pointerdown", onPointer);
+    const stopHearing = onOtherOpen(document, "card", () => setPicked(null));
     return () => {
       document.removeEventListener("keydown", onKey);
       document.removeEventListener("pointerdown", onPointer);
+      stopHearing();
     };
   }, [liftedAt]);
 
@@ -101,6 +105,7 @@ function HandStripInner({
             onClick={() => {
               setCurrent(i);
               focusOnLift.current = chip.card !== lifted;
+              if (chip.card !== lifted) announceOpen(document, "card");
               setPicked(chip.card === lifted ? null : chip.card);
             }}
           >
@@ -131,7 +136,7 @@ function HandStripInner({
 }
 
 /**
- * Takes one lifted card per chip as children, in the chips' order. Wrapped in `memo`, like SideTabs: the test
+ * Takes one lifted card per chip as children, in the chips' order. Wrapped in `memo`, like TopBar: the test
  * walkers that call function components directly (testMode/promptTree.ts, online/test/screenTree.ts) step over its
  * hooks and walk on into the lifted cards, reaching the choices on them.
  */
