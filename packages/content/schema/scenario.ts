@@ -8,8 +8,16 @@ import { mapSchema } from "./map.ts";
 
 const name = z.string().min(1);
 
-/** A later era: its name, the turn it enters on, and the cards it shuffles into the draw pile. */
-const eraEntry = z.strictObject({ era: name, turn: z.number(), cards: z.array(name).min(1) });
+/**
+ * A later era: its name, the turn it enters on, and the cards it shuffles into the draw pile. `extendsEra: true` when
+ * its cards join the era in play, so the turn before it is not an era's end (the engine's EraEntry).
+ */
+const eraEntry = z.strictObject({
+  era: name,
+  turn: z.number(),
+  cards: z.array(name).min(1),
+  extendsEra: z.literal(true).exactOptional(),
+});
 
 /** One Contingency deck (a side's or the World deck): at least 3 cards, each a whole number, 1 or more. */
 const deck = z.array(z.int().min(1)).min(3);

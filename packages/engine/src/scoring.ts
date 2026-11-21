@@ -57,10 +57,14 @@ function atEnd(score: number, end: number): Side | null {
   return score >= end ? "sae" : null;
 }
 
-/** Whether the turn ending now is the last of its era: the game's last turn, or one before a waiting era enters. */
+/**
+ * Whether the turn ending now is the last of its era: the game's last turn, or one before a waiting era enters. An
+ * entry that extends the era in play (extendsEra) does not end it: the 2025–2027 scenario's future cards enter on
+ * turn 11, and Era 3 still scores only at the end of turn 11 (docs/design/eras.md).
+ */
 export function eraEnds(state: GameState): boolean {
   const { turn, turns } = state.public;
-  return turn >= turns || state.secret.eras.some((entry) => entry.turn === turn + 1);
+  return turn >= turns || state.secret.eras.some((entry) => entry.turn === turn + 1 && entry.extendsEra !== true);
 }
 
 /**
