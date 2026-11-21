@@ -149,7 +149,8 @@ describe("the AI and the tech race", () => {
   });
 
   it("Medium makes a sure attempt in every menu where placing influence is worth nothing", () => {
-    const worthless = { ...MEDIUM_WEIGHTS, region: 0, progress: 0 };
+    // No crisis cost either, so a menu one step short of Hypersonics at Escalation 5 still counts (agy on #559).
+    const worthless = { ...MEDIUM_WEIGHTS, region: 0, progress: 0, crisis: 0 };
     for (const menu of MENUS) {
       const side = techMenuSide(menu)!;
       const sure = viewFor(withDeck(menu, side, [9, 9, 9]), side);
