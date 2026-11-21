@@ -229,11 +229,20 @@ describe("the deadline in Details (#504)", () => {
   const detailOf = (snapshot: OnlineGameSnapshot): string | null => {
     const extra = shown(snapshot, null)?.props.extraDetails;
     if (extra === undefined || extra === null) return null;
-    return /<p data-testid="deadline-detail">([^<]*)<\/p>/.exec(renderToString(<>{extra}</>))?.[1] ?? null;
+    return (
+      /<p data-testid="deadline-detail">([^<]*)<\/p>/
+        .exec(renderToString(<>{extra}</>))?.[1]
+        ?.replaceAll("&#x27;", "'") ?? null
+    );
   };
   it("shows the whole deadline, whose it is and the extra deadline still to come", async () => {
     const r = await started("alice", clockWith({ lio: NOW + 2 * DAY + 4 * HOUR, sae: null }));
     expect(detailOf(r.game.getSnapshot())).toBe("Your deadline: 2 days 4 hours left, then one extra deadline");
+  });
+  it("names the other side when the deadline is theirs, from the frame's viewer", async () => {
+    const snapshot = (await started("alice", clockWith({ lio: NOW + DAY, sae: null }))).game.getSnapshot();
+    const theirs = { ...snapshot, deadline: { ...snapshot.deadline!, side: "sae" as const } };
+    expect(detailOf(theirs)).toBe("SAE's deadline: 1 day left, then one extra deadline");
   });
   it("is left out when the deadline is null or the game is over", async () => {
     const r = await started();

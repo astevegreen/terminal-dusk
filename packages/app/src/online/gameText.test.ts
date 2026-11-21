@@ -78,6 +78,7 @@ describe("deadlineDetail: the deadline in full, for the Details panel (#504)", (
   });
   it("says only time is up once it has passed", () => {
     expect(deadlineDetail(at(0, "graceThenLoss", false), "lio")).toBe("Your deadline: time is up");
+    expect(deadlineDetail(at(-1, "graceThenLoss", true), "lio")).toBe("Your deadline: time is up");
   });
 });
 
