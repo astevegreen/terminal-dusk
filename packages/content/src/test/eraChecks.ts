@@ -101,7 +101,7 @@ export function opsSpread(cards: readonly Card[]): number[][] {
 }
 
 /**
- * createGame's result for the first-deck TEST scenario as packages/host/src/firstDeck.ts starts it: empty hands and
+ * createGame's result for the base game as packages/host/src/firstDeck.ts starts it: empty hands and
  * every Era 1 card in the draw pile, so the turn 1 refill deals each side its first hand (core-loop.md).
  */
 export function startEraOneGame(): ReturnType<typeof createGame> {

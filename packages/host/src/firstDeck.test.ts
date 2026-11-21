@@ -47,10 +47,10 @@ describe("the first deck as a game", () => {
     expect(hands("a")).toEqual(hands("a"));
     expect(hands("a")).not.toEqual(hands("b"));
   });
-  it("refills both hands to 8 on turn 2, from a draw pile that now holds the Era 2 cards", () => {
-    let state = started("a");
-    // Each open decision gets its first legal answer until turn 2's opening pick opens.
-    while (state.public.turn < 2 || state.private.lio.picks.length + state.private.sae.picks.length > 0) {
+  /** The state once `turn`'s opening pick opens, each open decision before it given its first legal answer. */
+  const atTurn = (seed: string, turn: number) => {
+    let state = started(seed);
+    while (state.public.turn < turn || state.private.lio.picks.length + state.private.sae.picks.length > 0) {
       const d = state.public.pending[0]!;
       const r = apply(firstDeckRuleset, state, {
         decisionId: d.id,
@@ -60,26 +60,35 @@ describe("the first deck as a game", () => {
       if (!r.ok) throw new Error(`answer refused: ${r.error.code}`);
       state = r.value.state;
     }
-    for (const side of SIDES) expect(state.private[side].hand).toHaveLength(8);
-    expect(state.secret.deck.some((id) => id.startsWith("e2-"))).toBe(true);
+    return state;
+  };
+  it("refills both hands to 8 on turn 2 with Era 1 cards only, and on turn 4 from a draw pile that holds the Era 2 cards", () => {
+    const second = atTurn("a", 2);
+    for (const side of SIDES) expect(second.private[side].hand).toHaveLength(8);
+    expect(
+      [...second.secret.deck, ...SIDES.flatMap((side) => second.private[side].hand)].every((id) =>
+        id.startsWith("e1-"),
+      ),
+    ).toBe(true);
+    const fourth = atTurn("a", 4);
+    for (const side of SIDES) expect(fourth.private[side].hand).toHaveLength(8);
+    expect(fourth.secret.deck.some((id) => id.startsWith("e2-"))).toBe(true);
   });
-  it("lets Era 2 enter on turn 2 with all 30 of its cards, none of them in the starting draw pile", () => {
+  it("lets Era 2 enter on turn 4 with all 30 of its cards, none of them in the starting draw pile (owner, 21 Nov 2026)", () => {
     const { eras, deck } = firstDeckConfig().setup;
     const era2 = eras?.find((e) => e.era === "era-2");
-    expect(era2).toMatchObject({ era: "era-2", turn: 2 });
+    expect(era2).toMatchObject({ era: "era-2", turn: 4 });
     expect(era2?.cards).toHaveLength(30);
     expect(era2?.cards.every((id) => id.startsWith("e2-"))).toBe(true);
     for (const id of era2?.cards ?? []) expect(deck).not.toContain(id);
   });
-  it("lets Era 3 enter on turn 3 with its 31 cards and the future cards on turn 4 with their 6, none in the first pile", () => {
+  it("lets Era 3 enter on turn 6 with its 31 cards, and no future cards in the base game, none in the first pile", () => {
     const { eras, deck } = firstDeckConfig().setup;
     expect(eras?.map((e) => [e.era, e.turn, e.cards.length])).toEqual([
-      ["era-2", 2, 30],
-      ["era-3", 3, 31],
-      ["future", 4, 6],
+      ["era-2", 4, 30],
+      ["era-3", 6, 31],
     ]);
     expect(eras?.find((e) => e.era === "era-3")?.cards.every((id) => id.startsWith("e3-"))).toBe(true);
-    expect(eras?.find((e) => e.era === "future")?.cards.every((id) => id.startsWith("ef-"))).toBe(true);
     for (const id of (eras ?? []).flatMap((e) => e.cards)) expect(deck).not.toContain(id);
   });
   it("starts a match with the engine for many seeds", () => {
@@ -87,9 +96,10 @@ describe("the first deck as a game", () => {
       expect(hostCreate(firstDeckRuleset, firstDeckConfig(), seed, 0).ok).toBe(true);
     }
   });
-  it("names its cards with real card names and labels the game as a TEST", () => {
+  it("names its cards with real card names and labels the game as the 10-turn base game (owner, 21 Nov 2026)", () => {
     expect(firstDeckCardName("e1-lio-001")).not.toBe("e1-lio-001");
-    expect(FIRST_DECK_NOTE).toMatch(/TEST/);
+    expect(FIRST_DECK_NOTE).toMatch(/the base game: 10 turns/);
+    expect(FIRST_DECK_NOTE).not.toMatch(/TEST|placeholder|future/);
   });
 });
 

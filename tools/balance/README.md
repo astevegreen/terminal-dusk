@@ -3,19 +3,20 @@
 Plays many games of the first deck between two Easy AI players and counts what happened, so we can see whether
 one side or one card does better than the others.
 
-By default the scenario is the first-deck TEST scenario. Its numbers (turns, plays per turn, hand size) are
-placeholders, and there is no victory rule yet, so today every game ends at the turn limit with no winner. The
-report is a tool for later, not a verdict on the design.
+By default the scenario is the first deck's base game (`packages/content/scenarios/base-game.json`): 10 turns, 2
+plays each per turn, hands of 8, Era 2 entering on turn 4 and Era 3 on turn 6 (owner, 21 Nov 2026). There is no
+victory rule yet, so today every game ends at the turn limit with no winner. The report is a tool for later, not a
+verdict on the design.
 
 ## Choosing the scenario
 
 ```
-node tools/balance/run.mjs --scenario first-deck   # the first-deck TEST scenario (the same as no --scenario)
+node tools/balance/run.mjs --scenario first-deck   # the first deck's base game (the same as no --scenario)
 node tools/balance/run.mjs --scenario test-map     # the made-up test map (packages/content/scenarios/test-map.json)
 node tools/balance/run.mjs --scenario six-region   # the six-region map (packages/content/scenarios/six-region-map.json)
 ```
 
-- `first-deck` (the default) prints exactly the report the tool printed before `--scenario` existed.
+- `first-deck` (the default) prints the same report as no `--scenario`.
 - `test-map` plays the first deck's Era 1 cards on the test map scenario, with that scenario's own numbers
   (4 turns, 1 play per turn, hands of 2), map and starting influence. The scenario has no later eras, so only Era 1
   cards play and only their rows are listed. The test map is test data, not the game's map, and there is still no
@@ -72,7 +73,7 @@ hanging.
 Every pick and play counts, so a card played twice in one game counts twice (but that game counts once in
 **games**).
 
-- **By era**: one row per era (era-1, era-2, era-3, future). Which era a card belongs to comes from the card itself
+- **By era**: one row per era of the run's setup (era-1, era-2, era-3 on the first deck). Which era a card belongs to comes from the card itself
   (its `era`), not from its id.
   - **cards**: how many cards that era has in this run's games;
   - **used per game**: on average, how many different cards of that era were picked or played in one game by
@@ -118,17 +119,18 @@ the hand size stays the scenario's (8 on first-deck, 2 on test-map, where the ho
 The era ids are the chosen scenario's: on `test-map`, which has only era-1, every `--era` is refused.
 
 ```
-node tools/balance/run.mjs --turns 6                         # 6 turns instead of 4
-node tools/balance/run.mjs --plays 2                         # 2 plays per turn instead of 1
-node tools/balance/run.mjs --era era-2@3 --era era-3@5 --turns 6   # era-2 cards enter on turn 3, era-3 on turn 5
-node tools/balance/run.mjs --turns 2 --era era-3@off --era future@off  # 2 turns, era-3 and future left out
+node tools/balance/run.mjs --turns 6 --era era-3@off        # 6 turns instead of 10, era-3 left out
+node tools/balance/run.mjs --plays 1                         # 1 play per turn instead of 2
+node tools/balance/run.mjs --era era-2@3 --era era-3@5       # era-2 cards enter on turn 3, era-3 on turn 5
+node tools/balance/run.mjs --turns 3 --era era-2@2 --era era-3@off  # 3 turns, era-2 on turn 2, era-3 left out
 ```
 
 - `--turns <n>` and `--plays <n>` take a whole number, 1 or more.
 - `--era <era id>@<turn>` sets the turn on which that era's cards join the draw pile; `--era <era id>@off` leaves
-  that era's cards out of the game. Use it once per era. Eras you do not name keep the TEST scenario's turns
-  (era-2 on turn 2, era-3 on turn 3, future on turn 4), so a run with fewer turns must also move or leave out the
-  later eras. era-1 cannot be moved: its cards are always in from turn 1.
+  that era's cards out of the game. Use it once per era. Eras you do not name keep the base game's turns
+  (era-2 on turn 4, era-3 on turn 6), so a run with fewer turns must also move or leave out the later eras. era-1
+  cannot be moved: its cards are always in from turn 1. The base game has no future era (the future cards belong
+  to the 2025-2027 game, which has no scenario yet), so `--era future@…` is refused.
 - A badly written value, an era named twice, era-1, or an era id the first deck does not have is refused with the
   usage line, and no game is played.
 - The game itself refuses some combinations: an era entering on turn 1 or after the last turn, or two eras on the

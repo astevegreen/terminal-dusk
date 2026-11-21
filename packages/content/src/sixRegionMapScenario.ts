@@ -7,7 +7,7 @@
 // - scoring: option A's weighted amounts, 20 steps to each end, starting in the middle ("Weighted, 20, middle");
 // - starting influence: Taiwan LIO 2, Crimea SAE 1, every other country empty (R24 "LIO 3 / SAE 1", then Taiwan
 //   lowered to LIO 2 by the X15 balance pass, option 1, owner 29 Oct, #472).
-// Still placeholders: turns, plays per turn and hand size are first-deck-test.json's.
+// Its turns, plays per turn and hand size are the base game's (base-game.json; owner, 21 Nov 2026).
 import { scenarioSchema } from "../schema/scenario.ts";
 import raw from "../scenarios/six-region-map.json" with { type: "json" };
 

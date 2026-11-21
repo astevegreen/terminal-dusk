@@ -15,10 +15,10 @@ describe("the Era 1 deck", () => {
   });
 });
 
-describe("the first-deck TEST scenario", () => {
-  it("says in its name that it is a test with placeholder numbers", () => {
-    expect(FIRST_DECK_SCENARIO.name).toMatch(/TEST/);
-    expect(FIRST_DECK_SCENARIO.name).toMatch(/placeholder/);
+describe("the base game with the first deck", () => {
+  it("says in its name that it is the base game with the owner's numbers (21 Nov 2026), not a test with placeholders", () => {
+    expect(FIRST_DECK_SCENARIO.name).toMatch(/^The base game, 1991 to 2025 \(10 turns, 2 plays each per turn/);
+    expect(FIRST_DECK_SCENARIO.name).not.toMatch(/TEST|placeholder/i);
   });
   it("refills hands to 8, the owner's hand size (deck-plan.md, Owner question 27)", () => {
     expect(FIRST_DECK_SCENARIO.handSize).toBe(8);

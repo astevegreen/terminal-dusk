@@ -17,16 +17,19 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   (`packages/content/src/rulesWording.test.ts`) check the wording's form, not that "spends 2 points" matches the
   card's `spendPoints` amount. A check that reads the numbers out of the text and compares them with the effect
   would catch a card whose text and data disagree. [6 Nov 2026, test-suite audit]
-- The scenarios still use the old placeholder lengths: `packages/content/scenarios/first-deck-test.json:4-5`,
-  `six-region-map.json:4-5` and `test-map.json:4-5` have 4 turns and 1 play per turn (only `first-deck-test.json` lists
-  eras, entering on turns 2, 3 and 4). The owner's answers of 21 Nov (`docs/design/eras.md`) are 2 plays per turn and a 10-turn base game,
-  Era 2 entering on turn 4 and Era 3 on turn 6; the free player's Era 1 game (3 turns) and the 2025-2027 game
-  (11 turns, scored at the end of 2027) have no scenario yet. Golden replays change with it. [21 Nov 2026, recording
-  the owner's answers]
-- The 2025-2027 scenario scores Era 3 only once, at the end of 2027 (`docs/design/eras.md`), but today's engine
-  would score it at the end of turn 10 too: `eraEnds` (`packages/engine/src/scoring.ts:61-64`) counts the turn
-  before a waiting era enters as an era's end, and the future cards enter on turn 11. That scenario's build must
-  stop the extra scoring. [21 Nov 2026, recording the owner's answers]
+- The 2025-2027 game (11 turns, the future cards entering on turn 11, scored at the end of 2027;
+  `docs/design/eras.md`) has no scenario yet, so the future cards are in the ruleset but in no game since #575
+  took them out of the base game (`packages/content/scenarios/base-game.json`). It scores Era 3 only once, at the
+  end of 2027, but today's engine would score it at the end of turn 10 too: `eraEnds`
+  (`packages/engine/src/scoring.ts:61-64`) counts the turn before a waiting era enters as an era's end. That
+  scenario's build must stop the extra scoring. [21 Nov 2026, recording the owner's answers; #575]
+- The free player's Era 1 game (`packages/content/scenarios/era-1-free.json`, `ERA_1_FREE_SCENARIO`, #575) is data
+  and tests only: no host config (`packages/host/src/firstDeck.ts`) or app screen starts it yet. [21 Nov 2026, #575]
+- Design and proposal docs still name the old scenario file `first-deck-test.json` and its placeholder turns:
+  `docs/design/cards/deck-plan.md`, `era-2.md`, `era-3.md`, `progress.md` and `docs/proposals/card-count-gap.md`. It is
+  `packages/content/scenarios/base-game.json` since #575; and `docs/design/map-and-points.md` ("Map numbers", Open)
+  still says the scenario data has not been changed to the 21 Nov rules. Fix both at the next Notion promotion.
+  [21 Nov 2026, #575]
 
 ## App, host and server
 

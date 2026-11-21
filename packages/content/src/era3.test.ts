@@ -24,11 +24,11 @@ describe("the Era 3 deck", () => {
   });
 });
 
-describe("Era 3 in the first-deck TEST scenario", () => {
+describe("Era 3 in the base game", () => {
   const entry = FIRST_DECK_SCENARIO.eras?.find((e) => e.era === "era-3");
-  it("enters on turn 3 with every Era 3 card, listed once", () => {
+  it("enters on turn 6 with every Era 3 card, listed once (owner, 21 Nov 2026)", () => {
     expect(FIRST_DECK_SCENARIO.eras?.filter((e) => e.era === "era-3")).toHaveLength(1);
-    expect(entry?.turn).toBe(3);
+    expect(entry?.turn).toBe(6);
     expect([...(entry?.cards ?? [])].sort(byText)).toEqual(ERA_3_CARDS.map((c) => c.id).sort(byText));
   });
   it("is accepted by createGame, and its cards wait in the secret compartment, not in a hand or the draw pile", () => {

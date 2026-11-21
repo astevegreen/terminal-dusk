@@ -1,8 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { answerOnce, liftedCard, stripChips, yourDecision } from "./answer.ts";
 
-const FIRST_DECK_NOTE =
-  "First deck, Eras 1 to 3 and the future cards (TEST scenario with placeholder numbers; they join on turns 2, 3 and 4)";
+const FIRST_DECK_NOTE = "First deck, the base game: 10 turns, Eras 1 to 3 (Era 2 joins on turn 4, Era 3 on turn 6)";
 
 test("play against the AI: pick LIO and tap through a whole game against the worker AI", async ({ page }) => {
   await page.goto("/");

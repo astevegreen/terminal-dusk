@@ -1,0 +1,8 @@
+{
+  "id": "era-1-free",
+  "name": "The free player's game against the AI: Era 1 only, 1991 to 2001 (3 turns, 2 plays each per turn, hands of 8)",
+  "turns": 3,
+  "playsPerTurn": 2,
+  "handSize": 8,
+  "firstEra": "era-1"
+}

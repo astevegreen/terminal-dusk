@@ -22,14 +22,15 @@ const SIDES = ["lio", "sae"];
 const ACTIONS = ["place", "intervene", "realign"];
 
 test("with no --scenario, or --scenario first-deck, the report is the one the tool printed before this change", () => {
-  // Both fixtures were recorded from main before --scenario existed.
+  // Both fixtures were recorded from main before --scenario existed, and recorded again when the first deck took
+  // the base game's numbers (#575: 10 turns, 2 plays each per turn, Era 2 on turn 4, Era 3 on turn 6, no future era).
   const before = fixture("first-deck-3-games.txt");
   for (const extra of [[], ["--scenario", "first-deck"]]) {
     const r = balance("--games", "3", "--seed", "fixture", ...extra);
     assert.equal(r.status, 0, r.stderr);
     assert.equal(r.stdout, before, extra.join(" "));
   }
-  const short = ["--games", "2", "--seed", "fixture", "--turns", "2", "--era", "era-3@off", "--era", "future@off"];
+  const short = ["--games", "2", "--seed", "fixture", "--turns", "3", "--era", "era-2@2", "--era", "era-3@off"];
   const json = balance(...short, "--json", "--scenario", "first-deck");
   assert.equal(json.status, 0, json.stderr);
   assert.deepEqual(JSON.parse(json.stdout), JSON.parse(fixture("first-deck-short.json")));
@@ -141,10 +142,7 @@ test("with --scenario test-map the heading names the scenario and says it is a t
   assert.match(first, /a smoke check, not a verdict on balance/);
   assert.match(first, /base seed "head", 4 turns, 1 play per turn, era-1 on turn 1: 1 games$/);
   const setup = { turns: 4, playsPerTurn: 1, eras: { "era-1": 1 } };
-  assert.match(
-    reportTitle("first-deck", "s", setup),
-    /^Balance report, first deck TEST scenario \(placeholder numbers\)/,
-  );
+  assert.match(reportTitle("first-deck", "s", setup), /^Balance report, first deck, the base game/);
 });
 
 test("the same small seeded test-map run twice prints the same report", () => {

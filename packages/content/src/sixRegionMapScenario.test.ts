@@ -156,9 +156,10 @@ describe("the six-region map scenario (#422)", () => {
     expect(exported).toBe(SIX_REGION_MAP_SCENARIO);
   });
 
-  it("says in its name which numbers are still placeholders: turns, plays and hand size", () => {
+  it("says in its name that its turns, plays and hand size are the base game's (owner, 21 Nov 2026)", () => {
     expect(SIX_REGION_MAP_SCENARIO.id).toBe("six-region-map");
-    expect(SIX_REGION_MAP_SCENARIO.name).toMatch(/placeholder turns, plays and hand size/);
+    expect(SIX_REGION_MAP_SCENARIO.name).toMatch(/the base game's 10 turns, 2 plays each per turn and hands of 8/);
+    expect(SIX_REGION_MAP_SCENARIO).toMatchObject({ turns: 10, playsPerTurn: 2, handSize: 8 });
   });
 
   it("lists the six regions in the scoring order S1", () => {

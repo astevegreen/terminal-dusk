@@ -17,7 +17,7 @@ import type { CardId, EraId, Ruleset, Setup } from "@terminal-dusk/engine";
 import type { MatchConfig } from "./types.ts";
 
 export const FIRST_DECK_NOTE =
-  "First deck, Eras 1 to 3 and the future cards (TEST scenario with placeholder numbers; they join on turns 2, 3 and 4)";
+  "First deck, the base game: 10 turns, Eras 1 to 3 (Era 2 joins on turn 4, Era 3 on turn 6)";
 export const SIX_REGION_MAP_NOTE =
   "First deck on the six-region map (placeholder stabilities, battlegrounds and starting influence)";
 export const firstDeckRuleset: Ruleset = FIRST_DECK_RULESET;
@@ -62,7 +62,7 @@ function mapOf(scenario: typeof TEST_MAP_SCENARIO): NonNullable<Setup["map"]> {
  */
 export const firstDeckTestMap = (): NonNullable<Setup["map"]> => mapOf(TEST_MAP_SCENARIO);
 
-/** The match config for the first deck: the TEST scenario's numbers, empty hands and the Era 1 draw pile. */
+/** The match config for the first deck: the base game's numbers, empty hands and the Era 1 draw pile. */
 export function firstDeckConfig(): MatchConfig {
   return {
     matchId: "first-deck",

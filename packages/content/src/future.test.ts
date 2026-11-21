@@ -29,10 +29,10 @@ describe("the optional future cards (2025 to 2027)", () => {
       expect(text).not.toMatch(/Putin|Trump|Biden|Xi |Zelensky|Assad/);
     }
   });
-  it("are in the ruleset and enter the TEST scenario on turn 4, listed once", () => {
-    const entry = FIRST_DECK_SCENARIO.eras?.find((e) => e.era === "future");
-    expect(entry?.turn).toBe(4);
-    expect([...(entry?.cards ?? [])].sort(byText)).toEqual(FUTURE_CARDS.map((c) => c.id).sort(byText));
+  it("are in the ruleset, but in no era of the base game, which stops at 2025 (docs/design/eras.md)", () => {
+    expect(FIRST_DECK_SCENARIO.eras?.find((e) => e.era === "future")).toBeUndefined();
+    const listed = new Set((FIRST_DECK_SCENARIO.eras ?? []).flatMap((e) => e.cards));
+    for (const card of FUTURE_CARDS) expect(listed.has(card.id)).toBe(false);
     const inRuleset = new Set(FIRST_DECK_RULESET.cards.map((c) => c.id));
     for (const card of FUTURE_CARDS) expect(inRuleset.has(card.id)).toBe(true);
   });

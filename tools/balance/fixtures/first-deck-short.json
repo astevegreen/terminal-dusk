@@ -1,16 +1,15 @@
 {
   "setup": {
-    "turns": 2,
-    "playsPerTurn": 1,
+    "turns": 3,
+    "playsPerTurn": 2,
     "eras": {
       "era-1": 1,
       "era-2": 2,
-      "era-3": null,
-      "future": null
+      "era-3": null
     }
   },
   "games": 2,
-  "averageAnswers": 12,
+  "averageAnswers": 28,
   "noWinner": true,
   "sides": {
     "lio": {
@@ -44,9 +43,9 @@
       "sae": {
         "picks": 0,
         "event": 0,
-        "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
+        "points": 1,
+        "gamesPlayedIn": 1,
+        "winShare": 0
       }
     },
     {
@@ -73,8 +72,8 @@
       "lio": {
         "picks": 0,
         "event": 0,
-        "points": 1,
-        "gamesPlayedIn": 1,
+        "points": 2,
+        "gamesPlayedIn": 2,
         "winShare": 0
       },
       "sae": {
@@ -109,9 +108,9 @@
       "lio": {
         "picks": 0,
         "event": 0,
-        "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
+        "points": 1,
+        "gamesPlayedIn": 1,
+        "winShare": 0
       },
       "sae": {
         "picks": 0,
@@ -125,9 +124,9 @@
       "id": "e1-lio-011",
       "name": "Dot-com Boom",
       "lio": {
-        "picks": 1,
+        "picks": 0,
         "event": 0,
-        "points": 0,
+        "points": 1,
         "gamesPlayedIn": 1,
         "winShare": 0
       },
@@ -215,10 +214,10 @@
       "id": "e1-sae-002",
       "name": "Handover of Hong Kong",
       "lio": {
-        "picks": 1,
+        "picks": 2,
         "event": 0,
         "points": 0,
-        "gamesPlayedIn": 1,
+        "gamesPlayedIn": 2,
         "winShare": 0
       },
       "sae": {
@@ -276,11 +275,11 @@
         "winShare": null
       },
       "sae": {
-        "picks": 0,
+        "picks": 1,
         "event": 0,
-        "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
+        "points": 1,
+        "gamesPlayedIn": 2,
+        "winShare": 0
       }
     },
     {
@@ -313,10 +312,10 @@
       },
       "sae": {
         "picks": 0,
-        "event": 0,
+        "event": 1,
         "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
+        "gamesPlayedIn": 1,
+        "winShare": 0
       }
     },
     {
@@ -420,9 +419,9 @@
         "winShare": null
       },
       "sae": {
-        "picks": 1,
+        "picks": 0,
         "event": 0,
-        "points": 0,
+        "points": 1,
         "gamesPlayedIn": 1,
         "winShare": 0
       }
@@ -439,18 +438,18 @@
       },
       "sae": {
         "picks": 0,
-        "event": 0,
+        "event": 1,
         "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
+        "gamesPlayedIn": 1,
+        "winShare": 0
       }
     },
     {
       "id": "e1-neu-002",
       "name": "Asian Financial Crisis",
       "lio": {
-        "picks": 1,
-        "event": 1,
+        "picks": 2,
+        "event": 0,
         "points": 0,
         "gamesPlayedIn": 2,
         "winShare": 0
@@ -492,11 +491,11 @@
         "winShare": null
       },
       "sae": {
-        "picks": 0,
+        "picks": 1,
         "event": 0,
         "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
+        "gamesPlayedIn": 1,
+        "winShare": 0
       }
     },
     {
@@ -512,9 +511,9 @@
       "sae": {
         "picks": 0,
         "event": 0,
-        "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
+        "points": 1,
+        "gamesPlayedIn": 1,
+        "winShare": 0
       }
     },
     {
@@ -548,9 +547,9 @@
       "sae": {
         "picks": 0,
         "event": 0,
-        "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
+        "points": 2,
+        "gamesPlayedIn": 2,
+        "winShare": 0
       }
     },
     {
@@ -577,9 +576,9 @@
       "lio": {
         "picks": 0,
         "event": 0,
-        "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
+        "points": 1,
+        "gamesPlayedIn": 1,
+        "winShare": 0
       },
       "sae": {
         "picks": 0,
@@ -746,9 +745,9 @@
       "sae": {
         "picks": 0,
         "event": 0,
-        "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
+        "points": 1,
+        "gamesPlayedIn": 1,
+        "winShare": 0
       }
     },
     {
@@ -773,18 +772,18 @@
       "id": "e2-sae-002",
       "name": "Curveball",
       "lio": {
-        "picks": 0,
+        "picks": 1,
         "event": 0,
         "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
+        "gamesPlayedIn": 1,
+        "winShare": 0
       },
       "sae": {
-        "picks": 0,
+        "picks": 1,
         "event": 0,
         "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
+        "gamesPlayedIn": 1,
+        "winShare": 0
       }
     },
     {
@@ -883,16 +882,16 @@
       "lio": {
         "picks": 0,
         "event": 0,
+        "points": 2,
+        "gamesPlayedIn": 2,
+        "winShare": 0
+      },
+      "sae": {
+        "picks": 0,
+        "event": 0,
         "points": 0,
         "gamesPlayedIn": 0,
         "winShare": null
-      },
-      "sae": {
-        "picks": 1,
-        "event": 0,
-        "points": 0,
-        "gamesPlayedIn": 1,
-        "winShare": 0
       }
     },
     {
@@ -996,11 +995,11 @@
         "winShare": null
       },
       "sae": {
-        "picks": 0,
+        "picks": 1,
         "event": 0,
         "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
+        "gamesPlayedIn": 1,
+        "winShare": 0
       }
     },
     {
@@ -1026,10 +1025,10 @@
       "name": "Oil at $147",
       "lio": {
         "picks": 0,
-        "event": 0,
+        "event": 1,
         "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
+        "gamesPlayedIn": 1,
+        "winShare": 0
       },
       "sae": {
         "picks": 0,
@@ -1044,10 +1043,10 @@
       "name": "Natanz Revealed",
       "lio": {
         "picks": 0,
-        "event": 0,
+        "event": 1,
         "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
+        "gamesPlayedIn": 1,
+        "winShare": 0
       },
       "sae": {
         "picks": 0,
@@ -1062,17 +1061,17 @@
       "name": "Kosovo Declares Independence",
       "lio": {
         "picks": 0,
-        "event": 0,
+        "event": 1,
         "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
+        "gamesPlayedIn": 1,
+        "winShare": 0
       },
       "sae": {
         "picks": 0,
         "event": 0,
-        "points": 1,
-        "gamesPlayedIn": 1,
-        "winShare": 0
+        "points": 0,
+        "gamesPlayedIn": 0,
+        "winShare": null
       }
     },
     {
@@ -1650,114 +1649,6 @@
         "gamesPlayedIn": 0,
         "winShare": null
       }
-    },
-    {
-      "id": "ef-lio-001",
-      "name": "Allied Drone Wall",
-      "lio": {
-        "picks": 0,
-        "event": 0,
-        "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
-      },
-      "sae": {
-        "picks": 0,
-        "event": 0,
-        "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
-      }
-    },
-    {
-      "id": "ef-lio-002",
-      "name": "Undersea Cable Patrols",
-      "lio": {
-        "picks": 0,
-        "event": 0,
-        "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
-      },
-      "sae": {
-        "picks": 0,
-        "event": 0,
-        "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
-      }
-    },
-    {
-      "id": "ef-sae-001",
-      "name": "Shadow Fleet",
-      "lio": {
-        "picks": 0,
-        "event": 0,
-        "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
-      },
-      "sae": {
-        "picks": 0,
-        "event": 0,
-        "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
-      }
-    },
-    {
-      "id": "ef-sae-002",
-      "name": "Cable Cut in the Baltic",
-      "lio": {
-        "picks": 0,
-        "event": 0,
-        "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
-      },
-      "sae": {
-        "picks": 0,
-        "event": 0,
-        "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
-      }
-    },
-    {
-      "id": "ef-neu-001",
-      "name": "Open-Weight Model Leak",
-      "lio": {
-        "picks": 0,
-        "event": 0,
-        "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
-      },
-      "sae": {
-        "picks": 0,
-        "event": 0,
-        "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
-      }
-    },
-    {
-      "id": "ef-neu-002",
-      "name": "Heat Dome Summer",
-      "lio": {
-        "picks": 0,
-        "event": 0,
-        "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
-      },
-      "sae": {
-        "picks": 0,
-        "event": 0,
-        "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
-      }
     }
   ],
   "byEra": [
@@ -1765,24 +1656,20 @@
       "era": "era-1",
       "leftOut": false,
       "cards": 29,
-      "averageCardsUsed": 7,
-      "shareUsed": 0.241,
-      "averageUses": 7
+      "averageCardsUsed": 13,
+      "shareUsed": 0.448,
+      "averageUses": 13
     },
     {
       "era": "era-2",
       "leftOut": false,
       "cards": 30,
-      "averageCardsUsed": 1,
-      "shareUsed": 0.033,
-      "averageUses": 1
+      "averageCardsUsed": 5,
+      "shareUsed": 0.167,
+      "averageUses": 5
     },
     {
       "era": "era-3",
-      "leftOut": true
-    },
-    {
-      "era": "future",
       "leftOut": true
     }
   ]
