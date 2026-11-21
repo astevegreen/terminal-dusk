@@ -200,9 +200,10 @@ describe("the six-region map scenario (#422)", () => {
     expect(map.battlegrounds[3]!.countries).toEqual(map.battlegrounds[2]!.countries);
   });
 
-  // R24 (owner, 28 Oct: "Weighted, 20, middle"): option A's amounts, 20 steps each way, starting in the middle.
-  it("scores with option A's weighted amounts on a 20-step track that starts in the middle", () => {
-    expect(map.scoring).toEqual({ track: { end: 20, start: 0 }, regions: AMOUNTS });
+  // R24 (owner, 28 Oct: "Weighted, 20"): option A's amounts, 20 steps each way. The start moved from the middle to 7
+  // towards SAE (owner, 21 Nov: "Shift track start", #515): LIO won about 71% of Hard games from the middle, 49.6% from 7.
+  it("scores with option A's weighted amounts on a 20-step track that starts 7 steps towards SAE", () => {
+    expect(map.scoring).toEqual({ track: { end: 20, start: 7 }, regions: AMOUNTS });
     expect(map.scoring!.regions.map((r) => r.region)).toEqual(map.regions.map((r) => r.id));
   });
 

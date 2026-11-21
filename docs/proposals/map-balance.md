@@ -2,6 +2,9 @@ Proposal, not a rule. Decided 29 Oct (owner): option 1, Taiwan starts at LIO 2; 
 The figures below were measured on the map before that change (main at 086000b, Taiwan LIO 3): run the commands
 there to reproduce them. On today's map the first command gives option 1's result.
 
+Decided 21 Nov (owner, #515: "Shift track start"): the track starts 7 steps towards SAE; now in the map data. See
+"Second pass: the real turn structure and the Hard AI" at the end.
+
 # A balance pass on the six-region map
 
 Research lane X15 (#472). The six-region map's numbers were chosen on 28 October (map-numbers option A, with the
@@ -173,3 +176,28 @@ the track start is the easiest number to retune later.
   turn structure; if it lasts, the map's middle is dead weight.
 - The Medium AI never caused an Escalation crisis in 1,000 games, so crisis costs are not tested by these runs.
 - Medium uses the tech race about once in 12 games, nearly always as SAE, without a plan for it. Recheck after A17.
+
+## Second pass: the real turn structure and the Hard AI (#515)
+
+With Taiwan at LIO 2, the real turn structure (10 turns of 2 plays, #578) and the Hard AI on both sides, LIO still won
+about 69% of games from the middle of the track. The owner chose to move the track's start towards SAE (21 Nov).
+Each run below is Hard against Hard, in batches of 50 games (a single 300-game run once crashed the process), on the
+same seeds for every start, so the starts differ only by the number:
+
+```
+node tools/balance/run.mjs --scenario six-region --games 50 --seed x15a --lio-tier hard --sae-tier hard --numbers <file>
+```
+
+with seeds `x15a` to `x15t` and a numbers file that sets `scoring.track.start` (like `variant-track-6.json`).
+
+| Track start       | Games | LIO wins  | SAE wins  | Draws |
+| ----------------- | ----- | --------- | --------- | ----- |
+| Middle (0)        | 150   | 71%       |           |       |
+| 4 towards SAE     | 150   | 61%       |           |       |
+| 6 towards SAE     | 150   | 56%       |           |       |
+| **7 towards SAE** | 1,000 | **49.6%** | **48.6%** | 1.8%  |
+| 8 towards SAE     | 1,000 | 48.4%     | 49.6%     | 2.0%  |
+
+Start 7 is the closest to even and the smaller shift, so it is the map's start now. About 41% of games end with a side
+reaching its end of the track; the rest are decided by where the track leans at the end of 2025. On today's map the
+command without `--numbers` plays from start 7.

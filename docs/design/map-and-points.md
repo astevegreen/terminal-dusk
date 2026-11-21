@@ -62,8 +62,10 @@ Decided by the owner on 28 October 2026, in chat, answering the questions of `do
 - **Region amounts** (owner: "Weighted"). Option A's, weighted by region: present / ahead / every battleground
   is 2 / 5 / 8 in Eastern Europe and Central Asia, East and South Asia and Europe (the three that can close), 2 / 4 /
   6 in the Middle East and North Africa, 1 / 3 / 4 in Sub-Saharan Africa and 1 / 3 / 5 in the Americas.
-- **Score track** (owner: "20, middle"). 20 steps from the middle to each side's end, and the track **starts in
-  the middle**, not option A's 2 steps towards LIO.
+- **Score track** (owner: "20, middle", then moved by the #515 balance pass). 20 steps from the middle to each
+  side's end, and the track **starts 7 steps towards SAE** (owner, 21 Nov: "Shift track start", #515). On the real
+  turn structure with Hard AI on both sides, LIO won about 71% of games from the middle and 49.6% from 7 (SAE 48.6%,
+  1,000 games; `docs/proposals/map-balance.md`). The start is the number to retune when cards or the AI change.
 - **Taiwan and Crimea at the start** (owner: "LIO 3 / SAE 1", then Taiwan lowered by the X15 balance pass). Taiwan
   LIO 2, aligned but short of control at stability 3 (owner, 29 Oct: option 1 of `docs/proposals/map-balance.md`,
   #472; LIO 3 won about 63% of Medium-vs-Medium games, LIO 2 about 54%); Crimea SAE 1, a foothold without control at stability 2. Every other country starts empty.
@@ -224,7 +226,7 @@ Decided by the owner on 28 October 2026, choosing between the options in `docs/p
   parity, it is a draw (owner, 28 Oct; `docs/design/tech-race.md`).
 - **The tech race scores too.** At each era's end, after all six regions, the side holding the tech race's
   Quantum Computing step moves the track 1 its way (`docs/design/tech-race.md`).
-- The six-region map's track (20 steps to each end, starting in the middle) and its amounts per region are in the
+- The six-region map's track (20 steps to each end, starting 7 steps towards SAE) and its amounts per region are in the
   Map section's "Map numbers" (owner, 28 Oct).
 - **The 2025-2027 scenario** (eras.md) has its final scoring and win check **at the end of 2027**, the end of its
   extra turn, not at the end of 2025 (owner, 21 Nov 2026: option B). In that scenario, "after the final era scores
