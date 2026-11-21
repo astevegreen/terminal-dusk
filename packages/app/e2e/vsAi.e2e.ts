@@ -100,6 +100,23 @@ test("against the AI, the side picker says who each side is and each card shows 
   }
 });
 
+test("the free Era 1 game starts from the home screen and plays its 3 turns to the end (L12)", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Play the free Era 1 game" }).click();
+  await expect(page.getByText("The free game: Era 1 only, 1991 to 2001, 3 turns", { exact: true })).toBeVisible();
+  await page.getByRole("radio", { name: "Easy" }).check();
+  await page.getByRole("button", { name: "Play as LIO" }).click();
+  await expect(page.getByTestId("decision")).toBeVisible();
+  const gameOver = page.getByText("Game over");
+  for (let step = 0; step < 100; step++) {
+    await yourDecision(page).or(gameOver).first().waitFor();
+    if (await gameOver.isVisible()) break;
+    await answerOnce(page);
+  }
+  await expect(gameOver).toBeVisible();
+  await expect(page.getByText(/^AI refused:/)).toHaveCount(0);
+});
+
 test("the AI's difficulty is kept after a reload (L11)", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Play against the AI" }).click();

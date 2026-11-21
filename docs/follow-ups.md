@@ -24,8 +24,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   end of 2027, but today's engine would score it at the end of turn 10 too: `eraEnds`
   (`packages/engine/src/scoring.ts:61-64`) counts the turn before a waiting era enters as an era's end. That
   scenario's build must stop the extra scoring. [21 Nov 2026, recording the owner's answers; #575]
-- The free player's Era 1 game (`packages/content/scenarios/era-1-free.json`, `ERA_1_FREE_SCENARIO`, #575) is data
-  and tests only: no host config (`packages/host/src/firstDeck.ts`) or app screen starts it yet. [21 Nov 2026, #575]
 - `docs/design/map-and-points.md` ("Map numbers", Open) still says the scenario data has not been changed to the
   21 Nov rules; the scenario is `packages/content/scenarios/base-game.json` since #575. Fix it at the next Notion
   promotion. [21 Nov 2026, #575]
