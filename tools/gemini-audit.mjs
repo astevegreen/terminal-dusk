@@ -131,9 +131,12 @@ function pinnedIssue(title) {
   return n;
 }
 
+// Each issue's spec in turn, for the spec audit. A plain map(issueText) would pass the list index as ghRun.
+export const specMaterial = (ns, ghRun = gh) => ns.map((n) => issueText(n, ghRun)).join("\n---\n\n");
+
 function specs() {
   if (!numbers.length) throw new Error("specs needs at least one issue number");
-  const material = numbers.map(issueText).join("\n---\n\n");
+  const material = specMaterial(numbers);
   let answer;
   try {
     answer = askGemini("spec-audit", material, { kind: "spec" });
