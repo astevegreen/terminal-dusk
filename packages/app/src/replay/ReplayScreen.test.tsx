@@ -53,6 +53,30 @@ function press(index: number, name: string): number | null {
   return went;
 }
 
+describe("the AI's difficulty in the replay (#508)", () => {
+  it("names the difficulty of a game against the AI at every step", () => {
+    expect(recording.aiTier).toBe("medium");
+    expect(html(0)).toContain("AI difficulty: Medium");
+    expect(html(recording.frames.length - 1)).toContain("AI difficulty: Medium");
+  });
+  it("names none for a recording with no difficulty", () => {
+    const plain: ReplayRecording = { ...recording };
+    delete plain.aiTier;
+    const out = renderToString(
+      <ReplayView
+        recording={plain}
+        label={cardName}
+        question={cardQuestion}
+        affiliation={cardAffiliation}
+        onClose={() => {}}
+        index={0}
+        onGo={() => {}}
+      />,
+    );
+    expect(out).not.toContain("AI difficulty");
+  });
+});
+
 describe("card rules text in the replay (#417)", () => {
   const withRules = (rules?: (card: string) => string | undefined): string =>
     renderToString(

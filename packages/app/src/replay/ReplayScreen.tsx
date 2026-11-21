@@ -13,6 +13,7 @@ import type { CardRules } from "../displayText.ts";
 import { Contingency, HandCard, Log, Region, Table } from "../game/regions.tsx";
 import type { Label } from "../game/regions.tsx";
 import type { ReplayRecording } from "./recording.ts";
+import { difficultyText } from "../vsAi/difficulty.tsx";
 import { themeFor } from "../game/themes/eraTheme.ts";
 import "./replayScreen.css";
 
@@ -149,6 +150,7 @@ export function ReplayView({
         <span>{playsText(pub)}</span>
         <span>{era === null ? "Era not shown yet" : eraText(era)}</span>
         <span>{atLast ? finalText(recording.status) : "Game active"}</span>
+        {recording.aiTier !== undefined && <span>{difficultyText(recording.aiTier)}</span>}
         {atLast && <span>{`Seed checked: ${recording.seedHash}`}</span>}
       </Region>
       <Hands frame={frame} label={label} rules={rules} />

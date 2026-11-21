@@ -89,7 +89,8 @@ function nodeTests(root, out) {
 
 // Run every test under root and count them: { total, files: { "path/of.test.ts": n }, skipped: ["file > name"] }.
 export function countTests(rootDir) {
-  const root = realpathSync(path.resolve(rootDir));
+  // .native gives Windows' long folder names (runneradmin, not RUNNER~1), the spelling Vitest reports files by.
+  const root = realpathSync.native(path.resolve(rootDir));
   const tmp = mkdtempSync(path.join(os.tmpdir(), "td-test-count-"));
   try {
     const tests = [];

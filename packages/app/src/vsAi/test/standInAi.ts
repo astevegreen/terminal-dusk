@@ -2,7 +2,7 @@
 // is asked, can hold its replies until the test releases them, and can be told to give a wrong answer.
 import { createEasyPlayer } from "@terminal-dusk/ai";
 import type { AnswerValue, PlayerView } from "@terminal-dusk/engine";
-import type { MakeAi } from "../aiOpponent.ts";
+import type { AiTier, MakeAi } from "../aiOpponent.ts";
 
 export type StandInOptions = {
   /** Replies wait until `release()` is called. */
@@ -18,6 +18,8 @@ export type StandIn = {
   /** Every answer it gave, in order. */
   answers: (AnswerValue | null)[];
   stops: number;
+  /** The difficulty each opponent was made at, in order (#508). It always plays as Easy. */
+  tiers: AiTier[];
   /** Sends every held reply. Returns how many there were. */
   release(): number;
 };
@@ -28,13 +30,15 @@ export function standInAi(options: StandInOptions = {}): StandIn {
     asked: [],
     answers: [],
     stops: 0,
+    tiers: [],
     release() {
       const now = held;
       held = [];
       for (const send of now) send();
       return now.length;
     },
-    makeAi(ruleset, side, seed) {
+    makeAi(ruleset, side, seed, tier) {
+      standIn.tiers.push(tier);
       const player = createEasyPlayer(ruleset, side, seed);
       return {
         answer(view) {

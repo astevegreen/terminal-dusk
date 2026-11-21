@@ -14,8 +14,8 @@ type Box = { left: number; top: number; right: number; bottom: number };
 const SHOTS = process.env["L2_SHOTS"];
 
 /** The shared start, then waits until the drawn map has fitted itself to the map area. */
-async function startDrawnMap(page: Page): Promise<Locator> {
-  const area = await startSixRegionGame(page);
+async function startDrawnMap(page: Page, seed?: number): Promise<Locator> {
+  const area = await startSixRegionGame(page, seed);
   await expect(area.locator(".dm-world")).toHaveAttribute("style", /transform/);
   return area;
 }
@@ -259,7 +259,8 @@ async function placeAndWatch(page: Page, area: Locator, count: number): Promise<
 }
 
 test("placing influence lights up the country it was placed in", async ({ page }) => {
-  const area = await startDrawnMap(page);
+  // Seeded, so the game is the same every run and reaches three placements, each seen lit, well before it ends (#494).
+  const area = await startDrawnMap(page, 1);
   await expect(area.locator(".dm-marker[data-touched]")).toHaveCount(0);
   const lit = await placeAndWatch(page, area, 3);
   expect(lit).toHaveLength(3);
