@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import type { Frame } from "@terminal-dusk/host";
 import type { OnlineDeadline } from "./matchClock.ts";
-import { deadlineText, timeLeft, turnText } from "./gameText.ts";
+import { deadlineDetail, deadlineText, timeLeft, turnText } from "./gameText.ts";
 
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
@@ -51,6 +51,33 @@ describe("deadlineText: the extra deadline still to come", () => {
   it("adds nothing to time is up, at 0 and below", () => {
     expect(deadlineText(at(0, "graceThenLoss", true))).toBe("time is up");
     expect(deadlineText(at(-1, "graceThenLoss", true))).toBe("time is up");
+  });
+});
+
+describe("deadlineDetail: the deadline in full, for the Details panel (#504)", () => {
+  const at = (t: number, rule: OnlineDeadline["rule"], graceLeft: boolean): OnlineDeadline => ({
+    side: "lio",
+    at: 1_000_000 + t,
+    rule,
+    days: 3,
+    graceLeft,
+    now: 1_000_000,
+  });
+  it("names it as yours when the viewer is the side waited on, with the extra deadline still to come", () => {
+    expect(deadlineDetail(at(3 * DAY + 23 * HOUR, "graceThenLoss", true), "lio")).toBe(
+      "Your deadline: 3 days 23 hours left, then one extra deadline",
+    );
+  });
+  it("names the other side when it is theirs", () => {
+    expect(deadlineDetail(at(DAY, "lossOnTime", false), "sae")).toBe("LIO's deadline: 1 day left");
+  });
+  it("says when the extra deadline is already used", () => {
+    expect(deadlineDetail(at(5 * HOUR, "graceThenLoss", false), "lio")).toBe(
+      "Your deadline: 5 hours left, and the extra deadline is used",
+    );
+  });
+  it("says only time is up once it has passed", () => {
+    expect(deadlineDetail(at(0, "graceThenLoss", false), "lio")).toBe("Your deadline: time is up");
   });
 });
 
