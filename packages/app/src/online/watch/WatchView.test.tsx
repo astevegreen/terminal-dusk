@@ -67,6 +67,7 @@ describe("WatchView", () => {
       turn: "loading",
       deadline: null,
       refusal: null,
+      signedOut: false,
     };
     const tree = WatchView({ snapshot: loading, replay: null, ...base });
     expect(gameScreenIn(tree)).toBeNull();
