@@ -125,7 +125,8 @@ describe("the replay's era theme", () => {
           onGo={() => {}}
         />,
       ),
-      "replay",
+      // Since #493 the replay is drawn by the game screen, which carries the theme.
+      "game",
     );
   it("shows each step in the theme of the era it was played in", () => {
     expect(recording.frames.length).toBeGreaterThan(5);
