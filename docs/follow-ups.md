@@ -39,9 +39,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - The AI's difficulty (#508) is kept only in `VsAiScreen`'s state (`packages/app/src/vsAi/VsAiScreen.tsx`): it
   survives New game, but going back to the home screen or reloading resets it to Medium. Saving it through
   `Platform.storage` (Decision 7) would keep it across visits. [21 Nov 2026, reviewer and agy on #573]
-- A subscriber that throws in a local match is skipped silently (`packages/app/src/transport/localMatch.ts:65`): the
-  match carries on, as it should, but nothing records the error. An optional `onSubscriberError` for the caller to
-  log would make such a bug visible. [6 Nov 2026, test-suite audit]
 
 ## Tests and tooling
 
