@@ -20,10 +20,10 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## App, host and server
 
-- The in-memory stores (`MemoryStore`, `MemoryInviteStore`, `MemoryNotifyStore` in `packages/server/src/store.ts`,
-  `inviteStore.ts`, `notifyStore.ts`) and their Supabase twins are tested separately; one shared contract suite run
-  against both (the Supabase run on the stack) would catch the fakes drifting from the real tables. [6 Nov 2026,
-  test-suite audit]
+- `makeUser` (`packages/server/src/test/stack.ts`) ignores a `deleteUser` that answers `{ error }` rather than
+  rejecting, so that stray user goes unreported; and `stack.makeUser.test.ts` signs in against `127.0.0.1:9`, which
+  would hang if something listened there. Check the delete's `error`, and fake the sign-in client too.
+  [21 Nov 2026, agy on #564]
 - `makeUser` (`packages/server/src/test/stack.ts:44-49`) creates the auth user before signing it in, so a failed
   sign-in leaves the user behind, past the clean-up at `stack.ts:114`. Delete the user when the sign-in fails.
   [7 Nov 2026, reviewer on #531]
