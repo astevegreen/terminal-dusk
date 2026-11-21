@@ -28,17 +28,9 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   rejecting, so that stray user goes unreported; and `stack.makeUser.test.ts` signs in against `127.0.0.1:9`, which
   would hang if something listened there. Check the delete's `error`, and fake the sign-in client too.
   [21 Nov 2026, agy on #564]
-- `makeUser` (`packages/server/src/test/stack.ts:44-49`) creates the auth user before signing it in, so a failed
-  sign-in leaves the user behind, past the clean-up at `stack.ts:114`. Delete the user when the sign-in fails.
-  [7 Nov 2026, reviewer on #531]
 - A subscriber that throws in a local match is skipped silently (`packages/app/src/transport/localMatch.ts:65`): the
   match carries on, as it should, but nothing records the error. An optional `onSubscriberError` for the caller to
   log would make such a bug visible. [6 Nov 2026, test-suite audit]
-- An access token that rejects after expiry (#534) is tested in the lobby's reads and `remoteMatch.submit`, but not
-  in `remoteMatch`'s poll (`packages/app/src/transport/remoteMatch.ts:89`), `onlineGame`'s `refreshDeadline`
-  (`packages/app/src/online/onlineGame.ts:111`), or the lobby's join after the preview and `pickSide`
-  (`packages/app/src/online/lobbySession.ts:183,190`). Each catches the rejection today; a test would pin it.
-  [7 Nov 2026, reviewer on #534]
 
 ## Tests and tooling
 
@@ -61,9 +53,9 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   10-minute idle timeout before passing to the next model; a short limit on the TLS handshake alone would end it in
   seconds, in all three repos. The cloud proxy cuts idle tunnels, so it has not happened. [7 Nov 2026, Gemini API
   tunnel fix review]
-- The "(diff truncated; read the rest from disk)" line is written in `tools/gemini-audit.mjs:151` and matched by
-  `TRUNCATED` in `tools/gemini/gemini-api.mjs:26`: one shared constant would stop a reworded marker from sending part of a diff to
-  the API. [7 Nov 2026, Gemini API fallback]
+- `tools/gemini/gemini-api.mjs` now exports `CUT_LINE`, the diff-cut marker the audit imports (this repo, PR for
+  the shared marker); its header says the file is the same in blockchain-technology-course and YODC, so copy it
+  there and have their audit scripts import it too. [21 Nov 2026, AI and tools lane]
 - The fuzz suites that prove random play "reaches" a feature (`tests/fuzz/easy.test.ts:56`, `reveals.test.ts`,
   `removed.test.ts`, `neutral.test.ts`, `extraSteps.test.ts`) each replay their games again to count events. One
   coverage pass that plays each game once and feeds every counter would save the replays; not merged yet because
@@ -71,17 +63,10 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - `packages/engine/src/views.property.test.ts` and `views.test.ts` overlap (both check what each viewer sees);
   consolidating them into one property suite with a few named examples would cut duplicate cases. [6 Nov 2026,
   test-suite audit]
-- `tools/replay.mjs` is still a stub that says "no server code exists", which is out of date: the host now builds
-  replay archives (`hostArchive`). `pnpm replay <matchId>` should be built on them, or its message updated
-  (`tools/replay.mjs:3,10-11`); `tools/replay.test.mjs` tests the stub and goes with it. [6 Nov 2026, test-suite audit]
 - `recordSession` in `tools/handoff-notes.mjs:150` reads, adds to and renames the session-ids index with no lock, so
   two sessions saving or claiming in the same instant can drop one entry (only the Sessions pane's note list
   loses it; the note itself is safe). A lock file or an append-only log would close it. [6 Nov 2026, reviewer on
   #523]
-- `writeJson` in `tools/sprint/local-state.mjs:36` writes a temp file then renames it with plain `renameSync`,
-  which on Windows fails now and then with EPERM while something (often antivirus) holds the new file; a sprint
-  state write would then throw. `renameRetry` (`tools/rename-retry.mjs`) waits that out. [11 Nov 2026, found
-  while fixing the same flake in `tools/handoff-notes.mjs`]
 - Planned: move the type check to TypeScript 7 (Microsoft's native compiler). Measured 6 Nov 2026: all six packages
   pass with no errors and the type check drops from 19.4s to 3.4s. It stays on 6.0 for now because typescript-eslint
   and `tools/gates/boundaries.mjs` need the compiler API that 7.0 lacks (`pnpm-workspace.yaml` catalog note).
@@ -103,8 +88,5 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   verdict `retry` there: the rail audit (`tools/gemini-audit.mjs:181-185`), a diff too long to send whole
   (`tools/gemini/gemini-api.mjs:60`), and spec and repo audits (`gemini-api.mjs:66`). Each is a choice the code comments explain;
   a PR touching a rail waits for a local run. [7 Nov 2026, reviewer on #538]
-- `node tools/gemini-audit.mjs specs <n>` throws "ghRun is not a function": `specs()` calls `numbers.map(issueText)`
-  (`tools/gemini-audit.mjs:131`), so the array index lands in `issueText`'s `ghRun`. Already on main; no test covers
-  the specs path. [6 Nov 2026, reviewer on #525]
 
 ## Docs

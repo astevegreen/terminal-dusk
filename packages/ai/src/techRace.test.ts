@@ -129,14 +129,33 @@ describe("the AI and the tech race", () => {
     for (const v of variants) expect([...v.hidden.secret.contingency[side]].sort()).toEqual([2, 5, 5, 7]);
   });
 
-  it("Medium makes sure attempts in some menus but not all: it weighs them against placing influence", () => {
-    let attempts = 0;
+  it("Medium weighs a sure attempt against placing influence: its choice flips with what placing is worth alone", () => {
+    // One menu, one sure deck, the same guess and noise: only the weights that value influence on the map change. They
+    // leave the attempt's worth alone while the marker stays short of Quantum Computing, whose era score is a region
+    // point; the menu's attempt reaches the track's first step.
+    const menu = MENUS[0]!;
+    const side = techMenuSide(menu)!;
+    expect(Math.abs(menu.public.techRace!.marker)).toBeLessThan(3);
+    const sure = viewFor(withDeck(menu, side, [9, 9, 9]), side);
+    const placingWorth = (scale: number) => ({
+      ...MEDIUM_WEIGHTS,
+      region: MEDIUM_WEIGHTS.region * scale,
+      progress: MEDIUM_WEIGHTS.progress * scale,
+    });
+    const choice = (scale: number) =>
+      mediumAnswer(FIRST_DECK_RULESET, sure, side, placingWorth(scale), seededRandom(1));
+    expect(isAttempt(choice(0))).toBe(true);
+    expect(isAttempt(choice(10))).toBe(false);
+  });
+
+  it("Medium makes a sure attempt in every menu where placing influence is worth nothing", () => {
+    // No crisis cost either, so a menu one step short of Hypersonics at Escalation 5 still counts (agy on #559).
+    const worthless = { ...MEDIUM_WEIGHTS, region: 0, progress: 0, crisis: 0 };
     for (const menu of MENUS) {
       const side = techMenuSide(menu)!;
-      if (isAttempt(medium(withDeck(menu, side, [9, 9, 9]), side, 1))) attempts++;
+      const sure = viewFor(withDeck(menu, side, [9, 9, 9]), side);
+      expect(isAttempt(mediumAnswer(FIRST_DECK_RULESET, sure, side, worthless, seededRandom(1)))).toBe(true);
     }
-    expect(attempts).toBeGreaterThan(0);
-    expect(attempts).toBeLessThan(MENUS.length);
   });
 
   it("Medium does not enter Hypersonics on its own attempt when that makes a crisis", () => {

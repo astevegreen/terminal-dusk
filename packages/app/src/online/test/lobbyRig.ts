@@ -13,6 +13,8 @@ export type LobbyRig = {
   copied: string[];
   /** Every snapshot the session published, in order, starting with the first one. */
   seen: LobbySnapshot[];
+  /** Changes what accessToken gives, as `lobbyRig`'s `token` does, once `after` more calls have had the old one. */
+  setToken: (token: string | null | Error, after?: number) => void;
 };
 
 /** `token` is what every accessToken call gives; an Error makes each call reject with it, as a refresh that fails
@@ -20,10 +22,24 @@ export type LobbyRig = {
 export function lobbyRig(token: string | null | Error = TOKEN): LobbyRig {
   const fake = createFakeLobby();
   const copied: string[] = [];
+  let current = token;
+  let next: { token: string | null | Error; after: number } | null = null;
+  const tokenNow = (): string | null | Error => {
+    if (next === null) return current;
+    if (next.after > 0) next.after -= 1;
+    else {
+      current = next.token;
+      next = null;
+    }
+    return current;
+  };
   const lobby = createLobbySession({
     endpoint: fake.endpoint,
     playerId: PLAYER,
-    accessToken: () => (token instanceof Error ? Promise.reject(token) : Promise.resolve(token)),
+    accessToken: () => {
+      const t = tokenNow();
+      return t instanceof Error ? Promise.reject(t) : Promise.resolve(t);
+    },
     platform: "web",
     copy: (text) => {
       copied.push(text);
@@ -32,7 +48,10 @@ export function lobbyRig(token: string | null | Error = TOKEN): LobbyRig {
   });
   const seen: LobbySnapshot[] = [lobby.getSnapshot()];
   lobby.subscribe(() => seen.push(lobby.getSnapshot()));
-  return { fake, lobby, copied, seen };
+  const setToken = (t: string | null | Error, after = 0): void => {
+    next = { token: t, after };
+  };
+  return { fake, lobby, copied, seen, setToken };
 }
 
 /** A `match` row as the REST endpoint returns it. */

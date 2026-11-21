@@ -7,8 +7,9 @@
 //   sprint-triggers.json  [{"title", "id", "at"}]: every lane or plan trigger the supervisor created, so it never
 //                         has to find them in RemoteTrigger's list, which shows only the newest 20
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { renameRetry } from "../rename-retry.mjs";
 
 const WINDOW = "sprint-window.json";
 const TRIGGERS = "sprint-triggers.json";
@@ -29,14 +30,15 @@ function readJson(file, empty) {
   }
 }
 
-// The whole file, then a rename, so a reader never sees half of one.
-function writeJson(file, value) {
+// The whole file, then a rename, so a reader never sees half of one. The rename waits out Windows' brief locks
+// (rename-retry.mjs); `rename` is for tests.
+function writeJson(file, value, { rename } = {}) {
   const tmp = `${file}.${process.pid}.tmp`;
   writeFileSync(tmp, `${JSON.stringify(value, null, 2)}\n`);
-  renameSync(tmp, file);
+  renameRetry(tmp, file, { rename });
 }
 
 export const readWindow = (dir) => (dir ? readJson(path.join(dir, WINDOW), null) : null);
-export const writeWindow = (dir, w) => writeJson(path.join(dir, WINDOW), w);
+export const writeWindow = (dir, w, io) => writeJson(path.join(dir, WINDOW), w, io);
 export const readTriggers = (dir) => (dir ? readJson(path.join(dir, TRIGGERS), []) : []);
-export const recordTrigger = (dir, entry) => writeJson(path.join(dir, TRIGGERS), [...readTriggers(dir), entry]);
+export const recordTrigger = (dir, entry, io) => writeJson(path.join(dir, TRIGGERS), [...readTriggers(dir), entry], io);

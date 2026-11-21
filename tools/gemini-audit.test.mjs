@@ -4,9 +4,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
-import { auditPr, duePrs, pinnedIssueOf } from "./gemini-audit.mjs";
-import { ORDERS } from "./gemini/agy.mjs";
-import { NO_API } from "./gemini/gemini-api.mjs";
+import { auditPr, duePrs, pinnedIssueOf, specMaterial } from "./gemini-audit.mjs";
+import { ORDERS, buildPrompt } from "./gemini/agy.mjs";
+import { NO_API, apiPrompt } from "./gemini/gemini-api.mjs";
 import { verdictMarker } from "./gemini/rails.mjs";
 
 const SCRIPT = path.join(import.meta.dirname, "gemini-audit.mjs");
@@ -198,4 +198,22 @@ test("the weekly and narrative audits post on the issue a collaborator opened, n
   const issue = (number, login) => ({ number, title: "Gemini weekly audit", author: { login } });
   assert.equal(pinnedIssueOf([issue(9, "stranger"), issue(4, "greenbeanbot")], "Gemini weekly audit", team), 4);
   assert.equal(pinnedIssueOf([issue(9, "stranger")], "Gemini weekly audit", team), undefined, "so it opens its own");
+});
+
+test("specs reads every issue it is given through gh, one spec after another (not the list index as gh)", () => {
+  const issues = { 11: { number: 11, title: "First", body: "one" }, 12: { number: 12, title: "Second", body: "two" } };
+  const gh = (...args) => JSON.stringify(issues[/issues\/(\d+)$/.exec(args[1])[1]]);
+  assert.equal(specMaterial(["11", "12"], gh), "# #11 First\n\none\n\n---\n\n# #12 Second\n\ntwo\n");
+});
+
+test("a diff too long to send whole is cut with the line the Gemini API refuses, so it never reviews part of it", () => {
+  const { io, calls } = fake({ diff: `${diffOf("packages/app/src/x.ts")}+${"x".repeat(200_001)}\n` });
+  auditPr(7, io);
+  const { material } = calls.ask[0];
+  const read = (file) => (file === "m.md" ? material : "");
+  assert.throws(() => apiPrompt(buildPrompt("Review this.", "m.md"), read, []), /truncated diff/);
+  const whole = fake();
+  auditPr(7, whole.io);
+  const readWhole = (file) => (file === "m.md" ? whole.calls.ask[0].material : "");
+  assert.doesNotThrow(() => apiPrompt(buildPrompt("Review this.", "m.md"), readWhole, []));
 });

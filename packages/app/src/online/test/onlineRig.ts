@@ -58,12 +58,17 @@ export function onlineRig(player: string | null = "alice", initial: ClockMode = 
   };
 
   const time = { now: NOW };
+  // While true, every accessToken call rejects, as a refresh that fails for a moment does after expiry (#534).
+  let tokenFails = false;
   const game: OnlineGame = createOnlineGame({
     url: URL_BASE,
     anonKey: ANON_KEY,
     matchId: config.matchId,
     playerId: player,
-    accessToken: () => Promise.resolve(player === null ? null : (TOKEN_OF[player] ?? null)),
+    accessToken: () =>
+      tokenFails
+        ? Promise.reject(new Error("the refresh failed for a moment"))
+        : Promise.resolve(player === null ? null : (TOKEN_OF[player] ?? null)),
     fetch,
     now: () => time.now,
     label: cardName,
@@ -82,6 +87,10 @@ export function onlineRig(player: string | null = "alice", initial: ClockMode = 
     sent,
     setClock(next: ClockMode) {
       mode = next;
+    },
+    /** Makes every accessToken call reject from now on (true), or answer again (false). */
+    failToken(fails: boolean) {
+      tokenFails = fails;
     },
     /**
      * Holds each clock read from now on separately, answered with the clock set when it was sent. `release(i)` lets
