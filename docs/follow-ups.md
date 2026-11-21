@@ -19,7 +19,8 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   would catch a card whose text and data disagree. [6 Nov 2026, test-suite audit]
 - The 2025-2027 game (11 turns, the future cards entering on turn 11, scored at the end of 2027;
   `docs/design/eras.md`) has no scenario yet, so the future cards are in the ruleset but in no game since #575
-  took them out of the base game (`packages/content/scenarios/base-game.json`). It scores Era 3 only once, at the
+  took them out of the base game (`packages/content/scenarios/base-game.json`). No whole game (fuzz, AI, balance or
+  the app's vs-AI game) reaches them until then; only their own card tests cover them. That game scores Era 3 only once, at the
   end of 2027, but today's engine would score it at the end of turn 10 too: `eraEnds`
   (`packages/engine/src/scoring.ts:61-64`) counts the turn before a waiting era enters as an era's end. That
   scenario's build must stop the extra scoring. [21 Nov 2026, recording the owner's answers; #575]
