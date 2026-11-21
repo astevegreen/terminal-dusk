@@ -47,6 +47,12 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## Tests and tooling
 
+- `pnpm gate`'s quick fuzz failed once in `tests/fuzz/extraSteps.test.ts`: "Extra-steps game 188 ... failed at answer
+  27: the view for 'sae' shows sae's Contingency deck with a count left that is not the secret order's"
+  (`tests/fuzz/checks.ts:256`, `checkNoLeaks`). Each game is seeded from its number, yet the next gate and three
+  1,000-game runs of that file passed, so something in that check or the game is not deterministic. Find what.
+  [21 Nov 2026, gate run on #583 while a balance run loaded the PC]
+
 - Agents comment as astevegreen while greenbeanbot is suspended, so after the bot returns a `Blocked:` comment an
   agent posted as the owner can read as the owner's answer (`tools/sprint/rules.mjs:207` `ownerAnswer`): check blocked
   issues then, or mark agent comments so the queue stops relying on the author (7 Nov 2026, review of #540).
