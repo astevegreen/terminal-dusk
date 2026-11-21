@@ -24,10 +24,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   `NotifyStore`, but not the `DeadlineStore` half (`due`, `saveClock`) that `MemoryStore` and `SupabaseStore` both
   implement. Add a deadline contract so the fake can't drift from the `clock` and `next_deadline` columns.
   [21 Nov 2026, agy on #567]
-- `makeUser` (`packages/server/src/test/stack.ts`) ignores a `deleteUser` that answers `{ error }` rather than
-  rejecting, so that stray user goes unreported; and `stack.makeUser.test.ts` signs in against `127.0.0.1:9`, which
-  would hang if something listened there. Check the delete's `error`, and fake the sign-in client too.
-  [21 Nov 2026, agy on #564]
 - The AI's difficulty (#508) is kept only in `VsAiScreen`'s state (`packages/app/src/vsAi/VsAiScreen.tsx`): it
   survives New game, but going back to the home screen or reloading resets it to Medium. Saving it through
   `Platform.storage` (Decision 7) would keep it across visits. [21 Nov 2026, reviewer and agy on #573]
