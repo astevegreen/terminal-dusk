@@ -87,6 +87,7 @@ test("tapping a card lifts it over the middle third with its text; a tap elsewhe
   for (const button of await lifted.getByRole("button").all()) {
     const b = await box(button);
     expect(b.height).toBeGreaterThanOrEqual(44);
+    expect(b.width).toBeGreaterThanOrEqual(44);
     const hit = await button.evaluate((el) => {
       const r = el.getBoundingClientRect();
       return el.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2));

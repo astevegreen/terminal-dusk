@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { expectTapTargets } from "./measure.ts";
 
 // Watching a real game on the local Supabase stack. It runs only when WATCH_MATCH_ID names a game put in on the
 // stack and the app is served with VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY for that stack (a spectator needs
@@ -13,13 +14,10 @@ test("watching a game on the local stack: spectating, read-only, only spectator 
   await page.goto(`/?watch=${matchId}`);
 
   await expect(page.getByText("Spectating", { exact: false }).first()).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByRole("button", { name: "Back" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Back", exact: true })).toBeVisible();
   const noSideScroll = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
   expect(noSideScroll).toBe(true);
-  const heights = await page
-    .locator("button:visible")
-    .evaluateAll((buttons) => buttons.map((b) => b.getBoundingClientRect().height));
-  for (const height of heights) expect(height).toBeGreaterThanOrEqual(44);
+  await expectTapTargets(page);
 
   const data = requests.filter((r) => r.includes("/rest/v1/"));
   expect(data.length).toBeGreaterThan(0);

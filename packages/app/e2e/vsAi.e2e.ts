@@ -31,7 +31,7 @@ test("play against the AI: pick LIO and tap through a whole game against the wor
   const log = await page.getByTestId("log").innerText();
   expect(log).toMatch(/^LIO /m);
   expect(log).toMatch(/^SAE /m);
-  await page.getByRole("dialog", { name: "Game log" }).getByRole("button", { name: "Close" }).click();
+  await page.getByRole("dialog", { name: "Game log" }).getByRole("button", { name: "Close", exact: true }).click();
   await expect(page.getByTestId("log")).toBeHidden();
   // The finished game can be watched back, and Close returns to it.
   await page.getByRole("button", { name: "Watch replay" }).click();
@@ -40,8 +40,11 @@ test("play against the AI: pick LIO and tap through a whole game against the wor
   await page.getByRole("button", { name: "Details" }).click();
   const details = page.getByRole("dialog", { name: "Game details" });
   await expect(details.getByText("AI difficulty: Easy", { exact: true })).toBeVisible();
-  await details.getByRole("button", { name: "Close" }).click();
-  await page.getByRole("navigation", { name: "Replay controls" }).getByRole("button", { name: "Close" }).click();
+  await details.getByRole("button", { name: "Close", exact: true }).click();
+  await page
+    .getByRole("navigation", { name: "Replay controls" })
+    .getByRole("button", { name: "Close", exact: true })
+    .click();
   await expect(gameOver).toBeVisible();
   await expect(page.getByRole("button", { name: "New game" })).toBeVisible();
   await page.getByRole("button", { name: "New game" }).click();

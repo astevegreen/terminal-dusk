@@ -87,7 +87,7 @@ test("the map fills the game screen, with a slim see-through top bar, and Detail
   await shoot(page, testInfo, "l10", "details-open");
 
   // Close shuts it, and no panel shows.
-  await panel.getByRole("button", { name: "Close" }).click();
+  await panel.getByRole("button", { name: "Close", exact: true }).click();
   await expect(panel).toBeHidden();
 
   // "Whole map" fits the world between the top bar and the banner: no country or region name is covered.
@@ -126,7 +126,7 @@ test("Details opens its panel, Close and Escape close it, and a new decision clo
   await expectNoPageScroll(page);
 
   // Close shuts it: nothing in it shows. The banner and the hand strip are not in it: they stay.
-  await panel.getByRole("button", { name: "Close" }).click();
+  await panel.getByRole("button", { name: "Close", exact: true }).click();
   await expect(details).toHaveAttribute("aria-expanded", "false");
   for (const id of ["log", "contingency"]) await expect(page.getByTestId(id)).toBeHidden();
   await expect(decision).toBeVisible();
@@ -142,7 +142,7 @@ test("Details opens its panel, Close and Escape close it, and a new decision clo
   await expect(page.getByTestId("contingency")).toBeHidden();
   await expect(details).toBeFocused();
   await page.keyboard.press("Enter");
-  await panel.getByRole("button", { name: "Close" }).press("Enter");
+  await panel.getByRole("button", { name: "Close", exact: true }).press("Enter");
   await expect(page.getByTestId("contingency")).toBeHidden();
   await expect(details).toBeFocused();
 
