@@ -33,6 +33,9 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## Tests and tooling
 
+- The rules-text numbers check (`packages/content/src/rulesNumbers.test.ts`, #584) compares each kind's distinct numbers,
+  not which side or branch each belongs to: text giving LIO's "2 fewer" to SAE and SAE's "1 fewer" to LIO would pass.
+  Tying each number to its side and branch would close that gap. [21 Nov 2026, #584 review]
 - `pnpm gate`'s quick fuzz failed once in `tests/fuzz/extraSteps.test.ts`: "Extra-steps game 188 ... failed at answer
   27: the view for 'sae' shows sae's Contingency deck with a count left that is not the secret order's"
   (`tests/fuzz/checks.ts:256`, `checkNoLeaks`). Each game is seeded from its number, yet the next gate and three

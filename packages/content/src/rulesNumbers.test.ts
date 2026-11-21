@@ -94,8 +94,8 @@ describe("each card's rules text states the numbers its effect uses", () => {
 
   it.each(CHECKS.map((check) => [check.name, check] as const))(
     "%s: a card whose text says a different number fails the check",
-    (_name, check) => {
-      const card = FIRST_DECK_CARDS.find((c) => check.effect(c).length > 0)!;
+    (name, check) => {
+      const card = FIRST_DECK_CARDS.find((c) => check.effect(c).length > 0 && DISAGREE[c.id]?.includes(name) !== true)!;
       const wrong = card.text.rules.replaceAll(/\d+/g, (n) => String(Number(n) + 10));
       expect(check.text(wrong), card.id).not.toEqual(check.effect(card));
     },
