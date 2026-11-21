@@ -21,3 +21,10 @@ test("with a match ID it explains that replays are not available yet and fails",
   assert.match(r.stderr, /not available yet/);
   assert.match(r.stderr, /m-123/);
 });
+
+test("it says why: the host builds replay archives but the server does not store them yet", () => {
+  const r = replay("m-123");
+  assert.match(r.stderr, /hostArchive/);
+  assert.match(r.stderr, /server does not store/);
+  assert.doesNotMatch(r.stderr, /no server code/);
+});

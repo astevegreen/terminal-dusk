@@ -67,9 +67,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - `packages/engine/src/views.property.test.ts` and `views.test.ts` overlap (both check what each viewer sees);
   consolidating them into one property suite with a few named examples would cut duplicate cases. [6 Nov 2026,
   test-suite audit]
-- `tools/replay.mjs` is still a stub that says "no server code exists", which is out of date: the host now builds
-  replay archives (`hostArchive`). `pnpm replay <matchId>` should be built on them, or its message updated
-  (`tools/replay.mjs:3,10-11`); `tools/replay.test.mjs` tests the stub and goes with it. [6 Nov 2026, test-suite audit]
 - `recordSession` in `tools/handoff-notes.mjs:150` reads, adds to and renames the session-ids index with no lock, so
   two sessions saving or claiming in the same instant can drop one entry (only the Sessions pane's note list
   loses it; the note itself is safe). A lock file or an append-only log would close it. [6 Nov 2026, reviewer on
