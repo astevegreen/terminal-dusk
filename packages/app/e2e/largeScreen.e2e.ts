@@ -87,7 +87,7 @@ test("on a large screen the log can be pinned open at the side, leaving the midd
     // Pinned again, Close unpins and closes it, and the map has the whole width back.
     await page.getByTestId("ticker").click();
     await pinOf(page).click();
-    await drawer.getByRole("button", { name: "Close" }).click();
+    await drawer.getByRole("button", { name: "Close", exact: true }).click();
     await expect(drawer).toBeHidden();
     await expect.poll(async () => Math.round((await box(map.locator(".dm-view"))).right)).toBe(size.width);
   }

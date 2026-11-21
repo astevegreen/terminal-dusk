@@ -55,7 +55,7 @@ test("replay: the map fills the screen, the controls sit in the top bar, and a s
   let before = await markers(page);
   for (let k = 1; k < total && (await touched.count()) === 0; k++) {
     before = await markers(page);
-    await page.getByRole("button", { name: "Next" }).click();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
     await expect(step).toHaveText(`Step ${k + 1} of ${total}`);
   }
   await expect(touched.first()).toBeVisible();
@@ -70,10 +70,10 @@ test("replay: the map fills the screen, the controls sit in the top bar, and a s
   await expectTapTargets(page);
   await expectNoPageScroll(page);
   await shoot(page, testInfo, "replay", "details-open");
-  await details.getByRole("button", { name: "Close" }).click();
+  await details.getByRole("button", { name: "Close", exact: true }).click();
 
   // The last step: the seed check in the top bar, the page still unscrolled.
-  await page.getByRole("button", { name: "Last" }).click();
+  await page.getByRole("button", { name: "Last", exact: true }).click();
   await expect(topBar.getByText(/^Seed checked: \S+/)).toBeVisible();
   await expectNoPageScroll(page);
   expect((await box(topBar)).height).toBeLessThanOrEqual(viewport.height * 0.12);

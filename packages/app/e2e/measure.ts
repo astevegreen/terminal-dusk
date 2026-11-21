@@ -45,13 +45,18 @@ export const coveredOnMap = (page: Page): Promise<string[]> =>
     return covered;
   });
 
-/** Every visible button and menu is at least a tap target (44 px) tall. */
+/** Every visible button and menu is at least a tap target (44 px) tall and wide (#495). Names any that is not. */
 export async function expectTapTargets(page: Page): Promise<void> {
-  const heights = await page
-    .locator("button:visible, summary:visible")
-    .evaluateAll((all) => all.map((b) => b.getBoundingClientRect().height));
-  expect(heights.length).toBeGreaterThan(0);
-  for (const height of heights) expect(height).toBeGreaterThanOrEqual(44);
+  const sizes = await page.locator("button:visible, summary:visible").evaluateAll((all) =>
+    all.map((b) => {
+      const r = b.getBoundingClientRect();
+      const name = b.getAttribute("aria-label") ?? b.textContent ?? "";
+      return { name: name.trim().slice(0, 40), width: r.width, height: r.height };
+    }),
+  );
+  expect(sizes.length).toBeGreaterThan(0);
+  const small = sizes.filter((s) => s.width < 44 || s.height < 44);
+  expect(small, "buttons smaller than 44 x 44 px").toEqual([]);
 }
 
 /** Saves a screenshot of the page in the test's output folder as `<prefix>-<name>-<width>.png` and attaches it. */

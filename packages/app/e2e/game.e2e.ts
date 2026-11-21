@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { expectTapTargets } from "./measure.ts";
 
 const REGIONS = ["status-bar", "map-area", "hand", "opponent", "table", "contingency", "log", "decision"];
 
@@ -25,9 +26,5 @@ test("game screen: every region is visible, nothing scrolls sideways, buttons ar
   const noSideScroll = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
   expect(noSideScroll).toBe(true);
 
-  const heights = await page
-    .locator("button:visible")
-    .evaluateAll((buttons) => buttons.map((b) => b.getBoundingClientRect().height));
-  expect(heights.length).toBeGreaterThan(0);
-  for (const height of heights) expect(height).toBeGreaterThanOrEqual(44);
+  await expectTapTargets(page);
 });

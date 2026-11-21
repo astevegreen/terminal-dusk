@@ -41,7 +41,7 @@ for (const view of ["online-mine", "online-rival", "watch"]) {
       await page.setViewportSize(size);
       await page.goto(`/e2e/bars/index.html?view=${view}`);
       const top = page.locator(".game-top");
-      await expect(top.getByRole("button", { name: "Back" })).toBeVisible();
+      await expect(top.getByRole("button", { name: "Back", exact: true })).toBeVisible();
       await expectNoPageScroll(page);
 
       const bar = await box(top);
@@ -52,7 +52,7 @@ for (const view of ["online-mine", "online-rival", "watch"]) {
       expect(ticker.height).toBeGreaterThanOrEqual(44);
       expect(ticker.right).toBeGreaterThanOrEqual(size.width - 8);
       await expect(top.getByRole("button", { name: "Details" })).toBeInViewport({ ratio: 1 });
-      await expect(top.getByRole("button", { name: "Back" })).toBeInViewport({ ratio: 1 });
+      await expect(top.getByRole("button", { name: "Back", exact: true })).toBeInViewport({ ratio: 1 });
       await expectTapTargets(page);
 
       // The page's own turn line (its role="status") and the status line's state text show in full.
