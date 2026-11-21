@@ -17,13 +17,11 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   (`packages/content/src/rulesWording.test.ts`) check the wording's form, not that "spends 2 points" matches the
   card's `spendPoints` amount. A check that reads the numbers out of the text and compares them with the effect
   would catch a card whose text and data disagree. [6 Nov 2026, test-suite audit]
-- The 2025-2027 game (11 turns, the future cards entering on turn 11, scored at the end of 2027;
-  `docs/design/eras.md`) has no scenario yet, so the future cards are in the ruleset but in no game since #575
-  took them out of the base game (`packages/content/scenarios/base-game.json`). No whole game (fuzz, AI, balance or
-  the app's vs-AI game) reaches them until then; only their own card tests cover them. That game scores Era 3 only once, at the
-  end of 2027, but today's engine would score it at the end of turn 10 too: `eraEnds`
-  (`packages/engine/src/scoring.ts:61-64`) counts the turn before a waiting era enters as an era's end. That
-  scenario's build must stop the extra scoring. [21 Nov 2026, recording the owner's answers; #575]
+- The 2025-2027 game (`packages/content/scenarios/2025-2027.json`, `SCENARIO_2025_2027`, #582) is data and tests
+  only: no host config (`packages/host/src/firstDeck.ts`) or app screen starts it, so no fuzz, AI, balance or vs-AI
+  game reaches the future cards yet; only their own card tests and the scenario's play-through test cover them.
+  Era 3's one scoring, at the end of turn 11, uses the map's `future` battleground list; only the six-region map is
+  checked to have it equal Era 3's, so the host config that starts this game needs the same check. [21 Nov 2026, #582]
 - `docs/design/map-and-points.md` ("Map numbers", Open) still says the scenario data has not been changed to the
   21 Nov rules; the scenario is `packages/content/scenarios/base-game.json` since #575. Fix it at the next Notion
   promotion. [21 Nov 2026, #575]
