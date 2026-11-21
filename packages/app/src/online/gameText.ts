@@ -1,6 +1,7 @@
 // The online game screen's words: whose turn it is, and how long the waiting side has before its deadline.
 // Plain functions of the snapshot, so they are tested as tables. Display only: the server's deadline sweep
 // decides what a missed deadline does.
+import type { Viewer } from "@terminal-dusk/engine";
 import type { OnlineDeadline } from "./matchClock.ts";
 import type { OnlineGameSnapshot } from "./onlineGame.ts";
 import { SIDE_NAME } from "./lobbyText.ts";
@@ -26,6 +27,16 @@ export function deadlineText(deadline: OnlineDeadline): string {
   const t = deadline.at - deadline.now;
   const extra = t > 0 && deadline.rule === "graceThenLoss" && deadline.graceLeft;
   return `${timeLeft(t)}${extra ? ", then one extra deadline" : ""}`;
+}
+
+/**
+ * The deadline in full, for the Details panel (#504): whose it is, the time left, and whether an extra deadline is
+ * still to come or already used. The top bar's line may be cut short at 844 px; this one is not.
+ */
+export function deadlineDetail(deadline: OnlineDeadline, viewer: Viewer): string {
+  const whose = deadline.side === viewer ? "Your deadline" : `${SIDE_NAME[deadline.side]}'s deadline`;
+  const used = deadline.at > deadline.now && deadline.rule === "graceThenLoss" && !deadline.graceLeft;
+  return `${whose}: ${deadlineText(deadline)}${used ? ", and the extra deadline is used" : ""}`;
 }
 
 /** The turn line for a snapshot. */

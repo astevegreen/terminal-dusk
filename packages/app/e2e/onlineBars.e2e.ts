@@ -63,3 +63,26 @@ for (const view of ["online-mine", "online-rival", "watch"]) {
     }
   });
 }
+
+// The bar's deadline line may give way with "…" at 844, so the Details panel shows the deadline in full: whose it
+// is, the time left and the extra deadline still to come or used (#504). On the rival's turn it is the rival's.
+const detailLines = {
+  "online-mine": "Your deadline: 3 days 23 hours left, then one extra deadline",
+  "online-rival": "SAE's deadline: 3 days 23 hours left, then one extra deadline",
+  "online-used": "Your deadline: 3 days 23 hours left, and the extra deadline is used",
+};
+for (const [view, text] of Object.entries(detailLines)) {
+  test(`${view}: Details shows the whole deadline, readable at every size`, async ({ page }) => {
+    for (const size of sizesFor(page)) {
+      await page.setViewportSize(size);
+      await page.goto(`/e2e/bars/index.html?view=${view}`);
+      await page.locator(".game-top").getByRole("button", { name: "Details" }).click();
+      const line = page.getByRole("dialog", { name: "Game details" }).getByTestId("deadline-detail");
+      await expect(line).toHaveText(text);
+      await expect(line, `${size.width}`).toBeInViewport({ ratio: 1 });
+      const cut = await line.evaluate((el) => el.scrollWidth > el.clientWidth + 0.5);
+      expect(cut, `${size.width} cut short`).toBe(false);
+      await expectNoPageScroll(page);
+    }
+  });
+}
