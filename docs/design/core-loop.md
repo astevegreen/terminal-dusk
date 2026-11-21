@@ -3,7 +3,8 @@
 Promoted on 2026-10-16 from the Decided section of the Notion page "Core loop", plus seven answers the owner
 gave that day. Promoted again the same day with four calls from the engine spec review, and on 2026-10-19 with
 the refill rule (owner, deck plan Owner questions 5 and 27), and on 2026-11-07 with the "No card left" rule
-(owner, in chat). From now on this file is the source of truth; change it in Notion and promote again.
+(owner, in chat), and on 2026-11-21 with plays per turn (owner, in chat: "Take all recommendations"). From now
+on this file is the source of truth; change it in Notion and promote again.
 
 ## A turn
 
@@ -20,9 +21,10 @@ the refill rule (owner, deck plan Owner questions 5 and 27), and on 2026-11-07 w
    A rival's card picked as an opening card resolves as the rival's event, exactly as if the rival had played it,
    except that its Contingency draws from the rival's own deck come from the World deck
    (docs/design/contingency-deck.md).
-6. **Card plays.** After the opening cards, the players take turns playing one card at a time.
-   LIO plays first in every turn. A side holding the tech race's Hypersonics step then makes one extra play
-   (docs/design/tech-race.md).
+6. **Card plays.** After the opening cards, the players take turns playing one card at a time, until each side
+   has made **2 plays** (owner, 21 Nov 2026: docs/proposals/era-lengths.md, question 2). LIO plays
+   first in every turn, so the order is LIO, SAE, LIO, SAE. A side holding the tech race's Hypersonics step then
+   makes one extra play (docs/design/tech-race.md).
 
 ## Refilling hands
 
@@ -84,8 +86,10 @@ the refill rule (owner, deck plan Owner questions 5 and 27), and on 2026-11-07 w
   public state or events, until Reveal (docs/design/tech-race.md).
 - Undo happens only in the UI's staged answer. The engine only ever sees confirmed answers.
 - Hand size, cards played per turn and turns per era come from scenario data (docs/architecture.md,
-  Decision 4), so the engine must not hard-code them. The hand size is 8 for now; plays per turn and turns per
-  era are not decided. "Plays per turn" counts the plays **each side** makes (owner, 16 Oct).
+  Decision 4), so the engine must not hard-code them. The hand size is 8 for now, plays per turn is 2 (owner,
+  21 Nov 2026), and the turns per era are in docs/design/eras.md (owner, 21 Nov 2026). "Plays per turn" counts the
+  plays **each side** makes (owner, 16 Oct). So a turn takes 2 x (1 + 2) = 6 cards out of the hands, and the hand
+  size of 8 meets the check below (1 + 2 = 3).
 - A refill draws LIO's cards first, then SAE's. The draw pile is shuffled with the game's seeded generator, so
   this order changes which cards each side gets but not the chances.
 - The engine refuses a scenario whose hand size is smaller than 1 + plays per turn (a side could not make all its
@@ -98,7 +102,8 @@ the refill rule (owner, deck plan Owner questions 5 and 27), and on 2026-11-07 w
 
 ## Not decided yet
 
-- How many cards each player plays per turn, and how a turn ends.
+- How a turn ends. How many cards each player plays per turn is decided: 2 (owner, 21 Nov 2026, "Take all
+  recommendations"; "Card plays" above).
 - Scoring's numbers. When regions score and how the game is won are decided in docs/design/map-and-points.md
   (owner, 28 Oct): every region scores at each era's end, and there are no scoring cards. The Escalation track
   (formerly the tension track) is decided there too, except the parts that wait on scoring's numbers and the map; its tech race links are in docs/design/tech-race.md.

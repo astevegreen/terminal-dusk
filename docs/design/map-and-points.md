@@ -7,7 +7,9 @@ text are used here. Updated on 22 October 2026 with the owner's answers from the
 Escalation section, the Intervene action (formerly the coup) and the fourth action. Updated on 28 October 2026
 with the owner's scoring answers (Scoring section, and battlegrounds by era in the Map section), and later that day
 with the six-region map's numbers (Map section's "Map numbers", R24, #458). The tech race, decided the same day,
-has its own file, `docs/design/tech-race.md`; this file points to it.
+has its own file, `docs/design/tech-race.md`; this file points to it. Updated on 21 November 2026 with the owner's
+answers on the map's reach, Kosovo and the Palestinian territories, and the 2025-2027 scenario's final scoring
+(owner, in chat: "Take all recommendations").
 
 Not yet built. Numbers marked "open" are for the owner to set.
 
@@ -30,6 +32,10 @@ Not yet built. Numbers marked "open" are for the owner to set.
 - **Region contents** (owner, 28 Oct, chosen in chat: option 2): the countries, regions and links of
   `docs/proposals/map-content/option-2.md`, 41 countries plus Crimea. The data is
   `packages/content/scenarios/six-region-map.json` (#422), with Crimea's stability 2 like Ukraine's (owner, 28 Oct).
+- **No box for Kosovo or the Palestinian territories** (owner, 21 Nov 2026: "no"). The map keeps option 2's
+  countries, which give neither one a box.
+- **Every country is reachable from both home boxes, and long sea links are acceptable** (owner, 21 Nov 2026:
+  "yes"), as option 2's tables assume; its Reach section shows the result.
 
 ### Map numbers
 
@@ -61,8 +67,9 @@ Decided by the owner on 28 October 2026, in chat, answering the questions of `do
 - **Taiwan and Crimea at the start** (owner: "LIO 3 / SAE 1", then Taiwan lowered by the X15 balance pass). Taiwan
   LIO 2, aligned but short of control at stability 3 (owner, 29 Oct: option 1 of `docs/proposals/map-balance.md`,
   #472; LIO 3 won about 63% of Medium-vs-Medium games, LIO 2 about 54%); Crimea SAE 1, a foothold without control at stability 2. Every other country starts empty.
-- Open: the balance pass on the stabilities (above). Turns, plays per turn and hand size in the scenario are still the first deck's placeholders (era
-  lengths).
+- Open: the balance pass on the stabilities (above). Turns, plays per turn and hand size in the scenario are still the first deck's placeholders. The
+  rules are now decided (owner, 21 Nov 2026): 2 plays per turn (`docs/design/core-loop.md`) and 3 / 2 / 5 turns per
+  era (`docs/design/eras.md`); the scenario data has not been changed to them yet.
 
 ## Influence (proposal topic 2, option A)
 
@@ -171,8 +178,8 @@ on scoring's numbers and the map; its tech race links are below.
   **Credibility**. The requirement is highest when Escalation is low and falls as it rises: a calm world expects
   a great power to act, and a world at the brink excuses restraint. A side that falls short has a **credibility
   gap**, and the rival scores. The name comes from the deterrence literature (Schelling on commitment and
-  credibility; the debate on a "reputation for resolve"). Open: the numbers, which wait for plays per turn and
-  scoring's numbers; when the gap is counted; whether card events count toward it.
+  credibility; the debate on a "reputation for resolve"). Open: the numbers, which waited for plays per turn
+  (decided 21 Nov 2026: 2) and scoring's numbers; when the gap is counted; whether card events count toward it.
 - **Cards that move it** (owner, 22 Oct). Sixteen cards move Escalation by 1, on top of what each already does.
   Their design lines are rewritten in the card rewording pass (question 7).
   - **Raise:** Desert Storm Coalition, Second Chechen War, Taiwan Strait Crisis (Era 1); ABM Treaty Withdrawal,
@@ -218,8 +225,11 @@ Decided by the owner on 28 October 2026, choosing between the options in `docs/p
 - **The tech race scores too.** At each era's end, after all six regions, the side holding the tech race's
   Quantum Computing step moves the track 1 its way (`docs/design/tech-race.md`).
 - The six-region map's track (20 steps to each end, starting in the middle) and its amounts per region are in the
-  Map section's "Map numbers" (owner, 28 Oct). Open: when the 2025-2027 scenario (eras.md) has its final scoring
-  and win check.
+  Map section's "Map numbers" (owner, 28 Oct).
+- **The 2025-2027 scenario** (eras.md) has its final scoring and win check **at the end of 2027**, the end of its
+  extra turn, not at the end of 2025 (owner, 21 Nov 2026: option B). In that scenario, "after the final era scores
+  at the end of 2025" above reads "at the end of 2027". Still open: whether it also scores at the end of 2025
+  (`docs/design/eras.md`, "Not decided yet").
 
 ## Owner's remaining questions
 
@@ -232,8 +242,10 @@ Decided by the owner on 28 October 2026, choosing between the options in `docs/p
    as its own box, and closing order C1; the order regions score in is S1 (Scoring section). Its numbers too
    (Map section's "Map numbers"): option A's stabilities and battleground lists, weighted amounts, a 20-step track
    from the middle, Taiwan LIO 3 (LIO 2 since 29 Oct, X15) and Crimea SAE 1; a balance pass sets the final stabilities once the Medium AI
-   exists ("A, tune later"). Still open: whether Kosovo and the Palestinian territories get a box (option 2 gives neither one), and
-   whether every country must be reachable from both home boxes and long sea links are acceptable (option 2's tables
-   assume yes; its Reach section shows the result).
+   exists ("A, tune later"). Answered 21 Nov 2026 (owner, in chat: "Take all recommendations"): Kosovo and the
+   Palestinian territories get no box (option 2 gives neither one), and every country must be reachable from both
+   home boxes, with long sea links acceptable (option 2's tables assume yes; its Reach section shows the result).
+   See the Map section.
 4. Answered 26 Oct: the intervention and realign formulas stand as written (#316, #317).
-5. Credibility's numbers, once plays per turn and scoring's numbers are known.
+5. Credibility's numbers, once scoring's numbers are known. Plays per turn is known since 21 Nov 2026 (2 per
+   side, `docs/design/core-loop.md`).

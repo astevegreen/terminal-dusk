@@ -2,7 +2,7 @@ Proposal, not a rule
 
 # The six-region map's content, and the order regions close at Escalation
 
-**Decided 28 Oct (owner, chosen in chat): option 2, H1, Crimea as its own box, closing order C1, and the order regions score in, S1 (the closing order's own list). Questions 5 to 10 below are not answered yet; see `docs/design/map-and-points.md`, "Map" and "Owner's remaining questions".** The text below is the original proposal, which recommends nothing.
+**Decided 28 Oct (owner, chosen in chat): option 2, H1, Crimea as its own box, closing order C1, and the order regions score in, S1 (the closing order's own list). Questions 9 and 10 were answered the same day (docs/design/map-and-points.md, "Map numbers"), and questions 5 to 8 on 21 Nov 2026 (owner, in chat: "Take all recommendations"): no box for Kosovo or the Palestinian territories, every country reachable from both home boxes, and long sea links acceptable. See `docs/design/map-and-points.md`, "Map" and "Owner's remaining questions".** The text below is the original proposal, which recommends nothing.
 
 Sprint backlog X6. This proposal lays out options for owner question 3 in `docs/design/map-and-points.md`:
 the countries in each region, their adjacency, stabilities and battlegrounds, and which regions close at
@@ -202,12 +202,22 @@ It reported no errors for any of the three files. Each option file's "Reach" sec
 4. Which closing order: C1 (the dialogue's suggestion), C2, C3, or another?
 5. Kosovo (Pristina Airport Dash, Kosovo Declares Independence) is on no option's board. Should it be its own
    box, part of Serbia's, or neither? Like Crimea, this is a political choice as well as a rules one.
+   **Decided:** no box of its own; the board keeps option 2's countries. Owner, 21 Nov 2026: take the
+   recommendation.
 6. Oslo Accords and October 7 and Gaza are listed under Israel. Should the Palestinian territories have their own
    box? The same kind of choice as questions 3 and 5.
+   **Decided:** no. Owner, 21 Nov 2026: take the recommendation.
 7. Must every country be reachable by adjacency from both home boxes, or may a side's only way in be its
    starting influence (Taiwan in option 3)? The answer decides what the map's content check tests.
+   **Decided:** every country must be reachable from both home boxes. Owner, 21 Nov 2026: take the
+   recommendation.
 8. Are links across land with no country on the board, and long links across seas, acceptable, and should long
    links be few (option 3) or many (option 2)?
+   **Decided:** long sea links are acceptable, as option 2 has them. Owner, 21 Nov 2026: take the recommendation.
 9. Who sets the real stabilities and battlegrounds: the owner, or a balance pass once the rules are built (the
    numbers here are placeholders)?
+   **Decided** 28 Oct: option A's numbers now, a balance pass sets the final stabilities (map-and-points.md, "Map
+   numbers").
 10. What are Taiwan's and Crimea's starting influence numbers?
+    **Decided** 28 Oct: Taiwan LIO 3, lowered to LIO 2 on 29 Oct (X15); Crimea SAE 1 (map-and-points.md, "Map
+    numbers").

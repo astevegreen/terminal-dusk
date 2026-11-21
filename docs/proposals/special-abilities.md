@@ -2,6 +2,11 @@ Proposal, not a rule
 
 # Special abilities for LIO and SAE: options
 
+**Decided 21 Nov 2026** (owner, in chat: "Take all recommendations"): **LIO gets L2, Resilient institutions;
+SAE gets S1, Unified command.** Both are automatic, deliberately different and always shown to both players. The
+owner's words on question 1 were "fixed per scenario". Both picks are recorded in docs/design/sides.md. The
+numbers in them stay placeholders. The questions below are each marked.
+
 Sprint backlog X3. docs/design/sides.md says each side has exactly one special ability of its own and that which
 one is not decided yet. This file lays out three options for each side, with trade-offs. It decides nothing, and
 nothing here is a rule until the owner picks an option and it is promoted into docs/design/.
@@ -18,9 +23,10 @@ to make the trade-offs concrete; they are not proposed values.
 - **The rival-card rule** (core-loop.md): a rival's card may only be played for its action points, its event still
   runs as the rival's event, and its draws from the rival's own deck come from the World deck. This also holds for
   opening picks, which resolve as events only and never spend their action points.
-- **The card-count gap.** The deck holds 28 LIO cards and 38 SAE cards (deck-plan.md, "The deck at a glance"), so LIO
-  draws, and has to play, rival cards more often than SAE does. Backlog X5 looks at that gap. Every option that
-  triggers on or changes playing a rival's card says how the gap affects it.
+- **The card-count gap.** The deck holds 33 LIO cards and 38 SAE cards (deck-plan.md, "The deck at a glance"; this
+  said 28 before the five LIO cards of Owner question 52 were added; corrected 21 Nov 2026), so LIO draws, and has
+  to play, rival cards more often than SAE does. Backlog X5 looks at that gap. Every option that triggers on or
+  changes playing a rival's card says how the gap affects it.
 - **The map and scoring are not decided (W7).** Each option says whether it can be built and judged without them.
 
 ## Engine facts every option shares
@@ -192,15 +198,26 @@ same turn counts 1 more.
 
 1. Should the abilities be fixed per side for every scenario, or may a scenario pick them (engine choice (a) or
    (b) above)?
+   **Answered:** "fixed per scenario" (owner, 21 Nov 2026). Still open: whether that means every scenario uses
+   the same two abilities, or that each scenario names them and they never change during a game. Menu (a) or data
+   (b) is then the architect's call.
 2. Should a side's ability be something the player chooses to use (a prompt), or always automatic?
+   **Decided:** always automatic (owner, 21 Nov 2026). L2 therefore needs no `yesNo` decision.
 3. Should the two abilities mirror each other in kind (both about points, both about luck, both about the map), or
    be deliberately different?
+   **Decided:** deliberately different (owner, 21 Nov 2026).
 4. Is an ability that acts on rival-card plays (L1, S2) welcome, given the card-count gap, or should abilities wait
    until X5 settles the gap?
+   **Does not apply:** neither L1 nor S2 was picked.
 5. Should the choice wait for the map and scoring (W7), so options like L3 and S3 are possible, or should one that
    works without them be picked first?
+   **Settled by the picks:** L2 and S1 both work without the map and scoring.
 6. For S1: does an SAE opening pick of its own card count as "played for its event"?
+   **Still open:** this file gives no recommendation to take.
 7. For L2: may a side's ability change a Contingency draw at all, given that the decks exist so that luck evens out?
    And if a draw from the World deck is involved, whose ability applies (the same open point as in
    contingency-deck.md)?
+   **Answered in part:** picking L2 means the ability may change LIO's own Contingency draw. Still open: whose
+   ability applies to a draw from the World deck, the same open point as in contingency-deck.md.
 8. Should a side's ability, and whether it was used this turn, be shown to both players at all times?
+   **Decided:** yes, always shown to both players (owner, 21 Nov 2026).

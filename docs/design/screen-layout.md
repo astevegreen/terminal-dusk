@@ -162,6 +162,9 @@ under the bar.)
   covers a country at "Whole map", and the lifted card drops back when you tap elsewhere.
 - Tap targets of at least 44 px, keyboard play, and screen-reader names for every piece.
 - vs AI, online play, watching, Test mode and the replay all use the same screen.
+- In a game against the AI, the player picks the AI's difficulty before the game starts. A new player's default
+  is **Medium**, and the chosen difficulty shows in the Details panel and in the game's replay (owner, 21 Nov
+  2026, #508).
 - LIO blue and SAE red, in every era.
 
 ## Build order

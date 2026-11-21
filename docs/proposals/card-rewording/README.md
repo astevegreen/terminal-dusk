@@ -14,8 +14,10 @@ drafts are in one file per era:
 - [era-2.md](era-2.md): the Era 2 cards (X10b)
 - [era-3.md](era-3.md): the Era 3 and future cards (X10c)
 
-Nothing here is built or decided. Each draft waits for the owner's approval; once approved, its wording moves into
-the card's JSON and its era file. No card's effect changes except what `docs/design/` already decides: where the
+The owner approved the recommended wording on 28 Oct ("Proceed as recommended", #418), the cards were reworded
+in #420, and the owner confirmed the four recommendations below on 21 Nov 2026 (in chat: "Take all
+recommendations"). The questions on single cards in era-1.md, era-2.md and era-3.md are still open; an answer
+moves its wording into the card's JSON and its era file. No card's effect changes except what `docs/design/` already decides: where the
 points go (the action menu) and the Escalation moves. Every other step, number and choice stays as it is.
 
 ## Wording rules
@@ -81,7 +83,9 @@ A card's text names the side that spends; that side spends, whoever played the c
 
 ## Open points and their alternative wordings
 
-Each has a short name. Card entries name it instead of repeating the wordings. None is decided.
+Each has a short name. Card entries name it instead of repeating the wordings. All five are now decided: Place,
+Q28 and Split below (owner, 21 Nov 2026), Turn-end (28 Oct) and Tech (event points never go to the tech race,
+`docs/design/tech-race.md`; the wording stays _on actions_).
 
 - **Split** (map-and-points.md, "Points and actions", point 1: whether all points go to one action or can be split).
   - **Split-any:** _LIO spends 2 points on actions._ (any mix of placing, intervening and realigning)
@@ -122,16 +126,21 @@ whether **only the gap** between the sides counts (reading **Gap**) or **each si
      branch that fits the story (for example, Taiwan Strait Crisis only if the carriers are sent).
    - **Recommend P2 with B1:** one rule for every card, the player sees the board it spends on, and B1 keeps to the
      words docs/design/ already has. Every draft uses it.
+   - **Decided: P2 with B1** (owner, 21 Nov 2026): the Escalation move comes after the card's spends and always
+     happens.
 2. **Q28: does an Ops swing change every point spent, or only cards played for points?** Now that points place
    influence and pay for interventions, a +1 makes every event spend and every intervention 1 bigger.
    - **A:** keep (every spend); today's wording. **A-clear:** keep, with the clearer wording. **B:** plays for
      points only; an engine change.
    - **Recommend A-clear:** it is what the engine does and what the owner kept for SARS (question 35), and the new
      words remove the "counts double" misreading.
+   - **Decided: A-clear** (owner, 21 Nov 2026): a +1 or -1 changes every spend, in the clearer wording.
 3. **Split: can a play's points be split between actions?** **Split-any** or **Split-one**.
    - Split-any is simpler to explain and gives the player more ways to use small amounts; Split-one is the
      reference game's rule, which the owner asked to follow for this topic, and makes each spend one clear move.
    - **Recommend Split-one**, as the owner's "same rules as the reference game" for topic 3.
+   - **Decided: Split-one** (owner, 21 Nov 2026; also `docs/design/map-and-points.md`, "Points and actions"): one
+     play's points are never split between actions.
 4. **Turn-end: how is a 1-point turn-end payment spent?** **Turn-end-any** or **Turn-end-place**.
    - Turn-end-any is one sentence for every spend. But an intervention in a battleground raises Escalation however
      it turns out, so a 1-point intervention at turn end becomes a cheap way to push the track up just before it
@@ -140,3 +149,5 @@ whether **only the gap** between the sides counts (reading **Gap**) or **each si
    - **Decided: Turn-end-place** (owner, 28 Oct, #426).
 5. **Tech: may event points go to the tech race?** **Tech-yes** or **Tech-no**. Waits on the tech race topic
    (X7). **Recommend** writing _on actions_ now, which needs no rewording if the answer is yes.
+   - **Decided:** event points are written _on actions_ (owner, 21 Nov 2026). The tech race answer since 28 Oct
+     is no (`docs/design/tech-race.md`).
