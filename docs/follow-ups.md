@@ -30,11 +30,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## App, host and server
 
-- The store contracts (`packages/server/src/test/contracts/`, #567) cover `MatchStore`, `InviteStore` and
-  `NotifyStore`, but not the `DeadlineStore` half (`due`, `saveClock`) that `MemoryStore` and `SupabaseStore` both
-  implement. Add a deadline contract so the fake can't drift from the `clock` and `next_deadline` columns.
-  [21 Nov 2026, agy on #567]
-
 ## Tests and tooling
 
 - `pnpm gate`'s quick fuzz failed once in `tests/fuzz/extraSteps.test.ts`: "Extra-steps game 188 ... failed at answer
