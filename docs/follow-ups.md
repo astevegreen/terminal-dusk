@@ -13,10 +13,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## Rules engine and content
 
-- No check ties each card's rules text to its numbers (points spent, Escalation moves, counts): the rewording tests
-  (`packages/content/src/rulesWording.test.ts`) check the wording's form, not that "spends 2 points" matches the
-  card's `spendPoints` amount. A check that reads the numbers out of the text and compares them with the effect
-  would catch a card whose text and data disagree. [6 Nov 2026, test-suite audit]
 - The 2025-2027 game (`packages/content/scenarios/2025-2027.json`, `SCENARIO_2025_2027`, #582) is data and tests
   only: no host config (`packages/host/src/firstDeck.ts`) or app screen starts it, so no fuzz, AI, balance or vs-AI
   game reaches the future cards yet; only their own card tests and the scenario's play-through test cover them.
@@ -30,6 +26,9 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## Tests and tooling
 
+- The rules-text numbers check (`packages/content/src/rulesNumbers.test.ts`, #584) compares each kind's distinct numbers,
+  not which side or branch each belongs to: text giving LIO's "2 fewer" to SAE and SAE's "1 fewer" to LIO would pass.
+  Tying each number to its side and branch would close that gap. [21 Nov 2026, #584 review]
 - `pnpm gate`'s quick fuzz failed once in `tests/fuzz/extraSteps.test.ts`: "Extra-steps game 188 ... failed at answer
   27: the view for 'sae' shows sae's Contingency deck with a count left that is not the secret order's"
   (`tests/fuzz/checks.ts:256`, `checkNoLeaks`). Each game is seeded from its number, yet the next gate and three
