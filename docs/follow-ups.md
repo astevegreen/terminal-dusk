@@ -13,10 +13,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## Rules engine and content
 
-- No check ties each card's rules text to its numbers (points spent, Escalation moves, counts): the rewording tests
-  (`packages/content/src/rulesWording.test.ts`) check the wording's form, not that "spends 2 points" matches the
-  card's `spendPoints` amount. A check that reads the numbers out of the text and compares them with the effect
-  would catch a card whose text and data disagree. [6 Nov 2026, test-suite audit]
 - The 2025-2027 game (11 turns, the future cards entering on turn 11, scored at the end of 2027;
   `docs/design/eras.md`) has no scenario yet, so the future cards are in the ruleset but in no game since #575
   took them out of the base game (`packages/content/scenarios/base-game.json`). No whole game (fuzz, AI, balance or
