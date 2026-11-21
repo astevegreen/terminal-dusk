@@ -13,6 +13,10 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## Rules engine and content
 
+- The six-region track start of 7 towards SAE (#515, #600) was measured only with Hard against Hard; Medium against
+  Medium is unmeasured at that start (`node tools/balance/run.mjs --scenario six-region --lio-tier medium --sae-tier
+medium`, in 50-game batches). Recheck both tiers when the cards' rewording or the AI changes, and retune
+  `map.scoring.track.start` in `packages/content/scenarios/six-region-map.json`. [21 Nov 2026, #515 balance pass]
 - No check ties each card's rules text to its numbers (points spent, Escalation moves, counts): the rewording tests
   (`packages/content/src/rulesWording.test.ts`) check the wording's form, not that "spends 2 points" matches the
   card's `spendPoints` amount. A check that reads the numbers out of the text and compares them with the effect
