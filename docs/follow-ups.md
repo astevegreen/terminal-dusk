@@ -20,7 +20,8 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - The 2025-2027 game (`packages/content/scenarios/2025-2027.json`, `SCENARIO_2025_2027`, #582) is data and tests
   only: no host config (`packages/host/src/firstDeck.ts`) or app screen starts it, so no fuzz, AI, balance or vs-AI
   game reaches the future cards yet; only their own card tests and the scenario's play-through test cover them.
-  [21 Nov 2026, #582]
+  Era 3's one scoring, at the end of turn 11, uses the map's `future` battleground list; only the six-region map is
+  checked to have it equal Era 3's, so the host config that starts this game needs the same check. [21 Nov 2026, #582]
 - The free player's Era 1 game (`packages/content/scenarios/era-1-free.json`, `ERA_1_FREE_SCENARIO`, #575) is data
   and tests only: no host config (`packages/host/src/firstDeck.ts`) or app screen starts it yet. [21 Nov 2026, #575]
 - `docs/design/map-and-points.md` ("Map numbers", Open) still says the scenario data has not been changed to the
