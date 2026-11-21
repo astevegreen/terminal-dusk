@@ -47,6 +47,7 @@ test("one tap on Details shows everything the old Details tab showed, at every s
     await expect(panel).toBeHidden();
     const button = await box(detailsButton(page));
     expect(button.height).toBeGreaterThanOrEqual(44);
+    expect(button.width).toBeGreaterThanOrEqual(44);
     expect(button.bottom).toBeLessThanOrEqual((await box(page.locator(".game-top"))).bottom + 0.5);
 
     // One tap.

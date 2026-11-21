@@ -23,7 +23,7 @@ async function startDrawnMap(page: Page, seed?: number): Promise<Locator> {
 /** Makes sure no panel lies over the map where the wheel and drag tests point. The sheet of L5 (#485) is gone since
  *  L10 (#490); its Details tab is a panel the top bar opens, closed until it is asked for. */
 async function foldSheet(page: Page): Promise<void> {
-  const close = page.getByRole("dialog", { name: "Game details" }).getByRole("button", { name: "Close" });
+  const close = page.getByRole("dialog", { name: "Game details" }).getByRole("button", { name: "Close", exact: true });
   if (await close.isVisible()) await close.click();
   await expect(page.getByRole("dialog", { name: "Game details" })).toBeHidden();
 }

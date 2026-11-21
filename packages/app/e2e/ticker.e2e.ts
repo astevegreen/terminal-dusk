@@ -8,6 +8,7 @@ import { expect, test } from "@playwright/test";
 import type { Locator, Page, TestInfo } from "@playwright/test";
 import { answerOnce, yourDecision } from "./answer.ts";
 import { startSixRegionGame } from "./start.ts";
+import { expectTapTargets } from "./measure.ts";
 
 const box = (locator: Locator): Promise<DOMRect> => locator.evaluate((el) => el.getBoundingClientRect().toJSON());
 const tickerOf = (page: Page): Locator => page.getByTestId("ticker");
@@ -160,10 +161,7 @@ test("the ticker sits at the top bar's right end, see-through and a tap target t
   expect(await page.locator(".game").evaluate((el) => el.scrollLeft)).toBe(0);
   expect(drawerBox.left).toBeGreaterThanOrEqual(viewport.width * 0.4);
   expect(drawerBox.top).toBeGreaterThanOrEqual(tickerBox.bottom - 1);
-  const heights = await page
-    .locator("button:visible, summary:visible")
-    .evaluateAll((all) => all.map((b) => b.getBoundingClientRect().height));
-  for (const height of heights) expect(height).toBeGreaterThanOrEqual(44);
+  await expectTapTargets(page);
   await shoot(page, testInfo, "drawer");
 });
 
@@ -187,7 +185,7 @@ test.describe("by touch", () => {
 
     await ticker.tap();
     await expect(drawer).toBeVisible();
-    await drawer.getByRole("button", { name: "Close" }).tap();
+    await drawer.getByRole("button", { name: "Close", exact: true }).tap();
     await expect(drawer).toBeHidden();
 
     // A tap on the ticker while the drawer is open closes it too.
@@ -210,7 +208,7 @@ test("by keyboard, the drawer opens from the ticker, takes the keyboard, and Esc
   await expect(drawer).toBeVisible();
   await expect(drawer).toBeFocused();
   await page.keyboard.press("Tab");
-  await expect(drawer.getByRole("button", { name: "Close" })).toBeFocused();
+  await expect(drawer.getByRole("button", { name: "Close", exact: true })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(drawer).toBeHidden();
   await expect(ticker).toBeFocused();
@@ -218,7 +216,7 @@ test("by keyboard, the drawer opens from the ticker, takes the keyboard, and Esc
   // Space opens it too, and Close puts the keyboard back on the ticker.
   await page.keyboard.press("Space");
   await expect(drawer).toBeVisible();
-  await drawer.getByRole("button", { name: "Close" }).press("Enter");
+  await drawer.getByRole("button", { name: "Close", exact: true }).press("Enter");
   await expect(drawer).toBeHidden();
   await expect(ticker).toBeFocused();
 });

@@ -209,7 +209,9 @@ test("the List offers the same countries as buttons, by name, and still answers"
   const picks = map.locator(".map-pick");
   expect(await picks.count()).toBeGreaterThan(0);
   expect(await picks.first().textContent()).toMatch(/^Place in [A-Z]/);
-  expect((await picks.first().boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  const pick = (await picks.first().boundingBox())!;
+  expect(pick.height).toBeGreaterThanOrEqual(44);
+  expect(pick.width).toBeGreaterThanOrEqual(44);
   const question = await questionIdOf(page);
   await picks.first().click();
   expect(await answeredOrRefused(page, question)).toBe(true);
