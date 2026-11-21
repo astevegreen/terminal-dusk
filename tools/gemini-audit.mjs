@@ -17,7 +17,7 @@ import {
   pickDepth,
   reviewModels,
 } from "./gemini/agy.mjs";
-import { NO_API, apiFor } from "./gemini/gemini-api.mjs";
+import { CUT_LINE, NO_API, apiFor } from "./gemini/gemini-api.mjs";
 import { decide, railHits, readVerdict, reusableVerdict, verdictMarker } from "./gemini/rails.mjs";
 import { comment, comments, issue, pullRequest } from "./github-rest.mjs";
 import { collaborators, fromFork, trustedComment, trustedIssue } from "./github-trust.mjs";
@@ -155,8 +155,7 @@ function specs() {
 function prMaterial(pr, diff, ghRun) {
   const linked = /\b(?:closes|fixes|resolves)\s+#(\d+)/i.exec(pr.body ?? "")?.[1];
   const spec = linked ? issueText(linked, ghRun) : 'No linked task spec (no "Closes #n" in the pull request).\n';
-  const cut =
-    diff.length > MAX_DIFF ? `${diff.slice(0, MAX_DIFF)}\n... (diff truncated; read the rest from disk)\n` : diff;
+  const cut = diff.length > MAX_DIFF ? `${diff.slice(0, MAX_DIFF)}\n${CUT_LINE}\n` : diff;
   return `# Task spec\n\n${spec}\n# Pull request #${pr.number}\n\n${pr.body ?? ""}\n\n# Diff\n\n\`\`\`diff\n${cut}\`\`\`\n`;
 }
 

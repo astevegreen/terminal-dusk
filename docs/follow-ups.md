@@ -49,9 +49,9 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   10-minute idle timeout before passing to the next model; a short limit on the TLS handshake alone would end it in
   seconds, in all three repos. The cloud proxy cuts idle tunnels, so it has not happened. [7 Nov 2026, Gemini API
   tunnel fix review]
-- The "(diff truncated; read the rest from disk)" line is written in `tools/gemini-audit.mjs:151` and matched by
-  `TRUNCATED` in `tools/gemini/gemini-api.mjs:26`: one shared constant would stop a reworded marker from sending part of a diff to
-  the API. [7 Nov 2026, Gemini API fallback]
+- `tools/gemini/gemini-api.mjs` now exports `CUT_LINE`, the diff-cut marker the audit imports (this repo, PR for
+  the shared marker); its header says the file is the same in blockchain-technology-course and YODC, so copy it
+  there and have their audit scripts import it too. [21 Nov 2026, AI and tools lane]
 - The fuzz suites that prove random play "reaches" a feature (`tests/fuzz/easy.test.ts:56`, `reveals.test.ts`,
   `removed.test.ts`, `neutral.test.ts`, `extraSteps.test.ts`) each replay their games again to count events. One
   coverage pass that plays each game once and feeds every counter would save the replays; not merged yet because
