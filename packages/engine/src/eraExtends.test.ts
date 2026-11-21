@@ -93,6 +93,7 @@ describe("createGame checks an era entry's extendsEra", () => {
     expect(codeFor([ERA_2])).toBe("ok");
   });
   it("rejects any other value", () => {
-    for (const value of [false, "yes", 1, null]) expect(codeFor([ERA_2, { ...FUTURE, extendsEra: value }])).toBe("invalidSetup");
+    for (const value of [false, "yes", 1, null])
+      expect(codeFor([ERA_2, { ...FUTURE, extendsEra: value }])).toBe("invalidSetup");
   });
 });

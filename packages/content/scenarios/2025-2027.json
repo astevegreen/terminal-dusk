@@ -82,14 +82,7 @@
     {
       "era": "future",
       "turn": 11,
-      "cards": [
-        "ef-lio-001",
-        "ef-lio-002",
-        "ef-sae-001",
-        "ef-sae-002",
-        "ef-neu-001",
-        "ef-neu-002"
-      ],
+      "cards": ["ef-lio-001", "ef-lio-002", "ef-sae-001", "ef-sae-002", "ef-neu-001", "ef-neu-002"],
       "extendsEra": true
     }
   ]

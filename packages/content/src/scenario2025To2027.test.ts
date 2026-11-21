@@ -46,7 +46,7 @@ describe("the 2025-2027 game played through", () => {
   it.each(["late-a", "late-b", "late-c"])(
     "ends after turn 11, the future cards enter on turn 11 only, and the regions score at the ends of turns 3, 5 and 11 only (seed %s)",
     (seed) => {
-      const { scoredTurns, eraTurns, futureFirstSeen, last } = playScenario(
+      const { scoredTurns, eraTurns, watchedFirstSeen, last } = playScenario(
         SCENARIO_2025_2027,
         seed,
         SIX_REGION_MAP,
@@ -55,7 +55,7 @@ describe("the 2025-2027 game played through", () => {
       expect(last.public.status).toMatchObject({ kind: "over" });
       expect(last.public.turn).toBe(11);
       expect(eraTurns).toEqual({ "era-2": 4, "era-3": 6, future: 11 });
-      expect(futureFirstSeen).toBe(11);
+      expect(watchedFirstSeen).toBe(11);
       expect(scoredTurns).toEqual([3, 5, 11]);
     },
     60_000,

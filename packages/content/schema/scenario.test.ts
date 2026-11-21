@@ -93,7 +93,9 @@ describe("scenario schema", () => {
     const extending = [eras[0], { ...eras[1], extendsEra: true }];
     expect(paths({ ...base, eras: extending })).toEqual([]);
     for (const value of [false, "yes", 1, undefined]) {
-      expect(paths({ ...base, eras: [eras[0], { ...eras[1], extendsEra: value }] })).toEqual([["eras", 1, "extendsEra"]]);
+      expect(paths({ ...base, eras: [eras[0], { ...eras[1], extendsEra: value }] })).toEqual([
+        ["eras", 1, "extendsEra"],
+      ]);
     }
   });
   it("refuses a Contingency list with fewer than 3 cards, at the list", () => {
