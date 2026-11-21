@@ -188,3 +188,27 @@ test("--compare fails on fewer tests unless the owner labelled the pull request 
   assert.equal(botHeld.status, 1, botHeld.stdout + botHeld.stderr);
   assert.match(botHeld.stdout, /Fewer tests than the base branch/);
 });
+
+test("--compare reads the base counts and held events before the tests run, so a test can't rewrite them", () => {
+  const dir = tempDir();
+  const base = path.join(dir, "base.json");
+  const events = path.join(dir, "events.ndjson");
+  writeFileSync(base, JSON.stringify(counts({ "tools/a.test.mjs": 3 })));
+  writeFileSync(events, "");
+  // While it runs, the fixture lowers the base to 1 test and labels the pull request held by the owner.
+  const lowered = JSON.stringify(counts({ "tools/a.test.mjs": 1 }));
+  const held = JSON.stringify(event("labeled", "astevegreen")) + "\n";
+  writeFiles(dir, {
+    "tools/a.test.mjs": [
+      `import { test } from "node:test";`,
+      `import { writeFileSync } from "node:fs";`,
+      `test("rewrites the base", () => { writeFileSync(${JSON.stringify(base)}, ${JSON.stringify(lowered)}); });`,
+      `test("labels it held", () => { writeFileSync(${JSON.stringify(events)}, ${JSON.stringify(held)}); });`,
+    ].join("\n"),
+  });
+
+  const r = cli(["--root", dir, "--compare", base, "--held-events", events, "--owner", "astevegreen"]);
+  assert.equal(JSON.parse(readFileSync(base, "utf8")).total, 1, "the fixture did rewrite the base file");
+  assert.equal(r.status, 1, r.stdout + r.stderr);
+  assert.match(r.stdout, /Fewer tests than the base branch: 3 there, 2 here/);
+});
