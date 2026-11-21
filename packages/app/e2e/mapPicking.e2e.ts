@@ -22,6 +22,8 @@ const bannerText = async (page: Page): Promise<string> => (await banner(page).te
 const MENU = /: spend all \d+ points? on one action/;
 const PLACING = /: place 1 influence \(\d+ points? left\)/;
 const REALIGN = /: realign \(\d+ attempts? left\)/;
+/** A seed whose game offers LIO an intervention and a realignment well before it can end (#505). */
+const INTERVENE_SEED = 1;
 
 async function shoot(page: Page, testInfo: TestInfo, name: string): Promise<void> {
   const viewport = page.viewportSize()!;
@@ -132,7 +134,7 @@ test("a placing: tap a glowing country to place; a dim one or a drag never answe
 test("an intervention and a realignment are each answered by tapping a glowing country, never a dim one", async ({
   page,
 }) => {
-  await startSixRegionGame(page);
+  await startSixRegionGame(page, INTERVENE_SEED);
   // An action menu that offers an intervention: its target countries glow, beside the other actions in the banner.
   await playUntil(page, MENU);
   let intervened = false;
