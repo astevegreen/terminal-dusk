@@ -9,6 +9,7 @@ import type { OnlineSetup } from "./online/OnlineScreen.tsx";
 import { pointsOf } from "./displayText.ts";
 import { realTimers } from "./online/timers.ts";
 import type { Timers } from "./online/timers.ts";
+import type { KeyValueStore } from "./platform/storage.ts";
 import { TestModeScreen } from "./testMode/TestModeScreen.tsx";
 import { VsAiScreen } from "./vsAi/VsAiScreen.tsx";
 import type { VsAiGame } from "./vsAi/VsAiScreen.tsx";
@@ -25,6 +26,8 @@ export type AppProps = {
   mapGame?: VsAiGame;
   /** The free player's Era 1 game against the AI (L12); the same as `game` when left out. */
   freeGame?: VsAiGame;
+  /** Where the AI's difficulty is kept between visits (Platform.storage); left out, it is not kept. */
+  store?: KeyValueStore;
   /** Supabase Auth and the session store; left out when this build has no online play set up. */
   online?: OnlineSetup;
   /** The timers an online game polls with; main.tsx passes the real ones, which are also the default. */
@@ -44,6 +47,7 @@ export function App({
   game,
   mapGame,
   freeGame,
+  store,
   online,
   timers = realTimers,
   watch,
@@ -73,6 +77,7 @@ export function App({
         newSeed={newSeed}
         newAiSeed={newAiSeed}
         {...(played ? { game: played } : {})}
+        {...(store ? { store } : {})}
       />
     );
   }

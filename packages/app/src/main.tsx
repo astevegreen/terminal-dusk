@@ -81,6 +81,7 @@ createRoot(root).render(
       game={firstDeckGame}
       mapGame={sixRegionMapGame}
       freeGame={era1FreeGame}
+      store={webStore(localStorage)}
       timers={realTimers}
       {...(watchId === null ? {} : { watch: watchId })}
       {...(online ? { online } : {})}

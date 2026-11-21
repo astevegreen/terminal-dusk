@@ -116,3 +116,13 @@ test("the free Era 1 game starts from the home screen and plays its 3 turns to t
   await expect(gameOver).toBeVisible();
   await expect(page.getByText(/^AI refused:/)).toHaveCount(0);
 });
+
+test("the AI's difficulty is kept after a reload (L11)", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Play against the AI" }).click();
+  await expect(page.getByRole("radio", { name: "Medium" })).toBeChecked();
+  await page.getByRole("radio", { name: "Hard" }).check();
+  await page.reload();
+  await page.getByRole("button", { name: "Play against the AI" }).click();
+  await expect(page.getByRole("radio", { name: "Hard" })).toBeChecked();
+});
