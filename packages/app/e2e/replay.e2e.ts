@@ -52,7 +52,7 @@ test("replay: finish a game, watch it back step by step, and close it", async ({
 
   await page.getByRole("button", { name: "Last" }).click();
   await expect(page.getByRole("button", { name: "Next" })).toBeDisabled();
-  await expect(page.getByText(/^Game over/)).toBeVisible();
+  await expect(page.getByTestId("status-bar").getByText(/^Game over/)).toBeVisible();
   await expect(page.locator(".game-top").getByText(/^Seed checked: /)).toBeVisible();
   await expect(page.getByText("test-mode")).toHaveCount(0);
 
