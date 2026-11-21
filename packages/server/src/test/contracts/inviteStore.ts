@@ -1,5 +1,5 @@
 // The InviteStore contract: what both MemoryInviteStore and SupabaseInviteStore must do, checked only through
-// the ports, so one suite runs against the fake (inviteStore.contract.test.ts) and the real tables
+// the ports, so one suite runs against the fake (stores.contract.test.ts) and the real tables
 // (stores.contract.stack.test.ts).
 import type { MatchConfig, PlayerId } from "@terminal-dusk/host";
 import { expect, it } from "vitest";

@@ -1,5 +1,5 @@
 // The MatchStore contract: what both MemoryStore and SupabaseStore must do, checked only through the port, so
-// one suite runs against the fake (store.contract.test.ts) and the real tables (stores.contract.stack.test.ts).
+// one suite runs against the fake (stores.contract.test.ts) and the real tables (stores.contract.stack.test.ts).
 import type { HostResult } from "@terminal-dusk/host";
 import { expect, it } from "vitest";
 import type { MatchStore, MatchWrite } from "../../store.ts";

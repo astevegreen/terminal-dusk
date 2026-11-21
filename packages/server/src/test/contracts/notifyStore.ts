@@ -1,5 +1,5 @@
 // The NotifyStore contract: what both MemoryNotifyStore and SupabaseNotifyStore must do, checked only through
-// the port, so one suite runs against the fake (notifyStore.contract.test.ts) and the real table
+// the port, so one suite runs against the fake (stores.contract.test.ts) and the real table
 // (stores.contract.stack.test.ts). `due` may see other tests' alerts, so each check keeps only its own matches'.
 import type { PlayerId } from "@terminal-dusk/host";
 import { expect, it } from "vitest";

@@ -20,6 +20,10 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## App, host and server
 
+- The store contracts (`packages/server/src/test/contracts/`, #567) cover `MatchStore`, `InviteStore` and
+  `NotifyStore`, but not the `DeadlineStore` half (`due`, `saveClock`) that `MemoryStore` and `SupabaseStore` both
+  implement. Add a deadline contract so the fake can't drift from the `clock` and `next_deadline` columns.
+  [21 Nov 2026, agy on #567]
 - `makeUser` (`packages/server/src/test/stack.ts`) ignores a `deleteUser` that answers `{ error }` rather than
   rejecting, so that stray user goes unreported; and `stack.makeUser.test.ts` signs in against `127.0.0.1:9`, which
   would hang if something listened there. Check the delete's `error`, and fake the sign-in client too.
