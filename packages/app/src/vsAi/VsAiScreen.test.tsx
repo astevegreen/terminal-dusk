@@ -21,6 +21,24 @@ const start = (options: StandInOptions = {}) => {
 const view = (session: VsAiSession): string =>
   renderToString(<VsAiView snapshot={session.getSnapshot()} session={session} onNewGame={() => {}} />);
 
+describe("the difficulty choice (#508)", () => {
+  const radios = (out: string): string[] =>
+    [...out.matchAll(/<input[^>]*name="ai-difficulty"[^>]*>/g)].map((m) => m[0]);
+  it("offers Easy, Medium and Hard under AI difficulty, with Medium chosen for a new player", () => {
+    const out = renderToString(<VsAiScreen clock={clock} newSeed={() => GAME_SEED} newAiSeed={() => 1} />);
+    expect(out).toContain("<legend>AI difficulty</legend>");
+    const inputs = radios(out);
+    expect(inputs.map((r) => /value="(\w+)"/.exec(r)?.[1])).toEqual(["easy", "medium", "hard"]);
+    expect(inputs.map((r) => r.includes("checked"))).toEqual([false, true, false]);
+    for (const name of ["Easy", "Medium", "Hard"])
+      expect(out).toMatch(new RegExp(`min-height:44px[^>]*><input[^>]*>${name}</label>`));
+  });
+  it("shows the difficulty it is given as chosen", () => {
+    const out = renderToString(<SidePicker onPick={() => {}} tier="hard" />);
+    expect(radios(out).map((r) => r.includes("checked"))).toEqual([false, false, true]);
+  });
+});
+
 describe("the way in", () => {
   it("opens on a side picker with two 44 px buttons and the practice line", () => {
     const out = renderToString(<VsAiScreen clock={clock} newSeed={() => GAME_SEED} newAiSeed={() => 1} />);
@@ -121,6 +139,11 @@ describe("the session the screen starts", () => {
     expect(options.makeMatch).toBe(game.makeMatch);
     expect(options.human).toBe("sae");
   });
+  it("starts the AI at Medium when no difficulty is given, and at the one given otherwise (#508)", () => {
+    expect(vsAiOptions("lio", setup).tier).toBe("medium");
+    expect(vsAiOptions("lio", { ...setup, tier: "hard" }).tier).toBe("hard");
+    expect(vsAiOptions("sae", { ...setup, tier: "easy" }).tier).toBe("easy");
+  });
   it("with no game chosen, leaves the names to the session, which uses the developer fixture's", () => {
     const options = vsAiOptions("lio", setup);
     expect("label" in options).toBe(false);
@@ -142,7 +165,7 @@ describe("the replay after a game against the AI", () => {
     expect(view(session)).toContain("Watch replay</button>");
     const recording = session.replay();
     expect(recording?.frames.length).toBeGreaterThan(2);
-    expect(Object.keys(recording!).sort(byCodeUnit)).toEqual(["frames", "matchId", "seedHash", "status"]);
+    expect(Object.keys(recording!).sort(byCodeUnit)).toEqual(["aiTier", "frames", "matchId", "seedHash", "status"]);
     expect(JSON.stringify(session.getSnapshot())).not.toContain(GAME_SEED);
     expect(JSON.stringify(recording)).not.toContain(GAME_SEED);
   });
