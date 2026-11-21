@@ -24,17 +24,9 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   `inviteStore.ts`, `notifyStore.ts`) and their Supabase twins are tested separately; one shared contract suite run
   against both (the Supabase run on the stack) would catch the fakes drifting from the real tables. [6 Nov 2026,
   test-suite audit]
-- `makeUser` (`packages/server/src/test/stack.ts:44-49`) creates the auth user before signing it in, so a failed
-  sign-in leaves the user behind, past the clean-up at `stack.ts:114`. Delete the user when the sign-in fails.
-  [7 Nov 2026, reviewer on #531]
 - A subscriber that throws in a local match is skipped silently (`packages/app/src/transport/localMatch.ts:65`): the
   match carries on, as it should, but nothing records the error. An optional `onSubscriberError` for the caller to
   log would make such a bug visible. [6 Nov 2026, test-suite audit]
-- An access token that rejects after expiry (#534) is tested in the lobby's reads and `remoteMatch.submit`, but not
-  in `remoteMatch`'s poll (`packages/app/src/transport/remoteMatch.ts:89`), `onlineGame`'s `refreshDeadline`
-  (`packages/app/src/online/onlineGame.ts:111`), or the lobby's join after the preview and `pickSide`
-  (`packages/app/src/online/lobbySession.ts:183,190`). Each catches the rejection today; a test would pin it.
-  [7 Nov 2026, reviewer on #534]
 
 ## Tests and tooling
 

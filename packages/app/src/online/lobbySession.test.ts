@@ -260,6 +260,23 @@ describe("a token that can't be had for now (the refresh failed for a moment)", 
     expect(r.lobby.getSnapshot().join).toEqual({ busy: false, askSide: null, joined: null, refusal: "network" });
     expect(r.fake.requests).toHaveLength(0);
   });
+  it("a join after a preview that fixes the sides shows network, not notSignedIn, and sends no join", async () => {
+    const r = await startedRig();
+    r.fake.answerNext({ status: 200, body: { ok: true, sides: { mode: "random" } } });
+    r.setToken(new Error("the refresh failed for a moment"), 1);
+    await r.lobby.join("abc123");
+    expect(r.lobby.getSnapshot().join).toEqual({ busy: false, askSide: null, joined: null, refusal: "network" });
+    expect(r.fake.requests).toHaveLength(2);
+  });
+  it("pickSide shows network, not notSignedIn, and sends no join", async () => {
+    const r = await startedRig();
+    r.fake.answerNext({ status: 200, body: { ok: true, sides: { mode: "invitee" } } });
+    await r.lobby.join("abc123");
+    r.setToken(new Error("the refresh failed for a moment"));
+    await r.lobby.pickSide("lio");
+    expect(r.lobby.getSnapshot().join).toEqual({ busy: false, askSide: null, joined: null, refusal: "network" });
+    expect(r.fake.requests).toHaveLength(2);
+  });
 });
 
 describe("secrets", () => {
