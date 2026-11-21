@@ -15,8 +15,8 @@ of truth; change it in Notion and promote again. The special abilities were deci
 - Both sides play by the same core rules.
 - Each side has exactly **one special ability** of its own (owner, 21 Nov 2026):
   - **LIO: Resilient institutions.** The first time in a turn that a draw from LIO's own Contingency deck shows a 1,
-    that card is set aside and LIO draws again. A draw that comes from the World deck because SAE played an LIO
-    card is not LIO's own deck, so the ability does not apply to it.
+    that card is set aside and LIO draws again. Whether it also applies to a draw from the World deck (when SAE
+    plays an LIO card) is still open; see below.
   - **SAE: Unified command.** After SAE plays one of its own cards for its event, the next card SAE plays for its
     action points in the same turn counts 1 more. Only card plays after the opening cards count: an SAE opening
     card does not set it up (owner, 21 Nov 2026, in chat).

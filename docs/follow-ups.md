@@ -18,8 +18,8 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   card's `spendPoints` amount. A check that reads the numbers out of the text and compares them with the effect
   would catch a card whose text and data disagree. [6 Nov 2026, test-suite audit]
 - The scenarios still use the old placeholder lengths: `packages/content/scenarios/first-deck-test.json:4-5`,
-  `six-region-map.json:4-5` and `test-map.json:4-5` have 4 turns and 1 play per turn, with eras entering on turns 2,
-  3 and 4. The owner's answers of 21 Nov (`docs/design/eras.md`) are 2 plays per turn and a 10-turn base game,
+  `six-region-map.json:4-5` and `test-map.json:4-5` have 4 turns and 1 play per turn (only `first-deck-test.json` lists
+  eras, entering on turns 2, 3 and 4). The owner's answers of 21 Nov (`docs/design/eras.md`) are 2 plays per turn and a 10-turn base game,
   Era 2 entering on turn 4 and Era 3 on turn 6; the free player's Era 1 game (3 turns) and the 2025-2027 game
   (11 turns, scored at the end of 2027) have no scenario yet. Golden replays change with it. [21 Nov 2026, recording
   the owner's answers]

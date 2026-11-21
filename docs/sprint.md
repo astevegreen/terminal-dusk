@@ -45,8 +45,8 @@ The owner's policy of 28 Oct 2026 applies inside the window too: nothing waits f
   `Blocked: Design question:`, with a `Recommendation:` line (only then does the owner's next comment, on the issue
   or on the "Decisions for the owner" issue naming it, count as the answer), label it `blocked`, and move to the
   next task. `node tools/sprint/queue.mjs digest` batches the questions on that issue, at most once a day. Open design points include: the real map's countries, regions, adjacency, stabilities and
-  battlegrounds; scoring; the tech race track; the sides' special abilities; era lengths and plays per turn;
-  how the AI plays a missed online turn; whose bonuses apply to a draw from the rival's deck; and every number
+  battlegrounds; scoring; the tech race track; the special abilities' numbers (L2 and S1 were chosen on 21 Nov);
+  whose bonuses apply to a draw from the rival's deck; and every number
   `map-and-points.md` marks "open". (The intervention and realign formulas were confirmed on 26 Oct.)
 - Every hard rule and "Never" in `CLAUDE.md`, every hook, deny rule and Locked path.
 - No path is code-owned any more: migrations, `package.json`, the lockfile, configs and golden replays merge on

@@ -91,6 +91,7 @@ Q28 and Split below (owner, 21 Nov 2026), Turn-end (28 Oct) and Tech (event poin
   - **Split-any:** _LIO spends 2 points on actions._ (any mix of placing, intervening and realigning)
   - **Split-one:** _LIO spends 2 points on one action._ (all on placing influence, or all on one intervention, or
     all on realigning). For 1 point the two read the same, so only spends of 2 or more change.
+    **Decided: Split-one** (owner, 21 Nov 2026).
 - **Turn-end** ("Event points": how a 1-point turn-end payment is spent). Applies to `on turnEnd { spend side 1 }`.
   **Decided: Turn-end-place** (owner, 28 Oct: "Yes, build it"; built in #426, cards reworded after it).
   - **Turn-end-any:** _At the end of this turn, LIO spends 1 point on actions._
@@ -98,12 +99,15 @@ Q28 and Split below (owner, 21 Nov 2026), Turn-end (28 Oct) and Tech (event poin
   - The amount can be 2 when an Ops swing is still in force at turn end (owner question 35); the wording holds.
   - `on cardPlayed` spends (Dot-com Boom, Golden Shield) happen during the turn, not at its end, so they use the
     ordinary template.
-- **Tech** ("Event points", open in the tech race topic: whether event points may go to the tech race).
+- **Tech** ("Event points": whether event points may go to the tech race). **Decided:** they never do, and the
+  wording stays _on actions_ (owner, 21 Nov 2026; `docs/design/tech-race.md`).
   - **Tech-yes** or no tech race yet: _on actions_, unchanged.
   - **Tech-no:** event spends read _LIO spends 2 points on map actions._ while a card played for points may still
     use the tech race.
 - **Q28** (owner question 28): readings A, A-clear and B in wording rule 4. Applies to every `mod` step.
+  **Decided: A-clear** (owner, 21 Nov 2026).
 - **Place** (where an Escalation move sits): question 1 below. Applies to the cards that move Escalation.
+  **Decided: P2 with B1** (owner, 21 Nov 2026).
 
 **Scoring readings.** Scoring is not decided (map-and-points.md, "Scoring"). Owner questions 45 and 46 turn on
 whether **only the gap** between the sides counts (reading **Gap**) or **each side's own total** matters (reading

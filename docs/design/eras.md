@@ -55,7 +55,7 @@ The base game runs from 1991 to 2025 in three eras, and always stops at 2025.
 
 ## Not decided yet
 
-- Era names (neutral names, none taken from other games). The owner will supply them (21 Nov 2026).
+- Era names (neutral names, none taken from other games). Not chosen yet: ask the owner.
 
 Decided on 21 Nov 2026 (owner, in chat: "Take all recommendations"): how many turns each era lasts (3 / 2 / 5),
 which era a free player can play against the AI (Era 1, 3 turns), and that the 2025–2027 scenario scores Era 3

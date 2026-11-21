@@ -93,9 +93,9 @@ Powers add up: the side holding a step has its power and every power below it (o
   "All five, as listed").
 - **The tie-break** (`map-and-points.md`, Scoring, "An even track at the end"). "Further ahead on the tech race"
   means the side the marker favours. With the marker at parity, the game is a draw (owner: "All five, as listed").
-- **Special abilities** (`docs/proposals/special-abilities.md`, not yet chosen). No power changes a rival card's
-  points (L1, S2), redraws a Contingency card (L2), adds a placement (L3, S3) or primes a later play (S1). If LIO's
-  ability is L2, the +1 bonuses stack with its redraw (owner: "All five, as listed"): the redraw replaces a drawn
+- **Special abilities** (`docs/proposals/special-abilities.md`; L2 for LIO and S1 for SAE chosen on 21 Nov 2026, `docs/design/sides.md`). No power changes a rival card's
+  points (L1, S2), redraws a Contingency card (L2), adds a placement (L3, S3) or primes a later play (S1). With LIO's
+  ability L2, the +1 bonuses stack with its redraw (owner: "All five, as listed"): the redraw replaces a drawn
   number before it is used, and the +1 is added afterwards.
 - **Turn-end payments** still only place influence (`map-and-points.md`, "Event points"); they are event points,
   so they could not make an attempt anyway.
