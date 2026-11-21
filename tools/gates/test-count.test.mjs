@@ -10,7 +10,7 @@ import { writeFiles } from "../hooks/test-helpers.mjs";
 // Fixtures write ^ for the dot, so this file never trips the skipped-test scan.
 const code = (text) => text.replaceAll("^", ".");
 const REPO = path.resolve(import.meta.dirname, "..", "..");
-const tempDir = () => realpathSync(mkdtempSync(path.join(os.tmpdir(), "td-count-test-")));
+const tempDir = () => realpathSync.native(mkdtempSync(path.join(os.tmpdir(), "td-count-test-")));
 const counts = (files, skipped = []) => ({ total: Object.values(files).reduce((a, b) => a + b, 0), files, skipped });
 
 test("fewer tests than the base branch fails and names every file that lost tests", () => {
@@ -87,8 +87,8 @@ test("counts every tool test that runs, and lists the ones that skip themselves"
   });
 });
 
-test("counts Vitest tests in each package and in tests/, one per table row, with the fuzz suites at one game", (t) => {
-  const dir = tempDir();
+// A package with 5 Vitest tests (one skips itself) and a fuzz suite, with Vitest linked in from this repository.
+function vitestFolder(t, dir) {
   mkdirSync(path.join(dir, "node_modules"));
   const vitest = path.join(dir, "node_modules", "vitest");
   symlinkSync(realpathSync(path.join(REPO, "node_modules", "vitest")), vitest, "junction");
@@ -108,11 +108,35 @@ test("counts Vitest tests in each package and in tests/, one per table row, with
       "for (let i = 0; i < games; i++) test(`game ${i}`, () => {});",
     ].join("\n"),
   });
-  assert.deepEqual(countTests(dir), {
-    total: 6,
-    files: { "packages/demo/src/a.test.ts": 5, "tests/fuzz/games.test.ts": 1 },
-    skipped: ["packages/demo/src/a.test.ts > stops itself"],
+  return dir;
+}
+const vitestCounts = {
+  total: 6,
+  files: { "packages/demo/src/a.test.ts": 5, "tests/fuzz/games.test.ts": 1 },
+  skipped: ["packages/demo/src/a.test.ts > stops itself"],
+};
+
+test("counts Vitest tests in each package and in tests/, one per table row, with the fuzz suites at one game", (t) => {
+  assert.deepEqual(countTests(vitestFolder(t, tempDir())), vitestCounts);
+});
+
+// Another spelling of dir: on Windows its short 8.3 name (CI's temp folder is C:\Users\RUNNER~1), elsewhere a link.
+function otherSpelling(dir) {
+  if (process.platform !== "win32") {
+    symlinkSync(dir, `${dir}-link`);
+    return `${dir}-link`;
+  }
+  const r = spawnSync("cmd", ["/d", "/s", "/c", `"for %I in ("${dir}") do @echo %~sI"`], {
+    encoding: "utf8",
+    windowsVerbatimArguments: true,
   });
+  return r.stdout.trim();
+}
+
+test("names files from the root however its path is spelt, as Vitest names them by the long spelling", (t) => {
+  const dir = path.join(tempDir(), "a-long-folder-name");
+  mkdirSync(dir);
+  assert.deepEqual(countTests(otherSpelling(vitestFolder(t, dir))), vitestCounts);
 });
 
 test("a package whose tests aren't run by Vitest can't be counted, so counting stops", () => {
