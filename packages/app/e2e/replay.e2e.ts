@@ -30,8 +30,11 @@ test("replay: finish a game, watch it back step by step, and close it", async ({
   const step = page.getByText(/^Step \d+ of \d+$/);
   await expect(step).toHaveText(/^Step 1 of \d+$/);
   await expect(page.getByRole("button", { name: "Back" })).toBeDisabled();
+  // Both hands are in the Details panel (#493).
+  await page.getByRole("button", { name: "Details" }).click();
   await expect(page.getByText("LIO hand")).toBeVisible();
   await expect(page.getByText("SAE hand")).toBeVisible();
+  await page.getByRole("dialog", { name: "Game details" }).getByRole("button", { name: "Close" }).click();
   await expect(page.getByText("Game active")).toBeVisible();
 
   await page.getByRole("button", { name: "Next" }).click();
@@ -50,7 +53,7 @@ test("replay: finish a game, watch it back step by step, and close it", async ({
   await page.getByRole("button", { name: "Last" }).click();
   await expect(page.getByRole("button", { name: "Next" })).toBeDisabled();
   await expect(page.getByText(/^Game over/)).toBeVisible();
-  await expect(page.getByText(/^Seed checked: /)).toBeVisible();
+  await expect(page.locator(".game-top").getByText(/^Seed checked: /)).toBeVisible();
   await expect(page.getByText("test-mode")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Close" }).click();

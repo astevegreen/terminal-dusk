@@ -1,20 +1,20 @@
 // The replay viewer: steps through a finished game's recorded frames, both hands showing. It shows what the
-// recording holds and never runs the rules. A placeholder look, laid out like the game screen.
+// recording holds and never runs the rules. Since #493 it is the game screen itself (GameScreen), as a spectator
+// sees it: the drawn map fills the screen with each step's influence and lights the countries that step touched,
+// the replay controls and its own status lines sit in the top bar, and both hands are in the Details panel.
 import { SIDES } from "@terminal-dusk/engine";
-import type { CardId, EraId, GameStatus, Side } from "@terminal-dusk/engine";
-import type { ReplayFrame } from "@terminal-dusk/host";
+import type { CardId, EraId, Side } from "@terminal-dusk/engine";
+import type { Frame, ReplayFrame } from "@terminal-dusk/host";
 import { useState } from "react";
-import { countryNames } from "../countryChoices.ts";
-import { decisionPrompts } from "../decisionPrompts.tsx";
-import { eraText, gameOverText, mapNames, playsText } from "../displayText.ts";
+import { eraText, mapNames } from "../displayText.ts";
 import { logLine } from "../eventPresentation.ts";
 import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
 import type { CardRules } from "../displayText.ts";
-import { Contingency, HandCard, Log, Region, Table } from "../game/regions.tsx";
+import { GameScreen } from "../game/GameScreen.tsx";
+import { HandCard, Region } from "../game/regions.tsx";
 import type { Label } from "../game/regions.tsx";
 import type { ReplayRecording } from "./recording.ts";
 import { difficultyText } from "../vsAi/difficulty.tsx";
-import { themeFor } from "../game/themes/eraTheme.ts";
 import "./replayScreen.css";
 
 export type ReplayScreenProps = {
@@ -38,7 +38,23 @@ function eraAt(frames: readonly ReplayFrame[], index: number): EraId | null {
   return null;
 }
 
-const finalText = (status: GameStatus): string => (status.kind === "over" ? gameOverText(status) : "Game active");
+/**
+ * One recorded step as a spectator's frame, so the game screen draws it: the public state, the counts and that
+ * step's events (which light the countries it touched). No hand of its own and no decision to answer; both hands
+ * are shown apart, in the Details panel, exactly as the recording holds them.
+ */
+export function spectatorFrame(recording: ReplayRecording, frame: ReplayFrame): Frame {
+  const { public: pub, counts, meta } = frame.view;
+  return {
+    matchId: recording.matchId,
+    seq: frame.seq,
+    viewer: "spectator",
+    ruleset: meta.ruleset,
+    view: { public: pub, mine: null, counts, meta },
+    events: frame.events,
+    decision: null,
+  };
+}
 
 function Controls({
   index,
@@ -87,41 +103,6 @@ function Hands({ frame, label, rules }: Readonly<{ frame: ReplayFrame; label: La
   );
 }
 
-function OpenDecisions({
-  frame,
-  label,
-  question,
-  affiliation,
-}: Readonly<{
-  frame: ReplayFrame;
-  label: Label;
-  question: CardQuestion;
-  affiliation: CardAffiliation;
-}>) {
-  const { pending, stack, map } = frame.view.public;
-  const country = countryNames(map);
-  return (
-    <Region id="decision" title="Open decisions">
-      {pending.map((decision) => {
-        const Prompt = decisionPrompts[decision.kind];
-        return (
-          <Prompt
-            key={decision.id}
-            decision={decision}
-            hand={[]}
-            known={[]}
-            label={label}
-            country={country}
-            stack={stack}
-            question={question}
-            affiliation={affiliation}
-          />
-        );
-      })}
-    </Region>
-  );
-}
-
 /** The viewer at step `index` (counting from 0). It uses no state of its own, so a test can drive it. */
 export function ReplayView({
   recording,
@@ -136,31 +117,41 @@ export function ReplayView({
   const { frames } = recording;
   const frame = frames[index];
   if (!frame) return <p role="alert">This replay has no frames.</p>;
-  const pub = frame.view.public;
   const atLast = index === frames.length - 1;
   const log = frames
     .slice(0, index + 1)
     .flatMap((f) => f.events.map((event) => logLine(event, { card: label, era: eraText, ...mapNames(f.view.public) })));
-  const era = eraAt(frames, index);
-  return (
-    <div className="replay" data-theme={themeFor(pub.era ?? era)}>
+  // Cut short with "…" in the top bar on a phone; the Details panel holds it in full. The AI's difficulty is in the
+  // Details panel's head, as in the game (#508), so the bar keeps its room for the status and the end of the game.
+  const seed = `Seed checked: ${recording.seedHash}`;
+  const bar = (
+    <>
       <Controls index={index} count={frames.length} onGo={onGo} onClose={onClose} />
-      <Region id="status-bar" title="Status" className="replay-status">
-        <span>{`Turn ${pub.turn} of ${pub.turns}`}</span>
-        <span>{playsText(pub)}</span>
-        <span>{era === null ? "Era not shown yet" : eraText(era)}</span>
-        <span>{atLast ? finalText(recording.status) : "Game active"}</span>
-        {recording.aiTier !== undefined && <span>{difficultyText(recording.aiTier)}</span>}
-        {atLast && <span>{`Seed checked: ${recording.seedHash}`}</span>}
-      </Region>
-      <Hands frame={frame} label={label} rules={rules} />
-      <div className="replay-side">
-        <Table pub={pub} label={label} />
-        <Contingency pub={pub} />
-        <OpenDecisions frame={frame} label={label} question={question} affiliation={affiliation} />
-        <Log log={log} />
-      </div>
-    </div>
+      {atLast && <p>{seed}</p>}
+    </>
+  );
+  return (
+    <main className="game-page replay">
+      <GameScreen
+        frame={spectatorFrame(recording, frame)}
+        log={log}
+        era={eraAt(frames, index)}
+        label={label}
+        question={question}
+        affiliation={affiliation}
+        rules={rules}
+        onAnswer={undefined}
+        refusal={null}
+        bar={bar}
+        {...(recording.aiTier === undefined ? {} : { detailsNote: difficultyText(recording.aiTier) })}
+        extraDetails={
+          <>
+            {atLast && <p>{seed}</p>}
+            <Hands frame={frame} label={label} rules={rules} />
+          </>
+        }
+      />
+    </main>
   );
 }
 

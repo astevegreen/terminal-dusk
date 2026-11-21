@@ -5,7 +5,8 @@
 // decision is a banner just above the strip, in place of the sheet's Play tab, and the countries it asks for glow
 // on the map. Since L9 (#489) the ticker at the top bar's right end shows the newest log line and opens the full log
 // in a drawer. Since L10 (#490) the sheet is gone: what its Details tab held is a Details panel opened from the top
-// bar, so only the decision banner and the hand strip stay at the bottom. It renders from its props alone
+// bar, so only the decision banner and the hand strip stay at the bottom. The replay viewer draws each recorded step
+// on it as a spectator would see it (#493), with both hands in the Details panel. It renders from its props alone
 // (HandStrip holds the lifted card, TopBar which panel is open and whether the log is pinned).
 import type { AnswerValue, CardId, EraId } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
@@ -53,6 +54,8 @@ export type GameScreenProps = {
   /** A short line in the Details panel's head, beside its title, such as the AI's difficulty (#508). In the head, so
    *  the panel is no taller and still fits a 390 px screen unscrolled. */
   detailsNote?: string;
+  /** The page's own part of the Details panel, before the rest, such as the replay's two hands (#493). */
+  extraDetails?: ReactNode;
 };
 
 type PromptData = Pick<GameScreenProps, "frame" | "label" | "question" | "affiliation">;
@@ -118,6 +121,7 @@ export function GameScreen({
   menu,
   bar,
   detailsNote,
+  extraDetails,
 }: Readonly<GameScreenProps>) {
   const data = { frame, label, question, affiliation };
   const chips = chipsOf(frame.view.mine?.hand ?? [], label, points, affiliation);
@@ -141,6 +145,7 @@ export function GameScreen({
         detailsNote={detailsNote}
         details={
           <>
+            {extraDetails}
             <Opponent frame={frame} />
             <Table pub={frame.view.public} label={label} />
             <Contingency pub={frame.view.public} />

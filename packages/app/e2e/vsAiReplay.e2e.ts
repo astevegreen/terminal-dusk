@@ -1,28 +1,5 @@
 import { expect, test } from "@playwright/test";
-import type { Page } from "@playwright/test";
-import { answerOnce, yourDecision } from "./answer.ts";
-
-const FIRST_DECK_NOTE =
-  "First deck, Eras 1 to 3 and the future cards (TEST scenario with placeholder numbers; they join on turns 2, 3 and 4)";
-
-/** Plays a first-deck game against the Easy AI as LIO to its end and returns the end screen's "Game over: ..." line. */
-async function playToGameOver(page: Page): Promise<string> {
-  await page.goto("/");
-  await page.getByRole("button", { name: "Play against the AI" }).click();
-  await expect(page.getByText(FIRST_DECK_NOTE, { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Play as LIO" }).click();
-  await expect(page.getByTestId("decision")).toBeVisible();
-
-  const gameOver = page.getByText("Game over");
-  for (let step = 0; step < 100; step++) {
-    await yourDecision(page).or(gameOver).first().waitFor();
-    if (await gameOver.isVisible()) break;
-    await answerOnce(page);
-  }
-  const line = page.getByTestId("status-bar").getByText(/^Game over: /);
-  await expect(line).toBeVisible();
-  return line.innerText();
-}
+import { playToGameOver } from "./finishGame.ts";
 
 test("vs AI replay: a full first-deck game steps from the first step to the last and ends as the game did", async ({
   page,
@@ -41,8 +18,11 @@ test("vs AI replay: a full first-deck game steps from the first step to the last
   const total = Number(/of (\d+)$/.exec(await step.innerText())![1]);
   expect(total).toBeGreaterThan(1);
   await expect(page.getByRole("button", { name: "Back" })).toBeDisabled();
+  // Both hands are in the Details panel (#493).
+  await page.getByRole("button", { name: "Details" }).click();
   await expect(page.getByText("LIO hand")).toBeVisible();
   await expect(page.getByText("SAE hand")).toBeVisible();
+  await page.getByRole("dialog", { name: "Game details" }).getByRole("button", { name: "Close" }).click();
   await expect(status.getByText("Game active")).toBeVisible();
 
   // Every step in order; no step before the last shows the result or the seed check.
@@ -58,7 +38,8 @@ test("vs AI replay: a full first-deck game steps from the first step to the last
 
   // The last step: the same result line as the end screen, and a seed check with a value.
   await expect(status.getByText(/^Game over: /)).toHaveText(endLine, { useInnerText: true });
-  await expect(status.getByText(/^Seed checked: \S+/)).toBeVisible();
+  // The seed check is a line of the replay's own in the top bar (#493).
+  await expect(page.locator(".game-top").getByText(/^Seed checked: \S+/)).toBeVisible();
   await expect(status.getByText("Game active")).toHaveCount(0);
 
   // Phone and desktop: nothing scrolls sideways and every visible button is tall enough to tap.
