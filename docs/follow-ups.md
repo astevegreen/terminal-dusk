@@ -20,10 +20,14 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## App, host and server
 
-- The in-memory stores (`MemoryStore`, `MemoryInviteStore`, `MemoryNotifyStore` in `packages/server/src/store.ts`,
-  `inviteStore.ts`, `notifyStore.ts`) and their Supabase twins are tested separately; one shared contract suite run
-  against both (the Supabase run on the stack) would catch the fakes drifting from the real tables. [6 Nov 2026,
-  test-suite audit]
+- The store contracts (`packages/server/src/test/contracts/`, #567) cover `MatchStore`, `InviteStore` and
+  `NotifyStore`, but not the `DeadlineStore` half (`due`, `saveClock`) that `MemoryStore` and `SupabaseStore` both
+  implement. Add a deadline contract so the fake can't drift from the `clock` and `next_deadline` columns.
+  [21 Nov 2026, agy on #567]
+- `makeUser` (`packages/server/src/test/stack.ts`) ignores a `deleteUser` that answers `{ error }` rather than
+  rejecting, so that stray user goes unreported; and `stack.makeUser.test.ts` signs in against `127.0.0.1:9`, which
+  would hang if something listened there. Check the delete's `error`, and fake the sign-in client too.
+  [21 Nov 2026, agy on #564]
 - A subscriber that throws in a local match is skipped silently (`packages/app/src/transport/localMatch.ts:65`): the
   match carries on, as it should, but nothing records the error. An optional `onSubscriberError` for the caller to
   log would make such a bug visible. [6 Nov 2026, test-suite audit]
