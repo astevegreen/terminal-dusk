@@ -71,6 +71,7 @@ createRoot(root).render(
       newAiSeed={newAiSeed}
       game={firstDeckGame}
       mapGame={sixRegionMapGame}
+      store={webStore(localStorage)}
       timers={realTimers}
       {...(watchId === null ? {} : { watch: watchId })}
       {...(online ? { online } : {})}

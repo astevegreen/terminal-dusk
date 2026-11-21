@@ -99,3 +99,13 @@ test("against the AI, the side picker says who each side is and each card shows 
     expect((await rules.innerText()).trim().length).toBeGreaterThan(10);
   }
 });
+
+test("the AI's difficulty is kept after going home and after a reload (L11)", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Play against the AI" }).click();
+  await expect(page.getByRole("radio", { name: "Medium" })).toBeChecked();
+  await page.getByRole("radio", { name: "Hard" }).check();
+  await page.reload();
+  await page.getByRole("button", { name: "Play against the AI" }).click();
+  await expect(page.getByRole("radio", { name: "Hard" })).toBeChecked();
+});
