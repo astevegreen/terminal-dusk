@@ -37,16 +37,27 @@ export async function onLocalStack(
 /** A signed-in test user: its id and a client signed in as it. */
 export type TestUser = { id: string; db: SupabaseClient };
 
-/** Makes and signs in a fresh test user. */
+/**
+ * Makes and signs in a fresh test user. A sign-in that fails deletes the user it just made, since the caller never
+ * gets it to clean up; a delete that fails too still reports the sign-in failure.
+ */
 export async function makeUser(keys: StackKeys, service: SupabaseClient, name: string): Promise<TestUser> {
   const email = `${name}-${freshId()}@terminal-dusk.test`;
   const password = freshId();
   const made = await service.auth.admin.createUser({ email, password, email_confirm: true });
   if (made.error || !made.data.user) throw new Error(`could not create the ${name} test user: ${made.error?.message}`);
+  const id = made.data.user.id;
   const db = client(keys.url, keys.anonKey);
   const signedIn = await db.auth.signInWithPassword({ email, password });
-  if (signedIn.error) throw new Error(`could not sign in the ${name} test user: ${signedIn.error.message}`);
-  return { id: made.data.user.id, db };
+  if (signedIn.error) {
+    try {
+      await service.auth.admin.deleteUser(id);
+    } catch {
+      // The sign-in failure is the error worth reporting.
+    }
+    throw new Error(`could not sign in the ${name} test user: ${signedIn.error.message}`);
+  }
+  return { id, db };
 }
 
 /** The test user's current access token, as an Edge Function call sends it. */
