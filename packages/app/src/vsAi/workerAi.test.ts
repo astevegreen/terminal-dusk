@@ -54,18 +54,26 @@ afterEach(() => {
 });
 
 describe("the Web Worker opponent", () => {
-  it("starts a module worker from ai.worker.ts and sends it the ruleset, side and seed", () => {
+  it("starts a module worker from ai.worker.ts and sends it the ruleset, side, seed and difficulty", () => {
     vi.stubGlobal("Worker", FakeWorker);
-    createWorkerAi(fixtureRuleset, "sae", 42);
+    createWorkerAi(fixtureRuleset, "sae", 42, "easy");
     const [worker] = FakeWorker.made;
     expect(worker?.url).toMatch(/ai\.worker\.ts$/);
     expect(worker?.options).toEqual({ type: "module" });
-    expect(worker?.sent).toEqual([{ kind: "start", ruleset: fixtureRuleset, side: "sae", seed: 42 }]);
+    expect(worker?.sent).toEqual([{ kind: "start", ruleset: fixtureRuleset, side: "sae", seed: 42, tier: "easy" }]);
+  });
+
+  it("sends the chosen difficulty as the start message's tier (#508)", () => {
+    vi.stubGlobal("Worker", FakeWorker);
+    createWorkerAi(fixtureRuleset, "lio", 7, "hard");
+    expect(FakeWorker.made[0]?.sent).toEqual([
+      { kind: "start", ruleset: fixtureRuleset, side: "lio", seed: 7, tier: "hard" },
+    ]);
   });
 
   it("sends one answer request per call and matches each reply to its call by id", async () => {
     vi.stubGlobal("Worker", FakeWorker);
-    const ai = createWorkerAi(fixtureRuleset, "sae", 42);
+    const ai = createWorkerAi(fixtureRuleset, "sae", 42, "easy");
     const view = firstView();
     const first = ai.answer(view);
     const second = ai.answer(view);
@@ -83,7 +91,7 @@ describe("the Web Worker opponent", () => {
 
   it("stop() ends the worker and drops answers still on their way", async () => {
     vi.stubGlobal("Worker", FakeWorker);
-    const ai = createWorkerAi(fixtureRuleset, "sae", 42);
+    const ai = createWorkerAi(fixtureRuleset, "sae", 42, "easy");
     const pending = ai.answer(firstView());
     ai.stop();
     expect(FakeWorker.made[0]?.terminated).toBe(true);
@@ -93,7 +101,7 @@ describe("the Web Worker opponent", () => {
   for (const failure of ["onerror", "onmessageerror"] as const) {
     it(`a worker ${failure.slice(2)} settles every waiting answer as null, ends the worker, and later calls give null`, async () => {
       vi.stubGlobal("Worker", FakeWorker);
-      const ai = createWorkerAi(fixtureRuleset, "sae", 42);
+      const ai = createWorkerAi(fixtureRuleset, "sae", 42, "easy");
       const pending = ai.answer(firstView());
       const worker = FakeWorker.made[0]!;
       worker[failure]?.({ message: "the AI script failed" });

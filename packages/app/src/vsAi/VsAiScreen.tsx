@@ -1,4 +1,4 @@
-// Playing against the Easy AI: a side picker, then the game screen for the human's side. The AI runs in a
+// Playing against the AI: a difficulty and a side picker, then the game screen for the human's side. The AI runs in a
 // Web Worker (createWorkerAi) unless a test passes another opponent. Seeds and the clock come from main.tsx.
 import { SIDES } from "@terminal-dusk/engine";
 import type { CardId, Ruleset, Side } from "@terminal-dusk/engine";
@@ -10,7 +10,8 @@ import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
 import { SIDE_NAME, SIDE_WHO, pointsOf, sideFullName } from "../displayText.ts";
 import type { CardPoints, CardRules } from "../displayText.ts";
 import { cardAffiliation as fixtureAffiliation, cardName, cardQuestion, fixtureRuleset } from "../testMode/fixture.ts";
-import type { MakeAi } from "./aiOpponent.ts";
+import type { AiTier, MakeAi } from "./aiOpponent.ts";
+import { DEFAULT_TIER, DifficultyPicker, difficultyText } from "./difficulty.tsx";
 import { createVsAiSession } from "./session.ts";
 import type { VsAiOptions } from "./session.ts";
 import type { VsAiSession, VsAiSnapshot } from "./session.ts";
@@ -37,11 +38,20 @@ export type VsAiGame = {
 export function SidePicker({
   onPick,
   note = PRACTICE_NOTE,
-}: Readonly<{ onPick: (side: Side) => void; note?: string | undefined }>) {
+  tier = DEFAULT_TIER,
+  onTier = () => {},
+}: Readonly<{
+  onPick: (side: Side) => void;
+  note?: string | undefined;
+  /** The AI's difficulty the next game starts with (#508). */
+  tier?: AiTier | undefined;
+  onTier?: ((tier: AiTier) => void) | undefined;
+}>) {
   return (
     <main>
       <h1>Play against the AI</h1>
       <p>{note}</p>
+      <DifficultyPicker tier={tier} onTier={onTier} />
       {SIDES.map((side) => (
         <div key={side}>
           <button type="button" style={TAP} onClick={() => onPick(side)}>
@@ -110,6 +120,7 @@ export function VsAiView({
           refusal={snapshot.refusal}
           menu={<p>{note}</p>}
           bar={aiRefused}
+          detailsNote={difficultyText(snapshot.tier)}
         />
       ) : (
         <>
@@ -183,16 +194,18 @@ export type VsAiScreenProps = {
   game?: VsAiGame;
 };
 
+type SessionInputs = Readonly<
+  Omit<VsAiScreenProps, "makeAi" | "game"> & {
+    makeAi?: MakeAi | undefined;
+    game?: VsAiGame | undefined;
+    tier?: AiTier | undefined;
+  }
+>;
+
 /** The session for one game on this screen: the chosen game's rules, match and card names, or the fixture's. */
 export function vsAiOptions(
   side: Side,
-  {
-    clock,
-    newSeed,
-    newAiSeed,
-    makeAi = createWorkerAi,
-    game,
-  }: Readonly<Omit<VsAiScreenProps, "makeAi" | "game"> & { makeAi?: MakeAi | undefined; game?: VsAiGame | undefined }>,
+  { clock, newSeed, newAiSeed, makeAi = createWorkerAi, game, tier = DEFAULT_TIER }: SessionInputs,
 ): VsAiOptions {
   return {
     human: side,
@@ -200,6 +213,7 @@ export function vsAiOptions(
     aiSeed: newAiSeed(),
     clock,
     makeAi,
+    tier,
     ...(game ? { ruleset: game.ruleset, makeMatch: game.makeMatch, label: game.cardName } : {}),
   };
 }
@@ -207,10 +221,12 @@ export function vsAiOptions(
 export function VsAiScreen(props: Readonly<VsAiScreenProps>) {
   const { clock, newSeed, newAiSeed, makeAi, game } = props;
   const [side, setSide] = useState<Side | null>(null);
+  // Kept here, above the game, so New game offers the difficulty last chosen (#508).
+  const [tier, setTier] = useState<AiTier>(DEFAULT_TIER);
   const start = useCallback(
-    () => createVsAiSession(vsAiOptions(side ?? "lio", { clock, newSeed, newAiSeed, makeAi, game })),
-    [side, newSeed, newAiSeed, clock, makeAi, game],
+    () => createVsAiSession(vsAiOptions(side ?? "lio", { clock, newSeed, newAiSeed, makeAi, game, tier })),
+    [side, newSeed, newAiSeed, clock, makeAi, game, tier],
   );
-  if (!side) return <SidePicker onPick={setSide} note={game?.note} />;
+  if (!side) return <SidePicker onPick={setSide} note={game?.note} tier={tier} onTier={setTier} />;
   return <Playing start={start} onNewGame={() => setSide(null)} game={game} />;
 }

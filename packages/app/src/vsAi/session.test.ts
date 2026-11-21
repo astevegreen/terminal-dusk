@@ -34,6 +34,32 @@ describe("a whole game against the AI", () => {
   }
 });
 
+describe("the AI's difficulty (#508)", () => {
+  it("is Medium when none is given: the AI is made at Medium and the snapshot says so", () => {
+    const { session, standIn } = start("lio", { hold: true });
+    expect(standIn.tiers).toEqual(["medium"]);
+    expect(session.getSnapshot().tier).toBe("medium");
+    session.stop();
+  });
+  for (const tier of ["easy", "medium", "hard"] as const) {
+    it(`made at ${tier}, the AI gets that tier and the finished game's replay names it`, async () => {
+      const standIn = standInAi();
+      const session = createVsAiSession({
+        human: "sae",
+        gameSeed: GAME_SEED,
+        aiSeed: 3,
+        clock,
+        makeAi: standIn.makeAi,
+        tier,
+      });
+      expect(standIn.tiers).toEqual([tier]);
+      expect(session.getSnapshot().tier).toBe(tier);
+      await playOut(session, standIn);
+      expect(session.replay()?.aiTier).toBe(tier);
+    });
+  }
+});
+
 describe("the log", () => {
   it("names cards by the game's card names and sides as LIO and SAE", async () => {
     // The first deck, because the fixture game deals full hands and so draws no card.
