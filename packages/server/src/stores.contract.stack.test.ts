@@ -3,9 +3,11 @@
 // so and how to start it.
 import type { MatchConfig } from "@terminal-dusk/host";
 import { onLocalStack, putIn, writeOf } from "./test/stack.ts";
+import { deadlineStoreContract } from "./test/contracts/deadlineStore.ts";
 import { inviteStoreContract } from "./test/contracts/inviteStore.ts";
 import { matchStoreContract } from "./test/contracts/matchStore.ts";
 import { notifyStoreContract } from "./test/contracts/notifyStore.ts";
+import { createdWithClock } from "./test/deadlines.ts";
 import { inviteStack } from "./test/inviteStack.ts";
 import { created } from "./test/match.ts";
 import { SupabaseInviteStore } from "./supabaseInviteStore.ts";
@@ -55,6 +57,18 @@ await onLocalStack("the Supabase stores keep the store contracts on the local Su
         }
         return ids;
       },
+    }),
+    TIMEOUT,
+  );
+
+  deadlineStoreContract(
+    () => ({
+      store: new SupabaseStore(stack.service),
+      players: [stack.host.id, stack.joiner.id],
+      clocked: (rule, at) => createdWithClock(stack.matchId(), rule, at, { lio: stack.host.id, sae: stack.joiner.id }),
+      plain: () => fresh(),
+      unknownId: () => stack.matchId(),
+      putIn: (write) => putIn(stack.service, write),
     }),
     TIMEOUT,
   );

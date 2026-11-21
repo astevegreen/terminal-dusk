@@ -5,9 +5,11 @@ import { inviteCode } from "./inviteCode.ts";
 import { MemoryInviteStore } from "./inviteStore.ts";
 import { MemoryNotifyStore } from "./notifyStore.ts";
 import { MemoryStore } from "./store.ts";
+import { deadlineStoreContract } from "./test/contracts/deadlineStore.ts";
 import { inviteStoreContract } from "./test/contracts/inviteStore.ts";
 import { matchStoreContract } from "./test/contracts/matchStore.ts";
 import { notifyStoreContract } from "./test/contracts/notifyStore.ts";
+import { createdWithClock } from "./test/deadlines.ts";
 import { created } from "./test/match.ts";
 import { writeOf } from "./test/stack.ts";
 
@@ -46,4 +48,18 @@ describe("MemoryNotifyStore keeps the NotifyStore contract", () => {
     players: ["player-alice", "player-bob"],
     matches: (count) => Promise.resolve(Array.from({ length: count }, freshMatchId)),
   }));
+});
+
+describe("MemoryStore keeps the DeadlineStore contract", () => {
+  deadlineStoreContract(() => {
+    const store = new MemoryStore();
+    return {
+      store,
+      players: ["alice", "bob"],
+      clocked: (rule, at) => createdWithClock(freshMatchId(), rule, at),
+      plain: () => created(freshMatchId()),
+      unknownId: freshMatchId,
+      putIn: (write) => Promise.resolve(store.insert(write.record.matchId, write)),
+    };
+  });
 });
