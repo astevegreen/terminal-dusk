@@ -37,7 +37,12 @@ export function dismissable(shown: PanelId | null, pinnedLog: boolean): PanelId 
 
 /** What the wiring needs of a part of the page: whether a tapped thing is inside it. */
 export type PanelPart = { contains: (node: Node | null) => boolean };
-export type PanelParts = { panel: PanelPart; opener: PanelPart & { focus: () => void } };
+export type PanelParts = {
+  panel: PanelPart;
+  opener: PanelPart & { focus: () => void };
+  /** Parts a tap on which leaves the panel open, for them to act on: the ticker, over Details (#503). */
+  keep?: readonly PanelPart[];
+};
 
 /**
  * While a panel is open: listens on `doc` for Escape and for a tap outside both the panel and its opener, and calls
@@ -53,6 +58,7 @@ export function dismissPanel(doc: EventTarget, parts: PanelParts, close: () => v
   const onPointer = (event: Event): void => {
     const target = event.target as Node | null;
     if (parts.panel.contains(target) || parts.opener.contains(target)) return;
+    if (parts.keep?.some((kept) => kept.contains(target))) return;
     close();
   };
   doc.addEventListener("keydown", onKey);

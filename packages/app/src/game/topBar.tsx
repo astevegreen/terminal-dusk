@@ -13,6 +13,7 @@ import type { ReactNode, RefObject } from "react";
 import { dismissable, dismissPanel, logShown, shownPanel } from "./drawerControl.ts";
 import type { Opened, PanelId } from "./drawerControl.ts";
 import { useLargeScreen } from "./largeScreen.ts";
+import { announceOpen, onOtherOpen } from "./openOne.ts";
 import { Log } from "./regions.tsx";
 import "./logDrawer.css";
 
@@ -49,12 +50,17 @@ function PanelHead({
   );
 }
 
-/** While `active` panel shows: the keyboard's place moves into it, and Escape or a tap outside closes it. */
-function useDismiss(
-  active: PanelId | null,
-  refs: Record<PanelId, { panel: RefObject<HTMLDivElement | null>; opener: RefObject<HTMLButtonElement | null> }>,
-  close: () => void,
-): void {
+type PanelRefs = Record<
+  PanelId,
+  { panel: RefObject<HTMLDivElement | null>; opener: RefObject<HTMLButtonElement | null> }
+>;
+
+/**
+ * While `active` panel shows: the keyboard's place moves into it, and Escape, a tap outside, or a card lifted by any
+ * means (openOne.ts, #503) closes it. A tap on the ticker leaves Details to the ticker, which brings the log to the
+ * front.
+ */
+function useDismiss(active: PanelId | null, refs: PanelRefs, close: () => void): void {
   useEffect(() => {
     if (active === null) return;
     const { panel, opener } = refs[active];
@@ -62,7 +68,14 @@ function useDismiss(
     // The focus does not scroll: the panel starts its slide off to the right, and scrolling it into view would shift
     // the whole game.
     panel.current.focus({ preventScroll: true });
-    return dismissPanel(document, { panel: panel.current, opener: opener.current }, close);
+    const ticker = refs.log.opener.current;
+    const keep = active === "details" && ticker !== null ? [ticker] : [];
+    const stopTaps = dismissPanel(document, { panel: panel.current, opener: opener.current, keep }, close);
+    const stopHearing = onOtherOpen(document, "panel", close);
+    return () => {
+      stopTaps();
+      stopHearing();
+    };
     // The refs and `close` do the same for the bar's whole life; only a change of panel restarts the wiring.
   }, [active]);
 }
@@ -83,7 +96,10 @@ function TopBarInner({ log, waitingId, details, detailsNote, children }: Readonl
   };
   useDismiss(dismissable(shown, pinnedLog), refs, () => setOpened(null));
 
-  const open = (panel: PanelId): void => setOpened({ panel, forId: waitingId });
+  const open = (panel: PanelId): void => {
+    announceOpen(document, "panel");
+    setOpened({ panel, forId: waitingId });
+  };
   const closeLog = (): void => {
     setPinned(false);
     if (shown === "log") setOpened(null);
@@ -112,7 +128,8 @@ function TopBarInner({ log, waitingId, details, detailsNote, children }: Readonl
           data-testid="ticker"
           aria-expanded={logOpen}
           aria-controls={`${id}-log`}
-          onClick={() => (logOpen ? closeLog() : open("log"))}
+          // Over Details, it brings the log to the front, pinned or not (#503); otherwise it opens or closes the log.
+          onClick={() => (logOpen && shown !== "details" ? closeLog() : open("log"))}
         >
           <span className="game-ticker-mark" aria-hidden="true">
             {"›"}
