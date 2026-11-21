@@ -2,6 +2,11 @@ Proposal, not a rule
 
 # Era lengths and turns per era: options
 
+**Decided 21 Nov 2026 (owner, in chat: "Take all recommendations"): option A, 3 / 2 / 5 turns, with 2 plays per
+turn; the free first-era game is as long as Era 1 (3 turns); the 2025-2027 scenario adds a turn after 2025; late
+eras being used less is intended, for now. The rules are in `docs/design/eras.md` and `docs/design/core-loop.md`;
+see "Questions for the owner" below.** The text below is the original proposal.
+
 Sprint backlog X4. docs/design/eras.md fixes the three eras and their years (the base game runs 1991-2025 and
 always stops at 2025) but leaves open how many turns each era lasts. docs/design/core-loop.md leaves open how many
 cards each player plays per turn. This file lays out three options for era lengths, with trade-offs backed by
@@ -272,15 +277,29 @@ In every option the future cards, entering on the last turn, are barely used (at
 
 ## Questions for the owner
 
+All six answered on 21 Nov 2026 (owner, in chat: "Take all recommendations"); each answer follows its question.
+
 1. Which option, or another split, should be taken further: turns that follow the years (A), equal turns per era
    (B), or a short game (C)?
+   **Decided:** A, turns follow the years (3 / 2 / 5). Owner, 21 Nov 2026: take the recommendation.
 2. How many plays per turn should the numbers assume? In every option the share of Era 2 and Era 3
    cards used grows from 1 to 2 plays (by hand, from the tables above): Era 2 by about three quarters to double
    (1.74 to 1.95 times), Era 3 by about double or a little more (1.97 to 2.26 times).
+   **Decided:** 2 plays per turn. Owner, 21 Nov 2026: take the recommendation.
 3. Should a free player's first-era game use Era 1's base-game length, or be its own scenario with more turns
    (for example 5, runs F5-1 to F5-3)?
+   **Decided:** Era 1's base-game length, 3 turns. Owner, 21 Nov 2026: take the recommendation.
 4. Should the 2025-2027 scenario add a turn after 2025 (as all three options show here), or put the future cards
    in during the last turn of Era 3? Entering on the last turn, they barely reach a hand.
+   **Decided:** add a turn after 2025 (11 turns, the future cards entering on turn 11). Owner, 21 Nov 2026: take
+   the recommendation.
 5. A new era's cards only join the draw pile (eras.md), so a late era is used far less than Era 1. Is that the
    intended feel, or should this be looked at with the era rules?
+   **Decided:** intended, for now. Owner, 21 Nov 2026: take the recommendation.
 6. Should deck-plan.md's two summary tables be corrected to 28 Era 3 cards (8 neutral) and 91 in all?
+   **Decided:** yes, the tables must match the built cards. Owner, 21 Nov 2026: take the recommendation. No table
+   needed changing: the five LIO cards of deck-plan.md question 52 (one in Era 1, one in Era 2, three in Era 3)
+   were built the same day this proposal was written, and deck-plan.md's tables were updated with them. They now
+   count the built cards: Era 3 has 31 (11 LIO, 12 SAE, 8 neutral), the base game 90 and the full ruleset 96.
+   The 28-card and 91-card counts in "Facts every option shares" above, and every tool number in this file, are
+   from before those five cards.
