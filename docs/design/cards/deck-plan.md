@@ -84,7 +84,7 @@ question 27), so the old stopgap (each side dealt `turns x (1 + plays per turn)`
 numbers below are placeholders, not rules (Owner question 4), except the hand size of 8, which is the owner's:
 
 ```
-TEST scenario "first-deck-test" (ALL VALUES ARE PLACEHOLDERS)
+TEST scenario "base-game" (ALL VALUES ARE PLACEHOLDERS)
   TURNS = 4            was 6; cut when the owner removed 18 cards, while the stopgap still applied
   PLAYS_PER_TURN = 1   one alternating play each after the opening pick
   HAND_SIZE = 8        the owner's (question 27); the scenario's handSize, and the turn 1 refill deals it
@@ -368,13 +368,13 @@ answer follows the question as **Answered**.
     the strict stopgap (question 5) stay until then.
     **Done:** the engine refills both hands at every turn start, after a new era's cards enter and before the
     opening picks, LIO first; the turn 1 refill deals the first hands. Hand size is the scenario's `handSize`
-    (8 in `first-deck-test`). The practice game no longer deals: all Era 1 cards (29 now) start in the draw pile.
+    (8 in `base-game`). The practice game no longer deals: all Era 1 cards (29 now) start in the draw pile.
 28. **Ops swings affect all points spent.** The engine's modifier changes every point spent, not only points from
     "play for points". The plan's wording was changed to "points spent by <side> count N more". OK, or should the
     engine tell the two apart?
     **Answered:** keep it; revisit when points have a designed use (question 7).
 29. **The schema cannot list Era 1 in a scenario's `eras`.** `eras` names only later eras and each needs at least one
-    card. The TEST scenario `first-deck-test` therefore has no `eras`; all Era 1 cards are dealt by the game setup.
+    card. The TEST scenario `base-game` therefore has no `eras`; all Era 1 cards are dealt by the game setup.
 30. **TEST scenario numbers are placeholders.** 4 turns, 1 play per turn (needs 8 non-neutral cards per side;
     the deal gives 8). It was 6 turns until the owner's removal left LIO with only 8 Era 1 cards. Please set the
     real numbers. **Answered:** set the real turn count and era arrival turns together with hand refills (question 27), in the Core loop page first; the placeholders stay until then.
