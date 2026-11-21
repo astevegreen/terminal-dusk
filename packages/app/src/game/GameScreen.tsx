@@ -50,8 +50,9 @@ export type GameScreenProps = {
   menu?: ReactNode;
   /** The page's own items for the top bar, such as Back or New game, shown after the Menu. */
   bar?: ReactNode;
-  /** The page's own lines at the top of the Details panel, such as the AI's difficulty (#508). */
-  about?: ReactNode;
+  /** A short line in the Details panel's head, beside its title, such as the AI's difficulty (#508). In the head, so
+   *  the panel is no taller and still fits a 390 px screen unscrolled. */
+  detailsNote?: string;
 };
 
 type PromptData = Pick<GameScreenProps, "frame" | "label" | "question" | "affiliation">;
@@ -116,7 +117,7 @@ export function GameScreen({
   refusal,
   menu,
   bar,
-  about,
+  detailsNote,
 }: Readonly<GameScreenProps>) {
   const data = { frame, label, question, affiliation };
   const chips = chipsOf(frame.view.mine?.hand ?? [], label, points, affiliation);
@@ -137,9 +138,9 @@ export function GameScreen({
       <TopBar
         log={log}
         waitingId={frame.decision?.id ?? null}
+        detailsNote={detailsNote}
         details={
           <>
-            {about}
             <Opponent frame={frame} />
             <Table pub={frame.view.public} label={label} />
             <Contingency pub={frame.view.public} />

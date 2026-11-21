@@ -120,7 +120,7 @@ export function VsAiView({
           refusal={snapshot.refusal}
           menu={<p>{note}</p>}
           bar={aiRefused}
-          about={<p>{difficultyText(snapshot.tier)}</p>}
+          detailsNote={difficultyText(snapshot.tier)}
         />
       ) : (
         <>

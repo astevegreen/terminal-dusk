@@ -60,7 +60,8 @@ describe("the AI's difficulty in the replay (#508)", () => {
     expect(html(recording.frames.length - 1)).toContain("AI difficulty: Medium");
   });
   it("names none for a recording with no difficulty", () => {
-    const { aiTier: _, ...plain } = recording;
+    const plain: ReplayRecording = { ...recording };
+    delete plain.aiTier;
     const out = renderToString(
       <ReplayView
         recording={plain}

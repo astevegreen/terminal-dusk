@@ -23,6 +23,8 @@ type TopBarProps = {
   waitingId: Decision["id"] | null;
   /** What the Details panel holds; left out, the bar has no Details button and no panel. */
   details?: ReactNode;
+  /** A short line in the Details panel's head, after its title. */
+  detailsNote?: string | undefined;
   /** The top bar's other items, before the Details button and the ticker: the Menu, the page's own items, the
    *  status and the tracks. */
   children: ReactNode;
@@ -33,10 +35,12 @@ function PanelHead({
   title,
   onClose,
   children,
-}: Readonly<{ title: string; onClose: () => void; children?: ReactNode }>) {
+  note,
+}: Readonly<{ title: string; onClose: () => void; children?: ReactNode; note?: string | undefined }>) {
   return (
     <div className="game-drawer-head">
       <span className="game-drawer-title">{title}</span>
+      {note !== undefined && <span className="game-drawer-note">{note}</span>}
       <button type="button" onClick={onClose}>
         Close
       </button>
@@ -63,7 +67,7 @@ function useDismiss(
   }, [active]);
 }
 
-function TopBarInner({ log, waitingId, details, children }: Readonly<TopBarProps>) {
+function TopBarInner({ log, waitingId, details, detailsNote, children }: Readonly<TopBarProps>) {
   const [opened, setOpened] = useState<Opened>(null);
   const [pinned, setPinned] = useState(false);
   const large = useLargeScreen();
@@ -162,6 +166,7 @@ function TopBarInner({ log, waitingId, details, children }: Readonly<TopBarProps
         >
           <PanelHead
             title="Details"
+            note={detailsNote}
             onClose={() => {
               setOpened(null);
               refs.details.opener.current?.focus();
