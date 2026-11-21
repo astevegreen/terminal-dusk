@@ -64,7 +64,12 @@ export function scenarioSetup(scenario: Scenario): ScenarioSetup {
   };
   if (scenario.firstEra !== undefined) result.firstEra = scenario.firstEra;
   if (scenario.eras !== undefined) {
-    result.eras = scenario.eras.map((entry) => ({ era: entry.era, turn: entry.turn, cards: [...entry.cards] }));
+    result.eras = scenario.eras.map(({ era, turn, cards, extendsEra }) => ({
+      era,
+      turn,
+      cards: [...cards],
+      ...(extendsEra === true ? { extendsEra } : {}),
+    }));
   }
   if (scenario.map !== undefined) result.map = copyMap(scenario.map);
   return result;

@@ -106,5 +106,10 @@ export function createGame(
   return error ? { ok: false, error } : { ok: true, value: { state, events } };
 }
 
-/** A copy of an era entry, so the state shares nothing with the setup. */
-const copyEra = ({ era, turn, cards }: EraEntry): EraEntry => ({ era, turn, cards: [...cards] });
+/** A copy of an era entry, so the state shares nothing with the setup. extendsEra only when the entry has it. */
+const copyEra = ({ era, turn, cards, extendsEra }: EraEntry): EraEntry => ({
+  era,
+  turn,
+  cards: [...cards],
+  ...(extendsEra === true ? { extendsEra } : {}),
+});

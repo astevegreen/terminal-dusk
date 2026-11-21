@@ -89,6 +89,13 @@ describe("scenario schema", () => {
     const across = [eras[0], { era: "late", turn: 3, cards: ["c", "b"] }];
     expect(paths({ ...base, eras: across })).toEqual([["eras", 1, "cards", 1]]);
   });
+  it("accepts an era that extends the era in play (extendsEra: true), and refuses any other value there", () => {
+    const extending = [eras[0], { ...eras[1], extendsEra: true }];
+    expect(paths({ ...base, eras: extending })).toEqual([]);
+    for (const value of [false, "yes", 1, undefined]) {
+      expect(paths({ ...base, eras: [eras[0], { ...eras[1], extendsEra: value }] })).toEqual([["eras", 1, "extendsEra"]]);
+    }
+  });
   it("refuses a Contingency list with fewer than 3 cards, at the list", () => {
     expect(paths({ ...base, contingency: { lio: [1, 2] } })).toEqual([["contingency", "lio"]]);
     expect(paths({ ...base, contingency: { sae: [4, 4] } })).toEqual([["contingency", "sae"]]);

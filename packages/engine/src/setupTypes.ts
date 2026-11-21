@@ -5,9 +5,11 @@ import type { CardId, EraId, Side } from "./types.ts";
 
 /**
  * An era after the first: its cards, in the setup's order, and the turn at whose start they are
- * shuffled into the draw pile (eras.ts).
+ * shuffled into the draw pile (eras.ts). `extendsEra: true`: this entry adds its cards to the era in play, so the
+ * turn before it is not an era's end and nothing scores then (scoring.ts, eraEnds; docs/design/eras.md, the
+ * 2025–2027 scenario). Left out for an entry that starts a new era.
  */
-export type EraEntry = { era: EraId; turn: number; cards: CardId[] };
+export type EraEntry = { era: EraId; turn: number; cards: CardId[]; extendsEra?: true };
 
 export type Setup = {
   seedHash: string;
