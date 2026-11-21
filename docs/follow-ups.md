@@ -13,6 +13,10 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## Rules engine and content
 
+- The six-region track start of 7 towards SAE (#515, #600) was measured only with Hard against Hard; Medium against
+  Medium is unmeasured at that start (`node tools/balance/run.mjs --scenario six-region --lio-tier medium --sae-tier
+medium`, in 50-game batches). Recheck both tiers when the cards' rewording or the AI changes, and retune
+  `map.scoring.track.start` in `packages/content/scenarios/six-region-map.json`. [21 Nov 2026, #515 balance pass]
 - The 2025-2027 game (`packages/content/scenarios/2025-2027.json`, `SCENARIO_2025_2027`, #582) is data and tests
   only: no host config (`packages/host/src/firstDeck.ts`) or app screen starts it, so no fuzz, AI, balance or vs-AI
   game reaches the future cards yet; only their own card tests and the scenario's play-through test cover them.
