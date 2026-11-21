@@ -228,8 +228,8 @@ Decided by the owner on 28 October 2026, choosing between the options in `docs/p
   Map section's "Map numbers" (owner, 28 Oct).
 - **The 2025-2027 scenario** (eras.md) has its final scoring and win check **at the end of 2027**, the end of its
   extra turn, not at the end of 2025 (owner, 21 Nov 2026: option B). In that scenario, "after the final era scores
-  at the end of 2025" above reads "at the end of 2027". Still open: whether it also scores at the end of 2025
-  (`docs/design/eras.md`, "Not decided yet").
+  at the end of 2025" above reads "at the end of 2027". Era 3 scores only once there, at the end of 2027, not
+  also at the end of 2025 (owner, 21 Nov 2026, in chat; `docs/design/eras.md`).
 
 ## Owner's remaining questions
 

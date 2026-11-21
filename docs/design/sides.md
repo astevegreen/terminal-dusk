@@ -18,11 +18,13 @@ of truth; change it in Notion and promote again. The special abilities were deci
     that card is set aside and LIO draws again. A draw that comes from the World deck because SAE played an LIO
     card is not LIO's own deck, so the ability does not apply to it.
   - **SAE: Unified command.** After SAE plays one of its own cards for its event, the next card SAE plays for its
-    action points in the same turn counts 1 more.
+    action points in the same turn counts 1 more. Only card plays after the opening cards count: an SAE opening
+    card does not set it up (owner, 21 Nov 2026, in chat).
   - The numbers in them (SAE's 1 more, LIO's once per turn) are placeholders, not final values.
 - Both abilities are automatic: the player never chooses to use them. They are deliberately different in kind.
 - Both players can always see each side's ability, and whether it was used this turn.
-- The owner's words on where the abilities are set: "fixed per scenario".
+- The abilities are "fixed per scenario" (owner): the same two in every scenario for now. The scenario data names
+  them, so a later scenario can change them (owner, 21 Nov 2026, in chat).
 - Beyond that, the sides differ only through the cards, the starting map and the eras.
 
 ## For the engine
@@ -34,9 +36,6 @@ of truth; change it in Notion and promote again. The special abilities were deci
 ## Not decided yet
 
 - The abilities' numbers (SAE's 1 more and LIO's once per turn).
-- What "fixed per scenario" means: the same two abilities in every scenario, or named by each scenario and fixed
-  for the whole game.
-- Whether an SAE opening pick of its own card counts as "played for its event" for Unified command.
 - Whose ability applies to a Contingency draw from the World deck (docs/design/contingency-deck.md).
 - Card wording that names real states needs care for store approval; the legal review before the first store
   submission covers it. Future-era cards name roles, not people.

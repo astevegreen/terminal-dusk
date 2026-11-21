@@ -4,7 +4,8 @@ Proposal, not a rule
 
 **Decided 21 Nov 2026** (owner, in chat: "Take all recommendations"): **LIO gets L2, Resilient institutions;
 SAE gets S1, Unified command.** Both are automatic, deliberately different and always shown to both players. The
-owner's words on question 1 were "fixed per scenario". Both picks are recorded in docs/design/sides.md. The
+owner's words on question 1 were "fixed per scenario": the same two abilities in every scenario for now, named in
+the scenario data so they can change later. Both picks are recorded in docs/design/sides.md. The
 numbers in them stay placeholders. The questions below are each marked.
 
 Sprint backlog X3. docs/design/sides.md says each side has exactly one special ability of its own and that which
@@ -198,9 +199,8 @@ same turn counts 1 more.
 
 1. Should the abilities be fixed per side for every scenario, or may a scenario pick them (engine choice (a) or
    (b) above)?
-   **Answered:** "fixed per scenario" (owner, 21 Nov 2026). Still open: whether that means every scenario uses
-   the same two abilities, or that each scenario names them and they never change during a game. Menu (a) or data
-   (b) is then the architect's call.
+   **Decided:** "fixed per scenario": the same two abilities in every scenario for now; the scenario data names
+   them, so it can change later (owner, 21 Nov 2026, in chat). Menu (a) or data (b) is the architect's call.
 2. Should a side's ability be something the player chooses to use (a prompt), or always automatic?
    **Decided:** always automatic (owner, 21 Nov 2026). L2 therefore needs no `yesNo` decision.
 3. Should the two abilities mirror each other in kind (both about points, both about luck, both about the map), or
@@ -213,7 +213,7 @@ same turn counts 1 more.
    works without them be picked first?
    **Settled by the picks:** L2 and S1 both work without the map and scoring.
 6. For S1: does an SAE opening pick of its own card count as "played for its event"?
-   **Still open:** this file gives no recommendation to take.
+   **Decided:** no. Only SAE's card plays after the opening cards count (owner, 21 Nov 2026, in chat).
 7. For L2: may a side's ability change a Contingency draw at all, given that the decks exist so that luck evens out?
    And if a draw from the World deck is involved, whose ability applies (the same open point as in
    contingency-deck.md)?

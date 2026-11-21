@@ -37,6 +37,8 @@ The base game runs from 1991 to 2025 in three eras, and always stops at 2025.
   cards enter on turn 11. Two years is about one 3.4-year turn.
 - **Its final scoring and win check come at the end of 2027**, the end of turn 11 (owner, 21 Nov 2026: option B;
   docs/design/map-and-points.md, "Scoring").
+- **Era 3 scores only once, at the end of 2027**, not also at the end of 2025 (owner, 21 Nov 2026, in chat). The
+  future cards entering on turn 11 do not make turn 10 an era's end.
 
 ## The free player's game
 
@@ -54,10 +56,7 @@ The base game runs from 1991 to 2025 in three eras, and always stops at 2025.
 ## Not decided yet
 
 - Era names (neutral names, none taken from other games). The owner will supply them (21 Nov 2026).
-- Whether the 2025–2027 scenario also scores Era 3 at the end of 2025, before its extra turn, or only once, at the
-  end of 2027. The owner chose the end of 2027 for the final scoring and win check; an extra scoring at the end of
-  2025 was not asked. (Today's engine scores an era's end on the turn before a waiting era enters, so it would
-  score at the end of turn 10 too.)
 
-Decided on 21 Nov 2026 (owner, in chat: "Take all recommendations"): how many turns each era lasts (3 / 2 / 5), and
-which era a free player can play against the AI (Era 1, 3 turns).
+Decided on 21 Nov 2026 (owner, in chat: "Take all recommendations"): how many turns each era lasts (3 / 2 / 5),
+which era a free player can play against the AI (Era 1, 3 turns), and that the 2025–2027 scenario scores Era 3
+only once, at the end of 2027.

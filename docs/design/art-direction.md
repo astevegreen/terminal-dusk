@@ -44,11 +44,10 @@ for those years is not chosen yet: ask the owner before building one.
 What a theme styles:
 
 - The board around the map, the map's frame, and the colour of the country borders drawn over the picture.
-- Not the Blue Marble picture: it keeps its natural colours in every era. A theme gives it no era tint, such as
-  a faint green cast in Era 1 (owner, 21 Nov 2026, in chat: "no"; "Take all recommendations"). This replaces
-  the owner's answer of 29 Oct on #481, "Tint or dim is fine". Still open: whether a theme may dim the picture
-  without tinting it. The built themes still tint and dim it through `--map-picture-filter`; see
-  `docs/follow-ups.md`.
+- Not the Blue Marble picture's content: it keeps its natural land and sea in every era. A theme may dim or tint
+  it a little (say, a faint green cast in Era 1), through `--map-picture-filter` (owner, 29 Oct on #481: "Tint or
+  dim is fine"; confirmed 21 Nov 2026 in chat, "Keep 29 Oct: tint or dim OK"). An earlier "no" to an era tint in
+  the 21 Nov batch is withdrawn as out of date.
 - Frames and borders: card frames, panels, the side panel's tabs, and the frames of the country markers.
 - Menus, buttons, backgrounds and lettering.
 - The decks, the score track, the Escalation track and the other tracks, and the status bar and log.

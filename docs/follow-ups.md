@@ -23,6 +23,10 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   Era 2 entering on turn 4 and Era 3 on turn 6; the free player's Era 1 game (3 turns) and the 2025-2027 game
   (11 turns, scored at the end of 2027) have no scenario yet. Golden replays change with it. [21 Nov 2026, recording
   the owner's answers]
+- The 2025-2027 scenario scores Era 3 only once, at the end of 2027 (`docs/design/eras.md`), but today's engine
+  would score it at the end of turn 10 too: `eraEnds` (`packages/engine/src/scoring.ts:61-64`) counts the turn
+  before a waiting era enters as an era's end, and the future cards enter on turn 11. That scenario's build must
+  stop the extra scoring. [21 Nov 2026, recording the owner's answers]
 
 ## App, host and server
 
@@ -33,11 +37,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - A subscriber that throws in a local match is skipped silently (`packages/app/src/transport/localMatch.ts:65`): the
   match carries on, as it should, but nothing records the error. An optional `onSubscriberError` for the caller to
   log would make such a bug visible. [6 Nov 2026, test-suite audit]
-- The era themes still tint the Blue Marble picture through `--map-picture-filter`
-  (`packages/app/src/game/themes/terminal.css:17`, a green cast; `newsDesk.css:16` and `dashboard.css:17` change
-  its saturation and brightness). The owner said "no" to an era tint on 21 Nov (`docs/design/art-direction.md`),
-  replacing "Tint or dim is fine" on #481, so at least the Era 1 green cast goes. [21 Nov 2026, recording the
-  owner's answers]
 
 ## Tests and tooling
 
