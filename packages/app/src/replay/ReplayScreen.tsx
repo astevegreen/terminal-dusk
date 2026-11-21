@@ -6,7 +6,7 @@ import { SIDES } from "@terminal-dusk/engine";
 import type { CardId, EraId, Side } from "@terminal-dusk/engine";
 import type { Frame, ReplayFrame } from "@terminal-dusk/host";
 import { useState } from "react";
-import { eraText, mapNames } from "../displayText.ts";
+import { eraText, gameOverText, mapNames } from "../displayText.ts";
 import { logLine } from "../eventPresentation.ts";
 import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
 import type { CardRules } from "../displayText.ts";
@@ -121,7 +121,7 @@ export function ReplayView({
   const log = frames
     .slice(0, index + 1)
     .flatMap((f) => f.events.map((event) => logLine(event, { card: label, era: eraText, ...mapNames(f.view.public) })));
-  // Cut short with "…" in the top bar on a phone; the Details panel holds it in full. The AI's difficulty is in the
+  // Cut short with "…" in the top bar on a phone; the Details panel holds it, and the game's result, in full. The AI's difficulty is in the
   // Details panel's head, as in the game (#508), so the bar keeps its room for the status and the end of the game.
   const seed = `Seed checked: ${recording.seedHash}`;
   const bar = (
@@ -146,6 +146,7 @@ export function ReplayView({
         {...(recording.aiTier === undefined ? {} : { detailsNote: difficultyText(recording.aiTier) })}
         extraDetails={
           <>
+            {atLast && recording.status.kind === "over" && <p>{gameOverText(recording.status)}</p>}
             {atLast && <p>{seed}</p>}
             <Hands frame={frame} label={label} rules={rules} />
           </>

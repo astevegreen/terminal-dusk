@@ -78,4 +78,10 @@ test("replay: the map fills the screen, the controls sit in the top bar, and a s
   await expectNoPageScroll(page);
   expect((await box(topBar)).height).toBeLessThanOrEqual(viewport.height * 0.12);
   await shoot(page, testInfo, "replay", "last-step");
+
+  // The bar may cut the result short on a phone; the Details panel holds it and the seed check in full.
+  await topBar.getByRole("button", { name: "Details" }).click();
+  await expect(details.getByText(/^Game over: .+, .+$/)).toBeVisible();
+  await expect(details.getByText(/^Seed checked: \S+$/)).toBeVisible();
+  await expectNoPageScroll(page);
 });
