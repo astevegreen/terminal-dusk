@@ -287,6 +287,7 @@ const USED_UP = /individual quota|resets in/i;
 const PASS_ON = [
   [/quota|rate.?limit|resource.?exhausted|\b429\b|overloaded|capacity/i, "was too busy"],
   [/ran out of time/, "ran out of time"],
+  [/handshake did not finish/, "could not be reached through the proxy tunnel in time"],
   [/ran out of room/, "ran out of room for its answer"],
   [/not allowed to do/, "tried a command it may not run"],
   [/not on the Gemini API/, "is not on the Gemini API"],

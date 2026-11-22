@@ -17,22 +17,20 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   Medium is unmeasured at that start (`node tools/balance/run.mjs --scenario six-region --lio-tier medium --sae-tier
 medium`, in 50-game batches). Recheck both tiers when the cards' rewording or the AI changes, and retune
   `map.scoring.track.start` in `packages/content/scenarios/six-region-map.json`. [21 Nov 2026, #515 balance pass]
-- The 2025-2027 game (`packages/content/scenarios/2025-2027.json`, `SCENARIO_2025_2027`, #582) is data and tests
-  only: no host config (`packages/host/src/firstDeck.ts`) or app screen starts it, so no fuzz, AI, balance or vs-AI
-  game reaches the future cards yet; only their own card tests and the scenario's play-through test cover them.
-  Era 3's one scoring, at the end of turn 11, uses the map's `future` battleground list; only the six-region map is
-  checked to have it equal Era 3's, so the host config that starts this game needs the same check. [21 Nov 2026, #582]
 - `docs/design/map-and-points.md` ("Map numbers", Open) still says the scenario data has not been changed to the
   21 Nov rules; the scenario is `packages/content/scenarios/base-game.json` since #575. Fix it at the next Notion
   promotion. [21 Nov 2026, #575]
+- The 2025-2027 host config's refusal of a map whose `future` list is not Era 3's (`packages/host/src/firstDeck.ts`, `scenario2025To2027Config`) has no test that reaches it, since the config always uses the six-region map: let it take the map as a parameter and test a bad one. The balance tool can also get round it: `--numbers` can change only the `era-3` or only the `future` list, and `--era future@N` is accepted for `2025-2027` (`tools/balance/config.mjs`, `numbers.mjs`); re-run the check after those changes. [22 Nov 2026, #604 review]
 
 ## App, host and server
 
 ## Tests and tooling
 
-- The rules-text numbers check (`packages/content/src/rulesNumbers.test.ts`, #584) compares each kind's distinct numbers,
-  not which side or branch each belongs to: text giving LIO's "2 fewer" to SAE and SAE's "1 fewer" to LIO would pass.
-  Tying each number to its side and branch would close that gap. [21 Nov 2026, #584 review]
+- `packages/content/src/rulesSpends.test.ts` (#606) ties spends and Ops swings to their side and branch, but the other
+  numbers `rulesNumbers.test.ts` reads (swing floors, Contingency thresholds, Escalation moves, cards discarded) are
+  still compared as distinct sets only. e3-sae-003 is checked as a set, so its branches aren't tied (pairing the data's
+  "if marker" and "if LIO played" before comparing would close it), and an `if` whose branches spend the same counts
+  once, so text naming that spend in one branch only would pass. [22 Nov 2026, reviewer and agy on #606]
 - `pnpm gate`'s quick fuzz failed once in `tests/fuzz/extraSteps.test.ts`: "Extra-steps game 188 ... failed at answer
   27: the view for 'sae' shows sae's Contingency deck with a count left that is not the secret order's"
   (`tests/fuzz/checks.ts:256`, `checkNoLeaks`). Each game is seeded from its number, yet the next gate and three
@@ -55,10 +53,10 @@ medium`, in 50-game batches). Recheck both tiers when the cards' rewording or th
   `prepare` script, each tested like `pre-commit.test.mjs`. Then fix the wording that says every commit refreshes it:
   `tools/repo-map.mjs` `renderMap` header, `docs/workflow.md:244,376`, `.claude/agents/reviewer.md:41`,
   `tools/gemini/prompts/pr-audit.md:3`; and drop `repo-map.mjs --staged`, which nothing calls now. [7 Nov 2026, CI-speed session, Decision (architect)]
-- A proxy tunnel that stays open but carries nothing makes `postApi` (`tools/gemini/gemini-api.mjs:157`) wait its full
-  10-minute idle timeout before passing to the next model; a short limit on the TLS handshake alone would end it in
-  seconds, in all three repos. The cloud proxy cuts idle tunnels, so it has not happened. [7 Nov 2026, Gemini API
-  tunnel fix review]
+- The two sister repos' copies of `tools/gemini/gemini-api.mjs` still lack the TLS handshake limit this repo's
+  `postApi` gained in #608 (a tunnel that opens but carries nothing waits the full 10 minutes there); copy it, with
+  its test in `gemini-proxy.test.mjs`, and the `PASS_ON` line in `tools/gemini/agy.mjs` that moves that reason on to
+  the next model (tested in `agy-api.test.mjs`). [22 Nov 2026, Gemini API tunnel fix review]
 - The fuzz suites that prove random play "reaches" a feature (`tests/fuzz/easy.test.ts:56`, `reveals.test.ts`,
   `removed.test.ts`, `neutral.test.ts`, `extraSteps.test.ts`) each replay their games again to count events. One
   coverage pass that plays each game once and feeds every counter would save the replays; not merged yet because
@@ -66,10 +64,6 @@ medium`, in 50-game batches). Recheck both tiers when the cards' rewording or th
 - `packages/engine/src/views.property.test.ts` and `views.test.ts` overlap (both check what each viewer sees);
   consolidating them into one property suite with a few named examples would cut duplicate cases. [6 Nov 2026,
   test-suite audit]
-- `recordSession` in `tools/handoff-notes.mjs:150` reads, adds to and renames the session-ids index with no lock, so
-  two sessions saving or claiming in the same instant can drop one entry (only the Sessions pane's note list
-  loses it; the note itself is safe). A lock file or an append-only log would close it. [6 Nov 2026, reviewer on
-  #523]
 - Planned: move the type check to TypeScript 7 (Microsoft's native compiler). Measured 6 Nov 2026: all six packages
   pass with no errors and the type check drops from 19.4s to 3.4s. It stays on 6.0 for now because typescript-eslint
   and `tools/gates/boundaries.mjs` need the compiler API that 7.0 lacks (`pnpm-workspace.yaml` catalog note).

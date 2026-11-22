@@ -114,3 +114,34 @@ test("a request cut off by the time limit passes on", () => {
     (err) => !err.stop && /ran out of time/.test(err.message),
   );
 });
+
+// A proxy that opens the tunnel, then carries nothing either way and never closes it.
+const SILENT_PROXY =
+  'const s = require("node:http").createServer();' +
+  's.on("connect", (req, sock) => { sock.write("HTTP/1.1 200 Connection Established\\r\\n\\r\\n"); sock.resume(); });' +
+  "s.listen(0, () => console.log(s.address().port));";
+
+test("a tunnel that opens but carries nothing ends at the handshake limit and passes on, not at the 10-minute one", async () => {
+  const proxy = spawn(process.execPath, ["-e", SILENT_PROXY], { stdio: ["ignore", "pipe", "inherit"] });
+  const port = await new Promise((resolve) => proxy.stdout.once("data", (d) => resolve(String(d).trim())));
+  const before = process.env.HTTPS_PROXY;
+  // A 15-second cut-off stands in for the 11-minute one: without the handshake limit the child reaches it.
+  const short = (cmd, args, opts) => spawnSync(cmd, args, { ...opts, timeout: 15_000 });
+  try {
+    process.env.HTTPS_PROXY = `http://127.0.0.1:${port}`;
+    const start = Date.now();
+    const r = postApi("https://gemini.invalid/v1beta/models/x:generateContent", {}, "k", short, 500);
+    assert.equal(r.status, 0);
+    assert.match(r.text, /handshake did not finish/);
+    assert.ok(Date.now() - start < 10_000, "it ends near the handshake limit, long before the cut-off");
+    assert.throws(
+      () => parseApiReply(r),
+      (err) => !err.stop && /handshake did not finish/.test(err.message),
+      "the next model is asked, as after any time limit",
+    );
+  } finally {
+    if (before === undefined) delete process.env.HTTPS_PROXY;
+    else process.env.HTTPS_PROXY = before;
+    proxy.kill();
+  }
+});

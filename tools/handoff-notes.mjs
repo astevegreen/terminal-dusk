@@ -20,6 +20,7 @@ import {
 import os from "node:os";
 import path from "node:path";
 import { canonical, git, toPosix } from "./hooks/shared.mjs";
+import { withLock } from "./file-lock.mjs";
 import { renameRetry } from "./rename-retry.mjs";
 
 const MAX_LINES = 40;
@@ -230,27 +231,40 @@ export function sweep({ cwd = process.cwd(), now = new Date() } = {}) {
 // The session-ids mod's index of which session saved or claimed which note (<config dir>/session-ids/handoff.json),
 // so its Sessions pane lists the note even when the session that ran this doesn't load the mod. Only the command
 // line records, and only inside a Claude Code session (CLAUDE_CODE_SESSION_ID); a failure never changes the result.
-export function recordSession(kind, note, store, { env = process.env, now = new Date(), rename = renameSync } = {}) {
+// The read, add and rename happen under handoff.json.lock (tools/file-lock.mjs), so two sessions recording at once
+// both keep their entries. `rename` and `wait` are for tests.
+export function recordSession(
+  kind,
+  note,
+  store,
+  { env = process.env, now = new Date(), rename = renameSync, wait } = {},
+) {
   const session = env.CLAUDE_CODE_SESSION_ID;
   if (!session || !note || !store) return false;
   try {
     const home = env.USERPROFILE || env.HOME || os.homedir();
     const dir = path.join(env.CLAUDE_CONFIG_DIR || path.join(home, ".claude"), "session-ids");
     const file = path.join(dir, "handoff.json");
-    // No index yet starts one. One that won't parse (another writer mid-write) is left alone: replacing it
-    // would drop every session's notes from the pane, and the throw below lands in the quiet false.
-    let entries = [];
-    if (existsSync(file)) {
-      const parsed = JSON.parse(readFileSync(file, "utf8"));
-      if (!Array.isArray(parsed?.entries)) return false;
-      entries = parsed.entries;
-    }
-    entries.push({ session, note, store: toPosix(store), kind, at: now.getTime() });
     mkdirSync(dir, { recursive: true });
-    const tmp = `${file}.${process.pid}.tmp`;
-    writeFileSync(tmp, `${JSON.stringify({ entries: entries.slice(-500) }, null, 1)}\n`);
-    renameRetry(tmp, file, { rename });
-    return true;
+    return withLock(
+      `${file}.lock`,
+      () => {
+        // No index yet starts one. One that won't parse (a writer that died mid-write) is left alone: replacing it
+        // would drop every session's notes from the pane, and the throw below lands in the quiet false.
+        let entries = [];
+        if (existsSync(file)) {
+          const parsed = JSON.parse(readFileSync(file, "utf8"));
+          if (!Array.isArray(parsed?.entries)) return false;
+          entries = parsed.entries;
+        }
+        entries.push({ session, note, store: toPosix(store), kind, at: now.getTime() });
+        const tmp = `${file}.${process.pid}.tmp`;
+        writeFileSync(tmp, `${JSON.stringify({ entries: entries.slice(-500) }, null, 1)}\n`);
+        renameRetry(tmp, file, { rename });
+        return true;
+      },
+      wait ? { wait } : {},
+    );
   } catch {
     return false;
   }
