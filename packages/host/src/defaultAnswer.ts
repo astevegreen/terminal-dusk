@@ -25,7 +25,8 @@ export function defaultAnswer(ruleset: Ruleset, state: GameState, side: Side): A
  * - chooseAction: pass if offered; else realign (whose next decision then stops at once, leaving the points
  *   unspent); else place; else the first intervention target.
  * - placeInfluence: the cheapest country (1 point before 2).
- * - chooseCard: the card with the fewest printed points. playCardAs: that card, played for its points.
+ * - chooseCard: the card with the fewest printed points. playCardAs: that card, played for its points (when no play
+ *   for points is offered, the cheapest legal play).
  * - discardCards: the cards with the fewest printed points, from whichever hand the discard takes.
  * Null only when `legal` is empty.
  */
@@ -46,11 +47,11 @@ export function chooseDefault(kind: DecisionKind, legal: readonly AnswerValue[],
       return cheapest(legal, (a) => (a.kind === "placeInfluence" ? costs.costOf(a.country) : Infinity));
     case "chooseCard":
       return cheapest(legal, (a) => (a.kind === "chooseCard" ? costs.opsOf(a.card) : Infinity));
-    case "playCardAs":
-      return cheapest(
-        legal.filter((a) => a.kind === "playCardAs" && a.as === "points"),
-        (a) => (a.kind === "playCardAs" ? costs.opsOf(a.card) : Infinity),
-      );
+    case "playCardAs": {
+      const ops = (a: AnswerValue): number => (a.kind === "playCardAs" ? costs.opsOf(a.card) : Infinity);
+      const forPoints = legal.filter((a) => a.kind === "playCardAs" && a.as === "points");
+      return cheapest(forPoints.length > 0 ? forPoints : legal, ops);
+    }
     case "discardCards":
       return cheapest(legal, (a) => (a.kind === "discardCards" ? sum(a.cards.map(costs.opsOf)) : Infinity));
   }

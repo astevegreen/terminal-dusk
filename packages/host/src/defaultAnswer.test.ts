@@ -82,6 +82,14 @@ describe('chooseDefault: one answer per Decision kind (owner, 21 Nov 2026: "Take
     expect(chooseDefault("playCardAs", legal, costs)).toEqual({ kind: "playCardAs", card: "d", as: "points" });
   });
 
+  it("playCardAs with no play for points offered: the cheapest legal play, never null", () => {
+    const legal: AnswerValue[] = [
+      { kind: "playCardAs", card: "a", as: "event" },
+      { kind: "playCardAs", card: "d", as: "event" },
+    ];
+    expect(chooseDefault("playCardAs", legal, costs)).toEqual({ kind: "playCardAs", card: "d", as: "event" });
+  });
+
   it("discardCards: the cards with the fewest points (from either hand: the list is the engine's)", () => {
     const legal: AnswerValue[] = [
       ["a", "c"],
