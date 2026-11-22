@@ -9,7 +9,7 @@
     }
   },
   "games": 2,
-  "averageAnswers": 28,
+  "averageAnswers": 27.5,
   "noWinner": true,
   "sides": {
     "lio": {
@@ -312,8 +312,8 @@
       },
       "sae": {
         "picks": 0,
-        "event": 1,
-        "points": 0,
+        "event": 0,
+        "points": 1,
         "gamesPlayedIn": 1,
         "winShare": 0
       }
@@ -396,9 +396,9 @@
       "lio": {
         "picks": 0,
         "event": 0,
-        "points": 0,
-        "gamesPlayedIn": 0,
-        "winShare": null
+        "points": 1,
+        "gamesPlayedIn": 1,
+        "winShare": 0
       },
       "sae": {
         "picks": 0,
@@ -772,11 +772,11 @@
       "id": "e2-sae-002",
       "name": "Curveball",
       "lio": {
-        "picks": 1,
+        "picks": 0,
         "event": 0,
         "points": 0,
-        "gamesPlayedIn": 1,
-        "winShare": 0
+        "gamesPlayedIn": 0,
+        "winShare": null
       },
       "sae": {
         "picks": 1,
@@ -880,9 +880,9 @@
       "id": "e2-sae-010",
       "name": "Peace Mission 2005",
       "lio": {
-        "picks": 0,
+        "picks": 1,
         "event": 0,
-        "points": 2,
+        "points": 1,
         "gamesPlayedIn": 2,
         "winShare": 0
       },
@@ -1061,8 +1061,8 @@
       "name": "Kosovo Declares Independence",
       "lio": {
         "picks": 0,
-        "event": 1,
-        "points": 0,
+        "event": 0,
+        "points": 1,
         "gamesPlayedIn": 1,
         "winShare": 0
       },
@@ -1656,17 +1656,17 @@
       "era": "era-1",
       "leftOut": false,
       "cards": 29,
-      "averageCardsUsed": 13,
-      "shareUsed": 0.448,
-      "averageUses": 13
+      "averageCardsUsed": 13.5,
+      "shareUsed": 0.466,
+      "averageUses": 13.5
     },
     {
       "era": "era-2",
       "leftOut": false,
       "cards": 30,
-      "averageCardsUsed": 5,
-      "shareUsed": 0.167,
-      "averageUses": 5
+      "averageCardsUsed": 4.5,
+      "shareUsed": 0.15,
+      "averageUses": 4.5
     },
     {
       "era": "era-3",
