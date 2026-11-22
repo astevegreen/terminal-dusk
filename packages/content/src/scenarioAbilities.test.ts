@@ -34,7 +34,8 @@ describe("the sides' abilities in the scenarios", () => {
   });
 
   it("leaves abilities out of the setup when the scenario names none", () => {
-    const { abilities: _none, ...rest } = SIX_REGION_MAP_SCENARIO;
+    const rest = { ...SIX_REGION_MAP_SCENARIO };
+    delete rest.abilities;
     expect("abilities" in scenarioSetup(rest)).toBe(false);
   });
 
