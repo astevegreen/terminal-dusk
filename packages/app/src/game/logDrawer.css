@@ -27,6 +27,7 @@
 .game .game-drawer.game-details {
   align-self: start;
   max-height: 100%;
+  width: var(--game-details-w);
 }
 .game .game-drawer[data-pinned="true"] {
   width: var(--game-drawer-pinned-w);
@@ -102,4 +103,7 @@
   min-width: 0;
   padding: 4px;
   border: 1px solid var(--game-edge);
+}
+.game .game-details-body p {
+  margin: 0;
 }

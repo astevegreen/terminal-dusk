@@ -27,29 +27,27 @@ const withAbilities = (ready: boolean, used: number, lioUsed = 0): PublicState =
 const unescape = (s: string) => s.replaceAll("&#x27;", "'");
 
 describe("the special abilities panel", () => {
-  it("names both sides' abilities and their numbers", () => {
+  it("names both sides' abilities and their numbers, one short line each", () => {
     const out = unescape(renderToString(<Abilities pub={withAbilities(false, 0)} />));
     expect(out).toContain('aria-label="Special abilities"');
-    expect(out).toContain("LIO: Resilient institutions: the first 1 it draws from its own Contingency deck each turn");
-    expect(out).toContain("(not the crisis draw). Not used this turn.");
-    expect(out).toContain("SAE: Unified command: after it plays its own card for the event");
-    expect(out).toContain("counts 1 more. Not used this turn.");
+    expect(out).toContain("LIO Resilient institutions: redraw a 1, used 0 of 1");
+    expect(out).toContain("SAE Unified command: +1 after an event, not used");
   });
 
   it("shows whether each was used, or is ready, this turn", () => {
     const out = renderToString(<Abilities pub={withAbilities(true, 0, 1)} />);
-    expect(out).toContain("Used once this turn.");
-    expect(out).toContain("Ready now.");
-    expect(renderToString(<Abilities pub={withAbilities(false, 1)} />)).toContain(
-      "counts 1 more. Used once this turn.",
-    );
+    expect(out).toContain("redraw a 1, used 1 of 1");
+    expect(out).toContain("after an event, ready now");
+    expect(renderToString(<Abilities pub={withAbilities(false, 1)} />)).toContain("after an event, used this turn");
   });
 
   it("shows the scenario's numbers, not fixed ones", () => {
-    expect(abilityText({ id: "resilientInstitutions", perTurn: 2, used: 2 })).toContain(
-      "up to 2 times a turn, a 1 it draws from its own Contingency deck is set aside and drawn again (not the crisis draw). Used 2 times this turn.",
+    expect(abilityText({ id: "resilientInstitutions", perTurn: 2, used: 2 })).toBe(
+      "Resilient institutions: redraw a 1, used 2 of 2",
     );
-    expect(abilityText({ id: "unifiedCommand", bonus: 3, ready: false, used: 0 })).toContain("counts 3 more.");
+    expect(abilityText({ id: "unifiedCommand", bonus: 3, ready: false, used: 0 })).toBe(
+      "Unified command: +3 after an event, not used",
+    );
   });
 
   it("is in the game screen's Details panel, for a player and a spectator alike", () => {
@@ -70,7 +68,7 @@ describe("the special abilities panel", () => {
       );
       const panel = /<div[^>]*class="game-drawer game-details"[^]*?(?=<section aria-label="Map")/.exec(out)?.[0] ?? "";
       expect(panel).toContain('data-testid="abilities"');
-      expect(panel).toContain("Ready now.");
+      expect(panel).toContain("ready now");
     }
   });
 

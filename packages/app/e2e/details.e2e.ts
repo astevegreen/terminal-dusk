@@ -34,6 +34,14 @@ async function expectAllShown(page: Page): Promise<void> {
   await expect(page.getByTestId("table")).toContainText("In play:");
   await expect(page.getByTestId("table")).toContainText("Discard pile:");
   for (const deck of ["LIO:", "SAE:", "World:"]) await expect(page.getByTestId("contingency")).toContainText(deck);
+  // Each side's special ability (#602), in full and inside the panel too.
+  const abilities = page.getByTestId("abilities");
+  await expect(abilities).toBeInViewport({ ratio: 1 });
+  const a = await box(abilities);
+  expect(a.top, "abilities").toBeGreaterThanOrEqual(inside.top - 0.5);
+  expect(a.bottom, "abilities").toBeLessThanOrEqual(inside.bottom + 0.5);
+  await expect(abilities).toContainText("Resilient institutions");
+  await expect(abilities).toContainText("Unified command");
 }
 
 test("one tap on Details shows everything the old Details tab showed, at every size, with no page scroll", async ({
