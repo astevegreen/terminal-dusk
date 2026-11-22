@@ -24,6 +24,7 @@ import type {
   Setup,
   Viewer,
 } from "@terminal-dusk/engine";
+import { checkAbilities } from "./abilityChecks.ts";
 import { deepFreeze } from "./deepFreeze.ts";
 import { checkEscalation } from "./escalationChecks.ts";
 import { checkModifiers, checkTriggers } from "./expiryChecks.ts";
@@ -65,7 +66,7 @@ export const NEW_GAME: History = { before: null, allEvents: [], knowledge: null 
 /**
  * All the checks for one step: the state is plain JSON with integers only (hard rule 5, jsonChecks.ts), invariants 1, 3, 4 and 5, the Contingency decks, the lasting markers and `has`
  * branches (markerChecks.ts), knowledge and shown hands (knowledgeChecks.ts), and the map and influence
- * (influenceChecks.ts). `events` are the step's own.
+ * (influenceChecks.ts), and the special abilities (abilityChecks.ts). `events` are the step's own.
  */
 export function checkStep(
   ruleset: Ruleset,
@@ -89,6 +90,7 @@ export function checkStep(
   checkKnowledge(state, events, history.knowledge);
   checkInfluence(setup, state);
   checkEscalation(setup, state, events, history.allEvents);
+  checkAbilities(setup, state, events);
 }
 
 /** Invariant 1: while the game is active, some side has a pending decision with at least one legal answer. */
