@@ -8,12 +8,13 @@ import type { CommitResult, LoadedMatch, MatchStore, MatchWrite } from "./store.
 
 /**
  * One due match's outcome. `extended`: a grace extension was saved. `timedOut`: a loss on time was saved.
- * A draw because both sides missed a simultaneous pick (O7d) is a `timedOut` too.
+ * A draw because both sides missed a simultaneous pick (O7d) is a `timedOut` too. `answered`: under the
+ * "defaultAnswer" rule the host's default answers for the late side were saved, and the game goes on (#605).
  * `conflict`: the stored seq moved on first, so nothing was written. `skipped`: nothing was written, with
  * the host's refusal code (for example `notDue`), or `unknownRuleset`, `notFound` or `storageFailed`.
  */
 export type SweepResult = { matchId: string } & (
-  { status: "extended" | "timedOut" | "conflict" } | { status: "skipped"; code: string }
+  { status: "extended" | "timedOut" | "answered" | "conflict" } | { status: "skipped"; code: string }
 );
 
 /**
@@ -49,14 +50,15 @@ async function sweepOne(
   const result = hostDeadline(ruleset, record, secret, now);
   if (!result.ok) return skip(result.error.code);
   const write: MatchWrite = { record: result.value.record, secret: result.value.secret, frames: result.value.frames };
-  // An extension keeps the seq (the game has not moved on); a loss on time is an accepted step.
+  // An extension keeps the seq (the game has not moved on); a loss on time or a stand-in is an accepted step.
   const extended = write.record.seq === record.seq;
   const saved = await attempt<CommitResult>(() =>
     extended ? store.saveClock(matchId, record.seq, write.record) : store.commit(matchId, record.seq, write),
   );
   if (!saved.ok) return skip("storageFailed");
   if (saved.value === "conflict") return { matchId, status: "conflict" };
-  return { matchId, status: extended ? "extended" : "timedOut" };
+  if (extended) return { matchId, status: "extended" };
+  return { matchId, status: write.frames.lio.standIn === undefined ? "timedOut" : "answered" };
 }
 
 /** The ruleset for `id`, or null when the server does not have it (or the lookup throws). */

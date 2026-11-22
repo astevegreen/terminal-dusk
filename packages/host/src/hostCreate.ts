@@ -55,7 +55,7 @@ function configError(config: MatchConfig): HostError | null {
   }
   if (config.players.lio === config.players.sae) return invalidConfig("One player cannot play both sides.");
   if (config.deadline !== undefined && !validDeadline(config.deadline)) {
-    return invalidConfig("A deadline needs the rule lossOnTime or graceThenLoss, and 1, 3 or 7 days.");
+    return invalidConfig("A deadline needs the rule lossOnTime, graceThenLoss or defaultAnswer, and 1, 3 or 7 days.");
   }
   return null;
 }
