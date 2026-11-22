@@ -29,9 +29,12 @@ export function standIn(
   let state = secret.state;
   const events: GameEvent[] = [];
   const log: Answer[] = copyJson(secret.log);
-  for (let made = 0; state.public.status.kind === "active" && state.public.turn === turn; made++) {
-    if (pendingFor(state, side) === null) break;
-    if (made >= STAND_IN_LIMIT) return refuse(`The stand-in made ${STAND_IN_LIMIT} answers without finishing.`);
+  const going = (): boolean =>
+    state.public.status.kind === "active" && state.public.turn === turn && pendingFor(state, side) !== null;
+  let made = 0;
+  while (going()) {
+    made += 1;
+    if (made > STAND_IN_LIMIT) return refuse(`The stand-in made ${STAND_IN_LIMIT} answers without finishing.`);
     const decision = pendingFor(state, side);
     const value = defaultAnswer(ruleset, state, side);
     if (decision === null || value === null) return refuse("The stand-in found no legal answer.");

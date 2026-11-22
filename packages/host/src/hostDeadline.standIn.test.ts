@@ -51,7 +51,7 @@ describe("defaultAnswer rule: one side late", () => {
     expect(next.record.status.kind).toBe("active");
     expect(next.record.seq).toBeGreaterThan(host.record.seq);
     const added = next.secret.log.slice(host.secret.log.length);
-    expect(added.length).toBe(next.record.seq - host.record.seq);
+    expect(added).toHaveLength(next.record.seq - host.record.seq);
     expect(added.every((a) => "decisionId" in a && a.side === "lio")).toBe(true);
     const first = added[0] as { decisionId: string; value: unknown };
     expect(first.decisionId).toBe(pendingFor(host.secret.state, "lio")!.id);
