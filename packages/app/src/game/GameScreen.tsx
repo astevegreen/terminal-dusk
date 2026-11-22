@@ -20,6 +20,7 @@ import "./gameBars.css";
 import "./handStrip.css";
 import "./decisionBanner.css";
 import { LiftedCard, StripCounts, chipsOf } from "./handCards.tsx";
+import { Abilities } from "./abilities.tsx";
 import { HandStrip } from "./handStrip.tsx";
 import { Contingency, MapArea, Opponent, Region, StatusBar, Table } from "./regions.tsx";
 import type { Label } from "./regions.tsx";
@@ -137,8 +138,8 @@ export function GameScreen({
       {/* Shown only on a screen taller than it is wide (gameScreen.css): the same layout, held the wrong way. */}
       <p className="game-rotate-hint">Turn your phone sideways to play.</p>
       {/* The top bar, the Details button and the ticker at its right end, and the panels they open (topBar.tsx):
-          the Details panel holds the rival's hand size, the cards in play, the discard pile and the Contingency
-          decks, as the sheet's Details tab did. */}
+          the Details panel holds the rival's hand size, the cards in play, the discard pile, the Contingency
+          decks and the sides' special abilities, as the sheet's Details tab did. */}
       <TopBar
         log={log}
         waitingId={frame.decision?.id ?? null}
@@ -149,6 +150,7 @@ export function GameScreen({
             <Opponent frame={frame} />
             <Table pub={frame.view.public} label={label} />
             <Contingency pub={frame.view.public} />
+            <Abilities pub={frame.view.public} />
           </>
         }
       >

@@ -75,6 +75,8 @@ body:has(.game-page) {
   --game-ticker-bg: rgb(0 0 0 / 0.06);
   --game-ticker-fg: var(--game-fg);
   --game-drawer-w: max(50%, min(100%, 300px));
+  /* The Details panel, as wide as the log drawer except on a short screen (below). */
+  --game-details-w: var(--game-drawer-w);
   /* The log pinned open at the side of a large screen (L10, #490; logDrawer.css): about a quarter of the width, so
      the map, which fits itself beside it, keeps its middle in sight. */
   --game-drawer-pinned-w: clamp(280px, 26%, 480px);
@@ -346,5 +348,12 @@ body:has(.game-page) {
   .game {
     --game-bar-line: 1.3em;
     font-size: clamp(16px, calc(8px + 0.625vw), 20px);
+  }
+}
+/* On a short screen the Details panel is a little wider, so each Contingency deck and each special ability takes
+   one line and the panel holds everything with nothing to scroll (#602). */
+@media (max-height: 500px) {
+  .game {
+    --game-details-w: max(58%, min(100%, 300px));
   }
 }

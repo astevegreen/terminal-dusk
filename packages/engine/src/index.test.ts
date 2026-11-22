@@ -18,6 +18,7 @@ describe("@terminal-dusk/engine entry point", () => {
       "legalAnswers",
       "pendingFor",
       "placementCost",
+      "pointsBonus",
       "reconstruct",
       "regionStanding",
       "seedHash",

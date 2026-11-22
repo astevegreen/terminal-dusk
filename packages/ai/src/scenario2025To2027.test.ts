@@ -42,11 +42,15 @@ describe("Easy with the real cards in the 2025-2027 game", () => {
     expect(map?.regions).toHaveLength(6);
   });
 
-  it(`plays ${GAMES} seeded games on both sides with only legal answers, and every game ends on turn 11`, () => {
-    for (const final of played().finals) {
-      expect(final.public.status.kind).toBe("over");
-      expect(final.public.turn).toBe(11);
+  it(`plays ${GAMES} seeded games on both sides with only legal answers; each runs to turn 11 unless a side reaches the track end`, () => {
+    const finals = played().finals;
+    for (const final of finals) {
+      const { status, turn } = final.public;
+      expect(status.kind).toBe("over");
+      expect(turn).toBeLessThanOrEqual(11);
+      if (status.kind === "over" && status.reason !== "trackEnd") expect(turn).toBe(11);
     }
+    expect(finals.some((final) => final.public.turn === 11)).toBe(true);
   }, 120_000);
 
   it("plays at least one future card across the games", () => {

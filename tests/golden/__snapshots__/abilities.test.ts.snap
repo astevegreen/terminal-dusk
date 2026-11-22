@@ -1,0 +1,415 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden replay: the special abilities > redraws and pays the bonus exactly as recorded 1`] = `
+{
+  "status": {
+    "kind": "over",
+    "reason": "turnLimitReached",
+    "winner": null,
+  },
+  "steps": [
+    {
+      "abilities": {
+        "lio": {
+          "id": "resilientInstitutions",
+          "perTurn": 1,
+          "used": 0,
+        },
+        "sae": {
+          "bonus": 1,
+          "id": "unifiedCommand",
+          "ready": false,
+          "used": 0,
+        },
+      },
+      "events": [],
+      "turn": 1,
+    },
+    {
+      "abilities": {
+        "lio": {
+          "id": "resilientInstitutions",
+          "perTurn": 1,
+          "used": 0,
+        },
+        "sae": {
+          "bonus": 1,
+          "id": "unifiedCommand",
+          "ready": false,
+          "used": 0,
+        },
+      },
+      "events": [],
+      "turn": 1,
+    },
+    {
+      "abilities": {
+        "lio": {
+          "id": "resilientInstitutions",
+          "perTurn": 1,
+          "used": 1,
+        },
+        "sae": {
+          "bonus": 1,
+          "id": "unifiedCommand",
+          "ready": false,
+          "used": 0,
+        },
+      },
+      "events": [
+        {
+          "deck": "lio",
+          "kind": "contingencyDrawn",
+          "value": 1,
+          "visibility": "public",
+        },
+        {
+          "deck": "lio",
+          "kind": "abilityRedraw",
+          "setAside": 1,
+          "side": "lio",
+          "visibility": "public",
+        },
+        {
+          "deck": "lio",
+          "kind": "contingencyDrawn",
+          "value": 1,
+          "visibility": "public",
+        },
+      ],
+      "turn": 1,
+    },
+    {
+      "abilities": {
+        "lio": {
+          "id": "resilientInstitutions",
+          "perTurn": 1,
+          "used": 1,
+        },
+        "sae": {
+          "bonus": 1,
+          "id": "unifiedCommand",
+          "ready": false,
+          "used": 0,
+        },
+      },
+      "events": [
+        {
+          "deck": "lio",
+          "kind": "contingencyDrawn",
+          "value": 1,
+          "visibility": "public",
+        },
+      ],
+      "turn": 1,
+    },
+    {
+      "abilities": {
+        "lio": {
+          "id": "resilientInstitutions",
+          "perTurn": 1,
+          "used": 1,
+        },
+        "sae": {
+          "bonus": 1,
+          "id": "unifiedCommand",
+          "ready": true,
+          "used": 0,
+        },
+      },
+      "events": [
+        {
+          "kind": "abilityReady",
+          "side": "sae",
+          "visibility": "public",
+        },
+      ],
+      "turn": 1,
+    },
+    {
+      "abilities": {
+        "lio": {
+          "id": "resilientInstitutions",
+          "perTurn": 1,
+          "used": 1,
+        },
+        "sae": {
+          "bonus": 1,
+          "id": "unifiedCommand",
+          "ready": true,
+          "used": 0,
+        },
+      },
+      "events": [
+        {
+          "deck": "lio",
+          "kind": "contingencyDrawn",
+          "value": 1,
+          "visibility": "public",
+        },
+        {
+          "deck": "lio",
+          "kind": "contingencyDeckReshuffled",
+          "visibility": "public",
+        },
+      ],
+      "turn": 1,
+    },
+    {
+      "abilities": {
+        "lio": {
+          "id": "resilientInstitutions",
+          "perTurn": 1,
+          "used": 0,
+        },
+        "sae": {
+          "bonus": 1,
+          "id": "unifiedCommand",
+          "ready": false,
+          "used": 0,
+        },
+      },
+      "events": [
+        {
+          "amount": 1,
+          "kind": "abilityBonus",
+          "side": "sae",
+          "visibility": "public",
+        },
+        {
+          "amount": 3,
+          "kind": "pointsSpent",
+          "side": "sae",
+          "visibility": "public",
+        },
+        {
+          "kind": "cardDrawnHidden",
+          "side": "lio",
+          "visibility": "public",
+        },
+        {
+          "kind": "cardDrawnHidden",
+          "side": "lio",
+          "visibility": "public",
+        },
+        {
+          "kind": "cardDrawnHidden",
+          "side": "lio",
+          "visibility": "public",
+        },
+        {
+          "kind": "cardDrawnHidden",
+          "side": "sae",
+          "visibility": "public",
+        },
+        {
+          "kind": "cardDrawnHidden",
+          "side": "sae",
+          "visibility": "public",
+        },
+        {
+          "kind": "cardDrawnHidden",
+          "side": "sae",
+          "visibility": "public",
+        },
+      ],
+      "turn": 2,
+    },
+    {
+      "abilities": {
+        "lio": {
+          "id": "resilientInstitutions",
+          "perTurn": 1,
+          "used": 0,
+        },
+        "sae": {
+          "bonus": 1,
+          "id": "unifiedCommand",
+          "ready": false,
+          "used": 0,
+        },
+      },
+      "events": [],
+      "turn": 2,
+    },
+    {
+      "abilities": {
+        "lio": {
+          "id": "resilientInstitutions",
+          "perTurn": 1,
+          "used": 0,
+        },
+        "sae": {
+          "bonus": 1,
+          "id": "unifiedCommand",
+          "ready": false,
+          "used": 0,
+        },
+      },
+      "events": [
+        {
+          "deck": "world",
+          "kind": "contingencyDrawn",
+          "value": 4,
+          "visibility": "public",
+        },
+      ],
+      "turn": 2,
+    },
+    {
+      "abilities": {
+        "lio": {
+          "id": "resilientInstitutions",
+          "perTurn": 1,
+          "used": 1,
+        },
+        "sae": {
+          "bonus": 1,
+          "id": "unifiedCommand",
+          "ready": false,
+          "used": 0,
+        },
+      },
+      "events": [
+        {
+          "deck": "lio",
+          "kind": "contingencyDrawn",
+          "value": 1,
+          "visibility": "public",
+        },
+        {
+          "deck": "lio",
+          "kind": "abilityRedraw",
+          "setAside": 1,
+          "side": "lio",
+          "visibility": "public",
+        },
+        {
+          "deck": "lio",
+          "kind": "contingencyDrawn",
+          "value": 1,
+          "visibility": "public",
+        },
+      ],
+      "turn": 2,
+    },
+    {
+      "abilities": {
+        "lio": {
+          "id": "resilientInstitutions",
+          "perTurn": 1,
+          "used": 1,
+        },
+        "sae": {
+          "bonus": 1,
+          "id": "unifiedCommand",
+          "ready": true,
+          "used": 0,
+        },
+      },
+      "events": [
+        {
+          "kind": "abilityReady",
+          "side": "sae",
+          "visibility": "public",
+        },
+      ],
+      "turn": 2,
+    },
+    {
+      "abilities": {
+        "lio": {
+          "id": "resilientInstitutions",
+          "perTurn": 1,
+          "used": 1,
+        },
+        "sae": {
+          "bonus": 1,
+          "id": "unifiedCommand",
+          "ready": true,
+          "used": 0,
+        },
+      },
+      "events": [],
+      "turn": 2,
+    },
+    {
+      "abilities": {
+        "lio": {
+          "id": "resilientInstitutions",
+          "perTurn": 1,
+          "used": 1,
+        },
+        "sae": {
+          "bonus": 1,
+          "id": "unifiedCommand",
+          "ready": true,
+          "used": 0,
+        },
+      },
+      "events": [
+        {
+          "amount": 2,
+          "kind": "pointsSpent",
+          "side": "lio",
+          "visibility": "public",
+        },
+      ],
+      "turn": 2,
+    },
+    {
+      "abilities": {
+        "lio": {
+          "id": "resilientInstitutions",
+          "perTurn": 1,
+          "used": 1,
+        },
+        "sae": {
+          "bonus": 1,
+          "id": "unifiedCommand",
+          "ready": true,
+          "used": 0,
+        },
+      },
+      "events": [],
+      "turn": 2,
+    },
+    {
+      "abilities": {
+        "lio": {
+          "id": "resilientInstitutions",
+          "perTurn": 1,
+          "used": 1,
+        },
+        "sae": {
+          "bonus": 1,
+          "id": "unifiedCommand",
+          "ready": false,
+          "used": 1,
+        },
+      },
+      "events": [
+        {
+          "deck": "world",
+          "kind": "contingencyDrawn",
+          "value": 6,
+          "visibility": "public",
+        },
+        {
+          "amount": 1,
+          "kind": "abilityBonus",
+          "side": "sae",
+          "visibility": "public",
+        },
+        {
+          "amount": 3,
+          "kind": "pointsSpent",
+          "side": "sae",
+          "visibility": "public",
+        },
+      ],
+      "turn": 2,
+    },
+  ],
+}
+`;

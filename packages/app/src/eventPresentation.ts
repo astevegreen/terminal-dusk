@@ -82,6 +82,18 @@ export const eventPresentation: EventPresentation = {
     log: (event, names) => `${names.era(event.era)} started: ${event.cardsAdded} cards shuffled into the draw pile.`,
   },
   contingencyDrawn: { log: (event) => `A contingency was drawn from ${deckText(event.deck)}: ${event.value}.` },
+  abilityRedraw: {
+    log: (event) =>
+      `${SIDE_NAME[event.side]}'s Resilient institutions set the ${event.setAside} aside and drew again from ${deckText(event.deck)}.`,
+  },
+  abilityReady: {
+    log: (event) =>
+      `${SIDE_NAME[event.side]}'s Unified command is ready: its next card played for points this turn counts more.`,
+  },
+  abilityBonus: {
+    log: (event) =>
+      `${SIDE_NAME[event.side]}'s Unified command adds ${event.amount} point${event.amount === 1 ? "" : "s"}.`,
+  },
   contingencyDeckReshuffled: { log: (event) => `${ownedDeckText(event.deck)} was shuffled back together.` },
   modifierStarted: {
     log: (event, names) => `${names.card(event.source)}: ${modifierText(event.mod)}, until the end of the turn.`,

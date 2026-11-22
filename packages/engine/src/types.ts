@@ -1,5 +1,8 @@
 // Core engine types: sides, results and the three-compartment game state.
 import type { ContingencyDeck, ContingencyDeckReshuffled, ContingencyDrawn, DeckId } from "./contingencyTypes.ts";
+import type { AbilityEvent, AbilityState } from "./abilityTypes.ts";
+export type { AbilityBonus, AbilityEvent, AbilityId, AbilityReady, AbilityRedraw } from "./abilityTypes.ts";
+export type { AbilityState, SideAbility } from "./abilityTypes.ts";
 import type { RngState } from "./rng.ts";
 export { DECKS } from "./contingencyTypes.ts";
 export type { ContingencyDeck, ContingencyDeckReshuffled, ContingencyDrawn, DeckId } from "./contingencyTypes.ts";
@@ -174,7 +177,8 @@ export type PublicEvent =
   | CardsDiscarded
   | EscalationEvent
   | ScoreEvent
-  | TechRaceAttempted;
+  | TechRaceAttempted
+  | AbilityEvent;
 /**
  * What happened, for animation, the game log, sounds and the tutorial. An event visible to one side
  * may carry a `publicForm`: the public event everyone else gets instead (see eventsFor).
@@ -226,7 +230,8 @@ export type Condition =
  * picked by `chosenBy`: the hand's "owner" or the card's "player", after seeing the hand (discardChoice.ts).
  * `escalate` moves Escalation by the non-zero whole `by`: up, caused by the card's player, or down (escalateStep.ts).
  * A `spendPoints` with `play` is a card played for its points (turn.ts), which may make a tech race attempt
- * (techRace.ts); only the engine sets it, never card data (cardChecks.ts).
+ * (techRace.ts); only the engine sets it, never card data (cardChecks.ts). `cardPoints`, also engine-only, marks
+ * every play for points, a rival card's event first or not: the one a ready Unified command adds to (abilities.ts).
  */
 export type Step =
   | { op: "choose"; who: Side | "both"; decision: { kind: "yesNo" }; bind: VarName }
@@ -234,7 +239,7 @@ export type Step =
   | { op: "if"; cond: Condition; then: Step[]; else?: Step[] }
   | { op: "forEach"; over: string[]; bind: VarName; do: Step[] }
   | { op: "marker"; label: string; var?: VarName; lasting?: true }
-  | { op: "spendPoints"; side: Side; amount: number; play?: true }
+  | { op: "spendPoints"; side: Side; amount: number; play?: true; cardPoints?: true }
   | { op: "drawContingency"; side: Side | "player"; bind?: VarName }
   | { op: "addToNumber"; var: VarName; amount: number }
   | { op: "modifier"; mod: ModifierSpec; duration: Duration }
@@ -313,6 +318,8 @@ export type PublicState = {
   era?: EraId;
   /** The tech race (techRace.ts); present exactly when `map.techRace` is. */
   techRace?: TechRaceState;
+  /** Each side's special ability and its use this turn (abilities.ts); present exactly when the setup names them. */
+  abilities?: Record<Side, AbilityState>;
 };
 /** A side's answer to its decision in a simultaneous group, kept secret until the other side's is in. */
 export type UnrevealedPick = { group: string; decisionId: string; value: AnswerValue };

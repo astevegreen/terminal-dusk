@@ -23,7 +23,8 @@ const ACTIONS = ["place", "intervene", "realign"];
 
 test("with no --scenario, or --scenario first-deck, the report is the one the tool printed before this change", () => {
   // Both fixtures were recorded from main before --scenario existed, and recorded again when the first deck took
-  // the base game's numbers (#575: 10 turns, 2 plays each per turn, Era 2 on turn 4, Era 3 on turn 6, no future era).
+  // the base game's numbers (#575: 10 turns, 2 plays each per turn, Era 2 on turn 4, Era 3 on turn 6, no future era),
+  // and again when the base game took the sides' special abilities (#602).
   const before = fixture("first-deck-3-games.txt");
   for (const extra of [[], ["--scenario", "first-deck"]]) {
     const r = balance("--games", "3", "--seed", "fixture", ...extra);

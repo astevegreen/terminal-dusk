@@ -1,5 +1,6 @@
 // Plays one game for the fuzz suite, random or recorded, and checks every invariant along the way.
 // A failing game throws a report with its seed and answers, ready to keep in fixedGames.ts.
+import { checkAbilityStep } from "./abilityChecks.ts";
 import { easyAnswer, EASY_WEIGHTS } from "@terminal-dusk/ai";
 import { apply, createGame, legalAnswers, pendingFor, seedHash, SIDES, viewFor } from "@terminal-dusk/engine";
 import type {
@@ -216,7 +217,8 @@ export function easyChooser(rules: Ruleset, side: Side, rng: Rng): Chooser {
  * must take exactly one branch, the one matching that side (playedBy.ts). Each step's triggers fire only as their
  * filters and once allow, from the state before it, its events and the state after it (filterChecks.ts). Each
  * step's removed pile and turn-start refill are checked against the state before it (removedChecks.ts), and its
- * passed plays against its playPassed events (passedPlays.ts).
+ * passed plays against its playPassed events (passedPlays.ts). Each side's ability use follows the step's ability events
+ * (abilityChecks.ts).
  */
 export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed, choose: Chooser): Played {
   const record: GameRecord = { setup: deepFreeze(setup), seed, answers: [] };
@@ -240,6 +242,7 @@ export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed
       allEvents.push(...events);
       checkStep(rules, setup, state, events, seed, { before, allEvents, knowledge });
       checkTriggerFilters(rules, prior, events, state, answer);
+      checkAbilityStep(prior, events, state);
       checkRemoved(rules, prior, answer, state);
       checkRefilled(setup, prior, state);
       checkPassedPlays(prior, answer, events, state);

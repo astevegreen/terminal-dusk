@@ -1,4 +1,5 @@
 // Public entry point of the rules engine. Only the exports listed in .claude/rules/engine.md belong here.
+export { pointsBonus } from "./abilities.ts";
 export { apply } from "./apply.ts";
 export { isBattleground } from "./battlegrounds.ts";
 export { closedRegions, isRegionClosed } from "./closedRegions.ts";
@@ -13,6 +14,12 @@ export { DECKS, SIDES } from "./types.ts";
 export { verifyGame } from "./verifyGame.ts";
 export { hiddenPart, reconstruct, viewFor } from "./views.ts";
 export type {
+  AbilityBonus,
+  AbilityEvent,
+  AbilityId,
+  AbilityReady,
+  AbilityRedraw,
+  AbilityState,
   ActionAnswer,
   ActionOptions,
   ActiveModifier,
@@ -97,6 +104,7 @@ export type {
   Setup,
   SetupMap,
   Side,
+  SideAbility,
   Step,
   TechRaceAttempted,
   TechRaceState,

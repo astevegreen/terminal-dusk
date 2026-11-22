@@ -21,6 +21,7 @@ medium`, in 50-game batches). Recheck both tiers when the cards' rewording or th
   21 Nov rules; the scenario is `packages/content/scenarios/base-game.json` since #575. Fix it at the next Notion
   promotion. [21 Nov 2026, #575]
 - The 2025-2027 host config's refusal of a map whose `future` list is not Era 3's (`packages/host/src/firstDeck.ts`, `scenario2025To2027Config`) has no test that reaches it, since the config always uses the six-region map: let it take the map as a parameter and test a bad one. The balance tool can also get round it: `--numbers` can change only the `era-3` or only the `future` list, and `--era future@N` is accepted for `2025-2027` (`tools/balance/config.mjs`, `numbers.mjs`); re-run the check after those changes. [22 Nov 2026, #604 review]
+- The special abilities (#602, `packages/engine/src/abilities.ts`) (tests/fuzz/abilityChecks.ts checks their state at every fuzz step; tests/golden/abilities.test.ts replays them). No test drives a Resilient institutions redraw through each real draw caller (intervention, realignment, including LIO's defending draw in SAE's realignment, tech race, card events). [22 Nov 2026, reviewer and agy on #610]
 
 ## App, host and server
 
@@ -35,6 +36,7 @@ medium`, in 50-game batches). Recheck both tiers when the cards' rewording or th
 
 ## Tests and tooling
 
+- `packages/ai/src/medium.ts:37` has a nested ternary (`status.winner === null ? 0 : ...`) that SonarCloud flags; pre-existing, untouched by #610. [22 Nov 2026, Sonar on #610]
 - `packages/content/src/rulesSpends.test.ts` (#606) ties spends and Ops swings to their side and branch, but the other
   numbers `rulesNumbers.test.ts` reads (swing floors, Contingency thresholds, Escalation moves, cards discarded) are
   still compared as distinct sets only. e3-sae-003 is checked as a set, so its branches aren't tied (pairing the data's

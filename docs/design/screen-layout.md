@@ -66,11 +66,13 @@ And:
 | Hand strip      | bottom edge                           | at most 56 px tall    | your cards as chips; the rival's hand size; deck and discard counts                             |
 | Lifted card     | above the strip, middle of the screen | at most a third       | the card's full text and its play buttons                                                       |
 | Log drawer      | slides in from the right              | about half the width  | the full log, newest first                                                                      |
-| Details panel   | opened from the top bar               | about half the width  | the cards in play, the discard pile, the three Contingency decks                                |
+| Details panel   | opened from the top bar               | about half the width  | the cards in play, the discard pile, the three Contingency decks, each side's special ability   |
 | Credit          | bottom-right corner, small            |                       | "Blue Marble imagery: NASA Earth Observatory"                                                   |
 
 The map fits itself into the space between the top bar and the hand strip, so "Whole map" shows every country; the
-picture runs on under the see-through bars to the screen's edges.
+picture runs on under the see-through bars to the screen's edges. On a short screen (500 px tall or less) the
+Details panel is a little wider, 58% of the width, so each Contingency deck and each special ability takes one line
+and nothing scrolls inside it (#602).
 
 ### A phone, your turn, nothing open
 

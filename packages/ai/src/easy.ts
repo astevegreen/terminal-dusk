@@ -1,6 +1,6 @@
 // The Easy tier (docs/architecture.md, Decision 8): score every legal answer with a small evaluation
 // plus random noise, and take the best. It sees only its own view and guesses the rest.
-import { legalAnswers, reconstruct } from "@terminal-dusk/engine";
+import { legalAnswers, pointsBonus, reconstruct } from "@terminal-dusk/engine";
 import type { AnswerValue, CardDef, PlayerView, Ruleset, Side } from "@terminal-dusk/engine";
 import { guessHidden } from "./guess.ts";
 import type { Weights } from "./types.ts";
@@ -12,9 +12,21 @@ export function namedCard(ruleset: Ruleset, value: AnswerValue): CardDef | null 
 }
 
 /**
- * The best-scoring legal answer for `side`, or null when nothing is pending for it. A score is
- * `ops * printed ops + rivalCard * (1 if the card is the rival's) + noise * random()`; ties go to the
- * earlier answer. Answers that name no card depend on the noise alone.
+ * The points an answer's card is worth to `side`: its printed ops, plus what the side's ability adds now when the
+ * answer plays it for its points (Unified command, #602). A rival's card is always played for its points.
+ */
+export function answerOps(ruleset: Ruleset, view: PlayerView, side: Side, answer: AnswerValue): number {
+  const card = namedCard(ruleset, answer);
+  if (card === null) return 0;
+  const rival = card.affiliation !== "neutral" && card.affiliation !== side;
+  const forPoints = answer.kind === "playCardAs" && (answer.as === "points" || rival);
+  return card.ops + (forPoints ? pointsBonus(view.public, side) : 0);
+}
+
+/**
+ * The best-scoring legal answer for `side`, or null when nothing is pending for it. A score is `ops * the card's
+ * points (answerOps) + rivalCard * (1 if the card is the rival's) + noise * random()`; ties go to the earlier answer.
+ * Answers that name no card depend on the noise alone.
  */
 export function easyAnswer(
   ruleset: Ruleset,
@@ -29,7 +41,7 @@ export function easyAnswer(
   let bestScore = -Infinity;
   for (const answer of legalAnswers(ruleset, state, side)) {
     const card = namedCard(ruleset, answer);
-    const ops = card?.ops ?? 0;
+    const ops = answerOps(ruleset, view, side, answer);
     const rival = card !== null && card.affiliation !== "neutral" && card.affiliation !== side ? 1 : 0;
     const score = weights.ops * ops + weights.rivalCard * rival + weights.noise * random();
     if (score > bestScore) {

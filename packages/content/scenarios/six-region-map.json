@@ -4,6 +4,10 @@
   "turns": 10,
   "playsPerTurn": 2,
   "handSize": 8,
+  "abilities": {
+    "lio": { "id": "resilientInstitutions", "perTurn": 1 },
+    "sae": { "id": "unifiedCommand", "bonus": 1 }
+  },
   "firstEra": "era-1",
   "map": {
     "regions": [

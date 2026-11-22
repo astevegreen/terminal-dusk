@@ -29,9 +29,13 @@ describe("scenario schema types", () => {
     expectTypeOf<NonNullable<Scenario["map"]>>().toExtend<NonNullable<Setup["map"]>>();
   });
 
+  it("gives a parsed scenario's abilities the engine's type", () => {
+    expectTypeOf<NonNullable<Scenario["abilities"]>>().toEqualTypeOf<NonNullable<Setup["abilities"]>>();
+  });
+
   it("makes scenarioSetup return exactly those Setup fields", () => {
     expectTypeOf<ScenarioSetup>().toEqualTypeOf<
-      Pick<Setup, "turns" | "playsPerTurn" | "handSize" | "firstEra" | "eras" | "contingency" | "map">
+      Pick<Setup, "turns" | "playsPerTurn" | "handSize" | "firstEra" | "eras" | "contingency" | "map" | "abilities">
     >();
   });
 });

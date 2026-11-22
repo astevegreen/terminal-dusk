@@ -9,7 +9,7 @@ export const DEFAULT_CONTINGENCY: readonly number[] = Object.freeze([1, 2, 3, 4,
 /** The scenario's own parts of a Setup. The caller adds the seed hash, the hands (empty) and the draw pile. */
 export type ScenarioSetup = Pick<
   Setup,
-  "turns" | "playsPerTurn" | "handSize" | "firstEra" | "eras" | "contingency" | "map"
+  "turns" | "playsPerTurn" | "handSize" | "firstEra" | "eras" | "contingency" | "map" | "abilities"
 >;
 
 type ScenarioMap = NonNullable<Scenario["map"]>;
@@ -48,7 +48,7 @@ function copyMap(map: ScenarioMap): NonNullable<Setup["map"]> {
 }
 
 /**
- * The setup fields a scenario decides, as fresh arrays and objects. `firstEra`, `eras` and `map` are left out when
+ * The setup fields a scenario decides, as fresh arrays and objects. `firstEra`, `eras`, `map` and `abilities` are left out when
  * the scenario has none.
  */
 export function scenarioSetup(scenario: Scenario): ScenarioSetup {
@@ -72,5 +72,9 @@ export function scenarioSetup(scenario: Scenario): ScenarioSetup {
     }));
   }
   if (scenario.map !== undefined) result.map = copyMap(scenario.map);
+  if (scenario.abilities !== undefined) {
+    const { lio, sae } = scenario.abilities;
+    result.abilities = { lio: { ...lio }, sae: { ...sae } };
+  }
   return result;
 }
