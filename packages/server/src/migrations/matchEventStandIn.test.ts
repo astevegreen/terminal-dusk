@@ -17,8 +17,18 @@ describe("the stand-in migration's text", () => {
     expect(STAND_IN_MIGRATION).not.toMatch(/not null/i);
   });
 
-  it("changes no grants and no policies, so clients still only read, under the same row-level rules", () => {
-    expect(STAND_IN_MIGRATION).not.toMatch(/\bgrant\b|\brevoke\b|create policy/i);
+  it("changes no table grants and no policies, so clients still only read, under the same row-level rules", () => {
+    expect(STAND_IN_MIGRATION).not.toMatch(/grant\s+\w+\s+on\s+(table\s+)?public\.match/i);
+    expect(STAND_IN_MIGRATION).not.toMatch(/create policy/i);
+  });
+
+  it("replaces commit_match so it writes stand_in, and keeps it callable by the service role only", () => {
+    expect(STAND_IN_MIGRATION).toMatch(/insert into public\.match_event \(match_id, seq, viewer, events, stand_in\)/);
+    expect(STAND_IN_MIGRATION).toMatch(/e\.events, e\.stand_in/);
+    expect(STAND_IN_MIGRATION).toMatch(
+      /revoke execute on function public\.commit_match\([^)]*\) from public, anon, authenticated;/,
+    );
+    expect(STAND_IN_MIGRATION).toMatch(/grant execute on function public\.commit_match\([^)]*\) to service_role;/);
   });
 });
 
@@ -49,5 +59,10 @@ await onLocalStack("match_event.stand_in on the local Supabase stack", (keys) =>
   it("commit_match saves the covered side on all three event rows of a stand-in step", async () => {
     const events = await commit("lio");
     expect(events.map((row) => row.stand_in)).toEqual(["lio", "lio", "lio"]);
+  }, 60_000);
+
+  it("commit_match saves null on all three event rows of an ordinary step", async () => {
+    const events = await commit(undefined);
+    expect(events.map((row) => row.stand_in)).toEqual([null, null, null]);
   }, 60_000);
 });

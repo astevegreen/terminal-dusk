@@ -188,14 +188,17 @@ describe("remote transport: stand-in steps (#605)", () => {
     const seen = watch(r.transportAs("bob"));
     await settle();
     const [plain] = moveOnServer(r, 1, "sae");
-    r.fake.markNextStandIn("lio");
-    const [covered] = moveOnServer(r, 1, "sae");
+    // Cover steps until one of them has events (a step can have none), so the marking is really tested.
+    const covered: GameEvent[] = [];
+    for (let i = 0; i < 30 && covered.length === 0; i++) {
+      r.fake.markNextStandIn("lio");
+      covered.push(...moveOnServer(r, 1, "sae")[0]!);
+    }
     await nextPoll(r);
     const last = seen.frames[seen.frames.length - 1]!;
-    expect(last.events).toEqual([...plain!, ...covered!]);
-    expect(last.standInRuns).toEqual(
-      covered!.length === 0 ? undefined : [{ side: "lio", start: plain!.length, count: covered!.length }],
-    );
+    expect(last.events).toEqual([...plain!, ...covered]);
+    expect(covered.length).toBeGreaterThan(0);
+    expect(last.standInRuns).toEqual([{ side: "lio", start: plain!.length, count: covered.length }]);
   });
 
   it("a frame with no stand-in step carries no standInRuns", async () => {

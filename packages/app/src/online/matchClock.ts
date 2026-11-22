@@ -30,7 +30,7 @@ const isBool = (x: unknown): x is boolean => typeof x === "boolean";
 function parseClock(v: unknown): MatchClock | undefined {
   if (!isObject(v)) return undefined;
   const { rule, days, deadlines, graceUsed } = v;
-  if (rule !== "lossOnTime" && rule !== "graceThenLoss") return undefined;
+  if (rule !== "lossOnTime" && rule !== "graceThenLoss" && rule !== "defaultAnswer") return undefined;
   if (days !== 1 && days !== 3 && days !== 7) return undefined;
   if (!isSideRecord(deadlines, isDeadline) || !isSideRecord(graceUsed, isBool)) return undefined;
   return {
