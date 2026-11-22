@@ -221,6 +221,19 @@ test("a 5xx page that is not JSON passes on, and so does a model the API no long
   );
 });
 
+test("a proxy tunnel whose TLS handshake runs out of time passes on to the next model", () => {
+  const silent = { status: 0, text: "the API's TLS handshake did not finish in 30 seconds through the proxy tunnel" };
+  const replies = posts(silent, ok("No findings."));
+  const result = askFirstAvailable(
+    [FLASH, HYDROGEN],
+    viaApi(replies.post, buildPrompt("Review this.", material)),
+    memory(),
+    () => NOW,
+  );
+  assert.equal(result.model, HYDROGEN);
+  assert.deepEqual(result.passed, [{ model: FLASH, why: "could not be reached through the proxy tunnel in time" }]);
+});
+
 test("by default askModel uses the API exactly when GEMINI_API_KEY is set", () => {
   const before = process.env.GEMINI_API_KEY;
   try {
