@@ -2,7 +2,15 @@
 import { describe, expect, it } from "vitest";
 import type { Frame } from "@terminal-dusk/host";
 import type { OnlineDeadline } from "./matchClock.ts";
-import { deadlineDetail, deadlineText, timeLeft, turnText } from "./gameText.ts";
+import { deadlineDetail, deadlineText, standInLine, timeLeft, turnText } from "./gameText.ts";
+
+describe("standInLine: a marked log line for a move the host made for a late side (#605)", () => {
+  it("names the side and the deadline, then the ordinary line", () => {
+    expect(standInLine("lio", "Placed 1 influence in Poland")).toBe(
+      "Played for LIO (deadline passed): Placed 1 influence in Poland",
+    );
+  });
+});
 
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;

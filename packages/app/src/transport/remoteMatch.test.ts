@@ -181,3 +181,29 @@ describe("remote transport: subscribers", () => {
     expect(r.fake.requests.length).toBe(before);
   });
 });
+
+describe("remote transport: stand-in steps (#605)", () => {
+  it("marks the events of a step the host played for a late side, and only those, in the merged frame", async () => {
+    const r = rig();
+    const seen = watch(r.transportAs("bob"));
+    await settle();
+    const [plain] = moveOnServer(r, 1, "sae");
+    r.fake.markNextStandIn("lio");
+    const [covered] = moveOnServer(r, 1, "sae");
+    await nextPoll(r);
+    const last = seen.frames[seen.frames.length - 1]!;
+    expect(last.events).toEqual([...plain!, ...covered!]);
+    expect(last.standInRuns).toEqual(
+      covered!.length === 0 ? undefined : [{ side: "lio", start: plain!.length, count: covered!.length }],
+    );
+  });
+
+  it("a frame with no stand-in step carries no standInRuns", async () => {
+    const r = rig();
+    const seen = watch(r.transportAs("alice"));
+    await settle();
+    moveOnServer(r, 1, "lio");
+    await nextPoll(r);
+    expect(seen.frames[seen.frames.length - 1]!.standInRuns).toBeUndefined();
+  });
+});

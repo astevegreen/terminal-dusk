@@ -100,6 +100,21 @@ on this file is the source of truth; change it in Notion and promote again.
 - In card data, the side that answers a choice is LIO, SAE or both. There is no value meaning "whoever played
   the card" (owner, 16 Oct).
 
+## Missed deadlines in online games (decided 21-22 Nov 2026, owner)
+
+Whoever sets up a private online game picks what happens when a player misses a deadline: loss on time; one
+extra deadline, then loss on time; or "the game plays for a late player" (the default answer rule).
+
+- Under the default answer rule the game answers for the late player, instead of the player losing. Each
+  answer is "pass" where the rules allow one, otherwise the cheapest legal answer. It covers that player for the
+  rest of the turn; from the next turn the player plays again themselves.
+- If both players are late at the same moment, the game is a draw on time.
+- If one player has already been played for this turn and has nothing left to answer, and the other player then
+  misses their deadline, the game is also a draw on time (owner, 22 Nov 2026: "Yes, a draw").
+- Both players see every move the game made for a late player as a marked log line, "Played for LIO (deadline
+  passed): ...". Nothing secret is shown: a hidden pick stays hidden until its normal reveal.
+- It is not combined with the extra deadline. Ranked games will always use loss on time.
+
 ## Not decided yet
 
 - How a turn ends. How many cards each player plays per turn is decided: 2 (owner, 21 Nov 2026, "Take all

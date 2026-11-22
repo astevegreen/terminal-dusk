@@ -1,6 +1,6 @@
 // The read model (docs/architecture.md, Decision 5): the rows a client may read, as each commit writes
 // them. Field names are the SQL column names. Rows are built from the record and frames only, never the secret.
-import type { GameEvent, GameStatus, RulesetId, Seed, Viewer } from "@terminal-dusk/engine";
+import type { GameEvent, GameStatus, RulesetId, Seed, Side, Viewer } from "@terminal-dusk/engine";
 import type { Frame, MatchClock, MatchRecord, PlayerId } from "@terminal-dusk/host";
 import { matchRowFor } from "./matchRow.ts";
 
@@ -29,8 +29,15 @@ export type MatchRow = {
 /** One row of the `match_view` table: one viewer's latest frame. */
 export type MatchViewRow = { match_id: string; viewer: Viewer; seq: number; frame: Frame };
 
-/** One row of the `match_event` table: the events one viewer may see from one step. */
-export type MatchEventRow = { match_id: string; seq: number; viewer: Viewer; events: GameEvent[] };
+/** One row of the `match_event` table: the events one viewer may see from one step, and who the host played for. */
+export type MatchEventRow = {
+  match_id: string;
+  seq: number;
+  viewer: Viewer;
+  events: GameEvent[];
+  /** The side the host played for in this step (#605), or null for an ordinary step. A side name only. */
+  stand_in: Side | null;
+};
 
 /** Every row one commit writes: the match row, and one view row and one event row per viewer. */
 export type CommitRows = { match: MatchRow; views: MatchViewRow[]; events: MatchEventRow[] };
@@ -55,6 +62,7 @@ export function rowsFor(commit: { record: MatchRecord; frames: Record<Viewer, Fr
     seq: frames[viewer].seq,
     viewer,
     events: copy(frames[viewer].events),
+    stand_in: frames[viewer].standIn ?? null,
   }));
   return { match, views, events };
 }

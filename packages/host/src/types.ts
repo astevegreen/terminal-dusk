@@ -81,7 +81,15 @@ export type Frame = {
   events: GameEvent[];
   decision: Decision | null;
   standIn?: Side;
+  /**
+   * Set only by a reader that merges several steps into one frame (the app's transport), never stored: which of
+   * `events` the host played for a late side. `start` and `count` index `events`.
+   */
+  standInRuns?: StandInRun[];
 };
+
+/** A run of events the host played for `side` because its deadline passed (#605). */
+export type StandInRun = { side: Side; start: number; count: number };
 
 /** What a player sends: an answer to a waiting decision (with the seq it expects), or a resignation. */
 export type Submission =

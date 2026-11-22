@@ -29,6 +29,7 @@ const DAY_CHOICES: [string, MatchDeadline["days"]][] = [
 const RULE_CHOICES: [string, DeadlineRule][] = [
   ["Loss on time", "lossOnTime"],
   ["One extra deadline, then loss on time", "graceThenLoss"],
+  ["The game plays for a late player", "defaultAnswer"],
 ];
 
 const sameSides = (a: SideMode, b: SideMode): boolean =>

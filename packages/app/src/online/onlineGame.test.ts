@@ -66,6 +66,27 @@ describe("createOnlineGame: frames, log and turn", () => {
     expect(r.game.getSnapshot().era).toBe("late");
   });
 
+  it("a step the host played for a late side shows as marked log lines (#605); other steps stay plain", async () => {
+    const r = onlineRig();
+    await settle();
+    await play(r);
+    const before = r.game.getSnapshot().log.length;
+    // Some steps make no events, so cover steps until one does.
+    for (let i = 0; i < 6 && r.game.getSnapshot().log.length === before; i++) {
+      r.fake.markNextStandIn("sae");
+      await play(r);
+    }
+    const added = r.game.getSnapshot().log.slice(before);
+    expect(added.length).toBeGreaterThan(0);
+    for (const line of added) expect(line.startsWith("Played for SAE (deadline passed): ")).toBe(true);
+    expect(
+      r.game
+        .getSnapshot()
+        .log.slice(0, before)
+        .some((l) => l.startsWith("Played for")),
+    ).toBe(false);
+  });
+
   it("turn is over once the game is over", async () => {
     const r = onlineRig();
     await settle();

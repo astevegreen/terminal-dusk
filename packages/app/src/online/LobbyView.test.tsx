@@ -39,7 +39,7 @@ describe("the three parts", () => {
 });
 
 describe("the create choices", () => {
-  it("offers four side choices, three lengths and two rules, and no AI rule", () => {
+  it("offers four side choices, three lengths and three rules, and no AI rule", () => {
     const t = tree(lobbyRig().lobby);
     const choices = t.buttons.filter((b) => b.pressed !== undefined).map((b) => b.text);
     expect(choices).toEqual([
@@ -52,6 +52,7 @@ describe("the create choices", () => {
       "7 days",
       "Loss on time",
       "One extra deadline, then loss on time",
+      "The game plays for a late player",
     ]);
     expect(page(lobbyRig().lobby)).not.toMatch(/\bAI\b/);
   });
