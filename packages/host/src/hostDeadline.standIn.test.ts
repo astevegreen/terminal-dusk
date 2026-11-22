@@ -149,7 +149,8 @@ describe("defaultAnswer rule: refusals", () => {
     const r = hostDeadline(ruleset, host.record, host.secret, LIO_DUE - 1);
     expect(r.ok ? "ok" : r.error.code).toBe("notDue");
     const damaged = deepFreeze(withClock(host, { covering: "x" as unknown as Record<Side, number | null> }));
-    expect(() => hostDeadline(ruleset, damaged.record, damaged.secret, LIO_DUE)).not.toThrow();
+    const refused = hostDeadline(ruleset, damaged.record, damaged.secret, LIO_DUE);
+    expect(refused.ok ? "ok" : refused.error.code).toBe("notDue");
   });
 });
 
