@@ -22,6 +22,15 @@ const eraEntry = z.strictObject({
 /** One Contingency deck (a side's or the World deck): at least 3 cards, each a whole number, 1 or more. */
 const deck = z.array(z.int().min(1)).min(3);
 
+/**
+ * A side's special ability (docs/design/sides.md, "Asymmetry") and its number: how many times a turn Resilient
+ * institutions works, or how many points Unified command adds. The engine's SideAbility.
+ */
+const ability = z.discriminatedUnion("id", [
+  z.strictObject({ id: z.literal("resilientInstitutions"), perTurn: z.int().min(1) }),
+  z.strictObject({ id: z.literal("unifiedCommand"), bonus: z.int().min(1) }),
+]);
+
 /** Checks the eras against the scenario's length: each turn in range and unused, each card listed once. */
 function checkEras(
   scenario: { turns: number; eras?: readonly { turn: number; cards: readonly string[] }[] | undefined },
@@ -114,6 +123,7 @@ export const scenarioSchema = z
       .strictObject({ lio: deck.exactOptional(), sae: deck.exactOptional(), world: deck.exactOptional() })
       .exactOptional(),
     map: mapSchema.exactOptional(),
+    abilities: z.strictObject({ lio: ability, sae: ability }).exactOptional(),
   })
   .superRefine(checkEras)
   .superRefine(checkEraNames)
