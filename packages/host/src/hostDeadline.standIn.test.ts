@@ -147,7 +147,8 @@ describe("defaultAnswer rule: a whole game with one absent player", () => {
         host = swept(host, now);
         expect(host.frames.sae.standIn).toBe("lio");
       }
-      const record = { ...host.record, seed: undefined }; // the seed is revealed once the game is over
+      const over = host.record.status.kind === "over";
+      const record = over ? { ...host.record, seed: undefined } : host.record; // the seed is revealed at the end
       expect(leaksFor(JSON.stringify(record), host.secret, "spectator")).toEqual([]);
       for (const viewer of ["lio", "sae", "spectator"] as const) {
         expect(leaksFor(JSON.stringify(host.frames[viewer]), host.secret, viewer), viewer).toEqual([]);

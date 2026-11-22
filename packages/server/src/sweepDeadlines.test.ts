@@ -82,7 +82,7 @@ describe("sweepDeadlines: single matches", () => {
     expect(store.stored("m1")?.record.clock?.deadlines).toEqual({ lio: null, sae: null });
   });
 
-  it("default answer: the late side is answered for, the game goes on, and the event rows are marked (#605)", async () => {
+  it("default answer: the late side is answered for, the game goes on, and the saved frames are marked (#605)", async () => {
     const store = new MemoryStore();
     await insertSaeLate(store, "m1", "defaultAnswer", NOW);
     const seqBefore = store.stored("m1")!.record.seq;
