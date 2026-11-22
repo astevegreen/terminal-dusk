@@ -28,6 +28,15 @@ medium`, in 50-game batches). Recheck both tiers when the cards' rewording or th
 
 ## App, host and server
 
+- Under "defaultAnswer", a stand-in refused `standInLimit` (`packages/host/src/hostStandIn.ts`) makes the sweep
+  (`packages/server/src/sweepDeadlines.ts`) skip that match on every run, so it never moves or ends. The same
+  happens if a plain "both" timeout meets two waits that are not one simultaneous pick (engine `bothWaiting`).
+  Neither path is tested, and neither has a fallback. [22 Nov 2026, agy on #609]
+- The sweep reports `answered` whenever the stand-in mark is set, even when the stand-in's own answers end the game
+  (`sweepDeadlines.ts`, "answered" = the game goes on). It should report `timedOut` or `over`. [22 Nov 2026, reviewer and agy on #609]
+- A covered side given a new decision in the same turn still gets a turn alert (`hostAccept.ts` `commitSteps`),
+  although `hostSubmit` will refuse its answer that turn. [22 Nov 2026, agy on #609]
+
 ## Tests and tooling
 
 - The rules-text numbers check (`packages/content/src/rulesNumbers.test.ts`, #584) compares each kind's distinct numbers,
