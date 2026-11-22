@@ -11,27 +11,26 @@ import type { Frame, HostOutcome, MatchClock, MatchRecord, MatchSecret } from ".
 export const STAND_IN_LIMIT = 64;
 
 /**
- * Covers `sides` for the turn now being played and answers their waiting decisions with the default answer until
- * none of them has a decision waiting, the turn number rises or the game ends. Every frame is marked with the
- * covered side ("both" when two are covered). `clock` is the record's valid clock. Never changes its inputs.
+ * Covers `side` for the turn now being played and answers its waiting decisions with the default answer until it
+ * has none waiting, the turn number rises or the game ends. Every frame is marked with the covered side.
+ * `clock` is the record's valid clock. Never changes its inputs.
  */
 export function standIn(
   ruleset: Ruleset,
   record: MatchRecord,
   secret: MatchSecret,
   clock: MatchClock,
-  sides: readonly Side[],
+  side: Side,
   now: number,
 ): HostOutcome {
   const turn = secret.state.public.turn;
   const covering = { lio: clock.covering?.lio ?? null, sae: clock.covering?.sae ?? null };
-  for (const side of sides) covering[side] = turn;
+  covering[side] = turn;
   let state = secret.state;
   const events: GameEvent[] = [];
   const log: Answer[] = copyJson(secret.log);
   for (let made = 0; state.public.status.kind === "active" && state.public.turn === turn; made++) {
-    const side = sides.find((s) => pendingFor(state, s) !== null);
-    if (side === undefined) break;
+    if (pendingFor(state, side) === null) break;
     if (made >= STAND_IN_LIMIT) return refuse(`The stand-in made ${STAND_IN_LIMIT} answers without finishing.`);
     const decision = pendingFor(state, side);
     const value = defaultAnswer(ruleset, state, side);
@@ -46,8 +45,7 @@ export function standIn(
   const covered: MatchRecord = { ...record, clock: { ...copyJson(clock), covering } };
   const outcome = commitSteps(ruleset, covered, secret, { state, events, log }, now);
   if (!outcome.ok) return outcome;
-  const standIn: Side | "both" = sides.length > 1 ? "both" : sides[0]!;
-  const marked = (frame: Frame): Frame => ({ ...frame, standIn });
+  const marked = (frame: Frame): Frame => ({ ...frame, standIn: side });
   const { frames } = outcome.value;
   return {
     ok: true,

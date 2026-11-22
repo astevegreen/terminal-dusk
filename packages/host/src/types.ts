@@ -80,7 +80,7 @@ export type Frame = {
   view: PlayerView;
   events: GameEvent[];
   decision: Decision | null;
-  standIn?: Side | "both";
+  standIn?: Side;
 };
 
 /** What a player sends: an answer to a waiting decision (with the seq it expects), or a resignation. */

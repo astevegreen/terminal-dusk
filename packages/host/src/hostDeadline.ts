@@ -2,7 +2,7 @@
 // deadline rule (architecture Decision 5, "Deadlines", and the product call on missed deadlines).
 import { SIDES } from "@terminal-dusk/engine";
 import type { Ruleset, Side } from "@terminal-dusk/engine";
-import { deadlineEffects, hasGrace, isCovered, isLate, lengthOf, validClock } from "./clock.ts";
+import { deadlineEffects, hasGrace, isLate, lengthOf, validClock } from "./clock.ts";
 import { copyJson, framesFor } from "./frames.ts";
 import { badTime } from "./hostAccept.ts";
 import { standIn } from "./hostStandIn.ts";
@@ -14,8 +14,8 @@ import type { HostError, HostOutcome, MatchClock, MatchRecord, MatchSecret } fro
  * grace extension left gets one more deadline of the same length from `now` (seq, state and log stay
  * the same); a late side without one loses on time through hostTimeout. When both sides are late and
  * neither has an extension left (always so under lossOnTime), the game ends in a draw on time through
- * hostTimeout with "both". Under "defaultAnswer" the host instead answers for the late sides for the rest of
- * the turn (hostStandIn.ts); two sides freshly late at once (neither covered yet) is that draw.
+ * hostTimeout with "both". Under "defaultAnswer" the host instead answers for the late side for the rest of
+ * the turn (hostStandIn.ts); both sides late at once is that draw, covered or not.
  * Refuses invalidTime like hostSubmit, gameOver for a finished game, and notDue
  * when the match has no clock or nobody is late. It never throws, and never changes its inputs.
  */
@@ -28,10 +28,10 @@ export function hostDeadline(ruleset: Ruleset, record: MatchRecord, secret: Matc
   const late = SIDES.filter((side) => isLate(clock, side, now));
   if (late.length === 0) return refuse("notDue", "No deadline has passed yet.");
   if (clock.rule === "defaultAnswer") {
-    // Only sides not already covered this turn count as freshly late; two at once is a draw (owner, #605).
-    const fresh = late.filter((side) => !isCovered(clock, side, secret.state));
-    if (fresh.length > 1) return hostTimeout(ruleset, record, secret, "both", now);
-    return standIn(ruleset, record, secret, clock, late, now);
+    // Both sides late at once is a draw, whether or not one was already covered (owner, question 6 of the
+    // proposal, #605). The engine records that draw only while both have a decision waiting, as here.
+    if (late.length > 1) return hostTimeout(ruleset, record, secret, "both", now);
+    return standIn(ruleset, record, secret, clock, late[0]!, now);
   }
   const losers = late.filter((side) => !hasGrace(clock, side));
   if (losers.length > 1) return hostTimeout(ruleset, record, secret, "both", now);

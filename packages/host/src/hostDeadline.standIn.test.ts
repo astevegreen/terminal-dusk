@@ -106,15 +106,29 @@ describe("defaultAnswer rule: both sides late", () => {
     expect(next.secret.log[next.secret.log.length - 1]).toEqual({ system: "timeout", side: "both" });
   });
 
-  it("one side already covered and the other then late: no draw, the host answers for both", () => {
+  it("one side already covered and due again while the other is late too: a draw on time", () => {
     const host = startedWith("defaultAnswer");
     const covered = withClock(host, { covering: { lio: turnOf(host), sae: null } });
-    const next = swept(covered, NOW + DAY);
+    const next = swept(deepFreeze(covered), NOW + DAY);
+    expect(next.record.status).toEqual({ kind: "over", winner: null, reason: "timeout" });
+  });
+
+  it("a side covered earlier this turn with nothing waiting: the other side's lapse is answered, not drawn", () => {
+    // Owner question raised on #605: a draw here needs an engine change; until then the stand-in answers.
+    const host = lioToPlay("defaultAnswer");
+    expect(pendingFor(host.secret.state, "sae")).toBeNull();
+    const covered = withClock(host, { covering: { lio: null, sae: turnOf(host) } });
+    const next = swept(covered, LIO_DUE);
     expect(next.record.status.kind).toBe("active");
-    expect(clockOf(next).covering).toEqual(
-      turnOf(next) === turnOf(host) ? { lio: turnOf(host), sae: turnOf(host) } : { lio: null, sae: null },
-    );
-    expect(next.frames.spectator.standIn).toBe("both");
+    expect(next.frames.spectator.standIn).toBe("lio");
+  });
+
+  it("a side covered in an earlier turn does not make a later lapse a draw", () => {
+    const host = lioToPlay("defaultAnswer");
+    const old = withClock(host, { covering: { lio: null, sae: turnOf(host) - 1 } });
+    const next = swept(old, LIO_DUE);
+    expect(next.record.status.kind).toBe("active");
+    expect(next.frames.spectator.standIn).toBe("lio");
   });
 });
 
