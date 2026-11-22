@@ -4,11 +4,13 @@ import { legalAnswers, SIDES, viewFor } from "@terminal-dusk/engine";
 import type { AbilityState, AnswerValue, PlayerView, Side } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { answerOps, easyAnswer } from "./easy.ts";
-import { scoredAnswers } from "./medium.ts";
+import { hardAnswer } from "./hard.ts";
+import { bestScored, scoredAnswers } from "./medium.ts";
 import { seededRandom } from "./random.ts";
 import { applyAnswer, newGame, ruleset } from "./test/testGames.ts";
 import type { TestState } from "./test/testGames.ts";
 import { EASY_WEIGHTS } from "./weights/easy.ts";
+import { HARD_WEIGHTS } from "./weights/hard.ts";
 import { MEDIUM_WEIGHTS } from "./weights/medium.ts";
 
 /** A game Easy has played up to the first play of a card, and the side whose play it is. */
@@ -88,10 +90,29 @@ describe("the AI and Unified command", () => {
       MEDIUM_WEIGHTS,
       seededRandom(9),
     )!;
-    expect(ready.length).toBe(idle.length);
+    expect(ready).toHaveLength(idle.length);
     ready.forEach(({ answer, score }, i) => {
       const forPoints = answer.kind === "playCardAs" && (answer.as === "points" || isRival(answer.card, side));
       expect(score - idle[i]!.score).toBeCloseTo(forPoints ? MEDIUM_WEIGHTS.ops * 2 : 0);
     });
   });
+  it("Hard searches from Medium's scores with the bonus, and plays for points more often while the command is ready", () => {
+    const one = { ...HARD_WEIGHTS, candidates: 1 };
+    const small = { ...HARD_WEIGHTS, guesses: 2, candidates: 3, rounds: 1 };
+    const forPoints = (value: AnswerValue | null, side: Side) =>
+      value?.kind === "playCardAs" && (value.as === "points" || isRival(value.card, side));
+    let readyPoints = 0;
+    let idlePoints = 0;
+    for (let seed = 1; seed <= 10; seed++) {
+      const { state, side } = atPlay(seed);
+      const ready = withCommand(viewFor(state, side), side, true);
+      const idle = withCommand(viewFor(state, side), side, false);
+      const best = bestScored(scoredAnswers(ruleset, ready, side, one, seededRandom(seed))!);
+      expect(hardAnswer(ruleset, ready, side, one, seededRandom(seed))).toEqual(best);
+      if (forPoints(hardAnswer(ruleset, ready, side, small, seededRandom(seed)), side)) readyPoints++;
+      if (forPoints(hardAnswer(ruleset, idle, side, small, seededRandom(seed)), side)) idlePoints++;
+    }
+    expect(readyPoints).toBeGreaterThanOrEqual(idlePoints);
+    expect(readyPoints).toBeGreaterThan(0);
+  }, 60_000);
 });

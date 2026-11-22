@@ -14,11 +14,17 @@ const ABILITIES: Record<"lio" | "sae", SideAbility> = {
 };
 
 /** A game with the abilities, at LIO's first play after the openings (l1 and s1). */
-function start(playsPerTurn = 2, rs: Ruleset = ruleset, extra: { sae?: CardId[] } = {}, bonus = 1): GameState {
+function start(
+  playsPerTurn = 2,
+  rs: Ruleset = ruleset,
+  extra: { sae?: CardId[] } = {},
+  bonus = 1,
+  more: { lio?: CardId[] } = {},
+): GameState {
   const base = makeSetup(2, playsPerTurn);
   const setup: Setup = {
     ...base,
-    hands: { ...base.hands, sae: [...base.hands.sae, ...(extra.sae ?? [])] },
+    hands: { lio: [...base.hands.lio, ...(more.lio ?? [])], sae: [...base.hands.sae, ...(extra.sae ?? [])] },
     abilities: { ...ABILITIES, sae: { id: "unifiedCommand", bonus } },
   };
   const r = createGame(rs, setup, "seed-1");
@@ -93,6 +99,30 @@ describe("Unified command", () => {
     s = accepted(s, playAnswer(s, "sae", "s3", "points"));
     s = accepted(s, playAnswer(s, "lio", "l4", "points"));
     expect(spent(applied(s, playAnswer(s, "sae", "s4", "points")).events)).toEqual([1]);
+  });
+
+  it("is used for the turn once it pays: a later SAE event that turn does not set it up again", () => {
+    let s = start(4);
+    s = accepted(s, playAnswer(s, "lio", "l2", "points"));
+    s = accepted(s, playAnswer(s, "sae", "s2", "event"));
+    s = accepted(s, playAnswer(s, "lio", "l3", "points"));
+    s = accepted(s, playAnswer(s, "sae", "s3", "points"));
+    s = accepted(s, playAnswer(s, "lio", "l4", "points"));
+    const again = applied(s, playAnswer(s, "sae", "s4", "event"));
+    expect(again.events.some((e) => e.kind === "abilityReady")).toBe(false);
+    expect(command(again.state)).toMatchObject({ ready: false, used: 1 });
+    s = accepted(again.state, playAnswer(again.state, "lio", "l5", "points"));
+    expect(spent(applied(s, playAnswer(s, "sae", "s5", "points")).events)).toEqual([1]);
+  });
+
+  it("LIO's plays never touch it: LIO's own event, or an SAE card LIO plays for points", () => {
+    for (const as of ["event", "points"] as const) {
+      const card = as === "event" ? "l2" : "s12";
+      let s = start(3, ruleset, {}, 1, as === "event" ? {} : { lio: [card] });
+      s = accepted(s, playAnswer(s, "lio", card, as));
+      if (as === "points") s = accepted(s, orderAnswer(s, "lio", "before"));
+      expect(command(s)).toMatchObject({ ready: false, used: 0 });
+    }
   });
 
   it("a ready that is not collected ends with the turn, and both abilities' counts reset", () => {

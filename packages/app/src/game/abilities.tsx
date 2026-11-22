@@ -7,6 +7,8 @@ import { SIDE_NAME } from "../displayText.ts";
 import { Region } from "./regions.tsx";
 
 const times = (n: number): string => (n === 1 ? "once" : `${n} times`);
+/** "Not used this turn", or "Used once this turn". */
+const useText = (used: number): string => (used === 0 ? "Not used this turn" : `Used ${times(used)} this turn`);
 
 /** "Resilient institutions: the first 1 drawn from its own Contingency deck each turn is set aside …". */
 export function abilityText(ability: AbilityState): string {
@@ -15,15 +17,10 @@ export function abilityText(ability: AbilityState): string {
       ability.perTurn === 1
         ? "the first 1 it draws from its own Contingency deck each turn is set aside and drawn again"
         : `up to ${ability.perTurn} times a turn, a 1 it draws from its own Contingency deck is set aside and drawn again`;
-    const now = ability.used === 0 ? "Not used this turn" : `Used ${times(ability.used)} this turn`;
-    return `Resilient institutions: ${rule} (not the crisis draw). ${now}.`;
+    return `Resilient institutions: ${rule} (not the crisis draw). ${useText(ability.used)}.`;
   }
   const rule = `after it plays its own card for the event, its next card played for points this turn counts ${ability.bonus} more`;
-  const now = ability.ready
-    ? "Ready now"
-    : ability.used === 0
-      ? "Not used this turn"
-      : `Used ${times(ability.used)} this turn`;
+  const now = ability.ready ? "Ready now" : useText(ability.used);
   return `Unified command: ${rule}. ${now}.`;
 }
 

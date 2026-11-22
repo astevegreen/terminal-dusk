@@ -51,9 +51,12 @@ describe("Resilient institutions", () => {
     expect(drawn(events)).toEqual(["lio:1", "lio:1"]);
   });
 
-  it("works as many times a turn as the scenario's perTurn says", () => {
-    const s = working("lio", [1, 1, 2, 3, 4, 5], makeSetup(), 2);
-    expect(drawContingency(s, "lio", [])).toBe(2);
+  it("works as many times a turn as the scenario's perTurn says, one redraw per draw", () => {
+    // The second draw stands even if it is a 1 (#602); a later draw that turn may use the second redraw.
+    const s = working("lio", [1, 1, 1, 3, 2, 4], makeSetup(), 2);
+    expect(drawContingency(s, "lio", [])).toBe(1);
+    expect(s.public.abilities!.lio).toMatchObject({ used: 1 });
+    expect(drawContingency(s, "lio", [])).toBe(3);
     expect(s.public.abilities!.lio).toMatchObject({ used: 2 });
   });
 

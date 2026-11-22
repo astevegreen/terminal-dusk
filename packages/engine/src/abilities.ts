@@ -1,14 +1,25 @@
 // The sides' special abilities (docs/design/sides.md, "Asymmetry"; #602). Both are automatic: no decision, only an
 // event when one works. The setup names each side's ability and its number; nothing here fixes either side or number.
 // - Resilient institutions: up to `perTurn` times a turn, a draw from the side's own Contingency deck that shows a 1
-//   is set aside, as an ordinary draw, and the side draws again (contingency.ts). Never the crisis draw (owner,
+//   is set aside, as an ordinary draw, and the side draws again (contingency.ts); that second draw stands, even a 1. Never the crisis draw (owner,
 //   21 Nov 2026: "Take all"), which uses drawPlain and so neither triggers it nor uses it up. Never the World deck.
 // - Unified command: after the side plays its own card for its event (turn.ts, play), the next card it plays for its
-//   points in the same turn counts `bonus` more (actionMenu.ts). Opening cards never set it up.
+//   points in the same turn counts `bonus` more (actionMenu.ts); then it is used for the turn, and a later event
+//   that turn does not set it up again. Opening cards never set it up.
 // What each side has, and its use this turn, is public; it resets at turn end.
 import { SIDES } from "./types.ts";
-import type { AbilityState, DeckId, EngineError, GameEvent, GameState, PublicState, Setup, Side } from "./types.ts";
-import type { SideAbility, Step } from "./types.ts";
+import type {
+  AbilityState,
+  DeckId,
+  EngineError,
+  GameEvent,
+  GameState,
+  PublicState,
+  Setup,
+  Side,
+  SideAbility,
+  Step,
+} from "./types.ts";
 
 type SpendStep = Extract<Step, { op: "spendPoints" }>;
 
@@ -66,10 +77,13 @@ export function takeRedraw(state: GameState, deck: DeckId, value: number, events
   return true;
 }
 
-/** `side` played its own card for its event: its Unified command, if it has one, is ready (once; no stacking). */
+/**
+ * `side` played its own card for its event: its Unified command, if it has one, is ready, unless it is ready already
+ * (no stacking) or was used this turn (#602: "then it is used for the turn").
+ */
 export function primeCommand(state: GameState, side: Side, events: GameEvent[]): void {
   const ability = state.public.abilities?.[side];
-  if (ability?.id !== "unifiedCommand" || ability.ready) return;
+  if (ability?.id !== "unifiedCommand" || ability.ready || ability.used > 0) return;
   ability.ready = true;
   events.push({ kind: "abilityReady", visibility: "public", side });
 }

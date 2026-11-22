@@ -104,11 +104,10 @@ export function drawPlain(state: GameState, deck: DeckId, events: GameEvent[]): 
 
 /**
  * Draws a contingency from `deck` as drawPlain does, except that a 1 from a side's own deck, while that side's
- * Resilient institutions has a use left this turn, is set aside (it stays drawn) and the side draws again. A redraw
- * that shows a 1 is set aside too while a use is left; the uses this turn (perTurn) bound the loop.
+ * Resilient institutions has a use left this turn, is set aside (it stays drawn) and the side draws again. The
+ * second draw stands even if it is a 1 (#602); perTurn counts such draws in a turn, never redraws within one.
  */
 export function drawContingency(state: GameState, deck: DeckId, events: GameEvent[]): number {
-  let value = drawPlain(state, deck, events);
-  while (takeRedraw(state, deck, value, events)) value = drawPlain(state, deck, events);
-  return value;
+  const value = drawPlain(state, deck, events);
+  return takeRedraw(state, deck, value, events) ? drawPlain(state, deck, events) : value;
 }
