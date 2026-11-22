@@ -82,6 +82,18 @@ describe("sweepDeadlines: single matches", () => {
     expect(store.stored("m1")?.record.clock?.deadlines).toEqual({ lio: null, sae: null });
   });
 
+  it("default answer: the late side is answered for, the game goes on, and the saved frames are marked (#605)", async () => {
+    const store = new MemoryStore();
+    await insertSaeLate(store, "m1", "defaultAnswer", NOW);
+    const seqBefore = store.stored("m1")!.record.seq;
+    expect(await sweepDeadlines(store, rulesetFor, NOW + DAY)).toEqual([{ matchId: "m1", status: "answered" }]);
+    const after = store.stored("m1")!;
+    expect(after.record.status.kind).toBe("active");
+    expect(after.record.seq).toBeGreaterThan(seqBefore);
+    expect(after.frames.sae.standIn).toBe("sae");
+    expect(await sweepDeadlines(store, rulesetFor, NOW + DAY)).toEqual([]);
+  });
+
   it("one millisecond before both deadlines, the both-late match is not due and is left unchanged", async () => {
     const store = new MemoryStore();
     insertMatch(store, "m1", "lossOnTime", NOW);

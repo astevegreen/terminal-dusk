@@ -19,8 +19,11 @@ import type {
 
 export type PlayerId = string;
 
-/** What happens when a side misses its deadline: it loses on time, or first gets one extension of the same length. */
-export type DeadlineRule = "lossOnTime" | "graceThenLoss";
+/**
+ * What happens when a side misses its deadline: it loses on time; or it first gets one extension of the same
+ * length; or ("defaultAnswer", #605) the host answers for it with the default answer for the rest of that turn.
+ */
+export type DeadlineRule = "lossOnTime" | "graceThenLoss" | "defaultAnswer";
 /** A match's deadline rule and how many days each side has to answer each decision. */
 export type MatchDeadline = { rule: DeadlineRule; days: 1 | 3 | 7 };
 
@@ -38,10 +41,12 @@ export type MatchConfig = {
 /**
  * A match's clock. `deadlines[side]` is the time (whole milliseconds) by which `side` must answer, or
  * null when the game is not waiting on it. `graceUsed[side]` is true once `side` has had its extension.
+ * `covering[side]`, only under "defaultAnswer", is the turn number in which the host answers for `side`, or null.
  */
 export type MatchClock = MatchDeadline & {
   deadlines: Record<Side, number | null>;
   graceUsed: Record<Side, boolean>;
+  covering?: Record<Side, number | null>;
 };
 
 /** What players and spectators may read (the `match` table). Nothing hidden, and no Contingency data. */
@@ -63,7 +68,10 @@ export type MatchRecord = {
 /** What only the host may read (the `match_secret` table). `log` holds the answers, oldest first. */
 export type MatchSecret = { seed: Seed; setup: Setup; state: GameState; log: Answer[] };
 
-/** Everything one viewer needs at one moment: its view, the events it may see and its waiting decision. */
+/**
+ * Everything one viewer needs at one moment: its view, the events it may see and its waiting decision.
+ * `standIn` is present when the host made this step's moves for that side because its deadline passed.
+ */
 export type Frame = {
   matchId: string;
   seq: number;
@@ -72,6 +80,7 @@ export type Frame = {
   view: PlayerView;
   events: GameEvent[];
   decision: Decision | null;
+  standIn?: Side;
 };
 
 /** What a player sends: an answer to a waiting decision (with the seq it expects), or a resignation. */
@@ -101,6 +110,7 @@ export type HostErrorCode =
   | "gameNotOver"
   | "notDue"
   | "pastDeadline"
+  | "standInLimit"
   | "notEntitled";
 export type HostError = { code: EngineErrorCode | HostErrorCode; message?: string };
 export type HostOutcome = { ok: true; value: HostResult } | { ok: false; error: HostError };

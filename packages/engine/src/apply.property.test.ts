@@ -20,6 +20,7 @@ type MoveKind =
   | "resign"
   | "timeout"
   | "timeoutBoth"
+  | "timeoutCovered"
   | "adjudicate"
   | "mismatchedRuleset";
 /** `pick` chooses which open decision to answer and which of its legal answers to give. */
@@ -36,6 +37,7 @@ const moveArb: fc.Arbitrary<Move> = fc.record({
     "resign",
     "timeout",
     "timeoutBoth",
+    "timeoutCovered",
     "adjudicate",
     "mismatchedRuleset",
   ),
@@ -73,6 +75,11 @@ function toAnswer(s: GameState, m: Move): Answer {
       return { system: "timeout", side: m.side };
     case "timeoutBoth":
       return { system: "timeout", side: "both" };
+    case "timeoutCovered": {
+      // The host's covered draw (#605): a real side most of the time, sometimes a damaged value.
+      const covered = [m.side, otherSide(m.side), "x"][m.pick % 3];
+      return { system: "timeout", side: "both", covered } as Answer;
+    }
     case "adjudicate":
       return { system: "adjudicate", side: m.side };
   }
@@ -95,6 +102,13 @@ const oneOpenPair = (s: GameState): boolean => {
   return groups[0] !== undefined && groups[0] === groups[1];
 };
 
+/** True when `covered` is a side with no open decision and the other side has one. */
+const coveredDraw = (s: GameState, covered: unknown): boolean => {
+  if (covered !== "lio" && covered !== "sae") return false;
+  const open = (side: Side) => s.public.pending.some((d) => d.side === side);
+  return !open(covered) && open(otherSide(covered));
+};
+
 /**
  * What `apply` must give, worked out from the state and the answer alone, in the order apply checks:
  * "ok", or the error code it must refuse with.
@@ -104,7 +118,10 @@ function expectedOutcome(rs: Ruleset, s: GameState, a: Answer): "ok" | EngineErr
   if (s.public.status.kind === "over") return "gameOver";
   if ("system" in a) {
     if (a.system === "resign") return "ok";
-    if (a.system === "timeout" && a.side === "both") return oneOpenPair(s) ? "ok" : "wrongSide";
+    if (a.system === "timeout" && a.side === "both") {
+      const covered = "covered" in a ? a.covered : undefined;
+      return oneOpenPair(s) || coveredDraw(s, covered) ? "ok" : "wrongSide";
+    }
     if (a.system === "timeout") return s.public.pending.some((d) => d.side === a.side) ? "ok" : "wrongSide";
     return "notSupported";
   }

@@ -2,14 +2,15 @@
 import { SIDES } from "@terminal-dusk/engine";
 import type { Answer, AnswerValue, Ruleset } from "@terminal-dusk/engine";
 import { copyJson } from "./frames.ts";
-import { hasGrace, isLate } from "./clock.ts";
+import { hasGrace, isCovered, isLate, validClock } from "./clock.ts";
 import { acceptAnswer, badTime } from "./hostAccept.ts";
 import type { HostError, HostOutcome, MatchRecord, MatchSecret, Submission } from "./types.ts";
 
 /**
  * Takes one player's answer or resignation. The host checks, in order: notPlayer, invalidTime, staleSeq,
  * the answer's shape, then pastDeadline (an answer at or after the side's deadline with no grace left;
- * with grace left it is taken and uses the extension; a resignation is always taken). Only then does the
+ * with grace left it is taken and uses the extension; under "defaultAnswer", also any answer from a side the
+ * host covers this turn; a resignation is always taken). Only then does the
  * engine see the answer (so a game-ending move sent twice gives staleSeq, not gameOver).
  * A player can never send a timeout: only hostTimeout makes one.
  * A refusal returns an error and changes nothing. It never throws, and never changes its inputs.
@@ -38,6 +39,10 @@ export function hostSubmit(
   const overdue = !resigning && record.clock !== undefined && isLate(record.clock, side, now);
   if (overdue && record.clock && !hasGrace(record.clock, side)) {
     return refuse("pastDeadline", "The deadline for that answer has passed.");
+  }
+  // Under "defaultAnswer" the host answers for a covered side for the rest of that turn.
+  if (!resigning && validClock(record.clock) && isCovered(record.clock, side, secret.state)) {
+    return refuse("pastDeadline", "The deadline passed: the default answer is made for you this turn.");
   }
   const answer: Answer = resigning
     ? { system: "resign", side }

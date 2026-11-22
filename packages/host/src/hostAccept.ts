@@ -1,7 +1,7 @@
 // The shared second half of every host call that moves a game: run the answer through the engine,
 // then build the new record, secret, frames and effects. hostSubmit and hostTimeout both end here.
 import { apply, pendingFor, SIDES } from "@terminal-dusk/engine";
-import type { Answer, GameState, Ruleset, Side } from "@terminal-dusk/engine";
+import type { Answer, GameEvent, GameState, Ruleset, Side } from "@terminal-dusk/engine";
 import { deadlineEffects, nextClock } from "./clock.ts";
 import { copyJson, framesFor } from "./frames.ts";
 import { checkFinished } from "./hostFinish.ts";
@@ -23,7 +23,32 @@ export function acceptAnswer(
   const result = apply(ruleset, secret.state, answer);
   if (!result.ok) return { ok: false, error: result.error };
   const { state, events } = result.value;
-  const log = [...copyJson(secret.log), answer];
+  return commitSteps(
+    ruleset,
+    record,
+    secret,
+    { state, events, log: [...copyJson(secret.log), answer] },
+    now,
+    usedGrace,
+  );
+}
+
+/** Where one or more accepted answers led: the new state, every event they produced in order, and the whole log. */
+export type Steps = { state: GameState; events: GameEvent[]; log: Answer[] };
+
+/**
+ * Builds the new record, secret, frames and effects from `steps`, already applied from `secret.state` at `now`.
+ * acceptAnswer ends here with one answer; the stand-in (hostStandIn.ts) with several.
+ */
+export function commitSteps(
+  ruleset: Ruleset,
+  record: MatchRecord,
+  secret: MatchSecret,
+  steps: Steps,
+  now: number,
+  usedGrace: Side | null = null,
+): HostOutcome {
+  const { state, events, log } = steps;
   const over = state.public.status.kind === "over";
   if (over) {
     const failed = checkFinished(ruleset, secret, log, state);

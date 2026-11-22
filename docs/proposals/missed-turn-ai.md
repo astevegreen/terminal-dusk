@@ -295,6 +295,8 @@ check what the rival's device sends.
 6. When both sides are late and both are being played for, does the game carry on (AI against AI), end in a draw
    as a missed simultaneous pick does today, or something else?
    **Decided:** the game ends in a draw, as a missed simultaneous pick does today (owner, 21 Nov 2026, in chat).
+   This includes one side already played for earlier in the turn, with nothing left to answer, when the other side
+   then misses its deadline: a draw, not a second stand-in (owner, 22 Nov 2026, in chat: "Yes, a draw"; #605).
 7. Hard rule 7 says only `submit` writes game state. Today's deadline sweep already writes through the same host
    and seq-checked commit. Should an autoplayed answer count as written "through `submit`" on the same footing,
    or must it literally call the `submit` function?
