@@ -76,11 +76,7 @@ function applySystem(state: GameState, answer: Extract<Answer, { system: string 
   let reason: string;
   if (answer.system === "resign") reason = "resigned";
   else if (answer.system === "timeout") {
-    const waiting =
-      answer.side === "both"
-        ? bothWaiting(state) || coveredDraw(state, "covered" in answer ? answer.covered : undefined)
-        : pendingFor(state, answer.side) !== null;
-    if (!waiting) return fail("wrongSide", "The game is not waiting for that side.");
+    if (!timeoutWaiting(state, answer)) return fail("wrongSide", "The game is not waiting for that side.");
     reason = "timeout";
   } else return fail("notSupported", `The ${String(answer.system)} answer is not supported yet.`);
   const next = copyJson(state);
@@ -91,6 +87,13 @@ function applySystem(state: GameState, answer: Extract<Answer, { system: string 
   const winner = answer.side === "both" ? null : otherSide(answer.side);
   next.public.status = { kind: "over", winner, reason };
   return { ok: true, value: { state: next, events: [] } };
+}
+
+/** True when the game waits for the side a timeout names (for "both": see applySystem). */
+function timeoutWaiting(state: GameState, answer: Extract<Answer, { system: "timeout" }>): boolean {
+  if (answer.side !== "both") return pendingFor(state, answer.side) !== null;
+  if (bothWaiting(state)) return true;
+  return coveredDraw(state, "covered" in answer ? answer.covered : undefined);
 }
 
 /** True when both sides wait on one simultaneous pick and neither has made it (a picked side has no pending). */

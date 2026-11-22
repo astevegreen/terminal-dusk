@@ -61,7 +61,7 @@ describe("apply: a draw on time with a covered side", () => {
     expectRefused(idle, drawFor("sae"));
   });
 
-  it("a covered side on a one-side timeout or a resignation changes nothing about them", () => {
+  it("a stray `covered` on a one-side timeout changes nothing: still a loss on time", () => {
     const s = startAtPlay();
     const late = s.public.pending[0]!.side;
     const r = apply(ruleset, s, { system: "timeout", side: late, covered: otherSide(late) } as unknown as Answer);
