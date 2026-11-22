@@ -5,11 +5,13 @@ import { createRoot } from "react-dom/client";
 import {
   FIRST_DECK_NOTE,
   ERA_1_FREE_NOTE,
+  SCENARIO_2025_2027_NOTE,
   SIX_REGION_MAP_NOTE,
   firstDeckCardName,
   firstDeckCardQuestion,
   firstDeckCardRules,
   era1FreeConfig,
+  scenario2025To2027Config,
   firstDeckConfig,
   firstDeckRuleset,
   sixRegionMapConfig,
@@ -47,6 +49,13 @@ const era1FreeGame: VsAiGame = {
   note: ERA_1_FREE_NOTE,
 };
 
+/** The optional 2025-2027 game (#601): the whole first deck plus the future cards on turn 11, on the six-region map. */
+const scenario2025To2027Game: VsAiGame = {
+  ...firstDeckGame,
+  makeMatch: (seed, clock) => createLocalMatch(firstDeckRuleset, scenario2025To2027Config(), seed, clock),
+  note: SCENARIO_2025_2027_NOTE,
+};
+
 /**
  * Online play: Supabase from Vite's environment, the session kept in localStorage, games created as `web` and
  * invite codes copied with the browser's clipboard. Left out when either setting is missing, so the online
@@ -81,6 +90,7 @@ createRoot(root).render(
       game={firstDeckGame}
       mapGame={sixRegionMapGame}
       freeGame={era1FreeGame}
+      futureGame={scenario2025To2027Game}
       store={webStore(localStorage)}
       timers={realTimers}
       {...(watchId === null ? {} : { watch: watchId })}

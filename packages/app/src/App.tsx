@@ -26,6 +26,8 @@ export type AppProps = {
   mapGame?: VsAiGame;
   /** The free player's Era 1 game against the AI (L12); the same as `game` when left out. */
   freeGame?: VsAiGame;
+  /** The optional 2025-2027 game against the AI (#601); the same as `game` when left out. */
+  futureGame?: VsAiGame;
   /** Where the AI's difficulty is kept between visits (Platform.storage); left out, it is not kept. */
   store?: KeyValueStore;
   /** Supabase Auth and the session store; left out when this build has no online play set up. */
@@ -38,7 +40,7 @@ export type AppProps = {
 
 const TAP = { minHeight: 44, minWidth: 44 } as const;
 
-type Screen = "vsAi" | "vsAiMap" | "vsAiFree" | "online" | "testMode";
+type Screen = "vsAi" | "vsAiMap" | "vsAiFree" | "vsAiFuture" | "online" | "testMode";
 
 export function App({
   clock,
@@ -47,6 +49,7 @@ export function App({
   game,
   mapGame,
   freeGame,
+  futureGame,
   store,
   online,
   timers = realTimers,
@@ -68,8 +71,13 @@ export function App({
     );
   }
   if (screen === "testMode") return <TestModeScreen clock={clock} />;
-  if (screen === "vsAi" || screen === "vsAiMap" || screen === "vsAiFree") {
-    const played = screen === "vsAiMap" ? (mapGame ?? game) : screen === "vsAiFree" ? (freeGame ?? game) : game;
+  if (screen === "vsAi" || screen === "vsAiMap" || screen === "vsAiFree" || screen === "vsAiFuture") {
+    const played = {
+      vsAi: game,
+      vsAiMap: mapGame ?? game,
+      vsAiFree: freeGame ?? game,
+      vsAiFuture: futureGame ?? game,
+    }[screen];
     return (
       <VsAiScreen
         key={screen}
@@ -120,6 +128,9 @@ export function Home({ onPick }: Readonly<{ onPick: (screen: Screen) => void }>)
       </button>
       <button type="button" style={TAP} onClick={() => onPick("vsAi")}>
         Play against the AI
+      </button>
+      <button type="button" style={TAP} onClick={() => onPick("vsAiFuture")}>
+        Play the 2025-2027 game
       </button>
       <button type="button" style={TAP} onClick={() => onPick("vsAiFree")}>
         Play the free Era 1 game

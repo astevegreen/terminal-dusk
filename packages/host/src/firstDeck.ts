@@ -10,6 +10,7 @@ import {
   FIRST_DECK_RULESET,
   ERA_1_FREE_SCENARIO,
   FIRST_DECK_SCENARIO,
+  SCENARIO_2025_2027,
   cardName,
   scenarioSetup,
 } from "@terminal-dusk/content/first-deck";
@@ -20,6 +21,8 @@ import type { MatchConfig } from "./types.ts";
 export const FIRST_DECK_NOTE =
   "First deck, the base game: 10 turns, Eras 1 to 3 (Era 2 joins on turn 4, Era 3 on turn 6)";
 export const ERA_1_FREE_NOTE = "The free game: Era 1 only, 1991 to 2001, 3 turns";
+export const SCENARIO_2025_2027_NOTE =
+  "The 2025-2027 game: 11 turns, the future cards join on turn 11, Era 3 scores once at the end of 2027";
 export const SIX_REGION_MAP_NOTE =
   "First deck on the six-region map (placeholder stabilities, battlegrounds and starting influence)";
 export const firstDeckRuleset: Ruleset = FIRST_DECK_RULESET;
@@ -100,6 +103,35 @@ export function era1FreeConfig(): MatchConfig {
 export function sixRegionMapConfig(): MatchConfig {
   const config = firstDeckConfig();
   return { ...config, matchId: "six-region-map", setup: { ...config.setup, map: mapOf(SIX_REGION_MAP_SCENARIO) } };
+}
+
+/** Whether the map's "future" battleground list is Era 3's, in any order; false when either list is missing. */
+export function futureBattlegroundsMatchEra3(map: NonNullable<Setup["map"]>): boolean {
+  const list = (era: string) => map.battlegrounds.find((b) => b.era === era)?.countries;
+  const future = list("future");
+  const era3 = list("era-3");
+  if (future === undefined || era3 === undefined) return false;
+  return future.length === era3.length && future.toSorted().join() === era3.toSorted().join();
+}
+
+/**
+ * The optional 2025-2027 game (#601; docs/design/eras.md): the scenario's 11 turns and eras, with the future cards
+ * entering on turn 11 and extending Era 3, on the six-region map as the base game is played. Era 3 scores once, at the
+ * end of turn 11, from the map's "future" battleground list, so a map whose list is not Era 3's is refused.
+ */
+export function scenario2025To2027Config(): MatchConfig {
+  const map = mapOf(SIX_REGION_MAP_SCENARIO);
+  if (!futureBattlegroundsMatchEra3(map)) throw new Error("the map's future battlegrounds must be Era 3's");
+  return {
+    matchId: "2025-2027",
+    players: { lio: "player-lio", sae: "player-sae" },
+    setup: {
+      hands: { lio: [], sae: [] },
+      deck: ERA_1_CARDS.map((c) => c.id),
+      ...scenarioSetup(SCENARIO_2025_2027),
+      map,
+    },
+  };
 }
 
 // The engine's pure helper for which regions Escalation has closed, for the app's Escalation display (A15): the engine's
