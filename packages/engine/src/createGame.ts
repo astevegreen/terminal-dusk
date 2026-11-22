@@ -1,3 +1,4 @@
+import { abilityError, abilityState } from "./abilities.ts";
 import { handSizeError, rulesetError, setupCardsError } from "./cardChecks.ts";
 import { contingencyError, shuffleContingency } from "./contingency.ts";
 import { erasError } from "./eras.ts";
@@ -51,7 +52,7 @@ export function createGame(
   if (badDecks) return { ok: false, error: badDecks };
   const badCards = erasError(setup) ?? setupCardsError(ruleset, setup) ?? handSizeError(ruleset, setup);
   if (badCards) return { ok: false, error: badCards };
-  const badMap = mapError(setup);
+  const badMap = mapError(setup) ?? abilityError(setup);
   if (badMap) return { ok: false, error: badMap };
   // The hands keep the setup's order; the turn 1 refill fills them from the draw pile. One generator shuffles the
   // draw pile, then LIO's Contingency deck, then SAE's; this order never changes, so a seed always gives the same game.
@@ -87,6 +88,7 @@ export function createGame(
             era: setup.firstEra!,
             ...techRaceState(setup.map),
           }),
+      ...abilityState(setup),
     },
     private: {
       lio: { hand: [...setup.hands.lio], picks: [], knowledge: [] },

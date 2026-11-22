@@ -2,7 +2,7 @@
 // game with a map only. It starts at 2, falls by 1 at the end of each turn (turn.ts), and reaching 6 is a crisis:
 // the side that caused it draws one card from its own Contingency deck and loses that many points of score (on a map
 // with scoring), and Escalation drops to 3. Interventions (R16b) and cards (R18) will call the raise and lower below.
-import { drawContingency } from "./contingency.ts";
+import { drawPlain } from "./contingency.ts";
 import { moveScore } from "./scoring.ts";
 import type { GameEvent, GameState, Side } from "./types.ts";
 
@@ -27,14 +27,15 @@ function moveTo(state: GameState, to: number, events: GameEvent[]): void {
  * crisis: `causer` draws from its own Contingency deck (an ordinary draw), an escalationCrisis event names it and
  * the number drawn, the score track moves that far towards the rival (moveScore), and Escalation drops to 3. A move
  * that reaches the rival's end ends the game at once, with Escalation left at 6. Does nothing in a game without a
- * map. Edits `state`, apply's working copy, in place, like drawContingency.
+ * map. Edits `state`, apply's working copy, in place, like drawContingency. The crisis
+ * draw is a plain draw: Resilient institutions never applies to it (owner, 21 Nov 2026).
  */
 export function raiseEscalation(state: GameState, by: number, causer: Side, events: GameEvent[]): void {
   const now = state.public.escalation;
   if (now === undefined) return;
   moveTo(state, Math.min(ESCALATION_MAX, now + by), events);
   if (state.public.escalation !== ESCALATION_MAX) return;
-  const value = drawContingency(state, causer, events);
+  const value = drawPlain(state, causer, events);
   events.push({ kind: "escalationCrisis", visibility: "public", side: causer, value });
   if (moveScore(state, causer === "lio" ? value : -value, events)) return;
   moveTo(state, AFTER_CRISIS, events);

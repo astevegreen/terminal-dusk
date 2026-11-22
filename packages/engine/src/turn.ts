@@ -7,6 +7,7 @@
 // rival's card is played for its points, and its event still happens: the player first says whether
 // before or after the points. A played card stays in `inPlay` until everything it triggered is done, then
 // goes to the discard pile, or out of the game if it is flagged removeAfterEvent and its event ran (putAway).
+import { endTurnAbilities, primeCommand } from "./abilities.ts";
 import { newDecision, whoseCard } from "./decisions.ts";
 import { enterEra } from "./eras.ts";
 import { lowerEscalation } from "./escalation.ts";
@@ -236,6 +237,7 @@ function endTurn(state: GameState, events: GameEvent[], budget: Budget): EngineE
     pub.techRace.attempted = [];
     delete pub.techRace.extraPlay;
   }
+  endTurnAbilities(pub);
   return startTurn(state, events, budget);
 }
 
@@ -293,6 +295,8 @@ function play(
     state.public.pending = [newDecision(state.meta.seq, side, "rivalEventOrder")];
     return null;
   }
+  // Unified command (abilities.ts): a side's own card played for its event sets up its next play for points.
+  if (value.as === "event" && whoseCard(card, side) === "own") primeCommand(state, side, events);
   const steps = value.as === "event" ? (card?.effect ?? []) : [spendPoints(side, card?.ops ?? 0, true)];
   return runCard(ruleset, state, steps, value.card, player ?? undefined, { events, budget });
 }
@@ -323,9 +327,14 @@ function playRival(
 /** True while a rival's card is in play and its player has yet to say when its event happens. */
 const waitsForOrder = (state: GameState): boolean => state.public.pending.some((d) => d.kind === "rivalEventOrder");
 
-/** A play's spendPoints step; `play` marks a card played for its points, which may make a tech race attempt. */
+/**
+ * A play's spendPoints step. `cardPoints` marks every card played for its points, which may collect Unified command
+ * (abilities.ts); `play` marks one whose points may also make a tech race attempt.
+ */
 const spendPoints = (side: Side, amount: number, play: boolean): Step =>
-  play ? { op: "spendPoints", side, amount, play: true } : { op: "spendPoints", side, amount };
+  play
+    ? { op: "spendPoints", side, amount, play: true, cardPoints: true }
+    : { op: "spendPoints", side, amount, cardPoints: true };
 
 /** `card` leaves `side`'s hand, and so the rival's knowledge (knowledge.ts). */
 function removeFromHand(state: GameState, side: Side, card: CardId): void {

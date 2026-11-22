@@ -1,6 +1,7 @@
 // Contingency decks (docs/design/contingency-deck.md): each side's numbered cards and the shared World deck,
 // drawn instead of rolling a die. Which numbers are left is public; the order is secret. The setup gives the
 // cards; nothing is hard-coded.
+import { takeRedraw } from "./abilities.ts";
 import { shuffle } from "./rng.ts";
 import type { RngState } from "./rng.ts";
 import { DECKS } from "./types.ts";
@@ -81,9 +82,10 @@ export function deckFor(
  * Draws a contingency from `deck` and returns its number: the top card of that deck's secret order comes
  * off, and one instance of its number leaves the numbers left (a deck may repeat a number). If that
  * leaves two cards, the deck is rebuilt straight away as a shuffle, with the game's generator, of its full
- * contents sorted ascending. Edits `state`, apply's working copy, in place, like enterEra.
+ * contents sorted ascending. Edits `state`, apply's working copy, in place, like enterEra. No ability applies: the
+ * crisis draw uses this (escalation.ts).
  */
-export function drawContingency(state: GameState, deck: DeckId, events: GameEvent[]): number {
+export function drawPlain(state: GameState, deck: DeckId, events: GameEvent[]): number {
   const open = state.public.contingency[deck];
   // A deck always holds 3 or more cards: createGame checks the setup, and a reshuffle refills it.
   const [top, ...rest] = state.secret.contingency[deck] as [number, ...number[]];
@@ -98,4 +100,15 @@ export function drawContingency(state: GameState, deck: DeckId, events: GameEven
     events.push({ kind: "contingencyDeckReshuffled", visibility: "public", deck });
   }
   return top;
+}
+
+/**
+ * Draws a contingency from `deck` as drawPlain does, except that a 1 from a side's own deck, while that side's
+ * Resilient institutions has a use left this turn, is set aside (it stays drawn) and the side draws again. A redraw
+ * that shows a 1 is set aside too while a use is left; the uses this turn (perTurn) bound the loop.
+ */
+export function drawContingency(state: GameState, deck: DeckId, events: GameEvent[]): number {
+  let value = drawPlain(state, deck, events);
+  while (takeRedraw(state, deck, value, events)) value = drawPlain(state, deck, events);
+  return value;
 }

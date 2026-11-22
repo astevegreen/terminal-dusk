@@ -73,15 +73,15 @@ describe("Resilient institutions", () => {
   });
 
   it("does not apply to a crisis draw, which does not use it up", () => {
-    const s = working("lio", [1, 4, 2, 5, 3, 6], mapSetup());
+    const s = working("lio", [1, 1, 4, 2, 5, 3], mapSetup());
     s.public.escalation = 5;
     const events: GameEvent[] = [];
     raiseEscalation(s, 1, "lio", events);
     expect(drawn(events)).toEqual(["lio:1"]);
     expect(events).toContainEqual({ kind: "escalationCrisis", visibility: "public", side: "lio", value: 1 });
     expect(s.public.abilities!.lio).toMatchObject({ used: 0 });
-    expect(drawContingency(s, "lio", [])).toBe(2);
-    expect(s.public.abilities!.lio).toMatchObject({ used: 0 });
+    expect(drawContingency(s, "lio", [])).toBe(4);
+    expect(s.public.abilities!.lio).toMatchObject({ used: 1 });
   });
 
   it("a game without abilities draws a 1 as it is", () => {

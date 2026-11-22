@@ -3,7 +3,7 @@
 // cards never set it up; it resets at turn end; a card's own spendPoints step is not a card played for points.
 import { describe, expect, it } from "vitest";
 import { createGame } from "./index.ts";
-import type { CardId, GameEvent, GameState, Ruleset, Setup, SideAbility } from "./index.ts";
+import type { AbilityState, CardId, GameEvent, GameState, Ruleset, Setup, SideAbility } from "./index.ts";
 import { rulesetError } from "./cardChecks.ts";
 import { accepted, applied, makeSetup, orderAnswer, playAnswer, playAnswers, ruleset, sideCard } from "./test/game.ts";
 import { withCards } from "./test/game.ts";
@@ -27,7 +27,7 @@ function start(playsPerTurn = 2, rs: Ruleset = ruleset, extra: { sae?: CardId[] 
 }
 
 const spent = (events: readonly GameEvent[]) => events.flatMap((e) => (e.kind === "pointsSpent" ? [e.amount] : []));
-const command = (state: GameState) => state.public.abilities!.sae;
+const command = (state: GameState) => state.public.abilities!.sae as Extract<AbilityState, { id: "unifiedCommand" }>;
 
 describe("Unified command", () => {
   it("starts not ready and unused, and an SAE opening card's event does not set it up", () => {
@@ -35,7 +35,8 @@ describe("Unified command", () => {
   });
 
   it("an SAE card played for its event makes the next SAE card played for points count 1 more", () => {
-    let s = accepted(start(), playAnswer(start(), "lio", "l2", "points"));
+    // Three plays a turn, so SAE's second play is not the turn's last, whose end would reset the count.
+    let s = accepted(start(3), playAnswer(start(3), "lio", "l2", "points"));
     const ready = applied(s, playAnswer(s, "sae", "s2", "event"));
     expect(ready.events).toContainEqual({ kind: "abilityReady", visibility: "public", side: "sae" });
     expect(command(ready.state).ready).toBe(true);
@@ -75,7 +76,7 @@ describe("Unified command", () => {
 
   it("a spendPoints step in a card's event is not a card played for points and leaves it ready", () => {
     const rs = withCards(sideCard("s3", 1, [{ op: "spendPoints", side: "sae", amount: 2 }]));
-    let s = start(2, rs);
+    let s = start(3, rs);
     s = accepted(s, playAnswer(s, "lio", "l2", "points"), rs);
     s = accepted(s, playAnswer(s, "sae", "s2", "event"), rs);
     s = accepted(s, playAnswer(s, "lio", "l3", "points"), rs);

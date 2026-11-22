@@ -1,4 +1,5 @@
 // The setup's types: what createGame starts a game from. types.ts re-exports them, so index.ts exports the same names.
+import type { SideAbility } from "./abilityTypes.ts";
 import type { DeckId } from "./contingencyTypes.ts";
 import type { SetupMap } from "./mapTypes.ts";
 import type { CardId, EraId, Side } from "./types.ts";
@@ -36,4 +37,6 @@ export type Setup = {
   contingency: Record<DeckId, number[]>;
   /** The map and each side's starting influence (mapChecks.ts). None when left out: the game has no map. */
   map?: SetupMap;
+  /** Each side's special ability, named by the scenario (abilities.ts). None when left out. */
+  abilities?: Record<Side, SideAbility>;
 };

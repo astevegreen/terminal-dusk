@@ -7,6 +7,7 @@
 // With only placing possible it starts at once; with nothing possible the points are lost and the program runs on.
 // Points spent at turn end only place influence (Turn-end-place: owner, 28 Oct, #426). A card played for its points
 // may instead make a tech race attempt (techRace.ts), which drops a rival card's event still to come.
+import { takeCommandBonus } from "./abilities.ts";
 import { newActionDecision } from "./decisions.ts";
 import { affordable, reachable, realignTargets } from "./influence.ts";
 import { intervene, interveneTargets } from "./intervening.ts";
@@ -33,7 +34,8 @@ const invalidProgram = (message: string): EngineError => ({ code: "invalidProgra
  */
 export function runSpendPoints(state: GameState, frame: Frame, step: SpendStep, events: GameEvent[]): "ran" | "paused" {
   const { side } = step;
-  const amount = opsValue(state, { ops: step.amount }, side);
+  // Unified command adds its bonus after the modifiers; pointsSpent shows the total.
+  const amount = opsValue(state, { ops: step.amount }, side) + takeCommandBonus(state, step, events);
   events.push({ kind: "pointsSpent", visibility: "public", side, amount });
   if (state.public.turnEndFired) return offerPlacement(state, frame, side, amount, reachable(state.public, side));
   const canPlace = affordable(state.public, side, reachable(state.public, side), amount).length > 0;
