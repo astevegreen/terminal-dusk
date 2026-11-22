@@ -30,9 +30,11 @@ medium`, in 50-game batches). Recheck both tiers when the cards' rewording or th
 
 ## Tests and tooling
 
-- The rules-text numbers check (`packages/content/src/rulesNumbers.test.ts`, #584) compares each kind's distinct numbers,
-  not which side or branch each belongs to: text giving LIO's "2 fewer" to SAE and SAE's "1 fewer" to LIO would pass.
-  Tying each number to its side and branch would close that gap. [21 Nov 2026, #584 review]
+- `packages/content/src/rulesSpends.test.ts` (#606) ties spends and Ops swings to their side and branch, but the other
+  numbers `rulesNumbers.test.ts` reads (swing floors, Contingency thresholds, Escalation moves, cards discarded) are
+  still compared as distinct sets only. e3-sae-003 is checked as a set, so its branches aren't tied (pairing the data's
+  "if marker" and "if LIO played" before comparing would close it), and an `if` whose branches spend the same counts
+  once, so text naming that spend in one branch only would pass. [22 Nov 2026, reviewer and agy on #606]
 - `pnpm gate`'s quick fuzz failed once in `tests/fuzz/extraSteps.test.ts`: "Extra-steps game 188 ... failed at answer
   27: the view for 'sae' shows sae's Contingency deck with a count left that is not the secret order's"
   (`tests/fuzz/checks.ts:256`, `checkNoLeaks`). Each game is seeded from its number, yet the next gate and three
