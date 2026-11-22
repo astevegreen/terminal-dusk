@@ -9,6 +9,7 @@ import { started } from "./test/play.ts";
 const OPS: Record<string, number> = { a: 3, b: 1, c: 2, d: 1 };
 const COST: Record<string, number> = { x: 2, y: 1, z: 1 };
 const costs: Costs = { opsOf: (card) => OPS[card] ?? 0, costOf: (country) => COST[country] ?? 0 };
+const play = (card: string, as: "event" | "points"): AnswerValue => ({ kind: "playCardAs", card, as });
 
 describe('chooseDefault: one answer per Decision kind (owner, 21 Nov 2026: "Take all")', () => {
   it("extraPlay: pass", () => {
@@ -72,22 +73,18 @@ describe('chooseDefault: one answer per Decision kind (owner, 21 Nov 2026: "Take
   });
 
   it("playCardAs: the card with the fewest points, played for its points", () => {
-    const legal: AnswerValue[] = [
-      { kind: "playCardAs", card: "a", as: "event" },
-      { kind: "playCardAs", card: "a", as: "points" },
-      { kind: "playCardAs", card: "d", as: "event" },
-      { kind: "playCardAs", card: "d", as: "points" },
-      { kind: "playCardAs", card: "b", as: "points" },
+    const legal = [
+      play("a", "event"),
+      play("a", "points"),
+      play("d", "event"),
+      play("d", "points"),
+      play("b", "points"),
     ];
-    expect(chooseDefault("playCardAs", legal, costs)).toEqual({ kind: "playCardAs", card: "d", as: "points" });
+    expect(chooseDefault("playCardAs", legal, costs)).toEqual(play("d", "points"));
   });
 
   it("playCardAs with no play for points offered: the cheapest legal play, never null", () => {
-    const legal: AnswerValue[] = [
-      { kind: "playCardAs", card: "a", as: "event" },
-      { kind: "playCardAs", card: "d", as: "event" },
-    ];
-    expect(chooseDefault("playCardAs", legal, costs)).toEqual({ kind: "playCardAs", card: "d", as: "event" });
+    expect(chooseDefault("playCardAs", [play("a", "event"), play("d", "event")], costs)).toEqual(play("d", "event"));
   });
 
   it("discardCards: the cards with the fewest points (from either hand: the list is the engine's)", () => {
