@@ -70,7 +70,9 @@ And:
 | Credit          | bottom-right corner, small            |                       | "Blue Marble imagery: NASA Earth Observatory"                                                   |
 
 The map fits itself into the space between the top bar and the hand strip, so "Whole map" shows every country; the
-picture runs on under the see-through bars to the screen's edges.
+picture runs on under the see-through bars to the screen's edges. On a short screen (500 px tall or less) the
+Details panel is a little wider, 58% of the width, so each Contingency deck and each special ability takes one line
+and nothing scrolls inside it (#602).
 
 ### A phone, your turn, nothing open
 
