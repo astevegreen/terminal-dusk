@@ -2,7 +2,7 @@
 // Supabase. It polls the caller's own frame and events from the client-readable rows, posts answers to the
 // submit function, and tells the seen function when a turn that waits for the caller has been shown. Everything it talks to is passed in, so it holds no URL, key, token or platform code.
 import type { Viewer } from "@terminal-dusk/engine";
-import type { Frame } from "@terminal-dusk/host";
+import type { Frame, StandInRun } from "@terminal-dusk/host";
 import type { MatchTransport, SubmitResult, TransportError, TransportStatus } from "./matchTransport.ts";
 import { isSignedOutRefusal, postSeen, postSubmission, readEvents, readFrame, readSeats } from "./remoteHttp.ts";
 import type { Endpoint, FetchLike, Seats } from "./remoteHttp.ts";
@@ -120,7 +120,18 @@ export function createRemoteMatch(options: RemoteMatchOptions): MatchTransport {
       if (!subscribers.has(s)) continue;
       const from = s.last ?? -1;
       s.last = frame.seq;
-      s.onFrame({ ...frame, events: steps.filter((step) => step.seq > from).flatMap((step) => step.events) });
+      const mine = steps.filter((step) => step.seq > from);
+      const standInRuns: StandInRun[] = [];
+      let start = 0;
+      for (const step of mine) {
+        if (step.standIn !== null && step.events.length > 0) {
+          standInRuns.push({ side: step.standIn, start, count: step.events.length });
+        }
+        start += step.events.length;
+      }
+      const delivered: Frame = { ...frame, events: mine.flatMap((step) => step.events) };
+      if (standInRuns.length > 0) delivered.standInRuns = standInRuns;
+      s.onFrame(delivered);
       given = true;
     }
     if (given) tellSeen(frame, viewer, t);

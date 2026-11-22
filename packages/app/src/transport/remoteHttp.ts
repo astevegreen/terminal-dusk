@@ -1,7 +1,7 @@
 // The online transport's HTTP side (docs/architecture.md, Decision 5): the client-readable rows it reads
 // through Supabase's REST endpoints, and the submit and seen functions it posts to. Plain `fetch`, injected,
 // so tests need no network; nothing here holds a URL, key or token of its own.
-import type { GameEvent, Viewer } from "@terminal-dusk/engine";
+import type { GameEvent, Side, Viewer } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 
 /** The part of a fetch reply the transport uses. A real `Response` has it. */
@@ -19,7 +19,7 @@ export type Endpoint = { url: string; anonKey: string; matchId: string; fetch: F
 export type Seats = { lio: string; sae: string };
 
 /** The events of one step, as one viewer may see them. */
-export type StepEvents = { seq: number; events: GameEvent[] };
+export type StepEvents = { seq: number; events: GameEvent[]; standIn: Side | null };
 
 const headers = (anonKey: string, token: string | null): Record<string, string> => ({
   apikey: anonKey,
@@ -84,7 +84,7 @@ export async function readEvents(
   upTo: number,
 ): Promise<StepEvents[]> {
   const rows = await select(e, token, "match_event", [
-    "select=seq,events",
+    "select=seq,events,stand_in",
     matchFilter(e),
     `viewer=eq.${viewer}`,
     `seq=gt.${after}`,
@@ -96,7 +96,8 @@ export async function readEvents(
     if (!isObject(row) || typeof row.seq !== "number" || !Array.isArray(row.events)) {
       throw new Error("read match_event: bad row");
     }
-    if (row.seq > after && row.seq <= upTo) steps.push({ seq: row.seq, events: row.events as GameEvent[] });
+    const standIn = row.stand_in === "lio" || row.stand_in === "sae" ? row.stand_in : null;
+    if (row.seq > after && row.seq <= upTo) steps.push({ seq: row.seq, events: row.events as GameEvent[], standIn });
   }
   return steps.sort((a, b) => a.seq - b.seq);
 }

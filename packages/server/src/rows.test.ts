@@ -20,7 +20,7 @@ const MATCH_FIELDS = [
   "updated_at",
 ];
 const VIEW_FIELDS = ["frame", "match_id", "seq", "viewer"];
-const EVENT_FIELDS = ["events", "match_id", "seq", "viewer"];
+const EVENT_FIELDS = ["events", "match_id", "seq", "stand_in", "viewer"];
 const keys = (row: object) => Object.keys(row).sort();
 
 describe("rowsFor: one commit becomes one match row, three view rows and three event rows", () => {
@@ -61,8 +61,24 @@ describe("rowsFor: one commit becomes one match row, three view rows and three e
     for (const row of rows.views)
       expect(row).toEqual({ match_id: MATCH, viewer: row.viewer, seq: 0, frame: start.frames[row.viewer] });
     for (const row of rows.events) {
-      expect(row).toEqual({ match_id: MATCH, seq: 0, viewer: row.viewer, events: start.frames[row.viewer].events });
+      expect(row).toEqual({
+        match_id: MATCH,
+        seq: 0,
+        viewer: row.viewer,
+        events: start.frames[row.viewer].events,
+        stand_in: null,
+      });
     }
+  });
+
+  it("a stand-in step (#605): all three event rows name the covered side, and nothing else is added", () => {
+    const start = created();
+    const frames = Object.fromEntries(
+      Object.entries(start.frames).map(([viewer, frame]) => [viewer, { ...frame, standIn: "sae" }]),
+    ) as typeof start.frames;
+    const rows = rowsFor({ record: start.record, frames });
+    for (const row of rows.events) expect(row.stand_in).toBe("sae");
+    for (const row of rows.events) expect(keys(row)).toEqual(EVENT_FIELDS);
   });
 
   it("it never reads the secret: a commit whose secret cannot be touched still gives the same rows", () => {

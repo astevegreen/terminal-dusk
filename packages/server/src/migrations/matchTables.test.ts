@@ -29,7 +29,7 @@ const COLUMNS: Record<Table, string[]> = {
   ],
   match_secret: ["match_id", "secret"],
   match_view: ["match_id", "viewer", "seq", "frame"],
-  match_event: ["match_id", "seq", "viewer", "events"],
+  match_event: ["match_id", "seq", "viewer", "events", "stand_in"],
 };
 const ORDER: Record<Table, string[]> = {
   match: ["match_id"],

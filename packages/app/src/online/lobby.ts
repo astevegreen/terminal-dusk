@@ -28,7 +28,7 @@ function sideMode(v: unknown): SideMode | null {
 
 function deadline(v: unknown): MatchDeadline | null {
   if (!isObject(v)) return null;
-  if (v.rule !== "lossOnTime" && v.rule !== "graceThenLoss") return null;
+  if (v.rule !== "lossOnTime" && v.rule !== "graceThenLoss" && v.rule !== "defaultAnswer") return null;
   if (v.days !== 1 && v.days !== 3 && v.days !== 7) return null;
   return { rule: v.rule, days: v.days };
 }

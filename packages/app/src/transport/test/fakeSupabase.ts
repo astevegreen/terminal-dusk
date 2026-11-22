@@ -2,7 +2,7 @@
 // `fetch`. Reads follow the O2 read rule (the spectator rows for anyone, a side's rows only for its player);
 // the submit function answers like O4b and the seen function like O8e. Every request is recorded so tests can
 // check what was asked.
-import type { Ruleset, Seed, Viewer } from "@terminal-dusk/engine";
+import type { Ruleset, Seed, Side, Viewer } from "@terminal-dusk/engine";
 import { hostCreate, hostSubmit } from "@terminal-dusk/host";
 import type { HostResult, MatchConfig, Submission } from "@terminal-dusk/host";
 import type { FetchLike, FetchReply } from "../remoteHttp.ts";
@@ -19,7 +19,7 @@ export type FakeRequest = {
   body: unknown;
 };
 
-type EventRow = { match_id: string; seq: number; viewer: Viewer; events: unknown[] };
+type EventRow = { match_id: string; seq: number; viewer: Viewer; events: unknown[]; stand_in: string | null };
 
 const VIEWERS: readonly Viewer[] = ["lio", "sae", "spectator"];
 const STATUS: Record<string, number> = { notPlayer: 403, staleSeq: 409 };
@@ -42,6 +42,8 @@ export type FakeSupabase = {
   current(): HostResult;
   /** Applies a submission straight to the match, as another client's accepted answer would. */
   commit(submission: Submission): void;
+  /** Marks the event rows of the next committed step as played for `side` (#605), as a stand-in commit's are. */
+  markNextStandIn(side: Side): void;
   /** Makes the next request fail: thrown like a network error, or answered with this error status. */
   failNext(mode: "throw" | number): void;
   /**
@@ -69,11 +71,19 @@ export function createFakeSupabase(
   const failures: ("throw" | number)[] = [];
   let seenFailure: "throw" | "never" | number | null = null;
   let gate: Promise<void> | null = null;
+  let standInNext: Side | null = null;
 
   const record = (h: HostResult): void => {
     for (const viewer of VIEWERS) {
-      eventRows.push({ match_id: config.matchId, seq: h.record.seq, viewer, events: copy(h.frames[viewer].events) });
+      eventRows.push({
+        match_id: config.matchId,
+        seq: h.record.seq,
+        viewer,
+        events: copy(h.frames[viewer].events),
+        stand_in: standInNext ?? h.frames[viewer].standIn ?? null,
+      });
     }
+    standInNext = null;
   };
   record(current);
 
@@ -188,6 +198,9 @@ export function createFakeSupabase(
     commit(submission) {
       const outcome = apply(submission);
       if (!outcome.ok) throw new Error(`fake commit refused: ${outcome.error.code}`);
+    },
+    markNextStandIn(side) {
+      standInNext = side;
     },
     failNext(mode) {
       failures.push(mode);

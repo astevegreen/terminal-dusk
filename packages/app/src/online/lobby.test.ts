@@ -44,6 +44,7 @@ describe("createGame", () => {
       { rule: "graceThenLoss", days: 7 },
     ],
     [{ mode: "invitee" }, { rule: "lossOnTime", days: 3 }],
+    [{ mode: "random" }, { rule: "defaultAnswer", days: 3 }],
   ])("sends every side mode and deadline as given (%j, %j)", async (sides, deadline) => {
     const fake = createFakeLobby();
     fake.answerNext({ status: 200, body: { ok: true, code: "ABCDEF" } });

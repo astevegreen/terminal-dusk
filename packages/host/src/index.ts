@@ -9,6 +9,7 @@ export type { Entitlement, Platform } from "./entitlement.ts";
 export type {
   DeadlineRule,
   Frame,
+  StandInRun,
   HostEffect,
   HostError,
   HostErrorCode,

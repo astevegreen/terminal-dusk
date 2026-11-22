@@ -181,3 +181,32 @@ describe("remote transport: subscribers", () => {
     expect(r.fake.requests.length).toBe(before);
   });
 });
+
+describe("remote transport: stand-in steps (#605)", () => {
+  it("marks the events of a step the host played for a late side, and only those, in the merged frame", async () => {
+    const r = rig();
+    const seen = watch(r.transportAs("bob"));
+    await settle();
+    const [plain] = moveOnServer(r, 1, "sae");
+    // Cover steps until one of them has events (a step can have none), so the marking is really tested.
+    const covered: GameEvent[] = [];
+    for (let i = 0; i < 30 && covered.length === 0; i++) {
+      r.fake.markNextStandIn("lio");
+      covered.push(...moveOnServer(r, 1, "sae")[0]!);
+    }
+    await nextPoll(r);
+    const last = seen.frames[seen.frames.length - 1]!;
+    expect(last.events).toEqual([...plain!, ...covered]);
+    expect(covered.length).toBeGreaterThan(0);
+    expect(last.standInRuns).toEqual([{ side: "lio", start: plain!.length, count: covered.length }]);
+  });
+
+  it("a frame with no stand-in step carries no standInRuns", async () => {
+    const r = rig();
+    const seen = watch(r.transportAs("alice"));
+    await settle();
+    moveOnServer(r, 1, "lio");
+    await nextPoll(r);
+    expect(seen.frames[seen.frames.length - 1]!.standInRuns).toBeUndefined();
+  });
+});
