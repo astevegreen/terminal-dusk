@@ -1,8 +1,8 @@
 // A passed deadline: the server's deadline job (never a player) asks the host to apply the match's
 // deadline rule (architecture Decision 5, "Deadlines", and the product call on missed deadlines).
-import { SIDES } from "@terminal-dusk/engine";
+import { pendingFor, SIDES } from "@terminal-dusk/engine";
 import type { Ruleset, Side } from "@terminal-dusk/engine";
-import { deadlineEffects, hasGrace, isLate, lengthOf, validClock } from "./clock.ts";
+import { deadlineEffects, hasGrace, isCovered, isLate, lengthOf, validClock } from "./clock.ts";
 import { copyJson, framesFor } from "./frames.ts";
 import { badTime } from "./hostAccept.ts";
 import { standIn } from "./hostStandIn.ts";
@@ -15,7 +15,8 @@ import type { HostError, HostOutcome, MatchClock, MatchRecord, MatchSecret } fro
  * the same); a late side without one loses on time through hostTimeout. When both sides are late and
  * neither has an extension left (always so under lossOnTime), the game ends in a draw on time through
  * hostTimeout with "both". Under "defaultAnswer" the host instead answers for the late side for the rest of
- * the turn (hostStandIn.ts); both sides late at once is that draw, covered or not.
+ * the turn (hostStandIn.ts); both sides late at once is that draw, covered or not, and so is one side late
+ * while the other was played for this turn and has nothing waiting (#605).
  * Refuses invalidTime like hostSubmit, gameOver for a finished game, and notDue
  * when the match has no clock or nobody is late. It never throws, and never changes its inputs.
  */
@@ -31,6 +32,11 @@ export function hostDeadline(ruleset: Ruleset, record: MatchRecord, secret: Matc
     // Both sides late at once is a draw, whether or not one was already covered (owner, question 6 of the
     // proposal, #605). The engine records that draw only while both have a decision waiting, as here.
     if (late.length > 1) return hostTimeout(ruleset, record, secret, "both", now);
+    const other = SIDES.find((side) => side !== late[0])!;
+    // One late while the other was played for this turn and waits on nothing: also a draw (owner, 22 Nov 2026).
+    if (isCovered(clock, other, secret.state) && pendingFor(secret.state, other) === null) {
+      return hostTimeout(ruleset, record, secret, "both", now, other);
+    }
     return standIn(ruleset, record, secret, clock, late[0]!, now);
   }
   const losers = late.filter((side) => !hasGrace(clock, side));

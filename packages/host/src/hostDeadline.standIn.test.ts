@@ -113,11 +113,19 @@ describe("defaultAnswer rule: both sides late", () => {
     expect(next.record.status).toEqual({ kind: "over", winner: null, reason: "timeout" });
   });
 
-  it("a side covered earlier this turn with nothing waiting: the other side's lapse is answered, not drawn", () => {
-    // Owner question raised on #605: a draw here needs an engine change; until then the stand-in answers.
+  it("a side covered earlier this turn with nothing waiting, then the other side late: a draw on time", () => {
+    // Owner, 22 Nov 2026, in chat: "Yes, a draw" (#605).
     const host = lioToPlay("defaultAnswer");
     expect(pendingFor(host.secret.state, "sae")).toBeNull();
     const covered = withClock(host, { covering: { lio: null, sae: turnOf(host) } });
+    const next = swept(deepFreeze(covered), LIO_DUE);
+    expect(next.record.status).toEqual({ kind: "over", winner: null, reason: "timeout" });
+    expect(next.secret.log[next.secret.log.length - 1]).toEqual({ system: "timeout", side: "both", covered: "sae" });
+  });
+
+  it("the late side itself covered this turn, the other with nothing waiting: answered again, not drawn", () => {
+    const host = lioToPlay("defaultAnswer");
+    const covered = withClock(host, { covering: { lio: turnOf(host), sae: null } });
     const next = swept(covered, LIO_DUE);
     expect(next.record.status.kind).toBe("active");
     expect(next.frames.spectator.standIn).toBe("lio");

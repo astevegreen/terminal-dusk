@@ -70,12 +70,16 @@ const namesSide = (answer: Answer): boolean =>
 
 // Resign and timeout both end the game at once: the other side wins, and nothing is left open.
 // A timeout is the host's deadline job saying `side` was late, so `side` must be the one being waited for.
-// A timeout for "both" is both sides missing one simultaneous pick that neither has made: a draw.
+// A timeout for "both" is a draw: both sides missed one simultaneous pick, or the host names in `covered` a side it
+// played for this turn that has nothing waiting while the other side is late (#605).
 function applySystem(state: GameState, answer: Extract<Answer, { system: string }>): Applied {
   let reason: string;
   if (answer.system === "resign") reason = "resigned";
   else if (answer.system === "timeout") {
-    const waiting = answer.side === "both" ? bothWaiting(state) : pendingFor(state, answer.side) !== null;
+    const waiting =
+      answer.side === "both"
+        ? bothWaiting(state) || coveredDraw(state, "covered" in answer ? answer.covered : undefined)
+        : pendingFor(state, answer.side) !== null;
     if (!waiting) return fail("wrongSide", "The game is not waiting for that side.");
     reason = "timeout";
   } else return fail("notSupported", `The ${String(answer.system)} answer is not supported yet.`);
@@ -99,4 +103,11 @@ function bothWaiting(state: GameState): boolean {
     lio.simultaneousGroup !== undefined &&
     lio.simultaneousGroup === sae.simultaneousGroup
   );
+}
+
+/** True when `covered` is a side with nothing waiting and the other side has a decision waiting. */
+function coveredDraw(state: GameState, covered: unknown): boolean {
+  if (!SIDES.includes(covered as Side)) return false;
+  const side = covered as Side;
+  return pendingFor(state, side) === null && pendingFor(state, otherSide(side)) !== null;
 }

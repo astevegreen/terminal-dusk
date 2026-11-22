@@ -72,8 +72,12 @@ export type AnswerValue =
   | { kind: "realign"; country: CountryId | null }
   /** Hypersonics' extra play not made. */
   | { kind: "pass" };
-/** A timeout naming "both" is a simultaneous pick missed by both sides: a draw. */
+/**
+ * A timeout naming "both" is a draw: a simultaneous pick missed by both sides, or, with `covered`, the host's word
+ * that it played for that side this turn (deadline rule "defaultAnswer") and the other side is now late too.
+ */
 export type Answer =
   | { decisionId: string; side: Side; value: AnswerValue }
-  | { system: "timeout"; side: Side | "both" }
+  | { system: "timeout"; side: Side }
+  | { system: "timeout"; side: "both"; covered?: Side }
   | { system: "resign" | "adjudicate"; side: Side };
