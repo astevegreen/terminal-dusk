@@ -1,4 +1,4 @@
-// `node tools/balance/run.mjs [--scenario <first-deck|test-map|six-region>] [--games <n>] [--seed <base>]
+// `node tools/balance/run.mjs [--scenario <first-deck|test-map|six-region|2025-2027>] [--games <n>] [--seed <base>]
 // [--turns <n>] [--plays <n>] [--era <id>@<turn|off>] [--numbers <file>] [--json]`: plays n seeded Easy-vs-Easy
 // games of the chosen scenario (by default the first deck's base game) and prints results by side, per-card
 // statistics, per-era card use and, on a scenario with a map, the map numbers and the region levels at each era's
@@ -12,7 +12,7 @@ import { formatText } from "./report.mjs";
 import { balanceStats } from "./stats.mjs";
 
 export const USAGE =
-  "Usage: node tools/balance/run.mjs [--scenario <first-deck, test-map or six-region>] " +
+  "Usage: node tools/balance/run.mjs [--scenario <first-deck, test-map, six-region or 2025-2027>] " +
   "[--games <positive whole number>] [--seed <base>] [--turns <positive whole number>] " +
   "[--plays <positive whole number>] [--era <era id>@<positive whole number or off>]... [--numbers <file>] [--lio-tier <easy, medium or hard>] [--sae-tier <easy, medium or hard>] [--json]";
 const DEFAULTS = { games: 200, seed: "balance", json: false };
@@ -115,6 +115,8 @@ export function sumBySide(summaries, key) {
 }
 
 const SCENARIO_TITLES = {
+  "2025-2027":
+    "the 2025-2027 game on the six-region map (11 turns, the future cards on turn 11: a smoke check, not a verdict on balance)",
   "first-deck": "first deck, the base game",
   "test-map": "test-map scenario (a made-up test map, not the game's map: a smoke check, not a verdict on balance)",
   "six-region":

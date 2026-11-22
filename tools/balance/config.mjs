@@ -4,13 +4,13 @@
 // files, the hand size and the cards do not. The game rules about eras (turn 2 or later, not after the last turn,
 // one era per turn) stay with the host.
 import { scenarioSetup, SIX_REGION_MAP_SCENARIO, TEST_MAP_SCENARIO } from "@terminal-dusk/content";
-import { firstDeckConfig, firstDeckRuleset } from "@terminal-dusk/host/first-deck";
+import { firstDeckConfig, firstDeckRuleset, scenario2025To2027Config } from "@terminal-dusk/host/first-deck";
 import { applyNumbers } from "./numbers.mjs";
 
 /** The first era: its cards are in the draw pile from turn 1, so it cannot be moved or left out. */
 export const FIRST_ERA = "era-1";
 /** The scenarios a run can play, the default first. */
-export const SCENARIOS = ["first-deck", "test-map", "six-region"];
+export const SCENARIOS = ["first-deck", "test-map", "six-region", "2025-2027"];
 export const DEFAULT_SCENARIO = SCENARIOS[0];
 
 /**
@@ -19,11 +19,13 @@ export const DEFAULT_SCENARIO = SCENARIOS[0];
  * base game's (content's scenarioSetup); that scenario has no later eras, so only Era 1 cards play. "six-region" is
  * the first deck's config with the six-region map scenario's own numbers, map and starting influence; it keeps the
  * first deck's eras (their cards and arrival turns), since the map scenario has a battleground list for each of
- * them but no cards of its own.
+ * them but no cards of its own. "2025-2027" is the host's config for that game (#601): 11 turns, the future cards on
+ * turn 11, on the six-region map.
  */
 export function scenarioConfig(scenario = DEFAULT_SCENARIO) {
   const config = firstDeckConfig();
   if (scenario === "first-deck") return config;
+  if (scenario === "2025-2027") return scenario2025To2027Config();
   const { hands, deck, eras } = config.setup;
   if (scenario === "six-region") {
     const setup = { hands, deck, ...scenarioSetup(SIX_REGION_MAP_SCENARIO), eras };

@@ -7,7 +7,7 @@ import { playBalanceGame, SIDES, TIERS } from "./play.mjs";
 
 export const USAGE =
   "Usage: node tools/balance/arena.mjs [--a <easy, medium or hard>] [--b <easy, medium or hard>] " +
-  "[--games <positive whole number>] [--seed <base>] [--scenario <first-deck, test-map or six-region>] [--json]";
+  "[--games <positive whole number>] [--seed <base>] [--scenario <first-deck, test-map, six-region or 2025-2027>] [--json]";
 const DEFAULTS = { a: "medium", b: "easy", games: 100, seed: "arena", scenario: "six-region", json: false };
 const VALUED = new Set(["--a", "--b", "--games", "--seed", "--scenario"]);
 const WHOLE = /^[1-9]\d*$/;

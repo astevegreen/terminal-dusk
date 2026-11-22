@@ -14,6 +14,7 @@ verdict on the design.
 node tools/balance/run.mjs --scenario first-deck   # the first deck's base game (the same as no --scenario)
 node tools/balance/run.mjs --scenario test-map     # the made-up test map (packages/content/scenarios/test-map.json)
 node tools/balance/run.mjs --scenario six-region   # the six-region map (packages/content/scenarios/six-region-map.json)
+node tools/balance/run.mjs --scenario 2025-2027    # the optional 2025-2027 game: 11 turns, future cards on turn 11
 ```
 
 - `first-deck` (the default) prints the same report as no `--scenario`.
@@ -27,6 +28,8 @@ node tools/balance/run.mjs --scenario six-region   # the six-region map (package
   each era but no cards of its own). The scenario itself has no scoring, so by default its report is a smoke check
   of influence and control; a `--numbers` file with a `scoring` block adds the score track and the Score section.
   Either way it is not a verdict on balance, and its first line says so.
+- `2025-2027` plays the optional 2025-2027 game (#601) as the host starts it: the six-region map, 11 turns, and
+  the future cards entering on turn 11. Like `six-region` its report is a smoke check, not a verdict on balance.
 - Any other value is refused with the allowed values and the usage line, and no game is played.
 
 ## Choosing each side's AI tier
@@ -130,7 +133,7 @@ node tools/balance/run.mjs --turns 3 --era era-2@2 --era era-3@off  # 3 turns, e
   that era's cards out of the game. Use it once per era. Eras you do not name keep the base game's turns
   (era-2 on turn 4, era-3 on turn 6), so a run with fewer turns must also move or leave out the later eras. era-1
   cannot be moved: its cards are always in from turn 1. The base game has no future era (the future cards belong
-  to the 2025-2027 game, which has no scenario yet), so `--era future@…` is refused.
+  to the 2025-2027 game, `--scenario 2025-2027`), so `--era future@…` is refused on the other scenarios.
 - A badly written value, an era named twice, era-1, or an era id the first deck does not have is refused with the
   usage line, and no game is played.
 - The game itself refuses some combinations: an era entering on turn 1 or after the last turn, or two eras on the

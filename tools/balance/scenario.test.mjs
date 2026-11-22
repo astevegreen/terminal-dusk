@@ -47,10 +47,26 @@ test("--scenario test-map plays the games on the test map scenario", () => {
   assert.equal(playBalanceGame("map", 0).map, null, "the first-deck game has no map");
 });
 
+test("--scenario 2025-2027 plays the 11-turn game with the future cards on the six-region map (#601)", () => {
+  const config = balanceConfig({ scenario: "2025-2027" });
+  assert.equal(parseArgs(["--scenario", "2025-2027"]).scenario, "2025-2027");
+  assert.deepEqual(eraIdsOf("2025-2027"), ["era-1", "era-2", "era-3", "future"]);
+  assert.deepEqual(setupNumbers(config, "2025-2027"), {
+    turns: 11,
+    playsPerTurn: 2,
+    eras: { "era-1": 1, "era-2": 4, "era-3": 6, future: 11 },
+  });
+  const game = playBalanceGame("future", 0, config);
+  assert.equal(game.status.kind, "over");
+  assert.notEqual(game.map, null);
+  const first = runBalance({ scenario: "2025-2027", games: 1, seed: "future" });
+  assert.match(reportTitle("2025-2027", "future", first.setup), /^Balance report, the 2025-2027 game/);
+});
+
 test("an unknown --scenario value exits with an error naming the allowed values and plays no game", () => {
   const r = balance("--games", "1", "--scenario", "real-map");
   assert.equal(r.status, 1);
-  assert.match(r.stderr, /--scenario must be one of first-deck, test-map, six-region, not "real-map"/);
+  assert.match(r.stderr, /--scenario must be one of first-deck, test-map, six-region, 2025-2027, not "real-map"/);
   assert.match(r.stderr, USAGE_LINE);
   assert.equal(r.stdout, "");
   assert.throws(() => parseArgs(["--scenario"]), /needs a value/);

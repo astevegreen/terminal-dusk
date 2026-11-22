@@ -17,14 +17,10 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   Medium is unmeasured at that start (`node tools/balance/run.mjs --scenario six-region --lio-tier medium --sae-tier
 medium`, in 50-game batches). Recheck both tiers when the cards' rewording or the AI changes, and retune
   `map.scoring.track.start` in `packages/content/scenarios/six-region-map.json`. [21 Nov 2026, #515 balance pass]
-- The 2025-2027 game (`packages/content/scenarios/2025-2027.json`, `SCENARIO_2025_2027`, #582) is data and tests
-  only: no host config (`packages/host/src/firstDeck.ts`) or app screen starts it, so no fuzz, AI, balance or vs-AI
-  game reaches the future cards yet; only their own card tests and the scenario's play-through test cover them.
-  Era 3's one scoring, at the end of turn 11, uses the map's `future` battleground list; only the six-region map is
-  checked to have it equal Era 3's, so the host config that starts this game needs the same check. [21 Nov 2026, #582]
 - `docs/design/map-and-points.md` ("Map numbers", Open) still says the scenario data has not been changed to the
   21 Nov rules; the scenario is `packages/content/scenarios/base-game.json` since #575. Fix it at the next Notion
   promotion. [21 Nov 2026, #575]
+- The 2025-2027 host config's refusal of a map whose `future` list is not Era 3's (`packages/host/src/firstDeck.ts`, `scenario2025To2027Config`) has no test that reaches it, since the config always uses the six-region map: let it take the map as a parameter and test a bad one. The balance tool can also get round it: `--numbers` can change only the `era-3` or only the `future` list, and `--era future@N` is accepted for `2025-2027` (`tools/balance/config.mjs`, `numbers.mjs`); re-run the check after those changes. [22 Nov 2026, #604 review]
 
 ## App, host and server
 
