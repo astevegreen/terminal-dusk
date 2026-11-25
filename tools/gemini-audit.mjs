@@ -92,10 +92,24 @@ function post(kind, number, text) {
   comment((args) => gh(...args), number, file);
 }
 
-// The answering model may be a Claude model (agy.mjs, ORDERS); the by-line names it. A note (agy lists a Gemini
-// model nobody has sorted, or none of the fast ones) ends the report.
-const report = (label, answer) =>
-  `**Gemini audit: ${label}**\n_${byLine(answer)}_\n\n${answer.response}${answer.note ? `\n\n_${answer.note}_` : ""}`;
+// The answering model may be a Claude model (agy.mjs, ORDERS); the by-line names it. The model-list note (agy lists
+// a Gemini model nobody has sorted, or none of the fast ones) is quoted under the by-line, line by line, so a note of
+// two lines stays two lines; YODC's and the course's audits post it the same way.
+export const report = (label, answer) =>
+  [
+    `**Gemini audit: ${label}**`,
+    `_${byLine(answer)}_`,
+    ...(answer.note
+      ? [
+          answer.note
+            .split("\n")
+            .map((line) => `> ${line}`)
+            .join("\n"),
+        ]
+      : []),
+    "",
+    answer.response,
+  ].join("\n");
 const skipped = (err) => `Gemini audit skipped: ${err.message}`;
 
 function issueText(n, ghRun = gh) {
