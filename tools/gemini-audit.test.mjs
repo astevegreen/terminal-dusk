@@ -4,7 +4,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
-import { auditPr, duePrs, pinnedIssueOf, specMaterial } from "./gemini-audit.mjs";
+import { auditPr, duePrs, pinnedIssueOf, report, specMaterial } from "./gemini-audit.mjs";
 import { ORDERS, buildPrompt } from "./gemini/agy.mjs";
 import { NO_API, apiPrompt } from "./gemini/gemini-api.mjs";
 import { verdictMarker } from "./gemini/rails.mjs";
@@ -216,4 +216,28 @@ test("a diff too long to send whole is cut with the line the Gemini API refuses,
   auditPr(7, whole.io);
   const readWhole = (file) => (file === "m.md" ? whole.calls.ask[0].material : "");
   assert.doesNotThrow(() => apiPrompt(buildPrompt("Review this.", "m.md"), readWhole, []));
+});
+
+// --- report: the comment the audit posts -------------------------------------------------------------------------
+
+const answer = (note) => ({
+  model: "gemini-4-hydrogen-high",
+  depth: "standard",
+  why: "x",
+  note,
+  response: "All clear.",
+});
+
+test("the model-list note is quoted under the by-line, one quoted line per line of the note", () => {
+  const comment = report("weekly", answer("New Gemini model in agy: gemini-5-helium-high.\nSecond line."));
+  assert.match(
+    comment,
+    /^_Gemini 4 Hydrogen.*_\n> New Gemini model in agy: gemini-5-helium-high\.\n> Second line\.\n\nAll clear\.$/m,
+  );
+});
+
+test("with no model-list note, the comment is the title, the by-line and the answer", () => {
+  const comment = report("weekly", answer(""));
+  assert.doesNotMatch(comment, /^>/m);
+  assert.match(comment, /^\*\*Gemini audit: weekly\*\*\n_Gemini 4 Hydrogen.*_\n\nAll clear\.$/);
 });
