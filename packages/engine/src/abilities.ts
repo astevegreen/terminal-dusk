@@ -2,9 +2,9 @@
 // event when one works. The setup names each side's ability and its number; nothing here fixes either side or number.
 // - Resilient institutions: up to `perTurn` times a turn, a draw from the side's own Contingency deck that shows a 1
 //   is set aside, as an ordinary draw, and the side draws again (contingency.ts); that second draw stands, even a 1. Never the crisis draw (owner,
-//   21 Nov 2026: "Take all"), which uses drawPlain and so neither triggers it nor uses it up. Outside card events,
-//   never the World deck. In a card's event it covers only a draw made for the side that played the card, from that
-//   side's own deck or the World deck standing in for it (contingency.ts, bonusSide; contingency-deck.md).
+//   21 Nov 2026: "Take all"), which uses drawPlain and so neither triggers it nor uses it up. Never the World deck.
+//   In a card's event it covers only a draw from the side's own deck in a card that side played (contingency.ts,
+//   bonusSide; contingency-deck.md).
 // - Unified command: after the side plays its own card for its event (turn.ts, play), the next card it plays for its
 //   points in the same turn counts `bonus` more (actionMenu.ts); then it is used for the turn, and a later event
 //   that turn does not set it up again. Opening cards never set it up.

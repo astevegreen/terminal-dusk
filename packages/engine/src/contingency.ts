@@ -104,10 +104,10 @@ export function drawPlain(state: GameState, deck: DeckId, events: GameEvent[]): 
 
 /**
  * The side whose draw bonuses apply to a `drawContingency` step (contingency-deck.md, "Whose bonuses apply").
- * In a card's event (the program has a `player`), the draw is made for the side whose deck the step names, or
- * for the player when a rival's card sends it to the World deck; the player's bonuses apply only to a draw made
- * for the player, and the other side's never do. With no player it is no card's event, and the deck's owner's
- * bonuses apply, as for any draw outside card events. Undefined when no side's apply.
+ * The World deck has no owner, so no side's apply to it. In a card's event (the program has a `player`), only the
+ * player's apply, and only to a draw from the player's own deck; the other side's never do (owner, 26 Nov 2026:
+ * "No redraw"). With no player it is no card's event, and the deck's owner's bonuses apply, as for any draw
+ * outside card events. Undefined when no side's apply.
  */
 export function bonusSide(
   named: Side | "player",
@@ -115,9 +115,8 @@ export function bonusSide(
 ): Side | undefined {
   const deck = deckFor(named, program);
   const player = program?.player;
-  if (player === undefined) return deck === "world" ? undefined : deck;
-  const madeFor = deck === "world" ? player : deck;
-  return madeFor === player ? player : undefined;
+  if (deck === undefined || deck === "world") return undefined;
+  return player === undefined || deck === player ? deck : undefined;
 }
 
 /**
