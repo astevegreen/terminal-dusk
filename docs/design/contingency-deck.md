@@ -54,6 +54,18 @@ decks. From now on this file is the source of truth; change it in Notion and pro
     that deck's reshuffle exactly like its owner's own draws, and players see it like any other draw
     (below). A neutral card drawing from the deck of the side that did not play it is not part of this rule.
 
+## Whose bonuses apply
+
+Owner, 26 Nov 2026, in chat (the question was left for later on 19 Oct).
+
+- **In a card's event, the bonuses of the side that played the card apply**, whichever deck the draw comes from:
+  that side's own, the rival's or the World deck. It is that side's play. The deck owner's bonuses do not apply
+  to a draw made in the rival's card play.
+- Today the only such bonus is LIO's Resilient institutions redraw (docs/design/sides.md); modifiers that change
+  a drawn number follow the same rule when they come.
+- Draws outside card events (interventions, realignments and their defending draws, the tech race) and crisis
+  draws keep their own rules.
+
 ## The World deck
 
 Owner, 19 Oct.
@@ -124,8 +136,5 @@ Owner, 19 Oct.
 
 - The exact card wording for a draw. A draw from the rival's deck uses a placeholder too, such as
   "draw a contingency from SAE's deck".
-- Once modifiers can change a drawn number: when a side's card draws from the rival's deck, whether that
-  side's bonuses apply (it is that side's event) or the deck owner's (owner, 19 Oct: decide later). The same
-  question applies to a World deck draw.
 - Backup idea from the Notion page, not adopted: if playtests show single misses still sting, a bad-luck token (each 1 drawn earns
   one, hold at most 2, spend one for +1 on a later draw).
