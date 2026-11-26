@@ -2,7 +2,9 @@
 // event when one works. The setup names each side's ability and its number; nothing here fixes either side or number.
 // - Resilient institutions: up to `perTurn` times a turn, a draw from the side's own Contingency deck that shows a 1
 //   is set aside, as an ordinary draw, and the side draws again (contingency.ts); that second draw stands, even a 1. Never the crisis draw (owner,
-//   21 Nov 2026: "Take all"), which uses drawPlain and so neither triggers it nor uses it up. Never the World deck.
+//   21 Nov 2026: "Take all"), which uses drawPlain and so neither triggers it nor uses it up. Outside card events,
+//   never the World deck. In a card's event it covers only a draw made for the side that played the card, from that
+//   side's own deck or the World deck standing in for it (contingency.ts, bonusSide; contingency-deck.md).
 // - Unified command: after the side plays its own card for its event (turn.ts, play), the next card it plays for its
 //   points in the same turn counts `bonus` more (actionMenu.ts); then it is used for the turn, and a later event
 //   that turn does not set it up again. Opening cards never set it up.
@@ -65,15 +67,22 @@ export const abilityState = (setup: Setup): { abilities?: Record<Side, AbilitySt
     : { abilities: { lio: startState(setup.abilities.lio), sae: startState(setup.abilities.sae) } };
 
 /**
- * True when the owner of `deck` has Resilient institutions left this turn and the draw showed a 1: the use is
- * counted and an abilityRedraw event says so, and the caller draws again. The World deck has no owner.
+ * True when `side`, the side whose bonuses apply to this draw from `deck` (none: no one's), has Resilient
+ * institutions left this turn and the draw showed a 1: the use is counted and an abilityRedraw event says so, and
+ * the caller draws again.
  */
-export function takeRedraw(state: GameState, deck: DeckId, value: number, events: GameEvent[]): boolean {
-  if (value !== REDRAWN || deck === "world") return false;
-  const ability = state.public.abilities?.[deck];
+export function takeRedraw(
+  state: GameState,
+  side: Side | undefined,
+  deck: DeckId,
+  value: number,
+  events: GameEvent[],
+): boolean {
+  if (value !== REDRAWN || side === undefined) return false;
+  const ability = state.public.abilities?.[side];
   if (ability?.id !== "resilientInstitutions" || ability.used >= ability.perTurn) return false;
   ability.used += 1;
-  events.push({ kind: "abilityRedraw", visibility: "public", side: deck, deck, setAside: value });
+  events.push({ kind: "abilityRedraw", visibility: "public", side, deck, setAside: value });
   return true;
 }
 

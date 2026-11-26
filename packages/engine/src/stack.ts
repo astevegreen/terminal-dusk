@@ -2,7 +2,7 @@
 // pending decision (or, for both sides at once, a simultaneous pair) and stops. The answer resumes
 // exactly where it stopped. A step budget per call (createGame or apply) stops runaway programs.
 import { notANumber, testCondition, unbound } from "./conditions.ts";
-import { deckFor, drawContingency } from "./contingency.ts";
+import { bonusSide, deckFor, drawWithBonus } from "./contingency.ts";
 import { copyJson } from "./copy.ts";
 import { newDecision, newGroup } from "./decisions.ts";
 import { resumeDiscard, runDiscard } from "./discardChoice.ts";
@@ -195,10 +195,11 @@ function runStep(state: GameState, frame: Frame, step: Step, events: GameEvent[]
     case "addToNumber":
       return runAddToNumber(state.public.stack, frame, step);
     case "drawContingency": {
-      const deck = deckFor(step.side, programFrame(state.public.stack));
+      const program = programFrame(state.public.stack);
+      const deck = deckFor(step.side, program);
       if (deck === undefined)
         return problem("invalidProgram", "A draw from the player's deck needs the side that played the card.");
-      const value = drawContingency(state, deck, events);
+      const value = drawWithBonus(state, deck, bonusSide(step.side, program), events);
       if (step.bind !== undefined) bind(frame, step.bind, value);
       frame.next += 1;
       return "ran";

@@ -103,11 +103,38 @@ export function drawPlain(state: GameState, deck: DeckId, events: GameEvent[]): 
 }
 
 /**
- * Draws a contingency from `deck` as drawPlain does, except that a 1 from a side's own deck, while that side's
- * Resilient institutions has a use left this turn, is set aside (it stays drawn) and the side draws again. The
- * second draw stands even if it is a 1 (#602); perTurn counts such draws in a turn, never redraws within one.
+ * The side whose draw bonuses apply to a `drawContingency` step (contingency-deck.md, "Whose bonuses apply").
+ * In a card's event (the program has a `player`), the draw is made for the side whose deck the step names, or
+ * for the player when a rival's card sends it to the World deck; the player's bonuses apply only to a draw made
+ * for the player, and the other side's never do. With no player it is no card's event, and the deck's owner's
+ * bonuses apply, as for any draw outside card events. Undefined when no side's apply.
+ */
+export function bonusSide(
+  named: Side | "player",
+  program: { player?: Side; worldFor?: Side } | undefined,
+): Side | undefined {
+  const deck = deckFor(named, program);
+  const player = program?.player;
+  if (player === undefined) return deck === "world" ? undefined : deck;
+  const madeFor = deck === "world" ? player : deck;
+  return madeFor === player ? player : undefined;
+}
+
+/**
+ * Draws a contingency from `deck` as drawPlain does, except that a 1, while `side`'s Resilient institutions has a
+ * use left this turn, is set aside (it stays drawn) and the draw is made again. `side` is the side whose bonuses
+ * apply (none: no one's); a card's step passes bonusSide's. The second draw stands even if it is a 1 (#602);
+ * perTurn counts such draws in a turn, never redraws within one.
+ */
+export function drawWithBonus(state: GameState, deck: DeckId, side: Side | undefined, events: GameEvent[]): number {
+  const value = drawPlain(state, deck, events);
+  return takeRedraw(state, side, deck, value, events) ? drawPlain(state, deck, events) : value;
+}
+
+/**
+ * A draw outside card events (interventions, realignments, the tech race): drawWithBonus with the bonuses of the
+ * deck's owner, so Resilient institutions works only on its own side's deck (the World deck has no owner).
  */
 export function drawContingency(state: GameState, deck: DeckId, events: GameEvent[]): number {
-  const value = drawPlain(state, deck, events);
-  return takeRedraw(state, deck, value, events) ? drawPlain(state, deck, events) : value;
+  return drawWithBonus(state, deck, deck === "world" ? undefined : deck, events);
 }
