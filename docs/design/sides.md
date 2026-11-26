@@ -16,11 +16,12 @@ of truth; change it in Notion and promote again. The special abilities were deci
 - Each side has exactly **one special ability** of its own (owner, 21 Nov 2026):
   - **LIO: Resilient institutions.** The first time in a turn that a draw from LIO's own Contingency deck shows a 1,
     that card is set aside and LIO draws again. In a card's event it follows whose card play it is (owner,
-    26 Nov 2026; docs/design/contingency-deck.md, "Whose bonuses apply"): it works on a draw made for LIO in the event
-    of a card LIO played, from LIO's own deck or the World deck standing in for it, and on no draw in the event of
-    a card SAE played, even one from LIO's own deck. A draw from SAE's deck is made for SAE, even in a card LIO
-    played (for example one that settles SAE's choice, as in e1-lio-004), so it never redraws; and when an event
-    makes both sides draw, only LIO's draw can (owner, 26 Nov 2026, in chat: "LIO's own draw only"; "No redraw"). Draws outside card events (interventions, realignments, the tech race)
+    26 Nov 2026; docs/design/contingency-deck.md, "Whose bonuses apply"): it works only on a draw from LIO's own deck in
+    the event of a card LIO played. It never works on a draw from SAE's deck or the World deck, even in a card LIO
+    played (for example the SAE draw that settles SAE's choice in e1-lio-004, or an SAE card's draw that LIO's play
+    sends to the World deck), and never in the event of a card SAE played, even on a draw from LIO's own deck. When
+    an event makes both sides draw, only LIO's own draw can redraw (owner, 26 Nov 2026, in chat: "LIO's own draw
+    only"; "No redraw", twice). Draws outside card events (interventions, realignments, the tech race)
     are unchanged: LIO's own deck only. It does not apply to a crisis draw (where a 1 is LIO's best
     result), and a crisis draw does not use up the once-per-turn redraw (owner, 21 Nov 2026, in chat: "Take all").
   - **SAE: Unified command.** After SAE plays one of its own cards for its event, the next card SAE plays for its

@@ -58,15 +58,14 @@ decks. From now on this file is the source of truth; change it in Notion and pro
 
 Owner, 26 Nov 2026, in chat (the question was left for later on 19 Oct).
 
-- **In a card's event, the bonuses of the side that played the card apply**, to the draws made for that side
-  (below), whether from its own deck or the World deck. It is that side's play. The deck owner's bonuses do not apply
-  to a draw made in the rival's card play.
-- **Only draws made for the playing side.** A draw is made for the side whose deck the card's text names (or,
-  when a rival's card sends it to the World deck, for that rival). The playing side's bonuses apply only to draws
-  made for it. When an event makes both sides draw (for example "each side draws; the higher number wins"), they
-  never cover the rival's draw (owner, 26 Nov 2026, in chat: "LIO's own draw only"). A draw from the rival's
-  deck that settles the rival's choice (e1-lio-004, e2-lio-011, e3-lio-015) is the rival's draw, so the playing
-  side's bonuses do not apply to it (owner, 26 Nov 2026, in chat: "No redraw").
+- **In a card's event, only the side that played the card has its bonuses, and only on draws from its own
+  deck.** It is that side's play: the deck owner's bonuses never apply to a draw made in the rival's card play.
+- **Never on the rival's deck or the World deck.** A draw from the rival's deck, even in the playing side's own
+  card (for example the one that settles the rival's choice in e1-lio-004, e2-lio-011 and e3-lio-015), and a
+  World deck draw (which always stands in for the rival's deck) are the rival's draws in substance, so the
+  playing side's bonuses do not apply (owner, 26 Nov 2026, in chat: "No redraw", asked for each). When an event
+  makes both sides draw (for example "each side draws; the higher number wins"), they cover only the playing
+  side's own draw (owner, 26 Nov 2026, in chat: "LIO's own draw only").
 - Today the only such bonus is LIO's Resilient institutions redraw (docs/design/sides.md); modifiers that change
   a drawn number follow the same rule when they come.
 - Draws outside card events (interventions, realignments and their defending draws, the tech race) and crisis
