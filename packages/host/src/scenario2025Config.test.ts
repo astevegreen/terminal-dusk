@@ -51,6 +51,43 @@ describe("scenario2025To2027Config", () => {
   });
 });
 
+describe("scenario2025To2027Config on a given map", () => {
+  type GivenMap = NonNullable<Parameters<typeof scenario2025To2027Config>[0]>;
+  const sixRegion = (): GivenMap => scenario2025To2027Config().setup.map!;
+  /** The six-region map with each of the named eras' battleground lists changed. */
+  const changed = (eras: string[], change: (countries: string[]) => string[], map = sixRegion()): GivenMap => ({
+    ...map,
+    battlegrounds: map.battlegrounds.map((b) => (eras.includes(b.era) ? { ...b, countries: change(b.countries) } : b)),
+  });
+  const without = (era: string): GivenMap => {
+    const map = sixRegion();
+    return { ...map, battlegrounds: map.battlegrounds.filter((b) => b.era !== era) };
+  };
+  const dropFirst = (countries: string[]) => countries.slice(1);
+  const REFUSAL = /future battlegrounds must be Era 3's/;
+
+  it("plays on a given map whose future battlegrounds are Era 3's", () => {
+    const given = changed(["era-3", "future"], dropFirst);
+    expect(scenario2025To2027Config(given).setup.map).toEqual(given);
+  });
+  it("refuses a map whose future list alone, or Era 3 list alone, was changed", () => {
+    for (const era of ["future", "era-3"]) {
+      expect(() => scenario2025To2027Config(changed([era], dropFirst)), era).toThrow(REFUSAL);
+    }
+  });
+  it("refuses a future list that swaps one country for another", () => {
+    const era3 = sixRegion().battlegrounds.find((b) => b.era === "era-3")!.countries;
+    const other = sixRegion().countries.find((c) => !era3.includes(c.id))!.id;
+    const swapped = changed(["future"], (c) => [...dropFirst(c), other]);
+    expect(() => scenario2025To2027Config(swapped)).toThrow(REFUSAL);
+  });
+  it("refuses a map with no future list or no Era 3 list", () => {
+    for (const era of ["future", "era-3"]) {
+      expect(() => scenario2025To2027Config(without(era)), era).toThrow(REFUSAL);
+    }
+  });
+});
+
 describe("futureBattlegroundsMatchEra3", () => {
   const { map } = scenario2025To2027Config().setup;
   it("is false when the future list differs from Era 3's", () => {
