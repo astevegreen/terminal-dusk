@@ -23,6 +23,9 @@ medium`, in 50-game batches). Recheck both tiers when the cards' rewording or th
 - The abilities' numbers (SAE's 1 more, LIO's once per turn) wait on a Medium-against-Medium balance run that shows
   whether either ability tips the game (`docs/design/sides.md`); report it to the owner, who decides. [26 Nov 2026,
   owner's answer in chat]
+- The `madeFor` marks in e3-neu-001, e3-neu-002, e1-neu-003 and e2-neu-005 (`packages/content/cards/`) have no card
+  story with Resilient institutions in play, so removing one fails no test; add a story to each like the two in
+  `e2-neu-003.test.ts` (LIO plays, SAE's 1 from LIO's deck stands). [26 Nov 2026, reviewer on #627]
 
 ## App, host and server
 
