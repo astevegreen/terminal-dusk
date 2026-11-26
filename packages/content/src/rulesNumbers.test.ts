@@ -4,7 +4,7 @@
 // numbers in the effect, so a card whose text and data disagree fails here. It compares the distinct numbers of each
 // kind, not how often each appears: the text states a spend once where the data repeats it in two branches (e3-lio-001
 // spends 2 or 1 under either threshold), and one "never below 1" covers both sides' swings (e1-neu-001).
-// rulesSpends.test.ts ties each spend and Ops swing to its side and branch.
+// rulesInOrder.test.ts ties each of these numbers to its side and branch, in the order the text says them.
 import { describe, expect, it } from "vitest";
 import { FIRST_DECK_CARDS } from "./firstDeckRules.ts";
 
