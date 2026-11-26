@@ -26,7 +26,8 @@
         {
           "op": "drawContingency",
           "side": "player",
-          "bind": "d"
+          "bind": "d",
+          "madeFor": "sae"
         },
         {
           "op": "if",

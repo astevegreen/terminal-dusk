@@ -21,7 +21,8 @@
     {
       "op": "drawContingency",
       "side": "player",
-      "bind": "d"
+      "bind": "d",
+      "madeFor": "lio"
     },
     {
       "op": "if",

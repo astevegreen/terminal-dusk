@@ -22,8 +22,8 @@ const WORLD: Setup = { ...mapSetup(), contingency: { ...mapSetup().contingency, 
 /** A LIO deck with two 1s, so LIO can draw a 1 again after its redraw. */
 const TWO_ONES: Setup = { ...mapSetup(), contingency: { ...mapSetup().contingency, lio: [1, 1, 2, 3, 4, 4] } };
 
-const draw = (side: Side | "player", bind: string): Step[] => [
-  { op: "drawContingency", side, bind },
+const draw = (side: Side | "player", bind: string, madeFor?: Side): Step[] => [
+  madeFor === undefined ? { op: "drawContingency", side, bind } : { op: "drawContingency", side, bind, madeFor },
   marker(`drew-${bind}`, bind),
 ];
 
@@ -110,6 +110,28 @@ describe("Resilient institutions in a card's event", () => {
     expect(drawn(done.events)).toEqual(["lio:1", "sae:2"]);
     expect(redraws(done.events)).toEqual([]);
     expect(used(done.state, "lio")).toBe(0);
+  });
+
+  it("a neutral card's draw from LIO's deck made for SAE (e3-neu-005): LIO plays it and SAE's draw is not redrawn", () => {
+    const done = event(game(), draw("player", "n", "sae"), "n1", "lio");
+    expect(drawn(done.events)).toEqual(["lio:1"]);
+    expect(redraws(done.events)).toEqual([]);
+    expect(markers(done.events)).toEqual(["drew-n:1"]);
+    expect(used(done.state, "lio")).toBe(0);
+  });
+
+  it("a neutral card's draw made for LIO, the player, is still redrawn", () => {
+    const done = event(game(), draw("player", "n", "lio"), "n1", "lio");
+    expect(drawn(done.events)).toEqual(["lio:1", "lio:4"]);
+    expect(redraws(done.events)).toEqual([redraw("lio", "lio")]);
+  });
+
+  it("SAE plays a neutral card: its draw from SAE's deck made for LIO is not redrawn by either side", () => {
+    const start = drawsNext(game(mapSetup(), ruleset, BOTH), "sae", [1, 4]);
+    const done = event(start, draw("player", "n", "lio"), "n1", "sae");
+    expect(drawn(done.events)).toEqual(["sae:1"]);
+    expect(redraws(done.events)).toEqual([]);
+    expect([used(done.state, "lio"), used(done.state, "sae")]).toEqual([0, 0]);
   });
 
   it("one use a turn: after LIO's redraw in its play, LIO's next 1 stands", () => {

@@ -175,6 +175,23 @@ describe("createGame: which Contingency decks a card's event may draw from", () 
       "Card l1 is an SAE card, but its event draws from the deck of the side that played it; only a neutral event does, and an SAE event names LIO's or SAE's deck.",
     );
   });
+  it.each(["lio", "sae"] as const)("accepts a neutral card's draw made for %s, at any depth", (side) => {
+    for (const [, effect] of placements({ op: "drawContingency", side: "player", madeFor: side })) {
+      expect(neutralOutcome(effect)).toBe("ok");
+    }
+  });
+  it("refuses madeFor on a draw that names LIO's or SAE's deck, or made for anyone but LIO or SAE", () => {
+    const named = withCards([
+      ...ruleset.cards.slice(1),
+      testCard("l1", 1, "lio", [{ op: "drawContingency", side: "sae", madeFor: "lio" }]),
+    ]);
+    const r = createGame(named, makeSetup(), "seed-1");
+    expect(!r.ok && r.error.message).toBe(
+      `Card l1's effect has a draw from LIO's or SAE's deck that says whom it is made for; only a draw from the deck of the side that played the card ("side": "player") does.`,
+    );
+    const odd = { op: "drawContingency", side: "player", madeFor: "player" } as unknown as Step;
+    expect(neutralOutcome([odd])).toBe("invalidRuleset");
+  });
 });
 
 describe("createGame: a card's number steps hold whole numbers", () => {

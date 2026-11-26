@@ -172,4 +172,40 @@ describeCard("e2-neu-003", "SARS", [
       points:lio:2
     `,
   },
+  {
+    it: "when LIO plays it with Resilient institutions and both hide it: LIO's own 1 is redrawn",
+    resilient: true,
+    yes: { lio: false, sae: false },
+    draws: [1, 2, 2],
+    story: `
+      outbreak
+      mod:lio:+1
+      draw:lio:1
+      redraw:lio
+      draw:lio:2
+      mod:sae:+1
+      draw:lio:2
+      points:sae:3
+      points:lio:3
+      points:sae:3
+    `,
+  },
+  {
+    // SAE's draw, from LIO's deck, settles SAE's outbreak, so it is made for SAE: LIO's Resilient institutions,
+    // still unused, never redraws its 1 (owner, 26 Nov 2026: "No redraw"; contingency-deck.md, "Whose bonuses apply").
+    it: "when LIO plays it with Resilient institutions and both hide it: SAE's 1 from LIO's deck stands",
+    resilient: true,
+    yes: { lio: false, sae: false },
+    draws: [2, 1],
+    story: `
+      outbreak
+      mod:lio:+1
+      draw:lio:2
+      mod:sae:+1
+      draw:lio:1
+      points:sae:3
+      points:lio:3
+      points:sae:3
+    `,
+  },
 ]);

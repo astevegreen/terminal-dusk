@@ -222,6 +222,27 @@ describe("card schema: which Contingency decks a card's event may draw from", ()
       expect(issuesOf({ ...validCard(), affiliation: side, effect })).toEqual([]);
     }
   });
+
+  it.each(["lio", "sae"])("accepts a neutral card's draw made for %s, at any depth", (side) => {
+    for (const [, effect] of placements({ op: "drawContingency", side: "player", madeFor: side })) {
+      expect(issuesOf({ ...validCard(), effect })).toEqual([]);
+    }
+  });
+
+  it("rejects madeFor on a draw that names LIO's or SAE's deck, pointing at madeFor", () => {
+    const message = `Only a draw from the deck of the side that played the card ("side": "player") says whom it is made for.`;
+    for (const [, effect, path] of placements({ op: "drawContingency", side: "lio", madeFor: "sae" })) {
+      const issues = issuesOf({ ...validCard(), affiliation: "lio", effect });
+      expect(issues.map((issue) => [issue.path, issue.message])).toEqual([
+        [[...path.slice(0, -1), "madeFor"], message],
+      ]);
+    }
+  });
+
+  it("rejects a draw made for anyone but lio or sae", () => {
+    const effect = [{ op: "drawContingency", side: "player", madeFor: "player" }];
+    expect(issuesOf({ ...validCard(), effect })).not.toEqual([]);
+  });
 });
 
 describe("card schema: steps at any depth", () => {

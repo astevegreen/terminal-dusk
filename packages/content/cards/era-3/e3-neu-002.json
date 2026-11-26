@@ -46,7 +46,8 @@
         {
           "op": "drawContingency",
           "side": "player",
-          "bind": "dLio"
+          "bind": "dLio",
+          "madeFor": "lio"
         },
         {
           "op": "if",
@@ -107,7 +108,8 @@
         {
           "op": "drawContingency",
           "side": "player",
-          "bind": "dSae"
+          "bind": "dSae",
+          "madeFor": "sae"
         },
         {
           "op": "if",

@@ -218,7 +218,9 @@ export type Condition =
  * draws from `side`'s Contingency deck (an LIO or SAE card may name either deck) and
  * binds the number to `bind`, if given. `side` "player" is the side that played the card: a neutral
  * event's draws, and only theirs, name it (docs/design/contingency-deck.md, cardChecks.ts). A rival's
- * card's draws from its owner's deck come from the World deck instead (contingency.ts, `deckFor`).
+ * card's draws from its owner's deck come from the World deck instead (contingency.ts, `deckFor`). A "player" draw's
+ * `madeFor` names the side whose result or choice it settles, when that is not the player; only a draw made for the
+ * player can be redrawn (contingency.ts, `bonusSide`). Only a "player" draw has one (cardChecks.ts).
  * `addToNumber` adds the non-zero whole `amount` (negative subtracts) to the number bound to `var`.
  * `modifier` makes a rule change, `mod`, that lasts for `duration`; its source is the card whose effect runs it.
  * A `spendPoints` `amount` is the printed ops: the opsValue modifiers in force change it when the step runs.
@@ -240,7 +242,7 @@ export type Step =
   | { op: "forEach"; over: string[]; bind: VarName; do: Step[] }
   | { op: "marker"; label: string; var?: VarName; lasting?: true }
   | { op: "spendPoints"; side: Side; amount: number; play?: true; cardPoints?: true }
-  | { op: "drawContingency"; side: Side | "player"; bind?: VarName }
+  | { op: "drawContingency"; side: Side | "player"; bind?: VarName; madeFor?: Side }
   | { op: "addToNumber"; var: VarName; amount: number }
   | { op: "modifier"; mod: ModifierSpec; duration: Duration }
   | { op: "trigger"; hook: HookId; filter?: TriggerFilter; once?: true; do: Step[]; duration: Duration }

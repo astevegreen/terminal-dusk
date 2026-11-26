@@ -109,6 +109,8 @@ export const stepSchema = z.discriminatedUnion("op", [
     op: z.literal("drawContingency"),
     side: z.enum(["lio", "sae", "player"]),
     bind: name.exactOptional(),
+    // The side whose result or choice a "player" draw settles, when it is not the player (misplacedDraws, below).
+    madeFor: z.enum(["lio", "sae"]).exactOptional(),
   }),
   z.strictObject({
     op: z.literal("addToNumber"),
@@ -164,11 +166,14 @@ function misplacedDrawMessage(affiliation: "lio" | "sae" | "neutral", drawn: "li
   return `This is an ${SIDE_NAMES[affiliation]} card, so its event names the deck it draws from, "lio" or "sae"; only a neutral card draws from the deck of the side that played it ("player").`;
 }
 
+const MADE_FOR_MESSAGE = `Only a draw from the deck of the side that played the card ("side": "player") says whom it is made for.`;
+
 /**
  * Every contingency draw in `steps`, at any depth, that this card may not make: the path to its `side`
  * and the message. An LIO or SAE card may draw from either deck, the rival's included, and from both
  * (owner 19 Oct); a neutral card only from the deck of the side that played it, "player" (decision 17).
  * Both are in docs/design/contingency-deck.md. A missing or invalid side is left to the step's own check.
+ * Only a "player" draw says whom it is made for (`madeFor`): a draw named for LIO's or SAE's deck may not.
  */
 function misplacedDraws(
   steps: readonly Step[],
@@ -179,8 +184,11 @@ function misplacedDraws(
     const here = [...path, i];
     if (step.op === "drawContingency") {
       if (step.side !== "lio" && step.side !== "sae" && step.side !== "player") return [];
-      if ((step.side === "player") === (affiliation === "neutral")) return [];
-      return [{ path: [...here, "side"], message: misplacedDrawMessage(affiliation, step.side) }];
+      if ((step.side === "player") !== (affiliation === "neutral")) {
+        return [{ path: [...here, "side"], message: misplacedDrawMessage(affiliation, step.side) }];
+      }
+      if (step.madeFor === undefined || step.side === "player") return [];
+      return [{ path: [...here, "madeFor"], message: MADE_FOR_MESSAGE }];
     }
     if (step.op === "if") {
       return [

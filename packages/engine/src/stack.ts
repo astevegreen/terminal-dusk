@@ -199,7 +199,7 @@ function runStep(state: GameState, frame: Frame, step: Step, events: GameEvent[]
       const deck = deckFor(step.side, program);
       if (deck === undefined)
         return problem("invalidProgram", "A draw from the player's deck needs the side that played the card.");
-      const value = drawWithBonus(state, deck, bonusSide(step.side, program), events);
+      const value = drawWithBonus(state, deck, bonusSide(step.side, program, step.madeFor), events);
       if (step.bind !== undefined) bind(frame, step.bind, value);
       frame.next += 1;
       return "ran";
