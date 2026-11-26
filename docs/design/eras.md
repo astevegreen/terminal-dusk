@@ -2,18 +2,22 @@
 
 Promoted on 2026-10-16 from the Decided section of the Notion page "Eras", plus one answer the owner gave that
 day. Promoted again on 2026-11-21 with the turns per era, the free player's game and the 2025–2027 scenario's
-length (owner, in chat: "Take all recommendations", on docs/proposals/era-lengths.md). From now on this file is the
+length (owner, in chat: "Take all recommendations", on docs/proposals/era-lengths.md). The era names were
+added on 2026-11-26 (owner, in chat). From now on this file is the
 source of truth; change it in Notion and promote again.
 
 ## The base game
 
 The base game runs from 1991 to 2025 in three eras, and always stops at 2025.
 
-| Era   | Years     | Starts at           | Turns | Its turns of the game |
-| ----- | --------- | ------------------- | ----- | --------------------- |
-| Era 1 | 1991–2001 | The Soviet collapse | 3     | 1–3                   |
-| Era 2 | 2001–2008 | September 11, 2001  | 2     | 4–5                   |
-| Era 3 | 2008–2025 | The financial crash | 5     | 6–10                  |
+| Era   | Name         | Years     | Starts at           | Turns | Its turns of the game |
+| ----- | ------------ | --------- | ------------------- | ----- | --------------------- |
+| Era 1 | The Thaw     | 1991–2001 | The Soviet collapse | 3     | 1–3                   |
+| Era 2 | The Shock    | 2001–2008 | September 11, 2001  | 2     | 4–5                   |
+| Era 3 | The Fracture | 2008–2025 | The financial crash | 5     | 6–10                  |
+
+- **Era names** (owner, 26 Nov 2026, in chat): The Thaw, The Shock and The Fracture. They name the mood of each
+  era's world events; the look of each era is its theme (docs/design/art-direction.md).
 
 - **Turns follow the years** (owner, 21 Nov 2026: option A of docs/proposals/era-lengths.md). Each turn covers about
   3.4 years of history in every era. The base game is **10 turns**: Era 2's cards enter on turn 4 and Era 3's on
@@ -55,8 +59,8 @@ The base game runs from 1991 to 2025 in three eras, and always stops at 2025.
 
 ## Not decided yet
 
-- Era names (neutral names, none taken from other games). Not chosen yet: ask the owner.
+- Nothing open.
 
-Decided on 21 Nov 2026 (owner, in chat: "Take all recommendations"): how many turns each era lasts (3 / 2 / 5),
+Decided on 26 Nov 2026 (owner, in chat): the era names (above). Decided on 21 Nov 2026 (owner, in chat: "Take all recommendations"): how many turns each era lasts (3 / 2 / 5),
 which era a free player can play against the AI (Era 1, 3 turns), and that the 2025–2027 scenario scores Era 3
 only once, at the end of 2027.

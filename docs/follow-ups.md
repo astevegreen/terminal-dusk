@@ -21,6 +21,14 @@ medium`, in 50-game batches). Recheck both tiers when the cards' rewording or th
   21 Nov rules; the scenario is `packages/content/scenarios/base-game.json` since #575. Fix it at the next Notion
   promotion. [21 Nov 2026, #575]
 - The 2025-2027 host config's refusal of a map whose `future` list is not Era 3's (`packages/host/src/firstDeck.ts`, `scenario2025To2027Config`) has no test that reaches it, since the config always uses the six-region map: let it take the map as a parameter and test a bad one. The balance tool can also get round it: `--numbers` can change only the `era-3` or only the `future` list, and `--era future@N` is accepted for `2025-2027` (`tools/balance/config.mjs`, `numbers.mjs`); re-run the check after those changes. [22 Nov 2026, #604 review]
+- LIO's Resilient institutions redraw still follows the deck's owner (`packages/engine/src/abilities.ts` `takeRedraw`,
+  and its header comment "Never the World deck"), not the owner's 26 Nov rule that in a card's event it follows who
+  played the card (`docs/design/contingency-deck.md`, "Whose bonuses apply"). Two plays differ: LIO playing an SAE card
+  whose draw goes to the World deck gets no redraw but should, and an SAE card whose gamble LIO takes from LIO's deck
+  gets one but should not. Sent to the engine lane on 26 Nov. [26 Nov 2026, reviewer on #615]
+- The abilities' numbers (SAE's 1 more, LIO's once per turn) wait on a Medium-against-Medium balance run that shows
+  whether either ability tips the game (`docs/design/sides.md`); report it to the owner, who decides. [26 Nov 2026,
+  owner's answer in chat]
 - The special abilities (#602, `packages/engine/src/abilities.ts`) (tests/fuzz/abilityChecks.ts checks their state at every fuzz step; tests/golden/abilities.test.ts replays them). No test drives a Resilient institutions redraw through each real draw caller (intervention, realignment, including LIO's defending draw in SAE's realignment, tech race, card events). [22 Nov 2026, reviewer and agy on #610]
 
 ## App, host and server
@@ -39,6 +47,10 @@ medium`, in 50-game batches). Recheck both tiers when the cards' rewording or th
   Neither path is tested, and neither has a fallback. [22 Nov 2026, agy on #609]
 - The sweep reports `answered` whenever the stand-in mark is set, even when the stand-in's own answers end the game
   (`sweepDeadlines.ts`, "answered" = the game goes on). It should report `timedOut` or `over`. [22 Nov 2026, reviewer and agy on #609]
+- The era names are decided (The Thaw, The Shock, The Fracture; `docs/design/eras.md`) but nothing shows them: the
+  app says "Era 1" (`packages/app/src/App.tsx:136`, the era themes in `packages/app/src/game/themes/eraTheme.ts`),
+  and the scenarios carry no era name. Show each era's name where its number appears, with the theme. [26 Nov 2026,
+  owner's answer in chat]
 - A covered side given a new decision in the same turn still gets a turn alert (`hostAccept.ts` `commitSteps`),
   although `hostSubmit` will refuse its answer that turn. [22 Nov 2026, agy on #609]
 
