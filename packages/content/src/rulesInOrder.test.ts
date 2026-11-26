@@ -80,6 +80,9 @@ function condSays(cond: unknown): string[] {
   return Object.values(c).flatMap(condSays);
 }
 
+/** The shortcuts ifSays took since it was last cleared, so the test can pin the cards that need each one. */
+const shortcuts: string[] = [];
+
 /**
  * What an `if` says, with the two shapes the text writes more briefly than the data:
  * - "If A or B (or both), X; otherwise, Y" is "if A, X; otherwise if B, X; otherwise, Y" (e3-sae-003): pair them.
@@ -91,11 +94,14 @@ function condSays(cond: unknown): string[] {
 function ifSays(step: Step): string[] {
   const inner = only(step.else);
   if (inner !== null && same(inner.then, step.then)) {
+    shortcuts.push("paired");
     return ifSays({ ...step, cond: [step.cond, inner.cond], else: inner.else });
   }
   const [a, b] = [only(step.then), only(step.else)];
   if (a !== null && b !== null && same(a.then, b.then) && same(a.else, b.else)) {
-    return [...condSays(a.cond), ...condSays(b.cond), ...effectSays(a.then), ...effectSays(a.else)];
+    shortcuts.push("nested");
+    const conds = [...condSays(step.cond), ...condSays(a.cond), ...condSays(b.cond)];
+    return [...conds, ...effectSays(a.then), ...effectSays(a.else)];
   }
   return [...condSays(step.cond), ...effectSays(step.then), ...effectSays(step.else)];
 }
@@ -148,6 +154,18 @@ describe("each card's rules text gives each number to the right side, in the rig
     // Most cards say a number, and every kind turns up; a pattern that stopped matching would leave fewer.
     expect(checked).toBeGreaterThan(80);
     expect([...kinds].sort()).toEqual(["at least", "at most", "discards", "draw", "escalation", "spends", "swing"]);
+  });
+
+  it("takes each shortcut only for the card whose text needs it", () => {
+    // A shortcut says one branch once, so a new card of the same shape whose text dropped a branch would pass: such a
+    // card must be added here on purpose, after reading its text.
+    const takenBy: Record<string, string[]> = {};
+    for (const c of FIRST_DECK_CARDS) {
+      shortcuts.length = 0;
+      effectSays(c.effect);
+      for (const s of new Set(shortcuts)) (takenBy[s] ??= []).push(c.id);
+    }
+    expect(takenBy).toEqual({ paired: ["e3-sae-003"], nested: ["e3-lio-001"] });
   });
 
   it("fails a card whose text gives LIO's swing to SAE and SAE's to LIO", () => {
