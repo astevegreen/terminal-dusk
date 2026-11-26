@@ -118,7 +118,6 @@ export type HostErrorCode =
   | "gameNotOver"
   | "notDue"
   | "pastDeadline"
-  | "standInLimit"
   | "notEntitled";
 export type HostError = { code: EngineErrorCode | HostErrorCode; message?: string };
 export type HostOutcome = { ok: true; value: HostResult } | { ok: false; error: HostError };

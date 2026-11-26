@@ -66,25 +66,33 @@ describe("createOnlineGame: frames, log and turn", () => {
     expect(r.game.getSnapshot().era).toBe("late");
   });
 
-  it("a step the host played for a late side shows as marked log lines (#605); other steps stay plain", async () => {
+  it("a step the host played for a late side is marked under that side's name; its other lines stay plain (#605, #616)", async () => {
     const r = onlineRig();
     await settle();
     await play(r);
-    const before = r.game.getSnapshot().log.length;
-    // Some steps make no events, so cover steps until one does.
-    for (let i = 0; i < 6 && r.game.getSnapshot().log.length === before; i++) {
-      r.fake.markNextStandIn("sae");
-      await play(r);
-    }
-    const added = r.game.getSnapshot().log.slice(before);
-    expect(added.length).toBeGreaterThan(0);
-    for (const line of added) expect(line.startsWith("Played for SAE (deadline passed): ")).toBe(true);
+    const start = r.game.getSnapshot().log.length;
     expect(
       r.game
         .getSnapshot()
-        .log.slice(0, before)
+        .log.slice(0, start)
         .some((l) => l.startsWith("Played for")),
     ).toBe(false);
+    // Cover each step's moving side. In this small test game a move shows no line of its own, so every covered
+    // step reads as the default answer, and a new era's line inside a covered step stays plain.
+    let plainInRun = 0;
+    for (let i = 0; i < 8 && r.fake.current().record.status.kind === "active"; i++) {
+      const mover = nextMove(r.fake.current()).s;
+      const before = r.game.getSnapshot().log.length;
+      r.fake.markNextStandIn(mover);
+      await play(r);
+      const added = r.game.getSnapshot().log.slice(before);
+      const marked = added.filter((l) => l.startsWith("Played for "));
+      expect(marked.length).toBeGreaterThan(0);
+      for (const line of marked)
+        expect(line.startsWith(`Played for ${mover.toUpperCase()} (deadline passed): `)).toBe(true);
+      plainInRun += added.length - marked.length;
+    }
+    expect(plainInRun).toBeGreaterThan(0);
   });
 
   it("turn is over once the game is over", async () => {

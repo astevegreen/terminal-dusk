@@ -7,7 +7,7 @@ import type { Frame, MatchClock } from "@terminal-dusk/host";
 import { eraText, mapNames } from "../displayText.ts";
 import type { GameNames, MapNames } from "../displayText.ts";
 import { logLine } from "../eventPresentation.ts";
-import { standInLine } from "./gameText.ts";
+import { logLines } from "./gameText.ts";
 import type { TransportError } from "../transport/matchTransport.ts";
 import type { FetchLike } from "../transport/remoteHttp.ts";
 import { createRemoteMatch } from "../transport/remoteMatch.ts";
@@ -128,11 +128,7 @@ export function createOnlineGame(options: OnlineGameOptions): OnlineGame {
     const isNew = frame.seq > lastSeq;
     if (isNew) {
       const context = { ...names, ...mapNames(frame.view.public) };
-      const lines = frame.events.map((event, i) => {
-        const run = frame.standInRuns?.find((r) => i >= r.start && i < r.start + r.count);
-        const line = logLine(event, context);
-        return run === undefined ? line : standInLine(run.side, line);
-      });
+      const lines = logLines(frame.events, frame.standInRuns, (event) => logLine(event, context));
       log = [...log, ...lines];
       lastSeq = frame.seq;
       for (const event of frame.events) if (event.kind === "eraStarted") era = event.era;

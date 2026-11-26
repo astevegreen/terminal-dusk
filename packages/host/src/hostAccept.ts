@@ -2,7 +2,7 @@
 // then build the new record, secret, frames and effects. hostSubmit and hostTimeout both end here.
 import { apply, pendingFor, SIDES } from "@terminal-dusk/engine";
 import type { Answer, GameEvent, GameState, Ruleset, Side } from "@terminal-dusk/engine";
-import { deadlineEffects, nextClock } from "./clock.ts";
+import { deadlineEffects, isCovered, nextClock } from "./clock.ts";
 import { copyJson, framesFor } from "./frames.ts";
 import { checkFinished } from "./hostFinish.ts";
 import type { HostEffect, HostError, HostOutcome, MatchRecord, MatchSecret } from "./types.ts";
@@ -54,9 +54,10 @@ export function commitSteps(
     const failed = checkFinished(ruleset, secret, log, state);
     if (failed) return { ok: false, error: failed };
   }
-  const effects: HostEffect[] = SIDES.filter((s) => newDecision(secret.state, state, s)).map((s) => ({
-    notify: record.players[s],
-  }));
+  const clock = record.clock ? nextClock(record.clock, secret.state, state, now, usedGrace) : undefined;
+  // A side the stand-in covers this turn gets no turn alert: its answers are refused until the turn ends (#616).
+  const alerted = SIDES.filter((s) => newDecision(secret.state, state, s) && !(clock && isCovered(clock, s, state)));
+  const effects: HostEffect[] = alerted.map((s) => ({ notify: record.players[s] }));
   if (over) effects.push({ finalize: true });
   const next: MatchRecord = {
     ...record,
@@ -65,7 +66,7 @@ export function commitSteps(
     status: copyJson(state.public.status),
     updatedAt: now,
     ...(over ? { seed: secret.seed } : {}),
-    ...(record.clock ? { clock: nextClock(record.clock, secret.state, state, now, usedGrace) } : {}),
+    ...(clock ? { clock } : {}),
   };
   return {
     ok: true,

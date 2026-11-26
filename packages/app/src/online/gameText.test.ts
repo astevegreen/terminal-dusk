@@ -2,13 +2,66 @@
 import { describe, expect, it } from "vitest";
 import type { Frame } from "@terminal-dusk/host";
 import type { OnlineDeadline } from "./matchClock.ts";
-import { deadlineDetail, deadlineText, standInLine, timeLeft, turnText } from "./gameText.ts";
+import type { GameEvent } from "@terminal-dusk/engine";
+import { deadlineDetail, deadlineText, logLines, standInLine, timeLeft, turnText } from "./gameText.ts";
 
 describe("standInLine: a marked log line for a move the host made for a late side (#605)", () => {
   it("names the side and the deadline, then the ordinary line", () => {
     expect(standInLine("lio", "Placed 1 influence in Poland")).toBe(
       "Played for LIO (deadline passed): Placed 1 influence in Poland",
     );
+  });
+});
+
+describe("logLines: inside a stand-in run only the late side's own moves are marked (#616)", () => {
+  const lineOf = (e: GameEvent): string => `${e.kind}${"side" in e ? ` ${String(e.side)}` : ""}`;
+  const mark = (line: string): string => standInLine("lio", line);
+  const pub = "public" as const;
+  const events = [
+    { kind: "cardDrawnHidden", visibility: pub, side: "lio" },
+    { kind: "influencePlaced", visibility: pub, side: "sae", country: "c1", cost: 1 },
+    { kind: "pointsSpent", visibility: pub, side: "lio", amount: 2 },
+    { kind: "influencePlaced", visibility: pub, side: "lio", country: "c2", cost: 1 },
+    { kind: "regionScored", visibility: pub },
+    { kind: "eraStarted", visibility: pub, era: "late", cardsAdded: 3 },
+    { kind: "playPassed", visibility: pub, side: "lio" },
+  ] as unknown as GameEvent[];
+
+  it("marks the LIO run's own moves only: draws, scoring, the rival's placement and a pass read as usual", () => {
+    expect(logLines(events, [{ side: "lio", start: 0, count: events.length }], lineOf)).toEqual([
+      "cardDrawnHidden lio",
+      "influencePlaced sae",
+      mark("pointsSpent lio"),
+      mark("influencePlaced lio"),
+      "regionScored",
+      "eraStarted",
+      "playPassed lio",
+    ]);
+  });
+
+  it("a run with none of its events marked gets one line after it, naming no card", () => {
+    const head = events.slice(0, 2);
+    expect(logLines([...head, events[4]!], [{ side: "lio", start: 0, count: 2 }], lineOf)).toEqual([
+      "cardDrawnHidden lio",
+      "influencePlaced sae",
+      mark("the default answer"),
+      "regionScored",
+    ]);
+  });
+
+  it("a run with no events at all gets that line where it falls; no runs means no marks", () => {
+    const two = events.slice(2, 4);
+    expect(logLines(two, [{ side: "lio", start: 0, count: 0 }], lineOf)).toEqual([
+      mark("the default answer"),
+      "pointsSpent lio",
+      "influencePlaced lio",
+    ]);
+    expect(logLines(two, [{ side: "lio", start: 2, count: 0 }], lineOf)).toEqual([
+      "pointsSpent lio",
+      "influencePlaced lio",
+      mark("the default answer"),
+    ]);
+    expect(logLines(two, undefined, lineOf)).toEqual(["pointsSpent lio", "influencePlaced lio"]);
   });
 });
 

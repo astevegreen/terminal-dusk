@@ -97,6 +97,17 @@ describe("defaultAnswer rule: the clock after a move", () => {
     expect(fresh.deadlines.lio).toBe(NOW + 50 + DAY);
     expect(fresh.covering).toEqual({ lio: null, sae: null });
   });
+
+  it("a covered side given a new decision in the same turn gets no turn alert; an uncovered one does (#616)", () => {
+    const { before } = lioStepSameTurn();
+    const alerts = (host: HostResult): unknown[] => {
+      const next = accept(host, submissionFor(host, "sae"), NOW + 2);
+      return next.effects.filter((e) => "notify" in e);
+    };
+    expect(alerts(before)).toEqual([{ notify: before.record.players.lio }]);
+    const covered = withClock(before, { covering: { lio: turnOf(before), sae: null } });
+    expect(alerts(covered)).toEqual([]);
+  });
 });
 
 describe("defaultAnswer rule: both sides late", () => {

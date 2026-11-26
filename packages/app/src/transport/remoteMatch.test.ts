@@ -198,7 +198,29 @@ describe("remote transport: stand-in steps (#605)", () => {
     const last = seen.frames[seen.frames.length - 1]!;
     expect(last.events).toEqual([...plain!, ...covered]);
     expect(covered.length).toBeGreaterThan(0);
-    expect(last.standInRuns).toEqual([{ side: "lio", start: plain!.length, count: covered.length }]);
+    // Covered steps with no events come first as empty runs; the last run holds the covered events.
+    const runs = last.standInRuns!;
+    expect(runs[runs.length - 1]).toEqual({ side: "lio", start: plain!.length, count: covered.length });
+    expect(runs.slice(0, -1).every((run) => run.count === 0 && run.start === plain!.length)).toBe(true);
+  });
+
+  it("a stand-in step with no events still gets a run of count 0, so the log can say a default answer was given (#616)", async () => {
+    const r = rig();
+    const seen = watch(r.transportAs("bob"));
+    await settle();
+    let found = -1;
+    const all: GameEvent[] = [];
+    for (let i = 0; i < 30 && found < 0; i++) {
+      r.fake.markNextStandIn("lio");
+      const events = moveOnServer(r, 1, "sae")[0]!;
+      if (events.length === 0) found = all.length;
+      else all.push(...events);
+      await nextPoll(r);
+    }
+    expect(found).toBeGreaterThanOrEqual(0);
+    const last = seen.frames[seen.frames.length - 1]!;
+    expect(last.events).toEqual([]);
+    expect(last.standInRuns).toEqual([{ side: "lio", start: 0, count: 0 }]);
   });
 
   it("a frame with no stand-in step carries no standInRuns", async () => {

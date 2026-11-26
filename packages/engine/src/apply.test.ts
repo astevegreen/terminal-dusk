@@ -178,7 +178,9 @@ describe("apply: both sides time out on a simultaneous pick", () => {
     expect(s.public.pending).toHaveLength(1);
     refusedUnchanged(s, "wrongSide");
   });
-  it("two pending decisions that are not one simultaneous pick: refused with wrongSide and the state is unchanged", () => {
+  it("two pending decisions that are not one simultaneous pick: both are late at once, so a draw on time (#616)", () => {
+    // Was refused with wrongSide; the owner's rule "both players late at the same moment: a draw on time"
+    // (docs/design/core-loop.md) covers any two waits at once, and the refusal left the host's sweep stuck.
     const s = startGame();
     const regrouped = (group: (i: number) => string | undefined): GameState => ({
       ...s,
@@ -192,14 +194,11 @@ describe("apply: both sides time out on a simultaneous pick", () => {
         }),
       },
     });
-    refusedUnchanged(
-      regrouped(() => undefined),
-      "wrongSide",
-    );
-    refusedUnchanged(
-      regrouped((i) => `group-${i}`),
-      "wrongSide",
-    );
+    for (const apart of [regrouped(() => undefined), regrouped((i) => `group-${i}`)]) {
+      const next = accepted(apart, { system: "timeout", side: "both" });
+      expect(next.public.status).toEqual({ kind: "over", winner: null, reason: "timeout" });
+      expect(next.public.pending).toEqual([]);
+    }
   });
   it("a finished game: refused with gameOver and the state is unchanged", () => {
     const over = playAnswers(startAtPlay(1), 2);
