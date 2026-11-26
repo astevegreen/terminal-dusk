@@ -30,6 +30,9 @@ node tools/balance/run.mjs --scenario 2025-2027    # the optional 2025-2027 game
   Either way it is not a verdict on balance, and its first line says so.
 - `2025-2027` plays the optional 2025-2027 game (#601) as the host starts it: the six-region map, 11 turns, and
   the future cards entering on turn 11. Like `six-region` its report is a smoke check, not a verdict on balance.
+  Era 3 scores once, at the end, from the map's `future` battleground list, so a run is refused when a `--numbers`
+  file leaves that list different from `era-3`'s (name both, with the same countries), or when `--era` options bring
+  the future cards in while another era is in play.
 - Any other value is refused with the allowed values and the usage line, and no game is played.
 
 ## Choosing each side's AI tier
@@ -134,6 +137,8 @@ node tools/balance/run.mjs --turns 3 --era era-2@2 --era era-3@off  # 3 turns, e
   (era-2 on turn 4, era-3 on turn 6), so a run with fewer turns must also move or leave out the later eras. era-1
   cannot be moved: its cards are always in from turn 1. The base game has no future era (the future cards belong
   to the 2025-2027 game, `--scenario 2025-2027`), so `--era future@…` is refused on the other scenarios.
+- On `2025-2027` the future cards extend Era 3: they must join after `era-3` with no other era between (so
+  `--era era-3@off` also needs `--era future@off`).
 - A badly written value, an era named twice, era-1, or an era id the first deck does not have is refused with the
   usage line, and no game is played.
 - The game itself refuses some combinations: an era entering on turn 1 or after the last turn, or two eras on the
@@ -149,7 +154,8 @@ node tools/balance/run.mjs --scenario six-region --numbers docs/proposals/map-nu
 ```
 
 `--numbers <file>` lays a JSON file's numbers over the chosen map scenario for this run only; the scenario file does
-not change. It needs a scenario with a map (`test-map` or `six-region`). Every part of the file is optional:
+not change. It needs a scenario with a map (`test-map`, `six-region` or `2025-2027`). Every part of the file is
+optional:
 
 ```json
 {
