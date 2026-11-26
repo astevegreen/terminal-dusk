@@ -28,7 +28,6 @@ medium`, in 50-game batches). Recheck both tiers when the cards' rewording or th
 - The abilities' numbers (SAE's 1 more, LIO's once per turn) wait on a Medium-against-Medium balance run that shows
   whether either ability tips the game (`docs/design/sides.md`); report it to the owner, who decides. [26 Nov 2026,
   owner's answer in chat]
-- The special abilities (#602, `packages/engine/src/abilities.ts`) (tests/fuzz/abilityChecks.ts checks their state at every fuzz step; tests/golden/abilities.test.ts replays them). No test drives a Resilient institutions redraw through each real draw caller (intervention, realignment, including LIO's defending draw in SAE's realignment, tech race, card events). [22 Nov 2026, reviewer and agy on #610]
 
 ## App, host and server
 
@@ -45,6 +44,7 @@ medium`, in 50-game batches). Recheck both tiers when the cards' rewording or th
 
 ## Tests and tooling
 
+- A fuzz failure's second run (`tests/fuzz/play.ts`, `secondRun`) compares only the failure's message, not the answer number it failed at, so a fault that repeats its message at a different answer reads as "fails the same way". Compare the answer number too. [26 Nov 2026, agy on #619]
 - `packages/ai/src/medium.ts:37` has a nested ternary (`status.winner === null ? 0 : ...`) that SonarCloud flags; pre-existing, untouched by #610. [22 Nov 2026, Sonar on #610]
 
 - Agents comment as astevegreen while greenbeanbot is suspended, so after the bot returns a `Blocked:` comment an
