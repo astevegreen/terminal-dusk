@@ -46,11 +46,6 @@ medium`, in 50-game batches). Recheck both tiers when the cards' rewording or th
 ## Tests and tooling
 
 - `packages/ai/src/medium.ts:37` has a nested ternary (`status.winner === null ? 0 : ...`) that SonarCloud flags; pre-existing, untouched by #610. [22 Nov 2026, Sonar on #610]
-- `packages/content/src/rulesSpends.test.ts` (#606) ties spends and Ops swings to their side and branch, but the other
-  numbers `rulesNumbers.test.ts` reads (swing floors, Contingency thresholds, Escalation moves, cards discarded) are
-  still compared as distinct sets only. e3-sae-003 is checked as a set, so its branches aren't tied (pairing the data's
-  "if marker" and "if LIO played" before comparing would close it), and an `if` whose branches spend the same counts
-  once, so text naming that spend in one branch only would pass. [22 Nov 2026, reviewer and agy on #606]
 
 - Agents comment as astevegreen while greenbeanbot is suspended, so after the bot returns a `Blocked:` comment an
   agent posted as the owner can read as the owner's answer (`tools/sprint/rules.mjs:207` `ownerAnswer`): check blocked
