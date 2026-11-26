@@ -221,7 +221,13 @@ export function easyChooser(rules: Ruleset, side: Side, rng: Rng): Chooser {
  * (abilityChecks.ts).
  */
 export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed, choose: Chooser): Played {
+  return play(rules, label, setup, seed, choose, true);
+}
+
+/** playGame; `again` plays a failing game's record a second time, so its report says whether the failure repeats. */
+function play(rules: Ruleset, label: string, setup: Setup, seed: Seed, choose: Chooser, again: boolean): Played {
   const record: GameRecord = { setup: deepFreeze(setup), seed, answers: [] };
+  let choosing = false;
   const players = new Map<CardId, Side>();
   const plays = new Map<CardId, PlayRecord>();
   try {
@@ -230,7 +236,9 @@ export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed
     checkStep(rules, setup, state, events, seed, { before: null, allEvents, knowledge: null });
     while (state.public.status.kind === "active") {
       if (record.answers.length >= MAX_ANSWERS) throw new Error(`the game is still going after ${MAX_ANSWERS} answers`);
+      choosing = true;
       const answer = choose(state);
+      choosing = false;
       if (answer === null) break;
       record.answers.push(deepFreeze(answer));
       notePlayer(players, answer);
@@ -254,8 +262,32 @@ export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed
     if (state.public.status.kind === "over") checkVerify(rules, record, state, allEvents);
     return { record, final: state };
   } catch (err) {
-    throw new Error(report(label, record, err), { cause: err });
+    const message = err instanceof Error ? err.message : String(err);
+    const verdict = !again ? null : choosing ? CHOOSER_FAILED : secondRun(rules, record, message);
+    throw new Error(report(label, record, message, verdict), { cause: err });
   }
+}
+
+const CHOOSER_FAILED = "it failed while picking an answer, so its record was not played again";
+
+/**
+ * Plays a failing game's `record` again from the start, with every check, and says whether `message`, the first
+ * failure, repeats. Every game is fixed by its record, so a failure that does not repeat came from the machine or
+ * the test run (a fault under load, say), not from the rules: the record proves which.
+ */
+export function secondRun(rules: Ruleset, record: GameRecord, message: string): string {
+  let next = 0;
+  try {
+    play(rules, "again", record.setup, record.seed, () => record.answers[next++] ?? null, false);
+  } catch (err) {
+    // play wraps each failure in a report; its cause is the failure itself.
+    const cause = err instanceof Error ? err.cause : err;
+    const again = cause instanceof Error ? cause.message : String(cause);
+    return again === message
+      ? "it fails the same way when its record is played again"
+      : `played again from its record it fails differently: ${again}`;
+  }
+  return "NOT REPEATED: played again from its record it passes, so suspect the machine or test run, not the rules";
 }
 
 /** Invariant 6: replaying the record's answers from createGame gives a state deep-equal to `final`. */
@@ -286,10 +318,11 @@ function answered(rules: Ruleset, state: GameState, answer: Answer): Step {
   return deepFreeze(r.value);
 }
 
-function report(label: string, record: GameRecord, err: unknown): string {
+/** The failure report. The verdict goes on the first line, which the gate's short output keeps. */
+function report(label: string, record: GameRecord, message: string, verdict: string | null): string {
   const at = record.answers.length === 0 ? "at the start" : `at answer ${record.answers.length}`;
   return [
-    `${label} failed ${at}: ${err instanceof Error ? err.message : String(err)}`,
+    `${label} failed ${at}${verdict === null ? "" : ` (${verdict})`}: ${message}`,
     `Seed: ${JSON.stringify(record.seed)}. The game's record (setup, seed and every answer so far):`,
     JSON.stringify(record),
     "Once it is fixed, add that record to tests/fuzz/fixedGames.ts so it is checked on every run.",

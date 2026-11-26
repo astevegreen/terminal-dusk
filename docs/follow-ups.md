@@ -62,11 +62,6 @@ medium`, in 50-game batches). Recheck both tiers when the cards' rewording or th
   still compared as distinct sets only. e3-sae-003 is checked as a set, so its branches aren't tied (pairing the data's
   "if marker" and "if LIO played" before comparing would close it), and an `if` whose branches spend the same counts
   once, so text naming that spend in one branch only would pass. [22 Nov 2026, reviewer and agy on #606]
-- `pnpm gate`'s quick fuzz failed once in `tests/fuzz/extraSteps.test.ts`: "Extra-steps game 188 ... failed at answer
-  27: the view for 'sae' shows sae's Contingency deck with a count left that is not the secret order's"
-  (`tests/fuzz/checks.ts:256`, `checkNoLeaks`). Each game is seeded from its number, yet the next gate and three
-  1,000-game runs of that file passed, so something in that check or the game is not deterministic. Find what.
-  [21 Nov 2026, gate run on #583 while a balance run loaded the PC]
 
 - Agents comment as astevegreen while greenbeanbot is suspended, so after the bot returns a `Blocked:` comment an
   agent posted as the owner can read as the owner's answer (`tools/sprint/rules.mjs:207` `ownerAnswer`): check blocked
