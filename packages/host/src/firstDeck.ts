@@ -116,11 +116,11 @@ export function futureBattlegroundsMatchEra3(map: NonNullable<Setup["map"]>): bo
 
 /**
  * The optional 2025-2027 game (#601; docs/design/eras.md): the scenario's 11 turns and eras, with the future cards
- * entering on turn 11 and extending Era 3, on the six-region map as the base game is played. Era 3 scores once, at the
- * end of turn 11, from the map's "future" battleground list, so a map whose list is not Era 3's is refused.
+ * entering on turn 11 and extending Era 3, on the six-region map as the base game is played (or on `map`, which the
+ * balance tool gives with its own numbers). Era 3 scores once, at the end of turn 11, from the map's "future"
+ * battleground list, so a map whose list is not Era 3's is refused.
  */
-export function scenario2025To2027Config(): MatchConfig {
-  const map = mapOf(SIX_REGION_MAP_SCENARIO);
+export function scenario2025To2027Config(map = mapOf(SIX_REGION_MAP_SCENARIO)): MatchConfig {
   if (!futureBattlegroundsMatchEra3(map)) throw new Error("the map's future battlegrounds must be Era 3's");
   return {
     matchId: "2025-2027",

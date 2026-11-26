@@ -7,11 +7,13 @@ import type { DeadlineStore } from "./deadlineStore.ts";
 import type { CommitResult, LoadedMatch, MatchStore, MatchWrite } from "./store.ts";
 
 /**
- * One due match's outcome. `extended`: a grace extension was saved. `timedOut`: a loss on time was saved.
- * A draw because both sides missed a simultaneous pick (O7d) is a `timedOut` too. `answered`: under the
+ * One due match's outcome. `extended`: a grace extension was saved. `timedOut`: the deadline step that was saved
+ * ended the game: a loss or a draw on time, or default answers that finished it (#616). `answered`: under the
  * "defaultAnswer" rule the host's default answers for the late side were saved, and the game goes on (#605).
- * `conflict`: the stored seq moved on first, so nothing was written. `skipped`: nothing was written, with
- * the host's refusal code (for example `notDue`), or `unknownRuleset`, `notFound` or `storageFailed`.
+ * `conflict`: the stored seq moved on first, so nothing was written. `skipped`: no step was written, with
+ * the host's refusal code (for example `notDue`), or `unknownRuleset`, `notFound` or `storageFailed`; or
+ * `standInNoAnswer`: the stand-in found no legal answer, so the match was parked with the late side's deadline
+ * cleared and nothing else changed (#616).
  */
 export type SweepResult = { matchId: string } & (
   { status: "extended" | "timedOut" | "answered" | "conflict" } | { status: "skipped"; code: string }
@@ -50,14 +52,18 @@ async function sweepOne(
   const result = hostDeadline(ruleset, record, secret, now);
   if (!result.ok) return skip(result.error.code);
   const write: MatchWrite = { record: result.value.record, secret: result.value.secret, frames: result.value.frames };
-  // An extension keeps the seq (the game has not moved on); a loss on time or a stand-in is an accepted step.
+  // An extension or a parked match keeps the seq (the game has not moved on); a loss on time or a stand-in is an
+  // accepted step.
   const extended = write.record.seq === record.seq;
   const saved = await attempt<CommitResult>(() =>
     extended ? store.saveClock(matchId, record.seq, write.record) : store.commit(matchId, record.seq, write),
   );
   if (!saved.ok) return skip("storageFailed");
   if (saved.value === "conflict") return { matchId, status: "conflict" };
-  if (extended) return { matchId, status: "extended" };
+  // Under "defaultAnswer" an unchanged seq is never an extension: the stand-in parked the match.
+  if (extended)
+    return record.clock?.rule === "defaultAnswer" ? skip("standInNoAnswer") : { matchId, status: "extended" };
+  if (write.record.status.kind === "over") return { matchId, status: "timedOut" };
   return { matchId, status: write.frames.lio.standIn === undefined ? "timedOut" : "answered" };
 }
 

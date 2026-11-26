@@ -20,26 +20,27 @@ medium`, in 50-game batches). Recheck both tiers when the cards' rewording or th
 - `docs/design/map-and-points.md` ("Map numbers", Open) still says the scenario data has not been changed to the
   21 Nov rules; the scenario is `packages/content/scenarios/base-game.json` since #575. Fix it at the next Notion
   promotion. [21 Nov 2026, #575]
-- The 2025-2027 host config's refusal of a map whose `future` list is not Era 3's (`packages/host/src/firstDeck.ts`, `scenario2025To2027Config`) has no test that reaches it, since the config always uses the six-region map: let it take the map as a parameter and test a bad one. The balance tool can also get round it: `--numbers` can change only the `era-3` or only the `future` list, and `--era future@N` is accepted for `2025-2027` (`tools/balance/config.mjs`, `numbers.mjs`); re-run the check after those changes. [22 Nov 2026, #604 review]
+- LIO's Resilient institutions redraw still follows the deck's owner (`packages/engine/src/abilities.ts` `takeRedraw`,
+  and its header comment "Never the World deck"), not the owner's 26 Nov rule that in a card's event it follows who
+  played the card (`docs/design/contingency-deck.md`, "Whose bonuses apply"). Two plays differ: LIO playing an SAE card
+  whose draw goes to the World deck gets no redraw but should, and an SAE card whose gamble LIO takes from LIO's deck
+  gets one but should not. Sent to the engine lane on 26 Nov. [26 Nov 2026, reviewer on #615]
+- The abilities' numbers (SAE's 1 more, LIO's once per turn) wait on a Medium-against-Medium balance run that shows
+  whether either ability tips the game (`docs/design/sides.md`); report it to the owner, who decides. [26 Nov 2026,
+  owner's answer in chat]
 
 ## App, host and server
 
-- The online log marks every event of a stand-in step "Played for LIO (deadline passed): …", including events the late
-  side did not cause (the other side's own pick in a simultaneous pick, turn-end, scoring, refill, era start). Mark
-  only the stand-in's own events, or reword the line. (`packages/app/src/online/onlineGame.ts`,
-  `packages/app/src/transport/remoteMatch.ts`). [22 Nov 2026, agy on #611]
-- The app's `match_event` read now asks for `stand_in` (`remoteHttp.ts`): deploy migration 20261029000000 before the
-  app, or every online game stops updating. Note the order in the release steps. [22 Nov 2026, agy on #611]
 - `docs/design/core-loop.md` has a new "Missed deadlines" section (#611) with no Notion promotion entry in its header:
   record it at the next promotion. [22 Nov 2026, agy on #611]
-- Under "defaultAnswer", a stand-in refused `standInLimit` (`packages/host/src/hostStandIn.ts`) makes the sweep
-  (`packages/server/src/sweepDeadlines.ts`) skip that match on every run, so it never moves or ends. The same
-  happens if a plain "both" timeout meets two waits that are not one simultaneous pick (engine `bothWaiting`).
-  Neither path is tested, and neither has a fallback. [22 Nov 2026, agy on #609]
-- The sweep reports `answered` whenever the stand-in mark is set, even when the stand-in's own answers end the game
-  (`sweepDeadlines.ts`, "answered" = the game goes on). It should report `timedOut` or `over`. [22 Nov 2026, reviewer and agy on #609]
-- A covered side given a new decision in the same turn still gets a turn alert (`hostAccept.ts` `commitSteps`),
-  although `hostSubmit` will refuse its answer that turn. [22 Nov 2026, agy on #609]
+- `packages/server/src/sweepEdge.ts` `DEADLINE_STATUSES` does not count the sweep's `answered` status (a stand-in
+  step under "defaultAnswer"), so the `sweep-deadlines` reply's counts leave those matches out (`countOf`). [26 Nov 2026, #616]
+- The online log marks a late side's influence placed by the rival's card event as the stand-in's own move
+  (`packages/app/src/online/gameText.ts` `isMoveOf` checks only the event's side). [26 Nov 2026, #616]
+- The era names are decided (The Thaw, The Shock, The Fracture; `docs/design/eras.md`) but nothing shows them: the
+  app says "Era 1" (`packages/app/src/App.tsx:136`, the era themes in `packages/app/src/game/themes/eraTheme.ts`),
+  and the scenarios carry no era name. Show each era's name where its number appears, with the theme. [26 Nov 2026,
+  owner's answer in chat]
 
 ## Tests and tooling
 
@@ -50,11 +51,6 @@ medium`, in 50-game batches). Recheck both tiers when the cards' rewording or th
   still compared as distinct sets only. e3-sae-003 is checked as a set, so its branches aren't tied (pairing the data's
   "if marker" and "if LIO played" before comparing would close it), and an `if` whose branches spend the same counts
   once, so text naming that spend in one branch only would pass. [22 Nov 2026, reviewer and agy on #606]
-- `pnpm gate`'s quick fuzz failed once in `tests/fuzz/extraSteps.test.ts`: "Extra-steps game 188 ... failed at answer
-  27: the view for 'sae' shows sae's Contingency deck with a count left that is not the secret order's"
-  (`tests/fuzz/checks.ts:256`, `checkNoLeaks`). Each game is seeded from its number, yet the next gate and three
-  1,000-game runs of that file passed, so something in that check or the game is not deterministic. Find what.
-  [21 Nov 2026, gate run on #583 while a balance run loaded the PC]
 
 - Agents comment as astevegreen while greenbeanbot is suspended, so after the bot returns a `Blocked:` comment an
   agent posted as the owner can read as the owner's answer (`tools/sprint/rules.mjs:207` `ownerAnswer`): check blocked

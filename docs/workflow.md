@@ -299,6 +299,8 @@ Five layers check every change, cheapest first, so most problems are caught befo
 
 **Nightly preview.** CI deploys `main` to a private preview address on Cloudflare (free plan) after the morning merges, showing the build number and ruleset in a corner. That build is what you, Gemini's browser tests and your friends play.
 
+**Release order: database before app.** Deploy the database migrations to the hosted Supabase project before the app build that needs them; an app that reads a column the database does not have yet stops every online game from updating. Pending: migration `20261029000000` (the `stand_in` column on `match_event`, #611) must be deployed before any app build from #611 onwards (#616).
+
 ## Device testing and playtesting
 
 The nightly preview build is the shared test bed for you, Gemini and your friends. Automated tests cover rules and layout; people cover feel, clarity and fun.

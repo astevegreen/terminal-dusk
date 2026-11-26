@@ -43,15 +43,37 @@ export const eraIdsOf = (scenario = DEFAULT_SCENARIO) => [
 /** Every era the first-deck setup has (the default scenario's eras). */
 export const ERA_IDS = eraIdsOf(DEFAULT_SCENARIO);
 
+/** `config` with `numbers` laid over its map. A 2025-2027 map is checked by the host again, as its numbers changed. */
+function withNumbers(config, numbers, scenario) {
+  const changed = applyNumbers(config, numbers);
+  return scenario === "2025-2027" ? scenario2025To2027Config(changed.setup.map) : changed;
+}
+
+/**
+ * Throws when 2025-2027's future cards would join while another era is in play: they extend the era before them
+ * (#601), which then does not score on its own and is scored from the "future" list, which is Era 3's.
+ */
+function checkFutureExtendsEra3(eras) {
+  const future = eras.find((entry) => entry.era === "future");
+  if (future === undefined) return;
+  const earlier = eras.filter((entry) => entry.turn < future.turn).toSorted((a, b) => a.turn - b.turn);
+  if (earlier.at(-1)?.era !== "era-3") {
+    throw new Error(
+      "--era: on 2025-2027 the future cards must join while Era 3 is in play (after era-3, with no other era " +
+        "between), or be left out with --era future@off.",
+    );
+  }
+}
+
 /**
  * The match config for a run of `scenario`. `turns` and `plays` replace the scenario's numbers when given; `eras`
  * maps an era id to its new arrival turn, or to null to leave its cards out. Eras not named keep the scenario's turns.
  * `numbers` (optional, a numbers file's content) replaces the map's stabilities, battleground lists and starting
- * influence (numbers.mjs).
+ * influence (numbers.mjs). On 2025-2027, numbers or eras that would score another list for Era 3 are refused.
  */
 export function balanceConfig({ scenario = DEFAULT_SCENARIO, turns, plays, eras = {}, numbers } = {}) {
   const base = scenarioConfig(scenario);
-  const config = numbers === undefined ? base : applyNumbers(base, numbers);
+  const config = numbers === undefined ? base : withNumbers(base, numbers, scenario);
   const setup = config.setup;
   if (turns !== undefined) setup.turns = turns;
   if (plays !== undefined) setup.playsPerTurn = plays;
@@ -60,6 +82,7 @@ export function balanceConfig({ scenario = DEFAULT_SCENARIO, turns, plays, eras 
       .filter((entry) => eras[entry.era] !== null)
       .map((entry) => (eras[entry.era] === undefined ? entry : { ...entry, turn: eras[entry.era] }));
   }
+  if (scenario === "2025-2027") checkFutureExtendsEra3(setup.eras);
   return config;
 }
 

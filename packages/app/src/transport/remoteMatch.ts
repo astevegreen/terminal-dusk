@@ -124,7 +124,8 @@ export function createRemoteMatch(options: RemoteMatchOptions): MatchTransport {
       const standInRuns: StandInRun[] = [];
       let start = 0;
       for (const step of mine) {
-        if (step.standIn !== null && step.events.length > 0) {
+        // A stand-in step with no events still gets a run, so the log can say a default answer was given (#616).
+        if (step.standIn !== null) {
           standInRuns.push({ side: step.standIn, start, count: step.events.length });
         }
         start += step.events.length;
