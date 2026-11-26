@@ -18,7 +18,8 @@ of truth; change it in Notion and promote again. The special abilities were deci
     that card is set aside and LIO draws again. In a card's event it follows whose card play it is (owner,
     26 Nov 2026; docs/design/contingency-deck.md, "Whose bonuses apply"): it works on any draw in the event of a
     card LIO played, from LIO's deck, SAE's deck or the World deck, and on no draw in the event of a card SAE
-    played, even one from LIO's own deck. Draws outside card events (interventions, realignments, the tech race)
+    played, even one from LIO's own deck. When such an event makes both sides draw, it covers only the draw made for
+    LIO, never SAE's (owner, 26 Nov 2026, in chat: "LIO's own draw only"). Draws outside card events (interventions, realignments, the tech race)
     are unchanged: LIO's own deck only. It does not apply to a crisis draw (where a 1 is LIO's best
     result), and a crisis draw does not use up the once-per-turn redraw (owner, 21 Nov 2026, in chat: "Take all").
   - **SAE: Unified command.** After SAE plays one of its own cards for its event, the next card SAE plays for its
