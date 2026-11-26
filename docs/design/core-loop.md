@@ -19,8 +19,9 @@ on this file is the source of truth; change it in Notion and promote again.
    the card LIO picked resolves first, whichever side's card it is.
 5. **Opening cards are events only.** Each opening card resolves as its event. Its action points are not spent.
    A rival's card picked as an opening card resolves as the rival's event, exactly as if the rival had played it,
-   except that its Contingency draws from the rival's own deck come from the World deck, and the picking side's
-   bonuses apply to its draws (docs/design/contingency-deck.md, "The World deck" and "Whose bonuses apply").
+   except that its Contingency draws from the rival's own deck come from the World deck, and bonuses follow the
+   side that picked it: the rival's never apply, and the picking side's apply only to draws from its own deck
+   (docs/design/contingency-deck.md, "The World deck" and "Whose bonuses apply").
 6. **Card plays.** After the opening cards, the players take turns playing one card at a time, until each side
    has made **2 plays** (owner, 21 Nov 2026: docs/proposals/era-lengths.md, question 2). LIO plays
    first in every turn, so the order is LIO, SAE, LIO, SAE. A side holding the tech race's Hypersonics step then
@@ -54,8 +55,9 @@ on this file is the source of truth; change it in Notion and promote again.
   the event (owner, 28 Oct; docs/design/tech-race.md):
   - the player who played the card chooses whether the event happens **before or after** they spend the points;
   - the event runs exactly as if the **rival** had played it, except that its Contingency draws from the
-    rival's own deck come from the World deck, and the playing side's bonuses apply to its draws
-    (docs/design/contingency-deck.md, "The World deck" and "Whose bonuses apply").
+    rival's own deck come from the World deck, and bonuses follow the side that played it: the rival's never
+    apply, and the playing side's apply only to draws from its own deck (docs/design/contingency-deck.md,
+    "The World deck" and "Whose bonuses apply").
 - **No card left.** When a side owes a play this turn but has no card in its hand (a discard took its last
   cards), it passes the rest of its plays for the turn. The other side makes its remaining plays as usual, and the
   turn then goes on to its end. Cards come back to a hand only at the next turn's refill (owner, 7 Nov 2026:

@@ -21,10 +21,9 @@ medium`, in 50-game batches). Recheck both tiers when the cards' rewording or th
   21 Nov rules; the scenario is `packages/content/scenarios/base-game.json` since #575. Fix it at the next Notion
   promotion. [21 Nov 2026, #575]
 - LIO's Resilient institutions redraw still follows the deck's owner (`packages/engine/src/abilities.ts` `takeRedraw`,
-  and its header comment "Never the World deck"), not the owner's 26 Nov rule that in a card's event it follows who
-  played the card (`docs/design/contingency-deck.md`, "Whose bonuses apply"). Two plays differ: LIO playing an SAE card
-  whose draw goes to the World deck gets no redraw but should, and an SAE card whose gamble LIO takes from LIO's deck
-  gets one but should not. Sent to the engine lane on 26 Nov. [26 Nov 2026, reviewer on #615]
+  and its header comment "Never the World deck"), not the owner's 26 Nov rule: in a card's event it works only on LIO's own deck in a card
+  LIO played (`docs/design/contingency-deck.md`, "Whose bonuses apply"). The play that differs: a card SAE played that
+  draws from LIO's deck (a gamble LIO takes) gets a redraw but should not. Sent to the engine lane on 26 Nov. [26 Nov 2026, reviewer on #615]
 - The abilities' numbers (SAE's 1 more, LIO's once per turn) wait on a Medium-against-Medium balance run that shows
   whether either ability tips the game (`docs/design/sides.md`); report it to the owner, who decides. [26 Nov 2026,
   owner's answer in chat]
