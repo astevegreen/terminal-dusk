@@ -55,10 +55,15 @@ describe("scenario2025To2027Config on a given map", () => {
   type GivenMap = NonNullable<Parameters<typeof scenario2025To2027Config>[0]>;
   const sixRegion = (): GivenMap => scenario2025To2027Config().setup.map!;
   /** The six-region map with each of the named eras' battleground lists changed. */
-  const changed = (eras: string[], change: (countries: string[]) => string[], map = sixRegion()): GivenMap => ({
-    ...map,
-    battlegrounds: map.battlegrounds.map((b) => (eras.includes(b.era) ? { ...b, countries: change(b.countries) } : b)),
-  });
+  const changed = (eras: string[], change: (countries: string[]) => string[]): GivenMap => {
+    const map = sixRegion();
+    return {
+      ...map,
+      battlegrounds: map.battlegrounds.map((b) =>
+        eras.includes(b.era) ? { ...b, countries: change(b.countries) } : b,
+      ),
+    };
+  };
   const without = (era: string): GivenMap => {
     const map = sixRegion();
     return { ...map, battlegrounds: map.battlegrounds.filter((b) => b.era !== era) };
