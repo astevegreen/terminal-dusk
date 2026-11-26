@@ -58,12 +58,15 @@ decks. From now on this file is the source of truth; change it in Notion and pro
 
 Owner, 26 Nov 2026, in chat (the question was left for later on 19 Oct).
 
-- **In a card's event, the bonuses of the side that played the card apply**, whichever deck the draw comes from:
-  that side's own, the rival's or the World deck. It is that side's play. The deck owner's bonuses do not apply
+- **In a card's event, the bonuses of the side that played the card apply**, to the draws made for that side
+  (below), whether from its own deck or the World deck. It is that side's play. The deck owner's bonuses do not apply
   to a draw made in the rival's card play.
-- **Only the playing side's own draws.** When an event makes both sides draw (for example "each side draws; the
-  higher number wins"), the playing side's bonuses apply only to the draw made for it, never to the rival's draw
-  (owner, 26 Nov 2026, in chat: "LIO's own draw only").
+- **Only draws made for the playing side.** A draw is made for the side whose deck the card's text names (or,
+  when a rival's card sends it to the World deck, for that rival). The playing side's bonuses apply only to draws
+  made for it. When an event makes both sides draw (for example "each side draws; the higher number wins"), they
+  never cover the rival's draw (owner, 26 Nov 2026, in chat: "LIO's own draw only"). A draw from the rival's
+  deck that settles the rival's choice (e1-lio-004, e2-lio-011, e3-lio-015) is the rival's draw, so the playing
+  side's bonuses do not apply to it (owner, 26 Nov 2026, in chat: "No redraw").
 - Today the only such bonus is LIO's Resilient institutions redraw (docs/design/sides.md); modifiers that change
   a drawn number follow the same rule when they come.
 - Draws outside card events (interventions, realignments and their defending draws, the tech race) and crisis
