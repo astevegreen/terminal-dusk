@@ -25,22 +25,12 @@ medium`, in 50-game batches). Recheck both tiers when the cards' rewording or th
 
 ## App, host and server
 
-- The online log marks every event of a stand-in step "Played for LIO (deadline passed): …", including events the late
-  side did not cause (the other side's own pick in a simultaneous pick, turn-end, scoring, refill, era start). Mark
-  only the stand-in's own events, or reword the line. (`packages/app/src/online/onlineGame.ts`,
-  `packages/app/src/transport/remoteMatch.ts`). [22 Nov 2026, agy on #611]
-- The app's `match_event` read now asks for `stand_in` (`remoteHttp.ts`): deploy migration 20261029000000 before the
-  app, or every online game stops updating. Note the order in the release steps. [22 Nov 2026, agy on #611]
 - `docs/design/core-loop.md` has a new "Missed deadlines" section (#611) with no Notion promotion entry in its header:
   record it at the next promotion. [22 Nov 2026, agy on #611]
-- Under "defaultAnswer", a stand-in refused `standInLimit` (`packages/host/src/hostStandIn.ts`) makes the sweep
-  (`packages/server/src/sweepDeadlines.ts`) skip that match on every run, so it never moves or ends. The same
-  happens if a plain "both" timeout meets two waits that are not one simultaneous pick (engine `bothWaiting`).
-  Neither path is tested, and neither has a fallback. [22 Nov 2026, agy on #609]
-- The sweep reports `answered` whenever the stand-in mark is set, even when the stand-in's own answers end the game
-  (`sweepDeadlines.ts`, "answered" = the game goes on). It should report `timedOut` or `over`. [22 Nov 2026, reviewer and agy on #609]
-- A covered side given a new decision in the same turn still gets a turn alert (`hostAccept.ts` `commitSteps`),
-  although `hostSubmit` will refuse its answer that turn. [22 Nov 2026, agy on #609]
+- `packages/server/src/sweepEdge.ts` `DEADLINE_STATUSES` does not count the sweep's `answered` status (a stand-in
+  step under "defaultAnswer"), so the `sweep-deadlines` reply's counts leave those matches out (`countOf`). [26 Nov 2026, #616]
+- The online log marks a late side's influence placed by the rival's card event as the stand-in's own move
+  (`packages/app/src/online/gameText.ts` `isMoveOf` checks only the event's side). [26 Nov 2026, #616]
 
 ## Tests and tooling
 

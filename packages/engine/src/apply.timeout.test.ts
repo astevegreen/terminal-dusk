@@ -61,6 +61,29 @@ describe("apply: timeout", () => {
       expect(JSON.stringify(state)).toBe(before);
     }
   });
+  it("both sides waiting on decisions that are not one simultaneous pick: a 'both' timeout is a draw (#616)", () => {
+    const s = startGame();
+    const apart: GameState = {
+      ...s,
+      public: {
+        ...s.public,
+        pending: s.public.pending.map((d) => {
+          const rest = { ...d };
+          delete rest.simultaneousGroup;
+          return rest;
+        }),
+      },
+    };
+    expect(apart.public.pending.map((d) => [d.side, d.simultaneousGroup])).toEqual([
+      ["lio", undefined],
+      ["sae", undefined],
+    ]);
+    const r = apply(ruleset, apart, { system: "timeout", side: "both" });
+    if (!r.ok) throw new Error(`expected ok, got ${r.error.code}`);
+    expect(r.value.state.public.status).toEqual({ kind: "over", winner: null, reason: "timeout" });
+    const one = startAtPlay();
+    expect(code(apply(ruleset, one, { system: "timeout", side: "both" }))).toBe("wrongSide");
+  });
   it("a timeout on a finished game is refused with gameOver", () => {
     const over = playAnswers(startAtPlay(1), 2);
     expect(over.public.status.kind).toBe("over");

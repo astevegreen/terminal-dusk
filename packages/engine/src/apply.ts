@@ -70,8 +70,9 @@ const namesSide = (answer: Answer): boolean =>
 
 // Resign and timeout both end the game at once: the other side wins, and nothing is left open.
 // A timeout is the host's deadline job saying `side` was late, so `side` must be the one being waited for.
-// A timeout for "both" is a draw: both sides missed one simultaneous pick, or the host names in `covered` a side it
-// played for this turn that has nothing waiting while the other side is late (#605).
+// A timeout for "both" is a draw: both sides have a decision waiting (one simultaneous pick neither has made, or two
+// waits at once, #616), or the host names in `covered` a side it played for this turn that has nothing waiting
+// while the other side is late (#605).
 function applySystem(state: GameState, answer: Extract<Answer, { system: string }>): Applied {
   let reason: string;
   if (answer.system === "resign") reason = "resigned";
@@ -96,16 +97,12 @@ function timeoutWaiting(state: GameState, answer: Extract<Answer, { system: "tim
   return coveredDraw(state, "covered" in answer ? answer.covered : undefined);
 }
 
-/** True when both sides wait on one simultaneous pick and neither has made it (a picked side has no pending). */
+/**
+ * True when both sides have a decision waiting: one simultaneous pick neither has made (a picked side has no
+ * pending), or two separate waits at once (#616). Both late at once is a draw (docs/design/core-loop.md).
+ */
 function bothWaiting(state: GameState): boolean {
-  const lio = pendingFor(state, "lio");
-  const sae = pendingFor(state, "sae");
-  return (
-    lio !== null &&
-    sae !== null &&
-    lio.simultaneousGroup !== undefined &&
-    lio.simultaneousGroup === sae.simultaneousGroup
-  );
+  return pendingFor(state, "lio") !== null && pendingFor(state, "sae") !== null;
 }
 
 /** True when `covered` is a side with nothing waiting and the other side has a decision waiting. */

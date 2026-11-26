@@ -96,11 +96,8 @@ const canon = (v: unknown): string =>
       : x,
   );
 
-/** True when both sides have an open decision in one simultaneous group (so neither has picked yet). */
-const oneOpenPair = (s: GameState): boolean => {
-  const groups = SIDES.map((side) => s.public.pending.find((d) => d.side === side)?.simultaneousGroup);
-  return groups[0] !== undefined && groups[0] === groups[1];
-};
+/** True when both sides have an open decision: one simultaneous pick neither has made, or two waits at once (#616). */
+const oneOpenPair = (s: GameState): boolean => SIDES.every((side) => s.public.pending.some((d) => d.side === side));
 
 /** True when `covered` is a side with no open decision and the other side has one. */
 const coveredDraw = (s: GameState, covered: unknown): boolean => {

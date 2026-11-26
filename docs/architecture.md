@@ -98,8 +98,9 @@ type Decision = {
 type Answer =
   | { decisionId: string; side: Side; value: AnswerValue }
   | { system: 'timeout'; side: Side }
-  | { system: 'timeout'; side: 'both'; covered?: Side } // a draw: a simultaneous pick missed by both sides, or
-                                                       // `covered` was played for this turn and the other is late
+  | { system: 'timeout'; side: 'both'; covered?: Side } // a draw: both sides waiting at once (a simultaneous pick
+                                                       // or two separate waits, #616), or `covered` was played
+                                                       // for this turn and the other is late
   | { system: 'resign' | 'adjudicate'; side: Side };
 ```
 
