@@ -12,7 +12,8 @@ Not yet built. Every number is a placeholder that the balance pass may tune, as 
 
 - **One shared marker** (owner: T1). It runs from SAE's end through **parity** to LIO's end: 4 steps each way
   (owner: "4 each way"), 9 spaces, stored as one whole number from -4 to 4. Public state. The base game starts at
-  parity, and the marker never resets: it carries over from era to era (owner: "All five, as listed").
+  parity, and so does the 2025-2027 scenario (owner, 26 Nov 2026, in chat; revisit only if balance runs show one
+  side running away with the tech race there). The marker never resets: it carries over from era to era (owner: "All five, as listed").
 - **The steps are named technologies** (owner: "Named steps"; "Make it networking/orbit - AI - hypersonics -
   quantum computing"). The names are the same for both sides:
 
@@ -104,6 +105,5 @@ Powers add up: the side holding a step has its power and every power below it (o
 
 - The balance pass on the costs, the success number, the length of the track and the powers, once the Medium AI
   can play it.
-- Whether the 2025-2027 scenario (`eras.md`) starts the marker somewhere other than parity.
 - Cards that move the marker or name a step, in the card rewording pass (`map-and-points.md`, Escalation, "Cards
   that move it").
