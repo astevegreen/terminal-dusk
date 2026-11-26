@@ -20,13 +20,12 @@ medium`, in 50-game batches). Recheck both tiers when the cards' rewording or th
 - `docs/design/map-and-points.md` ("Map numbers", Open) still says the scenario data has not been changed to the
   21 Nov rules; the scenario is `packages/content/scenarios/base-game.json` since #575. Fix it at the next Notion
   promotion. [21 Nov 2026, #575]
-- LIO's Resilient institutions redraw still follows the deck's owner (`packages/engine/src/abilities.ts` `takeRedraw`,
-  and its header comment "Never the World deck"), not the owner's 26 Nov rule: in a card's event it works only on LIO's own deck in a card
-  LIO played (`docs/design/contingency-deck.md`, "Whose bonuses apply"). The play that differs: a card SAE played that
-  draws from LIO's deck (a gamble LIO takes) gets a redraw but should not. Sent to the engine lane on 26 Nov. [26 Nov 2026, reviewer on #615]
 - The abilities' numbers (SAE's 1 more, LIO's once per turn) wait on a Medium-against-Medium balance run that shows
   whether either ability tips the game (`docs/design/sides.md`); report it to the owner, who decides. [26 Nov 2026,
   owner's answer in chat]
+- The `madeFor` marks in e3-neu-001, e3-neu-002, e1-neu-003 and e2-neu-005 (`packages/content/cards/`) have no card
+  story with Resilient institutions in play, so removing one fails no test; add a story to each like the two in
+  `e2-neu-003.test.ts` (LIO plays, SAE's 1 from LIO's deck stands). [26 Nov 2026, reviewer on #627]
 
 ## App, host and server
 

@@ -116,7 +116,8 @@ function innerSteps(step: Step): readonly Step[] {
  * addToNumber's `amount` and an escalate's `by` must be whole numbers, and neither may be 0. A modifier must use a hook,
  * side, add, min and duration the engine knows (badModifier); a trigger a hook and duration, and a
  * reaction of at least one step (badTrigger). A discardFromHand names LIO or SAE and a whole `count`, 1 or more,
- * and a `chosenBy`, if any, of "owner" or "player". A spendPoints never has `play` or `cardPoints`: only the engine's own plays
+ * and a `chosenBy`, if any, of "owner" or "player". A drawContingency's `madeFor`, if any, is "lio" or "sae", on a
+ * draw from the player's deck ("player") only. A spendPoints never has `play` or `cardPoints`: only the engine's own plays
  * for points set it (turn.ts), and it would let an event's points make a tech race attempt.
  */
 function badStep(step: Step): string | null {
@@ -143,6 +144,14 @@ function badStep(step: Step): string | null {
       return step.play === undefined && step.cardPoints === undefined
         ? null
         : "marks its points as a card played for its points (play or cardPoints), which only the engine may.";
+    case "drawContingency":
+      if (step.madeFor === undefined) return null;
+      if (step.side !== "player") {
+        return `has a draw from LIO's or SAE's deck that says whom it is made for; only a draw from the deck of the side that played the card ("side": "player") does.`;
+      }
+      return step.madeFor === "lio" || step.madeFor === "sae"
+        ? null
+        : 'has a draw made for a side that is not "lio" or "sae".';
     case "discardFromHand":
       if (step.side !== "lio" && step.side !== "sae")
         return 'discards from the hand of a side that is not "lio" or "sae".';

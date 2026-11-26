@@ -57,4 +57,38 @@ describeCard("e3-neu-005", "Populist Wave", [
       points:sae:2
     `,
   },
+  {
+    // The draw settles SAE's choice, so it is made for SAE: LIO's Resilient institutions never redraws it (owner,
+    // 26 Nov 2026: "No redraw"; docs/design/contingency-deck.md, "Whose bonuses apply").
+    it: "when LIO plays it with Resilient institutions and draws a 1 for SAE's choice, the 1 stands",
+    resilient: true,
+    yes: { sae: true },
+    draws: [1, 4],
+    story: `
+      ballot shock
+      draw:lio:1
+      points:lio:1
+      points:sae:2
+      points:lio:2
+      points:sae:2
+    `,
+  },
+  {
+    it: "when SAE plays it with Resilient institutions, the draw is still made for SAE's choice and is redrawn",
+    playedBy: "sae",
+    resilient: true,
+    yes: { sae: true },
+    draws: [1, 4],
+    story: `
+      points:lio:2
+      ballot shock
+      draw:sae:1
+      redraw:sae
+      draw:sae:4
+      points:sae:1
+      mod:lio:-1:min1
+      points:lio:1
+      points:sae:2
+    `,
+  },
 ]);

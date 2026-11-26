@@ -19,9 +19,11 @@ of truth; change it in Notion and promote again. The special abilities were deci
     26 Nov 2026; docs/design/contingency-deck.md, "Whose bonuses apply"): it works only on a draw from LIO's own deck in
     the event of a card LIO played. It never works on a draw from SAE's deck or the World deck, even in a card LIO
     played (for example the SAE draw that settles SAE's choice in e1-lio-004, or an SAE card's draw that LIO's play
-    sends to the World deck), and never in the event of a card SAE played, even on a draw from LIO's own deck. When
+    sends to the World deck), and never in the event of a card SAE played, even on a draw from LIO's own deck.
+    Nor does it work on a draw from LIO's own deck made for SAE, settling SAE's result or choice in a neutral card
+    LIO played (e1-neu-003, e2-neu-003, e2-neu-005, e3-neu-001, e3-neu-002, e3-neu-005). When
     an event makes both sides draw, only LIO's own draw can redraw (owner, 26 Nov 2026, in chat: "LIO's own draw
-    only"; "No redraw", twice). Draws outside card events (interventions, realignments, the tech race)
+    only"; "No redraw", three times). Draws outside card events (interventions, realignments, the tech race)
     are unchanged: LIO's own deck only. It does not apply to a crisis draw (where a 1 is LIO's best
     result), and a crisis draw does not use up the once-per-turn redraw (owner, 21 Nov 2026, in chat: "Take all").
   - **SAE: Unified command.** After SAE plays one of its own cards for its event, the next card SAE plays for its

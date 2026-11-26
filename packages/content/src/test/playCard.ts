@@ -48,7 +48,14 @@ export type PlayOptions = {
    * story shows its moves, the fall at each turn's end too. Default: off, a game with no map and no Escalation.
    */
   map?: true;
+  /**
+   * Gives both sides Resilient institutions, once a turn (docs/design/sides.md), so the story shows whose draw it
+   * sets aside (`redraw:<side>`). Default: off, no abilities.
+   */
+  resilient?: true;
 };
+
+const RESILIENT = { id: "resilientInstitutions", perTurn: 1 } as const;
 
 const filler = (affiliation: Side, n: number): CardDef => ({
   id: `fill-${affiliation}-${n}`,
@@ -74,6 +81,8 @@ export function story(events: readonly GameEvent[]): string[] {
         return [`points:${e.side}:${e.amount}`];
       case "contingencyDrawn":
         return [`draw:${e.deck}:${e.value}`];
+      case "abilityRedraw":
+        return [`redraw:${e.side}`];
       case "modifierStarted":
         return [modText(e.mod)];
       case "triggerSet":
@@ -166,6 +175,7 @@ function startCardGameDef(def: CardDef, options: PlayOptions, holder: "owner" | 
       handSize: 3,
       contingency: { lio: deckOf, sae: deckOf, world: deckOf },
       ...(options.map === true ? { firstEra: "era-1", map: scenarioSetup(TEST_MAP_SCENARIO).map! } : {}),
+      ...(options.resilient === true ? { abilities: { lio: RESILIENT, sae: RESILIENT } } : {}),
     },
     "card-test",
   );

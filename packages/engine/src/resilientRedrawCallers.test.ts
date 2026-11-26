@@ -1,38 +1,16 @@
 // #602 follow-up: Resilient institutions through each real draw, not only drawContingency called directly
 // (resilientInstitutions.test.ts). A 1 from LIO's own deck is set aside and LIO draws again, whether the draw is
 // for an intervention, a realignment (LIO's or LIO's defending draw in SAE's), a tech race attempt or a card's
-// drawContingency step. Built on the test map (test/map.ts); LIO's deck is set so its next draws are 1 then 4.
+// drawContingency step in the event of a card LIO played (resilientCardDraws.test.ts has the card-event rule).
+// Built on the test map (test/map.ts); LIO's deck is set so its next draws are 1 then 4.
 import { describe, expect, it } from "vitest";
-import type { AnswerValue, CountryId, GameEvent, GameState, Ruleset, Setup, Side, Step } from "./index.ts";
+import type { AnswerValue, CountryId, GameEvent, GameState, Side, Step } from "./index.ts";
 import { realignBonus } from "./realign.ts";
 import { startProgram } from "./stack.ts";
-import { applied, marker, markers, playAnswer, playAnswers, ruleset, startGame, startWith } from "./test/game.ts";
-import { mapSetup } from "./test/map.ts";
+import { applied, marker, markers, playAnswer, ruleset, startWith } from "./test/game.ts";
 import { spend } from "./test/mapGame.ts";
+import { drawn, drawsNext, game, redraws } from "./test/redraw.ts";
 import { raceRules, raceSetup } from "./test/techRace.ts";
-
-const ABILITIES: NonNullable<Setup["abilities"]> = {
-  lio: { id: "resilientInstitutions", perTurn: 1 },
-  sae: { id: "unifiedCommand", bonus: 1 },
-};
-
-/** `state` with `side`'s next draws being `values`, in that order (the deck keeps the same cards). */
-function drawsNext(state: GameState, side: Side, values: number[]): GameState {
-  const rest = [...state.secret.contingency[side]];
-  for (const v of values) {
-    const at = rest.indexOf(v);
-    if (at < 0) throw new Error(`${side}'s deck has no ${v} left`);
-    rest.splice(at, 1);
-  }
-  const contingency = { ...state.secret.contingency, [side]: [...values, ...rest] };
-  return { ...state, secret: { ...state.secret, contingency } };
-}
-
-/** A game with both abilities at LIO's first play, LIO's next draws being 1 then 4. */
-function game(setup: Setup = mapSetup(), rs: Ruleset = ruleset): GameState {
-  const start = playAnswers(startGame(2, 1, rs, { ...setup, abilities: ABILITIES }), 2, rs);
-  return drawsNext(start, "lio", [1, 4]);
-}
 
 /** The answer `value` to the decision `state` has open. */
 function answer(state: GameState, value: AnswerValue) {
@@ -41,9 +19,6 @@ function answer(state: GameState, value: AnswerValue) {
   return { decisionId: d.id, side: d.side, value };
 }
 
-const drawn = (events: readonly GameEvent[]) =>
-  events.flatMap((e) => (e.kind === "contingencyDrawn" ? [`${e.deck}:${e.value}`] : []));
-const redraws = (events: readonly GameEvent[]) => events.filter((e) => e.kind === "abilityRedraw");
 const ofKind = <K extends GameEvent["kind"]>(events: readonly GameEvent[], kind: K) =>
   events.filter((e): e is Extract<GameEvent, { kind: K }> => e.kind === kind);
 const used = (state: GameState) => state.public.abilities!.lio;
@@ -101,24 +76,14 @@ describe("Resilient institutions through the real draws", () => {
     expect(used(done.state)).toMatchObject({ used: 1 });
   });
 
-  it("a card's drawContingency step binds the second draw", () => {
+  it("a drawContingency step in the event of LIO's own card binds the second draw", () => {
     const steps: Step[] = [{ op: "drawContingency", side: "lio", bind: "n" }, marker("drew", "n")];
-    const done = startWith(steps, ruleset, game());
+    const r = startProgram(ruleset, game(), steps, "l1", "lio");
+    if (!r.ok) throw new Error(r.error.code);
+    const done = r.value;
     expect(drawn(done.events)).toEqual(["lio:1", "lio:4"]);
     expect(redraws(done.events)).toEqual([LIO_REDRAW]);
     expect(markers(done.events)).toEqual(["drew:4"]);
     expect(used(done.state)).toMatchObject({ used: 1 });
-  });
-
-  it("a card step whose draw goes to the World deck is not redrawn: the World deck has no owner", () => {
-    // SAE runs LIO's card, so its draws from LIO's deck come from the World deck (every card a 1 here).
-    const setup = { ...mapSetup(), contingency: { ...mapSetup().contingency, world: [1, 1, 1, 1, 1, 1] } };
-    const steps: Step[] = [{ op: "drawContingency", side: "lio", bind: "n" }, marker("drew", "n")];
-    const r = startProgram(ruleset, game(setup), steps, "l1", "sae", "lio");
-    if (!r.ok) throw new Error(r.error.code);
-    expect(drawn(r.value.events)).toEqual(["world:1"]);
-    expect(redraws(r.value.events)).toEqual([]);
-    expect(markers(r.value.events)).toEqual(["drew:1"]);
-    expect(used(r.value.state)).toMatchObject({ used: 0 });
   });
 });

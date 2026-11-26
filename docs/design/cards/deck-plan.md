@@ -261,7 +261,9 @@ answer follows the question as **Answered**.
    **Decided** (owner, 21 Oct, #201): the side that chooses to take the gamble draws from its own deck. NATO
    Enlargement 1999, Cedar Revolution, Pristina Airport Dash and Curveball now draw from the deck of the rival that
    chooses the gamble; every other gamble keeps its own. Whose bonuses apply to a draw from the rival's deck:
-   decided 26 Nov 2026, nobody's (`docs/design/contingency-deck.md`, "Whose bonuses apply").
+   decided 26 Nov 2026, nobody's when the draw is from the playing side's rival's deck
+   (`docs/design/contingency-deck.md`, "Whose bonuses apply"). When LIO plays Curveball or Pristina Airport Dash, a
+   draw from LIO's deck stays on LIO's deck and is LIO's draw.
 3. **`flags` and the card skill.** `.claude/skills/card/SKILL.md` mentions `flags` and `schema/steps.ts`; the
    schema has neither (`flags` removed until the rules that use them arrive). The skill looks out of date; I did
    not edit `.claude/`.

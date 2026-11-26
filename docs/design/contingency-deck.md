@@ -66,6 +66,11 @@ Owner, 26 Nov 2026, in chat (the question was left for later on 19 Oct).
   playing side's bonuses do not apply (owner, 26 Nov 2026, in chat: "No redraw", asked for each). When an event
   makes both sides draw (for example "each side draws; the higher number wins"), they cover only the playing
   side's own draw (owner, 26 Nov 2026, in chat: "LIO's own draw only").
+- **Only draws made for the playing side.** A draw from the playing side's own deck that is made for the rival,
+  settling the rival's result or choice, gets no bonus either: for example SAE's draw in e2-neu-003, e3-neu-001
+  and e3-neu-002, or the draw that settles SAE's choice in e1-neu-003, e2-neu-005 and e3-neu-005, when LIO plays
+  the card (owner, 26 Nov 2026, in chat: "No redraw"). The card data marks such a draw with `madeFor`, the side it
+  is made for; a draw without one is made for the player.
 - Today the only such bonus is LIO's Resilient institutions redraw (docs/design/sides.md); modifiers that change
   a drawn number follow the same rule when they come.
 - Draws outside card events (interventions, realignments and their defending draws, the tech race) and crisis
