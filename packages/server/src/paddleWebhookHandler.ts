@@ -2,9 +2,9 @@
 // record for web purchases, calls the paddle-webhook Edge Function when an order is paid, refunded or charged back.
 // A signed "paid" message for the full game gives the buyer one `web` entitlement under the transaction's id; an
 // approved full refund removes it for good, and an approved full chargeback removes it until that chargeback is
-// reversed (Paddle sends no reversal of a refund). The buyer is the `player_id` the app puts in the order's custom data, and an order with
-// no known player is recorded for a person to settle, never guessed. Plain data in and out, so it runs under
-// vitest. Replies and log lines never carry the secret, the signature, a player id or the message.
+// reversed (Paddle sends no reversal of a refund). The buyer is the `player_id` the app puts in the order's custom
+// data, and an order with no known player is recorded for a person to settle, never guessed. Plain data in and out,
+// so it runs under vitest. Replies and log lines never carry the secret, the signature, a player id or the message.
 //
 // Paddle delivers at least once and in no set order, and retries anything but a 200: so a 200 means "dealt with",
 // and a 500 means "send it again".
@@ -119,6 +119,10 @@ function millisOf(time: unknown): number | undefined {
   return at > 0 ? at : undefined;
 }
 
+/**
+ * Whether the adjustment covers everything bought. Paddle calls a refund `partial` when it lists items, even when
+ * every one of them is refunded in full.
+ */
 function isFullRefund({ type, items }: Data): boolean {
   if (type === "full") return true;
   return Array.isArray(items) && items.length > 0 && items.every((i) => isPlainObject(i) && i.type === "full");
