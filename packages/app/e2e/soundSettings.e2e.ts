@@ -9,8 +9,7 @@ import { fixRandom } from "./start.ts";
 
 const homeMute = (page: Page): Locator => page.getByRole("button", { name: "Mute", exact: true });
 const volume = (page: Page): Locator => page.getByRole("slider", { name: "Volume" });
-const gameMute = (page: Page): Locator =>
-  page.locator(".game-bottom").getByRole("button", { name: "Mute", exact: true });
+const gameMute = (page: Page): Locator => page.getByTestId("hand").getByRole("button", { name: "Mute", exact: true });
 
 async function expectReachable(control: Locator, name: string): Promise<void> {
   await expect(control, name).toBeInViewport({ ratio: 1 });

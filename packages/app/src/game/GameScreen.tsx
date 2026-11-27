@@ -177,17 +177,16 @@ export function GameScreen({
       </TopBar>
       <MapArea frame={frame} choices={choices} onAnswer={onAnswer} />
       <DecisionRegion onAnswer={onAnswer} refusal={refusal} {...data} />
-      {/* The bottom edge, the whole width of the screen: the hand strip, and the Mute button at its right end, where
-          the strip's scrolling cards give it room on a phone (#646; the top bar has none to spare). */}
+      {/* The bottom edge, the whole width of the screen: the hand strip, with the Mute button at its right end,
+          where the strip's scrolling cards give it room on a phone (#646; the top bar has none to spare). */}
       <div className="game-bottom">
-        <HandStrip chips={chips} counts={<StripCounts frame={frame} />}>
+        <HandStrip chips={chips} counts={<StripCounts frame={frame} />} end={<MuteButton />}>
           {chips.map((chip) => (
             <LiftedCard key={chip.card} chip={chip} rules={rules}>
               <CardChoices card={chip.card} onAnswer={onAnswer} {...data} />
             </LiftedCard>
           ))}
         </HandStrip>
-        <MuteButton />
       </div>
     </div>
   );

@@ -80,10 +80,12 @@ describe("the sound controls on Home (#646)", () => {
 });
 
 describe("the mute button in game (#646)", () => {
-  it("is at the right end of the hand strip, after it and not part of the hand", async () => {
+  it("is at the right end of the hand strip, after the counts and not among the cards", async () => {
     const out = await withSound(game);
-    // The last thing in the bottom edge: a sibling of the strip's section, which has closed before it.
-    expect(bottomOf(out)).toMatch(/<\/section><button[^>]*class="game-mute-button"[^>]*>Mute<\/button><\/div><\/div>$/);
+    // In the strip's section, which keeps the whole width of the screen: after the counts, before the lifted cards.
+    expect(bottomOf(out)).toMatch(
+      /class="strip-counts"[^]*<\/p><button[^>]*class="game-mute-button"[^>]*>Mute<\/button><div[^>]*role="dialog"/,
+    );
     expect(out.match(/>Mute<\/button>/g)).toHaveLength(1);
   });
 
