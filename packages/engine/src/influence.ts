@@ -1,6 +1,7 @@
 // The influence rules (docs/design/map-and-points.md, "Influence"): who controls a country, whether a side may
 // place one influence there and at what cost, and adding and removing influence, which always stops at 0.
 // controller and placementCost read only the public state, so the app and AI can call them on a view.
+import { isRegionClosed } from "./closedRegions.ts";
 import { otherSide, SIDES } from "./types.ts";
 import type { Country, CountryId, GameState, InfluenceEntry, PublicState, Side } from "./types.ts";
 
@@ -67,11 +68,16 @@ export function affordable(
 
 /**
  * The countries `side` may realign in as the state is now, in the map's order: those where the rival has
- * influence (docs/design/map-and-points.md, "Points and actions"). A realignment needs no adjacency.
+ * influence (docs/design/map-and-points.md, "Points and actions") and whose region Escalation has not closed
+ * ("Thresholds close regions"). A realignment needs no adjacency.
  */
 export function realignTargets(state: PublicState, side: Side): CountryId[] {
   const rival = otherSide(side);
-  return (state.influence ?? []).filter((e) => e[rival] > 0).map((e) => e.country);
+  const open = (id: CountryId): boolean => {
+    const region = lookup(state, id)?.def.region;
+    return region !== undefined && !isRegionClosed(state, region);
+  };
+  return (state.influence ?? []).filter((e) => e[rival] > 0 && open(e.country)).map((e) => e.country);
 }
 
 /** What one influence costs `side` in `country` now, reach aside: 2 if the rival controls it, otherwise 1. */

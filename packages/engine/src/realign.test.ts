@@ -22,6 +22,7 @@ import {
 } from "./test/game.ts";
 import { mapSetup } from "./test/map.ts";
 import { countOf, mapGame, spend } from "./test/mapGame.ts";
+import { menu, raceGame, raceRules } from "./test/techRace.ts";
 
 type Counts = Record<CountryId, { lio?: number; sae?: number }>;
 
@@ -40,7 +41,7 @@ function game(draws: { lio: number; sae: number } = { lio: 3, sae: 3 }, counts?:
     : { ...state, public: { ...state.public, influence: mapGame(counts).public.influence! } };
 }
 
-/** `state` at Escalation 5, where every region is closed to interventions (R16b) but not to realigning. */
+/** `state` at Escalation 5, where every region is closed to interventions and realignments. */
 const allClosed = (state: GameState): GameState => ({ ...state, public: { ...state.public, escalation: 5 } });
 
 /** The answer `value` to the decision `state` has open. */
@@ -110,31 +111,31 @@ describe("the action menu (R16c)", () => {
     expect(state.public.pending[0]).toMatchObject({ kind: "placeInfluence", options: { points: 2 } });
   });
 
-  it("is offered even when placing and intervening are impossible, as realign or pass: never started on its own", () => {
+  it("is not offered when the rival's influence is only in closed regions: with nothing to place, the points are lost", () => {
     // LIO has no influence: only alpha is in reach, and SAE controls it (2, stability 2), so 1 point buys nothing.
-    // At Escalation 5 every region is closed to interventions (R16b); realigning does not look at that (R17 will).
-    const { state } = startWith([spend("lio", 1)], ruleset, allClosed(game(undefined, { alpha: { sae: 2 } })));
-    expect(state.public.pending).toEqual([
-      {
-        id: expect.any(String),
-        side: "lio",
-        kind: "chooseAction",
-        options: { points: 1, actions: ["realign", "pass"], targets: [] },
-      },
-    ]);
-    expect(legalAnswers(ruleset, state, "lio")).toEqual([
-      { kind: "chooseAction", action: "realign" },
-      { kind: "chooseAction", action: "pass" },
-    ]);
-  });
-
-  it("passing leaves the points unspent: nothing is placed or realigned, and the program runs on", () => {
-    const start = startWith(
+    // At Escalation 5 every region is closed to interventions and realignments ("Thresholds close regions").
+    const { state, events } = startWith(
       [spend("lio", 1), { op: "marker", label: "after" }],
       ruleset,
       allClosed(game(undefined, { alpha: { sae: 2 } })),
-    ).state;
-    const done = applied(start, pick(start, "pass"));
+    );
+    expect(events.map((e) => e.kind)).toEqual(["pointsSpent", "marker"]);
+    expect(state.public.stack).toEqual([]);
+    expect(state.public.pending.some((d) => d.kind === "chooseAction" || d.kind === "placeInfluence")).toBe(false);
+  });
+
+  it("passing, offered beside a tech race attempt, leaves the points unspent, and the program runs on", () => {
+    // As above, but the points come from a card played for them and LIO can afford the tech race's first move:
+    // the race is possible and nothing else is, so the menu offers it or passing (never forced, #317 review).
+    const raced = raceGame();
+    const base = allClosed({
+      ...raced,
+      public: { ...raced.public, influence: mapGame({ alpha: { sae: 2 } }).public.influence! },
+    });
+    const playStep: Step = { op: "spendPoints", side: "lio", amount: 1, play: true };
+    const start = startWith([playStep, { op: "marker", label: "after" }], raceRules, base).state;
+    expect(menu(start)).toEqual(["techRace", "pass"]);
+    const done = applied(start, pick(start, "pass"), raceRules);
     expect(done.events.map((e) => e.kind)).toEqual(["marker"]);
     expect(done.state.public.influence).toEqual(start.public.influence);
     expect(done.state.public.stack).toEqual([]);
@@ -158,6 +159,40 @@ describe("the action menu (R16c)", () => {
   it("an action not on the menu is refused as illegal", () => {
     const start = startWith([spend("lio", 2)], ruleset, game()).state;
     const r = apply(ruleset, start, answer(start, { kind: "chooseAction", action: "surrender" as "place" }));
+    expect(r.ok ? "accepted" : r.error.code).toBe("illegalAnswer");
+  });
+});
+
+describe("closed regions (Thresholds close regions)", () => {
+  // The test map closes south at Escalation 3, east at 4 and north at 5. SAE has influence in delta (south),
+  // foxtrot (east) and alpha (north); LIO controls charlie, so it can always place.
+  const SPREAD: Counts = { charlie: { lio: 3 }, delta: { sae: 1 }, foxtrot: { sae: 1 }, alpha: { sae: 1 } };
+  const at = (escalation: number): GameState => {
+    const g = game(undefined, SPREAD);
+    return { ...g, public: { ...g.public, escalation } };
+  };
+
+  it("a country in a closed region is not a realign target; those in open regions still are", () => {
+    expect(legalAnswers(ruleset, realigning([spend("lio", 1)], at(2)).state, "lio")).toEqual([
+      { kind: "realign", country: "alpha" },
+      { kind: "realign", country: "delta" },
+      { kind: "realign", country: "foxtrot" },
+      { kind: "realign", country: null },
+    ]);
+    expect(legalAnswers(ruleset, realigning([spend("lio", 1)], at(4)).state, "lio")).toEqual([
+      { kind: "realign", country: "alpha" },
+      { kind: "realign", country: null },
+    ]);
+  });
+
+  it("with every region the rival is in closed, realign is not on the menu", () => {
+    const { state } = startWith([spend("lio", 2)], ruleset, at(5));
+    expect(state.public.pending[0]).toMatchObject({ kind: "placeInfluence", options: { points: 2 } });
+  });
+
+  it("an attempt aimed at a country whose region is closed is refused as illegal", () => {
+    const { state } = realigning([spend("lio", 1)], at(3));
+    const r = apply(ruleset, state, realignIn(state, "delta"));
     expect(r.ok ? "accepted" : r.error.code).toBe("illegalAnswer");
   });
 });
