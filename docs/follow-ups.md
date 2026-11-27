@@ -43,10 +43,13 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   2026, reviewer and agy on #633]
 - `docs/design/core-loop.md` has a new "Missed deadlines" section (#611) with no Notion promotion entry in its header:
   record it at the next promotion. [22 Nov 2026, agy on #611]
-- The era names are decided (The Thaw, The Shock, The Fracture; `docs/design/eras.md`) but nothing shows them: the
-  app says "Era 1" (`packages/app/src/App.tsx:136`, the era themes in `packages/app/src/game/themes/eraTheme.ts`),
-  and the scenarios carry no era name. Show each era's name where its number appears, with the theme. [26 Nov 2026,
-  owner's answer in chat]
+- The status bar says "Era not shown yet" until Era 2 starts, so for the whole free game: it reads only the era of an
+  `eraStarted` event (`packages/app/src/game/regions.tsx:56`), while the theme falls back to the frame's era
+  (`GameScreen.tsx:136`), and a game with no map has no era in its frame (`packages/engine/src/createGame.ts:88`).
+  [26 Nov 2026, screenshots for the era names]
+- At 844x390 the top bar squeezes the era to no width (`packages/app/src/game/gameBars.css`, the plays and the era
+  "give way first", #490) and the Details panel does not show it, so on a phone the status never names the era in
+  play. [26 Nov 2026, screenshots for the era names]
 
 ## Tests and tooling
 

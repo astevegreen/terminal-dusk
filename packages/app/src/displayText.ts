@@ -70,7 +70,7 @@ export const SIDE_WHO: Record<Side, string> = {
 /** "LIO (Liberal International Order)". */
 export const sideFullName = (side: Side): string => `${SIDE_NAME[side]} (${SIDE_SPELLED[side]})`;
 
-/** An era's shown name, such as "Era 2 (2001–2008)"; an id with no name shows as it is. */
+/** An era's shown name, such as "The Shock (Era 2, 2001–2008)"; an id with no name shows as it is. */
 export const eraText = (era: EraId): string => firstDeckEraName(era);
 
 /**
