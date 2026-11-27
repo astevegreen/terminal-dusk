@@ -24,8 +24,18 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - e2-neu-003's `madeFor: "lio"` mark has no card story that fails without it: add one where SAE plays with
   Resilient institutions and LIO's 1 from SAE's deck stands, like the mirror stories in `e3-neu-001.test.ts` and
   `e3-neu-002.test.ts`. [26 Nov 2026, agy on #634]
+- The tutorial's Contingency chapter (`docs/design/tutorial.md`, chapter 4) can't fix the number drawn: only the
+  draw pile's top is stacked (`Setup.deckTop`, #637). If the approved coaching needs a known draw, it needs a small
+  engine task (a `contingencyTop`); until then the coaching must read right for any number, and for LIO's redraw of a 1 (Resilient institutions). [27 Nov 2026,
+  architect on the tutorial chain]
 
 ## App, host and server
+
+- The client has no entitlements yet: #647 adds `ownsFullGame` for the tutorial only. When web checkout lands
+  (phase 6), wire real client entitlements in and put the same Era 1 stop in front of the other games against the
+  AI. [27 Nov 2026, architect on the tutorial chain]
+- The existing free game against the AI (`era-1-free`) ends without the Full Game offer that #647 adds to the
+  tutorial; show it there too. [27 Nov 2026, architect on the tutorial chain]
 
 - The online log marks a late side's `pointsSpent` and `cardsDiscarded` by the event's side alone
   (`packages/app/src/online/gameText.ts` `isMoveOf`), and a card's event can give both without an answer. If a card
