@@ -31,6 +31,17 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## App, host and server
 
+- The tutorial's real lesson needs live fill-in first: `docs/design/tutorial.md` ("Coaching words", approved) quotes
+  points and places from the game, with variants (no Taiwan, the Rwandan Genocide sum, chapter 6's can't-pay line),
+  and a step's `say` is fixed text (`packages/content/schema/tutorial.ts`). Add named slots in `say`, optional
+  `variants: [{ if, say }]` from fixed name lists the schema checks, and a pure `packages/host/src/tutorial/fill.ts`
+  reading frames only; then write the seven chapters word for word, `placeholder: false`, deckTop from "Cards dealt
+  first", after #642, with a test comparing each filled line with the doc's. [27 Nov 2026, architect on #640]
+- The tutorial runner can refuse every legal answer in two corners (`packages/host/src/tutorial/matching.ts`): a
+  placeInfluence country the points left can no longer pay for still counts as offered
+  (`packages/engine/src/decisions.ts:148`), and a matcher's `as` is checked against every card type's uses, not the
+  card's own (`decisions.ts:176`). #641's app wiring has the legal answers: allow everything when none the runner
+  allows is legal. [27 Nov 2026, reviewer on PR #657]
 - The client has no entitlements yet: #647 adds `ownsFullGame` for the tutorial only. When web checkout lands
   (phase 6), wire real client entitlements in and put the same Era 1 stop in front of the other games against the
   AI. [27 Nov 2026, architect on the tutorial chain]
