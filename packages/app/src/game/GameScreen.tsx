@@ -27,7 +27,7 @@ import "./decisionBanner.css";
 import { LiftedCard, StripCounts, chipsOf } from "./handCards.tsx";
 import { Abilities } from "./abilities.tsx";
 import { HandStrip } from "./handStrip.tsx";
-import { Contingency, MapArea, Opponent, Region, StatusBar, Table } from "./regions.tsx";
+import { Contingency, Era, MapArea, Opponent, Region, StatusBar, Table } from "./regions.tsx";
 import type { Label } from "./regions.tsx";
 import { themeFor } from "./themes/eraTheme.ts";
 import { TopBar } from "./topBar.tsx";
@@ -162,11 +162,12 @@ export function GameScreen({
       <p className="game-rotate-hint">Turn your phone sideways to play.</p>
       <EventSounds frame={frame} pace={soundPace} />
       {/* The top bar, the Details button and the ticker at its right end, and the panels they open (topBar.tsx):
-          the Details panel holds the rival's hand size, the cards in play, the discard pile, the Contingency
+          the Details panel holds the era, the rival's hand size, the cards in play, the discard pile, the Contingency
           decks and the sides' special abilities, as the sheet's Details tab did. */}
       <TopBar
         log={log}
         waitingId={frame.decision?.id ?? null}
+        detailsEra={<Era pub={frame.view.public} era={era} />}
         detailsNote={detailsNote}
         details={
           <>

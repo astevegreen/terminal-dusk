@@ -24,23 +24,33 @@ type TopBarProps = {
   waitingId: Decision["id"] | null;
   /** What the Details panel holds; left out, the bar has no Details button and no panel. */
   details?: ReactNode;
-  /** A short line in the Details panel's head, after its title. */
+  /** The era's line in the Details panel's head, after its title (#674). */
+  detailsEra?: ReactNode;
+  /** A short line in the Details panel's head, after the era. */
   detailsNote?: string | undefined;
   /** The top bar's other items, before the Details button and the ticker: the Menu, the page's own items, the
    *  status and the tracks. */
   children: ReactNode;
 };
 
-/** A panel's head: its title, Close, and anything after Close (the log's Pin). */
+/** A panel's head: its title, the era and a note if it has them, Close, and anything after Close (the log's Pin). */
 function PanelHead({
   title,
   onClose,
   children,
+  era,
   note,
-}: Readonly<{ title: string; onClose: () => void; children?: ReactNode; note?: string | undefined }>) {
+}: Readonly<{
+  title: string;
+  onClose: () => void;
+  children?: ReactNode;
+  era?: ReactNode;
+  note?: string | undefined;
+}>) {
   return (
     <div className="game-drawer-head">
       <span className="game-drawer-title">{title}</span>
+      {era}
       {note !== undefined && <span className="game-drawer-note">{note}</span>}
       <button type="button" onClick={onClose}>
         Close
@@ -80,7 +90,7 @@ function useDismiss(active: PanelId | null, refs: PanelRefs, close: () => void):
   }, [active]);
 }
 
-function TopBarInner({ log, waitingId, details, detailsNote, children }: Readonly<TopBarProps>) {
+function TopBarInner({ log, waitingId, details, detailsEra, detailsNote, children }: Readonly<TopBarProps>) {
   const [opened, setOpened] = useState<Opened>(null);
   const [pinned, setPinned] = useState(false);
   const large = useLargeScreen();
@@ -183,6 +193,7 @@ function TopBarInner({ log, waitingId, details, detailsNote, children }: Readonl
         >
           <PanelHead
             title="Details"
+            era={detailsEra}
             note={detailsNote}
             onClose={() => {
               setOpened(null);
