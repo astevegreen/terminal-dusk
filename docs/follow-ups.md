@@ -71,9 +71,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## Tests and tooling
 
-- The app's browser tests are not type-checked (`packages/app/tsconfig.json` includes only `src` and
-  `vite.config.ts`), so `packages/app/e2e/bars/bars.tsx` has already drifted: its two `OnlineGameSnapshot` objects
-  lack `signedOut`. Add `e2e` to a type check and fix what it finds. [27 Nov 2026, sound chain, #646]
 - On a loaded PC a full `pnpm gate` fails on time-outs in tests the change does not touch: the 5 s limit in
   `packages/ai` (techRace, lookahead, medium's timing), the app's six-region map game and the easy AI fuzz, and the
   100 s engine fuzz (`tests/fuzz/engine.test.ts`). [27 Nov 2026, sound chain]

@@ -60,6 +60,7 @@ function screen(view: string) {
       turn: "rival",
       deadline: null,
       refusal: null,
+      signedOut: false,
     };
     return <WatchView snapshot={snapshot} replay={null} {...display} />;
   }
@@ -73,6 +74,7 @@ function screen(view: string) {
     turn: mine ? "mine" : "rival",
     deadline,
     refusal: null,
+    signedOut: false,
   };
   const game = { answer: () => Promise.resolve(), close: () => undefined };
   return <OnlineGameView snapshot={snapshot} game={game} points={pointsOf(firstDeckRuleset)} {...display} />;
