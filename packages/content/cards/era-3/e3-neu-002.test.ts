@@ -180,4 +180,23 @@ describeCard("e3-neu-002", "COVID-19", [
       points:sae:2
     `,
   },
+  {
+    // The mirror: when SAE plays it, LIO's draw, from SAE's deck, is made for LIO, so SAE's own redraw never
+    // touches it. A redraw would give 3.
+    it: "when SAE plays it with Resilient institutions and only LIO says no: LIO's 1 from SAE's deck stands",
+    playedBy: "sae",
+    resilient: true,
+    yes: { lio: false, sae: true },
+    draws: [1, 3],
+    story: `
+      points:lio:2
+      pandemic
+      draw:sae:1
+      points:sae:1
+      points:sae:1
+      mod:sae:-1:min1
+      points:lio:2
+      points:sae:1
+    `,
+  },
 ]);

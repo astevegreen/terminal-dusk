@@ -30,6 +30,9 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   runs (item above): with the AI playing for Unified command (#628), abilities on gives LIO 47% (94-102, 4 draws)
   against 53% with both off, from 66.5% before the fix. Owner, 26 Nov: "Fix AI first"; the numbers wait on the
   owner's read of the re-measure. [26 Nov 2026, owner's answer in chat; #628]
+- e2-neu-003's `madeFor: "lio"` mark has no card story that fails without it: add one where SAE plays with
+  Resilient institutions and LIO's 1 from SAE's deck stands, like the mirror stories in `e3-neu-001.test.ts` and
+  `e3-neu-002.test.ts`. [26 Nov 2026, agy on #634]
 
 ## App, host and server
 
