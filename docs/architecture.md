@@ -313,7 +313,7 @@ The React app draws whatever the current frame says and sends answers back; it c
 
 - **State**: one small store (Zustand) holds the latest frame plus local UI state, such as zoom level and a half-built answer.
 - **Staged answers**: the player builds a compound answer locally, for example placing four influence with free undo, then confirms once. Live cost previews use pure helper functions the engine exports for public data. The server re-checks everything.
-- **Type-checked maps**: `decisionPrompts: Record<DecisionKind, PromptComponent>` and `eventPresentation: Record<EventKind, { log; animate?; sound? }>`.
+- **Type-checked maps**: `decisionPrompts: Record<DecisionKind, PromptComponent>`, `eventPresentation: Record<EventKind, { log; animate? }>` and `eventSounds: Record<EventKind, SoundId | null>`. An event's sound comes from `eventSounds` (`packages/app/src/audio/cues.ts`); null means silent.
 - **Animation and sound come from events**, never from comparing two states.
 - **The map, designed for phones first** (844×390 landscape, then scaled up):
   - Zoomed out, each country is a badge showing net influence in its controller's colour.
