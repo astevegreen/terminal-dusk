@@ -34,9 +34,10 @@ const DOORS: Door[] = [
     kind: "create",
     covers: [
       "sql: function accept_invite writes new match rows",
+      "src/invite.ts: calls hostCreate",
       "src/invite.ts: calls invites.accept",
       "src/invite.ts: calls invites.save",
-      "src/invite.ts: imports hostCreate",
+      "src/invite.ts: names hostCreate",
       "src/supabaseInviteStore.ts: calls accept_invite",
       "src/supabaseInviteStore.ts: writes new match_invite rows",
     ],
@@ -150,9 +151,40 @@ describe("audit: the finder reports a new path that nothing covers", () => {
     };
     expect(findMatchMakers(sources)).toEqual([
       "src/quick.ts: calls invites.save",
-      "src/quick.ts: imports hostCreate",
+      "src/quick.ts: names hostCreate",
       "src/quick.ts: writes new match rows",
       "supabase/seed.sql: writes new match_invite rows outside a function",
+    ]);
+  });
+
+  it("a second call in a file that a door already covers, once for each call", () => {
+    const sources = {
+      "src/invite.ts": [
+        'import { hostCreate } from "@terminal-dusk/host";',
+        "hostCreate(rules, first);",
+        "await deps.invites.save(first);",
+        "hostCreate(rules, second);",
+        "await deps.invites.save(second);",
+      ].join("\n"),
+    };
+    expect(findMatchMakers(sources)).toEqual([
+      "src/invite.ts: calls hostCreate",
+      "src/invite.ts: calls hostCreate",
+      "src/invite.ts: calls invites.save",
+      "src/invite.ts: calls invites.save",
+      "src/invite.ts: names hostCreate",
+    ]);
+  });
+
+  it("hostCreate reached without a named import", () => {
+    const sources = {
+      "src/space.ts": 'import * as host from "@terminal-dusk/host";\nhost.hostCreate(rules, config);',
+      "src/late.ts": 'const { hostCreate: make } = await import("@terminal-dusk/host");\nmake(rules, config);',
+    };
+    expect(findMatchMakers(sources)).toEqual([
+      "src/late.ts: names hostCreate",
+      "src/space.ts: calls hostCreate",
+      "src/space.ts: names hostCreate",
     ]);
   });
 
