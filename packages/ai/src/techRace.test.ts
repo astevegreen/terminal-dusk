@@ -102,14 +102,44 @@ describe("the AI and the tech race", () => {
     }
   }, 30_000);
 
-  it("Medium values an attempt more the better its odds", () => {
-    // The first SAE menu: Medium does not yet value the odds of LIO's attempts (#675, which adds a LIO case).
-    const menu = MENUS.find((m) => techMenuSide(m) === "sae");
-    if (menu === undefined) throw new Error("no SAE tech race menu in Easy's games");
-    const side = techMenuSide(menu)!;
-    const value = (numbers: number[]) => valueOf(withDeck(menu, side, numbers), side);
-    expect(value([1, 1, 9])).toBeLessThan(value([1, 9, 9]));
-    expect(value([1, 9, 9])).toBeLessThan(value([9, 9, 9]));
+  for (const menuSide of ["sae", "lio"] as const) {
+    it(`Medium values an attempt more the better its odds (the first ${menuSide.toUpperCase()} menu)`, () => {
+      const menu = MENUS.find((m) => techMenuSide(m) === menuSide);
+      if (menu === undefined) throw new Error(`no ${menuSide} tech race menu in Easy's games`);
+      const value = (numbers: number[]) => valueOf(withDeck(menu, menuSide, numbers), menuSide);
+      expect(value([1, 1, 9])).toBeLessThan(value([1, 9, 9]));
+      expect(value([1, 9, 9])).toBeLessThan(value([9, 9, 9]));
+    });
+  }
+
+  it("Medium values an attempt with a deck of 9s above one with a deck of 1s, in every tech race menu", () => {
+    for (const menu of MENUS) {
+      const side = techMenuSide(menu)!;
+      expect(valueOf(withDeck(menu, side, [9, 9, 9]), side)).toBeGreaterThan(
+        valueOf(withDeck(menu, side, [1, 1, 1]), side),
+      );
+    }
+  });
+
+  it("counts LIO's Resilient institutions redraw: a 1 drawn first is weighed by the draw that replaces it", () => {
+    // A 4-card deck: drawing the 1 leaves 3, so the redraw comes from the other three, no reshuffle between.
+    const menu = MENUS.find(
+      (m) => techMenuSide(m) === "lio" && m.public.abilities?.lio.id === "resilientInstitutions",
+    )!;
+    const fresh = { ...menu.public.abilities!.lio, used: 0 };
+    const state = withDeck(menu, "lio", [1, 2, 9, 9]);
+    const view = viewFor(
+      { ...state, public: { ...state.public, abilities: { ...state.public.abilities!, lio: fresh } } },
+      "lio",
+    );
+    const hidden = guessHidden(FIRST_DECK_RULESET, view, "lio", seededRandom(1));
+    const drawn = drawVariants(view, hidden, "lio").map((v) => [v.hidden.secret.contingency.lio[0], v.weight]);
+    expect(drawn).toEqual([
+      [2, 1 / 4 / 3],
+      [9, (1 / 4 / 3) * 2],
+      [2, 1 / 4],
+      [9, 2 / 4],
+    ]);
   });
 
   it("Medium counts the first-there +1: a deck of 3s wins only with it", () => {
@@ -131,6 +161,33 @@ describe("the AI and the tech race", () => {
       [7, 1 / 4],
     ]);
     for (const v of variants) expect([...v.hidden.secret.contingency[side]].sort()).toEqual([2, 5, 5, 7]);
+  });
+
+  it("counts LIO's redraw after a reshuffle: a 1 that leaves two cards is redrawn from the rebuilt deck", () => {
+    // A 3-card deck: drawing the 1 leaves 2, so the engine rebuilds the deck from all its cards, the 1 included, and
+    // the redraw comes from that; Resilient institutions is then used up, so the second draw stands, a 1 included.
+    const menu = MENUS.find(
+      (m) => techMenuSide(m) === "lio" && m.public.abilities?.lio.id === "resilientInstitutions",
+    )!;
+    const fresh = { ...menu.public.abilities!.lio, used: 0 };
+    const state = withDeck(menu, "lio", [1, 9, 9]);
+    const view = viewFor(
+      { ...state, public: { ...state.public, abilities: { ...state.public.abilities!, lio: fresh } } },
+      "lio",
+    );
+    const hidden = guessHidden(FIRST_DECK_RULESET, view, "lio", seededRandom(1));
+    const variants = drawVariants(view, hidden, "lio");
+    expect(variants.map((v) => [v.hidden.secret.contingency.lio[0], v.weight])).toEqual([
+      [1, 1 / 3 / 3],
+      [9, (1 / 3 / 3) * 2],
+      [9, 2 / 3],
+    ]);
+    for (const v of variants.slice(0, 2)) {
+      expect(v.view!.public.contingency.lio.left).toEqual([1, 9, 9]);
+      const ability = v.view!.public.abilities!.lio;
+      expect(ability.id === "resilientInstitutions" && ability.used === ability.perTurn).toBe(true);
+    }
+    expect(variants[2]!.view).toBeUndefined();
   });
 
   it("Medium weighs a sure attempt against placing influence: its choice flips with what placing is worth alone", () => {
