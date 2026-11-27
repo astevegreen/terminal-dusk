@@ -46,7 +46,6 @@ function holds(c: Condition, frame: Frame, ruleset: Ruleset): boolean {
 
 /** The text slot `{slot:arg}` stands for in `frame`. */
 function slotText(slot: string, arg: string, frame: Frame, ruleset: Ruleset): string {
-  if (frame.ruleset !== ruleset.id) fail(`the frame is from ruleset ${frame.ruleset}, not ${ruleset.id}.`);
   const view = frame.view;
   const me = learner(frame);
   const card = () => live.cardIn(ruleset, arg);
@@ -72,8 +71,14 @@ function slotText(slot: string, arg: string, frame: Frame, ruleset: Ruleset): st
   }
 }
 
-/** `words` with every slot filled from `frame`. A slot needs the frame's own ruleset, so a wrong one throws. */
+/** Throws unless `frame` comes from `ruleset`: its slots and conditions read that ruleset's cards. */
+function sameRuleset(frame: Frame, ruleset: Ruleset): void {
+  if (frame.ruleset !== ruleset.id) fail(`the frame is from ruleset ${frame.ruleset}, not ${ruleset.id}.`);
+}
+
+/** `words` with every slot filled from `frame`. A frame from another ruleset throws, even for words with no slot. */
 export function fillText(words: string, frame: Frame, ruleset: Ruleset): string {
+  sameRuleset(frame, ruleset);
   const split = splitLine(words);
   if ("error" in split) return fail(`the line has ${split.error}.`);
   return split.pieces.map((p) => ("slot" in p ? slotText(p.slot, p.arg, frame, ruleset) : p.text)).join("");
@@ -81,6 +86,7 @@ export function fillText(words: string, frame: Frame, ruleset: Ruleset): string 
 
 /** Picks `line`'s variant for `frame` and fills its words. */
 export function fillLine(line: Line, frame: Frame, ruleset: Ruleset): Filled {
+  sameRuleset(frame, ruleset);
   const variants = line.variants ?? [];
   const index = variants.findIndex((v) => v.if.every((c) => holds(c, frame, ruleset)));
   if (index < 0) return { variant: null, text: fillText(line.say, frame, ruleset) };

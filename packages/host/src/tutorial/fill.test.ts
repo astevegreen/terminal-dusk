@@ -20,7 +20,7 @@ const rwanda = deepFreeze(learnerFrameWhere((f) => inForce(f, "e1-neu-001")));
 const raced = deepFreeze(
   learnerFrameWhere((f) => techRaceCost(f.view.public, "lio") === 2 && f.view.public.modifiers.length === 0, racingLio),
 );
-/** The first frame with Taiwan's LIO influence gone, as Handover of Hong Kong can do: LIO holds nothing. */
+/** The start frame with Taiwan's LIO influence set to 0 by hand (no seeded game reaches it): LIO holds nothing. */
 const noInfluence: Frame = deepFreeze({
   ...start,
   view: {
@@ -184,6 +184,12 @@ describe("a line the frame and content cannot fill", () => {
   it("throws for a frame from another ruleset, or a spectator's frame", () => {
     expect(() => fill("{cardPoints:e1-lio-002}", { ...start, ruleset: "other" })).toThrow(/ruleset other/);
     expect(() => fill("{cardPoints:e1-lio-002}", { ...start, viewer: "spectator" })).toThrow(/spectator/);
+    expect(() => fill("No slots.", { ...start, ruleset: "other" })).toThrow(/ruleset other/);
+    const plain = {
+      say: "No slots.",
+      variants: [{ if: [{ kind: "pointsBeforeEqualsAfter" as const, card: "e1-sae-008" }], say: "x" }],
+    };
+    expect(() => fillLine(plain, { ...start, ruleset: "other" }, firstDeckRuleset)).toThrow(/ruleset other/);
   });
 });
 
