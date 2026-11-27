@@ -6,17 +6,22 @@ export const INVITE_CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
 export const INVITE_CODE_LENGTH = 8;
 
 /** The one part of the Web Crypto API used here. The packages' compiler settings name no DOM or Node types. */
-type RandomSource = { getRandomValues(array: Uint8Array): Uint8Array };
+export type RandomSource = { getRandomValues(array: Uint8Array): Uint8Array };
 
 /** The largest multiple of the alphabet size below 256: bytes from here up are skipped, so every character is equally likely. */
 const LIMIT = 256 - (256 % INVITE_CODE_ALPHABET.length);
 
 /** A new random invite code. `source` is for tests; it defaults to the global `crypto`. */
 export function inviteCode(source: RandomSource = (globalThis as unknown as { crypto: RandomSource }).crypto): string {
+  return randomCode(INVITE_CODE_LENGTH, source);
+}
+
+/** `length` characters from the alphabet, each equally likely, drawn from `source`. Gift codes use it too. */
+export function randomCode(length: number, source: RandomSource): string {
   let code = "";
-  while (code.length < INVITE_CODE_LENGTH) {
-    for (const byte of source.getRandomValues(new Uint8Array(INVITE_CODE_LENGTH))) {
-      if (byte >= LIMIT || code.length === INVITE_CODE_LENGTH) continue;
+  while (code.length < length) {
+    for (const byte of source.getRandomValues(new Uint8Array(length))) {
+      if (byte >= LIMIT || code.length === length) continue;
       code += INVITE_CODE_ALPHABET[byte % INVITE_CODE_ALPHABET.length];
     }
   }
