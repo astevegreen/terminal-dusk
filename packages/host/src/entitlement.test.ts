@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { createOnlineRefusal, isEntitlement, isPlatform, ownsFullGame, PLATFORMS } from "./entitlement.ts";
+import {
+  createOnlineRefusal,
+  isEntitlement,
+  isPlatform,
+  joinRankedRefusal,
+  ownsFullGame,
+  PLATFORMS,
+} from "./entitlement.ts";
 import type { Entitlement, Platform } from "./entitlement.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
 
@@ -87,6 +94,55 @@ describe("createOnlineRefusal: who may create an online game", () => {
     expect(() => createOnlineRefusal(entitlements, "web")).not.toThrow();
     expect(createOnlineRefusal(entitlements, "web")).toBeNull();
     expect(createOnlineRefusal(entitlements, "ios")?.code).toBe("notEntitled");
+    expect(entitlements).toEqual([steam, web]);
+  });
+});
+
+describe("joinRankedRefusal: who may join a ranked game (#687)", () => {
+  const ranked = (entitlements: unknown, platform: unknown) =>
+    joinRankedRefusal(entitlements as Entitlement[], platform as Platform);
+
+  it("no entitlements: refused with notEntitled; the words say joining a ranked game needs the full game", () => {
+    const error = ranked([], "web");
+    expect(error?.code).toBe("notEntitled");
+    expect(error?.message).toMatch(/joining a ranked game needs the full game on this platform/i);
+  });
+
+  it("the words say an invited private game is still open, never that it is closed", () => {
+    const message = ranked([], "web")?.message;
+    expect(message).toContain("You can still join a private game you are invited to.");
+    expect(message).not.toMatch(/can(no|')t|creat/i);
+  });
+
+  it("an entitlement for this platform: allowed", () => {
+    expect(ranked([web], "web")).toBeNull();
+    expect(ranked([steam, web, ios], "ios")).toBeNull();
+  });
+
+  it("only entitlements for other platforms: refused, since there is no cross-platform unlock", () => {
+    expect(ranked([steam, ios], "web")?.code).toBe("notEntitled");
+    expect(ranked([web], "android")?.code).toBe("notEntitled");
+  });
+
+  it("checks its input as createOnlineRefusal does: invalidConfig with the same words, never a throw", () => {
+    const bad: [unknown, unknown][] = [
+      [[web], "xbox"],
+      [[web], undefined],
+      [null, "web"],
+      [web, "web"],
+      [[web, null], "web"],
+      [[web, { platform: "steam", source: "" }], "web"],
+    ];
+    for (const [entitlements, platform] of bad) {
+      expect(ranked(entitlements, platform)?.code).toBe("invalidConfig");
+      expect(ranked(entitlements, platform)).toEqual(refuse(entitlements, platform));
+    }
+  });
+
+  it("never changes its inputs (frozen inputs)", () => {
+    const entitlements = deepFreeze([steam, web]);
+    expect(joinRankedRefusal(entitlements, "web")).toBeNull();
+    expect(joinRankedRefusal(entitlements, "ios")?.code).toBe("notEntitled");
     expect(entitlements).toEqual([steam, web]);
   });
 });
