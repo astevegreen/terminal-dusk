@@ -1,6 +1,7 @@
 // The tutorial offline (#642, phase 5's gate "the tutorial passes offline"): a guest opens it with the network off,
-// is coached through the first card, sees the hint and the end of the coaching, and the game goes on. It does not
-// play to the end of the game (too long for one run). It runs on the built app, as players get it (builtApp.ts).
+// is coached through the first card, sees the hint and the end of the coaching, and the game goes on. A second test
+// plays a free player's tutorial to its end after Era 1 (3 turns), where the result and the Full Game offer show
+// (#647). Both run on the built app, as players get it (builtApp.ts).
 import { expect, test } from "@playwright/test";
 import type { Locator, Page } from "@playwright/test";
 import { answerOnce, decisionButtons, yourDecision } from "./answer.ts";
@@ -63,5 +64,42 @@ test("a guest plays the tutorial offline: coached, hinted, then the game goes on
   await expect(page.getByText("Game over")).toHaveCount(0);
 
   // Nothing left the page for the network.
+  expect(requests.filter((url) => !url.startsWith("blob:") && !url.startsWith("data:"))).toEqual([]);
+});
+
+test("a free player's tutorial ends after Era 1 with the result and the Full Game offer, offline (#647)", async ({
+  page,
+  context,
+}) => {
+  // Three turns on the six-region map, every country tapped through the zoom: as long as the other map games.
+  test.setTimeout(240_000);
+  await fixRandom(page, 647);
+  await page.goto(app.url);
+  await context.setOffline(true);
+  const requests: string[] = [];
+  page.on("request", (request) => requests.push(request.url()));
+  await page.getByRole("button", { name: "Tutorial" }).click();
+
+  const gameOver = page.getByTestId("status-bar").getByText(/^Game over: /);
+  for (let step = 0; step < 200 && !(await gameOver.isVisible()); step++) {
+    await yourDecision(page).or(gameOver).first().waitFor();
+    if (await gameOver.isVisible()) break;
+    await answerOnce(page);
+  }
+  await expect(gameOver).toBeVisible();
+  await expect(page.getByTestId("status-bar").getByText("Turn 3 of 3")).toBeVisible();
+
+  // The offer: its placeholder label and words, and a buy button that cannot be tapped yet, 44 px tall, on screen.
+  const offer = page.getByRole("region", { name: "The Full Game" });
+  await expect(offer.getByText("Placeholder offer", { exact: true })).toBeVisible();
+  await expect(offer.getByText(/^Placeholder: the free game ends after Era 1/)).toBeVisible();
+  const buy = offer.getByRole("button", { name: "Get the Full Game" });
+  await expect(buy).toBeDisabled();
+  const box = await buy.boundingBox();
+  expect(box!.height).toBeGreaterThanOrEqual(44);
+  expect(box!.y + box!.height).toBeLessThanOrEqual(page.viewportSize()!.height);
+  await expect(page.getByRole("button", { name: "New game" })).toBeVisible();
+  await expect(page.getByText(/^AI refused:/)).toHaveCount(0);
+
   expect(requests.filter((url) => !url.startsWith("blob:") && !url.startsWith("data:"))).toEqual([]);
 });

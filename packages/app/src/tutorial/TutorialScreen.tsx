@@ -1,7 +1,8 @@
 // The tutorial screen (#642): the lesson's game against the Easy AI, played as LIO on the same game view as every
 // game against the AI, with the coach's words drawn over it. A guest opens it with no sign-in and no entitlement:
-// it starts the free edition for everyone until #647 picks the edition. When the coaching ends the game goes on as
-// a normal game, and its end is the usual end of a game against the AI.
+// the edition comes from the App (#647): the Full Game for an owner, otherwise the free game, which the engine ends
+// after Era 1's scoring. When the coaching ends the game goes on as a normal game; a free game's end adds the Full
+// Game offer to the usual end of a game against the AI.
 import { TUTORIAL_LESSONS } from "@terminal-dusk/host";
 import type { Lesson, TutorialEdition } from "@terminal-dusk/host";
 import {
@@ -18,6 +19,7 @@ import { openSession, VsAiView } from "../vsAi/VsAiScreen.tsx";
 import type { VsAiSession } from "../vsAi/session.ts";
 import { createWorkerAi } from "../vsAi/workerAi.ts";
 import { CoachingPanel } from "./CoachingPanel.tsx";
+import { FullGameOffer } from "./FullGameOffer.tsx";
 import type { TutorialCoaching, TutorialMatch } from "./tutorialMatch.ts";
 import { createTutorialSession } from "./tutorialSession.ts";
 import type { TutorialSession } from "./tutorialSession.ts";
@@ -50,11 +52,13 @@ const noMatch = {
   coaching: () => NO_COACHING,
 };
 
-function TutorialGame({
+/** The lesson's game on the game view, with the coach over it and, at a free game's end, the Full Game offer. */
+export function TutorialGame({
   lesson,
   started,
+  edition,
   onNewGame,
-}: Readonly<{ lesson: Lesson; started: TutorialSession; onNewGame: () => void }>) {
+}: Readonly<{ lesson: Lesson; started: TutorialSession; edition: TutorialEdition; onNewGame: () => void }>) {
   const { session } = started;
   const match: Pick<TutorialMatch, "coaching" | "subscribeCoaching"> = started.match ?? noMatch;
   const snapshot = useSyncExternalStore(session.subscribe, session.getSnapshot, session.getSnapshot);
@@ -72,6 +76,7 @@ function TutorialGame({
       points={points}
       allows={coaching.allows}
       coach={<TutorialCoach lesson={lesson} coaching={coaching} />}
+      ending={edition === "free" ? <FullGameOffer /> : undefined}
     />
   );
 }
@@ -84,7 +89,7 @@ export type TutorialScreenProps = {
   makeAi?: MakeAi;
   /** The lesson; the first bundled one when left out. */
   lesson?: Lesson;
-  /** Which edition's game the lesson sets up; the free one for everyone for now (#647 picks it). */
+  /** Which edition's game the lesson sets up: the App picks it from the player's entitlements (#647); free when left out. */
   edition?: TutorialEdition;
 };
 
@@ -92,8 +97,9 @@ export type TutorialScreenProps = {
 function Playing({
   start,
   lesson,
+  edition,
   onNewGame,
-}: Readonly<{ start: () => TutorialSession; lesson: Lesson; onNewGame: () => void }>) {
+}: Readonly<{ start: () => TutorialSession; lesson: Lesson; edition: TutorialEdition; onNewGame: () => void }>) {
   const [started, setStarted] = useState<TutorialSession | null>(null);
   useEffect(() => {
     let current: TutorialSession | null = null;
@@ -105,7 +111,7 @@ function Playing({
       () => setStarted(current),
     );
   }, [start]);
-  return started ? <TutorialGame lesson={lesson} started={started} onNewGame={onNewGame} /> : null;
+  return started ? <TutorialGame lesson={lesson} started={started} edition={edition} onNewGame={onNewGame} /> : null;
 }
 
 export function TutorialScreen({
@@ -122,5 +128,5 @@ export function TutorialScreen({
     () => createTutorialSession({ lesson, edition, clock, newSeed, newAiSeed, makeAi }),
     [lesson, edition, clock, newSeed, newAiSeed, makeAi],
   );
-  return <Playing key={game} start={start} lesson={lesson} onNewGame={() => setGame((n) => n + 1)} />;
+  return <Playing key={game} start={start} lesson={lesson} edition={edition} onNewGame={() => setGame((n) => n + 1)} />;
 }

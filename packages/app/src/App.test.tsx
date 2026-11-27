@@ -7,7 +7,7 @@ import {
   firstDeckConfig,
   firstDeckRuleset,
 } from "@terminal-dusk/host/first-deck";
-import { App, Home, onlineRoute } from "./App.tsx";
+import { App, Home, onlineRoute, tutorialRoute } from "./App.tsx";
 import { button, treeOf } from "./online/test/screenTree.ts";
 import { OnlineScreen } from "./online/OnlineScreen.tsx";
 import { fakeTimers } from "./transport/test/remoteGame.ts";
@@ -40,6 +40,18 @@ describe("the home screen", () => {
     button(tree, "Play the free game: The Thaw (Era 1)").press();
     button(tree, "Tutorial").press();
     expect(picked).toEqual(["vsAiMap", "vsAi", "vsAiFuture", "vsAiFree", "tutorial"]);
+  });
+});
+
+describe("the tutorial route (#647)", () => {
+  const seeds = { clock: () => 0, newSeed: () => "s", newAiSeed: () => 1 };
+  it("opens the free edition when the App is given no entitlements", () => {
+    expect(tutorialRoute(seeds).props.edition).toBe("free");
+  });
+  it("opens the full edition for an entitlement on the App's platform, and the free one for another platform's", () => {
+    const owned = [{ platform: "web" as const, source: "checkout" }];
+    expect(tutorialRoute({ ...seeds, entitlements: { owned, platform: "web" } }).props.edition).toBe("full");
+    expect(tutorialRoute({ ...seeds, entitlements: { owned, platform: "ios" } }).props.edition).toBe("free");
   });
 });
 
