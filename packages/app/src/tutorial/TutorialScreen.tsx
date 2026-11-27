@@ -57,8 +57,17 @@ export function TutorialGame({
   lesson,
   started,
   edition,
+  owner = false,
   onNewGame,
-}: Readonly<{ lesson: Lesson; started: TutorialSession; edition: TutorialEdition; onNewGame: () => void }>) {
+}: Readonly<{
+  lesson: Lesson;
+  started: TutorialSession;
+  /** The edition this run of the lesson was started with. */
+  edition: TutorialEdition;
+  /** The player owns the Full Game by now, so no offer is made even at a free game's end (#686). */
+  owner?: boolean;
+  onNewGame: () => void;
+}>) {
   const { session } = started;
   const match: Pick<TutorialMatch, "coaching" | "subscribeCoaching"> = started.match ?? noMatch;
   const snapshot = useSyncExternalStore(session.subscribe, session.getSnapshot, session.getSnapshot);
@@ -76,7 +85,7 @@ export function TutorialGame({
       points={points}
       allows={coaching.allows}
       coach={<TutorialCoach lesson={lesson} coaching={coaching} />}
-      ending={edition === "free" ? <FullGameOffer /> : undefined}
+      ending={edition === "free" && !owner ? <FullGameOffer /> : undefined}
     />
   );
 }
@@ -96,10 +105,8 @@ export type TutorialScreenProps = {
 /** Starts one lesson's session when it mounts and stops it (and so the AI) when it goes. */
 function Playing({
   start,
-  lesson,
-  edition,
-  onNewGame,
-}: Readonly<{ start: () => TutorialSession; lesson: Lesson; edition: TutorialEdition; onNewGame: () => void }>) {
+  ...game
+}: Readonly<{ start: () => TutorialSession } & Omit<Parameters<typeof TutorialGame>[0], "started">>) {
   const [started, setStarted] = useState<TutorialSession | null>(null);
   useEffect(() => {
     let current: TutorialSession | null = null;
@@ -111,7 +118,7 @@ function Playing({
       () => setStarted(current),
     );
   }, [start]);
-  return started ? <TutorialGame lesson={lesson} started={started} edition={edition} onNewGame={onNewGame} /> : null;
+  return started ? <TutorialGame {...game} started={started} /> : null;
 }
 
 export function TutorialScreen({
@@ -122,11 +129,21 @@ export function TutorialScreen({
   lesson = TUTORIAL_LESSONS[0]!,
   edition = "free",
 }: Readonly<TutorialScreenProps>) {
-  // New game starts the lesson again from its first chapter.
-  const [game, setGame] = useState(0);
+  // New game starts the lesson again from its first chapter, with the edition the player has by then. A running lesson
+  // keeps the one it started with, so an answer about what the player owns never restarts it (#686).
+  const [run, setRun] = useState({ number: 0, edition });
   const start = useCallback(
-    () => createTutorialSession({ lesson, edition, clock, newSeed, newAiSeed, makeAi }),
-    [lesson, edition, clock, newSeed, newAiSeed, makeAi],
+    () => createTutorialSession({ lesson, edition: run.edition, clock, newSeed, newAiSeed, makeAi }),
+    [lesson, run.edition, clock, newSeed, newAiSeed, makeAi],
   );
-  return <Playing key={game} start={start} lesson={lesson} edition={edition} onNewGame={() => setGame((n) => n + 1)} />;
+  return (
+    <Playing
+      key={run.number}
+      start={start}
+      lesson={lesson}
+      edition={run.edition}
+      owner={edition === "full"}
+      onNewGame={() => setRun(({ number }) => ({ number: number + 1, edition }))}
+    />
+  );
 }

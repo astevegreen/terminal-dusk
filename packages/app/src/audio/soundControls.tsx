@@ -4,7 +4,7 @@ import { createContext, memo, useContext, useSyncExternalStore } from "react";
 import type { CSSProperties } from "react";
 import type { SoundSettings } from "./soundSettings.ts";
 
-/** The app's sound setting (main.tsx). A screen drawn without one has no sound controls. */
+/** The app's sound setting (appRoot.tsx). A screen drawn without one has no sound controls. */
 export const SoundSettingsContext = createContext<SoundSettings | null>(null);
 
 type ToggleProps = Readonly<{

@@ -1,5 +1,5 @@
 // Playing against the AI: a difficulty and a side picker, then the game screen for the human's side. The AI runs in a
-// Web Worker (createWorkerAi) unless a test passes another opponent. Seeds and the clock come from main.tsx.
+// Web Worker (createWorkerAi) unless a test passes another opponent. Seeds and the clock come from appRoot.tsx.
 import { SIDES } from "@terminal-dusk/engine";
 import type { AnswerValue, CardId, Ruleset, Side } from "@terminal-dusk/engine";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
@@ -36,7 +36,7 @@ export type VsAiGame = {
   /** A card's rules text, shown under its name in the hand; left out, the hand shows names only. */
   cardRules?: CardRules | undefined;
   note: string;
-  /** The free game's mark: its end shows the Full Game offer (#668). App sets it for the free game's screen only. */
+  /** A free player's game: its end shows the Full Game offer (#668, #686). App sets it, never for an owner. */
   offerFullGame?: boolean | undefined;
 };
 
@@ -45,17 +45,21 @@ export function SidePicker({
   note = PRACTICE_NOTE,
   tier = DEFAULT_TIER,
   onTier = () => {},
+  notice,
 }: Readonly<{
   onPick: (side: Side) => void;
   note?: string | undefined;
   /** The AI's difficulty the next game starts with (#508). */
   tier?: AiTier | undefined;
   onTier?: ((tier: AiTier) => void) | undefined;
+  /** Anything the app has to say before a game starts (#686). */
+  notice?: ReactNode;
 }>) {
   return (
     <main>
       <h1>Play against the AI</h1>
       <p>{note}</p>
+      {notice}
       <DifficultyPicker tier={tier} onTier={onTier} />
       {SIDES.map((side) => (
         <div key={side}>
@@ -213,10 +217,12 @@ export type VsAiScreenProps = {
   game?: VsAiGame;
   /** Where the chosen difficulty is kept between visits (Platform.storage); left out, it is not kept. */
   store?: KeyValueStore;
+  /** Shown on the side picker. */
+  notice?: ReactNode;
 };
 
 type SessionInputs = Readonly<
-  Omit<VsAiScreenProps, "makeAi" | "game"> & {
+  Omit<VsAiScreenProps, "makeAi" | "game" | "notice"> & {
     makeAi?: MakeAi | undefined;
     game?: VsAiGame | undefined;
     tier?: AiTier | undefined;
@@ -240,8 +246,10 @@ export function vsAiOptions(
 }
 
 export function VsAiScreen(props: Readonly<VsAiScreenProps>) {
-  const { clock, newSeed, newAiSeed, makeAi, game, store } = props;
-  const [side, setSide] = useState<Side | null>(null);
+  const { clock, newSeed, newAiSeed, makeAi, game, store, notice } = props;
+  // The side and the game as they were when the side was picked: a running game is never swapped for another when
+  // what the player owns changes (#686); the next game is the new one.
+  const [chosen, setChosen] = useState<{ side: Side; game: VsAiGame | undefined } | null>(null);
   // Kept here, above the game, so New game offers the difficulty last chosen (#508).
   const [tier, setTier] = useState<AiTier>(DEFAULT_TIER);
   // The saved difficulty replaces Medium once it is read, unless the player has already picked one by then.
@@ -259,17 +267,23 @@ export function VsAiScreen(props: Readonly<VsAiScreenProps>) {
   // Starting a game also settles the difficulty, so a late read of the saved one never restarts it.
   const pickSide = (next: Side) => {
     picked.current = true;
-    setSide(next);
+    setChosen({ side: next, game });
   };
   const chooseTier = (next: AiTier) => {
     picked.current = true;
     setTier(next);
     if (store) void saveTier(store, next);
   };
+  const side = chosen?.side ?? "lio";
+  const played = chosen?.game;
   const start = useCallback(
-    () => createVsAiSession(vsAiOptions(side ?? "lio", { clock, newSeed, newAiSeed, makeAi, game, tier })),
-    [side, newSeed, newAiSeed, clock, makeAi, game, tier],
+    () => createVsAiSession(vsAiOptions(side, { clock, newSeed, newAiSeed, makeAi, game: played, tier })),
+    [side, newSeed, newAiSeed, clock, makeAi, played, tier],
   );
-  if (!side) return <SidePicker onPick={pickSide} note={game?.note} tier={tier} onTier={chooseTier} />;
-  return <Playing start={start} onNewGame={() => setSide(null)} game={game} />;
+  if (!chosen) {
+    return <SidePicker onPick={pickSide} note={game?.note} tier={tier} onTier={chooseTier} notice={notice} />;
+  }
+  // The offer is for a free player's game, and goes as soon as the player is an owner.
+  const shown = played && { ...played, offerFullGame: played.offerFullGame && game?.offerFullGame };
+  return <Playing start={start} onNewGame={() => setChosen(null)} game={shown} />;
 }

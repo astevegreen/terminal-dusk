@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import type { Locator, Page } from "@playwright/test";
 import { decisionButtons, liftedCard, stripChips, takenOrRefused, yourDecision } from "./answer.ts";
+import { OWNER_PAGE } from "./start.ts";
 
 /** Presses Tab until the focused element is the button named `name` (its whole text). No clicks. */
 async function tabTo(page: Page, name: string): Promise<void> {
@@ -70,9 +71,11 @@ async function answerByKeyboard(page: Page): Promise<void> {
 test("keyboard only: start a game against the AI, play it to Game over, then watch and close the replay", async ({
   page,
 }) => {
-  await page.goto("/");
+  // The owner's page, so the game played to its end is the full one (#686).
+  await page.goto(OWNER_PAGE);
   await tabTo(page, "Play against the AI");
   await page.keyboard.press("Enter");
+  await expect(page.getByText(/^First deck, the base game: 10 turns/)).toBeVisible();
   await tabTo(page, "Play as LIO");
   await page.keyboard.press("Space");
   await expect(page.getByTestId("decision")).toBeVisible();

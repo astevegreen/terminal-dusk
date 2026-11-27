@@ -86,7 +86,7 @@ export function TestModeView({ snapshot, session }: Readonly<{ snapshot: Snapsho
   );
 }
 
-/** Starts a local match on mount and shows it. `clock` comes from main.tsx (hard rule 8). */
+/** Starts a local match on mount and shows it. `clock` comes from appRoot.tsx (hard rule 8). */
 export function TestModeScreen({ clock }: Readonly<{ clock: () => number }>) {
   const [session] = useState(() => createTestSession(clock));
   const snapshot = useSyncExternalStore(session.subscribe, session.getSnapshot, session.getSnapshot);

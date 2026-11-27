@@ -1,12 +1,13 @@
 import { expect, test } from "@playwright/test";
 import { answerOnce, liftedCard, stripChips, yourDecision } from "./answer.ts";
+import { openOwnerGame } from "./start.ts";
 
 const FIRST_DECK_NOTE =
   "First deck, the base game: 10 turns. The Thaw (Era 1) starts, The Shock (Era 2) joins on turn 4, The Fracture (Era 3) on turn 6";
 
 test("play against the AI: pick LIO and tap through a whole game against the worker AI", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("button", { name: "Play against the AI" }).click();
+  // The full game is an owner's (#686).
+  await openOwnerGame(page, "Play against the AI");
   // The game against the AI deals the real first deck (FIRST_DECK_NOTE in packages/host/src/firstDeck.ts), not the
   // developer fixture that test mode keeps.
   await expect(page.getByText(FIRST_DECK_NOTE, { exact: true })).toBeVisible();
@@ -124,8 +125,7 @@ test("the free Era 1 game starts from the home screen and plays its 3 turns to t
 
 test("the 2025-2027 game starts from the home screen and plays its 11 turns to the end (#601)", async ({ page }) => {
   test.setTimeout(240_000);
-  await page.goto("/");
-  await page.getByRole("button", { name: "Play the 2025-2027 game" }).click();
+  await openOwnerGame(page, "Play the 2025-2027 game");
   await expect(page.getByText(/^The 2025-2027 game: 11 turns/)).toBeVisible();
   await page.getByRole("radio", { name: "Easy" }).check();
   await page.getByRole("button", { name: "Play as LIO" }).click();

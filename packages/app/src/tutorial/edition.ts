@@ -1,5 +1,5 @@
 // Which edition a player's tutorial is (#647): the Full Game when they own it on this platform, otherwise the free
-// game, which the engine ends after Era 1's scoring. Where the entitlements come from on the client is phase 6.
+// game, which the engine ends after Era 1's scoring. The app reads the entitlements in ../entitlements/ (#686).
 import { ownsFullGame } from "@terminal-dusk/host";
 import type { Entitlement, Platform, TutorialEdition } from "@terminal-dusk/host";
 

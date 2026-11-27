@@ -6,7 +6,7 @@ import { silentAudio } from "../platform/audio.ts";
 import type { AudioPlayer } from "../platform/audio.ts";
 import { eventSounds } from "./cues.ts";
 
-/** The app's player (main.tsx). A screen drawn without one is silent. */
+/** The app's player (appRoot.tsx). A screen drawn without one is silent. */
 export const AudioPlayerContext = createContext<AudioPlayer>(silentAudio());
 
 /** The last frame a screen dealt with, by game and step. */
