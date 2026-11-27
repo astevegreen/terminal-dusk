@@ -30,7 +30,8 @@ export function listContentFiles(root) {
   const base = path.join(root, CONTENT);
   const walked = existsSync(base) ? walk(base).map((f) => posix(path.relative(root, f))) : [];
   const extra = [...EXTRA_CONTENT.keys()].filter((f) => existsSync(path.join(root, f)));
-  return [...walked.filter((f) => contentFolderOf(f) && !f.includes("/node_modules/")), ...extra].sort();
+  return [...walked.filter((f) => contentFolderOf(f) && !f.includes("/node_modules/")), ...extra]
+    .sort((a, b) => a.localeCompare(b, "en"));
 }
 
 const lineAt = (text, index) => text.slice(0, index).split("\n").length;
