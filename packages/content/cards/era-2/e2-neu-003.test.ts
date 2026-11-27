@@ -208,4 +208,22 @@ describeCard("e2-neu-003", "SARS", [
       points:sae:3
     `,
   },
+  {
+    // The mirror: when SAE plays it, LIO's draw, from SAE's deck, settles LIO's outbreak, so it is made for LIO: SAE's
+    // Resilient institutions never redraws its 1. A redraw would give 3, and LIO's outbreak would leak.
+    it: "when SAE plays it with Resilient institutions, LIO hides it and SAE reports: LIO's 1 from SAE's deck stands",
+    playedBy: "sae",
+    resilient: true,
+    yes: { lio: false, sae: true },
+    draws: [1, 3],
+    story: `
+      points:lio:2
+      outbreak
+      mod:lio:+1
+      draw:sae:1
+      points:sae:1
+      points:lio:3
+      points:sae:2
+    `,
+  },
 ]);
