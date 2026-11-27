@@ -4,11 +4,16 @@
 // server uses it, with the service role. MemoryEntitlementStore and SupabaseEntitlementStore implement it.
 import type { Entitlement, PlayerId } from "@terminal-dusk/host";
 
-/** `granted`: the entitlement was written. `already`: this receipt has one. `refunded`: it was refunded. */
-export type GrantStatus = "granted" | "already" | "refunded";
+/**
+ * `granted`: the entitlement was written. `already`: this receipt has one. `refunded`: it was refunded.
+ * `chargedBack`: it is charged back, and a reversal will give this buyer the entitlement.
+ */
+export type GrantStatus = "granted" | "already" | "refunded" | "chargedBack";
 /** `revoked`: the receipt's entitlement was removed. `remembered`: it had none; the refund is kept all the same. */
 export type RevokeStatus = "revoked" | "remembered";
 /** Why a purchase could not be given to a player: no id, text that is no player id, or an id no account has. */
+/** `restored`: the entitlement was written again. `remembered`: nothing was to be given back. */
+export type ReversalStatus = "restored" | "remembered";
 export type UnmatchedReason = "noPlayerId" | "badPlayerId" | "unknownPlayer";
 
 export interface EntitlementReceipts {
@@ -17,5 +22,15 @@ export interface EntitlementReceipts {
   /** Removes the receipt's entitlement and refuses any later grant of it. */
   revokeReceipt(source: string, receiptRef: string): Promise<RevokeStatus>;
   /** Keeps a purchase no player could be found for, so a person can settle it; the first record stays. */
+  /**
+   * Records a chargeback of the receipt, made at `at` (milliseconds since 1970). Unless a reversal is as new, the
+   * entitlement is removed and its buyer kept for the reversal.
+   */
+  chargeBackReceipt(source: string, receiptRef: string, at: number): Promise<RevokeStatus>;
+  /**
+   * Records that a chargeback of the receipt was reversed at `at`. Unless a chargeback is newer or the receipt was
+   * refunded, the kept buyer gets the entitlement again.
+   */
+  reverseChargeback(source: string, receiptRef: string, at: number): Promise<ReversalStatus>;
   recordUnmatched(source: string, receiptRef: string, reason: UnmatchedReason): Promise<void>;
 }

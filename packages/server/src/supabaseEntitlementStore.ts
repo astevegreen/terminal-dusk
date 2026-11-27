@@ -1,11 +1,18 @@
 // The Supabase side of the entitlement ports (docs/architecture.md, Decision 5). The server reads and writes with a
 // client made with the service role key; a signed-in player may read only their own rows, and no client may write
-// them. Purchases are granted and refunded by two database functions, so both happen under one lock per receipt.
+// them. Purchases, refunds, chargebacks and their reversals each go through a database function, so all of them
+// happen under one lock per receipt.
 // No error it throws carries a row, a player id, a receipt reference or a key, so it can be logged.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isEntitlement } from "@terminal-dusk/host";
 import type { Entitlement, PlayerId } from "@terminal-dusk/host";
-import type { EntitlementReceipts, GrantStatus, RevokeStatus, UnmatchedReason } from "./entitlementReceipts.ts";
+import type {
+  EntitlementReceipts,
+  GrantStatus,
+  ReversalStatus,
+  RevokeStatus,
+  UnmatchedReason,
+} from "./entitlementReceipts.ts";
 import type { EntitlementStore } from "./entitlementStore.ts";
 
 /**
@@ -43,7 +50,7 @@ function oneOf<T extends string>(known: readonly T[], answer: unknown): T {
   return status;
 }
 
-/** `EntitlementStore` and `EntitlementReceipts` over the `entitlement` table and its two companions. */
+/** `EntitlementStore` and `EntitlementReceipts` over the `entitlement` table and its three companions. */
 export class SupabaseEntitlementStore implements EntitlementStore, EntitlementReceipts {
   readonly #db: SupabaseClient;
   readonly #now: () => number;
@@ -63,13 +70,25 @@ export class SupabaseEntitlementStore implements EntitlementStore, EntitlementRe
       p_now: this.#now(),
     };
     const answer = await written(() => this.#db.rpc("grant_receipt", args));
-    return oneOf<GrantStatus>(["granted", "already", "refunded"], answer);
+    return oneOf<GrantStatus>(["granted", "already", "refunded", "chargedBack"], answer);
   }
 
   async revokeReceipt(source: string, receiptRef: string): Promise<RevokeStatus> {
     const args = { p_source: source, p_receipt_ref: receiptRef, p_now: this.#now() };
     const answer = await written(() => this.#db.rpc("revoke_receipt", args));
     return oneOf<RevokeStatus>(["revoked", "remembered"], answer);
+  }
+
+  async chargeBackReceipt(source: string, receiptRef: string, at: number): Promise<RevokeStatus> {
+    const args = { p_source: source, p_receipt_ref: receiptRef, p_at: at };
+    const answer = await written(() => this.#db.rpc("chargeback_receipt", args));
+    return oneOf<RevokeStatus>(["revoked", "remembered"], answer);
+  }
+
+  async reverseChargeback(source: string, receiptRef: string, at: number): Promise<ReversalStatus> {
+    const args = { p_source: source, p_receipt_ref: receiptRef, p_at: at, p_now: this.#now() };
+    const answer = await written(() => this.#db.rpc("reverse_chargeback", args));
+    return oneOf<ReversalStatus>(["restored", "remembered"], answer);
   }
 
   async recordUnmatched(source: string, receiptRef: string, reason: UnmatchedReason): Promise<void> {
