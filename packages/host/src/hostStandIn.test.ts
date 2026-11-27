@@ -15,19 +15,26 @@ import type { HostResult } from "./types.ts";
 const LIO_DUE = NOW + 2 + DAY;
 /** LIO's deadline for the opening pick, which it got at NOW. */
 const PICK_DUE = NOW + DAY;
-/** While true, the default answer finds nothing: the bug the no-answer tests stand for. */
-const bug = vi.hoisted(() => ({ noAnswer: false, illegal: false }));
+/**
+ * While `noAnswer` is true, the default answer finds nothing: the bug the no-answer tests stand for. `answersLeft`,
+ * when set, lets that many default answers through before `noAnswer` turns on.
+ */
+const bug = vi.hoisted(() => ({ noAnswer: false, illegal: false, answersLeft: null as number | null }));
 vi.mock("./defaultAnswer.ts", async (actual) => {
   const real = await actual<typeof import("./defaultAnswer.ts")>();
   return {
     ...real,
-    defaultAnswer: (...args: Parameters<typeof real.defaultAnswer>) =>
-      bug.noAnswer ? null : bug.illegal ? { kind: "realign", country: "nowhere" } : real.defaultAnswer(...args),
+    defaultAnswer: (...args: Parameters<typeof real.defaultAnswer>) => {
+      if (bug.answersLeft !== null && bug.answersLeft-- <= 0) bug.noAnswer = true;
+      if (bug.noAnswer) return null;
+      return bug.illegal ? { kind: "realign", country: "nowhere" } : real.defaultAnswer(...args);
+    },
   };
 });
 afterEach(() => {
   bug.noAnswer = false;
   bug.illegal = false;
+  bug.answersLeft = null;
 });
 const answersAdded = (from: HostResult, to: HostResult): number => to.secret.log.length - from.secret.log.length;
 
@@ -80,6 +87,20 @@ describe("the stand-in with no legal answer (only possible through a bug)", () =
     const drawn = swept(host, LIO_DUE);
     expect(drawn.record.status).toEqual({ kind: "over", winner: null, reason: "timeout" });
     expect(drawn.secret.log).toEqual([...host.secret.log, { system: "timeout", side: "both", stuck: "lio" }]);
+  });
+
+  it("a failure after some answers saves those answers, and the next sweep ends the game in a draw on time", () => {
+    // SAE makes its opening pick; LIO, absent, owes its pick and then its play. Only the pick can be answered.
+    const start = startedWith("defaultAnswer");
+    const host = deepFreeze(accept(start, submissionFor(start, "sae"), NOW + 1));
+    bug.answersLeft = 1;
+    const part = swept(host, PICK_DUE);
+    expect(answersAdded(host, part)).toBe(1);
+    expect(part.record.status).toEqual({ kind: "active" });
+    expect(pendingFor(part.secret.state, "lio")).not.toBeNull();
+    const drawn = swept(part, PICK_DUE);
+    expect(drawn.record.status).toEqual({ kind: "over", winner: null, reason: "timeout" });
+    expect(drawn.secret.log).toEqual([...part.secret.log, { system: "timeout", side: "both", stuck: "lio" }]);
   });
 
   it("a drawn match is over, so later sweeps leave it alone", () => {
