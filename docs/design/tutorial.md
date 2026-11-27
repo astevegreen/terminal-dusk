@@ -67,7 +67,7 @@ The top 16 cards of the Era 1 draw pile are fixed, in this order; the other 13 E
 
 ## Coaching words (owner, 27 Nov 2026, in chat: "Approve as written")
 
-Each quoted line is one coaching panel, shown in this order.
+The coaching shows the quoted lines in this order.
 
 **1. Opening cards and events** (turn 1 opening; play Maastricht Treaty)
 
