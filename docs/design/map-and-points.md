@@ -66,6 +66,8 @@ Decided by the owner on 28 October 2026, in chat, answering the questions of `do
   side's end, and the track **starts 7 steps towards SAE** (owner, 21 Nov: "Shift track start", #515). On the real
   turn structure with Hard AI on both sides, LIO won about 71% of games from the middle and 49.6% from 7 (SAE 48.6%,
   1,000 games; `docs/proposals/map-balance.md`). The start is the number to retune when cards or the AI change.
+  Kept at 7 after the abilities and the AI's Unified command play (owner, 27 Nov 2026, in chat: "Keep both"):
+  Medium against Medium, LIO 47% (94-102, 4 draws, 200 games); Hard against Hard, LIO 60% (60-38, 2 draws).
 - **Taiwan and Crimea at the start** (owner: "LIO 3 / SAE 1", then Taiwan lowered by the X15 balance pass). Taiwan
   LIO 2, aligned but short of control at stability 3 (owner, 29 Oct: option 1 of `docs/proposals/map-balance.md`,
   #472; LIO 3 won about 63% of Medium-vs-Medium games, LIO 2 about 54%); Crimea SAE 1, a foothold without control at stability 2. Every other country starts empty.
