@@ -81,9 +81,17 @@ points" and the result it gives, chapter 5's "2 points" and chapter 6's "All 3 p
 as written.
 
 If SAE has played Rwandan Genocide this turn, it is one more term in chapter 3's arithmetic: "Before: 1, plus 1
-from Maastricht, minus 1, minus 1 from Rwandan Genocide, and never below 1, gives 1 point."
-When before and after give the same points, "After: you spend 2," becomes "After: you also spend 1, so here the order doesn't change your points," and the line goes on "and the penalty only reaches
-..." as written (owner, 27 Nov 2026, in chat: "I approve your recommendation").
+from Maastricht, minus 1, minus 1 from Rwandan Genocide, and never below 1, gives 1 point." When before and after
+give the same points, "After: you spend 2," becomes "After: you also spend 1, so here the order doesn't change your
+points," and the line goes on "and the penalty only reaches ..." as written (owner, 27 Nov 2026, in chat: "I
+approve your recommendation").
+
+In chapter 6, Second Chechen War's points can fall below the cost of the step LIO would try: for example, SAE has
+taken AI (pulling it back costs 2) and Rwandan Genocide has left the card 1 point. Then chapter 6 still explains the
+track, but "Play Second Chechen War, SAE's card, on the tech race." becomes "Your 1 point can't pay this step's cost
+of 2 this turn. Play Second Chechen War for its points and place influence instead: its event, SAE's, still
+happens.", with the points and cost from the game, and the sentence "All 3 points go to this one try, so any above
+the cost are lost." is left out, since there is no try (owner, 27 Nov 2026, in chat: "As you recommend").
 
 **1. Opening cards and events** (turn 1 opening; play Maastricht Treaty)
 
