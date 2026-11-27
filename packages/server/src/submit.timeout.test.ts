@@ -20,7 +20,7 @@ function counting(inner: MatchStore): { store: MatchStore; commits: () => number
 }
 
 describe("submit: a timeout body from a player", () => {
-  it("submit with { system: 'timeout' } or { timeout: true } does not end the game and saves nothing", async () => {
+  it("submit with { system: 'timeout' } or { timeout: true } (any side, `stuck` too) does not end the game and saves nothing", async () => {
     const { deps, store, start } = setup();
     const { store: watched, commits } = counting(store);
     const answer = bodyFor(0, start.secret, "lio");
@@ -28,6 +28,7 @@ describe("submit: a timeout body from a player", () => {
       { system: "timeout" },
       { timeout: true },
       { system: "timeout", side: "sae" },
+      { system: "timeout", side: "both", stuck: "lio" },
       { timeout: true, side: "sae" },
       { system: "timeout", expectedSeq: 0 },
       { timeout: true, expectedSeq: 0, decisionId: answer.decisionId },

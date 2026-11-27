@@ -16,7 +16,8 @@ import type { HostError, HostOutcome, MatchClock, MatchRecord, MatchSecret } fro
  * neither has an extension left (always so under lossOnTime), the game ends in a draw on time through
  * hostTimeout with "both". Under "defaultAnswer" the host instead answers for the late side for the rest of
  * the turn (hostStandIn.ts); both sides late at once is that draw, covered or not, and so is one side late
- * while the other was played for this turn and has nothing waiting (#605).
+ * while the other was played for this turn and has nothing waiting (#605). A stand-in that cannot answer at all
+ * ends the game in a draw on time too (#629).
  * Refuses invalidTime like hostSubmit, gameOver for a finished game, and notDue
  * when the match has no clock or nobody is late. It never throws, and never changes its inputs.
  */
@@ -35,7 +36,7 @@ export function hostDeadline(ruleset: Ruleset, record: MatchRecord, secret: Matc
     const other = SIDES.find((side) => side !== late[0])!;
     // One late while the other was played for this turn and waits on nothing: also a draw (owner, 22 Nov 2026).
     if (isCovered(clock, other, secret.state) && pendingFor(secret.state, other) === null) {
-      return hostTimeout(ruleset, record, secret, "both", now, other);
+      return hostTimeout(ruleset, record, secret, "both", now, { covered: other });
     }
     return standIn(ruleset, record, secret, clock, late[0]!, now);
   }

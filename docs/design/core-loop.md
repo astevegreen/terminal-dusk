@@ -114,6 +114,8 @@ extra deadline, then loss on time; or "the game plays for a late player" (the de
 - If both players are late at the same moment, the game is a draw on time.
 - If one player has already been played for this turn and has nothing left to answer, and the other player then
   misses their deadline, the game is also a draw on time (owner, 22 Nov 2026: "Yes, a draw").
+- If the game cannot find any legal answer for the late player (only a bug can cause this), the game is a draw on
+  time (owner, 26 Nov 2026, in chat: 'Draw on time').
 - Both players see every move the game made for a late player as a marked log line, "Played for LIO (deadline
   passed): ...". Nothing secret is shown: a hidden pick stays hidden until its normal reveal.
 - It is not combined with the extra deadline. Ranked games will always use loss on time.

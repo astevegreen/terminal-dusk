@@ -2,13 +2,26 @@
 // answers end the game.
 import { pendingFor } from "@terminal-dusk/engine";
 import type { RulesetId } from "@terminal-dusk/engine";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { MemoryStore } from "./store.ts";
 import { submit } from "./submit.ts";
 import { sweepDeadlines } from "./sweepDeadlines.ts";
 import type { SweepResult } from "./sweepDeadlines.ts";
 import { DAY, insertSaeLate, rulesetFor } from "./test/deadlines.ts";
 import { bodyFor, NOW } from "./test/match.ts";
+
+/** While true, the engine lists no legal answers, so the host finds no default answer: the bug the test stands for. */
+const bug = vi.hoisted(() => ({ noAnswer: false }));
+vi.mock("@terminal-dusk/engine", async (actual) => {
+  const real = await actual<typeof import("@terminal-dusk/engine")>();
+  return {
+    ...real,
+    legalAnswers: (...args: Parameters<typeof real.legalAnswers>) => (bug.noAnswer ? [] : real.legalAnswers(...args)),
+  };
+});
+afterEach(() => {
+  bug.noAnswer = false;
+});
 
 const deps = (store: MemoryStore) => ({
   store,
@@ -45,27 +58,21 @@ describe("sweepDeadlines: a stand-in step that ends the game (#616)", () => {
   });
 });
 
-describe("sweepDeadlines: a stand-in with no legal answer (#616)", () => {
-  it("parks the match: skipped with standInNoAnswer, seq and game unchanged, the late side's deadline cleared", async () => {
+describe("sweepDeadlines: a stand-in with no legal answer (#616, #629)", () => {
+  it("ends the game in a draw on time and reports timedOut; later sweeps leave it alone", async () => {
+    // Owner, 26 Nov 2026, in chat: "Draw on time".
     const store = new MemoryStore();
     await insertSaeLate(store, "m1", "defaultAnswer", NOW);
     const before = store.stored("m1")!;
-    const state = before.secret.state;
-    // Only possible through a bug: SAE's opening pick with an empty hand has no legal answer.
-    const empty = { ...state, private: { ...state.private, sae: { ...state.private.sae, hand: [] } } };
-    store.insert("m1", { ...before, secret: { ...before.secret, state: empty } });
+    bug.noAnswer = true; // only possible through a bug: no default answer for SAE's opening pick
     const due = before.record.clock!.deadlines.sae!;
-    expect(await sweepDeadlines(store, rulesetFor, due)).toEqual([
-      { matchId: "m1", status: "skipped", code: "standInNoAnswer" },
-    ]);
-    const parked = store.stored("m1")!;
-    expect(parked.record.seq).toBe(before.record.seq);
-    expect(parked.record.status).toEqual(before.record.status);
-    expect(parked.secret.log).toEqual(before.secret.log);
-    expect(parked.secret.state).toEqual(empty);
-    expect(parked.record.clock!.deadlines.sae).toBeNull();
+    expect(await sweepDeadlines(store, rulesetFor, due)).toEqual([{ matchId: "m1", status: "timedOut" }]);
+    const drawn = store.stored("m1")!;
+    expect(drawn.record.status).toEqual({ kind: "over", winner: null, reason: "timeout" });
+    expect(drawn.record.seq).toBe(before.record.seq + 1);
+    expect(drawn.secret.log).toEqual([...before.secret.log, { system: "timeout", side: "both", stuck: "sae" }]);
     expect(await sweepDeadlines(store, rulesetFor, due)).toEqual([]);
     expect(await sweepDeadlines(store, rulesetFor, due + DAY)).toEqual([]);
-    expect(store.stored("m1")).toEqual(parked);
+    expect(store.stored("m1")).toEqual(drawn);
   });
 });

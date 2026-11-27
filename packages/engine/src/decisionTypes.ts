@@ -74,10 +74,11 @@ export type AnswerValue =
   | { kind: "pass" };
 /**
  * A timeout naming "both" is a draw: a simultaneous pick missed by both sides, or, with `covered`, the host's word
- * that it played for that side this turn (deadline rule "defaultAnswer") and the other side is now late too.
+ * that it played for that side this turn (deadline rule "defaultAnswer") and the other side is now late too, or,
+ * with `stuck`, the host's word that it could not answer for that late side under "defaultAnswer" (#629).
  */
 export type Answer =
   | { decisionId: string; side: Side; value: AnswerValue }
   | { system: "timeout"; side: Side }
-  | { system: "timeout"; side: "both"; covered?: Side }
+  | { system: "timeout"; side: "both"; covered?: Side; stuck?: Side }
   | { system: "resign" | "adjudicate"; side: Side };
