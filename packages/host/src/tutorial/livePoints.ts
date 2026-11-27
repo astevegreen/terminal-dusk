@@ -83,6 +83,17 @@ export function eventPoints(view: PlayerView, card: CardDef, playedBy: Side): nu
   return modifiedOps(spend.amount, [...view.public.modifiers, ...spend.before], spend.side);
 }
 
+/** The stability chapter 4's line names in its own words, "a stability-2 country": fixed text, not read from the map. */
+const LINE_STABILITY = 2;
+
+/**
+ * How far below the draw an intervention's result falls in a stability-2 country with `card`'s points now: result =
+ * draw + points - 2 x stability, so 4 - points (chapter 4). Above 0 when the points are below 4.
+ */
+export function belowDraw(view: PlayerView, card: CardDef, side: Side): number {
+  return 2 * LINE_STABILITY - cardPoints(view, card, side);
+}
+
 /** The cost of the tech race step `side` would try now (chapter 6). */
 export function raceCost(view: PlayerView, side: Side): number {
   return techRaceCost(view.public, side) ?? fail(`${side} has no tech race step to try.`);

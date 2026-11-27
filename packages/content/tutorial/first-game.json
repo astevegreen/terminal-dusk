@@ -1,0 +1,148 @@
+{
+  "id": "first-game",
+  "title": "Your first game",
+  "placeholder": true,
+  "deckTop": [
+    "e1-lio-001",
+    "e1-lio-004",
+    "e1-sae-008",
+    "e1-lio-006",
+    "e1-lio-002",
+    "e1-sae-004",
+    "e1-lio-012",
+    "e1-lio-010",
+    "e1-sae-002",
+    "e1-sae-001",
+    "e1-sae-003",
+    "e1-sae-005",
+    "e1-sae-009",
+    "e1-sae-013",
+    "e1-neu-003",
+    "e1-neu-001"
+  ],
+  "chapters": [
+    {
+      "id": "opening",
+      "title": "Opening cards and events",
+      "steps": [
+        {
+          "when": { "decision": "chooseCard", "side": "lio", "turn": 1 },
+          "say": "Each turn starts with an opening card. You and SAE each pick one in secret, then both are shown together. An opening card is used only for its event: its action points are not spent. Pick Maastricht Treaty.",
+          "allow": [{ "kind": "chooseCard", "card": "e1-lio-001" }],
+          "until": { "event": "pointsSpent", "side": "sae", "turn": 1 }
+        },
+        {
+          "when": { "event": "pointsSpent", "side": "sae", "turn": 1 },
+          "say": "SAE picked Handover of Hong Kong. The card with more action points goes first: Hong Kong has 4 and Maastricht 2, so SAE's event happens first. On a tie, LIO's pick would go first, whichever side's card it is.",
+          "until": { "event": "pointsSpent", "side": "lio", "turn": 1 }
+        },
+        {
+          "when": { "event": "pointsSpent", "side": "lio", "turn": 1 },
+          "say": "Maastricht gives you {eventPoints:e1-lio-001} point now. You can place where you already have influence ({influenceIn:lio}), next to it, or next to the United States ({homeNeighbours:lio}). For the rest of this turn, each time you spend points, you spend 1 more.",
+          "variants": [
+            {
+              "if": [{ "kind": "noInfluence", "side": "lio" }],
+              "say": "Maastricht gives you {eventPoints:e1-lio-001} point now. You can place next to the United States ({homeNeighbours:lio}). For the rest of this turn, each time you spend points, you spend 1 more."
+            }
+          ],
+          "allow": [{ "kind": "chooseAction", "action": "place" }],
+          "until": { "decision": "playCardAs", "side": "lio", "turn": 1 }
+        }
+      ]
+    },
+    {
+      "id": "influence",
+      "title": "Influence and control",
+      "steps": [
+        {
+          "when": { "decision": "playCardAs", "side": "lio", "turn": 1 },
+          "say": "Now the card plays: LIO, SAE, LIO, SAE. Play NATO Enlargement 1999 for its points: 3, plus 1 from Maastricht, so {cardPoints:e1-lio-004} to spend. All of a play's points go to one action.",
+          "allow": [
+            { "kind": "playCardAs", "card": "e1-lio-004", "as": "points" },
+            { "kind": "chooseAction", "action": "place" }
+          ],
+          "until": { "decision": "placeInfluence", "side": "lio" }
+        },
+        {
+          "when": { "decision": "placeInfluence", "side": "lio" },
+          "say": "You control a country when your influence there is at least its stability, and at least SAE's influence plus its stability. Mexico has stability 2: 2 influence controls it. Placing in a country SAE controls costs 2 points for each influence. Where you can place is fixed when the play starts.",
+          "allow": [{ "kind": "chooseAction", "action": "place" }],
+          "until": { "decision": "playCardAs", "side": "lio", "turn": 1 }
+        }
+      ]
+    },
+    {
+      "id": "rival-cards",
+      "title": "Rival cards",
+      "steps": [
+        {
+          "when": { "decision": "playCardAs", "side": "lio", "turn": 1 },
+          "say": "Primakov's U-turn is SAE's card. You can play it only for its points, and its event still happens, as SAE's event.",
+          "allow": [
+            { "kind": "playCardAs", "card": "e1-sae-008", "as": "points" },
+            { "kind": "chooseAction", "action": "place" }
+          ],
+          "until": { "decision": "rivalEventOrder", "side": "lio" }
+        },
+        {
+          "when": { "decision": "rivalEventOrder", "side": "lio" },
+          "say": "You choose whether the event comes before or after you spend. It makes you spend 1 fewer for the rest of the turn. Before: 1, plus 1 from Maastricht, minus 1, gives {pointsBefore:e1-sae-008} point. After: you spend {pointsAfter:e1-sae-008}, and the penalty only reaches spends later this turn, when you have no plays left. Chapter 6 shows the one exception: points spent on the tech race cancel the event.",
+          "variants": [
+            {
+              "if": [
+                { "kind": "modifierInForce", "card": "e1-neu-001" },
+                { "kind": "pointsBeforeEqualsAfter", "card": "e1-sae-008" }
+              ],
+              "say": "You choose whether the event comes before or after you spend. It makes you spend 1 fewer for the rest of the turn. Before: 1, plus 1 from Maastricht, minus 1, minus {modifierTakesOff:e1-neu-001} from Rwandan Genocide, and never below 1, gives {pointsBefore:e1-sae-008} point. After: you also spend {pointsAfter:e1-sae-008}, so here the order doesn't change your points, and the penalty only reaches spends later this turn, when you have no plays left. Chapter 6 shows the one exception: points spent on the tech race cancel the event."
+            },
+            {
+              "if": [{ "kind": "modifierInForce", "card": "e1-neu-001" }],
+              "say": "You choose whether the event comes before or after you spend. It makes you spend 1 fewer for the rest of the turn. Before: 1, plus 1 from Maastricht, minus 1, minus {modifierTakesOff:e1-neu-001} from Rwandan Genocide, and never below 1, gives {pointsBefore:e1-sae-008} point. After: you spend {pointsAfter:e1-sae-008}, and the penalty only reaches spends later this turn, when you have no plays left. Chapter 6 shows the one exception: points spent on the tech race cancel the event."
+            },
+            {
+              "if": [{ "kind": "pointsBeforeEqualsAfter", "card": "e1-sae-008" }],
+              "say": "You choose whether the event comes before or after you spend. It makes you spend 1 fewer for the rest of the turn. Before: 1, plus 1 from Maastricht, minus 1, gives {pointsBefore:e1-sae-008} point. After: you also spend {pointsAfter:e1-sae-008}, so here the order doesn't change your points, and the penalty only reaches spends later this turn, when you have no plays left. Chapter 6 shows the one exception: points spent on the tech race cancel the event."
+            }
+          ],
+          "allow": [{ "kind": "chooseAction", "action": "place" }],
+          "until": { "decision": "chooseCard", "side": "lio", "turn": 2 }
+        }
+      ]
+    },
+    {
+      "id": "intervene",
+      "title": "Intervene and the Contingency deck",
+      "steps": [
+        {
+          "when": { "decision": "chooseCard", "side": "lio", "turn": 2 },
+          "say": "Turn 2: both hands fill back up to 8. Pick Partnership for Peace, and keep Desert Storm Coalition, Budapest Memorandum and Second Chechen War for the next chapters.",
+          "allow": [{ "kind": "chooseCard", "card": "e1-lio-012" }],
+          "until": { "decision": "playCardAs", "side": "lio", "turn": 2 }
+        },
+        {
+          "when": { "decision": "playCardAs", "side": "lio", "turn": 2 },
+          "say": "Play Desert Storm Coalition for its {cardPoints:e1-lio-006} points and intervene in any country where SAE has influence. It doesn't need to be next to yours.",
+          "allow": [{ "kind": "playCardAs", "card": "e1-lio-006", "as": "points" }],
+          "until": { "decision": "chooseAction", "side": "lio", "turn": 2 }
+        },
+        {
+          "when": { "decision": "chooseAction", "side": "lio", "turn": 2 },
+          "say": "There are no dice: you draw a card numbered 1 to 6 from your Contingency deck. Result = draw + points spent - 2 x the country's stability. If the result is above 0, SAE loses that much influence there, and what is left over becomes yours. With {cardPoints:e1-lio-006} points, a stability-2 country such as Crimea gives a result equal to your draw. An intervention in a battleground raises Escalation by 1.",
+          "variants": [
+            {
+              "if": [{ "kind": "resultBelowDraw", "card": "e1-lio-006" }],
+              "say": "There are no dice: you draw a card numbered 1 to 6 from your Contingency deck. Result = draw + points spent - 2 x the country's stability. If the result is above 0, SAE loses that much influence there, and what is left over becomes yours. With {cardPoints:e1-lio-006} points, a stability-2 country such as Crimea gives a result {belowDraw:e1-lio-006} below your draw. An intervention in a battleground raises Escalation by 1."
+            }
+          ],
+          "allow": [{ "kind": "chooseAction", "action": "intervene" }],
+          "until": { "event": "intervened", "side": "lio", "turn": 2 }
+        },
+        {
+          "when": { "event": "intervened", "side": "lio", "turn": 2 },
+          "say": "Both sides see every draw. A used card stays out until the deck is reshuffled, when two are left, so a low draw now means higher ones are still to come.",
+          "until": { "decision": "playCardAs", "side": "lio", "turn": 2 }
+        }
+      ]
+    }
+  ]
+}

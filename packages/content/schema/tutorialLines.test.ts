@@ -45,6 +45,7 @@ describe("a coaching line's slots", () => {
         "pointsAfter",
         "pointsBefore",
         "techRaceCost",
+        "belowDraw",
       ].sort(),
     );
     const card = "e1-sae-001";
@@ -65,6 +66,13 @@ describe("a coaching line's slots", () => {
     expect(says("{influenceIn:usa}")).toBe(false);
     expect(says("{influenceIn}")).toBe(false);
     expect(says("{techRaceCost:e1-lio-001}")).toBe(false);
+  });
+
+  it("belowDraw names an Era 1 card, never a side or a later card (chapter 4, #700)", () => {
+    expect(says("a result {belowDraw:e1-lio-006} below your draw")).toBe(true);
+    expect(says("{belowDraw:lio}")).toBe(false);
+    expect(says("{belowDraw:e2-lio-001}")).toBe(false);
+    expect(says("{belowDraw}")).toBe(false);
   });
 
   it("fails a brace that opens or closes no slot", () => {
@@ -96,7 +104,13 @@ describe("a step's variants", () => {
 
   it("covers every condition the design names, alone or together", () => {
     expect([...CONDITIONS].sort()).toEqual(
-      ["modifierInForce", "noInfluence", "pointsBeforeEqualsAfter", "pointsBelowTechRaceCost"].sort(),
+      [
+        "modifierInForce",
+        "noInfluence",
+        "pointsBeforeEqualsAfter",
+        "pointsBelowTechRaceCost",
+        "resultBelowDraw",
+      ].sort(),
     );
     const both = [
       { kind: "modifierInForce", card: "e1-sae-001" },
@@ -121,6 +135,14 @@ describe("a step's variants", () => {
     const noSide = { kind: "pointsBelowTechRaceCost", card: "e1-sae-001" };
     expect(passes(withStep({ ...step, variants: [{ if: [noSide], say: "x" }] }))).toBe(false);
     expect(passes(withStep({ ...step, variants: [{ if: [], say: "x" }] }))).toBe(false);
+  });
+
+  it("resultBelowDraw names one Era 1 card and nothing else (chapter 4, #700)", () => {
+    const variant = (c: Record<string, unknown>) => withStep({ ...step, variants: [{ if: [c], say: "x" }] });
+    expect(passes(variant({ kind: "resultBelowDraw", card: "e1-lio-006" }))).toBe(true);
+    expect(passes(variant({ kind: "resultBelowDraw" }))).toBe(false);
+    expect(passes(variant({ kind: "resultBelowDraw", card: "e2-lio-001" }))).toBe(false);
+    expect(passes(variant({ kind: "resultBelowDraw", card: "e1-lio-006", side: "lio" }))).toBe(false);
   });
 
   it("fails a variant with no text, too much text, or an unknown slot", () => {

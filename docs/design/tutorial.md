@@ -86,6 +86,11 @@ give the same points, "After: you spend 2," becomes "After: you also spend 1, so
 points," and the line goes on "and the penalty only reaches ..." as written (owner, 27 Nov 2026, in chat: "I
 approve your recommendation").
 
+When Desert Storm Coalition's points are not 4, chapter 4's "With 4 points, a stability-2 country such as Crimea
+gives a result equal to your draw." becomes "With 3 points, a stability-2 country such as Crimea gives a result 1
+below your draw." ("2 below" at 2 points), with the points and the difference from the game (owner, 27 Nov 2026, in
+chat: "Approve both"; #700).
+
 In chapter 6, Second Chechen War's points can fall below the cost of the step LIO would try: for example, SAE has
 taken AI (pulling it back costs 2) and Rwandan Genocide has left the card 1 point. Then chapter 6 still explains the
 track, but "Play Second Chechen War, SAE's card, on the tech race." becomes "Your 1 point can't pay this step's cost

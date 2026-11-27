@@ -87,6 +87,15 @@ describe("each slot, filled from a real game frame", () => {
     expect(fill("would give SAE {eventPoints:e1-sae-004}", maastricht)).toBe("would give SAE 1");
   });
 
+  it("belowDraw: how far below the draw a stability-2 intervention's result falls, 4 minus the card's points", () => {
+    // Freedom Agenda (e1-lio-002) has 2 points at the start, 3 with Maastricht's +1; Desert Storm Coalition
+    // (e1-lio-006) has 2 under Rwandan Genocide, and Partnership for Peace (e1-lio-012) has 1.
+    expect(fill("a result {belowDraw:e1-lio-002} below", start)).toBe("a result 2 below");
+    expect(fill("{belowDraw:e1-lio-002}", maastricht)).toBe("1");
+    expect(fill("{belowDraw:e1-lio-006}", rwanda)).toBe("2");
+    expect(fill("{belowDraw:e1-lio-012}", rwanda)).toBe("3");
+  });
+
   it("influenceIn: the countries where LIO has influence, in map order", () => {
     expect(fill("({influenceIn:lio})", start)).toBe("(Taiwan)");
     const later = [...learnerFrames()].find((f) => f.view.public.turn === 2)!;
@@ -151,6 +160,20 @@ describe("each condition, picking its variant from a real game frame", () => {
     expect(fillLine(line("e1-lio-012"), start, firstDeckRuleset).text).toBe("Race.");
   });
 
+  it("resultBelowDraw: a variant for a card with fewer than 4 points, whose result falls below the draw", () => {
+    const below = { kind: "resultBelowDraw" as const, card: "e1-lio-006" };
+    const line = {
+      say: "With {cardPoints:e1-lio-006} points, the result equals your draw.",
+      variants: [{ if: [below], say: "With {cardPoints:e1-lio-006} points, a result {belowDraw:e1-lio-006} below." }],
+    };
+    // Desert Storm Coalition has its printed 4 at the start, and 2 under Rwandan Genocide.
+    expect(fillLine(line, start, firstDeckRuleset)).toEqual({
+      variant: null,
+      text: "With 4 points, the result equals your draw.",
+    });
+    expect(fillLine(line, rwanda, firstDeckRuleset)).toEqual({ variant: 0, text: "With 2 points, a result 2 below." });
+  });
+
   it("picks the first variant whose conditions all hold, and keeps that variant's own allow", () => {
     const allow = [{ kind: "placeInfluence" as const }];
     const line = {
@@ -179,6 +202,7 @@ describe("a line the frame and content cannot fill", () => {
     expect(() => fill("{cardPoints:e9-lio-001}", start)).toThrow(/no card e9-lio-001/);
     expect(() => fill("a { b", start)).toThrow(/never closes/);
     expect(() => fill("{eventPoints:e1-sae-001}", start)).toThrow(/trigger step/);
+    expect(() => fill("{belowDraw:e1-lio-006}", start)).toThrow(/is 0: the result is not below the draw/);
   });
 
   it("throws for a frame from another ruleset, or a spectator's frame", () => {
