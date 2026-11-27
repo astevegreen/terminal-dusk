@@ -16,6 +16,11 @@ export type Setup = {
   seedHash: string;
   hands: Record<Side, CardId[]>;
   deck: CardId[];
+  /**
+   * The first cards drawn, in order, for a scripted scenario such as the tutorial (deckTop.ts): each must be in
+   * `deck`, none twice. The rest of the deck is shuffled as usual. Left out or empty: the whole deck is shuffled.
+   */
+  deckTop?: CardId[];
   /** How many turns the game lasts: a whole number, 1 or more. */
   turns: number;
   /** How many plays each side makes per turn, after the opening cards: a whole number, 1 or more. */

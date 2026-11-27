@@ -6,7 +6,8 @@ import { ESCALATION_START } from "./escalation.ts";
 import { mapError, mapState } from "./mapChecks.ts";
 import { scoreState } from "./scoring.ts";
 import { techRaceState } from "./techRace.ts";
-import { seedRng, shuffle } from "./rng.ts";
+import { deckTopError, stackedDrawPile } from "./deckTop.ts";
+import { seedRng } from "./rng.ts";
 import { seedHash } from "./sha256.ts";
 import { newBudget } from "./stack.ts";
 import { startTurn } from "./turn.ts";
@@ -52,11 +53,12 @@ export function createGame(
   if (badDecks) return { ok: false, error: badDecks };
   const badCards = erasError(setup) ?? setupCardsError(ruleset, setup) ?? handSizeError(ruleset, setup);
   if (badCards) return { ok: false, error: badCards };
-  const badMap = mapError(setup) ?? abilityError(setup);
+  const badMap = mapError(setup) ?? abilityError(setup) ?? deckTopError(setup);
   if (badMap) return { ok: false, error: badMap };
   // The hands keep the setup's order; the turn 1 refill fills them from the draw pile. One generator shuffles the
   // draw pile, then LIO's Contingency deck, then SAE's; this order never changes, so a seed always gives the same game.
-  const drawPile = shuffle(seedRng(seed), setup.deck);
+  // A stacked deckTop sits above the shuffled rest (deckTop.ts).
+  const drawPile = stackedDrawPile(seedRng(seed), setup);
   const decks = shuffleContingency(drawPile.state, setup);
   const state: GameState = {
     public: {

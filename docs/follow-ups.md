@@ -105,5 +105,8 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - `checkOwnMoves` (`tests/fuzz/moveChecks.ts`) runs only in its own random games, so the `extraSteps` and
   `reactions` fuzz suites do not check it: call it from the game loop in `tests/fuzz/play.ts`. [26 Nov 2026, agy
   on #633]
+- agy's audit reads only the issue's body (`tools/github-rest.mjs:35` `issue()`), never its `Decision (architect)`
+  comments, so it flags a PR that follows a Decision as off-spec until the body is rewritten by hand: send the
+  owner's and the architect's Decision comments with the spec. [27 Nov 2026, agy on #654]
 
 ## Docs
