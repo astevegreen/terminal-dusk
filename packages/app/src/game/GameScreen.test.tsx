@@ -207,8 +207,10 @@ describe("the era line", () => {
   it("shows an era id it has no text for as it is", () => {
     expect(html(frameFor("lio"), { era: "late" })).toContain("<span>late</span>");
   });
-  it("says the era is not shown yet for null", () => {
-    expect(html(frameFor("lio"), { era: null })).toContain("Era not shown yet");
+  it("says the era is not shown yet for null when the frame has no era either", () => {
+    const noEra = withPublic(frameFor("lio"), {});
+    delete noEra.view.public.era;
+    expect(html(noEra, { era: null })).toContain("Era not shown yet");
   });
 });
 
