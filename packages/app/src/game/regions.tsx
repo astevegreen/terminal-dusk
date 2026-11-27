@@ -46,18 +46,37 @@ function statusText(frame: Frame): string {
   return frame.decision ? "Your decision" : "Waiting for the other side";
 }
 
-/** `era` is the latest `eraStarted` event's; before the first one, the era the frame shows is named (#669). */
+/**
+ * The era's words, in the status bar and in the Details panel: `era` is the latest `eraStarted` event's; before the
+ * first one, the era the frame shows is named (#669).
+ */
+const eraLine = (pub: PublicState, era: EraId | null): string => {
+  const shown = era ?? pub.era;
+  return shown === undefined ? "Era not shown yet" : eraText(shown);
+};
+
 export function StatusBar({ frame, era }: Readonly<{ frame: Frame; era: EraId | null }>) {
   const pub = frame.view.public;
-  const shown = era ?? pub.era;
   return (
     <Region id="status-bar" title="Status" className="game-status">
       <span>{viewerText(frame)}</span>
       <span>{`Turn ${pub.turn} of ${pub.turns}`}</span>
       <span>{playsText(pub)}</span>
-      <span>{shown === undefined ? "Era not shown yet" : eraText(shown)}</span>
+      <span>{eraLine(pub, era)}</span>
       {/* Only the state text is a polite live region, so its change is announced and the rest is not. */}
       <span role="status">{statusText(frame)}</span>
+    </Region>
+  );
+}
+
+/**
+ * The era in the Details panel's head (#674): on a phone the top bar squeezes the status bar's to no width (#490).
+ * In the head, so the panel is no taller and still fits a 390 px screen unscrolled.
+ */
+export function Era({ pub, era }: Readonly<{ pub: PublicState; era: EraId | null }>) {
+  return (
+    <Region id="era" title="Era" className="game-drawer-era">
+      <p>{eraLine(pub, era)}</p>
     </Region>
   );
 }

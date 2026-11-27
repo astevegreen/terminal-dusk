@@ -71,6 +71,14 @@
   flex: 1 1 auto;
   font-weight: bold;
 }
+/* The era in the Details panel's head (#674; regions.tsx). A long one wraps inside the head's height. */
+.game .game-drawer-era {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.game .game-drawer-era > p {
+  margin: 0;
+}
 /* A page's short line beside the panel's title, such as the AI's difficulty (#508). */
 .game .game-drawer-note {
   flex: 0 1 auto;

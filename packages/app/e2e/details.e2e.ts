@@ -7,7 +7,7 @@ import { expect, test } from "@playwright/test";
 import type { Locator, Page } from "@playwright/test";
 import { liftedCard, stripChips } from "./answer.ts";
 import { box, expectNoPageScroll, expectTapTargets, shoot } from "./measure.ts";
-import { sizesFor } from "./sizes.ts";
+import { isLarge, sizesFor } from "./sizes.ts";
 import { startSixRegionGame } from "./start.ts";
 
 const OLD_DETAILS_TAB = ["opponent", "table", "contingency"];
@@ -88,6 +88,34 @@ test("in a game with no map, the Details panel still shows everything in full", 
     await expectNoPageScroll(page);
     // The decision banner stays in sight below the panel.
     expect((await box(panelOf(page))).bottom).toBeLessThanOrEqual((await box(page.getByTestId("decision"))).top + 0.5);
+  }
+});
+
+// #674: at 844x390 the top bar squeezes the era to no width (#490), so the Details panel names it too, in the status
+// bar's own words. A wide screen's top bar shows it as before.
+test("on a phone, Details names the era in the status bar's words, inside the screen", async ({ page }, testInfo) => {
+  for (const size of sizesFor(page)) {
+    await page.setViewportSize(size);
+    await startSixRegionGame(page);
+    const inBar = page.getByTestId("status-bar").locator("span").nth(3);
+    await expect(inBar).toHaveText("The Thaw (Era 1, 1991–2001)");
+    if (isLarge(size)) await expect(inBar).toBeInViewport({ ratio: 1 });
+
+    await detailsButton(page).click();
+    const line = page.getByTestId("era").getByText((await inBar.textContent())!, { exact: true });
+    await expect(line).toBeInViewport({ ratio: 1 });
+    // In full: not cut short, and inside the panel's own box, which is no taller for it (expectAllShown).
+    const [scrollWidth, clientWidth] = await line.evaluate((el) => [el.scrollWidth, el.clientWidth] as const);
+    expect(scrollWidth, "the era is not cut short").toBeLessThanOrEqual(clientWidth);
+    const panel = await box(panelOf(page));
+    const shown = await box(line);
+    expect(shown.top).toBeGreaterThanOrEqual(panel.top - 0.5);
+    expect(shown.bottom).toBeLessThanOrEqual(panel.bottom + 0.5);
+    expect(shown.right).toBeLessThanOrEqual(panel.right + 0.5);
+    await expectAllShown(page);
+    await expectNoPageScroll(page);
+    await expectTapTargets(page);
+    await shoot(page, testInfo, "674", "details-era");
   }
 });
 

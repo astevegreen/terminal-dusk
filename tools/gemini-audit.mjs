@@ -121,9 +121,18 @@ export const report = (label, answer) =>
   ].join("\n");
 const skipped = (err) => `Gemini audit skipped: ${err.message}`;
 
+// One issue's spec as the audits read it: its body, then its Decision comments (github-rest.mjs, `issue`), under a
+// heading saying which wins, so a change that follows a Decision is not reported as off-spec.
 function issueText(n, ghRun = gh) {
   const i = issue((args) => ghRun(...args), n);
-  return `# #${i.number} ${i.title}\n\n${i.body}\n`;
+  const text = `# #${i.number} ${i.title}\n\n${i.body}\n`;
+  if (!i.decisions.length) return text;
+  return [
+    text,
+    `## Decisions on #${i.number}: they override the issue body above where they differ\n`,
+    "The owner's and the architect's Decision comments, oldest first; where two differ, the later one holds.\n",
+    `${i.decisions.join("\n\n---\n\n")}\n`,
+  ].join("\n");
 }
 
 // The open issue a collaborator opened under this title: anyone can open an issue of the same name.

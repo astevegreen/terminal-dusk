@@ -61,15 +61,15 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - A game with no map has no era in its frame (`packages/engine/src/createGame.ts:84-92` sets it only with a map), so
   against the AI the free game says "Era not shown yet" for its whole length, and the base game until Era 2 starts.
   The app already names the frame's era where there is one (#669); the engine side is lane C's. [27 Nov 2026, #669]
-- At 844x390 the top bar squeezes the era to no width (`packages/app/src/game/gameBars.css`, the plays and the era
-  "give way first", #490) and the Details panel does not show it, so on a phone the status never names the era in
-  play. [26 Nov 2026, screenshots for the era names]
 
 ## Tests and tooling
 
 - On a loaded PC a full `pnpm gate` fails on time-outs in tests the change does not touch: the 5 s limit in
   `packages/ai` (techRace, lookahead, medium's timing), the app's six-region map game and the easy AI fuzz, and the
   100 s engine fuzz (`tests/fuzz/engine.test.ts`). [27 Nov 2026, sound chain]
+- The browser test that plays the free game to its end (`packages/app/e2e/vsAi.e2e.ts:106`) has the 30 s default
+  limit: it takes 2 to 5 s on an idle PC and up to 27 s with the PC busy, and timed out once in a full run. Give it
+  a longer limit. [27 Nov 2026, #674]
 - Agents comment as astevegreen while greenbeanbot is suspended, so after the bot returns a `Blocked:` comment an
   agent posted as the owner can read as the owner's answer (`tools/sprint/rules.mjs:207` `ownerAnswer`): check blocked
   issues then, or mark agent comments so the queue stops relying on the author (7 Nov 2026, review of #540).
@@ -114,18 +114,21 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   before `move`'s REST writes; `statusFacts` (`:164`), `status --write` (`:320`) and `digest` (`:329`).
   `tools/github-rest.mjs` has the REST calls to start from. [27 Nov 2026, #665]
 - With no REST route, `gh pr ready`, `gh pr merge --auto` (`tools/sprint/moves.mjs:174`) and `gh issue pin`
-  (`tools/gemini-audit.mjs:143`) stay undone in a cloud session, which is told so; the CCR routes the 403 names could
+  (`tools/gemini-audit.mjs:152`) stay undone in a cloud session, which is told so; the CCR routes the 403 names could
   do them. [27 Nov 2026, #665]
 - `tools/sprint/queue.mjs` is past 350 lines (358). [27 Nov 2026, #665]
 - In a cloud session the Gemini API fallback (#529) reviews an ordinary `pr <n>`, but three audits still end in
-  verdict `retry` there: the rail audit (`tools/gemini-audit.mjs:206-210`), a diff too long to send whole
+  verdict `retry` there: the rail audit (`tools/gemini-audit.mjs:215-219`), a diff too long to send whole
   (`tools/gemini/gemini-api.mjs:60`), and spec and repo audits (`gemini-api.mjs:66`). Each is a choice the code comments explain;
   a PR touching a rail waits for a local run. [7 Nov 2026, reviewer on #538]
 - `checkOwnMoves` (`tests/fuzz/moveChecks.ts`) runs only in its own random games, so the `extraSteps` and
   `reactions` fuzz suites do not check it: call it from the game loop in `tests/fuzz/play.ts`. [26 Nov 2026, agy
   on #633]
-- agy's audit reads only the issue's body (`tools/github-rest.mjs:35` `issue()`), never its `Decision (architect)`
-  comments, so it flags a PR that follows a Decision as off-spec until the body is rewritten by hand: send the
-  owner's and the architect's Decision comments with the spec. [27 Nov 2026, agy on #654]
+- `tools/github-rest.mjs` (`isDecisionComment`, `issue`) and `tools/github-trust.mjs` now decide whose comments
+  override the spec agy reviews against, and neither is a rail (`tools/gemini/rails.mjs:11-21`), so loosening them
+  gets no rail audit: add both. [27 Nov 2026, #672]
+- agy's audit sends a linked issue's body as the spec whoever opened the issue (`tools/gemini-audit.mjs`
+  `prMaterial`), unlike the sprint queue, which takes only issues `trustedIssue` passes: say so in the material, or
+  leave a stranger's body out. [27 Nov 2026, #672]
 
 ## Docs

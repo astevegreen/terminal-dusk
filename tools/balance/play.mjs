@@ -5,6 +5,7 @@
 import { createEasyPlayer, createHardPlayer, createMediumPlayer } from "@terminal-dusk/ai";
 import { hostCreate, hostSubmit } from "@terminal-dusk/host";
 import { firstDeckConfig, firstDeckRuleset } from "@terminal-dusk/host/first-deck";
+import { ownBlunder } from "./blunder.mjs";
 import { mapSummary } from "./map-stats.mjs";
 import { regionLevels } from "./region-stats.mjs";
 import { scoreSummary } from "./score-stats.mjs";
@@ -28,7 +29,8 @@ export const matchSeed = (base, i) => `${base}-${i}`;
  * answer. `config` is the run's match config (see config.mjs); by default the first deck's base game as it is.
  * `createPlayer(ruleset, side, seed)` makes each side's player; by default the Easy AI. `tiers` (optional,
  * { lio, sae } of TIERS names) picks each side's tier instead; `createPlayer` wins over it. The summary's `crises`
- * counts the escalation crises each side caused, and `techRaces` the tech race attempts each side made.
+ * counts the escalation crises each side caused, `techRaces` the tech race attempts each side made, and `blunder`
+ * the side that lost to its own crisis (blunder.mjs), or null.
  */
 export function playBalanceGame(base, i, config = firstDeckConfig(), { createPlayer, tiers = {} } = {}) {
   const seed = matchSeed(base, i);
@@ -71,7 +73,18 @@ export function playBalanceGame(base, i, config = firstDeckConfig(), { createPla
   const crises = countBySide(publicEvents, "escalationCrisis");
   const techRaces = countBySide(publicEvents, "techRaceAttempted");
   const score = scoreSummary(scores.start, frames.spectator.view.public.score, record.status, scores.rows);
-  return { status: record.status, answers: submissions, log: secret.log, map, eraEnds, score, crises, techRaces };
+  const blunder = ownBlunder(record.status, publicEvents, frames.spectator.view.public.score ?? 0);
+  return {
+    status: record.status,
+    answers: submissions,
+    log: secret.log,
+    map,
+    eraEnds,
+    score,
+    crises,
+    techRaces,
+    blunder,
+  };
 }
 
 /** How many of `events` are of `kind`, by the side each names. */
