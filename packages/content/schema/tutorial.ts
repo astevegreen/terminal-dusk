@@ -4,7 +4,10 @@
 // cards drawn (`deckTop`, the engine's Setup.deckTop) and chapters of steps. The runner (host, #639) reads it.
 // tutorial.types.test.ts checks the kind lists below against the engine's unions.
 import * as z from "zod";
-import { ERA_1_CARDS } from "../src/era1Files.ts";
+import { condition, era1Card, lineText, side } from "./tutorialLines.ts";
+
+// Slots, conditions and the line check live in tutorialLines.ts; SAY_MAX is re-exported from here, as before.
+export { SAY_MAX } from "./tutorialLines.ts";
 
 /** Every Decision kind the engine has (the engine's DecisionKind). */
 export const DECISION_KINDS = [
@@ -68,25 +71,25 @@ export const ANSWER_KINDS = [
 export const PLAY_USES = ["event", "points"] as const;
 export const POINTS_ACTIONS = ["place", "intervene", "realign", "techRace", "pass"] as const;
 
-/** The longest coaching text a step may say, in characters: a few short sentences for the coaching panel. */
-export const SAY_MAX = 700;
 /** The last turn a step may name: chapters fall inside Era 1, which is turns 1 to 3 (docs/design/tutorial.md). */
 export const LAST_TUTORIAL_TURN = 3;
 
-const ERA_1_IDS: ReadonlySet<string> = new Set(ERA_1_CARDS.map((card) => card.id));
 const name = z.string().min(1);
-const era1Card = name.refine((id) => ERA_1_IDS.has(id), { message: "Only Era 1 cards can be named in a lesson." });
-const side = z.enum(["lio", "sae"]);
 const turn = z.int().min(1).max(LAST_TUTORIAL_TURN);
 
 /**
  * When a step starts or ends: the lesson's start, a Decision of that kind (for that side, on that turn), or an
  * event of that kind (by that side, on that turn).
  */
+const eventTrigger = z.strictObject({
+  event: z.enum(EVENT_KINDS),
+  side: side.exactOptional(),
+  turn: turn.exactOptional(),
+});
 const trigger = z.union([
   z.strictObject({ start: z.literal(true) }),
   z.strictObject({ decision: z.enum(DECISION_KINDS), side: side.exactOptional(), turn: turn.exactOptional() }),
-  z.strictObject({ event: z.enum(EVENT_KINDS), side: side.exactOptional(), turn: turn.exactOptional() }),
+  eventTrigger,
 ]);
 
 /**
@@ -102,24 +105,48 @@ const matcher = z.strictObject({
 });
 
 /**
+ * Another full text for a step, used when every condition in `if` holds in the live game. A coach step's variant may
+ * carry its own `allow`, used instead of the step's; a hint's may not.
+ */
+const variant = z.strictObject({
+  if: z.array(condition).min(1),
+  say: lineText,
+  allow: z.array(matcher).min(1).exactOptional(),
+});
+
+/**
  * One coaching step. `style` "coach" (the default) may limit the answers with `allow`; a "hint" never does.
- * `until` is the trigger that moves on to the next step.
+ * `until` is the trigger that moves on to the next step. The host shows the first variant whose conditions all hold,
+ * else the step's own `say` and `allow`.
  */
 const step = z
   .strictObject({
     when: trigger,
-    say: z.string().min(1).max(SAY_MAX),
+    say: lineText,
     style: z.enum(["coach", "hint"]).default("coach"),
     allow: z.array(matcher).min(1).exactOptional(),
+    variants: z.array(variant).min(1).exactOptional(),
     until: trigger.exactOptional(),
   })
   .superRefine((s, ctx) => {
-    if (s.style === "hint" && s.allow !== undefined) {
+    if (s.style !== "hint") return;
+    if (s.allow !== undefined) {
       ctx.addIssue({ code: "custom", path: ["allow"], message: "A hint step never limits answers: remove allow." });
     }
+    s.variants?.forEach((v, i) => {
+      if (v.allow === undefined) return;
+      const message = "A hint step's variant never limits answers: remove allow.";
+      ctx.addIssue({ code: "custom", path: ["variants", i, "allow"], message });
+    });
   });
 
 const chapter = z.strictObject({ id: name, title: name, steps: z.array(step).min(1) });
+
+/**
+ * A hint outside the chapter order: it shows when an event `when` matches arrives, only before chapter `before`
+ * starts, and never limits answers (docs/design/tutorial.md, "If an ability fires before chapter 7").
+ */
+const aside = z.strictObject({ when: eventTrigger, before: name, say: lineText });
 
 /** One lesson: its first cards drawn, in order, then its chapters, which run in order. */
 export const lessonSchema = z
@@ -129,6 +156,7 @@ export const lessonSchema = z
     placeholder: z.boolean(),
     deckTop: z.array(era1Card),
     chapters: z.array(chapter).min(1),
+    asides: z.array(aside).min(1).exactOptional(),
   })
   .superRefine((lesson, ctx) => {
     const seen = new Set<string>();
@@ -136,6 +164,18 @@ export const lessonSchema = z
       if (seen.has(card))
         ctx.addIssue({ code: "custom", path: ["deckTop", i], message: `Card ${card} is listed twice.` });
       seen.add(card);
+    });
+    // Chapter ids are unique, so an aside's `before` names one chapter.
+    const chapters = new Set<string>();
+    lesson.chapters.forEach((c, i) => {
+      if (chapters.has(c.id))
+        ctx.addIssue({ code: "custom", path: ["chapters", i, "id"], message: `Chapter ${c.id} is listed twice.` });
+      chapters.add(c.id);
+    });
+    lesson.asides?.forEach((a, i) => {
+      if (chapters.has(a.before)) return;
+      const message = `An aside shows before chapter ${a.before}, which the lesson does not have.`;
+      ctx.addIssue({ code: "custom", path: ["asides", i, "before"], message });
     });
   });
 
