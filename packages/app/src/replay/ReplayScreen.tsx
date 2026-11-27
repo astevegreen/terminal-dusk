@@ -143,6 +143,8 @@ export function ReplayView({
         onAnswer={undefined}
         refusal={null}
         bar={bar}
+        // Only Next sounds a step: First, Last and Back are silent.
+        soundPace="step"
         {...(recording.aiTier === undefined ? {} : { detailsNote: difficultyText(recording.aiTier) })}
         extraDetails={
           <>

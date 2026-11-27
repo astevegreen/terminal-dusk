@@ -342,6 +342,7 @@ interface Platform {
   haptics?: { tap(kind: HapticKind): void };
   share(link: ShareLink): Promise<void>;
   storage: KeyValueStore;                      // local saves, settings, guest profile
+  audio: AudioPlayer;                          // the manifest's sounds; unlocked on the first tap or key
   steam?: { unlockAchievement(id: string): void; overlayAvailable(): boolean };
 }
 ```
