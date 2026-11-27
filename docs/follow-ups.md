@@ -47,9 +47,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - The client has no entitlements yet: #647 adds `ownsFullGame` for the tutorial only. When web checkout lands
   (phase 6), wire real client entitlements in and put the same Era 1 stop in front of the other games against the
   AI. [27 Nov 2026, architect on the tutorial chain]
-- Nothing tests what follows the tutorial game's end: Watch replay, and New game starting the lesson again at
-  chapter 1 (`packages/app/src/tutorial/TutorialScreen.tsx`), nor the full edition's end view. #647 tests only the
-  free edition's end view and offer. [27 Nov 2026, reviewer on PR #662]
 - The tutorial's coach box (`packages/app/src/tutorial/tutorial.css`, top 154px since #666, under the map's tools)
   has little height for the real lesson: a line of about 290 characters ends 30px into the decision banner at 667x375
   and 1px above it at 844x390. Fit the box when those words land. [27 Nov 2026, #666 layout probe]
