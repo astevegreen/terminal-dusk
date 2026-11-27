@@ -226,7 +226,7 @@ Cards, the map, scenarios, the tutorial and mods are JSON data checked by one se
 
 - **Map**: the topology (countries, regions, adjacency, stability, battlegrounds) is rules data. The SVG artwork is separate presentation data, keyed by country ID.
 - **Scenarios**: map, starting setup, deck by era, number of turns and action rounds, when eras enter, and victory conditions picked from a fixed menu. Mod "game modes" are scenarios; new turn structures wait until after v1.
-- **Tutorial**: a scenario with a stacked deck, plus a script that limits which answers are allowed and shows coaching text when events fire. It runs on the normal engine through the Local transport.
+- **Tutorial**: a scenario with a stacked top of the draw pile, plus a script that limits which answers are allowed and shows coaching text when events fire. It runs on the normal engine through the Local transport.
 - **Per-card presentation**: name, rules text, a required historical note, art reference, and optional per-platform **variants** for wording or art. The historical notes support Google Play's exception for educational content; variants let one card be softened for one store. Variants never change rules, or cross-play would break.
 - All player-facing text lives in data, even though launch is English-only.
 - **Era names**: each era's number, name and years are display data in `packages/content/eras/`. Rules state holds only the era id.
