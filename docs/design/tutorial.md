@@ -69,6 +69,22 @@ The top 16 cards of the Era 1 draw pile are fixed, in this order; the other 13 E
 
 The coaching shows the quoted lines in this order.
 
+**Numbers and places come from the live game** (owner, 27 Nov 2026, in chat: "Yes", to filling them in from the
+game as it is played). SAE's play is not scripted, so the game can differ from the lines as written: Handover of
+Hong Kong's points can clear Taiwan, and cards such as Rwandan Genocide make spends smaller for a turn. So every
+number of points and every place a line quotes is filled in from the game at the moment the line shows. Chapter
+1's "(Taiwan)" names the countries where LIO then has influence. If there are none, the line drops its
+own-influence part and reads "You can place next to the United States (Mexico, Cuba, Canada)." (owner, 27 Nov
+2026, in chat: "1", to dropping that part). The
+points use what the play really has: for example chapter 2's "4 to spend", chapter 3's arithmetic, chapter 4's "4
+points" and the result it gives, chapter 5's "2 points" and chapter 6's "All 3 points". The rest of each line stays
+as written.
+
+If SAE has played Rwandan Genocide this turn, it is one more term in chapter 3's arithmetic: "Before: 1, plus 1
+from Maastricht, minus 1, minus 1 from Rwandan Genocide, and never below 1, gives 1 point."
+When before and after give the same points, "After: you spend 2," becomes "After: you also spend 1, so here the order doesn't change your points," and the line goes on "and the penalty only reaches
+..." as written (owner, 27 Nov 2026, in chat: "I approve your recommendation").
+
 **1. Opening cards and events** (turn 1 opening; play Maastricht Treaty)
 
 - "Each turn starts with an opening card. You and SAE each pick one in secret, then both are shown together. An
