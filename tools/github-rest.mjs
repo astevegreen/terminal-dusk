@@ -65,7 +65,10 @@ export function comment(gh, n, file) {
 
 // The writes below pass each value with -f, which keeps it as text: -F would read a value starting with @ as a file.
 const write = (method, path, fields = []) => [
-  ...["api", "--method", method, `repos/{owner}/{repo}/${path}`],
+  "api",
+  "--method",
+  method,
+  `repos/{owner}/{repo}/${path}`,
   ...fields.flatMap((f) => ["-f", f]),
 ];
 

@@ -133,18 +133,18 @@ export function pinnedIssueOf(issues, title, team) {
 
 // That issue's number, opened and pinned when there is none. Every open issue is read, so strangers' issues of the
 // same title can't push the collaborator's off a page.
-export function pinnedIssue(title, io = { gh, dry: DRY, log: console.error }) {
-  const rest = (args) => io.gh(...args);
+export function pinnedIssue(title, { gh: run = gh, dry = DRY, log = console.error } = {}) {
+  const rest = (args) => run(...args);
   const found = pinnedIssueOf(openIssues(rest), title, collaborators(rest));
   if (found) return found;
-  if (io.dry) return 0;
+  if (dry) return 0;
   const n = createIssue(rest, title, "One comment per run from tools/gemini-audit.mjs.");
   try {
-    io.gh("issue", "pin", String(n));
+    run("issue", "pin", String(n));
   } catch (err) {
     // Pinning has no REST route, so a cloud session can't: the audit goes on with the issue unpinned.
     if (!is403(err)) throw err;
-    io.log(`#${n} is not pinned: ${err.message}`);
+    log(`#${n} is not pinned: ${err.message}`);
   }
   return n;
 }
@@ -231,16 +231,16 @@ export function duePrs(open) {
 }
 
 // Every due pull request, one JSON line each. A fork's comments are not even read.
-export function auditDuePrs(io = { gh, audit: auditPr, post, log: console.log }) {
-  const rest = (args) => io.gh(...args);
+export function auditDuePrs({ gh: run = gh, audit = auditPr, post: send = post, log = console.log } = {}) {
+  const rest = (args) => run(...args);
   const open = openPullRequests(rest)
     .filter((p) => !fromFork(p))
     .map((p) => ({ ...p, comments: comments(rest, p.number) }));
   for (const pr of duePrs(open)) {
     try {
-      io.log(JSON.stringify(io.audit(pr.number)));
+      log(JSON.stringify(audit(pr.number)));
     } catch (err) {
-      io.post("pr", pr.number, skipped(err));
+      send("pr", pr.number, skipped(err));
     }
   }
 }

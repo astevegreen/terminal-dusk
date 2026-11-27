@@ -43,8 +43,8 @@ function issueMove(S, issue, state, { note }) {
     if (has(issue, "in-progress"))
       return refuse(`#${n} is already in progress`, `Take the next job: ${NEXT}; it says whether this one is stale.`);
     const drop = ["blocked", ...(has(issue, readyLabel) ? [readyLabel] : [])];
-    steps.push(...relabel(n, ["in-progress"], drop));
     steps.push(
+      ...relabel(n, ["in-progress"], drop),
       commentArgs(n, `Unblocked by the owner's answer; the ${lane ? "sprint" : "night shift"} builds it again.`),
     );
   } else if (state === "building") {
@@ -175,6 +175,14 @@ const needsGraphql = (step) => step[0] === "pr" && ["ready", "merge"].includes(s
 // A label that is already off: `gh issue edit` passed over it, and the REST call says 404.
 const alreadyOff = (step, err) => step.includes("DELETE") && /Label does not exist/.test(err.message);
 
+// Why a failed step was not done: null for a label already off, else GitHub's refusal of a GraphQL step. Any other
+// failure is thrown on.
+function refusalOf(step, err) {
+  if (alreadyOff(step, err)) return null;
+  if (!needsGraphql(step) || !is403(err)) throw err;
+  return `GitHub refused \`gh ${step.join(" ")}\`: ${err.message}`;
+}
+
 // Runs a plan's steps. gh is (args) => stdout and throws on a failure, which is passed on, except:
 // - removing a label that is already off;
 // - GitHub refusing (403) to mark the pull request ready or a draft, or to turn on auto-merge. A hold stands without
@@ -190,16 +198,13 @@ export function runMove(n, state, steps, gh) {
     try {
       gh(step);
     } catch (err) {
-      if (alreadyOff(step, err)) {
-        ran.push(["gh", ...step]);
+      const refusal = refusalOf(step, err);
+      if (refusal) {
+        if (step[1] === "merge") unmerged = `#${n} is not set to auto-merge: ${refusal}`;
+        else if (state === "held") notDone.push(`#${n} is still a draft: ${refusal}`);
+        else return { ran, ...refuse(`#${n} was not moved to ${state}: ${refusal}`, todo) };
         continue;
       }
-      if (!needsGraphql(step) || !is403(err)) throw err;
-      const refusal = `GitHub refused \`gh ${step.join(" ")}\`: ${err.message}`;
-      if (step[1] === "merge") unmerged = `#${n} is not set to auto-merge: ${refusal}`;
-      else if (state === "held") notDone.push(`#${n} is still a draft: ${refusal}`);
-      else return { ran, ...refuse(`#${n} was not moved to ${state}: ${refusal}`, todo) };
-      continue;
     }
     ran.push(["gh", ...step]);
   }
