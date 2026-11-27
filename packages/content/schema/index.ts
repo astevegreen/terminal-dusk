@@ -6,6 +6,7 @@ import { cardSchema } from "./card.ts";
 import { erasSchema } from "./eras.ts";
 import { scenarioSchema } from "./scenario.ts";
 import { soundManifestSchema } from "./soundManifest.ts";
+import { lessonSchema } from "./tutorial.ts";
 
 export { soundManifestSchema, type SoundManifest } from "./soundManifest.ts";
 
@@ -22,4 +23,5 @@ export const schemas: Readonly<Record<string, ContentSchema>> = {
   eras: erasSchema,
   scenarios: scenarioSchema,
   soundManifest: soundManifestSchema,
+  tutorial: lessonSchema,
 };
