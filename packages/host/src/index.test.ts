@@ -3,7 +3,7 @@ import * as entry from "./index.ts";
 import { byCodeUnit } from "./test/order.ts";
 
 describe("@terminal-dusk/host entry point", () => {
-  it("exports the five host calls, the online-create rule (createOnlineRefusal, isEntitlement, isPlatform, PLATFORMS), and nothing else at run time (everything else it exports is a type)", () => {
+  it("exports the five host calls, the online-create rule (createOnlineRefusal, isEntitlement, isPlatform, PLATFORMS), the tutorial runner (startTutorial, stepTutorial), and nothing else at run time (everything else it exports is a type)", () => {
     expect(Object.keys(entry).sort(byCodeUnit)).toEqual([
       "PLATFORMS",
       "createOnlineRefusal",
@@ -14,6 +14,8 @@ describe("@terminal-dusk/host entry point", () => {
       "hostTimeout",
       "isEntitlement",
       "isPlatform",
+      "startTutorial",
+      "stepTutorial",
     ]);
   });
 });
