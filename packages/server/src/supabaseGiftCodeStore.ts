@@ -1,5 +1,5 @@
 // The Supabase side of the gift code port: one call to the redeem_gift_code SQL function, which claims the code
-// and grants its entitlement in one transaction (supabase/migrations/20261127000000_gift_code.sql). The client must
+// and grants its entitlement in one transaction (supabase/migrations/20261031000000_gift_code.sql). The client must
 // be made with the service role key: no client role may run the function or read the tables.
 // No error it throws carries a hash, a player id or a key, so it can be logged.
 import type { SupabaseClient } from "@supabase/supabase-js";

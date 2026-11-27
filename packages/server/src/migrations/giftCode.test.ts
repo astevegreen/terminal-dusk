@@ -1,4 +1,4 @@
-// The gift code migration (supabase/migrations/20261127000000_gift_code.sql) on the local Supabase stack.
+// The gift code migration (supabase/migrations/20261031000000_gift_code.sql) on the local Supabase stack.
 // `pnpm test:migrations` applies every migration to an empty database first. These checks prove the tables'
 // columns and checks, that no client may read or write either table or run redeem_gift_code, and what the
 // function does: one grant per code, even to racing callers; the wrong-guess limit; and a code left unused when its
