@@ -17,7 +17,7 @@ import type { MapLayout } from "./map/layout.ts";
 import { layoutFor } from "./map/layoutFor.ts";
 import { controlMap } from "./map/mapControl.ts";
 import type { MapControl } from "./map/mapControl.ts";
-import type { MapPicks } from "./map/mapPicks.ts";
+import { tappable, type MapPicks } from "./map/mapPicks.ts";
 import { MapPanel } from "./map/MapPanel.tsx";
 import type { MapMode } from "./map/MapPanel.tsx";
 import type { PickHandlers } from "./map/Marker.tsx";
@@ -79,8 +79,8 @@ function ZoomableMapInner({
     () => ({
       pick: (country, keyboard) => {
         const now = latest.current;
-        const choice = now.byCountry.get(country);
-        if (choice === undefined || choice.disabled === true || now.onAnswer === undefined) return;
+        const choice = tappable(now.byCountry, country);
+        if (choice === undefined || now.onAnswer === undefined) return;
         const ctl = control.current;
         const big = ctl === null || ctl.scale() >= PICK_SCALE - PICK_SLACK;
         const place = placeOf(now.layout, now.pub, country);

@@ -19,6 +19,11 @@ export type MapPicks = {
  */
 export function pickState(picks: MapPicks | undefined, country: CountryId): PickState {
   if (picks === undefined || picks.choices.size === 0) return null;
-  const choice = picks.choices.get(country);
-  return choice !== undefined && choice.disabled !== true ? "glow" : "dim";
+  return tappable(picks.choices, country) === undefined ? "dim" : "glow";
+}
+
+/** The choice a tap on `country` answers: none when the decision does not list it or its choice is disabled. */
+export function tappable(choices: ReadonlyMap<CountryId, Choice>, country: CountryId): Choice | undefined {
+  const choice = choices.get(country);
+  return choice?.disabled === true ? undefined : choice;
 }

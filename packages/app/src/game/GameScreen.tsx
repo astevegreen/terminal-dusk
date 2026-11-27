@@ -76,7 +76,7 @@ const NO_CHOICES: readonly Choice[] = [];
 
 /** The choices, with each one `allows` refuses marked disabled; the same list when there is no `allows`. */
 function withAllows(choices: readonly Choice[], allows: GameScreenProps["allows"]): readonly Choice[] {
-  if (allows === undefined) return choices;
+  if (allows === undefined || choices.length === 0) return choices;
   return choices.map((c): Choice => (allows(c.value) ? c : { ...c, disabled: true }));
 }
 

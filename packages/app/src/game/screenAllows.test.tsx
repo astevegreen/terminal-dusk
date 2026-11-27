@@ -9,7 +9,7 @@ import { cardAffiliation, cardName, cardQuestion } from "../testMode/fixture.ts"
 import { GameScreen } from "./GameScreen.tsx";
 import type { GameScreenProps } from "./GameScreen.tsx";
 import { MapView } from "./MapView.tsx";
-import { pickState, type MapPicks } from "./map/mapPicks.ts";
+import { pickState, tappable, type MapPicks } from "./map/mapPicks.ts";
 import { baseFrame, map, withMap } from "./test/mapFixture.ts";
 
 const asking = (decision: Decision): Frame => ({ ...withMap(baseFrame()), decision });
@@ -69,15 +69,18 @@ describe("a disabled country choice on the map (#641)", () => {
   const choices = countryChoices(placing, countryNames(map)).map((c) =>
     c.country === "e1" ? { ...c, disabled: true as const } : c,
   );
-  const answered: AnswerValue[] = [];
   const picks: MapPicks = {
     choices: picksByCountry(choices),
     on: { pick: () => {}, reveal: () => {} },
-    answer: (choice) => answered.push(choice.value),
+    answer: () => {},
   };
   it("dims, like a country the decision does not list", () => {
     expect(pickState(picks, "e1")).toBe("dim");
     expect(pickState(picks, "w2")).toBe("glow");
+  });
+  it("answers nothing when tapped, while an allowed country's tap answers its choice", () => {
+    expect(tappable(picks.choices, "e1")).toBeUndefined();
+    expect(tappable(picks.choices, "w2")?.country).toBe("w2");
   });
   it("has a disabled button in the List view", () => {
     const pub = withMap(baseFrame()).view.public;

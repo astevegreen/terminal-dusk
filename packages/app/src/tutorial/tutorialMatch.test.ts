@@ -71,6 +71,26 @@ describe("the tutorial match (#641)", () => {
     expect(match.legalAnswers("lio")).toContainEqual(other);
   });
 
+  it("does not strand the learner when the step names a card LIO does not hold: every answer goes through", async () => {
+    const hand = await firstHand();
+    const notHeld = placeholder.deckTop.find((card) => !hand.includes(card));
+    expect(notHeld, "a stacked card LIO does not hold").toBeDefined();
+    const match = make(onlyCard(notHeld!));
+    const frames = watch(match);
+    await untilLioPlays(match, frames);
+    const before = frames.lio();
+    const legal = match.legalAnswers("lio");
+    expect(
+      legal.every((a) => match.coaching().allows(a)),
+      "every legal answer is allowed",
+    ).toBe(true);
+    const sent = await match
+      .transportFor("lio")
+      .submit({ decisionId: before.decision!.id, expectedSeq: before.seq, value: legal[0]! });
+    expect(sent.ok).toBe(true);
+    expect(frames.lio().seq).toBeGreaterThan(before.seq);
+  });
+
   it("lets an answer the coach step allows go through to the host", async () => {
     const [allowedCard] = await firstHand();
     const match = make(onlyCard(allowedCard!));

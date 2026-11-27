@@ -1,10 +1,16 @@
 // The tutorial match (#641): a local match on the first deck, set up by the lesson, with the tutorial runner
 // following the learner's (LIO's) frames. A coach step's limits are kept here: an answer the step does not allow is
 // refused before it reaches the host, so the game does not change. Everything else passes straight through.
-import type { Lesson } from "@terminal-dusk/host";
 import type { AnswerValue, Seed, Viewer } from "@terminal-dusk/engine";
-import { neverStuck, startTutorial, stepTutorial, tutorialConfig } from "@terminal-dusk/host";
-import type { HostError, TutorialEdition } from "@terminal-dusk/host";
+import {
+  neverStuck,
+  startTutorial,
+  stepTutorial,
+  tutorialConfig,
+  type HostError,
+  type Lesson,
+  type TutorialEdition,
+} from "@terminal-dusk/host";
 import { firstDeckRuleset } from "@terminal-dusk/host/first-deck";
 import { createLocalMatch, type ArchiveWith, type LocalMatch } from "../transport/localMatch.ts";
 import type { MatchTransport, SubmitResult } from "../transport/matchTransport.ts";
