@@ -52,6 +52,27 @@ await onLocalStack("the Paddle webhook on the local Supabase stack", (keys) => {
   );
 
   it(
+    "a chargeback removes the web row, and its reversal gives it back once",
+    async () => {
+      const id = receipts.fresh();
+      const buy = await signed(paid({ id, customData: { player_id: stack.owner.id } }));
+      const dispute = (action: string, createdAt: string) => signed(refund({ transactionId: id, action, createdAt }));
+      const chargeback = await dispute("chargeback", "2026-11-28T10:00:00.000000Z");
+      const reversal = await dispute("chargeback_reverse", "2026-11-29T10:00:00.000000Z");
+      await send(buy);
+      expect(await send(chargeback)).toEqual([200, "revoked"]);
+      expect(await send(buy)).toEqual([200, "chargedBack"]);
+      expect(await rows(id)).toEqual([]);
+
+      expect(await send(reversal)).toEqual([200, "restored"]);
+      expect(await send(reversal)).toEqual([200, "remembered"]);
+      expect(await send(chargeback)).toEqual([200, "remembered"]);
+      expect(await rows(id)).toEqual([{ player: stack.owner.id, ...COPY }]);
+    },
+    TIMEOUT,
+  );
+
+  it(
     "a player id no account has is recorded and gets no row",
     async () => {
       const id = receipts.fresh();

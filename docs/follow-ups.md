@@ -65,6 +65,12 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   buyer who paid with no known player id gets no copy until a person looks. Before web sales open, add a service-role
   tool that lists those receipts and grants one to a named player (`grantReceipt`), or an alert when a row appears.
   [27 Nov 2026, #683]
+- Account deletion isn't built (`docs/architecture.md`, "Accounts and purchases"). When it is, it deletes the
+  player's `entitlement` rows and nulls `entitlement_chargeback.player` and `platform`
+  (`packages/server/supabase/migrations/20261101000000_paddle_chargebacks.sql`) so a later chargeback reversal
+  cannot give a deleted account a copy. It also clears a used gift code's `gift_code.redeemed_by` without making
+  the code usable again: the table's check ties it to `redeemed_at`, so that check changes in a new migration (#710).
+  [27 Nov 2026, #683, architect]
 
 ## Tests and tooling
 

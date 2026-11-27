@@ -1,18 +1,18 @@
-// Receipt references for the stack tests (#683), and the clean-up of every row they leave in the three tables a
+// Receipt references for the stack tests (#683), and the clean-up of every row they leave in the four tables a
 // receipt can touch. Call `receiptRows` inside `onLocalStack`, so its `afterAll` is registered with the tests.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { afterAll } from "vitest";
 import type { UnmatchedReason } from "../entitlementReceipts.ts";
 import { freshId } from "../migrations/localStack.ts";
 
-const TABLES = ["entitlement", "entitlement_refund", "checkout_unmatched"] as const;
+const TABLES = ["entitlement", "entitlement_refund", "entitlement_chargeback", "checkout_unmatched"] as const;
 
 export function receiptRows(service: () => SupabaseClient) {
   const used: string[] = [];
 
   afterAll(async () => {
     if (used.length === 0) return;
-    for (const table of TABLES) await service().from(table).delete().in("receipt_ref", used);
+    await Promise.all(TABLES.map((table) => service().from(table).delete().in("receipt_ref", used)));
   }, 60_000);
 
   return {

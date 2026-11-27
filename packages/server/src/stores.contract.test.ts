@@ -7,6 +7,7 @@ import { MemoryInviteStore } from "./inviteStore.ts";
 import { MemoryNotifyStore } from "./notifyStore.ts";
 import { MemoryStore } from "./store.ts";
 import { deadlineStoreContract } from "./test/contracts/deadlineStore.ts";
+import { entitlementChargebacksContract } from "./test/contracts/entitlementChargebacks.ts";
 import { entitlementReceiptsContract } from "./test/contracts/entitlementReceipts.ts";
 import { inviteStoreContract } from "./test/contracts/inviteStore.ts";
 import { matchStoreContract } from "./test/contracts/matchStore.ts";
@@ -66,14 +67,17 @@ describe("MemoryStore keeps the DeadlineStore contract", () => {
   });
 });
 
+const memoryReceipts = () => {
+  const store = new MemoryEntitlementStore();
+  return {
+    store,
+    player: () => `player-${(ids += 1)}`,
+    receipt: () => `receipt-${(ids += 1)}`,
+    unmatched: (source: string, receiptRef: string) => Promise.resolve(store.unmatchedFor(source, receiptRef)),
+  };
+};
+
 describe("MemoryEntitlementStore keeps the EntitlementReceipts contract", () => {
-  entitlementReceiptsContract(() => {
-    const store = new MemoryEntitlementStore();
-    return {
-      store,
-      player: () => `player-${(ids += 1)}`,
-      receipt: () => `receipt-${(ids += 1)}`,
-      unmatched: (source, receiptRef) => Promise.resolve(store.unmatchedFor(source, receiptRef)),
-    };
-  });
+  entitlementReceiptsContract(memoryReceipts);
+  entitlementChargebacksContract(memoryReceipts);
 });

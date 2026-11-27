@@ -1,9 +1,10 @@
 // Paddle's checkout webhook (docs/architecture.md, Decision 5, "Accounts and purchases"): Paddle, the merchant of
-// record for web purchases, calls the paddle-webhook Edge Function when an order is paid or refunded. A signed
-// "paid" message for the full game gives the buyer one `web` entitlement under the transaction's id; an approved
-// full refund removes it. The buyer is the `player_id` the app puts in the order's custom data, and an order with
-// no known player is recorded for a person to settle, never guessed. Plain data in and out, so it runs under
-// vitest. Replies and log lines never carry the secret, the signature, a player id or the message.
+// record for web purchases, calls the paddle-webhook Edge Function when an order is paid, refunded or charged back.
+// A signed "paid" message for the full game gives the buyer one `web` entitlement under the transaction's id; an
+// approved full refund removes it for good, and an approved full chargeback removes it until that chargeback is
+// reversed (Paddle sends no reversal of a refund). The buyer is the `player_id` the app puts in the order's custom
+// data, and an order with no known player is recorded for a person to settle, never guessed. Plain data in and out,
+// so it runs under vitest. Replies and log lines never carry the secret, the signature, a player id or the message.
 //
 // Paddle delivers at least once and in no set order, and retries anything but a 200: so a 200 means "dealt with",
 // and a 500 means "send it again".
@@ -26,6 +27,8 @@ export type PaddleWebhookDeps = {
 };
 
 const SOURCE = "paddle";
+/** A date and time with its zone, as Paddle writes them: `2026-11-27T10:00:00.000000Z`. */
+const ISO_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/;
 const COPY = { platform: "web", source: SOURCE } as const;
 /** Both say the money arrived; either may come alone, or first. */
 const PAID_EVENTS = new Set(["transaction.paid", "transaction.completed"]);
@@ -76,17 +79,50 @@ async function paidOrder(deps: PaddleWebhookDeps, data: Data): Promise<HttpReply
   return done(outcome);
 }
 
-/** Only an approved refund of everything bought takes the game away; every other adjustment changes nothing. */
+/**
+ * What an adjustment does to its transaction's copy; `undefined` for one that changes nothing. Only an approved one
+ * counts, and a refund or chargeback only when it covers everything bought.
+ */
+function changeOf(data: Data): "refund" | "chargeback" | "chargeback reversal" | undefined {
+  const { action, status } = data;
+  if (status !== "approved") return undefined;
+  if (action === "chargeback_reverse") return "chargeback reversal";
+  if (action !== "refund" && action !== "chargeback") return undefined;
+  return isFullRefund(data) ? action : undefined;
+}
+
 async function adjustment(deps: PaddleWebhookDeps, data: Data): Promise<HttpReply> {
-  if (data.action !== "refund" || data.status !== "approved" || !isFullRefund(data)) return done("ignored");
+  const change = changeOf(data);
+  if (change === undefined) return done("ignored");
   const transaction = text(data.transaction_id);
   if (transaction === undefined) return malformed(deps);
-  const outcome = await deps.receipts.revokeReceipt(SOURCE, transaction);
-  deps.log(`paddle-webhook: refund of ${transaction} ${outcome}`);
+  let outcome: string;
+  if (change === "refund") {
+    outcome = await deps.receipts.revokeReceipt(SOURCE, transaction);
+  } else {
+    // A chargeback and its reversal are ordered by when Paddle made each, not by when the message was sent.
+    const at = millisOf(data.created_at);
+    if (at === undefined) return malformed(deps);
+    outcome =
+      change === "chargeback"
+        ? await deps.receipts.chargeBackReceipt(SOURCE, transaction, at)
+        : await deps.receipts.reverseChargeback(SOURCE, transaction, at);
+  }
+  deps.log(`paddle-webhook: ${change} of ${transaction} ${outcome}`);
   return done(outcome);
 }
 
-/** Paddle calls a refund `partial` when it lists items, even when every one of them is refunded in full. */
+/** A Paddle time in whole milliseconds since 1970; `undefined` when it can't be read or isn't after 1970. */
+function millisOf(time: unknown): number | undefined {
+  if (typeof time !== "string" || !ISO_TIME.test(time)) return undefined;
+  const at = Date.parse(time);
+  return at > 0 ? at : undefined;
+}
+
+/**
+ * Whether the adjustment covers everything bought. Paddle calls a refund `partial` when it lists items, even when
+ * every one of them is refunded in full.
+ */
 function isFullRefund({ type, items }: Data): boolean {
   if (type === "full") return true;
   return Array.isArray(items) && items.length > 0 && items.every((i) => isPlainObject(i) && i.type === "full");
