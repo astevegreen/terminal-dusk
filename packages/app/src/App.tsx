@@ -13,6 +13,8 @@ import { realTimers } from "./online/timers.ts";
 import type { Timers } from "./online/timers.ts";
 import type { KeyValueStore } from "./platform/storage.ts";
 import { TestModeScreen } from "./testMode/TestModeScreen.tsx";
+import { tutorialEdition } from "./tutorial/edition.ts";
+import type { OwnedEntitlements } from "./tutorial/edition.ts";
 import { TutorialScreen } from "./tutorial/TutorialScreen.tsx";
 import { VsAiScreen } from "./vsAi/VsAiScreen.tsx";
 import type { VsAiGame } from "./vsAi/VsAiScreen.tsx";
@@ -35,6 +37,9 @@ export type AppProps = {
   store?: KeyValueStore;
   /** Supabase Auth and the session store; left out when this build has no online play set up. */
   online?: OnlineSetup;
+  /** The player's owned copies of the Full Game and the platform they are checked against; left out, the player is
+   *  free (#647). main.tsx passes none until web checkout (phase 6). */
+  entitlements?: OwnedEntitlements;
   /** The timers an online game polls with; main.tsx passes the real ones, which are also the default. */
   timers?: Timers;
   /** The match id from a watch link (`?watch=<id>`): opens that game as a spectator instead of the home screen. */
@@ -55,6 +60,7 @@ export function App({
   futureGame,
   store,
   online,
+  entitlements,
   timers = realTimers,
   watch,
 }: Readonly<AppProps>) {
@@ -74,8 +80,8 @@ export function App({
     );
   }
   if (screen === "testMode") return <TestModeScreen clock={clock} />;
-  // The tutorial needs no account or entitlement: a guest plays it (#642).
-  if (screen === "tutorial") return <TutorialScreen clock={clock} newSeed={newSeed} newAiSeed={newAiSeed} />;
+  // The tutorial needs no account or entitlement: a guest plays it (#642), and an owner plays on past Era 1 (#647).
+  if (screen === "tutorial") return tutorialRoute({ clock, newSeed, newAiSeed, entitlements });
   if (screen === "vsAi" || screen === "vsAiMap" || screen === "vsAiFree" || screen === "vsAiFuture") {
     const played = {
       vsAi: game,
@@ -96,6 +102,23 @@ export function App({
   }
   if (screen === "online") return onlineRoute({ clock, game, online, timers }, () => setScreen("home"));
   return <Home onPick={setScreen} />;
+}
+
+/** The tutorial as the app opens it: the Full Game's edition for an owner on this platform, otherwise the free one. */
+export function tutorialRoute({
+  clock,
+  newSeed,
+  newAiSeed,
+  entitlements,
+}: Readonly<{
+  clock: () => number;
+  newSeed: () => string;
+  newAiSeed: () => number;
+  entitlements?: OwnedEntitlements | undefined;
+}>) {
+  return (
+    <TutorialScreen clock={clock} newSeed={newSeed} newAiSeed={newAiSeed} edition={tutorialEdition(entitlements)} />
+  );
 }
 
 /** The online screen as the app opens it: with the game's card names, questions and rules text and the app's timers. */

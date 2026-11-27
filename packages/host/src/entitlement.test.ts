@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createOnlineRefusal, isEntitlement, isPlatform, PLATFORMS } from "./entitlement.ts";
+import { createOnlineRefusal, isEntitlement, isPlatform, ownsFullGame, PLATFORMS } from "./entitlement.ts";
 import type { Entitlement, Platform } from "./entitlement.ts";
 import { deepFreeze } from "./test/deepFreeze.ts";
 
@@ -87,6 +87,44 @@ describe("createOnlineRefusal: who may create an online game", () => {
     expect(() => createOnlineRefusal(entitlements, "web")).not.toThrow();
     expect(createOnlineRefusal(entitlements, "web")).toBeNull();
     expect(createOnlineRefusal(entitlements, "ios")?.code).toBe("notEntitled");
+    expect(entitlements).toEqual([steam, web]);
+  });
+});
+
+describe("ownsFullGame: whether the player owns the Full Game on this platform (#647)", () => {
+  const owns = (entitlements: unknown, platform: unknown) =>
+    ownsFullGame(entitlements as Entitlement[], platform as Platform);
+
+  it("an entitlement for that platform: true", () => {
+    expect(owns([web], "web")).toBe(true);
+    expect(owns([steam, web, ios], "ios")).toBe(true);
+  });
+
+  it("only entitlements for another platform: false", () => {
+    expect(owns([steam, ios], "web")).toBe(false);
+    expect(owns([web], "android")).toBe(false);
+  });
+
+  it("no entitlements: false", () => {
+    expect(owns([], "web")).toBe(false);
+  });
+
+  it("a malformed list or platform: false, never a throw", () => {
+    for (const bad of [null, undefined, web, "web", 1, {}]) expect(owns(bad, "web")).toBe(false);
+    expect(owns([web, null], "web")).toBe(false);
+    expect(owns([{ platform: "web", source: "" }], "web")).toBe(false);
+    for (const bad of ["xbox", "", null, undefined]) expect(owns([web], bad)).toBe(false);
+  });
+
+  it("agrees with createOnlineRefusal on every well-formed input", () => {
+    for (const list of [[], [web], [steam, ios], [steam, web, ios]])
+      for (const platform of PLATFORMS)
+        expect(ownsFullGame(list, platform)).toBe(createOnlineRefusal(list, platform) === null);
+  });
+
+  it("never changes its inputs (frozen inputs)", () => {
+    const entitlements = deepFreeze([steam, web]);
+    expect(ownsFullGame(entitlements, "web")).toBe(true);
     expect(entitlements).toEqual([steam, web]);
   });
 });

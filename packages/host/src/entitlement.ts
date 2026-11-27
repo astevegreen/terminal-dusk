@@ -21,6 +21,18 @@ export function isEntitlement(value: unknown): value is Entitlement {
   return isPlatform(e.platform) && typeof e.source === "string" && e.source.length > 0;
 }
 
+/** The whole input is well formed: a known platform and a list of valid entitlements. */
+const wellFormed = (entitlements: unknown, platform: unknown): boolean =>
+  isPlatform(platform) && Array.isArray(entitlements) && entitlements.every(isEntitlement);
+
+/**
+ * True when the player owns the Full Game on `platform`: one of their entitlements is for exactly that platform
+ * (#647). A malformed platform or entitlement list is false, never a throw.
+ */
+export function ownsFullGame(entitlements: Entitlement[], platform: Platform): boolean {
+  return wellFormed(entitlements, platform) && entitlements.some((e) => e.platform === platform);
+}
+
 /**
  * Null when the player may create an online game on `platform`: one of their entitlements is for exactly
  * that platform. Otherwise a `notEntitled` refusal. The whole input is checked first, so a malformed
@@ -30,7 +42,7 @@ export function createOnlineRefusal(entitlements: Entitlement[], platform: Platf
   if (!isPlatform(platform)) return { code: "invalidConfig", message: "Unknown platform." };
   if (!Array.isArray(entitlements) || !entitlements.every(isEntitlement))
     return { code: "invalidConfig", message: "The player's entitlements are not a list of valid entitlements." };
-  if (entitlements.some((e) => e.platform === platform)) return null;
+  if (ownsFullGame(entitlements, platform)) return null;
   return {
     code: "notEntitled",
     message:

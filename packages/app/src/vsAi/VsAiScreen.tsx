@@ -79,6 +79,7 @@ export function VsAiView({
   points = fixturePoints,
   allows,
   coach,
+  ending,
 }: Readonly<{
   snapshot: VsAiSnapshot;
   session: VsAiSession;
@@ -95,6 +96,8 @@ export function VsAiView({
   allows?: ((value: AnswerValue) => boolean) | undefined;
   /** The tutorial's coaching, drawn over the game (#642); left out in every other game. */
   coach?: ReactNode;
+  /** Drawn once the game is over, before Watch replay and New game: the tutorial's Full Game offer (#647). */
+  ending?: ReactNode;
 }>) {
   const [watching, setWatching] = useState<ReplayRecording | null>(null);
   const { frame } = snapshot;
@@ -139,6 +142,7 @@ export function VsAiView({
         </>
       )}
       {frame && coach}
+      {frame?.view.public.status.kind === "over" && ending}
       {snapshot.replayReady && (
         <button type="button" style={TAP} onClick={() => setWatching(session.replay())}>
           Watch replay

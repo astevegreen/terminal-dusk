@@ -29,3 +29,22 @@
 .tutorial-coach .coaching-hint {
   font-style: italic;
 }
+/* The Full Game offer at a free tutorial's end (#647): one row under the game, beside Watch replay and New game, so the
+   map keeps most of a phone's height. Placeholder look only. */
+.game-page > .full-game-offer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+.full-game-offer > * {
+  margin: 0;
+}
+.full-game-offer h2 {
+  font-size: 1em;
+}
+.full-game-offer .tutorial-label {
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.75em;
+}
