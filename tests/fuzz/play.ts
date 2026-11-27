@@ -24,7 +24,7 @@ import { checkPassedPlays } from "./passedPlays.ts";
 import { checkPlayedBy, notePlay } from "./playedBy.ts";
 import type { PlayRecord } from "./playedBy.ts";
 import { checkPlayerDraws, notePlayer } from "./playerDraws.ts";
-import { seededRng } from "./random.ts";
+import { seededRng, shuffled } from "./random.ts";
 import type { Rng } from "./random.ts";
 import { handSizeFor, withStayingCards } from "./removed.ts";
 import { checkRefilled, checkRemoved } from "./removedChecks.ts";
@@ -263,7 +263,8 @@ function play(rules: Ruleset, label: string, setup: Setup, seed: Seed, choose: C
     return { record, final: state };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    const verdict = !again ? null : choosing ? CHOOSER_FAILED : secondRun(rules, record, message);
+    let verdict: string | null = null;
+    if (again) verdict = choosing ? CHOOSER_FAILED : secondRun(rules, record, message);
     throw new Error(report(label, record, message, verdict), { cause: err });
   }
 }
@@ -272,8 +273,9 @@ const CHOOSER_FAILED = "it failed while picking an answer, so its record was not
 
 /**
  * Plays a failing game's `record` again from the start, with every check, and says whether `message`, the first
- * failure, repeats. Every game is fixed by its record, so a failure that does not repeat came from the machine or
- * the test run (a fault under load, say), not from the rules: the record proves which.
+ * failure, repeats. The record ends at the answer that failed, so the failure repeats only with the same message
+ * at that same answer. Every game is fixed by its record, so a failure that does not repeat came from the machine
+ * or the test run (a fault under load, say), not from the rules: the record proves which.
  */
 export function secondRun(rules: Ruleset, record: GameRecord, message: string): string {
   let next = 0;
@@ -283,9 +285,13 @@ export function secondRun(rules: Ruleset, record: GameRecord, message: string): 
     // play wraps each failure in a report; its cause is the failure itself.
     const cause = err instanceof Error ? err.cause : err;
     const again = cause instanceof Error ? cause.message : String(cause);
-    return again === message
-      ? "it fails the same way when its record is played again"
-      : `played again from its record it fails differently: ${again}`;
+    // The chooser is asked once more after the last answer, when the game reaches the record's end.
+    const at = Math.min(next, record.answers.length);
+    if (again !== message) return `played again from its record it fails differently: ${again}`;
+    if (at !== record.answers.length) {
+      return `played again from its record it fails with the same message, but ${answerAt(at)}, not ${answerAt(record.answers.length)}`;
+    }
+    return "it fails the same way when its record is played again";
   }
   return "NOT REPEATED: played again from its record it passes, so suspect the machine or test run, not the rules";
 }
@@ -318,23 +324,19 @@ function answered(rules: Ruleset, state: GameState, answer: Answer): Step {
   return deepFreeze(r.value);
 }
 
+/** "at the start" before any answer, else "at answer n". */
+function answerAt(n: number): string {
+  return n === 0 ? "at the start" : `at answer ${n}`;
+}
+
 /** The failure report. The verdict goes on the first line, which the gate's short output keeps. */
 function report(label: string, record: GameRecord, message: string, verdict: string | null): string {
-  const at = record.answers.length === 0 ? "at the start" : `at answer ${record.answers.length}`;
+  const at = answerAt(record.answers.length);
+  const because = verdict === null ? "" : " (" + verdict + ")";
   return [
-    `${label} failed ${at}${verdict === null ? "" : ` (${verdict})`}: ${message}`,
+    `${label} failed ${at}${because}: ${message}`,
     `Seed: ${JSON.stringify(record.seed)}. The game's record (setup, seed and every answer so far):`,
     JSON.stringify(record),
     "Once it is fixed, add that record to tests/fuzz/fixedGames.ts so it is checked on every run.",
   ].join("\n");
-}
-
-/** Fisher-Yates shuffle of a copy of `items`. */
-function shuffled<T>(rng: Rng, items: readonly T[]): T[] {
-  const out = [...items];
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = rng.int(i + 1);
-    [out[i], out[j]] = [out[j]!, out[i]!];
-  }
-  return out;
 }

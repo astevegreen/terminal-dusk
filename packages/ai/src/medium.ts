@@ -17,6 +17,12 @@ type Guessed = ReturnType<typeof reconstruct>;
 /** The value of winning or losing the game outright: past anything the board can be worth. */
 export const GAME_END = 1000;
 
+/** What a finished game is worth to `side`: nothing for a draw, GAME_END for a win, -GAME_END for a loss. */
+function endValue(winner: Side | null, side: Side): number {
+  if (winner === null) return 0;
+  return winner === side ? GAME_END : -GAME_END;
+}
+
 /**
  * How good the state is for `side` after it gives `answer`. An answer that only chooses between ways of spending
  * points (place, realign) is worth the best next answer `depth` steps on.
@@ -35,7 +41,7 @@ function afterValue(
   if (!applied.ok) return -Infinity;
   const next = applied.value.state;
   const { status } = next.public;
-  if (status.kind === "over") return status.winner === null ? 0 : status.winner === side ? GAME_END : -GAME_END;
+  if (status.kind === "over") return endValue(status.winner, side);
   const following = pendingFor(next, side);
   if (depth > 0 && following !== null && (following.kind === "placeInfluence" || following.kind === "realign")) {
     const values = legalAnswers(ruleset, next, side).map((a) => afterValue(ruleset, next, side, a, weights, depth - 1));

@@ -163,4 +163,60 @@ describeCard("e3-neu-001", "Arab Spring", [
       points:sae:1
     `,
   },
+  {
+    // SAE's draw, from LIO's deck, is made for SAE: LIO's Resilient institutions, still unused, never redraws its 1
+    // (owner, 26 Nov 2026: "No redraw"; contingency-deck.md, "Whose bonuses apply"). A redraw would give 3.
+    it: "when LIO plays it with Resilient institutions and only SAE says yes: SAE's 1 from LIO's deck stands",
+    resilient: true,
+    yes: { lio: false, sae: true },
+    draws: [1, 3],
+    story: `
+      the square
+      draw:lio:1
+      mod:sae:-1:min1
+      triggerSet:turnEnd
+      points:sae:1
+      points:lio:2
+      points:sae:1
+      triggerFired:turnEnd
+      points:lio:1
+    `,
+  },
+  {
+    // The same when both say yes: LIO's 2 stands as it is, and SAE's 1 from LIO's deck is not redrawn either.
+    it: "when LIO plays it with Resilient institutions and both say yes: SAE's 1 from LIO's deck stands",
+    resilient: true,
+    yes: { lio: true, sae: true },
+    draws: [2, 1, 3],
+    story: `
+      the square
+      draw:lio:2
+      mod:lio:-1:min1
+      draw:lio:1
+      mod:sae:-1:min1
+      points:sae:1
+      points:lio:1
+      points:sae:1
+    `,
+  },
+  {
+    // The mirror: when SAE plays it, LIO's draw, from SAE's deck, is made for LIO, so SAE's own redraw never
+    // touches it. A redraw would give 3.
+    it: "when SAE plays it with Resilient institutions and only LIO says yes: LIO's 1 from SAE's deck stands",
+    playedBy: "sae",
+    resilient: true,
+    yes: { lio: true, sae: false },
+    draws: [1, 3],
+    story: `
+      points:lio:2
+      the square
+      draw:sae:1
+      mod:lio:-1:min1
+      triggerSet:turnEnd
+      points:lio:1
+      points:sae:2
+      triggerFired:turnEnd
+      points:sae:1
+    `,
+  },
 ]);

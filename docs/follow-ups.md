@@ -30,9 +30,9 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   runs (item above): with the AI playing for Unified command (#628), abilities on gives LIO 47% (94-102, 4 draws)
   against 53% with both off, from 66.5% before the fix. Owner, 26 Nov: "Fix AI first"; the numbers wait on the
   owner's read of the re-measure. [26 Nov 2026, owner's answer in chat; #628]
-- The `madeFor` marks in e3-neu-001, e3-neu-002, e1-neu-003 and e2-neu-005 (`packages/content/cards/`) have no card
-  story with Resilient institutions in play, so removing one fails no test; add a story to each like the two in
-  `e2-neu-003.test.ts` (LIO plays, SAE's 1 from LIO's deck stands). [26 Nov 2026, reviewer on #627]
+- e2-neu-003's `madeFor: "lio"` mark has no card story that fails without it: add one where SAE plays with
+  Resilient institutions and LIO's 1 from SAE's deck stands, like the mirror stories in `e3-neu-001.test.ts` and
+  `e3-neu-002.test.ts`. [26 Nov 2026, agy on #634]
 
 ## App, host and server
 
@@ -51,9 +51,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   play. [26 Nov 2026, screenshots for the era names]
 
 ## Tests and tooling
-
-- A fuzz failure's second run (`tests/fuzz/play.ts`, `secondRun`) compares only the failure's message, not the answer number it failed at, so a fault that repeats its message at a different answer reads as "fails the same way". Compare the answer number too. [26 Nov 2026, agy on #619]
-- `packages/ai/src/medium.ts:37` has a nested ternary (`status.winner === null ? 0 : ...`) that SonarCloud flags; pre-existing, untouched by #610. [22 Nov 2026, Sonar on #610]
 
 - Agents comment as astevegreen while greenbeanbot is suspended, so after the bot returns a `Blocked:` comment an
   agent posted as the owner can read as the owner's answer (`tools/sprint/rules.mjs:207` `ownerAnswer`): check blocked
