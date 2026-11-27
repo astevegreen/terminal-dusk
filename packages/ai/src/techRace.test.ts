@@ -101,7 +101,9 @@ describe("the AI and the tech race", () => {
   });
 
   it("Medium values an attempt more the better its odds", () => {
-    const menu = MENUS[0]!;
+    // The first SAE menu: Medium does not yet value the odds of LIO's attempts (#675, which adds a LIO case).
+    const menu = MENUS.find((m) => techMenuSide(m) === "sae");
+    if (menu === undefined) throw new Error("no SAE tech race menu in Easy's games");
     const side = techMenuSide(menu)!;
     const value = (numbers: number[]) => valueOf(withDeck(menu, side, numbers), side);
     expect(value([1, 1, 9])).toBeLessThan(value([1, 9, 9]));

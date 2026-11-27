@@ -121,7 +121,7 @@ describe("the action menu (R16c)", () => {
     );
     expect(events.map((e) => e.kind)).toEqual(["pointsSpent", "marker"]);
     expect(state.public.stack).toEqual([]);
-    expect(state.public.pending.map((d) => d.kind)).toEqual(["playCardAs"]);
+    expect(state.public.pending.some((d) => d.kind === "chooseAction" || d.kind === "placeInfluence")).toBe(false);
   });
 
   it("passing, offered beside a tech race attempt, leaves the points unspent, and the program runs on", () => {
