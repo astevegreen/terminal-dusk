@@ -37,12 +37,18 @@ export function secretKey(secret: string): Uint8Array | null {
   }
 }
 
+/** The UTF-8 bytes of `text`. */
+export const utf8 = (text: string): Uint8Array => new web.TextEncoder().encode(text);
+
+/** The HMAC-SHA256 of `text`'s UTF-8 bytes under `key`. */
+export async function hmacSha256(key: Uint8Array, text: string): Promise<Uint8Array> {
+  const handle = await web.crypto.subtle.importKey("raw", key, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return new Uint8Array(await web.crypto.subtle.sign("HMAC", handle, utf8(text)));
+}
+
 /** The base64 HMAC-SHA256 signature of `<id>.<timestamp>.<body>` under `key`. */
 export async function sign(key: Uint8Array, id: string, timestamp: string, body: string): Promise<string> {
-  const handle = await web.crypto.subtle.importKey("raw", key, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const mac = new Uint8Array(
-    await web.crypto.subtle.sign("HMAC", handle, new web.TextEncoder().encode(`${id}.${timestamp}.${body}`)),
-  );
+  const mac = await hmacSha256(key, `${id}.${timestamp}.${body}`);
   return web.btoa(String.fromCharCode(...mac));
 }
 

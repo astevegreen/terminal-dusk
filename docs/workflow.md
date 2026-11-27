@@ -241,7 +241,7 @@ Claude Code's built-in `Explore` agent uses your main model. Defining a project 
 - `CLAUDE.md` stays under 200 lines. Details live in `docs/architecture.md` and in path-scoped rule files under `.claude/rules/`, which load only when Claude touches matching files.
 - Turn off connectors in coding sessions (`/mcp`). Use the `gh` command line for GitHub instead of a connector.
 - Install the TypeScript language-server plugin: Claude sees type errors right after each edit instead of running a full type check to find them.
-- A script regenerates `docs/repo-map.md` (packages, files and their exports) on every commit, at no token cost. Agents read it instead of listing folders.
+- A script writes `docs/repo-map.md` (packages, files and their exports) on every checkout, merge and `pnpm install`, at no token cost; git doesn't track it. Agents read it instead of listing folders.
 
 **Send bulk reading to Gemini.** Whole-repo audits, research and long documents use Gemini's quota, not yours. Claude reads Gemini's short report, not the material behind it.
 
@@ -375,14 +375,14 @@ docs/
   architecture.md             the core decisions doc, exported as Markdown
   workflow.md                 this doc, exported as Markdown
   design/                     promoted game rules, one file per topic
-  repo-map.md                 generated on every commit
+  repo-map.md                 generated on checkout, merge and install; not tracked
   research/                   Gemini briefs
 tools/
   hooks/                      env-check, bash-guard, quick-check, gate, file-lock
   gates/                      what `pnpm gate` runs
   gemini/prompts/             spec, pull request, weekly and narrative audit prompts
   gemini-audit.mjs            runs agy and posts its findings to GitHub
-  repomap.ts                  regenerates docs/repo-map.md
+  repo-map.mjs                writes docs/repo-map.md
   night-shift.ts              the CLI alternative to the scheduled task (option B)
 .github/
   CODEOWNERS                  empty: no path waits for your review

@@ -277,6 +277,8 @@ Supabase Pro hosts accounts, data and exactly one write path for games: the `sub
 | `match_event` | visible events per step, tagged by viewer, and `stand_in`: the side the host played for in that step, or null (#605) | the matching viewer |
 | `profile`, `rating` | name, Glicko-2 rating, results by side | everyone |
 | `entitlement` | account, platform, source, receipt reference | the owner |
+| `entitlement_refund` | refunded receipt references, so a late payment message cannot restore a copy (#683) | server only |
+| `checkout_unmatched` | paid web orders no player was found for: receipt reference and reason (#683) | server only |
 | `seek` | matchmaking tickets: rating, deadline preset, side preference | the owner |
 | `notify_queue` | pending notifications | server only |
 
@@ -295,6 +297,7 @@ Supabase Pro hosts accounts, data and exactly one write path for games: the `sub
 - Account deletion inside the app.
 - Login and notification emails go through a paid email provider (Resend Pro or similar). Resend's free tier stops at 100 emails a day, which would lock players out on a busy day.
 - `entitlement` rows come only from verified sources: Steam ownership checks, App Store and Google Play receipts, web merchant-of-record webhooks, and gift codes. Creating an online match, or joining a ranked one, requires an entitlement for the platform being played on. A player without one may join a private game they were invited to by a player who has one.
+- The web merchant of record is Paddle, and its messages arrive at the `paddle-webhook` edge function, which checks Paddle's signature. A paid order for the full game gives the signed-in buyer named in the order (`player_id` in its custom data) one `web` entitlement, and an approved full refund removes it. An order that names no known player is recorded and ignored, never guessed. The webhook secret and the product id are function secrets, never in the repository.
 
 **Ruleset compatibility window**
 

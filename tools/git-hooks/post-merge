@@ -1,0 +1,6 @@
+#!/bin/sh
+# Git post-merge hook: writes docs/repo-map.md for the merged files, also after a `git pull` that merges.
+# The map is untracked, so only the working tree changes. A branch from before that still tracks it: there the file is
+# left as committed, so the merge leaves the tree clean. A failure here never fails the merge.
+git ls-files --error-unmatch docs/repo-map.md >/dev/null 2>&1 || node tools/repo-map.mjs
+exit 0

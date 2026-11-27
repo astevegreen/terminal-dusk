@@ -61,6 +61,10 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - A game with no map has no era in its frame (`packages/engine/src/createGame.ts:84-92` sets it only with a map), so
   against the AI the free game says "Era not shown yet" for its whole length, and the base game until Era 2 starts.
   The app already names the frame's era where there is one (#669); the engine side is lane C's. [27 Nov 2026, #669]
+- Nothing reads `checkout_unmatched` (`packages/server/supabase/migrations/20261030000000_paddle_receipts.sql`): a
+  buyer who paid with no known player id gets no copy until a person looks. Before web sales open, add a service-role
+  tool that lists those receipts and grants one to a named player (`grantReceipt`), or an alert when a row appears.
+  [27 Nov 2026, #683]
 
 ## Tests and tooling
 
@@ -82,13 +86,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   request's own `pnpm install` runs, so an install script from the pull request could rewrite it before
   `tools/gates/test-count.mjs` reads it (#587 only covers the tests the script runs). Fetch the events after the
   install, or keep them where the pull request's code can't write. [21 Nov 2026, agy on #589]
-- `docs/repo-map.md` is still tracked, but the pre-commit hook no longer refreshes it, so it goes stale until someone
-  runs `pnpm repo-map` (in a small PR of its own, not inside feature PRs). Next step: `git rm --cached` it, add it to
-  `.gitignore`, and generate it into the working tree (plain `node tools/repo-map.mjs`) from new
-  `tools/git-hooks/post-checkout` and `post-merge` hooks (post-checkout fires on `git worktree add` too) and the root
-  `prepare` script, each tested like `pre-commit.test.mjs`. Then fix the wording that says every commit refreshes it:
-  `tools/repo-map.mjs` `renderMap` header, `docs/workflow.md:244,376`, `.claude/agents/reviewer.md:41`,
-  `tools/gemini/prompts/pr-audit.md:3`; and drop `repo-map.mjs --staged`, which nothing calls now. [7 Nov 2026, CI-speed session, Decision (architect)]
 - The two sister repos' copies of `tools/gemini/gemini-api.mjs` still lack the TLS handshake limit this repo's
   `postApi` gained in #608 (a tunnel that opens but carries nothing waits the full 10 minutes there); copy it, with
   its test in `gemini-proxy.test.mjs`, and the `PASS_ON` line in `tools/gemini/agy.mjs` that moves that reason on to
