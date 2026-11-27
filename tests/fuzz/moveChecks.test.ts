@@ -67,7 +67,8 @@ describe("random map games", () => {
         const result = apply(ruleset, state, answer);
         if (!result.ok) throw new Error(`game ${game}: apply failed: ${result.error.code}`);
         const { events } = result.value;
-        checkOwnMoves(answer, events);
+        // The game's number is its seed: a failure prints it.
+        expect(() => checkOwnMoves(answer, events), `game ${game}`).not.toThrow();
         for (const event of events) {
           if (event.kind === "influencePlaced") {
             placed++;
