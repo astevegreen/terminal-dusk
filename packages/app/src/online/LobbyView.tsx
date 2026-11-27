@@ -1,5 +1,5 @@
 // The online lobby drawn from a lobby snapshot (online/lobbySession.ts): New game, Join a game and My games,
-// plus Sign out and Back. It uses no hooks, so tests can walk and press it without a browser. The code field
+// plus the account part it is given, Sign out and Back. It uses no hooks, so tests can walk and press it without a browser. The code field
 // is uncontrolled; typing in it only tells the session the code changed.
 import type { FormEvent, ReactNode } from "react";
 import type { DeadlineRule, MatchDeadline } from "@terminal-dusk/host";
@@ -206,10 +206,12 @@ export type LobbyViewProps = {
   onBack: () => void;
   /** Opens the game with this match id. */
   onOpen: (matchId: string) => void;
+  /** The account's other part, beside the lobby's: what the app sells (#685). */
+  account?: ReactNode;
 };
 
 /** The signed-in online screen for one lobby snapshot. */
-export function LobbyView({ snapshot, actions, onSignOut, onBack, onOpen }: Readonly<LobbyViewProps>) {
+export function LobbyView({ snapshot, actions, onSignOut, onBack, onOpen, account }: Readonly<LobbyViewProps>) {
   return (
     <main style={{ maxWidth: "100%", boxSizing: "border-box" }}>
       <h1>Play online</h1>
@@ -217,6 +219,7 @@ export function LobbyView({ snapshot, actions, onSignOut, onBack, onOpen }: Read
         <NewGame snapshot={snapshot} actions={actions} />
         <JoinGame snapshot={snapshot} actions={actions} />
         <MyGames snapshot={snapshot} actions={actions} onOpen={onOpen} />
+        {account}
       </div>
       <button type="button" style={TAP} onClick={onSignOut}>
         Sign out
