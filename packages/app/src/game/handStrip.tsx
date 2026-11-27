@@ -33,8 +33,9 @@ function focusInto(card: HTMLElement | null | undefined): void {
 function HandStripInner({
   chips,
   counts,
+  end,
   children,
-}: Readonly<{ chips: readonly StripChip[]; counts: ReactNode; children: readonly ReactNode[] }>) {
+}: Readonly<{ chips: readonly StripChip[]; counts: ReactNode; end?: ReactNode; children: readonly ReactNode[] }>) {
   const [picked, setPicked] = useState<CardId | null>(null);
   const [current, setCurrent] = useState(0);
   const lifted = liftedIn(chips, picked);
@@ -114,6 +115,7 @@ function HandStripInner({
         ))}
       </div>
       {counts}
+      {end}
       {chips.map((chip, i) => (
         <div
           key={chip.card}
@@ -136,7 +138,8 @@ function HandStripInner({
 }
 
 /**
- * Takes one lifted card per chip as children, in the chips' order. Wrapped in `memo`, like TopBar: the test
+ * Takes one lifted card per chip as children, in the chips' order; `end` is drawn last on the strip, after the
+ * counts, and is no part of the cards the arrow keys move along. Wrapped in `memo`, like TopBar: the test
  * walkers that call function components directly (testMode/promptTree.ts, online/test/screenTree.ts) step over its
  * hooks and walk on into the lifted cards, reaching the choices on them.
  */

@@ -1,8 +1,9 @@
 // The home screen: the game's name, a button to play the six-region map against the AI (A14, #439) first, a button
-// to play against the AI without a map, a button to play online and a button into developer test mode. The AI games and test mode
-// need no account; only Play online asks to sign in.
+// to play against the AI without a map, a button to play online, a button into developer test mode and the sound
+// controls (#646). The AI games and test mode need no account; only Play online asks to sign in.
 import { ERA_1_FREE_BUTTON } from "@terminal-dusk/host/first-deck";
 import { useState } from "react";
+import { HomeSound } from "./audio/soundControls.tsx";
 import { OnlineScreen } from "./online/OnlineScreen.tsx";
 import { WatchScreen } from "./online/watch/WatchScreen.tsx";
 import { cardAffiliation as fixtureAffiliation, cardName, cardQuestion } from "./testMode/fixture.ts";
@@ -142,6 +143,7 @@ export function Home({ onPick }: Readonly<{ onPick: (screen: Screen) => void }>)
       <button type="button" style={TAP} onClick={() => onPick("testMode")}>
         Test mode
       </button>
+      <HomeSound />
     </main>
   );
 }

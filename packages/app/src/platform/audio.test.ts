@@ -143,8 +143,9 @@ describe("webAudio", () => {
     expect(fake.volume.value).toBe(1);
     audio.setVolume(-5);
     expect(fake.volume.value).toBe(0);
+    audio.setVolume(60);
     audio.setVolume(Number.NaN);
-    expect(fake.volume.value).toBe(0);
+    expect(fake.volume.value).toBe(0.6);
   });
 
   it("when muted, play does nothing and what is already sounding goes quiet; unmuting restores the volume", async () => {
