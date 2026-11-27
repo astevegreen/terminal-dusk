@@ -80,10 +80,9 @@ points use what the play really has: for example chapter 2's "4 to spend", chapt
 points" and the result it gives, chapter 5's "2 points" and chapter 6's "All 3 points". The rest of each line stays
 as written.
 
-A card played earlier that changes this turn's spends is one more term in chapter 3's arithmetic, named with its
-real amount: if SAE has played Rwandan Genocide, "Before: 1, plus 1 from Maastricht, minus 1, minus 1 from Rwandan
-Genocide, and never below 1, gives 1 point." (the card's own floor keeps the sum at 1). When before and after give the same points, "After: you spend 2," becomes "After: you
-also spend 1, so here the order doesn't change your points," and the line goes on "and the penalty only reaches
+If SAE has played Rwandan Genocide this turn, it is one more term in chapter 3's arithmetic: "Before: 1, plus 1
+from Maastricht, minus 1, minus 1 from Rwandan Genocide, and never below 1, gives 1 point."
+When before and after give the same points, "After: you spend 2," becomes "After: you also spend 1, so here the order doesn't change your points," and the line goes on "and the penalty only reaches
 ..." as written (owner, 27 Nov 2026, in chat: "I approve your recommendation").
 
 **1. Opening cards and events** (turn 1 opening; play Maastricht Treaty)
