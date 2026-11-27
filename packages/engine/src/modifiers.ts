@@ -2,17 +2,24 @@
 // consulted only at fixed hook points. The one hook so far is a card's ops value; the one duration lasts
 // until the end of the turn the modifier was made in.
 import { copyJson } from "./copy.ts";
-import type { CardDef, CardId, GameEvent, GameState, ModifierSpec, Side, Step } from "./types.ts";
+import type { ActiveModifier, CardDef, CardId, GameEvent, GameState, ModifierSpec, Side, Step } from "./types.ts";
 
 /**
  * A card's ops when `side` spends its action points, as changed by every opsValue modifier in force for
- * that side or for both. They apply in the order they were made, each adding its `add` to the running value
- * and then raising it to its own `min`, if it has one (owner's decision, 18 Oct). The result is never below
- * 0, as points are a count. Worked out when the points are spent, so an event that ran just before counts.
+ * that side or for both. Worked out when the points are spent, so an event that ran just before counts.
  */
 export function opsValue(state: GameState, card: Pick<CardDef, "ops">, side: Side): number {
-  let value = card.ops;
-  for (const { mod } of state.public.modifiers) {
+  return modifiedOps(card.ops, state.public.modifiers, side);
+}
+
+/**
+ * `ops` as changed by the opsValue modifiers in `modifiers` for `side` or for both. They apply in the order given,
+ * each adding its `add` to the running value and then raising it to its own `min`, if it has one (owner's decision,
+ * 18 Oct). The result is never below 0, as points are a count. Pure, so a reader of a view can use it too.
+ */
+export function modifiedOps(ops: number, modifiers: readonly Pick<ActiveModifier, "mod">[], side: Side): number {
+  let value = ops;
+  for (const { mod } of modifiers) {
     if (mod.hook !== "opsValue" || (mod.side !== side && mod.side !== "both")) continue;
     value += mod.add;
     if (mod.min !== undefined) value = Math.max(value, mod.min);

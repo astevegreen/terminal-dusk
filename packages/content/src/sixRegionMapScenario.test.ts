@@ -241,7 +241,7 @@ describe("the six-region map scenario (#422)", () => {
   });
 
   it("puts the countries bordering Russia or China next to the SAE box (H1), and three next to the LIO box", () => {
-    expect(map.homeBox.lio).toEqual(["canada", "mexico", "cuba"]);
+    expect(map.homeBox.lio).toEqual(["mexico", "cuba", "canada"]);
     expect(map.homeBox.sae.toSorted()).toEqual(
       [
         "poland",

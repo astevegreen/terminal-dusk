@@ -1,6 +1,7 @@
 import { lessonSchema, type Lesson } from "@terminal-dusk/content";
 import type { AnswerValue, Decision, GameEvent, PlayerView } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
+import { firstDeckRuleset } from "../firstDeck.ts";
 import { deepFreeze } from "../test/deepFreeze.ts";
 import type { Frame } from "../types.ts";
 import { startTutorial, stepTutorial, type TutorialRunner } from "./runner.ts";
@@ -25,7 +26,7 @@ const frame = (parts: FrameParts = {}): Frame => {
     matchId: "m",
     seq: 1,
     viewer: "lio",
-    ruleset: "r",
+    ruleset: firstDeckRuleset.id,
     view,
     events: parts.events ?? [],
     decision: parts.decision ?? null,
