@@ -7,8 +7,14 @@ import type { Frame, HostError } from "@terminal-dusk/host";
 export type ServerErrorCode =
   "matchNotFound" | "unknownRuleset" | "storageFailed" | "notSignedIn" | "methodNotAllowed" | "internalError";
 
-/** Why an answer was refused: a host or engine code, a server code, or `networkError` when no reply came. */
-export type TransportError = { code: HostError["code"] | ServerErrorCode | "networkError"; message?: string };
+/**
+ * Why an answer was refused: a host or engine code, a server code, `networkError` when no reply came, or
+ * `notInLesson` when a tutorial step does not allow that answer (it never reaches the host).
+ */
+export type TransportError = {
+  code: HostError["code"] | ServerErrorCode | "networkError" | "notInLesson";
+  message?: string;
+};
 
 export type SubmitResult = { ok: true } | { ok: false; error: TransportError };
 

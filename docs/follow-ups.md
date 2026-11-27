@@ -37,11 +37,10 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   `variants: [{ if, say }]` from fixed name lists the schema checks, and a pure `packages/host/src/tutorial/fill.ts`
   reading frames only; then write the seven chapters word for word, `placeholder: false`, deckTop from "Cards dealt
   first", after #642, with a test comparing each filled line with the doc's. [27 Nov 2026, architect on #640]
-- The tutorial runner can refuse every legal answer in two corners (`packages/host/src/tutorial/matching.ts`): a
-  placeInfluence country the points left can no longer pay for still counts as offered
-  (`packages/engine/src/decisions.ts:148`), and a matcher's `as` is checked against every card type's uses, not the
-  card's own (`decisions.ts:176`). #641's app wiring has the legal answers: allow everything when none the runner
-  allows is legal. [27 Nov 2026, reviewer on PR #657]
+- Test the tutorial's never-stuck rule inside a whole match (`packages/app/src/tutorial/tutorialMatch.ts` `neverStuck`):
+  the placeholder lesson can't reach a step that refuses every legal answer. Once the real lesson exists, add a
+  lesson fixture whose coach step allows only an unaffordable country or a card used as a type it lacks.
+  [27 Nov 2026, agy on PR #661]
 - Events that arrive in one frame start their sounds at the same instant
   (`packages/app/src/audio/useEventSounds.tsx` `playEventSounds`): once sound files exist, listen to a busy move and
   stagger or merge them. [27 Nov 2026, #645]

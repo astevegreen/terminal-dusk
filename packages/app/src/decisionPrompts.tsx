@@ -47,6 +47,11 @@ export type PromptProps = {
   onAnswer?: (value: AnswerValue) => void;
   /** Where this drawing of the prompt is (promptChoices.tsx); left out, every choice is drawn here. */
   place?: PromptPlace | undefined;
+  /**
+   * Left out: every choice can be tapped. Given (the tutorial, #641): a choice whose answer it refuses is drawn
+   * disabled, so the learner sees it but cannot send it.
+   */
+  allows?: ((value: AnswerValue) => boolean) | undefined;
 };
 export type PromptComponent = ComponentType<PromptProps>;
 
@@ -79,12 +84,13 @@ function YesNoPrompt(props: Readonly<PromptProps>) {
       choices={choices}
       onAnswer={props.onAnswer}
       place={props.place}
+      allows={props.allows}
     />
   );
 }
 
 /** The secret opening card pick: every card in the hand. */
-function ChooseCardPrompt({ decision, hand, label, onAnswer, place }: Readonly<PromptProps>) {
+function ChooseCardPrompt({ decision, hand, label, onAnswer, place, allows }: Readonly<PromptProps>) {
   const choices: Choice[] = hand.map((card) => ({
     text: label(card),
     value: { kind: "chooseCard", card },
@@ -97,6 +103,7 @@ function ChooseCardPrompt({ decision, hand, label, onAnswer, place }: Readonly<P
       choices={choices}
       onAnswer={onAnswer}
       place={place}
+      allows={allows}
     />
   );
 }
@@ -134,6 +141,7 @@ function PlayCardAsPrompt(props: Readonly<PromptProps>) {
       choices={playChoices(props)}
       onAnswer={props.onAnswer}
       place={props.place}
+      allows={props.allows}
     />
   );
 }
@@ -148,11 +156,12 @@ function ExtraPlayPrompt(props: Readonly<PromptProps>) {
       choices={choices}
       onAnswer={props.onAnswer}
       place={props.place}
+      allows={props.allows}
     />
   );
 }
 
-function RivalEventOrderPrompt({ decision, onAnswer, place }: Readonly<PromptProps>) {
+function RivalEventOrderPrompt({ decision, onAnswer, place, allows }: Readonly<PromptProps>) {
   const choices: Choice[] = [
     { text: "Before the points", value: { kind: "rivalEventOrder", event: "before" } },
     { text: "After the points", value: { kind: "rivalEventOrder", event: "after" } },
@@ -164,6 +173,7 @@ function RivalEventOrderPrompt({ decision, onAnswer, place }: Readonly<PromptPro
       choices={choices}
       onAnswer={onAnswer}
       place={place}
+      allows={allows}
     />
   );
 }
@@ -178,7 +188,7 @@ function setsOf(cards: readonly CardId[], count: number): CardId[][] {
  * A discard pick: one choice per set of `count` cards, from the viewer's hand ("hand") or the rival's cards it
  * has been shown ("rivalHand"), labelled with the card names.
  */
-function DiscardCardsPrompt({ decision, hand, known, label, onAnswer, place }: Readonly<PromptProps>) {
+function DiscardCardsPrompt({ decision, hand, known, label, onAnswer, place, allows }: Readonly<PromptProps>) {
   const options = decision.options;
   const from = "from" in options ? options.from : "hand";
   const count = "count" in options ? options.count : 0;
@@ -197,6 +207,7 @@ function DiscardCardsPrompt({ decision, hand, known, label, onAnswer, place }: R
       choices={choices}
       onAnswer={onAnswer}
       place={place}
+      allows={allows}
     />
   );
 }
@@ -205,7 +216,7 @@ function DiscardCardsPrompt({ decision, hand, known, label, onAnswer, place }: R
  * A placing (R16a): one choice per country the decision lists, in its order, with the points left in the
  * question. A country the side cannot afford now is refused by the transport, like any illegal pick.
  */
-function PlaceInfluencePrompt({ decision, country, onAnswer, place }: Readonly<PromptProps>) {
+function PlaceInfluencePrompt({ decision, country, onAnswer, place, allows }: Readonly<PromptProps>) {
   const options = decision.options;
   const points = "points" in options ? options.points : 0;
   return (
@@ -215,6 +226,7 @@ function PlaceInfluencePrompt({ decision, country, onAnswer, place }: Readonly<P
       choices={countryChoices(decision, country)}
       onAnswer={onAnswer}
       place={place}
+      allows={allows}
     />
   );
 }
@@ -230,7 +242,7 @@ const ACTION_TEXT: Record<Exclude<PointsAction, "intervene">, string> = {
  * The action menu (R16b, R16c): all the points go to one action. One choice per action the decision lists, in its
  * order, except an intervention, which is one choice per country the decision lists for it.
  */
-function ChooseActionPrompt({ decision, country, onAnswer, place }: Readonly<PromptProps>) {
+function ChooseActionPrompt({ decision, country, onAnswer, place, allows }: Readonly<PromptProps>) {
   const options = decision.options;
   const points = "actions" in options ? options.points : 0;
   const actions = "actions" in options ? options.actions : [];
@@ -246,6 +258,7 @@ function ChooseActionPrompt({ decision, country, onAnswer, place }: Readonly<Pro
       choices={choices}
       onAnswer={onAnswer}
       place={place}
+      allows={allows}
     />
   );
 }
@@ -254,7 +267,7 @@ function ChooseActionPrompt({ decision, country, onAnswer, place }: Readonly<Pro
  * A realignment attempt (R16c): one choice per country the decision lists, then a choice to stop (the attempts
  * left unmade), with the attempts left in the question.
  */
-function RealignPrompt({ decision, country, onAnswer, place }: Readonly<PromptProps>) {
+function RealignPrompt({ decision, country, onAnswer, place, allows }: Readonly<PromptProps>) {
   const options = decision.options;
   const attempts = "attempts" in options ? options.attempts : 0;
   const choices: Choice[] = [
@@ -268,6 +281,7 @@ function RealignPrompt({ decision, country, onAnswer, place }: Readonly<PromptPr
       choices={choices}
       onAnswer={onAnswer}
       place={place}
+      allows={allows}
     />
   );
 }

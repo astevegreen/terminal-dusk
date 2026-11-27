@@ -1,8 +1,8 @@
 // A match run entirely in memory: it keeps the host's record and secret, and gives each viewer a transport.
 // The app only hands the record and secret back to the host; it never reads the secret (hard rule 2).
 // The seed and the clock are passed in, so there is no platform code here (hard rule 8).
-import type { Ruleset, Seed, Side, Viewer } from "@terminal-dusk/engine";
-import { hostArchive, hostCreate, hostSubmit } from "@terminal-dusk/host";
+import type { AnswerValue, Ruleset, Seed, Side, Viewer } from "@terminal-dusk/engine";
+import { hostArchive, hostCreate, hostLegalAnswers, hostSubmit } from "@terminal-dusk/host";
 import type {
   Frame,
   HostError,
@@ -31,6 +31,8 @@ export type LocalMatch = {
   archive(): ReplayArchive | null;
   /** The code of a failed archive step (a bug to report), or null. */
   archiveError(): string | null;
+  /** The answers the rules accept from `side` right now (the host reads them; the app never reads the secret). */
+  legalAnswers(side: Side): AnswerValue[];
 };
 
 const VIEWERS: readonly Viewer[] = ["lio", "sae", "spectator"];
@@ -124,5 +126,13 @@ export function createLocalMatch(
     },
   });
 
-  return { ok: true, value: { transportFor, archive: () => archive, archiveError: () => archiveError } };
+  return {
+    ok: true,
+    value: {
+      transportFor,
+      archive: () => archive,
+      archiveError: () => archiveError,
+      legalAnswers: (side) => hostLegalAnswers(ruleset, current.secret, side),
+    },
+  };
 }
