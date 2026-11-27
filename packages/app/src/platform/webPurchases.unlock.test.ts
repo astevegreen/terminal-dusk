@@ -33,7 +33,7 @@ describe("unlock (#685)", () => {
     expect(call.method).toBe("POST");
     expect(call.headers["Authorization"]).toBe(`Bearer ${STORED.accessToken}`);
     // No player id, price or product from the client: the server takes the player from the token.
-    expect(JSON.parse(call.body!)).toEqual({});
+    expect(JSON.parse(call.body as string)).toEqual({});
     expect(opened).toEqual([CHECKOUT]);
   });
 

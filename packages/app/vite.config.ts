@@ -17,4 +17,10 @@ const soundManifest: Plugin = {
 
 export default defineConfig({
   plugins: [react(), soundManifest],
+  // Two pages: the app, and the web checkout's pay page (#685), which the server's checkout address points at.
+  build: {
+    rolldownOptions: {
+      input: { main: `${import.meta.dirname}/index.html`, pay: `${import.meta.dirname}/pay/index.html` },
+    },
+  },
 });

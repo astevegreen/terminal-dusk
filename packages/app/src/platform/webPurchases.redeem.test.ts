@@ -34,7 +34,7 @@ describe("redeemCode (#685)", () => {
     expect(call.url).toBe("https://fake.supabase.test/functions/v1/redeem");
     expect(call.method).toBe("POST");
     expect(call.headers["Authorization"]).toBe(`Bearer ${STORED.accessToken}`);
-    expect(JSON.parse(call.body!)).toEqual({ code: CODE });
+    expect(JSON.parse(call.body as string)).toEqual({ code: CODE });
     expect(entitlements.getSnapshot().owned).toEqual([WEB_ROW]);
   });
 
