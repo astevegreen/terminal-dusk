@@ -1,7 +1,8 @@
 // `node tools/balance/arena.mjs [--a <tier>] [--b <tier>] [--games <n>] [--seed <base>] [--scenario <name>] [--json]`:
 // the AI arena of Decision 8. Plays n seeded games of tier A against tier B through the match host (play.mjs), swaps
 // the sides every game so neither tier gets the first-player edge, and reports win rate per tier and per side, draws
-// and game length. Exits 1 when a Decision 8 gate that applies to the pairing fails. See tools/balance/README.md.
+// and game length. Exits 1 when a Decision 8 gate that applies to the pairing fails, or when a tier lost a game to
+// its own Escalation crisis (blunder.mjs). See tools/balance/README.md.
 import { balanceConfig, SCENARIOS } from "./config.mjs";
 import { playBalanceGame, SIDES, TIERS } from "./play.mjs";
 
@@ -72,9 +73,10 @@ function outcomeFor(winner, side) {
 }
 
 /**
- * The numbers for finished games, each { aSide, winner (a side, or null for a draw), answers }. `tiers` is each
- * tier's record (when A and B are the same tier it holds that one name once, as A's record), `sides` each side's
- * record over all games, and `tierSides` each tier's games and wins by the side it sat on.
+ * The numbers for finished games, each { aSide, winner (a side, or null for a draw), answers, blunder (the side that
+ * lost to its own crisis, or null; absent counts as null) }. `tiers` is each tier's record (when A and B are the same
+ * tier it holds that one name once, as A's record), `sides` each side's record over all games, `tierSides` each
+ * tier's games and wins by the side it sat on, and `blunders` each tier's games lost to its own crisis.
  */
 export function tallyArena(a, b, results) {
   const sides = Object.fromEntries(SIDES.map((s) => [s, { wins: 0, losses: 0, draws: 0 }]));
@@ -82,11 +84,13 @@ export function tallyArena(a, b, results) {
     [a, b].map((t) => [t, { lio: { games: 0, wins: 0 }, sae: { games: 0, wins: 0 } }]),
   );
   const tiers = { [a]: { wins: 0, losses: 0, draws: 0 }, [b]: { wins: 0, losses: 0, draws: 0 } };
+  const blunders = { [a]: 0, [b]: 0 };
   let answers = 0;
   let draws = 0;
-  for (const { aSide, winner, answers: n } of results) {
+  for (const { aSide, winner, answers: n, blunder = null } of results) {
     answers += n;
     if (winner === null) draws += 1;
+    if (blunder !== null) blunders[blunder === aSide ? a : b] += 1;
     for (const side of SIDES) sides[side][outcomeFor(winner, side)] += 1;
     const bSide = aSide === "lio" ? "sae" : "lio";
     const seats =
@@ -111,6 +115,7 @@ export function tallyArena(a, b, results) {
     tiers: Object.fromEntries(Object.entries(tiers).map(([name, r]) => [name, withRate(r)])),
     sides: Object.fromEntries(Object.entries(sides).map(([name, r]) => [name, withRate(r)])),
     tierSides,
+    blunders,
   };
 }
 
@@ -131,6 +136,21 @@ export function checkGate(tally) {
 }
 
 /**
+ * Decision 8's "no tier loses to its own Escalation blunder", { pass, line }, or null for an empty run. Any one game
+ * a tier lost to its own crisis (blunder.mjs) fails it.
+ */
+export function checkBlunders(tally) {
+  if (tally.games === 0) return null;
+  const counts = Object.entries(tally.blunders);
+  const pass = counts.every(([, n]) => n === 0);
+  const each = counts.map(([name, n]) => `${title(name)} ${n}`).join(", ");
+  return {
+    pass,
+    line: `Gate: no tier loses to its own Escalation crisis (games lost that way: ${each}): ${pass ? "PASS" : "FAIL"}`,
+  };
+}
+
+/**
  * Plays the arena. Game `i` has seed `${seed}-${i}`; the two tiers swap sides each game. `createPlayer` is not
  * offered: the arena plays the real tiers only.
  */
@@ -139,18 +159,18 @@ export function runArena({ a, b, games, seed, scenario = DEFAULTS.scenario }) {
   const results = Array.from({ length: games }, (_, i) => {
     const aSide = sideOf("a", i);
     const tiers = { [aSide]: a, [aSide === "lio" ? "sae" : "lio"]: b };
-    const { status, answers } = playBalanceGame(seed, i, structuredClone(config), { tiers });
-    return { aSide, winner: status.winner, answers };
+    const { status, answers, blunder } = playBalanceGame(seed, i, structuredClone(config), { tiers });
+    return { aSide, winner: status.winner, answers, blunder };
   });
   const tally = tallyArena(a, b, results);
-  return { a, b, seed, scenario, results, tally, gate: checkGate(tally) };
+  return { a, b, seed, scenario, results, tally, gate: checkGate(tally), blunderGate: checkBlunders(tally) };
 }
 
 const pct = (r) => `${(r.winRate * 100).toFixed(1)}%`;
 const line = (name, r) => `  ${name}: ${r.wins} wins, ${r.losses} losses, ${r.draws} draws (${pct(r)} win rate)`;
 
 /** The plain-text report. */
-export function formatArena({ a, b, seed, scenario, tally, gate }) {
+export function formatArena({ a, b, seed, scenario, tally, gate, blunderGate = null }) {
   const lines = [
     `Arena: ${a} vs ${b}, ${tally.games} games, ${scenario} scenario, base seed "${seed}"`,
     "",
@@ -169,6 +189,7 @@ export function formatArena({ a, b, seed, scenario, tally, gate }) {
   }
   lines.push("", `Draws: ${tally.draws}. Average answers per game: ${tally.averageAnswers}.`);
   if (gate !== null) lines.push("", gate.line);
+  if (blunderGate !== null) lines.push(...(gate === null ? [""] : []), blunderGate.line);
   return `${lines.join("\n")}\n`;
 }
 
@@ -183,7 +204,7 @@ if (import.meta.main) {
   try {
     const run = runArena(options);
     process.stdout.write(options.json ? `${JSON.stringify(run.tally, null, 2)}\n` : formatArena(run));
-    if (run.gate !== null && !run.gate.pass) process.exitCode = 1;
+    if ([run.gate, run.blunderGate].some((g) => g !== null && !g.pass)) process.exitCode = 1;
   } catch (err) {
     process.stderr.write(`${err.message}\n`);
     process.exit(1);

@@ -2,7 +2,8 @@
 // arguments and report shape.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { checkGate, formatArena, GATES, parseArgs, runArena, sideOf, tallyArena } from "./arena.mjs";
+import { checkBlunders, checkGate, formatArena, GATES, parseArgs, runArena, sideOf, tallyArena } from "./arena.mjs";
+import { ownBlunder } from "./blunder.mjs";
 
 test("tier A takes LIO in even games and SAE in odd ones, so each tier plays both sides equally", () => {
   assert.deepEqual(
@@ -16,7 +17,7 @@ test("tier A takes LIO in even games and SAE in odd ones, so each tier plays bot
 });
 
 // A hand-made game: tier A sat on `aSide`; `winner` is a side or null for a draw.
-const game = (aSide, winner, answers = 10) => ({ aSide, winner, answers });
+const game = (aSide, winner, answers = 10, blunder = null) => ({ aSide, winner, answers, blunder });
 
 test("tally counts wins, losses and draws per tier and per side, with win rates over all games", () => {
   const tally = tallyArena("medium", "easy", [
@@ -113,6 +114,7 @@ test("a real seeded run alternates sides, is repeatable, and its report names ti
   assert.match(text, /LIO: \d+ wins/);
   assert.match(text, /SAE: \d+ wins/);
   assert.match(text, /Gate: Medium beats Easy/);
+  assert.match(text, /Gate: no tier loses to its own Escalation crisis \(games lost that way: Medium \d+, Easy \d+\)/);
 });
 
 test("Decision 8 gate: Medium beats Easy in over 75% of 40 seeded six-region games", () => {
@@ -131,4 +133,76 @@ test("Hard against Medium is held to the Hard-beats-Medium gate: over 65%, exact
   assert.equal(checkGate(make(65, 100)).pass, false);
   assert.match(checkGate(make(70, 100)).line, /Hard beats Medium in 70\.0% of games \(needs over 65%\): PASS/);
   assert.equal(checkGate(tallyArena("hard", "easy", [game("lio", "lio")])), null);
+});
+
+// Decision 8's third gate (#695): no tier loses a game to its own Escalation crisis. Hand-made public events: a crisis
+// by `side` costing `value`, then the score move it made.
+const crisis = (side, value, from, to) => [
+  { kind: "escalationCrisis", side, value },
+  { kind: "scoreChanged", from, to },
+];
+const over = (winner, reason) => ({ kind: "over", winner, reason });
+
+test("a game lost at the track's end by the loser's own crisis counts against the loser", () => {
+  // SAE's crisis moves the score toward LIO, to the track's end: LIO wins, SAE blundered.
+  const events = [{ kind: "scoreChanged", from: 0, to: -15 }, ...crisis("sae", 3, -15, -18)];
+  assert.equal(ownBlunder(over("lio", "trackEnd"), events, -18), "sae");
+});
+
+test("a game lost at the turn limit counts when the loser's own crises cost at least the final margin", () => {
+  // LIO won by 2; SAE's own crises cost 2 (1 + 1), so without them it would have been even.
+  const events = [...crisis("sae", 1, 0, -1), { kind: "scoreChanged", from: -1, to: 1 }, ...crisis("sae", 1, 1, 0)];
+  assert.equal(ownBlunder(over("lio", "turnLimitReached"), events, -2), "sae");
+});
+
+test("a game lost to the rival's crisis does not count", () => {
+  // SAE won; the only crisis was SAE's own (it cost SAE 2), so LIO, the loser, made none.
+  assert.equal(ownBlunder(over("sae", "turnLimitReached"), crisis("sae", 2, 6, 4), 4), null);
+  const events = [...crisis("sae", 2, 10, 8), { kind: "scoreChanged", from: 8, to: 18 }];
+  assert.equal(ownBlunder(over("sae", "trackEnd"), events, 18), null);
+});
+
+test("a game where the loser's crisis cost less than the final margin does not count", () => {
+  assert.equal(ownBlunder(over("lio", "turnLimitReached"), crisis("sae", 1, 0, -1), -4), null);
+  // At the track's end, an earlier crisis does not count when the last move was not a crisis.
+  const events = [...crisis("sae", 3, -10, -13), { kind: "scoreChanged", from: -13, to: -18 }];
+  assert.equal(ownBlunder(over("lio", "trackEnd"), events, -18), null);
+});
+
+test("draws, resignations and timeouts never count as a blunder", () => {
+  const events = crisis("sae", 5, 0, -5);
+  assert.equal(ownBlunder({ kind: "over", winner: null, reason: "turnLimitReached" }, events, 0), null);
+  assert.equal(ownBlunder(over("lio", "resigned"), events, -5), null);
+  assert.equal(ownBlunder(over("lio", "timeout"), events, -5), null);
+});
+
+test("the tally counts each tier's games lost to its own crisis, by the side it sat on", () => {
+  const tally = tallyArena("medium", "easy", [
+    game("lio", "lio", 10, "sae"), // Easy (SAE) lost to its own crisis
+    game("sae", "lio", 10, "sae"), // Medium (SAE) lost to its own crisis
+    game("lio", "sae", 10, "lio"), // Medium (LIO) lost to its own crisis
+    game("lio", "lio"),
+  ]);
+  assert.deepEqual(tally.blunders, { medium: 2, easy: 1 });
+  assert.deepEqual(tallyArena("easy", "easy", [game("lio", "lio", 10, "sae")]).blunders, { easy: 1 });
+});
+
+test("one game a tier lost to its own crisis fails the run, and the report prints the count per tier", () => {
+  const clean = tallyArena("medium", "easy", [game("lio", "lio"), game("sae", "sae")]);
+  assert.equal(checkBlunders(clean).pass, true);
+  const one = tallyArena("medium", "easy", [game("lio", "lio"), game("sae", "lio", 10, "sae")]);
+  const result = checkBlunders(one);
+  assert.equal(result.pass, false);
+  assert.match(result.line, /games lost that way: Medium 1, Easy 0\): FAIL/);
+  assert.equal(checkBlunders(tallyArena("medium", "easy", [])), null);
+  const text = formatArena({
+    a: "medium",
+    b: "easy",
+    seed: "s",
+    scenario: "test-map",
+    tally: one,
+    gate: checkGate(one),
+    blunderGate: result,
+  });
+  assert.match(text, /Medium 1, Easy 0\): FAIL/);
 });
