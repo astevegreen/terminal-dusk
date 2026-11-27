@@ -26,7 +26,7 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   `e3-neu-002.test.ts`. [26 Nov 2026, agy on #634]
 - The tutorial's Contingency chapter (`docs/design/tutorial.md`, chapter 4) can't fix the number drawn: only the
   draw pile's top is stacked (`Setup.deckTop`, #637). If the approved coaching needs a known draw, it needs a small
-  engine task (a `contingencyTop`); until then the coaching must read right for any number. [27 Nov 2026,
+  engine task (a `contingencyTop`); until then the coaching must read right for any number, and for LIO's redraw of a 1 (Resilient institutions). [27 Nov 2026,
   architect on the tutorial chain]
 
 ## App, host and server
