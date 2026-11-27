@@ -16,7 +16,7 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - The Hard AI wins 60% as LIO against Hard as SAE on the six-region map (60-38, 2 draws; `node tools/balance/run.mjs
 --scenario six-region --lio-tier hard --sae-tier hard --games 50 --seed hh6r-<1..2>` at b9af85e), while Medium
   against Medium is 47%. Find what Hard does less well as SAE (`packages/ai/src/`), like #628 did for Unified
-  command; the run's per-card tables and its 4 tech race attempts in 100 games are a start.
+  command; the run's per-card tables and its tech race attempts (SAE 4, LIO 0 in 100 games) are a start.
   [27 Nov 2026, balance re-measure; owner kept the numbers]
 - `docs/design/map-and-points.md` ("Map numbers", Open) still says the scenario data has not been changed to the
   21 Nov rules; the scenario is `packages/content/scenarios/base-game.json` since #575. Fix it at the next Notion
