@@ -72,7 +72,8 @@ const namesSide = (answer: Answer): boolean =>
 // A timeout is the host's deadline job saying `side` was late, so `side` must be the one being waited for.
 // A timeout for "both" is a draw: both sides have a decision waiting (one simultaneous pick neither has made, or two
 // waits at once, #616), or the host names in `covered` a side it played for this turn that has nothing waiting
-// while the other side is late (#605).
+// while the other side is late (#605), or names in `stuck` a late side with a decision waiting that its stand-in
+// could not answer (#629; owner, 26 Nov 2026: "Draw on time").
 function applySystem(state: GameState, answer: Extract<Answer, { system: string }>): Applied {
   let reason: string;
   if (answer.system === "resign") reason = "resigned";
@@ -94,6 +95,8 @@ function applySystem(state: GameState, answer: Extract<Answer, { system: string 
 function timeoutWaiting(state: GameState, answer: Extract<Answer, { system: "timeout" }>): boolean {
   if (answer.side !== "both") return pendingFor(state, answer.side) !== null;
   if (bothWaiting(state)) return true;
+  if ("stuck" in answer)
+    return SIDES.includes(answer.stuck as Side) && pendingFor(state, answer.stuck as Side) !== null;
   return coveredDraw(state, "covered" in answer ? answer.covered : undefined);
 }
 

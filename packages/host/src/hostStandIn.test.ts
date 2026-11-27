@@ -1,7 +1,8 @@
 // The stand-in's two edges under "defaultAnswer" (#616, Decision (architect) there): reaching its answer limit
-// saves what it made and carries on next sweep; finding no legal answer parks the match instead of refusing.
-import { legalAnswers, pendingFor } from "@terminal-dusk/engine";
-import { describe, expect, it } from "vitest";
+// saves what it made and carries on next sweep; finding no legal answer ends the game in a draw on time (owner,
+// 26 Nov 2026, in chat: "Draw on time"; #629).
+import { pendingFor } from "@terminal-dusk/engine";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { hostDeadline } from "./hostDeadline.ts";
 import { standIn } from "./hostStandIn.ts";
 import { clockOf, DAY, lioToPlay, startedWith, swept } from "./test/clock.ts";
@@ -14,6 +15,27 @@ import type { HostResult } from "./types.ts";
 const LIO_DUE = NOW + 2 + DAY;
 /** LIO's deadline for the opening pick, which it got at NOW. */
 const PICK_DUE = NOW + DAY;
+/**
+ * While `noAnswer` is true, the default answer finds nothing: the bug the no-answer tests stand for. `answersLeft`,
+ * when set, lets that many default answers through before `noAnswer` turns on.
+ */
+const bug = vi.hoisted(() => ({ noAnswer: false, illegal: false, answersLeft: null as number | null }));
+vi.mock("./defaultAnswer.ts", async (actual) => {
+  const real = await actual<typeof import("./defaultAnswer.ts")>();
+  return {
+    ...real,
+    defaultAnswer: (...args: Parameters<typeof real.defaultAnswer>) => {
+      if (bug.answersLeft !== null && bug.answersLeft-- <= 0) bug.noAnswer = true;
+      if (bug.noAnswer) return null;
+      return bug.illegal ? { kind: "realign", country: "nowhere" } : real.defaultAnswer(...args);
+    },
+  };
+});
+afterEach(() => {
+  bug.noAnswer = false;
+  bug.illegal = false;
+  bug.answersLeft = null;
+});
 const answersAdded = (from: HostResult, to: HostResult): number => to.secret.log.length - from.secret.log.length;
 
 describe("the stand-in at its answer limit", () => {
@@ -40,36 +62,50 @@ describe("the stand-in at its answer limit", () => {
 });
 
 describe("the stand-in with no legal answer (only possible through a bug)", () => {
-  /** lioToPlay with LIO's hand emptied, so its play decision has no legal answer. */
+  /** lioToPlay, with the default answer finding nothing for LIO's play decision from now on. */
   function noAnswer(): HostResult {
-    const host = lioToPlay("defaultAnswer");
-    const state = host.secret.state;
-    const empty = { ...state, private: { ...state.private, lio: { ...state.private.lio, hand: [] } } };
-    const stuck = deepFreeze({ ...host, secret: { ...host.secret, state: empty } });
-    if (pendingFor(empty, "lio") === null || legalAnswers(ruleset, empty, "lio").length > 0) {
-      throw new Error("expected a decision with no legal answer");
-    }
-    return stuck;
+    const host = deepFreeze(lioToPlay("defaultAnswer"));
+    bug.noAnswer = true;
+    return host;
   }
 
-  it("parks the match: seq, state and log stay the same, and the late side's deadline is cleared", () => {
+  it("ends the game in a draw on time, recorded in the log as the host's word that it could not move", () => {
     const host = noAnswer();
     const before = JSON.stringify(host);
-    const parked = swept(host, LIO_DUE);
+    const drawn = swept(host, LIO_DUE);
     expect(JSON.stringify(host)).toBe(before);
-    expect(parked.record.seq).toBe(host.record.seq);
-    expect(parked.record.status).toEqual(host.record.status);
-    expect(parked.secret).toEqual(host.secret);
-    expect(clockOf(parked).deadlines.lio).toBeNull();
-    expect(clockOf(parked).covering).toEqual(clockOf(host).covering);
-    expect(parked.record.updatedAt).toBe(LIO_DUE);
-    expect(parked.frames.spectator.standIn).toBeUndefined();
-    expect(parked.effects.filter((e) => "notify" in e)).toEqual([]);
+    expect(drawn.record.status).toEqual({ kind: "over", winner: null, reason: "timeout" });
+    expect(drawn.secret.state.public.status).toEqual({ kind: "over", winner: null, reason: "timeout" });
+    expect(drawn.record.seq).toBe(host.record.seq + 1);
+    expect(drawn.secret.log).toEqual([...host.secret.log, { system: "timeout", side: "both", stuck: "lio" }]);
+    expect(drawn.record.updatedAt).toBe(LIO_DUE);
   });
 
-  it("a parked match is not due again, so later sweeps leave it alone", () => {
-    const parked = swept(noAnswer(), LIO_DUE);
-    const again = hostDeadline(ruleset, parked.record, parked.secret, LIO_DUE + DAY);
-    expect(again.ok ? "ok" : again.error.code).toBe("notDue");
+  it("a default answer the engine refuses is a draw on time too", () => {
+    const host = deepFreeze(lioToPlay("defaultAnswer"));
+    bug.illegal = true;
+    const drawn = swept(host, LIO_DUE);
+    expect(drawn.record.status).toEqual({ kind: "over", winner: null, reason: "timeout" });
+    expect(drawn.secret.log).toEqual([...host.secret.log, { system: "timeout", side: "both", stuck: "lio" }]);
+  });
+
+  it("a failure after some answers saves those answers, and the next sweep ends the game in a draw on time", () => {
+    // SAE makes its opening pick; LIO, absent, owes its pick and then its play. Only the pick can be answered.
+    const start = startedWith("defaultAnswer");
+    const host = deepFreeze(accept(start, submissionFor(start, "sae"), NOW + 1));
+    bug.answersLeft = 1;
+    const part = swept(host, PICK_DUE);
+    expect(answersAdded(host, part)).toBe(1);
+    expect(part.record.status).toEqual({ kind: "active" });
+    expect(pendingFor(part.secret.state, "lio")).not.toBeNull();
+    const drawn = swept(part, PICK_DUE);
+    expect(drawn.record.status).toEqual({ kind: "over", winner: null, reason: "timeout" });
+    expect(drawn.secret.log).toEqual([...part.secret.log, { system: "timeout", side: "both", stuck: "lio" }]);
+  });
+
+  it("a drawn match is over, so later sweeps leave it alone", () => {
+    const drawn = swept(noAnswer(), LIO_DUE);
+    const again = hostDeadline(ruleset, drawn.record, drawn.secret, LIO_DUE + DAY);
+    expect(again.ok ? "ok" : again.error.code).toBe("gameOver");
   });
 });

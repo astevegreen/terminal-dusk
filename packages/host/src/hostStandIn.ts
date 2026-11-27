@@ -2,10 +2,10 @@
 // covered side's decisions with the default answer, one after another, and saves them as one step.
 import { apply, pendingFor } from "@terminal-dusk/engine";
 import type { Answer, GameEvent, GameState, Ruleset, Side } from "@terminal-dusk/engine";
-import { deadlineEffects } from "./clock.ts";
 import { defaultAnswer } from "./defaultAnswer.ts";
-import { copyJson, framesFor } from "./frames.ts";
+import { copyJson } from "./frames.ts";
 import { commitSteps } from "./hostAccept.ts";
+import { hostTimeout } from "./hostTimeout.ts";
 import type { Frame, HostOutcome, MatchClock, MatchRecord, MatchSecret } from "./types.ts";
 
 /**
@@ -17,9 +17,9 @@ export const STAND_IN_LIMIT = 64;
 /**
  * Covers `side` for the turn now being played and answers its waiting decisions with the default answer until it
  * has none waiting, the turn number rises, the game ends or `limit` answers are made. Every frame is marked with
- * the covered side. When the very first answer cannot be made (no legal answer, only possible through a bug), the
- * match is parked instead: seq, state and log stay the same and the side's deadline is cleared, so the sweep stops
- * picking it up (#616). `clock` is the record's valid clock. Never changes its inputs.
+ * the covered side. When the very first answer cannot be made (no legal answer, or one the engine refuses: only
+ * possible through a bug), the game ends in a draw on time, logged as `{ system: "timeout", side: "both", stuck }`
+ * (owner, 26 Nov 2026, in chat: "Draw on time"; #629). `clock` is the record's valid clock. Never changes its inputs.
  */
 export function standIn(
   ruleset: Ruleset,
@@ -42,8 +42,8 @@ export function standIn(
     const answer = nextAnswer(ruleset, state, side);
     const result = answer === null ? null : apply(ruleset, state, answer);
     if (answer === null || result === null || !result.ok) {
-      if (log.length === secret.log.length) return park(record, secret, clock, side, now);
-      break; // save what was made; the next sweep parks it
+      if (log.length === secret.log.length) return hostTimeout(ruleset, record, secret, "both", now, { stuck: side });
+      break; // save what was made; the next sweep draws it
     }
     state = result.value.state;
     events.push(...result.value.events);
@@ -68,20 +68,4 @@ function nextAnswer(ruleset: Ruleset, state: GameState, side: Side): Answer | nu
   const decision = pendingFor(state, side);
   const value = defaultAnswer(ruleset, state, side);
   return decision === null || value === null ? null : { decisionId: decision.id, side, value };
-}
-
-/** Leaves the match as it is but clears `side`'s deadline, so no sweep picks it up again (#616). */
-function park(record: MatchRecord, secret: MatchSecret, clock: MatchClock, side: Side, now: number): HostOutcome {
-  const next: MatchClock = copyJson(clock);
-  next.deadlines[side] = null;
-  const updated: MatchRecord = { ...copyJson(record), updatedAt: now, clock: next };
-  return {
-    ok: true,
-    value: {
-      record: updated,
-      secret: copyJson(secret),
-      frames: framesFor(record.matchId, secret.state, []),
-      effects: deadlineEffects(updated),
-    },
-  };
 }
