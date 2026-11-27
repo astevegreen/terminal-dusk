@@ -13,23 +13,14 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## Rules engine and content
 
-- The six-region track start of 7 towards SAE (#515, #600) was tuned with Hard against Hard on 21 Nov, before the
-  abilities (#610). Medium against Medium at that start (`node tools/balance/run.mjs --scenario six-region
---lio-tier medium --sae-tier medium --games 50 --seed mm6r-<1..4>`, 200 games): on 26 Nov at ae2a917, abilities
-  on, LIO 133, SAE 62, 5 draws (LIO 66.5%); both abilities off, LIO 106, SAE 94 (53%); SAE bonus 2, LIO 122, SAE
-  76, 2 draws (61%). Hard against Hard, abilities on (50 games, hh6r-1): LIO 33, SAE 17. After the AI played for
-  Unified command (#628), abilities on: LIO 94, SAE 102, 4 draws (LIO 47%); Hard against Hard not re-run. Retune
-  decided after the AI fix's re-measure, owner, 26 Nov: "Fix AI first"; the owner chooses the lever
-  (`map.scoring.track.start` in `packages/content/scenarios/six-region-map.json`, or the abilities' numbers), if
-  one is still needed. [21 Nov 2026, #515 balance pass; 26 Nov 2026, #628]
+- The Hard AI wins 60% as LIO against Hard as SAE on the six-region map (60-38, 2 draws; `node tools/balance/run.mjs
+--scenario six-region --lio-tier hard --sae-tier hard --games 50 --seed hh6r-<1..2>` at b9af85e), while Medium
+  against Medium is 47%. Find what Hard does less well as SAE (`packages/ai/src/`), like #628 did for Unified
+  command; the run's per-card tables and its 4 tech race attempts in 100 games are a start.
+  [27 Nov 2026, balance re-measure; owner kept the numbers]
 - `docs/design/map-and-points.md` ("Map numbers", Open) still says the scenario data has not been changed to the
   21 Nov rules; the scenario is `packages/content/scenarios/base-game.json` since #575. Fix it at the next Notion
   promotion. [21 Nov 2026, #575]
-- The abilities' numbers (SAE's 1 more, LIO's once per turn) wait on a Medium-against-Medium balance run that shows
-  whether either ability tips the game (`docs/design/sides.md`); report it to the owner, who decides. The six-region
-  runs (item above): with the AI playing for Unified command (#628), abilities on gives LIO 47% (94-102, 4 draws)
-  against 53% with both off, from 66.5% before the fix. Owner, 26 Nov: "Fix AI first"; the numbers wait on the
-  owner's read of the re-measure. [26 Nov 2026, owner's answer in chat; #628]
 - e2-neu-003's `madeFor: "lio"` mark has no card story that fails without it: add one where SAE plays with
   Resilient institutions and LIO's 1 from SAE's deck stands, like the mirror stories in `e3-neu-001.test.ts` and
   `e3-neu-002.test.ts`. [26 Nov 2026, agy on #634]

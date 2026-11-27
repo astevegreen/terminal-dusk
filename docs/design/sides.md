@@ -29,8 +29,11 @@ of truth; change it in Notion and promote again. The special abilities were deci
   - **SAE: Unified command.** After SAE plays one of its own cards for its event, the next card SAE plays for its
     action points in the same turn counts 1 more. Only card plays after the opening cards count: an SAE opening
     card does not set it up (owner, 21 Nov 2026, in chat).
-  - The numbers in them (SAE's 1 more, LIO's once per turn) stand for now (owner, 26 Nov 2026, in chat). They are
-    reviewed once a Medium-against-Medium balance run shows whether either ability tips the game.
+  - The numbers in them (SAE's 1 more, LIO's once per turn) stand (owner, 27 Nov 2026, in chat: "Keep both").
+    The Medium-against-Medium run on the six-region map, with the AI playing for Unified command (#628), gave LIO
+    94, SAE 102, 4 draws (LIO 47%, 200 games); both abilities off it was 53%. Hard against Hard gave LIO 60%
+    (60-38, 2 draws, 100 games, seeds hh6r-1 and hh6r-2 at b9af85e), read as the Hard AI playing SAE less well
+    than LIO, an AI task rather than a rules change.
 - Both abilities are automatic: the player never chooses to use them. They are deliberately different in kind.
 - Both players can always see each side's ability, and whether it was used this turn.
 - The abilities are "fixed per scenario" (owner): the same two in every scenario for now. The scenario data names
