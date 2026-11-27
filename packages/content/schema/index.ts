@@ -4,6 +4,7 @@
 import { cardSchema } from "./card.ts";
 import { erasSchema } from "./eras.ts";
 import { scenarioSchema } from "./scenario.ts";
+import { lessonSchema } from "./tutorial.ts";
 
 /** One problem found in a content file: where (a path into the JSON) and what is wrong. */
 export type ContentIssue = { readonly path: readonly PropertyKey[]; readonly message: string };
@@ -17,4 +18,5 @@ export const schemas: Readonly<Record<string, ContentSchema>> = {
   cards: cardSchema,
   eras: erasSchema,
   scenarios: scenarioSchema,
+  tutorial: lessonSchema,
 };
