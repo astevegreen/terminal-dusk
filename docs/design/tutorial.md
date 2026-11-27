@@ -73,7 +73,9 @@ The coaching shows the quoted lines in this order.
 game as it is played). SAE's play is not scripted, so the game can differ from the lines as written: Handover of
 Hong Kong's points can clear Taiwan, and cards such as Rwandan Genocide make spends smaller for a turn. So every
 number of points and every place a line quotes is filled in from the game at the moment the line shows. Chapter
-1's "(Taiwan)" names the countries where LIO then has influence, and reads "(none now)" if there are none. The
+1's "(Taiwan)" names the countries where LIO then has influence. If there are none, the line drops its
+own-influence part and reads "You can place next to the United States (Mexico, Cuba, Canada)." (owner, 27 Nov
+2026, in chat: "1", to dropping that part). The
 points use what the play really has: for example chapter 2's "4 to spend", chapter 3's arithmetic, chapter 4's "4
 points" and the result it gives, chapter 5's "2 points" and chapter 6's "All 3 points". The rest of each line stays
 as written.
