@@ -68,6 +68,17 @@ describe("a failing fuzz game is played again from its record", () => {
     expect(secondRun(ruleset, playFuzzGame(1).record, "something else")).toMatch(/^NOT REPEATED/);
   });
 
+  it("the same message at a different answer is not the same failure", () => {
+    const message = reportOf(() => playRecorded("bad answer", badRecord))
+      .split("): ")[1]!
+      .split("\n")[0]!;
+    // Recorded as failing at answer 2, the same refusal comes back at answer 1 instead.
+    const twice: GameRecord = { ...badRecord, answers: [bad, bad] };
+    expect(secondRun(ruleset, twice, message)).toBe(
+      "played again from its record it fails with the same message, but at answer 1, not at answer 2",
+    );
+  });
+
   it("a failure while picking an answer is not played again, and says so", () => {
     const { setup, seed } = randomGame(seededRng(5), 5);
     const report = reportOf(() =>

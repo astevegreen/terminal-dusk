@@ -57,4 +57,20 @@ describeCard("e1-neu-003", "Ruble Default", [
       points:sae:1
     `,
   },
+  {
+    // SAE's draw, from LIO's deck, is made for SAE: LIO's Resilient institutions, still unused, never redraws its 1
+    // (owner, 26 Nov 2026: "No redraw"; contingency-deck.md, "Whose bonuses apply"). A redraw would give 3.
+    it: "when LIO plays it with Resilient institutions and SAE says yes: SAE's 1 from LIO's deck stands",
+    resilient: true,
+    yes: { sae: true },
+    draws: [1, 3],
+    story: `
+      default
+      draw:lio:1
+      mod:sae:-1:min1
+      points:sae:1
+      points:lio:2
+      points:sae:1
+    `,
+  },
 ]);
