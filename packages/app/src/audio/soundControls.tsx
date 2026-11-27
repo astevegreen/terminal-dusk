@@ -4,7 +4,7 @@ import { createContext, memo, useContext, useSyncExternalStore } from "react";
 import type { CSSProperties } from "react";
 import type { SoundSettings } from "./soundSettings.ts";
 
-/** The app's sound setting (main.tsx). A screen drawn without one has no sound controls. */
+/** The app's sound setting (appRoot.tsx). A screen drawn without one has no sound controls. */
 export const SoundSettingsContext = createContext<SoundSettings | null>(null);
 
 type ToggleProps = Readonly<{
@@ -26,7 +26,7 @@ export function MuteToggle({ muted, onChange, className, style }: ToggleProps) {
 export function VolumeSlider({ volume, onChange }: Readonly<{ volume: number; onChange: (volume: number) => void }>) {
   return (
     <label style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-      Volume
+      Volume{" "}
       <input
         type="range"
         min={0}

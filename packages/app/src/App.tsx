@@ -3,12 +3,14 @@
 // controls (#646), and the tutorial (#642). The AI games, the tutorial and test mode need no account; only Play online asks to sign in.
 import { ERA_1_FREE_BUTTON } from "@terminal-dusk/host/first-deck";
 import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import { HomeSound } from "./audio/soundControls.tsx";
 import { OnlineScreen } from "./online/OnlineScreen.tsx";
 import { WatchScreen } from "./online/watch/WatchScreen.tsx";
 import { cardAffiliation as fixtureAffiliation, cardName, cardQuestion } from "./testMode/fixture.ts";
 import type { OnlineSetup } from "./online/OnlineScreen.tsx";
 import { pointsOf } from "./displayText.ts";
+import type { SignIn } from "./online/signIn.ts";
 import { realTimers } from "./online/timers.ts";
 import type { Timers } from "./online/timers.ts";
 import type { KeyValueStore } from "./platform/storage.ts";
@@ -21,7 +23,7 @@ import type { VsAiGame } from "./vsAi/VsAiScreen.tsx";
 
 export type AppProps = {
   clock: () => number;
-  /** A fresh game seed. Seeds are made only in main.tsx (hard rule 8) and never shown. */
+  /** A fresh game seed. Seeds are made only in appRoot.tsx (hard rule 8) and never shown. */
   newSeed: () => string;
   /** A fresh seed for the AI's noise. */
   newAiSeed: () => number;
@@ -33,14 +35,20 @@ export type AppProps = {
   freeGame?: VsAiGame;
   /** The optional 2025-2027 game against the AI (#601); the same as `game` when left out. */
   futureGame?: VsAiGame;
+  /** What a free player gets for the two games on a map (#686); the same as `freeGame` when left out. */
+  freeMapGame?: VsAiGame;
   /** Where the AI's difficulty is kept between visits (Platform.storage); left out, it is not kept. */
   store?: KeyValueStore;
   /** Supabase Auth and the session store; left out when this build has no online play set up. */
   online?: OnlineSetup;
   /** The player's owned copies of the Full Game and the platform they are checked against; left out, the player is
-   *  free (#647). main.tsx passes none until web checkout (phase 6). */
+   *  free (#647). EntitledApp passes what it has read for the signed-in player (#686). */
   entitlements?: OwnedEntitlements;
-  /** The timers an online game polls with; main.tsx passes the real ones, which are also the default. */
+  /** The sign-in session the online screen shares; left out, that screen makes its own. */
+  signIn?: SignIn;
+  /** What the home screen and the side picker say about the check of `entitlements`. */
+  notice?: ReactNode;
+  /** The timers an online game polls with; appRoot.tsx passes the real ones, which are also the default. */
   timers?: Timers;
   /** The match id from a watch link (`?watch=<id>`): opens that game as a spectator instead of the home screen. */
   watch?: string;
@@ -58,18 +66,23 @@ export function App({
   mapGame,
   freeGame,
   futureGame,
+  freeMapGame,
   store,
   online,
   entitlements,
+  signIn,
+  notice,
   timers = realTimers,
   watch,
 }: Readonly<AppProps>) {
   const [screen, setScreen] = useState<"home" | Screen>("home");
   const [watching, setWatching] = useState(watch ?? null);
-  // Kept between renders: a game against the AI starts again when the game it is given changes.
+  const edition = tutorialEdition(entitlements);
+  const owns = edition === "full";
+  // Kept between renders, so a screen is handed a new game only when what the player gets changes.
   const aiGames = useMemo(
-    () => vsAiGames({ game, mapGame, freeGame, futureGame }),
-    [game, mapGame, freeGame, futureGame],
+    () => playerGames({ game, mapGame, freeGame, futureGame, freeMapGame }, owns),
+    [game, mapGame, freeGame, futureGame, freeMapGame, owns],
   );
   if (watching !== null && online) {
     const play = {
@@ -97,28 +110,41 @@ export function App({
         newAiSeed={newAiSeed}
         {...(played ? { game: played } : {})}
         {...(store ? { store } : {})}
+        notice={notice}
       />
     );
   }
-  if (screen === "online") return onlineRoute({ clock, game, online, timers }, () => setScreen("home"));
-  return <Home onPick={setScreen} />;
+  if (screen === "online") return onlineRoute({ clock, game, online, signIn, timers }, () => setScreen("home"));
+  return <Home onPick={setScreen} notice={notice} />;
 }
 
-/**
- * The game each screen against the AI plays: its own, or `game` when it has none. Only the free game's screen ends with
- * the Full Game offer (#668), and it stays the free game for everyone: owners get the Full Game with phase 6.
- */
-export function vsAiGames({
-  game,
-  mapGame,
-  freeGame,
-  futureGame,
-}: Readonly<{
+/** The games the app is given, any of them possibly left out. */
+type GivenGames = Readonly<{
   game?: VsAiGame | undefined;
   mapGame?: VsAiGame | undefined;
   freeGame?: VsAiGame | undefined;
   futureGame?: VsAiGame | undefined;
-}>) {
+  freeMapGame?: VsAiGame | undefined;
+}>;
+
+/**
+ * The game each screen against the AI plays for this player (#686). An owner of the Full Game gets each screen's own
+ * game and no offer; the free game's screen is still the Era 1 game. A free player gets an Era 1 game on every screen,
+ * on the six-region map where the screen's game has a map, and each ends with the Full Game offer.
+ */
+export function playerGames(given: GivenGames, owns: boolean) {
+  const games = vsAiGames(given);
+  if (owns) return { ...games, vsAiFree: games.vsAiFree && { ...games.vsAiFree, offerFullGame: false } };
+  const free = games.vsAiFree;
+  const freeMap = given.freeMapGame ? { ...given.freeMapGame, offerFullGame: true } : free;
+  return { vsAi: free, vsAiMap: freeMap, vsAiFree: free, vsAiFuture: freeMap };
+}
+
+/**
+ * The game each screen has: its own, or `game` when it has none. The free game's screen ends with the Full Game offer
+ * (#668); playerGames decides who plays which.
+ */
+export function vsAiGames({ game, mapGame, freeGame, futureGame }: GivenGames) {
   const free = freeGame ?? game;
   return {
     vsAi: game,
@@ -151,13 +177,21 @@ export function onlineRoute(
     clock,
     game,
     online,
+    signIn,
     timers,
-  }: Readonly<{ clock: () => number; game?: VsAiGame | undefined; online?: OnlineSetup | undefined; timers: Timers }>,
+  }: Readonly<{
+    clock: () => number;
+    game?: VsAiGame | undefined;
+    online?: OnlineSetup | undefined;
+    signIn?: SignIn | undefined;
+    timers: Timers;
+  }>,
   onBack: () => void,
 ) {
   return (
     <OnlineScreen
       online={online}
+      signIn={signIn}
       clock={clock}
       timers={timers}
       label={game?.cardName}
@@ -171,10 +205,11 @@ export function onlineRoute(
 }
 
 /** The home screen's buttons; `onPick` opens the chosen screen. */
-export function Home({ onPick }: Readonly<{ onPick: (screen: Screen) => void }>) {
+export function Home({ onPick, notice }: Readonly<{ onPick: (screen: Screen) => void; notice?: ReactNode }>) {
   return (
     <main>
       <h1>Terminal Dusk</h1>
+      {notice}
       <button type="button" style={TAP} onClick={() => onPick("vsAiMap")}>
         Play the six-region map
       </button>

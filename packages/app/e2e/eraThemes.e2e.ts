@@ -8,6 +8,7 @@
 import { expect, test } from "@playwright/test";
 import type { Page, TestInfo } from "@playwright/test";
 import { answerOnce, yourDecision } from "./answer.ts";
+import { openOwnerGame } from "./start.ts";
 
 /** Each theme's furniture background, as its stylesheet in src/game/themes/ sets it. */
 const BACKGROUND: Readonly<Record<string, string>> = {
@@ -38,8 +39,7 @@ test("each era wears its own theme: the terminal, then the news desk, then the d
   page,
 }, testInfo) => {
   test.setTimeout(180_000);
-  await page.goto("/");
-  await page.getByRole("button", { name: "Play against the AI" }).click();
+  await openOwnerGame(page, "Play against the AI");
   await page.getByRole("button", { name: "Play as LIO" }).click();
   await expect(page.getByTestId("decision")).toBeVisible();
 

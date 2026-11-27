@@ -1,8 +1,8 @@
 // The online screen (docs/architecture.md, Decision 7, "Guest mode": sign-in only when going online). It
-// makes one sign-in session, reads the stored session on start and draws SignInView; once signed in it makes a
-// lobby session for that player and draws LobbyView, or the online game screen for the game opened from My games
-// or just joined. With no `online` setup (a build without the Supabase settings) it shows the email step with
-// Send code off.
+// takes the app's sign-in session, or makes one, reads the stored session on start and draws SignInView; once signed
+// in it makes a lobby session for that player and draws LobbyView, or the online game screen for the game opened from
+// My games or just joined. With no `online` setup (a build without the Supabase settings) it shows the email step
+// with Send code off.
 import { useEffect, useState, useSyncExternalStore } from "react";
 import type { ReactElement } from "react";
 import type { CardId } from "@terminal-dusk/engine";
@@ -26,7 +26,8 @@ import { SignInView } from "./SignInView.tsx";
 
 /**
  * Where Supabase is (its Auth, Edge Functions and tables share the one project URL), where the session is kept,
- * the platform games are created on and how text reaches the clipboard; built in main.tsx.
+ * the platform games are created on (and entitlements checked against) and how text reaches the clipboard; built in
+ * main.tsx.
  */
 export type OnlineSetup = {
   auth: AuthEndpoint;
@@ -156,18 +157,22 @@ export function SignInFlow(props: Readonly<FlowProps>) {
   return onlineStep(snapshot, props);
 }
 
-function SetUpFlow({ online, onBack, ...setup }: Readonly<PlaySetup & { online: OnlineSetup; onBack: () => void }>) {
+type SetUpProps = PlaySetup & { online: OnlineSetup; signIn?: SignIn | undefined; onBack: () => void };
+
+function SetUpFlow({ online, signIn: given, onBack, ...setup }: Readonly<SetUpProps>) {
   // Made once, so the sign-in, the lobby and each game below keep the same setup across renders.
   const [play] = useState<PlaySetup>(() => setup);
-  const [signIn] = useState(() => createSignIn({ auth: online.auth, store: online.store, now: play.clock }));
+  const [signIn] = useState(() => given ?? createSignIn({ auth: online.auth, store: online.store, now: play.clock }));
   return <SignInFlow online={online} signIn={signIn} play={play} onBack={onBack} />;
 }
 
 export type OnlineScreenProps = {
   /** Left out when this build has no online play set up. */
   online?: OnlineSetup | undefined;
+  /** The app's sign-in session, so signing in or out here is seen by the whole app (#686); left out, one is made. */
+  signIn?: SignIn | undefined;
   clock: () => number;
-  /** The timers an online game polls with: the real ones from main.tsx, fake ones in tests. */
+  /** The timers an online game polls with: the real ones from appRoot.tsx, fake ones in tests. */
   timers: Timers;
   /** How cards are named and asked about; the developer fixture's when left out, as for the game against the AI. */
   label?: ((id: CardId) => string) | undefined;
@@ -183,6 +188,7 @@ export type OnlineScreenProps = {
 
 export function OnlineScreen({
   online,
+  signIn,
   clock,
   timers,
   label = cardName,
@@ -196,6 +202,7 @@ export function OnlineScreen({
   return (
     <SetUpFlow
       online={online}
+      signIn={signIn}
       clock={clock}
       timers={timers}
       label={label}

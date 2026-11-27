@@ -3,20 +3,20 @@
 import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { answerOnce, yourDecision } from "./answer.ts";
+import { openOwnerGame } from "./start.ts";
 
 const FIRST_DECK_NOTE =
   "First deck, the base game: 10 turns. The Thaw (Era 1) starts, The Shock (Era 2) joins on turn 4, The Fracture (Era 3) on turn 6";
 
 /**
- * Plays a game against the Easy AI as LIO to its end and returns the end screen's "Game over: ..." line: the first
- * deck (which has no map), or with `map` the six-region map.
+ * Plays a full game, as an owner, against the Easy AI as LIO to its end and returns the end screen's "Game over: ..."
+ * line: the first deck (which has no map), or with `map` the six-region map.
  */
 export async function playToGameOver(page: Page, map?: "six-region"): Promise<string> {
-  await page.goto("/");
   if (map === "six-region") {
-    await page.getByRole("button", { name: "Play the six-region map" }).click();
+    await openOwnerGame(page, "Play the six-region map");
   } else {
-    await page.getByRole("button", { name: "Play against the AI" }).click();
+    await openOwnerGame(page, "Play against the AI");
     await expect(page.getByText(FIRST_DECK_NOTE, { exact: true })).toBeVisible();
   }
   await page.getByRole("radio", { name: "Easy" }).check();
