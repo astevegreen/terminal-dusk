@@ -92,13 +92,15 @@ describe("the AI and the tech race", () => {
     expect(attempts).toBeGreaterThan(0);
   });
 
+  // Runs Medium over every tech race menu in Easy's games, so its cost follows the games' shape (#664 made them
+  // longer); the CI runner is slower when every package's tests run at once.
   it("Medium never makes an attempt its own deck cannot win", () => {
     for (const menu of MENUS) {
       const side = techMenuSide(menu)!;
       const hopeless = withDeck(menu, side, [1, 2, 3]);
       for (let seed = 1; seed <= 3; seed++) expect(isAttempt(medium(hopeless, side, seed))).toBe(false);
     }
-  });
+  }, 30_000);
 
   it("Medium values an attempt more the better its odds", () => {
     // The first SAE menu: Medium does not yet value the odds of LIO's attempts (#675, which adds a LIO case).
@@ -150,6 +152,8 @@ describe("the AI and the tech race", () => {
     expect(isAttempt(choice(10))).toBe(false);
   });
 
+  // Runs Medium over every tech race menu in Easy's games, so its cost follows the games' shape (#664 made them
+  // longer); the CI runner is slower when every package's tests run at once.
   it("Medium makes a sure attempt in every menu where placing influence is worth nothing", () => {
     // No crisis cost either, so a menu one step short of Hypersonics at Escalation 5 still counts (agy on #559).
     const worthless = { ...MEDIUM_WEIGHTS, region: 0, progress: 0, crisis: 0 };
@@ -158,7 +162,7 @@ describe("the AI and the tech race", () => {
       const sure = viewFor(withDeck(menu, side, [9, 9, 9]), side);
       expect(isAttempt(mediumAnswer(FIRST_DECK_RULESET, sure, side, worthless, seededRandom(1)))).toBe(true);
     }
-  });
+  }, 30_000);
 
   it("Medium does not enter Hypersonics on its own attempt when that makes a crisis", () => {
     let checked = 0;
