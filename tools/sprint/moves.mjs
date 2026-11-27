@@ -1,6 +1,9 @@
 // `queue.mjs move <n> <state>`: the label changes and standard comment for each change of state, planned as
 // gh commands from a snapshot. A change the sprint doesn't allow comes back as { error, do }, where `do` is a
-// line the coordinator can act on. Nothing here runs gh; queue.mjs runs the planned commands in order.
+// line the coordinator can act on. planMove runs nothing; runMove runs a plan's commands in order. Labels, titles,
+// comments and review requests are REST calls (tools/github-rest.mjs), which cloud sessions can make; marking a pull
+// request ready or a draft and turning auto-merge on have no REST route, and a cloud session is refused them.
+import { addLabelsArgs, commentArgs, is403, removeLabelArgs, reviewRequestArgs, titleArgs } from "../github-rest.mjs";
 import {
   BLOCKED,
   HELD_CONFLICT,
@@ -20,6 +23,11 @@ const NEXT = "node tools/sprint/queue.mjs next <lane>";
 const has = (item, label) => item.labels.includes(label);
 const laneOf = (item) => item.labels.find((l) => l.startsWith("lane:")) ?? null;
 const refuse = (error, todo) => ({ error, do: todo });
+// A change of labels: the new ones first, so a run that stops half way never leaves an item without its state label.
+const relabel = (n, add, drop = []) => [
+  ...(add.length ? [addLabelsArgs(n, add)] : []),
+  ...drop.map((l) => removeLabelArgs(n, l)),
+];
 
 function issueMove(S, issue, state, { note }) {
   const n = String(issue.number);
@@ -35,20 +43,16 @@ function issueMove(S, issue, state, { note }) {
     if (has(issue, "in-progress"))
       return refuse(`#${n} is already in progress`, `Take the next job: ${NEXT}; it says whether this one is stale.`);
     const drop = ["blocked", ...(has(issue, readyLabel) ? [readyLabel] : [])];
-    steps.push(["issue", "edit", n, "--add-label", "in-progress", ...drop.flatMap((l) => ["--remove-label", l])]);
-    steps.push([
-      "issue",
-      "comment",
-      n,
-      "--body",
-      `Unblocked by the owner's answer; the ${lane ? "sprint" : "night shift"} builds it again.`,
-    ]);
+    steps.push(
+      ...relabel(n, ["in-progress"], drop),
+      commentArgs(n, `Unblocked by the owner's answer; the ${lane ? "sprint" : "night shift"} builds it again.`),
+    );
   } else if (state === "building") {
     if (has(issue, "in-progress"))
       return refuse(`#${n} is already in progress`, `Take the next job: ${NEXT}; it says whether this one is stale.`);
     if (!has(issue, readyLabel))
       return refuse(`#${n} has no ${readyLabel} label`, `Build only what \`next\` returns: ${NEXT}.`);
-    steps.push(["issue", "edit", n, "--add-label", "in-progress", "--remove-label", readyLabel]);
+    steps.push(...relabel(n, ["in-progress"], [readyLabel]));
   } else if (state === "ready") {
     if (!has(issue, "in-progress"))
       return refuse(`#${n} is not in progress, so there is nothing to re-queue`, `Take the next job: ${NEXT}.`);
@@ -62,27 +66,20 @@ function issueMove(S, issue, state, { note }) {
         `#${n} already has pull request #${pr.number}`,
         `Run: node tools/sprint/queue.mjs move ${n} waiting`,
       );
-    steps.push(["issue", "edit", n, "--remove-label", "in-progress", "--add-label", readyLabel]);
+    steps.push(...relabel(n, [readyLabel], ["in-progress"]));
     // With a note, a machine failure stopped the task: it is tried again after an hour, never left for the owner (P2).
     const body = note
       ? `${MACHINE} ${note.startsWith(MACHINE) ? note.slice(MACHINE.length).trim() : note} It retries by itself after ${RETRY_AFTER_MIN} minutes.`
       : `Re-queued by the ${lane ? "sprint" : "night shift"}: the previous ${lane ? "lane " : ""}session stopped.`;
-    steps.push(["issue", "comment", n, "--body", body]);
+    steps.push(commentArgs(n, body));
   } else if (state === "blocked") {
-    steps.push([
-      "issue",
-      "edit",
-      n,
-      "--add-label",
-      "blocked",
-      ...(has(issue, "in-progress") ? ["--remove-label", "in-progress"] : []),
-    ]);
-    if (note) steps.push(["issue", "comment", n, "--body", note.startsWith(BLOCKED) ? note : `${BLOCKED} ${note}`]);
+    steps.push(...relabel(n, ["blocked"], has(issue, "in-progress") ? ["in-progress"] : []));
+    if (note) steps.push(commentArgs(n, note.startsWith(BLOCKED) ? note : `${BLOCKED} ${note}`));
   } else {
     // An adopted ready issue leaves the ready queue as well.
     const drop = ["in-progress", readyLabel].filter((l) => has(issue, l));
-    if (drop.length) steps.push(["issue", "edit", n, ...drop.flatMap((l) => ["--remove-label", l])]);
-    if (lane && pr && !has(pr, lane)) steps.push(["pr", "edit", String(pr.number), "--add-label", lane]);
+    steps.push(...relabel(n, [], drop));
+    if (lane && pr && !has(pr, lane)) steps.push(addLabelsArgs(String(pr.number), [lane]));
   }
   return { steps };
 }
@@ -102,17 +99,13 @@ function prMove(S, pr, state, { note, conflict, rail, blocker }) {
       );
     if (pr.isDraft) steps.push(["pr", "ready", n]);
     const title = pr.title.replace(/^\[stacked on #\d+\]\s*/, "");
-    const edit = [
-      ...(title !== pr.title ? ["--title", title] : []),
-      ...addLabels.flatMap((l) => ["--add-label", l]),
-      ...(has(pr, "held") ? ["--remove-label", "held"] : []),
-    ];
-    if (edit.length) steps.push(["pr", "edit", n, ...edit]);
+    if (title !== pr.title) steps.push(titleArgs(n, title));
+    steps.push(...relabel(n, addLabels, has(pr, "held") ? ["held"] : []));
     // P1: [minor] concerns and agy's notes merge with the change, as a note on it.
-    if (note) steps.push(["pr", "comment", n, "--body", `Merging with notes (they hold nothing): ${note}`]);
+    if (note) steps.push(commentArgs(n, `Merging with notes (they hold nothing): ${note}`));
     steps.push(["pr", "merge", n, "--auto", "--squash"]);
     // A code-owned change waits for the owner; asking for the review gives the owner a review button.
-    if (pr.reviewRequired && !pr.reviewers?.includes(OWNER)) steps.push(["pr", "edit", n, "--add-reviewer", OWNER]);
+    if (pr.reviewRequired && !pr.reviewers?.includes(OWNER)) steps.push(reviewRequestArgs(n, OWNER));
   } else if (state === "held") {
     let flag = "--blocker";
     if (conflict) flag = "--conflict";
@@ -131,16 +124,11 @@ function prMove(S, pr, state, { note, conflict, rail, blocker }) {
         `If these are blockers (the reviewer's [blocker]s, or the blockers in agy's verdict), run: node tools/sprint/queue.mjs move ${n} held --blocker --note "<the blockers>". Leave the pull request as it is until then.`,
       );
     if (pr.isDraft && pr.base === "main") steps.push(["pr", "ready", n]);
-    steps.push([
-      "pr",
-      "edit",
-      n,
-      ...[...addLabels, ...(has(pr, "held") ? [] : ["held"])].flatMap((l) => ["--add-label", l]),
-    ]);
+    steps.push(...relabel(n, [...addLabels, ...(has(pr, "held") ? [] : ["held"])]));
     let body = `Held: ${blocker && !/\[blocker\]/i.test(note) ? `[blocker] ${note}` : note}`;
     if (conflict) body = `${HELD_CONFLICT} ${note}`;
     else if (rail) body = `${HELD_RAIL} ${note}`;
-    steps.push(["pr", "comment", n, "--body", body]);
+    steps.push(commentArgs(n, body));
   } else {
     if (pr.base === "main")
       return refuse(`pull request #${n} is on main, not stacked`, `Run: node tools/sprint/queue.mjs move ${n} merging`);
@@ -152,14 +140,10 @@ function prMove(S, pr, state, { note, conflict, rail, blocker }) {
       );
     if (!pr.isDraft) steps.push(["pr", "ready", n, "--undo"]);
     const title = pr.title.startsWith("[stacked on") ? pr.title : `[stacked on #${dep.number}] ${pr.title}`;
-    const edit = [
-      ...(title !== pr.title ? ["--title", title] : []),
-      ...addLabels.flatMap((l) => ["--add-label", l]),
-      ...(has(pr, "held") ? ["--remove-label", "held"] : []),
-    ];
-    if (edit.length) steps.push(["pr", "edit", n, ...edit]);
+    if (title !== pr.title) steps.push(titleArgs(n, title));
+    steps.push(...relabel(n, addLabels, has(pr, "held") ? ["held"] : []));
   }
-  return { steps: steps.filter((s) => !(s[1] === "edit" && s.length === 3)) };
+  return { steps };
 }
 
 // The gh commands that move issue or pull request `n` to `state`, or { error, do }.
@@ -184,4 +168,46 @@ export function planMove(S, n, state, opts = {}) {
       `Use one of ${ISSUE_STATES.join(", ")} for an issue.`,
     );
   return isPr ? prMove(S, item, state, opts) : issueMove(S, item, state, opts);
+}
+
+// `gh pr ready` and `gh pr merge`, which need GraphQL.
+const needsGraphql = (step) => step[0] === "pr" && ["ready", "merge"].includes(step[1]);
+// A label that is already off: `gh issue edit` passed over it, and the REST call says 404.
+const alreadyOff = (step, err) => step.includes("DELETE") && /Label does not exist/.test(err.message);
+
+// Why a failed step was not done: null for a label already off, else GitHub's refusal of a GraphQL step. Any other
+// failure is thrown on.
+function refusalOf(step, err) {
+  if (alreadyOff(step, err)) return null;
+  if (!needsGraphql(step) || !is403(err)) throw err;
+  return `GitHub refused \`gh ${step.join(" ")}\`: ${err.message}`;
+}
+
+// Runs a plan's steps. gh is (args) => stdout and throws on a failure, which is passed on, except:
+// - removing a label that is already off;
+// - GitHub refusing (403) to mark the pull request ready or a draft, or to turn on auto-merge. A hold stands without
+//   leaving draft (its label and comment hold it), so it carries on and says what is left, in `notDone`. A refused
+//   auto-merge still runs the other steps; any other refusal stops before anything else changes. Both of those come
+//   back as { ran, error, do }: the move is not done.
+export function runMove(n, state, steps, gh) {
+  const ran = [];
+  const notDone = [];
+  const todo = `Run it from a local session, or use the route GitHub's message names: node tools/sprint/queue.mjs move ${n} ${state}. Here, take the next job: ${NEXT}.`;
+  let unmerged;
+  for (const step of steps) {
+    try {
+      gh(step);
+    } catch (err) {
+      const refusal = refusalOf(step, err);
+      if (refusal) {
+        if (step[1] === "merge") unmerged = `#${n} is not set to auto-merge: ${refusal}`;
+        else if (state === "held") notDone.push(`#${n} is still a draft: ${refusal}`);
+        else return { ran, ...refuse(`#${n} was not moved to ${state}: ${refusal}`, todo) };
+        continue;
+      }
+    }
+    ran.push(["gh", ...step]);
+  }
+  if (unmerged) return { ran, ...refuse(unmerged, todo) };
+  return { ran, ...(notDone.length ? { notDone } : {}) };
 }

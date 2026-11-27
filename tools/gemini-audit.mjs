@@ -19,7 +19,16 @@ import {
 } from "./gemini/agy.mjs";
 import { CUT_LINE, NO_API, apiFor } from "./gemini/gemini-api.mjs";
 import { decide, railHits, readVerdict, reusableVerdict, verdictMarker } from "./gemini/rails.mjs";
-import { comment, comments, issue, pullRequest } from "./github-rest.mjs";
+import {
+  comment,
+  comments,
+  createIssue,
+  is403,
+  issue,
+  openIssues,
+  openPullRequests,
+  pullRequest,
+} from "./github-rest.mjs";
 import { collaborators, fromFork, trustedComment, trustedIssue } from "./github-trust.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
@@ -122,26 +131,21 @@ export function pinnedIssueOf(issues, title, team) {
   return issues.find((i) => i.title === title && trustedIssue(i, team))?.number;
 }
 
-function pinnedIssue(title) {
-  // A wide page, so strangers' issues of the same title can't push the collaborator's off it.
-  const search = ["--search", `"${title}" in:title`, "--json", "number,title,author"];
-  const found = pinnedIssueOf(
-    JSON.parse(gh("issue", "list", "--state", "open", "--limit", "500", ...search)),
-    title,
-    collaborators((args) => gh(...args)),
-  );
+// That issue's number, opened and pinned when there is none. Every open issue is read, so strangers' issues of the
+// same title can't push the collaborator's off a page.
+export function pinnedIssue(title, { gh: run = gh, dry = DRY, log = console.error } = {}) {
+  const rest = (args) => run(...args);
+  const found = pinnedIssueOf(openIssues(rest), title, collaborators(rest));
   if (found) return found;
-  if (DRY) return 0;
-  const url = gh(
-    "issue",
-    "create",
-    "--title",
-    title,
-    "--body",
-    "One comment per run from tools/gemini-audit.mjs.",
-  ).trim();
-  const n = Number(url.split("/").pop());
-  gh("issue", "pin", String(n));
+  if (dry) return 0;
+  const n = createIssue(rest, title, "One comment per run from tools/gemini-audit.mjs.");
+  try {
+    run("issue", "pin", String(n));
+  } catch (err) {
+    // Pinning has no REST route, so a cloud session can't: the audit goes on with the issue unpinned.
+    if (!is403(err)) throw err;
+    log(`#${n} is not pinned: ${err.message}`);
+  }
   return n;
 }
 
@@ -226,15 +230,17 @@ export function duePrs(open) {
   return open.filter((p) => !fromFork(p) && due(p));
 }
 
-// Every due pull request, one JSON line each.
-function prs() {
-  // The sprint queue's page size, so fork pull requests can't push this repository's own off it.
-  const open = gh("pr", "list", "--state", "open", "--limit", "300", "--json", "number,isCrossRepository,comments");
-  for (const pr of duePrs(JSON.parse(open))) {
+// Every due pull request, one JSON line each. A fork's comments are not even read.
+export function auditDuePrs({ gh: run = gh, audit = auditPr, post: send = post, log = console.log } = {}) {
+  const rest = (args) => run(...args);
+  const open = openPullRequests(rest)
+    .filter((p) => !fromFork(p))
+    .map((p) => ({ ...p, comments: comments(rest, p.number) }));
+  for (const pr of duePrs(open)) {
     try {
-      console.log(JSON.stringify(auditPr(pr.number)));
+      log(JSON.stringify(audit(pr.number)));
     } catch (err) {
-      post("pr", pr.number, skipped(err));
+      send("pr", pr.number, skipped(err));
     }
   }
 }
@@ -260,7 +266,7 @@ if (import.meta.main) {
   try {
     if (mode === "specs") specs();
     else if (mode === "pr" && /^\d+$/.test(numbers[0] ?? "")) console.log(JSON.stringify(auditPr(Number(numbers[0]))));
-    else if (mode === "prs") prs();
+    else if (mode === "prs") auditDuePrs();
     else if (mode === "weekly") repoWide("weekly-audit", "weekly");
     else if (mode === "narrative") repoWide("narrative", "how the code is organised,");
     else throw new Error(USAGE);

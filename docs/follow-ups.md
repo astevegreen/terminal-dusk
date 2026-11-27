@@ -118,13 +118,16 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   `pnpm -r run lint` today. Its type-aware rules need TypeScript 7 (`oxlint-tsgolint`). `npx @oxlint/migrate`
   converts `eslint.config.js`; custom rules would need its JS plugins, still alpha; the output formatter
   `tools/eslint-formatter.mjs` and the gate's failure filter would need checking. [6 Nov 2026, owner's research request]
-- Cloud sessions get HTTP 403 from GitHub's GraphQL API, and these still use it: `gh pr list` in
-  `tools/gemini-audit.mjs:211` `prs()`, `gh issue list`, `create` and `pin` in its `pinnedIssue()` (`:106`), and the
-  `gh issue` and `gh pr` edit, ready and comment steps in `tools/sprint/moves.mjs`'s `issueMove` (`:24`) and `prMove`
-  (`:90`). `tools/github-rest.mjs` has the REST reads and the comment; `gh pr ready` and auto-merge need the CCR
-  routes the 403 names. [6 Nov 2026, REST fix for the audit's `pr <n>`]
+- Cloud sessions get HTTP 403 from GitHub's GraphQL API, and `tools/sprint/queue.mjs` still reads and writes through
+  it: `loadSnapshot` (`:70`, `gh issue list` and `gh pr list`), so `next`, `status`, `digest` and `move` stop there
+  before `move`'s REST writes; `statusFacts` (`:164`), `status --write` (`:320`) and `digest` (`:329`).
+  `tools/github-rest.mjs` has the REST calls to start from. [27 Nov 2026, #665]
+- With no REST route, `gh pr ready`, `gh pr merge --auto` (`tools/sprint/moves.mjs:174`) and `gh issue pin`
+  (`tools/gemini-audit.mjs:143`) stay undone in a cloud session, which is told so; the CCR routes the 403 names could
+  do them. [27 Nov 2026, #665]
+- `tools/sprint/queue.mjs` is past 350 lines (358). [27 Nov 2026, #665]
 - In a cloud session the Gemini API fallback (#529) reviews an ordinary `pr <n>`, but three audits still end in
-  verdict `retry` there: the rail audit (`tools/gemini-audit.mjs:181-185`), a diff too long to send whole
+  verdict `retry` there: the rail audit (`tools/gemini-audit.mjs:206-210`), a diff too long to send whole
   (`tools/gemini/gemini-api.mjs:60`), and spec and repo audits (`gemini-api.mjs:66`). Each is a choice the code comments explain;
   a PR touching a rail waits for a local run. [7 Nov 2026, reviewer on #538]
 - `checkOwnMoves` (`tests/fuzz/moveChecks.ts`) runs only in its own random games, so the `extraSteps` and

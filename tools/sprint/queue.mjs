@@ -33,7 +33,7 @@ import { stateDir } from "./local-state.mjs";
 import { DECISIONS, OWNER, SONAR_CHECK, backlog, hasWork, next, nextNight } from "./rules.mjs";
 import { DECISIONS_BODY, digest } from "./decisions.mjs";
 import { status } from "./status.mjs";
-import { planMove } from "./moves.mjs";
+import { planMove, runMove } from "./moves.mjs";
 import { readFixture, snapshotAt } from "./replay.mjs";
 import { readSprintDoc } from "./sprint-doc.mjs";
 import { resumeAfter } from "./usage-limit.mjs";
@@ -339,14 +339,11 @@ export function main(
       };
       const plan = planMove(S, a1, a2, opts);
       if (plan.error) return line(plan, 1);
-      const ran = plan.steps.map((s) => ["gh", ...s]);
-      if (!fixture && !argv.includes("--dry-run")) for (const s of plan.steps) gh(s);
-      return line({
-        moved: Number(a1),
-        to: a2,
-        ran,
-        ...(fixture || argv.includes("--dry-run") ? { dryRun: true } : {}),
-      });
+      if (fixture || argv.includes("--dry-run"))
+        return line({ moved: Number(a1), to: a2, ran: plan.steps.map((s) => ["gh", ...s]), dryRun: true });
+      const done = runMove(a1, a2, plan.steps, gh);
+      if (done.error) return line(done, 1);
+      return line({ moved: Number(a1), to: a2, ...done });
     }
     throw new Error(USAGE);
   } catch (err) {
