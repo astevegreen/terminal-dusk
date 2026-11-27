@@ -1,7 +1,7 @@
 // `pnpm content:check [files...]`: validates content JSON against the schemas in packages/content/schema/.
-// Content files are the JSON files in packages/content/<folder>/ (cards/, scenarios/ and so on), and
-// schemas[<folder>] checks each one. Given file paths, it checks only those and ignores any that are not
-// content files (the edit-time quick check passes every packages/content JSON file); given none, it checks all.
+// Content files are the JSON files in packages/content/<folder>/ (cards/, scenarios/ and so on), checked by
+// schemas[<folder>], and the few listed in EXTRA_CONTENT. Given file paths, it checks only those and ignores any that
+// are not content files (the edit-time quick check passes every packages/content JSON file); given none, it checks all.
 // Silent when everything passes; otherwise prints one line per problem (file:line) and exits 1.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
@@ -11,9 +11,13 @@ const ROOT = path.resolve(import.meta.dirname, "..", "..");
 const CONTENT = "packages/content";
 const NOT_CONTENT = new Set(["schema", "src", "node_modules", "dist", "coverage", "test", "tests"]);
 const posix = (p) => p.replaceAll("\\", "/");
+// Content that lives outside packages/content, by exact path, with the name of the schema that checks it.
+const EXTRA_CONTENT = new Map([["packages/app/public/sounds/manifest.json", "soundManifest"]]);
 
 // "packages/content/cards/early/c1.json" -> "cards"; null for anything that is not a content file.
 export function contentFolderOf(relPath) {
+  const extra = EXTRA_CONTENT.get(posix(relPath));
+  if (extra) return extra;
   const parts = posix(relPath).split("/");
   if (parts.length < 4 || `${parts[0]}/${parts[1]}` !== CONTENT || !parts.at(-1).endsWith(".json")) return null;
   return NOT_CONTENT.has(parts[2]) ? null : parts[2];
@@ -24,11 +28,10 @@ export function listContentFiles(root) {
     readdirSync(dir, { withFileTypes: true }).flatMap((d) =>
       d.isDirectory() ? walk(path.join(dir, d.name)) : [path.join(dir, d.name)]);
   const base = path.join(root, CONTENT);
-  if (!existsSync(base)) return [];
-  return walk(base)
-    .map((f) => posix(path.relative(root, f)))
-    .filter((f) => contentFolderOf(f) && !f.includes("/node_modules/"))
-    .sort();
+  const walked = existsSync(base) ? walk(base).map((f) => posix(path.relative(root, f))) : [];
+  const extra = [...EXTRA_CONTENT.keys()].filter((f) => existsSync(path.join(root, f)));
+  return [...walked.filter((f) => contentFolderOf(f) && !f.includes("/node_modules/")), ...extra]
+    .sort((a, b) => a.localeCompare(b, "en"));
 }
 
 const lineAt = (text, index) => text.slice(0, index).split("\n").length;

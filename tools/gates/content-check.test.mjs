@@ -32,6 +32,24 @@ test("content files are the JSON files in a content folder of packages/content",
   assert.equal(contentFolderOf("packages/engine/cards/c1.json"), null);
 });
 
+test("the app's sound manifest is content, checked by schemas.soundManifest; the app's other JSON is not", () => {
+  assert.equal(contentFolderOf("packages/app/public/sounds/manifest.json"), "soundManifest");
+  assert.equal(contentFolderOf("packages\\app\\public\\sounds\\manifest.json"), "soundManifest");
+  assert.equal(contentFolderOf("packages/app/public/sounds/other.json"), null);
+  assert.equal(contentFolderOf("packages/app/package.json"), null);
+});
+
+test("a sound manifest that breaks its schema is found and reported", () => {
+  const file = "packages/app/public/sounds/manifest.json";
+  const root = tempRoot({ [file]: '{ "id": 2 }' });
+  assert.deepEqual(listContentFiles(root), [file]);
+  assert.deepEqual(checkContent(root, listContentFiles(root), { soundManifest: cards }), [`${file}:1 id: Expected a string`]);
+});
+
+test("the repository's sound manifest is among the files the check lists", () => {
+  assert.ok(listContentFiles(ROOT).includes("packages/app/public/sounds/manifest.json"));
+});
+
 test("a content file that matches its schema passes", () => {
   const root = tempRoot({ "packages/content/cards/early/c1.json": '{ "id": "c1" }' });
   assert.deepEqual(checkContent(root, listContentFiles(root), { cards }), []);

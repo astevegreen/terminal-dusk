@@ -130,6 +130,15 @@ test("a change under tests/ alone runs the quick fuzz and the golden replays", (
   assert.equal(command(stages, "golden replays"), "pnpm run golden:check");
 });
 
+test("a change to the content package or the app's sounds folder runs the content check; other app files do not", () => {
+  const root = workspaceRoot();
+  writeFiles(root, { "package.json": JSON.stringify({ scripts: { "content:check": "x" } }) });
+  const check = (file) => command(selectStages(root, [file]), "content check");
+  assert.equal(check("packages/content/cards/early/c1.json"), "pnpm run content:check");
+  assert.equal(check("packages/app/public/sounds/manifest.json"), "pnpm run content:check");
+  assert.equal(check("packages/app/src/App.tsx"), null);
+});
+
 test("a docs-only change runs no fuzz", () => {
   const stages = selectStages(workspaceRoot(), ["docs/notes.md"]);
   assert.equal(command(stages, "quick fuzz"), null);
