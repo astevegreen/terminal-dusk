@@ -36,12 +36,13 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## App, host and server
 
+- The online log marks a late side's `pointsSpent` and `cardsDiscarded` by the event's side alone
+  (`packages/app/src/online/gameText.ts` `isMoveOf`), and a card's event can give both without an answer. If a card
+  ever gives them inside that side's own stand-in run (rival-granted points, a random discard), the line reads
+  "Played for X" although the stand-in chose nothing; no content card is known to discard that way today. [26 Nov
+  2026, reviewer and agy on #633]
 - `docs/design/core-loop.md` has a new "Missed deadlines" section (#611) with no Notion promotion entry in its header:
   record it at the next promotion. [22 Nov 2026, agy on #611]
-- `packages/server/src/sweepEdge.ts` `DEADLINE_STATUSES` does not count the sweep's `answered` status (a stand-in
-  step under "defaultAnswer"), so the `sweep-deadlines` reply's counts leave those matches out (`countOf`). [26 Nov 2026, #616]
-- The online log marks a late side's influence placed by the rival's card event as the stand-in's own move
-  (`packages/app/src/online/gameText.ts` `isMoveOf` checks only the event's side). [26 Nov 2026, #616]
 - The status bar says "Era not shown yet" until Era 2 starts, so for the whole free game: it reads only the era of an
   `eraStarted` event (`packages/app/src/game/regions.tsx:56`), while the theme falls back to the frame's era
   (`GameScreen.tsx:136`), and a game with no map has no era in its frame (`packages/engine/src/createGame.ts:88`).
@@ -100,5 +101,8 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   verdict `retry` there: the rail audit (`tools/gemini-audit.mjs:181-185`), a diff too long to send whole
   (`tools/gemini/gemini-api.mjs:60`), and spec and repo audits (`gemini-api.mjs:66`). Each is a choice the code comments explain;
   a PR touching a rail waits for a local run. [7 Nov 2026, reviewer on #538]
+- `checkOwnMoves` (`tests/fuzz/moveChecks.ts`) runs only in its own random games, so the `extraSteps` and
+  `reactions` fuzz suites do not check it: call it from the game loop in `tests/fuzz/play.ts`. [26 Nov 2026, agy
+  on #633]
 
 ## Docs

@@ -22,8 +22,8 @@ export type SweepDeadlinesDeps = SweepAccess & {
 };
 export type SweepTurnAlertsDeps = SweepAccess & { alerts: TurnAlertDeps };
 
-/** Every status each sweep can give, in the order the reply lists them. */
-export const DEADLINE_STATUSES = ["extended", "timedOut", "conflict", "skipped"] as const;
+/** Every status each sweep can give, in the order the reply lists them; the type check refuses a list missing one. */
+export const DEADLINE_STATUSES = ["extended", "timedOut", "answered", "conflict", "skipped"] as const;
 export const TURN_ALERT_STATUSES = ["sent", "stale", "noAddress", "taken", "failed"] as const;
 
 type Counts<S extends string> = Record<S, number>;
@@ -64,7 +64,7 @@ async function handleSweep<S extends string>(
   access: SweepAccess,
   request: HttpRequest,
   statuses: readonly S[],
-  run: (now: number) => Promise<readonly { status: S }[]>,
+  run: (now: number) => Promise<readonly { status: NoInfer<S> }[]>,
 ): Promise<HttpReply> {
   try {
     if (request.method !== "POST") return refuse(405, "methodNotAllowed", "Only POST is accepted.");

@@ -58,7 +58,11 @@ const MOVE_KINDS: ReadonlySet<GameEvent["kind"]> = new Set<GameEvent["kind"]>([
   "cardsDiscarded",
 ]);
 
-/** True when `event` is `side`'s own move (Decision (architect), #616). */
+/**
+ * True when `event` is `side`'s own move (Decision (architect), #616). The event's side is enough to tell: influence
+ * moves, and the tech race is tried, only by that side's own answer, even with points a rival's card gave
+ * (tests/fuzz/moveChecks.ts checks it).
+ */
 const isMoveOf = (event: GameEvent, side: Side): boolean =>
   MOVE_KINDS.has(event.kind) && "side" in event && event.side === side;
 
