@@ -3,11 +3,13 @@
 import soundManifest from "virtual:sound-manifest";
 import { mountApp } from "./appRoot.tsx";
 import type { OnlineSetup } from "./online/OnlineScreen.tsx";
+import { realTimers } from "./online/timers.ts";
 import { webStore } from "./platform/storage.ts";
+import { webPlatformPurchases } from "./platform/webPlatformPurchases.ts";
 
 /**
- * Online play: Supabase from Vite's environment, the session kept in localStorage, games created as `web` and
- * invite codes copied with the browser's clipboard. Left out when either setting is missing, so the online
+ * Online play: Supabase from Vite's environment, the session kept in localStorage, games created as `web`, invite
+ * codes copied with the browser's clipboard and the Full Game bought on the web (#685). Left out when either setting is missing, so the online
  * screen says online play is not set up in this build.
  */
 function onlineSetup(): OnlineSetup | undefined {
@@ -19,6 +21,7 @@ function onlineSetup(): OnlineSetup | undefined {
     store: webStore(localStorage),
     platform: "web",
     copy: (text) => navigator.clipboard.writeText(text),
+    purchases: webPlatformPurchases(globalThis, realTimers),
   };
 }
 

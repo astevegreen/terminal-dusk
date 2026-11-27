@@ -13,7 +13,9 @@ import { pointsOf } from "./displayText.ts";
 import type { SignIn } from "./online/signIn.ts";
 import { realTimers } from "./online/timers.ts";
 import type { Timers } from "./online/timers.ts";
+import type { PlatformPurchases } from "./platform/purchases.ts";
 import type { KeyValueStore } from "./platform/storage.ts";
+import { PurchaseDeskContext } from "./purchases/desk.ts";
 import { TestModeScreen } from "./testMode/TestModeScreen.tsx";
 import { tutorialEdition } from "./tutorial/edition.ts";
 import type { OwnedEntitlements } from "./tutorial/edition.ts";
@@ -48,6 +50,8 @@ export type AppProps = {
   signIn?: SignIn;
   /** What the home screen and the side picker say about the check of `entitlements`. */
   notice?: ReactNode;
+  /** The Platform's purchases (#685); left out, nothing is sold and the offer's buy button is off. */
+  purchases?: PlatformPurchases;
   /** The timers an online game polls with; appRoot.tsx passes the real ones, which are also the default. */
   timers?: Timers;
   /** The match id from a watch link (`?watch=<id>`): opens that game as a spectator instead of the home screen. */
@@ -72,6 +76,7 @@ export function App({
   entitlements,
   signIn,
   notice,
+  purchases,
   timers = realTimers,
   watch,
 }: Readonly<AppProps>) {
@@ -84,38 +89,59 @@ export function App({
     () => playerGames({ game, mapGame, freeGame, futureGame, freeMapGame }, owns),
     [game, mapGame, freeGame, futureGame, freeMapGame, owns],
   );
-  if (watching !== null && online) {
-    const play = {
-      clock,
-      timers,
-      label: game?.cardName ?? cardName,
-      question: game?.cardQuestion ?? cardQuestion,
-      rules: game?.cardRules,
-      affiliation: game?.cardAffiliation ?? fixtureAffiliation,
-    };
-    return (
-      <WatchScreen key={watching} auth={online.auth} matchId={watching} play={play} onBack={() => setWatching(null)} />
-    );
-  }
-  if (screen === "testMode") return <TestModeScreen clock={clock} />;
-  // The tutorial needs no account or entitlement: a guest plays it (#642), and an owner plays on past Era 1 (#647).
-  if (screen === "tutorial") return tutorialRoute({ clock, newSeed, newAiSeed, entitlements });
-  if (screen === "vsAi" || screen === "vsAiMap" || screen === "vsAiFree" || screen === "vsAiFuture") {
-    const played = aiGames[screen];
-    return (
-      <VsAiScreen
-        key={screen}
-        clock={clock}
-        newSeed={newSeed}
-        newAiSeed={newAiSeed}
-        {...(played ? { game: played } : {})}
-        {...(store ? { store } : {})}
-        notice={notice}
-      />
-    );
-  }
-  if (screen === "online") return onlineRoute({ clock, game, online, signIn, timers }, () => setScreen("home"));
-  return <Home onPick={setScreen} notice={notice} />;
+  // The purchase controls on any screen below; a signed-out player is taken to the online screen to sign in.
+  const desk = purchases
+    ? {
+        purchases: purchases.purchases,
+        note: purchases.note,
+        owned: owns,
+        openSignIn: () => {
+          setWatching(null);
+          setScreen("online");
+        },
+      }
+    : null;
+  const page = (): ReactNode => {
+    if (watching !== null && online) {
+      const play = {
+        clock,
+        timers,
+        label: game?.cardName ?? cardName,
+        question: game?.cardQuestion ?? cardQuestion,
+        rules: game?.cardRules,
+        affiliation: game?.cardAffiliation ?? fixtureAffiliation,
+      };
+      return (
+        <WatchScreen
+          key={watching}
+          auth={online.auth}
+          matchId={watching}
+          play={play}
+          onBack={() => setWatching(null)}
+        />
+      );
+    }
+    if (screen === "testMode") return <TestModeScreen clock={clock} />;
+    // The tutorial needs no account or entitlement: a guest plays it (#642), and an owner plays on past Era 1 (#647).
+    if (screen === "tutorial") return tutorialRoute({ clock, newSeed, newAiSeed, entitlements });
+    if (screen === "vsAi" || screen === "vsAiMap" || screen === "vsAiFree" || screen === "vsAiFuture") {
+      const played = aiGames[screen];
+      return (
+        <VsAiScreen
+          key={screen}
+          clock={clock}
+          newSeed={newSeed}
+          newAiSeed={newAiSeed}
+          {...(played ? { game: played } : {})}
+          {...(store ? { store } : {})}
+          notice={notice}
+        />
+      );
+    }
+    if (screen === "online") return onlineRoute({ clock, game, online, signIn, timers }, () => setScreen("home"));
+    return <Home onPick={setScreen} notice={notice} />;
+  };
+  return <PurchaseDeskContext.Provider value={desk}>{page()}</PurchaseDeskContext.Provider>;
 }
 
 /** The games the app is given, any of them possibly left out. */

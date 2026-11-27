@@ -13,6 +13,8 @@ import type { CardPoints, CardRules } from "../displayText.ts";
 import { cardAffiliation as fixtureAffiliation, cardName, cardQuestion, fixtureRuleset } from "../testMode/fixture.ts";
 import type { AuthEndpoint } from "../transport/emailAuth.ts";
 import type { KeyValueStore } from "../platform/storage.ts";
+import type { PurchasesFactory } from "../platform/purchases.ts";
+import { AccountPurchases } from "../purchases/PurchaseControls.tsx";
 import { createLobbySession } from "./lobbySession.ts";
 import type { LobbyOptions, LobbySession } from "./lobbySession.ts";
 import { OnlineGameFlow } from "./OnlineGameScreen.tsx";
@@ -26,14 +28,16 @@ import { SignInView } from "./SignInView.tsx";
 
 /**
  * Where Supabase is (its Auth, Edge Functions and tables share the one project URL), where the session is kept,
- * the platform games are created on (and entitlements checked against) and how text reaches the clipboard; built in
- * main.tsx.
+ * the platform games are created on (and entitlements checked against), how text reaches the clipboard and how the
+ * Full Game is bought; built in main.tsx.
  */
 export type OnlineSetup = {
   auth: AuthEndpoint;
   store: KeyValueStore;
   platform: Platform;
   copy: (text: string) => Promise<void> | void;
+  /** The Platform's purchases (#685); left out where the app sells nothing. */
+  purchases?: PurchasesFactory;
 };
 
 const NOT_SET_UP_SNAPSHOT: SignInSnapshot = { kind: "email", busy: false, refusal: null };
@@ -82,6 +86,7 @@ function LobbyScreen({ lobby, signIn, onBack, onOpen }: Readonly<LobbyScreenProp
       onSignOut={() => void signIn.signOut()}
       onBack={onBack}
       onOpen={onOpen}
+      account={<AccountPurchases />}
     />
   );
 }
