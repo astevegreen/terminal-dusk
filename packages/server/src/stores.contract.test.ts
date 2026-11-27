@@ -1,11 +1,13 @@
 // The store contracts (test/contracts/) run against the in-memory stores; stores.contract.stack.test.ts runs the
 // same contracts against their Supabase twins, so the fakes cannot drift from the real tables unseen.
 import { describe } from "vitest";
+import { MemoryEntitlementStore } from "./entitlementStore.ts";
 import { inviteCode } from "./inviteCode.ts";
 import { MemoryInviteStore } from "./inviteStore.ts";
 import { MemoryNotifyStore } from "./notifyStore.ts";
 import { MemoryStore } from "./store.ts";
 import { deadlineStoreContract } from "./test/contracts/deadlineStore.ts";
+import { entitlementReceiptsContract } from "./test/contracts/entitlementReceipts.ts";
 import { inviteStoreContract } from "./test/contracts/inviteStore.ts";
 import { matchStoreContract } from "./test/contracts/matchStore.ts";
 import { notifyStoreContract } from "./test/contracts/notifyStore.ts";
@@ -60,6 +62,18 @@ describe("MemoryStore keeps the DeadlineStore contract", () => {
       plain: () => created(freshMatchId()),
       unknownId: freshMatchId,
       putIn: (write) => Promise.resolve(store.insert(write.record.matchId, write)),
+    };
+  });
+});
+
+describe("MemoryEntitlementStore keeps the EntitlementReceipts contract", () => {
+  entitlementReceiptsContract(() => {
+    const store = new MemoryEntitlementStore();
+    return {
+      store,
+      player: () => `player-${(ids += 1)}`,
+      receipt: () => `receipt-${(ids += 1)}`,
+      unmatched: (source, receiptRef) => Promise.resolve(store.unmatchedFor(source, receiptRef)),
     };
   });
 });

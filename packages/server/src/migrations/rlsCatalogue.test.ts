@@ -30,8 +30,11 @@ const fetchFn = (
   }
 ).fetch;
 
-/** What the tests seed: a full match between two players, a spare bare match, an invite, an alert, an entitlement. */
-type Seeded = { matchId: string; spareId: string; code: string; player: string };
+/**
+ * What the tests seed: a full match between two players, a spare bare match, an invite, an alert, an entitlement,
+ * and a refunded and an unmatched receipt under `receipt`.
+ */
+type Seeded = { matchId: string; spareId: string; code: string; player: string; receipt: string };
 
 /** One table: how to find the test's rows, which of them anyone may read, and a valid new row and change to try. */
 type Entry = {
@@ -48,6 +51,7 @@ type Entry = {
 };
 
 const byMatch = (s: Seeded): [string, string] => ["match_id", s.matchId];
+const byReceipt = (s: Seeded): [string, string] => ["receipt_ref", s.receipt];
 const nobody = () => false;
 const spectator = (row: Row) => row.viewer === "spectator";
 const ownSide = (row: Row) => row.viewer === "spectator" || row.viewer === "lio";
@@ -102,6 +106,20 @@ const CATALOGUE: Record<string, Entry> = {
     player: () => true,
     fresh: (row) => Object.fromEntries(Object.entries(row).filter(([column]) => column !== "id")),
     touch: () => ({ source: "touched" }),
+  },
+  entitlement_refund: {
+    scope: byReceipt,
+    public: nobody,
+    player: nobody,
+    fresh: (row) => ({ ...row, receipt_ref: freshId() }),
+    touch: (row) => ({ refunded_at: Number(row.refunded_at) + 1 }),
+  },
+  checkout_unmatched: {
+    scope: byReceipt,
+    public: nobody,
+    player: nobody,
+    fresh: (row) => ({ ...row, receipt_ref: freshId() }),
+    touch: (row) => ({ created_at: Number(row.created_at) + 1 }),
   },
 };
 const TABLES = Object.keys(CATALOGUE).toSorted();
@@ -167,7 +185,8 @@ await onLocalStack("row-level security across every table on the local Supabase 
 
     const game = newGame({ lio: lio!.id, sae: sae!.id });
     const spare = newGame({ lio: lio!.id, sae: sae!.id });
-    seeded = { matchId: game.record.matchId, spareId: spare.record.matchId, code: freshId(), player: lio!.id };
+    const ids = { matchId: game.record.matchId, spareId: spare.record.matchId };
+    seeded = { ...ids, code: freshId(), player: lio!.id, receipt: freshId() };
     matchIds.push(seeded.matchId, seeded.spareId);
     await putIn(service, writeOf(game));
     await insert("match", rowsFor(writeOf(spare)).match);
@@ -180,6 +199,9 @@ await onLocalStack("row-level security across every table on the local Supabase 
     });
     await insert("notify_queue", { match_id: seeded.matchId, player: lio!.id, seq: 0, queued_at: NOW, waiting_seq: 0 });
     await insert("entitlement", { player: lio!.id, platform: "web", source: "rls-test", created_at: NOW });
+    const receipt = { source: "rls-test", receipt_ref: seeded.receipt };
+    await insert("entitlement_refund", { ...receipt, refunded_at: NOW });
+    await insert("checkout_unmatched", { ...receipt, reason: "noPlayerId", created_at: NOW });
   }, 60_000);
 
   afterAll(async () => {
@@ -187,6 +209,8 @@ await onLocalStack("row-level security across every table on the local Supabase 
     if (seeded) {
       await service.from("match_invite").delete().eq("code", seeded.code);
       await service.from("entitlement").delete().eq("player", seeded.player);
+      for (const table of ["entitlement_refund", "checkout_unmatched"])
+        await service.from(table).delete().eq("receipt_ref", seeded.receipt);
     }
     await cleanUp(service, matchIds, users);
   }, 60_000);
