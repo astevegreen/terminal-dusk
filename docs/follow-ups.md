@@ -137,5 +137,8 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   asks the owner about every `gh api` write, so orchestrator C prompts for each PR comment: let a short list of
   writes to this repository through, such as issue and PR comments. This changes a hook, so it needs the owner's yes
   and a rail audit. [27 Nov 2026, owner asked why C prompts so often]
+- `checkGit` in `tools/hooks/bash-guard.mjs:139-147` never looks at `--delete`, `-d` or a `:branch` refspec, so the
+  `git push … task/*`, `design/*` and `claude/*` allow rules in `.claude/settings.json` also let a session delete
+  another remote branch unasked: have bash-guard ask about push deletions. [27 Nov 2026, reviewer on #720]
 
 ## Docs
