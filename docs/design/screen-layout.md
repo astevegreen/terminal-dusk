@@ -63,7 +63,7 @@ And:
 | Standings chips | on the map, under each region's name  | small                 | each side's level in that region (present, ahead, holds every battleground) and its points now  |
 | Map tools       | floating, top-left corner of the map  | 44 px buttons         | Map/List, Whole map                                                                             |
 | Decision banner | just above the hand strip             | one line, about 44 px | the question and any buttons that are not countries or cards                                    |
-| Hand strip      | bottom edge                           | at most 56 px tall    | your cards as chips; the rival's hand size; deck and discard counts                             |
+| Hand strip      | bottom edge                           | at most 56 px tall    | your cards as chips; the rival's hand size; deck and discard counts; Mute at its right end      |
 | Lifted card     | above the strip, middle of the screen | at most a third       | the card's full text and its play buttons                                                       |
 | Log drawer      | slides in from the right              | about half the width  | the full log, newest first                                                                      |
 | Details panel   | opened from the top bar               | about half the width  | the cards in play, the discard pile, the three Contingency decks, each side's special ability   |

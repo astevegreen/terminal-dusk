@@ -21,6 +21,8 @@ import { App } from "./App.tsx";
 import type { VsAiGame } from "./vsAi/VsAiScreen.tsx";
 import type { OnlineSetup } from "./online/OnlineScreen.tsx";
 import soundManifest from "virtual:sound-manifest";
+import { SoundSettingsContext } from "./audio/soundControls.tsx";
+import { soundSettings } from "./audio/soundSettings.ts";
 import { AudioPlayerContext } from "./audio/useEventSounds.tsx";
 import { unlockOnGesture, webAudio } from "./platform/audio.ts";
 import { webStore } from "./platform/storage.ts";
@@ -77,9 +79,11 @@ function onlineSetup(): OnlineSetup | undefined {
 }
 const online = onlineSetup();
 
-/** Sound, the same on every platform: the manifest's files, unlocked by the player's first tap or key press. */
+/** Sound, the same on every platform: the manifest's files, unlocked by the player's first tap or key press, as
+ *  loud as the player's saved setting says (#646). */
 const audio = webAudio(soundManifest, () => new AudioContext());
 unlockOnGesture(window, audio);
+const sound = soundSettings(webStore(localStorage), audio);
 
 const randomWords = (count: number): Uint32Array => crypto.getRandomValues(new Uint32Array(count));
 const newSeed = (): string => Array.from(randomWords(4), (n) => n.toString(16).padStart(8, "0")).join("");
@@ -91,19 +95,21 @@ if (!root) throw new Error("index.html has no #root element");
 createRoot(root).render(
   <StrictMode>
     <AudioPlayerContext.Provider value={audio}>
-      <App
-        clock={() => Date.now()}
-        newSeed={newSeed}
-        newAiSeed={newAiSeed}
-        game={firstDeckGame}
-        mapGame={sixRegionMapGame}
-        freeGame={era1FreeGame}
-        futureGame={scenario2025To2027Game}
-        store={webStore(localStorage)}
-        timers={realTimers}
-        {...(watchId === null ? {} : { watch: watchId })}
-        {...(online ? { online } : {})}
-      />
+      <SoundSettingsContext.Provider value={sound}>
+        <App
+          clock={() => Date.now()}
+          newSeed={newSeed}
+          newAiSeed={newAiSeed}
+          game={firstDeckGame}
+          mapGame={sixRegionMapGame}
+          freeGame={era1FreeGame}
+          futureGame={scenario2025To2027Game}
+          store={webStore(localStorage)}
+          timers={realTimers}
+          {...(watchId === null ? {} : { watch: watchId })}
+          {...(online ? { online } : {})}
+        />
+      </SoundSettingsContext.Provider>
     </AudioPlayerContext.Provider>
   </StrictMode>,
 );

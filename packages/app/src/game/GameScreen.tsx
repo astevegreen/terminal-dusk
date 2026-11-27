@@ -8,10 +8,12 @@
 // bar, so only the decision banner and the hand strip stay at the bottom. The replay viewer draws each recorded step
 // on it as a spectator would see it (#493), with both hands in the Details panel. It renders from its props alone
 // (HandStrip holds the lifted card, TopBar which panel is open and whether the log is pinned). The new events of the
-// frame it draws are heard from here (#645), so every screen that shows a game sounds them.
+// frame it draws are heard from here (#645), so every screen that shows a game sounds them, and has the Mute button
+// at the hand strip's right end (#646).
 import type { AnswerValue, CardId, EraId } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import type { ReactNode } from "react";
+import { MuteButton } from "../audio/soundControls.tsx";
 import { EventSounds } from "../audio/useEventSounds.tsx";
 import type { Pace } from "../audio/useEventSounds.tsx";
 import { countryChoices, countryNames } from "../countryChoices.ts";
@@ -175,7 +177,8 @@ export function GameScreen({
       </TopBar>
       <MapArea frame={frame} choices={choices} onAnswer={onAnswer} />
       <DecisionRegion onAnswer={onAnswer} refusal={refusal} {...data} />
-      {/* The bottom edge: the hand strip, the whole width of the screen. */}
+      {/* The bottom edge, the whole width of the screen: the hand strip, and the Mute button at its right end, where
+          the strip's scrolling cards give it room on a phone (#646; the top bar has none to spare). */}
       <div className="game-bottom">
         <HandStrip chips={chips} counts={<StripCounts frame={frame} />}>
           {chips.map((chip) => (
@@ -184,6 +187,7 @@ export function GameScreen({
             </LiftedCard>
           ))}
         </HandStrip>
+        <MuteButton />
       </div>
     </div>
   );
