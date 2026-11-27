@@ -42,22 +42,29 @@ function canRedraw(view: PlayerView, side: Side): boolean {
   return ability?.id === "resilientInstitutions" && ability.used < ability.perTurn;
 }
 
+/** `view` with `side`'s Resilient institutions used up for the turn, so a second draw stands, a 1 included. */
+function usedUp(view: PlayerView, side: Side): NonNullable<PlayerView["public"]["abilities"]> {
+  const abilities = view.public.abilities!;
+  const ability = abilities[side];
+  if (ability.id !== "resilientInstitutions") return abilities;
+  return { ...abilities, [side]: { ...ability, used: ability.perTurn } };
+}
+
 /**
  * The variants for a first draw of 1 that Resilient institutions redraws, with chance `weight`: the view just after
- * the 1 was set aside (the use counted; the deck down by the 1, or rebuilt when that left two cards), and each number
- * the second draw can show on top of it. The second draw stands, a 1 included.
+ * the 1 was set aside (Resilient institutions used up, so the second draw stands, a 1 included; the deck down by the
+ * 1, or rebuilt when that left two cards), and each number the second draw can show on top of it.
  */
 function redrawVariants(view: PlayerView, hidden: HiddenPart, side: Side, weight: number): DrawVariant[] {
   const open = view.public.contingency[side];
   const rest = without(open.left, REDRAWN);
   const left = rest.length === RESHUFFLE_AT ? [...open.cards].sort((a, b) => a - b) : rest;
-  const ability = view.public.abilities![side];
   const after: PlayerView = {
     ...view,
     public: {
       ...view.public,
       contingency: { ...view.public.contingency, [side]: { ...open, left } },
-      abilities: { ...view.public.abilities!, [side]: { ...ability, used: ability.used + 1 } },
+      abilities: usedUp(view, side),
     },
   };
   return topVariants(left, hidden, side, weight).map((v) => ({ ...v, view: after }));
