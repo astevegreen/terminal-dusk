@@ -15,17 +15,16 @@ import { MEDIUM_WEIGHTS } from "./weights/medium.ts";
 
 type Play = Extract<AnswerValue, { kind: "playCardAs" }>;
 
-/** A game Easy has played up to the first play of a card, and the side whose play it is. */
-function atPlay(seed: number): { state: TestState; side: Side } {
+/** A game Easy has played up to `side`'s first play of a card (LIO's by default). */
+function atPlay(seed: number, side: Side = "lio"): { state: TestState; side: Side } {
   let state = newGame(seed);
-  for (let step = 0; step < 20; step++) {
-    const side = SIDES.find((s) => legalAnswers(ruleset, state, s).some((a) => a.kind === "playCardAs"));
-    if (side !== undefined) return { state, side };
+  for (let step = 0; step < 40; step++) {
+    if (legalAnswers(ruleset, state, side).some((a) => a.kind === "playCardAs")) return { state, side };
     const d = state.public.pending[0]!;
     const value = easyAnswer(ruleset, viewFor(state, d.side), d.side, EASY_WEIGHTS, seededRandom(seed))!;
     state = applyAnswer(state, { decisionId: d.id, side: d.side, value });
   }
-  throw new Error(`seed ${seed}: no play of a card within 20 answers`);
+  throw new Error(`seed ${seed}: no play of a card by ${side} within 40 answers`);
 }
 
 type Command = { ready?: boolean; used?: number; playsMade?: number; abilities?: boolean; hand?: number };
@@ -50,15 +49,17 @@ const plays = (answers: readonly AnswerValue[]) => answers.filter((a): a is Play
 const ownEvent = (a: AnswerValue, side: Side) =>
   a.kind === "playCardAs" && a.as === "event" && cardOf(a.card).affiliation === side;
 
-/** The first seeds' plays, each with its view and side, that hold an own card's event. */
+/** The first seeds' plays by each side, each with its view, that hold an own card's event; both sides have some. */
 function cases(): { state: TestState; side: Side; view: PlayerView; answers: Play[] }[] {
   const found = [];
-  for (let seed = 1; seed <= 10; seed++) {
-    const { state, side } = atPlay(seed);
-    const answers = plays(legalAnswers(ruleset, state, side));
-    if (answers.some((a) => ownEvent(a, side))) found.push({ state, side, view: viewFor(state, side), answers });
+  for (const who of SIDES) {
+    for (let seed = 1; seed <= 10; seed++) {
+      const { state, side } = atPlay(seed, who);
+      const answers = plays(legalAnswers(ruleset, state, side));
+      if (answers.some((a) => ownEvent(a, side))) found.push({ state, side, view: viewFor(state, side), answers });
+    }
   }
-  expect(found.length).toBeGreaterThan(0);
+  for (const who of SIDES) expect(found.some((c) => c.side === who)).toBe(true);
   return found;
 }
 
