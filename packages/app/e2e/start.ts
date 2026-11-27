@@ -68,7 +68,7 @@ export async function startSixRegionGame(page: Page, seed?: number): Promise<Loc
 }
 
 /** The page's whole size, so a test can check it is no taller or wider than the screen. */
-export async function pageSize(page: Page): Promise<{ width: number; height: number }> {
+export function pageSize(page: Page): Promise<{ width: number; height: number }> {
   return page.evaluate(() => ({
     width: document.documentElement.scrollWidth,
     height: document.documentElement.scrollHeight,

@@ -42,7 +42,7 @@ export function createEntitlementSession({
   const publish = (next: EntitlementSnapshot): void => {
     if (next.owned === snapshot.owned && next.state === snapshot.state && next.known === snapshot.known) return;
     snapshot = next;
-    for (const listener of [...listeners]) listener();
+    for (const listener of listeners) listener();
   };
 
   /** The read's result; null when there turns out to be no session to read with. */

@@ -7,7 +7,7 @@ import type { AuthAnswer, AuthRequest } from "../../transport/test/fakeAuth.ts";
 const reply = (status: number, body: unknown): FetchReply => ({
   ok: status >= 200 && status < 300,
   status,
-  json: () => Promise.resolve(JSON.parse(JSON.stringify(body)) as unknown),
+  json: () => Promise.resolve(structuredClone(body)),
 });
 
 /** A row as the table would send it for an owner of the web game. */

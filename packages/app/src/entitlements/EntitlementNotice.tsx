@@ -13,7 +13,12 @@ export function EntitlementNotice({
   known,
   onRetry,
 }: Readonly<Pick<EntitlementSnapshot, "state" | "known"> & { onRetry: () => void }>) {
-  if (state === "loading") return <p role="status">{CHECKING}</p>;
+  if (state === "loading")
+    return (
+      <p>
+        <output>{CHECKING}</output>
+      </p>
+    );
   if (state !== "failed") return null;
   return (
     <div role="alert">

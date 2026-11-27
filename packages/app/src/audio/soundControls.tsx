@@ -26,7 +26,7 @@ export function MuteToggle({ muted, onChange, className, style }: ToggleProps) {
 export function VolumeSlider({ volume, onChange }: Readonly<{ volume: number; onChange: (volume: number) => void }>) {
   return (
     <label style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-      Volume
+      Volume{" "}
       <input
         type="range"
         min={0}
