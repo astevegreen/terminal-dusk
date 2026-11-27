@@ -1,7 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { copyFileSync, mkdirSync, readFileSync } from "node:fs";
+import path from "node:path";
 import { buildMap, describeFile, exportsOf, renderMap } from "./repo-map.mjs";
 import { sh, tempRepo, writeFiles } from "./hooks/test-helpers.mjs";
+
+const ROOT = path.resolve(import.meta.dirname, "..");
 
 test("a code file is described by the first sentence of its opening comment", () => {
   const text = "#!/usr/bin/env node\n// Runs the thing. Second sentence\n// continues here.\nexport const a = 1;\n";
@@ -164,11 +169,26 @@ test("buildMap lists tracked and new files, skips ignored files and the map itse
   assert.doesNotMatch(map, /secret\.txt|repo-map\.md/);
 });
 
-test("buildMap --staged lists only the files in the git index", () => {
-  const repo = tempRepo({ "a.ts": "// Tracked file.\n" });
-  writeFiles(repo, { "b.ts": "// Staged file.\n", "c.ts": "// Not staged.\n" });
-  sh("git", ["add", "b.ts"], repo);
-  const map = buildMap(repo, { staged: true });
-  assert.match(map, /`b\.ts` - Staged file\./);
-  assert.doesNotMatch(map, /c\.ts/);
+test("this repository ignores docs/repo-map.md and doesn't track it", () => {
+  assert.equal(sh("git", ["ls-files", "docs/repo-map.md"], ROOT), "");
+  // sh throws unless git's ignore rules match the path.
+  sh("git", ["check-ignore", "--no-index", "-q", "docs/repo-map.md"], ROOT);
+});
+
+test("`pnpm install`'s prepare script turns the git hooks on and writes the map", () => {
+  const repo = tempRepo({ "a.ts": "// A file.\n" });
+  mkdirSync(path.join(repo, "tools"));
+  copyFileSync(path.join(ROOT, "tools/repo-map.mjs"), path.join(repo, "tools/repo-map.mjs"));
+  const { prepare } = JSON.parse(readFileSync(path.join(ROOT, "package.json"), "utf8")).scripts;
+  // Through the system shell, as pnpm runs a package script.
+  const r = spawnSync(prepare, { cwd: repo, shell: true, encoding: "utf8", windowsHide: true });
+
+  assert.equal(r.status, 0, r.stderr);
+  assert.equal(sh("git", ["config", "core.hooksPath"], repo), "tools/git-hooks");
+  assert.match(readFileSync(path.join(repo, "docs/repo-map.md"), "utf8"), /`a\.ts` - A file\./);
+});
+
+test("the map's header says when it is written", () => {
+  assert.match(renderMap([]), /checkout, merge and `pnpm install`/);
+  assert.doesNotMatch(renderMap([]), /pre-commit/);
 });

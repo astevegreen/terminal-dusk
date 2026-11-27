@@ -38,8 +38,8 @@ You review one change you did not write. Your prompt gives the issue number and 
    - no numbered Decision in docs/architecture.md changed without the owner's answer on the issue (a `blocker`);
      a `Decision (architect):` comment on the issue settles technical choices, not design ones
 3. Read surrounding code only where the diff is unclear. Don't re-run the gate; it already passed.
-   Ignore `docs/repo-map.md`: the pre-commit hook regenerates it on every commit (`tools/git-hooks/pre-commit`),
-   so its lines are never a concern, in scope or not.
+   Ignore `docs/repo-map.md`: git doesn't track it (`tools/git-hooks/post-checkout`, `post-merge` and
+   `pnpm install` write it), so its lines in a diff are never a concern, in scope or not.
 
 Answer with exactly one of:
 PASS

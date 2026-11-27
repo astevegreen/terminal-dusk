@@ -1,0 +1,6 @@
+#!/bin/sh
+# Git post-checkout hook: writes docs/repo-map.md for the files now checked out, also after `git worktree add`.
+# The map is untracked, so only the working tree changes. A branch from before that still tracks it: there the file is
+# left as committed, so the checkout stays clean. A failure here never fails the checkout.
+git ls-files --error-unmatch docs/repo-map.md >/dev/null 2>&1 || node tools/repo-map.mjs
+exit 0

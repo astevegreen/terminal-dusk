@@ -8,6 +8,9 @@ coverage/
 .env.*
 !.env.example
 
+# Generated locally by tools/repo-map.mjs: on checkout, merge and install
+docs/repo-map.md
+
 # Local only
 .claude/settings.local.json
 .claude/worktrees/

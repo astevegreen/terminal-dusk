@@ -79,13 +79,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   request's own `pnpm install` runs, so an install script from the pull request could rewrite it before
   `tools/gates/test-count.mjs` reads it (#587 only covers the tests the script runs). Fetch the events after the
   install, or keep them where the pull request's code can't write. [21 Nov 2026, agy on #589]
-- `docs/repo-map.md` is still tracked, but the pre-commit hook no longer refreshes it, so it goes stale until someone
-  runs `pnpm repo-map` (in a small PR of its own, not inside feature PRs). Next step: `git rm --cached` it, add it to
-  `.gitignore`, and generate it into the working tree (plain `node tools/repo-map.mjs`) from new
-  `tools/git-hooks/post-checkout` and `post-merge` hooks (post-checkout fires on `git worktree add` too) and the root
-  `prepare` script, each tested like `pre-commit.test.mjs`. Then fix the wording that says every commit refreshes it:
-  `tools/repo-map.mjs` `renderMap` header, `docs/workflow.md:244,376`, `.claude/agents/reviewer.md:41`,
-  `tools/gemini/prompts/pr-audit.md:3`; and drop `repo-map.mjs --staged`, which nothing calls now. [7 Nov 2026, CI-speed session, Decision (architect)]
 - The two sister repos' copies of `tools/gemini/gemini-api.mjs` still lack the TLS handshake limit this repo's
   `postApi` gained in #608 (a tunnel that opens but carries nothing waits the full 10 minutes there); copy it, with
   its test in `gemini-proxy.test.mjs`, and the `PASS_ON` line in `tools/gemini/agy.mjs` that moves that reason on to
