@@ -2,7 +2,7 @@
 // to play against the AI without a map, a button to play online, a button into developer test mode and the sound
 // controls (#646), and the tutorial (#642). The AI games, the tutorial and test mode need no account; only Play online asks to sign in.
 import { ERA_1_FREE_BUTTON } from "@terminal-dusk/host/first-deck";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { HomeSound } from "./audio/soundControls.tsx";
 import { OnlineScreen } from "./online/OnlineScreen.tsx";
 import { WatchScreen } from "./online/watch/WatchScreen.tsx";
@@ -66,6 +66,11 @@ export function App({
 }: Readonly<AppProps>) {
   const [screen, setScreen] = useState<"home" | Screen>("home");
   const [watching, setWatching] = useState(watch ?? null);
+  // Kept between renders: a game against the AI starts again when the game it is given changes.
+  const aiGames = useMemo(
+    () => vsAiGames({ game, mapGame, freeGame, futureGame }),
+    [game, mapGame, freeGame, futureGame],
+  );
   if (watching !== null && online) {
     const play = {
       clock,
@@ -83,12 +88,7 @@ export function App({
   // The tutorial needs no account or entitlement: a guest plays it (#642), and an owner plays on past Era 1 (#647).
   if (screen === "tutorial") return tutorialRoute({ clock, newSeed, newAiSeed, entitlements });
   if (screen === "vsAi" || screen === "vsAiMap" || screen === "vsAiFree" || screen === "vsAiFuture") {
-    const played = {
-      vsAi: game,
-      vsAiMap: mapGame ?? game,
-      vsAiFree: freeGame ?? game,
-      vsAiFuture: futureGame ?? game,
-    }[screen];
+    const played = aiGames[screen];
     return (
       <VsAiScreen
         key={screen}
@@ -102,6 +102,30 @@ export function App({
   }
   if (screen === "online") return onlineRoute({ clock, game, online, timers }, () => setScreen("home"));
   return <Home onPick={setScreen} />;
+}
+
+/**
+ * The game each screen against the AI plays: its own, or `game` when it has none. Only the free game's screen ends with
+ * the Full Game offer (#668), and it stays the free game for everyone: owners get the Full Game with phase 6.
+ */
+export function vsAiGames({
+  game,
+  mapGame,
+  freeGame,
+  futureGame,
+}: Readonly<{
+  game?: VsAiGame | undefined;
+  mapGame?: VsAiGame | undefined;
+  freeGame?: VsAiGame | undefined;
+  futureGame?: VsAiGame | undefined;
+}>) {
+  const free = freeGame ?? game;
+  return {
+    vsAi: game,
+    vsAiMap: mapGame ?? game,
+    vsAiFree: free && { ...free, offerFullGame: true },
+    vsAiFuture: futureGame ?? game,
+  };
 }
 
 /** The tutorial as the app opens it: the Full Game's edition for an owner on this platform, otherwise the free one. */

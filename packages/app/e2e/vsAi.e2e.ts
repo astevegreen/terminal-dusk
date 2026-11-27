@@ -26,6 +26,8 @@ test("play against the AI: pick LIO and tap through a whole game against the wor
   }
   await expect(gameOver).toBeVisible();
   await expect(page.getByText(/^AI refused:/)).toHaveCount(0);
+  // Only the free game ends with the Full Game offer (#668).
+  await expect(page.getByRole("region", { name: "The Full Game" })).toHaveCount(0);
 
   // The log is in the drawer the ticker opens (L9, #489); its Close button shuts it again.
   await page.getByTestId("ticker").click();
@@ -136,6 +138,7 @@ test("the 2025-2027 game starts from the home screen and plays its 11 turns to t
   }
   await expect(gameOver).toBeVisible();
   await expect(page.getByText(/^AI refused:/)).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "The Full Game" })).toHaveCount(0);
 });
 
 test("the AI's difficulty is kept after a reload (L11)", async ({ page }) => {
