@@ -67,7 +67,7 @@ export function attemptValue(
   weights: MediumWeights,
 ): number {
   return drawVariants(view, hidden, side).reduce(
-    (sum, v) => sum + v.weight * afterValue(ruleset, reconstruct(view, v.hidden), side, ATTEMPT, weights, 0),
+    (sum, v) => sum + v.weight * afterValue(ruleset, reconstruct(v.view ?? view, v.hidden), side, ATTEMPT, weights, 0),
     0,
   );
 }

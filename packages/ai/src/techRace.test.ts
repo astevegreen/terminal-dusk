@@ -102,14 +102,44 @@ describe("the AI and the tech race", () => {
     }
   }, 30_000);
 
-  it("Medium values an attempt more the better its odds", () => {
-    // The first SAE menu: Medium does not yet value the odds of LIO's attempts (#675, which adds a LIO case).
-    const menu = MENUS.find((m) => techMenuSide(m) === "sae");
-    if (menu === undefined) throw new Error("no SAE tech race menu in Easy's games");
-    const side = techMenuSide(menu)!;
-    const value = (numbers: number[]) => valueOf(withDeck(menu, side, numbers), side);
-    expect(value([1, 1, 9])).toBeLessThan(value([1, 9, 9]));
-    expect(value([1, 9, 9])).toBeLessThan(value([9, 9, 9]));
+  for (const menuSide of ["sae", "lio"] as const) {
+    it(`Medium values an attempt more the better its odds (the first ${menuSide.toUpperCase()} menu)`, () => {
+      const menu = MENUS.find((m) => techMenuSide(m) === menuSide);
+      if (menu === undefined) throw new Error(`no ${menuSide} tech race menu in Easy's games`);
+      const value = (numbers: number[]) => valueOf(withDeck(menu, menuSide, numbers), menuSide);
+      expect(value([1, 1, 9])).toBeLessThan(value([1, 9, 9]));
+      expect(value([1, 9, 9])).toBeLessThan(value([9, 9, 9]));
+    });
+  }
+
+  it("Medium values an attempt with a deck of 9s above one with a deck of 1s, in every tech race menu", () => {
+    for (const menu of MENUS) {
+      const side = techMenuSide(menu)!;
+      expect(valueOf(withDeck(menu, side, [9, 9, 9]), side)).toBeGreaterThan(
+        valueOf(withDeck(menu, side, [1, 1, 1]), side),
+      );
+    }
+  });
+
+  it("counts LIO's Resilient institutions redraw: a 1 drawn first is weighed by the draw that replaces it", () => {
+    // A 4-card deck: drawing the 1 leaves 3, so the redraw comes from the other three, no reshuffle between.
+    const menu = MENUS.find(
+      (m) => techMenuSide(m) === "lio" && m.public.abilities?.lio.id === "resilientInstitutions",
+    )!;
+    const fresh = { ...menu.public.abilities!.lio, used: 0 };
+    const state = withDeck(menu, "lio", [1, 2, 9, 9]);
+    const view = viewFor(
+      { ...state, public: { ...state.public, abilities: { ...state.public.abilities!, lio: fresh } } },
+      "lio",
+    );
+    const hidden = guessHidden(FIRST_DECK_RULESET, view, "lio", seededRandom(1));
+    const drawn = drawVariants(view, hidden, "lio").map((v) => [v.hidden.secret.contingency.lio[0], v.weight]);
+    expect(drawn).toEqual([
+      [2, 1 / 4 / 3],
+      [9, (1 / 4 / 3) * 2],
+      [2, 1 / 4],
+      [9, 2 / 4],
+    ]);
   });
 
   it("Medium counts the first-there +1: a deck of 3s wins only with it", () => {
