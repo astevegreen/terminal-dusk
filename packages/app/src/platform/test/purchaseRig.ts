@@ -26,7 +26,9 @@ export async function purchaseRig(stored?: Session, before?: (fake: ReturnType<t
     endpoint,
     accessToken: () => signIn.accessToken(),
     entitlements,
-    navigate: (url) => void opened.push(url),
+    navigate: (url) => {
+      opened.push(url);
+    },
     origin: APP_ORIGIN,
   });
   entitlements.start();

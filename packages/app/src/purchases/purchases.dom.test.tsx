@@ -3,9 +3,7 @@
 // the offer and in the account area. The whole app, mounted in a stand-in page (happy-dom) against a fake server.
 // Nothing leaves the test, and the payment page is never opened: the address the app would open is recorded.
 import { act } from "react";
-import { createRoot } from "react-dom/client";
-import type { Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { appGames } from "../appGames.ts";
 import { EntitledApp } from "../entitlements/EntitledApp.tsx";
 import { WEB_ROW, fakeEntitlements } from "../entitlements/test/fakeEntitlements.ts";
@@ -15,6 +13,7 @@ import { STORED } from "../online/test/signInRig.ts";
 import { memoryStore } from "../platform/storage.ts";
 import { WEB_PURCHASE_NOTE, webPlatformPurchases } from "../platform/webPlatformPurchases.ts";
 import { RETURN_DELAYS } from "../platform/webPurchaseReturn.ts";
+import { settle, testScreen } from "../test/screen.ts";
 import { fakeTimers } from "../transport/test/remoteGame.ts";
 import { OFFER_BUY, OFFER_TEXT } from "../tutorial/FullGameOffer.tsx";
 import { playUntil, pub } from "../tutorial/test/playTutorial.ts";
@@ -62,32 +61,14 @@ const clock = (): number => STORED.expiresAt - 3_600_000;
 const newSeed = (): string => "s";
 const newAiSeed = (): number => 1;
 
-let screen: HTMLElement;
-let root: Root;
+const { screen, render, button, press } = testScreen();
 
 beforeEach(() => {
-  vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   made.length = 0;
   lessons.length = 0;
   opponent.current = standInAi();
-  screen = document.body.appendChild(document.createElement("div"));
-  root = createRoot(screen);
-});
-afterEach(async () => {
-  await act(async () => root.unmount());
-  screen.remove();
-  vi.unstubAllGlobals();
 });
 
-const settle = (): Promise<void> => act(() => new Promise<void>((resolve) => setTimeout(resolve, 0)));
-const button = (name: string): HTMLButtonElement | undefined =>
-  [...screen.querySelectorAll("button")].find((b) => b.textContent === name);
-async function press(name: string): Promise<void> {
-  const found = button(name);
-  expect(found, `a button named "${name}"`).toBeDefined();
-  await act(async () => found!.click());
-  await settle();
-}
 const giftField = (): HTMLInputElement | null => screen.querySelector('input[name="gift-code"]');
 async function redeem(code: string): Promise<void> {
   const input = giftField()!;
@@ -124,9 +105,7 @@ async function mount({
     copy: () => {},
     ...(sells ? { purchases: webPlatformPurchases(browser, timers) } : {}),
   };
-  await act(async () =>
-    root.render(<EntitledApp clock={clock} newSeed={newSeed} newAiSeed={newAiSeed} {...appGames} online={online} />),
-  );
+  await render(<EntitledApp clock={clock} newSeed={newSeed} newAiSeed={newAiSeed} {...appGames} online={online} />);
   await settle();
   return { fake, opened, timers };
 }

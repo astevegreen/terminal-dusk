@@ -90,17 +90,21 @@ export function App({
     [game, mapGame, freeGame, futureGame, freeMapGame, owns],
   );
   // The purchase controls on any screen below; a signed-out player is taken to the online screen to sign in.
-  const desk = purchases
-    ? {
-        purchases: purchases.purchases,
-        note: purchases.note,
-        owned: owns,
-        openSignIn: () => {
-          setWatching(null);
-          setScreen("online");
-        },
-      }
-    : null;
+  const desk = useMemo(
+    () =>
+      purchases
+        ? {
+            purchases: purchases.purchases,
+            note: purchases.note,
+            owned: owns,
+            openSignIn: () => {
+              setWatching(null);
+              setScreen("online");
+            },
+          }
+        : null,
+    [purchases, owns],
+  );
   const page = (): ReactNode => {
     if (watching !== null && online) {
       const play = {
