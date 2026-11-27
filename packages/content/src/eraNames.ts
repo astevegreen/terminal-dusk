@@ -1,9 +1,19 @@
-// The eras' shown names: each era's number and years, and the future cards' years (docs/design/eras.md).
+// The eras' shown names, built from packages/content/eras/ (docs/design/eras.md).
 import type { EraId } from "@terminal-dusk/engine";
+import raw from "../eras/eras.json" with { type: "json" };
+import { erasSchema } from "../schema/eras.ts";
 
-export const ERA_NAMES: Readonly<Record<EraId, string>> = {
-  "era-1": "Era 1 (1991–2001)",
-  "era-2": "Era 2 (2001–2008)",
-  "era-3": "Era 3 (2008–2025)",
-  future: "Future cards (2025–2027)",
-};
+const { eras } = erasSchema.parse(raw);
+
+/** Each era by its name, number and years, "The Shock (Era 2, 2001–2008)"; one with no name by its label and years. */
+export const ERA_NAMES: Readonly<Record<EraId, string>> = Object.fromEntries(
+  eras.map((e) => {
+    const years = `${e.from}–${e.to}`;
+    return [e.id, e.name === undefined ? `${e.label} (${years})` : `${e.name} (${e.label}, ${years})`];
+  }),
+);
+
+/** The same without the years, "The Shock (Era 2)", for where there is no room for them. */
+export const ERA_TITLES: Readonly<Record<EraId, string>> = Object.fromEntries(
+  eras.map((e) => [e.id, e.name === undefined ? e.label : `${e.name} (${e.label})`]),
+);

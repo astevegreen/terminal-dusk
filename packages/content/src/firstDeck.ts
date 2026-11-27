@@ -9,5 +9,5 @@ export { FIRST_DECK_CARDS, FIRST_DECK_RULESET, cardName } from "./firstDeckRules
 export { FIRST_DECK_SCENARIO } from "./firstDeckScenario.ts";
 export { ERA_1_FREE_SCENARIO } from "./eraOneFreeScenario.ts";
 export { SCENARIO_2025_2027 } from "./scenario2025To2027.ts";
-export { ERA_NAMES } from "./eraNames.ts";
+export { ERA_NAMES, ERA_TITLES } from "./eraNames.ts";
 export { scenarioSetup } from "./scenario.ts";
