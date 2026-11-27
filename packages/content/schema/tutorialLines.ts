@@ -24,7 +24,8 @@ export const side = z.enum(["lio", "sae"]);
  * - techRaceCost: the cost of the tech race step the side would try (chapter 6).
  * - eventPoints: the points the named rival card's event gives its side to spend (chapter 6).
  * - influenceIn: the countries where the side has influence, in map order (chapter 1's "(Taiwan)").
- * - homeNeighbours: the countries next to the side's home box, in map order (chapter 1's "(Mexico, Cuba, Canada)").
+ * - homeNeighbours: the countries next to the side's home box, in the map's homeBox order (chapter 1's "(Mexico,
+ *   Cuba, Canada)").
  */
 export const SLOTS = {
   cardPoints: "card",
