@@ -9,7 +9,8 @@ import {
   sweepTurnAlertsFetchHandler,
 } from "./sweepEdge.ts";
 import { withNotify } from "./test/alerts.ts";
-import { SEED } from "./test/match.ts";
+import { insertSaeLate } from "./test/deadlines.ts";
+import { NOW, SEED } from "./test/match.ts";
 import {
   ADDRESS_OF,
   ALERT_MATCH,
@@ -22,7 +23,7 @@ import {
 } from "./test/sweeps.ts";
 
 const resultsOf = (reply: HttpReply): unknown => JSON.parse(reply.body);
-const ZERO_DEADLINES = { extended: 0, timedOut: 0, conflict: 0, skipped: 0 };
+const ZERO_DEADLINES = { extended: 0, timedOut: 0, answered: 0, conflict: 0, skipped: 0 };
 const ZERO_ALERTS = { sent: 0, stale: 0, noAddress: 0, taken: 0, failed: 0 };
 const failure = () => Promise.reject(new Error(`database down at ${DEADLINE_MATCH} ${ALERT_MATCH}`));
 
@@ -44,6 +45,16 @@ describe("sweep-deadlines handler: running the deadline sweep", () => {
     expect(reply.status).toBe(200);
     expect(resultsOf(reply)).toEqual({ results: { ...ZERO_DEADLINES, timedOut: 1 } });
     expect(w.store.stored(DEADLINE_MATCH)?.record.status.kind).toBe("over");
+  });
+
+  it("a match whose late side the stand-in answers for is counted as answered", async () => {
+    const w = deadlineWorld();
+    const store = new MemoryStore();
+    await insertSaeLate(store, DEADLINE_MATCH, "defaultAnswer", NOW);
+    const reply = await handleSweepDeadlines({ ...w.deps, store }, sweepRequest("POST"));
+    expect(reply.status).toBe(200);
+    expect(resultsOf(reply)).toEqual({ results: { ...ZERO_DEADLINES, answered: 1 } });
+    expect(store.stored(DEADLINE_MATCH)?.frames.spectator.standIn).toBe("sae");
   });
 
   it("a second call at the same time changes nothing: 200 with all zeros", async () => {

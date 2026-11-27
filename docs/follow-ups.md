@@ -38,10 +38,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 - `docs/design/core-loop.md` has a new "Missed deadlines" section (#611) with no Notion promotion entry in its header:
   record it at the next promotion. [22 Nov 2026, agy on #611]
-- `packages/server/src/sweepEdge.ts` `DEADLINE_STATUSES` does not count the sweep's `answered` status (a stand-in
-  step under "defaultAnswer"), so the `sweep-deadlines` reply's counts leave those matches out (`countOf`). [26 Nov 2026, #616]
-- The online log marks a late side's influence placed by the rival's card event as the stand-in's own move
-  (`packages/app/src/online/gameText.ts` `isMoveOf` checks only the event's side). [26 Nov 2026, #616]
 - The era names are decided (The Thaw, The Shock, The Fracture; `docs/design/eras.md`) but nothing shows them: the
   app says "Era 1" (`packages/app/src/App.tsx:136`, the era themes in `packages/app/src/game/themes/eraTheme.ts`),
   and the scenarios carry no era name. Show each era's name where its number appears, with the theme. [26 Nov 2026,
