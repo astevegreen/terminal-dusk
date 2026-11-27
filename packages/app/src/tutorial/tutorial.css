@@ -1,10 +1,13 @@
-/* The tutorial's coach (#642): a small box over the map's top left, under the top bar, so the map keeps the whole
-   screen and the decision banner and hand strip stay free at the bottom. Placeholder look only. */
+/* The tutorial's coach (#642): a small box over the map's left side, so the map keeps the whole screen and the
+   decision banner and hand strip stay free at the bottom. It starts under the map's tools (#666): their two-row block
+   on a wide map ends at 150px at the most (the large screen's 54px top bar, then 4 + 44 + 4 + 44), their one row on a
+   narrow map or on the List higher up. Above the map (z-index 0) and under the lifted card, the top bar's menu and the
+   side panels, which are drawn over it where they meet. Placeholder look only. */
 .game-page > .tutorial-coach {
   position: fixed;
-  top: 48px;
+  top: 154px;
   left: 8px;
-  z-index: 2;
+  z-index: 1;
   box-sizing: border-box;
   max-width: min(45vw, 360px);
   margin: 0;
