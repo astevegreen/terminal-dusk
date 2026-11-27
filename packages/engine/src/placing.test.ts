@@ -145,23 +145,17 @@ describe("spendPoints places influence (R16a)", () => {
     expect(done.state.public.pending.some((d) => d.kind === "placeInfluence")).toBe(false);
   });
 
-  it("with nothing affordable from the start, no placing is asked for: realign or pass is offered (R16c)", () => {
-    // Before R16c nobody was asked here. Since R16b SAE's influence in alpha would offer an intervention; at
-    // Escalation 5 every region is closed to them. Realigning does not look at closed regions (R17 will), so it is
-    // possible, and it is offered, never forced (owner, 26 Oct, #317 review).
+  it("with nothing affordable from the start and every region closed, nothing is asked: the points are lost", () => {
+    // Since R16b SAE's influence in alpha would offer an intervention, and R16c a realignment; at Escalation 5 every
+    // region is closed to both ("Thresholds close regions"), and 1 point cannot buy alpha, so the program runs on.
     const start = mapGame({ alpha: { sae: 2 } });
     const { state, events } = startWith([spend("lio", 1), { op: "marker", label: "after" }], ruleset, {
       ...start,
       public: { ...start.public, escalation: 5 },
     });
-    expect(events.map((e) => e.kind)).toEqual(["pointsSpent"]);
-    expect(state.public.pending).toEqual([
-      expect.objectContaining({
-        side: "lio",
-        kind: "chooseAction",
-        options: { points: 1, actions: ["realign", "pass"], targets: [] },
-      }),
-    ]);
+    expect(events.map((e) => e.kind)).toEqual(["pointsSpent", "marker"]);
+    expect(state.public.stack).toEqual([]);
+    expect(state.public.pending.some((d) => d.kind === "chooseAction" || d.kind === "placeInfluence")).toBe(false);
   });
 
   it("with no action possible (no points), nobody is asked and the program runs on", () => {
