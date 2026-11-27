@@ -64,6 +64,9 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## Tests and tooling
 
+- No stack test calls the deployed `redeem` Edge Function over HTTP, as `inviteHandler.stack.test.ts` does for
+  `invite` (`packages/server/supabase/functions/redeem/index.ts`): add `redeemHandler.stack.test.ts` with
+  `callFunction`. [27 Nov 2026, reviewer on #710]
 - On a loaded PC a full `pnpm gate` fails on time-outs in tests the change does not touch: the 5 s limit in
   `packages/ai` (techRace, lookahead, medium's timing), the app's six-region map game and the easy AI fuzz, and the
   100 s engine fuzz (`tests/fuzz/engine.test.ts`). [27 Nov 2026, sound chain]

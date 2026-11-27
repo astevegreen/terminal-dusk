@@ -1,5 +1,5 @@
 // The in-memory gift code store: the same outcomes the redeem_gift_code SQL function gives on the local stack
-// (giftCodeStore.contract.stack.test.ts runs these stories against both).
+// (src/migrations/giftCode.test.ts checks the SQL function on the stack).
 import { describe, expect, it } from "vitest";
 import { MemoryEntitlementStore } from "./entitlementStore.ts";
 import { GIFT_CODE_SOURCE, MemoryGiftCodeStore, WRONG_GUESS_LIMIT, WRONG_GUESS_WINDOW_MS } from "./giftCodeStore.ts";
