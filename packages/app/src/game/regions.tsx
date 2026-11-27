@@ -46,14 +46,16 @@ function statusText(frame: Frame): string {
   return frame.decision ? "Your decision" : "Waiting for the other side";
 }
 
+/** `era` is the latest `eraStarted` event's; before the first one, the era the frame shows is named (#669). */
 export function StatusBar({ frame, era }: Readonly<{ frame: Frame; era: EraId | null }>) {
   const pub = frame.view.public;
+  const shown = era ?? pub.era;
   return (
     <Region id="status-bar" title="Status" className="game-status">
       <span>{viewerText(frame)}</span>
       <span>{`Turn ${pub.turn} of ${pub.turns}`}</span>
       <span>{playsText(pub)}</span>
-      <span>{era === null ? "Era not shown yet" : eraText(era)}</span>
+      <span>{shown === undefined ? "Era not shown yet" : eraText(shown)}</span>
       {/* Only the state text is a polite live region, so its change is announced and the rest is not. */}
       <span role="status">{statusText(frame)}</span>
     </Region>

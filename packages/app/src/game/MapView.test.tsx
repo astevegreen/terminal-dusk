@@ -92,7 +92,10 @@ describe("the Map area with no map in the frame", () => {
   it('shows "No map in this game" and nothing else changes on the screen but the no-map mark (#412)', () => {
     const out = render(frame);
     expect(mapAreaOf(out)).toMatch(/tabindex="0"><p>No map in this game<\/p><\/section>$/);
-    const withMapOut = render(withMap(frame));
+    // The same frame plus the map only: the era a map game also carries has its own line in the status bar (#669).
+    const mapped = withMap(frame);
+    delete mapped.view.public.era;
+    const withMapOut = render(mapped);
     const rest = (html: string): string => html.replace(mapAreaOf(html), "");
     expect(rest(out)).toBe(
       rest(withMapOut).replace('<div class="game" data-theme=', '<div class="game game-no-map" data-theme='),
