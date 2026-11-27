@@ -52,9 +52,9 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - Nothing tests what follows the tutorial game's end: Watch replay, and New game starting the lesson again at
   chapter 1 (`packages/app/src/tutorial/TutorialScreen.tsx`), nor the full edition's end view. #647 tests only the
   free edition's end view and offer. [27 Nov 2026, reviewer on PR #662]
-- The tutorial's coach box (`packages/app/src/tutorial/tutorial.css`, fixed at top 48px, left 8px) lies over the
-  map's `.dm-tools` buttons (Map / List / Whole map), so a learner can't tap them while coached: move the box clear of
-  them. [27 Nov 2026, agy on PR #662]
+- The tutorial's coach box (`packages/app/src/tutorial/tutorial.css`, top 154px since #666, under the map's tools)
+  has little height for the real lesson: a line of about 290 characters ends 30px into the decision banner at 667x375
+  and 1px above it at 844x390. Fit the box when those words land. [27 Nov 2026, #666 layout probe]
 
 - The online log marks a late side's `pointsSpent` and `cardsDiscarded` by the event's side alone
   (`packages/app/src/online/gameText.ts` `isMoveOf`), and a card's event can give both without an answer. If a card
