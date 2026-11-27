@@ -5,7 +5,14 @@ export { hostTimeout } from "./hostTimeout.ts";
 export { hostDeadline } from "./hostDeadline.ts";
 export { hostArchive } from "./hostArchive.ts";
 export { hostLegalAnswers } from "./hostLegal.ts";
-export { createOnlineRefusal, isEntitlement, isPlatform, ownsFullGame, PLATFORMS } from "./entitlement.ts";
+export {
+  createOnlineRefusal,
+  isEntitlement,
+  isPlatform,
+  joinRankedRefusal,
+  ownsFullGame,
+  PLATFORMS,
+} from "./entitlement.ts";
 export type { Entitlement, Platform } from "./entitlement.ts";
 export type {
   DeadlineRule,
