@@ -24,7 +24,7 @@ import { checkPassedPlays } from "./passedPlays.ts";
 import { checkPlayedBy, notePlay } from "./playedBy.ts";
 import type { PlayRecord } from "./playedBy.ts";
 import { checkPlayerDraws, notePlayer } from "./playerDraws.ts";
-import { seededRng } from "./random.ts";
+import { seededRng, shuffled } from "./random.ts";
 import type { Rng } from "./random.ts";
 import { handSizeFor, withStayingCards } from "./removed.ts";
 import { checkRefilled, checkRemoved } from "./removedChecks.ts";
@@ -263,7 +263,8 @@ function play(rules: Ruleset, label: string, setup: Setup, seed: Seed, choose: C
     return { record, final: state };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    const verdict = !again ? null : choosing ? CHOOSER_FAILED : secondRun(rules, record, message);
+    let verdict: string | null = null;
+    if (again) verdict = choosing ? CHOOSER_FAILED : secondRun(rules, record, message);
     throw new Error(report(label, record, message, verdict), { cause: err });
   }
 }
@@ -323,28 +324,19 @@ function answered(rules: Ruleset, state: GameState, answer: Answer): Step {
   return deepFreeze(r.value);
 }
 
-/** The failure report. The verdict goes on the first line, which the gate's short output keeps. */
 /** "at the start" before any answer, else "at answer n". */
 function answerAt(n: number): string {
   return n === 0 ? "at the start" : `at answer ${n}`;
 }
 
+/** The failure report. The verdict goes on the first line, which the gate's short output keeps. */
 function report(label: string, record: GameRecord, message: string, verdict: string | null): string {
   const at = answerAt(record.answers.length);
+  const because = verdict === null ? "" : " (" + verdict + ")";
   return [
-    `${label} failed ${at}${verdict === null ? "" : ` (${verdict})`}: ${message}`,
+    `${label} failed ${at}${because}: ${message}`,
     `Seed: ${JSON.stringify(record.seed)}. The game's record (setup, seed and every answer so far):`,
     JSON.stringify(record),
     "Once it is fixed, add that record to tests/fuzz/fixedGames.ts so it is checked on every run.",
   ].join("\n");
-}
-
-/** Fisher-Yates shuffle of a copy of `items`. */
-function shuffled<T>(rng: Rng, items: readonly T[]): T[] {
-  const out = [...items];
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = rng.int(i + 1);
-    [out[i], out[j]] = [out[j]!, out[i]!];
-  }
-  return out;
 }

@@ -30,6 +30,16 @@ function failingOnce(at: number): Ruleset {
   });
 }
 
+/** The base fuzz ruleset, counting reads of its fields in `reads.n`; from read `every` on, every `every`th throws. */
+function failingEvery(every: number, reads = { n: 0 }): Ruleset {
+  return new Proxy(ruleset, {
+    get(target, key, receiver) {
+      if (++reads.n % every === 0) throw new Error("a fault at the record's end");
+      return Reflect.get(target, key, receiver) as unknown;
+    },
+  });
+}
+
 const bad: Answer = {
   decisionId: "no-such-decision",
   side: "lio",
@@ -76,6 +86,23 @@ describe("a failing fuzz game is played again from its record", () => {
     const twice: GameRecord = { ...badRecord, answers: [bad, bad] };
     expect(secondRun(ruleset, twice, message)).toBe(
       "played again from its record it fails with the same message, but at answer 1, not at answer 2",
+    );
+  });
+
+  it("a failure after the record's last answer repeats at that answer, not one past it", () => {
+    // Fuzz game 1 cut to 10 answers, so the game is still going: once they run out, the end-of-game checks fail.
+    const { setup, seed, answers } = playFuzzGame(1).record;
+    const short: GameRecord = { setup, seed, answers: answers.slice(0, 10) };
+    const chooser = (): (() => Answer | null) => {
+      let next = 0;
+      return () => short.answers[next++] ?? null;
+    };
+    // A whole run's reads; failing on the last of them fails the first run and its second run at the same point.
+    const reads = { n: 0 };
+    playGame(failingEvery(Number.MAX_SAFE_INTEGER, reads), "Count", setup, seed, chooser());
+    const report = reportOf(() => playGame(failingEvery(reads.n), "End", setup, seed, chooser()));
+    expect(firstLine(report)).toMatch(
+      /^Error: End failed at answer 10 \(it fails the same way when its record is played again\): .*a fault at the record's end/,
     );
   });
 
