@@ -41,6 +41,8 @@ type Refund = {
   status?: string;
   refundType?: string;
   items?: unknown;
+  /** When Paddle made the adjustment; `null` for a message without a usable time. */
+  createdAt?: unknown;
 };
 
 /** An `adjustment` message; by default an approved full refund of the transaction. */
@@ -51,13 +53,22 @@ export function refund({
   status = "approved",
   refundType = "full",
   items = [{ item_id: "txnitm_test_0001", type: "full" }],
+  createdAt = "2026-11-28T10:00:00.000000Z",
 }: Refund = {}): string {
   return JSON.stringify({
     event_id: `evt_test_${type}_${transactionId}`,
     event_type: type,
     occurred_at: "2026-11-28T10:00:00.000000Z",
     notification_id: "ntf_test_0002",
-    data: { id: "adj_test_0001", action, type: refundType, status, transaction_id: transactionId, items },
+    data: {
+      id: "adj_test_0001",
+      action,
+      type: refundType,
+      status,
+      transaction_id: transactionId,
+      items,
+      created_at: createdAt,
+    },
   });
 }
 

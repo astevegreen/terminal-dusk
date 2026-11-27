@@ -180,7 +180,6 @@ describe("a refund", () => {
     ],
     ["partial with no items", { refundType: "partial", items: [] }],
     ["really a credit", { action: "credit" }],
-    ["really a chargeback", { action: "chargeback" }],
   ])("that is %s keeps the entitlement", async (_name, change) => {
     const t = setup();
     await t.send(paid());

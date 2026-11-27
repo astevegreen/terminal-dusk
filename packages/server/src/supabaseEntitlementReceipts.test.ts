@@ -11,6 +11,8 @@ const FAKE_KEY = "service-key-that-must-not-leak";
 const RECEIPT = "receipt-ref-that-must-not-leak";
 const COPY = { platform: "web", source: "paddle" } as const;
 const NOW = 1_700_000_000_000;
+/** When Paddle made a chargeback or its reversal. */
+const AT = 1_699_000_000_000;
 
 /** A stand-in client: each write gives `answer` (or throws), and every call is kept. */
 function fakeStore(answer: Answer | "throws") {
@@ -29,18 +31,35 @@ function fakeStore(answer: Answer | "throws") {
 }
 
 describe("SupabaseEntitlementStore receipt writes", () => {
-  it.each(["granted", "already", "refunded"])("grants through grant_receipt and answers %s", async (status) => {
-    const { store, calls } = fakeStore({ data: status, error: null });
-    expect(await store.grantReceipt(PLAYER, COPY, RECEIPT)).toBe(status);
-    const args = { p_player: PLAYER, p_platform: "web", p_source: "paddle", p_receipt_ref: RECEIPT, p_now: NOW };
-    expect(calls).toEqual([{ call: "grant_receipt", args }]);
-  });
+  it.each(["granted", "already", "refunded", "chargedBack"])(
+    "grants through grant_receipt and answers %s",
+    async (status) => {
+      const { store, calls } = fakeStore({ data: status, error: null });
+      expect(await store.grantReceipt(PLAYER, COPY, RECEIPT)).toBe(status);
+      const args = { p_player: PLAYER, p_platform: "web", p_source: "paddle", p_receipt_ref: RECEIPT, p_now: NOW };
+      expect(calls).toEqual([{ call: "grant_receipt", args }]);
+    },
+  );
 
   it.each(["revoked", "remembered"])("revokes through revoke_receipt and answers %s", async (status) => {
     const { store, calls } = fakeStore({ data: status, error: null });
     expect(await store.revokeReceipt("paddle", RECEIPT)).toBe(status);
     const args = { p_source: "paddle", p_receipt_ref: RECEIPT, p_now: NOW };
     expect(calls).toEqual([{ call: "revoke_receipt", args }]);
+  });
+
+  it.each(["revoked", "remembered"])("charges back through chargeback_receipt and answers %s", async (status) => {
+    const { store, calls } = fakeStore({ data: status, error: null });
+    expect(await store.chargeBackReceipt("paddle", RECEIPT, AT)).toBe(status);
+    const args = { p_source: "paddle", p_receipt_ref: RECEIPT, p_at: AT };
+    expect(calls).toEqual([{ call: "chargeback_receipt", args }]);
+  });
+
+  it.each(["restored", "remembered"])("reverses through reverse_chargeback and answers %s", async (status) => {
+    const { store, calls } = fakeStore({ data: status, error: null });
+    expect(await store.reverseChargeback("paddle", RECEIPT, AT)).toBe(status);
+    const args = { p_source: "paddle", p_receipt_ref: RECEIPT, p_at: AT, p_now: NOW };
+    expect(calls).toEqual([{ call: "reverse_chargeback", args }]);
   });
 
   it("records an unmatched checkout once, keeping the first record", async () => {
@@ -51,18 +70,24 @@ describe("SupabaseEntitlementStore receipt writes", () => {
     expect(calls).toEqual([{ call: "checkout_unmatched", args: [row, options] }]);
   });
 
-  it.each(["grant", "revoke"] as const)("throws on a %s answer it does not know", async (what) => {
-    const { store } = fakeStore({ data: what === "grant" ? "revoked" : "granted", error: null });
-    const write = () =>
-      what === "grant" ? store.grantReceipt(PLAYER, COPY, RECEIPT) : store.revokeReceipt("paddle", RECEIPT);
-    await expect(write()).rejects.toThrow("Entitlement write failed: the database gave an unexpected answer.");
-  });
-
   const writes = {
     grantReceipt: (s: SupabaseEntitlementStore) => s.grantReceipt(PLAYER, COPY, RECEIPT),
     revokeReceipt: (s: SupabaseEntitlementStore) => s.revokeReceipt("paddle", RECEIPT),
+    chargeBackReceipt: (s: SupabaseEntitlementStore) => s.chargeBackReceipt("paddle", RECEIPT, AT),
+    reverseChargeback: (s: SupabaseEntitlementStore) => s.reverseChargeback("paddle", RECEIPT, AT),
     recordUnmatched: (s: SupabaseEntitlementStore) => s.recordUnmatched("paddle", RECEIPT, "noPlayerId"),
   };
+
+  it.each([
+    ["grantReceipt", "revoked"],
+    ["revokeReceipt", "granted"],
+    ["chargeBackReceipt", "restored"],
+    ["reverseChargeback", "revoked"],
+  ] as const)("%s throws on an answer it does not know", async (name, data) => {
+    const { store } = fakeStore({ data, error: null });
+    const message = "Entitlement write failed: the database gave an unexpected answer.";
+    await expect(writes[name](store)).rejects.toThrow(message);
+  });
 
   it.each(Object.keys(writes) as (keyof typeof writes)[])(
     "%s throws a storage error showing no player, receipt reference or key",

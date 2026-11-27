@@ -5,6 +5,7 @@ import type { MatchConfig } from "@terminal-dusk/host";
 import { freshId } from "./migrations/localStack.ts";
 import { onLocalStack, putIn, writeOf } from "./test/stack.ts";
 import { deadlineStoreContract } from "./test/contracts/deadlineStore.ts";
+import { entitlementChargebacksContract } from "./test/contracts/entitlementChargebacks.ts";
 import { entitlementReceiptsContract } from "./test/contracts/entitlementReceipts.ts";
 import { inviteStoreContract } from "./test/contracts/inviteStore.ts";
 import { matchStoreContract } from "./test/contracts/matchStore.ts";
@@ -66,15 +67,14 @@ await onLocalStack("the Supabase stores keep the store contracts on the local Su
     TIMEOUT,
   );
 
-  entitlementReceiptsContract(
-    () => ({
-      store: new SupabaseEntitlementStore(stack.service),
-      player: () => freshId(),
-      receipt: receipts.fresh,
-      unmatched: receipts.unmatched,
-    }),
-    TIMEOUT,
-  );
+  const stackReceipts = () => ({
+    store: new SupabaseEntitlementStore(stack.service),
+    player: () => freshId(),
+    receipt: receipts.fresh,
+    unmatched: receipts.unmatched,
+  });
+  entitlementReceiptsContract(stackReceipts, TIMEOUT);
+  entitlementChargebacksContract(stackReceipts, TIMEOUT);
 
   deadlineStoreContract(
     () => ({
