@@ -7,10 +7,13 @@
 // in a drawer. Since L10 (#490) the sheet is gone: what its Details tab held is a Details panel opened from the top
 // bar, so only the decision banner and the hand strip stay at the bottom. The replay viewer draws each recorded step
 // on it as a spectator would see it (#493), with both hands in the Details panel. It renders from its props alone
-// (HandStrip holds the lifted card, TopBar which panel is open and whether the log is pinned).
+// (HandStrip holds the lifted card, TopBar which panel is open and whether the log is pinned). The new events of the
+// frame it draws are heard from here (#645), so every screen that shows a game sounds them.
 import type { AnswerValue, CardId, EraId } from "@terminal-dusk/engine";
 import type { Frame } from "@terminal-dusk/host";
 import type { ReactNode } from "react";
+import { EventSounds } from "../audio/useEventSounds.tsx";
+import type { Pace } from "../audio/useEventSounds.tsx";
 import { countryChoices, countryNames } from "../countryChoices.ts";
 import { decisionPrompts } from "../decisionPrompts.tsx";
 import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
@@ -57,6 +60,8 @@ export type GameScreenProps = {
   detailsNote?: string;
   /** The page's own part of the Details panel, before the rest, such as the replay's two hands (#493). */
   extraDetails?: ReactNode;
+  /** Which new frames sound their events: left out, a live game's; the replay viewer's only its next step. */
+  soundPace?: Pace;
 };
 
 type PromptData = Pick<GameScreenProps, "frame" | "label" | "question" | "affiliation">;
@@ -123,6 +128,7 @@ export function GameScreen({
   bar,
   detailsNote,
   extraDetails,
+  soundPace,
 }: Readonly<GameScreenProps>) {
   const data = { frame, label, question, affiliation };
   const chips = chipsOf(frame.view.mine?.hand ?? [], label, points, affiliation);
@@ -137,6 +143,7 @@ export function GameScreen({
     >
       {/* Shown only on a screen taller than it is wide (gameScreen.css): the same layout, held the wrong way. */}
       <p className="game-rotate-hint">Turn your phone sideways to play.</p>
+      <EventSounds frame={frame} pace={soundPace} />
       {/* The top bar, the Details button and the ticker at its right end, and the panels they open (topBar.tsx):
           the Details panel holds the rival's hand size, the cards in play, the discard pile, the Contingency
           decks and the sides' special abilities, as the sheet's Details tab did. */}
