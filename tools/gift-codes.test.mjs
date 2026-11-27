@@ -143,3 +143,11 @@ test("bad arguments print the usage line and exit 1, without touching the store"
   assert.equal(store.requests.length, 0);
   assert.match(err.join("\n"), /web/);
 });
+
+test("a project URL ending in slashes still posts to its gift_code table", async () => {
+  const { exit, store } = await run(["--platform", "web", "--count", "1"], {
+    env: { ...ENV, SUPABASE_URL: `${URL}//` },
+  });
+  assert.equal(exit, 0);
+  assert.equal(store.requests[0].url, `${URL}/rest/v1/gift_code`);
+});

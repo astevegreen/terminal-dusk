@@ -37,7 +37,7 @@ export function normalizeGiftCode(text: string): string | null {
  * ASCII, so each character is its own byte (the same bytes UTF-8 gives).
  */
 export async function hashGiftCode(code: string): Promise<string> {
-  const bytes = Uint8Array.from(code, (character) => character.charCodeAt(0));
+  const bytes = Uint8Array.from(code, (character) => character.codePointAt(0)!);
   const digest = await webCrypto().subtle.digest("SHA-256", bytes);
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }

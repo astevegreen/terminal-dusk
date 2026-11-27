@@ -65,11 +65,18 @@ export async function main(argv, { env, fetch, now, out, err }) {
   return 0;
 }
 
+/** The URL without any slashes at its end, so a path can follow it. */
+function withoutTrailingSlashes(url) {
+  let end = url.length;
+  while (end > 0 && url[end - 1] === "/") end--;
+  return url.slice(0, end);
+}
+
 /** Saves the rows in one request: null when it worked, else the status and database error code, nothing more. */
 async function save(fetch, url, key, rows) {
   let response;
   try {
-    response = await fetch(`${url.replace(/\/+$/, "")}/rest/v1/gift_code`, {
+    response = await fetch(`${withoutTrailingSlashes(url)}/rest/v1/gift_code`, {
       method: "POST",
       headers: {
         apikey: key,
