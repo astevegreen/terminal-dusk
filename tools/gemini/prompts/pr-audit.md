@@ -1,6 +1,6 @@
 Audit one pull request. The material file holds its diff and the linked task spec.
 Follow GEMINI.md. Read surrounding code from disk only where the diff is unclear.
-Ignore `docs/repo-map.md`: a git hook regenerates it on every commit.
+Ignore `docs/repo-map.md`: git doesn't track it; git hooks and `pnpm install` generate it.
 
 Check:
 

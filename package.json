@@ -23,7 +23,7 @@
     "repo-map": "node tools/repo-map.mjs",
     "dev": "pnpm --filter @terminal-dusk/app run dev",
     "format": "prettier --write .",
-    "prepare": "git config core.hooksPath tools/git-hooks"
+    "prepare": "git config core.hooksPath tools/git-hooks && node tools/repo-map.mjs"
   },
   "lint-staged": {
     "*": "prettier --write --ignore-unknown"
