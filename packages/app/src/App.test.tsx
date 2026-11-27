@@ -30,6 +30,7 @@ describe("the home screen", () => {
       "Play against the AI",
       "Play the 2025-2027 game",
       "Play the free game: The Thaw (Era 1)",
+      "Tutorial",
       "Play online",
       "Test mode",
     ]);
@@ -37,7 +38,8 @@ describe("the home screen", () => {
     button(tree, "Play against the AI").press();
     button(tree, "Play the 2025-2027 game").press();
     button(tree, "Play the free game: The Thaw (Era 1)").press();
-    expect(picked).toEqual(["vsAiMap", "vsAi", "vsAiFuture", "vsAiFree"]);
+    button(tree, "Tutorial").press();
+    expect(picked).toEqual(["vsAiMap", "vsAi", "vsAiFuture", "vsAiFree", "tutorial"]);
   });
 });
 

@@ -18,8 +18,9 @@ class FakeWorker {
   onmessageerror: ((event: unknown) => void) | null = null;
   private readonly handle = createAiWorkerHandler();
   private replies: AiResponse[] = [];
-  constructor(url: URL, options: unknown) {
-    this.url = url.href;
+  // Vite's `?worker&inline` import passes the script as a string under Vitest (a blob in the built app).
+  constructor(url: URL | string, options: unknown) {
+    this.url = typeof url === "string" ? url : url.href;
     this.options = options;
     FakeWorker.made.push(this);
   }
@@ -58,7 +59,7 @@ describe("the Web Worker opponent", () => {
     vi.stubGlobal("Worker", FakeWorker);
     createWorkerAi(fixtureRuleset, "sae", 42, "easy");
     const [worker] = FakeWorker.made;
-    expect(worker?.url).toMatch(/ai\.worker\.ts$/);
+    expect(worker?.url).toMatch(/ai\.worker\.ts(\?|$)/);
     expect(worker?.options).toEqual({ type: "module" });
     expect(worker?.sent).toEqual([{ kind: "start", ruleset: fixtureRuleset, side: "sae", seed: 42, tier: "easy" }]);
   });

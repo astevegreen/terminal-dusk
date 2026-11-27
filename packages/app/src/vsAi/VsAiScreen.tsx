@@ -1,8 +1,9 @@
 // Playing against the AI: a difficulty and a side picker, then the game screen for the human's side. The AI runs in a
 // Web Worker (createWorkerAi) unless a test passes another opponent. Seeds and the clock come from main.tsx.
 import { SIDES } from "@terminal-dusk/engine";
-import type { CardId, Ruleset, Side } from "@terminal-dusk/engine";
+import type { AnswerValue, CardId, Ruleset, Side } from "@terminal-dusk/engine";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import type { ReactNode } from "react";
 import { FocusingGameScreen } from "../game/decisionFocus.tsx";
 import { ReplayScreen } from "../replay/ReplayScreen.tsx";
 import type { ReplayRecording } from "../replay/recording.ts";
@@ -76,6 +77,8 @@ export function VsAiView({
   affiliation = fixtureAffiliation,
   rules,
   points = fixturePoints,
+  allows,
+  coach,
 }: Readonly<{
   snapshot: VsAiSnapshot;
   session: VsAiSession;
@@ -88,6 +91,10 @@ export function VsAiView({
   rules?: CardRules | undefined;
   /** A card's points for its chip in the hand strip; the developer fixture's when left out. */
   points?: CardPoints | undefined;
+  /** The answers the tutorial's coach allows (#641); left out, every choice can be tapped. */
+  allows?: ((value: AnswerValue) => boolean) | undefined;
+  /** The tutorial's coaching, drawn over the game (#642); left out in every other game. */
+  coach?: ReactNode;
 }>) {
   const [watching, setWatching] = useState<ReplayRecording | null>(null);
   const { frame } = snapshot;
@@ -118,6 +125,7 @@ export function VsAiView({
           rules={rules}
           points={points}
           onAnswer={(value) => void session.answer(value)}
+          allows={allows}
           refusal={snapshot.refusal}
           menu={<p>{note}</p>}
           bar={aiRefused}
@@ -130,6 +138,7 @@ export function VsAiView({
           <p role="alert">{`Could not start the game: ${snapshot.refusal ?? "unknown"}`}</p>
         </>
       )}
+      {frame && coach}
       {snapshot.replayReady && (
         <button type="button" style={TAP} onClick={() => setWatching(session.replay())}>
           Watch replay

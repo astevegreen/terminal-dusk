@@ -1,0 +1,31 @@
+/* The tutorial's coach (#642): a small box over the map's top left, under the top bar, so the map keeps the whole
+   screen and the decision banner and hand strip stay free at the bottom. Placeholder look only. */
+.game-page > .tutorial-coach {
+  position: fixed;
+  top: 48px;
+  left: 8px;
+  z-index: 2;
+  box-sizing: border-box;
+  max-width: min(45vw, 360px);
+  margin: 0;
+  padding: 4px 8px;
+  border: 1px solid #888;
+  background: rgb(255 255 255 / 92%);
+  color: #111;
+  font-size: 0.875em;
+}
+.tutorial-coach p,
+.tutorial-coach h2 {
+  margin: 2px 0;
+}
+.tutorial-coach h2 {
+  font-size: 1em;
+}
+.tutorial-coach .tutorial-label {
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.75em;
+}
+.tutorial-coach .coaching-hint {
+  font-style: italic;
+}
