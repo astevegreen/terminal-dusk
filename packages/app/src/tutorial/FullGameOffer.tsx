@@ -1,6 +1,8 @@
-// The Full Game offer at the end of a free player's tutorial (#647): the free game stops after Era 1's scoring, and
-// this says the Full Game plays on. Its words are placeholders, labelled as such, until the owner writes them. The buy
-// button stays disabled until web checkout (phase 6) gives it an action through the Platform (Decision 7).
+// The Full Game offer at the end of a free player's tutorial (#647) and of the free game against the AI (#668): the
+// free game stops after Era 1's scoring, and this says the Full Game plays on. Its words are placeholders, labelled as
+// such, until the owner writes them. The buy button stays disabled until web checkout (phase 6) gives it an action
+// through the Platform (Decision 7).
+import "./tutorial.css";
 
 /** Shown above the offer while its words are placeholders. */
 export const OFFER_PLACEHOLDER_LABEL = "Placeholder offer";
