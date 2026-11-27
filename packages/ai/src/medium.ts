@@ -3,6 +3,7 @@
 // as easyAnswer; the tier is the weights. Sees only its own view and guesses the rest.
 import { apply, legalAnswers, pendingFor, reconstruct } from "@terminal-dusk/engine";
 import type { AnswerValue, HiddenPart, PlayerView, Ruleset, Side } from "@terminal-dusk/engine";
+import { primeBonus } from "./command.ts";
 import { answerOps, namedCard } from "./easy.ts";
 import { boardValue } from "./evaluate.ts";
 import { guessHidden } from "./guess.ts";
@@ -71,7 +72,7 @@ export type Scored = { answer: AnswerValue; score: number };
 /**
  * Every legal answer for `side` with its Medium score, in legal-answer order, or null when nothing is pending for it.
  * A score is Easy's `ops * points (answerOps) + rivalCard * (1 if the card is the rival's) + noise * random()`, plus for a
- * card answer its safety (safety.ts), for a tech race attempt its value over the draws it could make, for passing
+ * card answer its safety (safety.ts) and `ops` times the Unified command bonus it sets up (command.ts), for a tech race attempt its value over the draws it could make, for passing
  * Hypersonics' extra play nothing (so it is on the cards' scale, and a card safe to play beats it), and for any other
  * answer the board it leaves (evaluate.ts).
  */
@@ -91,6 +92,7 @@ export function scoredAnswers(
     const rival = card !== null && card.affiliation !== "neutral" && card.affiliation !== side ? 1 : 0;
     let score = weights.ops * ops + weights.rivalCard * rival + weights.noise * random();
     if (card !== null) score += safetyScore(ruleset, view, side, card, answer, weights);
+    if (card !== null) score += weights.ops * primeBonus(ruleset, view, side, answer);
     else if (answer.kind === "chooseAction" && answer.action === "techRace") {
       score += attemptValue(ruleset, view, hidden, side, weights);
     } else if (answer.kind !== "pass")
