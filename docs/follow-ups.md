@@ -114,18 +114,21 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   before `move`'s REST writes; `statusFacts` (`:164`), `status --write` (`:320`) and `digest` (`:329`).
   `tools/github-rest.mjs` has the REST calls to start from. [27 Nov 2026, #665]
 - With no REST route, `gh pr ready`, `gh pr merge --auto` (`tools/sprint/moves.mjs:174`) and `gh issue pin`
-  (`tools/gemini-audit.mjs:143`) stay undone in a cloud session, which is told so; the CCR routes the 403 names could
+  (`tools/gemini-audit.mjs:152`) stay undone in a cloud session, which is told so; the CCR routes the 403 names could
   do them. [27 Nov 2026, #665]
 - `tools/sprint/queue.mjs` is past 350 lines (358). [27 Nov 2026, #665]
 - In a cloud session the Gemini API fallback (#529) reviews an ordinary `pr <n>`, but three audits still end in
-  verdict `retry` there: the rail audit (`tools/gemini-audit.mjs:206-210`), a diff too long to send whole
+  verdict `retry` there: the rail audit (`tools/gemini-audit.mjs:215-219`), a diff too long to send whole
   (`tools/gemini/gemini-api.mjs:60`), and spec and repo audits (`gemini-api.mjs:66`). Each is a choice the code comments explain;
   a PR touching a rail waits for a local run. [7 Nov 2026, reviewer on #538]
 - `checkOwnMoves` (`tests/fuzz/moveChecks.ts`) runs only in its own random games, so the `extraSteps` and
   `reactions` fuzz suites do not check it: call it from the game loop in `tests/fuzz/play.ts`. [26 Nov 2026, agy
   on #633]
-- agy's audit reads only the issue's body (`tools/github-rest.mjs:35` `issue()`), never its `Decision (architect)`
-  comments, so it flags a PR that follows a Decision as off-spec until the body is rewritten by hand: send the
-  owner's and the architect's Decision comments with the spec. [27 Nov 2026, agy on #654]
+- `tools/github-rest.mjs` (`isDecisionComment`, `issue`) and `tools/github-trust.mjs` now decide whose comments
+  override the spec agy reviews against, and neither is a rail (`tools/gemini/rails.mjs:11-21`), so loosening them
+  gets no rail audit: add both. [27 Nov 2026, #672]
+- agy's audit sends a linked issue's body as the spec whoever opened the issue (`tools/gemini-audit.mjs`
+  `prMaterial`), unlike the sprint queue, which takes only issues `trustedIssue` passes: say so in the material, or
+  leave a stranger's body out. [27 Nov 2026, #672]
 
 ## Docs
