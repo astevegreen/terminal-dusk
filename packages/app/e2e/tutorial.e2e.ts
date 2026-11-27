@@ -9,6 +9,7 @@ import { answerOnce, decisionButtons, yourDecision } from "./answer.ts";
 import { serveBuiltApp } from "./builtApp.ts";
 import { box, expectNoPageScroll, expectTapTargets } from "./measure.ts";
 import { fixRandom } from "./start.ts";
+import { expectFullGameOffer } from "./fullGameOffer.ts";
 
 // The placeholder lesson's words (packages/content/tutorial/placeholder.json) and the screen's own lines
 // (packages/app/src/tutorial/TutorialScreen.tsx).
@@ -160,17 +161,7 @@ test("a free player's tutorial ends after Era 1 with the result and the Full Gam
   await expect(gameOver).toBeVisible();
   await expect(page.getByTestId("status-bar").getByText("Turn 3 of 3")).toBeVisible();
 
-  // The offer: its placeholder label and words, and a buy button that cannot be tapped yet, 44 px tall, on screen.
-  const offer = page.getByRole("region", { name: "The Full Game" });
-  await expect(offer.getByText("Placeholder offer", { exact: true })).toBeVisible();
-  await expect(offer.getByText(/^Placeholder: the free game ends after Era 1/)).toBeVisible();
-  const buy = offer.getByRole("button", { name: "Get the Full Game" });
-  await expect(buy).toBeDisabled();
-  const box = await buy.boundingBox();
-  expect(box!.height).toBeGreaterThanOrEqual(44);
-  expect(box!.y + box!.height).toBeLessThanOrEqual(page.viewportSize()!.height);
-  await expect(page.getByRole("button", { name: "New game" })).toBeVisible();
-  await expect(page.getByText(/^AI refused:/)).toHaveCount(0);
+  await expectFullGameOffer(page);
 
   expect(requests.filter((url) => !url.startsWith("blob:") && !url.startsWith("data:"))).toEqual([]);
 });

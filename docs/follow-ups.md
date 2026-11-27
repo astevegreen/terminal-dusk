@@ -47,8 +47,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - The client has no entitlements yet: #647 adds `ownsFullGame` for the tutorial only. When web checkout lands
   (phase 6), wire real client entitlements in and put the same Era 1 stop in front of the other games against the
   AI. [27 Nov 2026, architect on the tutorial chain]
-- The existing free game against the AI (`era-1-free`) ends without the Full Game offer that #647 adds to the
-  tutorial; show it there too. [27 Nov 2026, architect on the tutorial chain]
 - Nothing tests what follows the tutorial game's end: Watch replay, and New game starting the lesson again at
   chapter 1 (`packages/app/src/tutorial/TutorialScreen.tsx`), nor the full edition's end view. #647 tests only the
   free edition's end view and offer. [27 Nov 2026, reviewer on PR #662]

@@ -11,6 +11,7 @@ import type { CardAffiliation, CardQuestion } from "../decisionPrompts.tsx";
 import { SIDE_NAME, SIDE_WHO, pointsOf, sideFullName } from "../displayText.ts";
 import type { CardPoints, CardRules } from "../displayText.ts";
 import { cardAffiliation as fixtureAffiliation, cardName, cardQuestion, fixtureRuleset } from "../testMode/fixture.ts";
+import { FullGameOffer } from "../tutorial/FullGameOffer.tsx";
 import type { AiTier, MakeAi } from "./aiOpponent.ts";
 import type { KeyValueStore } from "../platform/storage.ts";
 import { DEFAULT_TIER, DifficultyPicker, difficultyText, loadTier, saveTier } from "./difficulty.tsx";
@@ -35,6 +36,8 @@ export type VsAiGame = {
   /** A card's rules text, shown under its name in the hand; left out, the hand shows names only. */
   cardRules?: CardRules | undefined;
   note: string;
+  /** The free game's mark: its end shows the Full Game offer (#668). App sets it for the free game's screen only. */
+  offerFullGame?: boolean | undefined;
 };
 
 export function SidePicker({
@@ -96,7 +99,7 @@ export function VsAiView({
   allows?: ((value: AnswerValue) => boolean) | undefined;
   /** The tutorial's coaching, drawn over the game (#642); left out in every other game. */
   coach?: ReactNode;
-  /** Drawn once the game is over, before Watch replay and New game: the tutorial's Full Game offer (#647). */
+  /** Drawn once the game is over, before Watch replay and New game: a free game's Full Game offer (#647, #668). */
   ending?: ReactNode;
 }>) {
   const [watching, setWatching] = useState<ReplayRecording | null>(null);
@@ -167,7 +170,8 @@ export function openSession(start: () => VsAiSession, show: (session: VsAiSessio
   return () => session.stop();
 }
 
-function Game({
+/** The running session's game view, drawn with the chosen game's names, note and ending. */
+export function Game({
   session,
   onNewGame,
   game,
@@ -184,6 +188,7 @@ function Game({
       affiliation={game?.cardAffiliation}
       rules={game?.cardRules}
       points={game ? pointsOf(game.ruleset) : undefined}
+      ending={game?.offerFullGame ? <FullGameOffer /> : undefined}
     />
   );
 }
