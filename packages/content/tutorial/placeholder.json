@@ -1,0 +1,48 @@
+{
+  "id": "placeholder",
+  "title": "Placeholder lesson",
+  "placeholder": true,
+  "deckTop": [
+    "e1-lio-001",
+    "e1-lio-002",
+    "e1-lio-004",
+    "e1-lio-006",
+    "e1-lio-010",
+    "e1-lio-011",
+    "e1-lio-012",
+    "e1-lio-013",
+    "e1-lio-014",
+    "e1-sae-001",
+    "e1-sae-002",
+    "e1-sae-003",
+    "e1-sae-004",
+    "e1-sae-005",
+    "e1-sae-006",
+    "e1-sae-007"
+  ],
+  "chapters": [
+    {
+      "id": "placeholder-1",
+      "title": "Placeholder chapter 1",
+      "steps": [
+        {
+          "when": { "decision": "playCardAs", "side": "lio" },
+          "say": "Placeholder: play any card from your hand.",
+          "style": "coach",
+          "allow": [{ "kind": "playCardAs" }]
+        }
+      ]
+    },
+    {
+      "id": "placeholder-2",
+      "title": "Placeholder chapter 2",
+      "steps": [
+        {
+          "when": { "decision": "playCardAs", "side": "lio" },
+          "say": "Placeholder: a hint, which never limits your answers.",
+          "style": "hint"
+        }
+      ]
+    }
+  ]
+}
