@@ -20,6 +20,7 @@ import { FUZZ_CARDS, MAX_ERA_CARDS, MAX_EXTRA, MAX_PILE, MAX_PLAYS, MAX_TURNS, r
 import { attempt, checkStep, checkVerify, firstDifference, knowledgeOf } from "./checks.ts";
 import { deepFreeze } from "./deepFreeze.ts";
 import { checkTriggerFilters } from "./filterChecks.ts";
+import { checkOwnMoves } from "./moveChecks.ts";
 import { checkPassedPlays } from "./passedPlays.ts";
 import { checkPlayedBy, notePlay } from "./playedBy.ts";
 import type { PlayRecord } from "./playedBy.ts";
@@ -218,7 +219,8 @@ export function easyChooser(rules: Ruleset, side: Side, rng: Rng): Chooser {
  * filters and once allow, from the state before it, its events and the state after it (filterChecks.ts). Each
  * step's removed pile and turn-start refill are checked against the state before it (removedChecks.ts), and its
  * passed plays against its playPassed events (passedPlays.ts). Each side's ability use follows the step's ability events
- * (abilityChecks.ts).
+ * (abilityChecks.ts). Each placement, intervention, realignment and tech race try in a step is the answering side's own
+ * (moveChecks.ts).
  */
 export function playGame(rules: Ruleset, label: string, setup: Setup, seed: Seed, choose: Chooser): Played {
   return play(rules, label, setup, seed, choose, true);
@@ -256,6 +258,7 @@ function play(rules: Ruleset, label: string, setup: Setup, seed: Seed, choose: C
       checkPassedPlays(prior, answer, events, state);
       checkPlayerDraws(events, players);
       checkPlayedBy(events, plays);
+      checkOwnMoves(answer, events);
     }
     checkReplay(rules, record, state);
     // A recorded game may stop early; verifyGame only accepts a game that reached its end.
