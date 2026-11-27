@@ -4,6 +4,7 @@
 import { expect, test } from "@playwright/test";
 import { answerOnce, yourDecision } from "./answer.ts";
 import { serveBuiltApp } from "./builtApp.ts";
+import { expectFullGameOffer } from "./fullGameOffer.ts";
 import { fixRandom } from "./start.ts";
 
 let app: Awaited<ReturnType<typeof serveBuiltApp>>;
@@ -40,16 +41,7 @@ test("the free game against the AI ends with the result and the Full Game offer,
   }
   await expect(gameOver).toBeVisible();
 
-  // The offer: its placeholder label and words, and a buy button that cannot be tapped yet, 44 px tall, on screen.
-  await expect(offer.getByText("Placeholder offer", { exact: true })).toBeVisible();
-  await expect(offer.getByText(/^Placeholder: the free game ends after Era 1/)).toBeVisible();
-  const buy = offer.getByRole("button", { name: "Get the Full Game" });
-  await expect(buy).toBeDisabled();
-  const box = await buy.boundingBox();
-  expect(box!.height).toBeGreaterThanOrEqual(44);
-  expect(box!.y + box!.height).toBeLessThanOrEqual(page.viewportSize()!.height);
-  await expect(page.getByRole("button", { name: "New game" })).toBeVisible();
-  await expect(page.getByText(/^AI refused:/)).toHaveCount(0);
+  await expectFullGameOffer(page);
 
   expect(requests.filter((url) => !url.startsWith("blob:") && !url.startsWith("data:"))).toEqual([]);
 });
