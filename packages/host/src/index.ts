@@ -25,3 +25,5 @@ export type {
   ReplayFrame,
   Submission,
 } from "./types.ts";
+export { startTutorial, stepTutorial } from "./tutorial/runner.ts";
+export type { TutorialOutput, TutorialRunner } from "./tutorial/runner.ts";
