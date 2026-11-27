@@ -3,8 +3,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Ruleset } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
-import { inviteFunctionDeps, submitFunctionDeps } from "./functionDeps.ts";
+import { inviteFunctionDeps, redeemFunctionDeps, submitFunctionDeps } from "./functionDeps.ts";
 import { SupabaseEntitlementStore } from "./supabaseEntitlementStore.ts";
+import { SupabaseGiftCodeStore } from "./supabaseGiftCodeStore.ts";
 import { SupabaseInviteStore } from "./supabaseInviteStore.ts";
 import { SupabaseNotifyStore } from "./supabaseNotifyStore.ts";
 import { SupabaseStore } from "./supabaseStore.ts";
@@ -40,5 +41,16 @@ describe("inviteFunctionDeps", () => {
     expect(deps.invites).toBeInstanceOf(SupabaseInviteStore);
     expect(deps.entitlements).toBeInstanceOf(SupabaseEntitlementStore);
     expect([deps.matchId(), deps.seed(), deps.randomHostSide(), deps.now()]).toEqual(["m", "s", "lio", 9]);
+  });
+});
+
+describe("redeemFunctionDeps", () => {
+  const log = () => {};
+  const deps = redeemFunctionDeps(db, { now: () => 11, log });
+
+  it("redeems through the Supabase gift code store, with the given clock and logger", () => {
+    expect(deps.codes).toBeInstanceOf(SupabaseGiftCodeStore);
+    expect(deps.now()).toBe(11);
+    expect(deps.log).toBe(log);
   });
 });
