@@ -2,12 +2,15 @@
 // and matches each reply to its call by `id`.
 import type { AnswerValue, Ruleset, Side } from "@terminal-dusk/engine";
 import type { AiOpponent, AiTier } from "./aiOpponent.ts";
+// The worker's code is built into the page itself (`&inline`), so the AI starts with no network: offline, and in the
+// tutorial's offline gate (#642).
+import AiWorker from "./ai.worker.ts?worker&inline";
 
 /** The worker's reply (AiResponse in the AI package; repeated here so this file needs only its types). */
 type Reply = { kind: "answer"; id: number; value: AnswerValue | null };
 
 export function createWorkerAi(ruleset: Ruleset, side: Side, seed: number, tier: AiTier): AiOpponent {
-  const worker = new Worker(new URL("./ai.worker.ts", import.meta.url), { type: "module" });
+  const worker = new AiWorker();
   const waiting = new Map<number, (value: AnswerValue | null) => void>();
   let nextId = 1;
   // Set once the worker is ended (stop, or the worker failing): every call after that answers null at once.

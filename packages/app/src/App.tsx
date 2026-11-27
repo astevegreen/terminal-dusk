@@ -1,6 +1,6 @@
 // The home screen: the game's name, a button to play the six-region map against the AI (A14, #439) first, a button
 // to play against the AI without a map, a button to play online, a button into developer test mode and the sound
-// controls (#646). The AI games and test mode need no account; only Play online asks to sign in.
+// controls (#646), and the tutorial (#642). The AI games, the tutorial and test mode need no account; only Play online asks to sign in.
 import { ERA_1_FREE_BUTTON } from "@terminal-dusk/host/first-deck";
 import { useState } from "react";
 import { HomeSound } from "./audio/soundControls.tsx";
@@ -13,6 +13,7 @@ import { realTimers } from "./online/timers.ts";
 import type { Timers } from "./online/timers.ts";
 import type { KeyValueStore } from "./platform/storage.ts";
 import { TestModeScreen } from "./testMode/TestModeScreen.tsx";
+import { TutorialScreen } from "./tutorial/TutorialScreen.tsx";
 import { VsAiScreen } from "./vsAi/VsAiScreen.tsx";
 import type { VsAiGame } from "./vsAi/VsAiScreen.tsx";
 
@@ -42,7 +43,7 @@ export type AppProps = {
 
 const TAP = { minHeight: 44, minWidth: 44 } as const;
 
-type Screen = "vsAi" | "vsAiMap" | "vsAiFree" | "vsAiFuture" | "online" | "testMode";
+type Screen = "vsAi" | "vsAiMap" | "vsAiFree" | "vsAiFuture" | "tutorial" | "online" | "testMode";
 
 export function App({
   clock,
@@ -73,6 +74,8 @@ export function App({
     );
   }
   if (screen === "testMode") return <TestModeScreen clock={clock} />;
+  // The tutorial needs no account or entitlement: a guest plays it (#642).
+  if (screen === "tutorial") return <TutorialScreen clock={clock} newSeed={newSeed} newAiSeed={newAiSeed} />;
   if (screen === "vsAi" || screen === "vsAiMap" || screen === "vsAiFree" || screen === "vsAiFuture") {
     const played = {
       vsAi: game,
@@ -136,6 +139,9 @@ export function Home({ onPick }: Readonly<{ onPick: (screen: Screen) => void }>)
       </button>
       <button type="button" style={TAP} onClick={() => onPick("vsAiFree")}>
         {ERA_1_FREE_BUTTON}
+      </button>
+      <button type="button" style={TAP} onClick={() => onPick("tutorial")}>
+        Tutorial
       </button>
       <button type="button" style={TAP} onClick={() => onPick("online")}>
         Play online
