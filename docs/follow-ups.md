@@ -42,6 +42,9 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   (`packages/engine/src/decisions.ts:148`), and a matcher's `as` is checked against every card type's uses, not the
   card's own (`decisions.ts:176`). #641's app wiring has the legal answers: allow everything when none the runner
   allows is legal. [27 Nov 2026, reviewer on PR #657]
+- Events that arrive in one frame start their sounds at the same instant
+  (`packages/app/src/audio/useEventSounds.tsx` `playEventSounds`): once sound files exist, listen to a busy move and
+  stagger or merge them. [27 Nov 2026, #645]
 - The client has no entitlements yet: #647 adds `ownsFullGame` for the tutorial only. When web checkout lands
   (phase 6), wire real client entitlements in and put the same Era 1 stop in front of the other games against the
   AI. [27 Nov 2026, architect on the tutorial chain]
@@ -65,6 +68,9 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 ## Tests and tooling
 
+- On a loaded PC a full `pnpm gate` fails on time-outs in tests the change does not touch: the 5 s limit in
+  `packages/ai` (techRace, lookahead, medium's timing), the app's six-region map game and the easy AI fuzz, and the
+  100 s engine fuzz (`tests/fuzz/engine.test.ts`). [27 Nov 2026, sound chain]
 - Agents comment as astevegreen while greenbeanbot is suspended, so after the bot returns a `Blocked:` comment an
   agent posted as the owner can read as the owner's answer (`tools/sprint/rules.mjs:207` `ownerAnswer`): check blocked
   issues then, or mark agent comments so the queue stops relying on the author (7 Nov 2026, review of #540).

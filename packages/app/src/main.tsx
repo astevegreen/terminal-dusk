@@ -20,6 +20,9 @@ import { createLocalMatch } from "./transport/localMatch.ts";
 import { App } from "./App.tsx";
 import type { VsAiGame } from "./vsAi/VsAiScreen.tsx";
 import type { OnlineSetup } from "./online/OnlineScreen.tsx";
+import soundManifest from "virtual:sound-manifest";
+import { AudioPlayerContext } from "./audio/useEventSounds.tsx";
+import { unlockOnGesture, webAudio } from "./platform/audio.ts";
 import { webStore } from "./platform/storage.ts";
 import { realTimers } from "./online/timers.ts";
 import { matchIdFromSearch } from "./online/watch/watchLink.ts";
@@ -74,6 +77,10 @@ function onlineSetup(): OnlineSetup | undefined {
 }
 const online = onlineSetup();
 
+/** Sound, the same on every platform: the manifest's files, unlocked by the player's first tap or key press. */
+const audio = webAudio(soundManifest, () => new AudioContext());
+unlockOnGesture(window, audio);
+
 const randomWords = (count: number): Uint32Array => crypto.getRandomValues(new Uint32Array(count));
 const newSeed = (): string => Array.from(randomWords(4), (n) => n.toString(16).padStart(8, "0")).join("");
 const newAiSeed = (): number => randomWords(1)[0] ?? 0;
@@ -83,18 +90,20 @@ const root = document.getElementById("root");
 if (!root) throw new Error("index.html has no #root element");
 createRoot(root).render(
   <StrictMode>
-    <App
-      clock={() => Date.now()}
-      newSeed={newSeed}
-      newAiSeed={newAiSeed}
-      game={firstDeckGame}
-      mapGame={sixRegionMapGame}
-      freeGame={era1FreeGame}
-      futureGame={scenario2025To2027Game}
-      store={webStore(localStorage)}
-      timers={realTimers}
-      {...(watchId === null ? {} : { watch: watchId })}
-      {...(online ? { online } : {})}
-    />
+    <AudioPlayerContext.Provider value={audio}>
+      <App
+        clock={() => Date.now()}
+        newSeed={newSeed}
+        newAiSeed={newAiSeed}
+        game={firstDeckGame}
+        mapGame={sixRegionMapGame}
+        freeGame={era1FreeGame}
+        futureGame={scenario2025To2027Game}
+        store={webStore(localStorage)}
+        timers={realTimers}
+        {...(watchId === null ? {} : { watch: watchId })}
+        {...(online ? { online } : {})}
+      />
+    </AudioPlayerContext.Provider>
   </StrictMode>,
 );
