@@ -24,10 +24,10 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - e2-neu-003's `madeFor: "lio"` mark has no card story that fails without it: add one where SAE plays with
   Resilient institutions and LIO's 1 from SAE's deck stands, like the mirror stories in `e3-neu-001.test.ts` and
   `e3-neu-002.test.ts`. [26 Nov 2026, agy on #634]
-- The tutorial's Contingency chapter (`docs/design/tutorial.md`, chapter 4) can't fix the number drawn: only the
-  draw pile's top is stacked (`Setup.deckTop`, #637). If the approved coaching needs a known draw, it needs a small
-  engine task (a `contingencyTop`); until then the coaching must read right for any number, and for LIO's redraw of a 1 (Resilient institutions). [27 Nov 2026,
-  architect on the tutorial chain]
+- Realigning ignores closed regions: `realignTargets` (`packages/engine/src/influence.ts:72-75`) offers every
+  country where the rival has influence, while intervening checks `isRegionClosed` (`intervening.ts`), and
+  `docs/design/map-and-points.md` ("Thresholds close regions") closes regions to both. The tests mark it as still
+  to do (`realign.test.ts:115`, `placing.test.ts:150`). [27 Nov 2026, architect on the tutorial chain, PR #649]
 
 ## App, host and server
 
