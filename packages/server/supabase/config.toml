@@ -47,3 +47,8 @@ verify_jwt = false
 
 [functions.sweep-turn-alerts]
 verify_jwt = false
+
+# Paddle calls the checkout webhook with its own signature, not a user token; the function checks it
+# (src/paddleWebhookHandler.ts). Its settings come from the function's environment, never this file.
+[functions.paddle-webhook]
+verify_jwt = false

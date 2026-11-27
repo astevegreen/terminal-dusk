@@ -2,14 +2,18 @@
 // stores.contract.test.ts runs them against the in-memory stores. Without a running local stack, one test says
 // so and how to start it.
 import type { MatchConfig } from "@terminal-dusk/host";
+import { freshId } from "./migrations/localStack.ts";
 import { onLocalStack, putIn, writeOf } from "./test/stack.ts";
 import { deadlineStoreContract } from "./test/contracts/deadlineStore.ts";
+import { entitlementReceiptsContract } from "./test/contracts/entitlementReceipts.ts";
 import { inviteStoreContract } from "./test/contracts/inviteStore.ts";
 import { matchStoreContract } from "./test/contracts/matchStore.ts";
 import { notifyStoreContract } from "./test/contracts/notifyStore.ts";
 import { createdWithClock } from "./test/deadlines.ts";
 import { inviteStack } from "./test/inviteStack.ts";
 import { created } from "./test/match.ts";
+import { receiptRows } from "./test/receiptRows.ts";
+import { SupabaseEntitlementStore } from "./supabaseEntitlementStore.ts";
 import { SupabaseInviteStore } from "./supabaseInviteStore.ts";
 import { SupabaseNotifyStore } from "./supabaseNotifyStore.ts";
 import { SupabaseStore } from "./supabaseStore.ts";
@@ -18,6 +22,7 @@ const TIMEOUT = 60_000;
 
 await onLocalStack("the Supabase stores keep the store contracts on the local Supabase stack", (keys) => {
   const stack = inviteStack(keys);
+  const receipts = receiptRows(() => stack.service);
   /** A new game at seq 0 between test users, its id kept for clean-up. */
   const fresh = (players: MatchConfig["players"] = { lio: stack.host.id, sae: stack.joiner.id }) =>
     created(stack.matchId(), players);
@@ -57,6 +62,16 @@ await onLocalStack("the Supabase stores keep the store contracts on the local Su
         }
         return ids;
       },
+    }),
+    TIMEOUT,
+  );
+
+  entitlementReceiptsContract(
+    () => ({
+      store: new SupabaseEntitlementStore(stack.service),
+      player: () => freshId(),
+      receipt: receipts.fresh,
+      unmatched: receipts.unmatched,
     }),
     TIMEOUT,
   );
