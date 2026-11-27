@@ -87,9 +87,10 @@ test(TITLE, async ({ browser }) => {
     return;
   }
   const stack = keys;
-  const project = test.info().project.use;
-  const pageFor = async (): Promise<Page> =>
-    (await browser.newContext({ baseURL: project.baseURL, viewport: project.viewport })).newPage();
+  const { baseURL, viewport } = test.info().project.use;
+  if (baseURL === undefined || viewport === undefined)
+    throw new Error("playwright.stack.config.ts must set a baseURL and a viewport");
+  const pageFor = async (): Promise<Page> => (await browser.newContext({ baseURL, viewport })).newPage();
   const pages: Record<Side, Page> = { lio: await pageFor(), sae: await pageFor() };
 
   // What each browser was sent by the stack, with the server's step when it arrived (-1 before the first read).
