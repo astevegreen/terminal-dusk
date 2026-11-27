@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { auditDuePrs, auditPr, duePrs, pinnedIssue, pinnedIssueOf, report, specMaterial } from "./gemini-audit.mjs";
+import { ME, REPO, SHA, diffOf, fake, restComments } from "./gemini-audit.fake.mjs";
 import { ORDERS, buildPrompt } from "./gemini/agy.mjs";
 import { NO_API, apiPrompt } from "./gemini/gemini-api.mjs";
 import { verdictMarker } from "./gemini/rails.mjs";
@@ -28,65 +29,10 @@ test("pr needs a pull request number", () => {
 
 // --- auditPr, with gh, agy, the comment and the signed-in login stood in for ------------------------------------
 
-const SHA = "abc123";
-const ME = "astevegreen";
-const diffOf = (file) => `diff --git a/${file} b/${file}\n--- a/${file}\n+++ b/${file}\n@@ -1 +1 @@\n-a\n+b\n`;
 const marked = (login, v, sha = SHA) => ({
   author: { login },
   body: `<!-- gemini-audit -->\n${verdictMarker({ sha, blockers: [], notes: [], why: "x", ...v })}\n`,
 });
-
-// GitHub's REST answers for pull request 7 and its comments, as `gh api` prints them (the comments one per line).
-const REPO = { full_name: "astevegreen/terminal-dusk" };
-const restPr = ({ fork, body = "" }) => ({
-  number: 7,
-  body,
-  head: { sha: SHA, repo: fork ? { full_name: "stranger/terminal-dusk" } : REPO },
-  base: { repo: REPO },
-});
-const restComments = (comments) =>
-  comments
-    .map((c) => JSON.stringify({ user: c.author, author_association: c.authorAssociation ?? "OWNER", body: c.body }))
-    .join("\n");
-
-// answers: the reply to each prompt, or an Error when agy can't answer it. issues: the REST answer for each issue.
-function fake({
-  comments = [],
-  diff = diffOf("packages/app/src/x.ts"),
-  answers = {},
-  fork = false,
-  body,
-  issues = {},
-} = {}) {
-  const calls = { ask: [], post: [], me: 0, gh: [] };
-  const io = {
-    gh: (...args) => {
-      calls.gh.push(args);
-      // Every read is REST: `gh pr view` and `gh issue view` need GraphQL, which cloud sessions can't reach.
-      if (args[0] === "pr" && args[1] === "view") throw new Error("HTTP 403: GitHub GraphQL is not available");
-      if (args[0] === "api" && args[1] === "repos/{owner}/{repo}/pulls/7")
-        return JSON.stringify(restPr({ fork, body }));
-      if (args[0] === "api" && args[2] === "repos/{owner}/{repo}/issues/7/comments?per_page=100")
-        return restComments(comments);
-      const issue = /^repos\/\{owner\}\/\{repo\}\/issues\/(\d+)$/.exec(args[1] ?? "")?.[1];
-      if (args[0] === "api" && issues[issue]) return JSON.stringify(issues[issue]);
-      if (args[0] === "pr" && args[1] === "diff") return diff;
-      throw new Error(`unexpected gh ${args.join(" ")}`);
-    },
-    ask: (prompt, material, what, opts = {}) => {
-      calls.ask.push({ prompt, opts, material });
-      const a = answers[prompt] ?? "No findings.";
-      if (a instanceof Error) throw a;
-      return { model: "m", response: a, passed: [], depth: "deep", why: "x" };
-    },
-    post: (kind, n, body) => calls.post.push({ kind, n, body }),
-    me: () => {
-      calls.me++;
-      return ME;
-    },
-  };
-  return { io, calls };
-}
 
 test("auditPr reuses a verdict its own account posted for this commit, without asking agy again", () => {
   const { io, calls } = fake({ comments: [marked(ME, { verdict: "merge" })] });
@@ -303,7 +249,8 @@ test("a dry run opens no issue", () => {
 
 test("specs reads every issue it is given through gh, one spec after another (not the list index as gh)", () => {
   const issues = { 11: { number: 11, title: "First", body: "one" }, 12: { number: 12, title: "Second", body: "two" } };
-  const gh = (...args) => JSON.stringify(issues[/issues\/(\d+)$/.exec(args[1])[1]]);
+  // Neither issue has a comment, so each spec is its body alone.
+  const gh = (...args) => (args[1] === "--paginate" ? "" : JSON.stringify(issues[/issues\/(\d+)$/.exec(args[1])[1]]));
   assert.equal(specMaterial(["11", "12"], gh), "# #11 First\n\none\n\n---\n\n# #12 Second\n\ntwo\n");
 });
 

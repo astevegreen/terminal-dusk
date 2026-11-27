@@ -2,6 +2,7 @@
 // they stand in for use GitHub's GraphQL API, which cloud sessions can't reach (HTTP 403, "use the REST API"); REST
 // works everywhere gh is signed in. gh is (args) => stdout. Each read returns the shape the GraphQL command gave, so
 // the callers' rules (tools/github-trust.mjs, tools/gemini/rails.mjs) read it unchanged.
+import { trustedComment } from "./github-trust.mjs";
 
 // GitHub refused the request: what a cloud session gets from a `gh` command that needs GraphQL.
 export const is403 = (err) => /HTTP 403|403 Forbidden/.test(err.message);
@@ -52,10 +53,34 @@ export function openIssues(gh) {
     .map((i) => ({ number: i.number, title: i.title ?? "", author: { login: i.user?.login ?? "" } }));
 }
 
-// An issue's number, title and body (a pull request's too: GitHub serves both as issues).
+// How a comment that settles part of a task opens: an architect or owner Decision (the architect's answer on #672
+// lists the forms). "Owner's yes" and any other "Decision (…)", a builder's or reviewer's own, change nothing in a spec.
+const DECISION_OPENINGS = [
+  /^Decision \((?:architect|owner)(?:,[^)]*)?\)(?:,[^:]*)?:/,
+  /^Owner(?:['’]s)? (?:design )?(?:decision|answer)s?\b/,
+  /^Owner answered\b/,
+  /^Owner, \d{1,2} [A-Z][a-z]{2}\b/,
+];
+
+// Only the first line that says something counts, read without its heading marker, bold or italics. Who wrote the
+// comment is the caller's check (trustedComment).
+export function isDecisionComment(body) {
+  const first = body
+    .trimStart()
+    .split("\n")[0]
+    .replace(/^#{1,6} /, "")
+    .replaceAll(/[*_]/g, "");
+  return DECISION_OPENINGS.some((opening) => opening.test(first));
+}
+
+// An issue's number, title and body (a pull request's too: GitHub serves both as issues), and in `decisions` the text
+// of its Decision comments, oldest first: only the owner's and collaborators', as the repository is public.
 export function issue(gh, n) {
   const i = JSON.parse(gh(["api", `repos/{owner}/{repo}/issues/${n}`]));
-  return { number: i.number, title: i.title ?? "", body: i.body ?? "" };
+  const decisions = comments(gh, n)
+    .filter((c) => trustedComment(c) && isDecisionComment(c.body))
+    .map((c) => c.body);
+  return { number: i.number, title: i.title ?? "", body: i.body ?? "", decisions };
 }
 
 // Posts the text in `file` as a comment on issue or pull request n.
