@@ -91,6 +91,14 @@ test("marking a pull request ready and turning on auto-merge run without asking"
   for (const rule of ["Bash(gh pr ready *)", "Bash(gh pr merge * --auto --squash)"]) assert.ok(allow.includes(rule), `${rule} is missing`);
 });
 
+test("a cloud session pushes its claude/* branch and reads PR checks without asking; main stays denied", () => {
+  const { allow, deny } = permissions();
+  // Cloud sessions run in the default mode with only this file, and their branches are claude/*.
+  const rules = ["Bash(git push -u origin claude/*)", "Bash(git push origin claude/*)", "Bash(gh pr checks *)", "Bash(gh pr diff *)", "Bash(gh run view *)", "Bash(gh run list *)"];
+  for (const rule of rules) assert.ok(allow.includes(rule), `${rule} is missing`);
+  for (const rule of ["Bash(git push origin main)", "Bash(git push --force *)"]) assert.ok(deny.includes(rule), `${rule} is no longer denied`);
+});
+
 test("the handoff hook runs when a turn ends and when a session starts or is cleared", () => {
   const { hooks } = JSON.parse(read(".claude/settings.json"));
   const runs = (groups) => groups.some((g) => g.hooks.some((h) => h.args?.some((a) => a.endsWith("tools/hooks/handoff-nudge.mjs"))));

@@ -133,5 +133,12 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - agy's audit sends a linked issue's body as the spec whoever opened the issue (`tools/gemini-audit.mjs`
   `prMaterial`), unlike the sprint queue, which takes only issues `trustedIssue` passes: say so in the material, or
   leave a stranger's body out. [27 Nov 2026, #672]
+- A cloud session's GitHub writes go through `gh api` (GraphQL answers 403 there), and `tools/hooks/bash-guard.mjs:267`
+  asks the owner about every `gh api` write, so orchestrator C prompts for each PR comment: let a short list of
+  writes to this repository through, such as issue and PR comments. This changes a hook, so it needs the owner's yes
+  and a rail audit. [27 Nov 2026, owner asked why C prompts so often]
+- `checkGit` in `tools/hooks/bash-guard.mjs:139-147` never looks at `--delete`, `-d` or a `:branch` refspec, so the
+  `git push … task/*`, `design/*` and `claude/*` allow rules in `.claude/settings.json` also let a session delete
+  another remote branch unasked: have bash-guard ask about push deletions. [27 Nov 2026, reviewer on #720]
 
 ## Docs
