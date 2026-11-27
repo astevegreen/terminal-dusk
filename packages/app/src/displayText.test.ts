@@ -56,10 +56,10 @@ describe("the words the game screens share", () => {
     expect(sideFullName("sae")).toBe("SAE (Strategic Authoritarian Entente)");
     expect(SIDE_WHO).toEqual({ lio: "The US-led bloc of real states.", sae: "Russia and China as one unified side." });
   });
-  it("names each first-deck era by its number and years, and the future cards by theirs (docs/design/eras.md)", () => {
-    expect(eraText("era-1")).toBe("Era 1 (1991–2001)");
-    expect(eraText("era-2")).toBe("Era 2 (2001–2008)");
-    expect(eraText("era-3")).toBe("Era 3 (2008–2025)");
+  it("names each first-deck era by its name, number and years, and the future cards by theirs (docs/design/eras.md)", () => {
+    expect(eraText("era-1")).toBe("The Thaw (Era 1, 1991–2001)");
+    expect(eraText("era-2")).toBe("The Shock (Era 2, 2001–2008)");
+    expect(eraText("era-3")).toBe("The Fracture (Era 3, 2008–2025)");
     expect(eraText("future")).toBe("Future cards (2025–2027)");
   });
   it("shows an era id it has no text for as it is", () => {

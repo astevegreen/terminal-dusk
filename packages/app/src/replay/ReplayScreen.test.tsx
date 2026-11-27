@@ -197,12 +197,12 @@ describe("the replay viewer on a finished fixture game", () => {
         />,
       );
     for (const i of [0, 1]) expect(at(i)).toContain("Era not shown yet");
-    for (const i of [2, 3]) expect(at(i)).toContain("<span>Era 2 (2001–2008)</span>");
+    for (const i of [2, 3]) expect(at(i)).toContain("<span>The Shock (Era 2, 2001–2008)</span>");
     expect(at(4)).toContain("<span>Future cards (2025–2027)</span>");
     expect(at(2)).not.toContain("Era not shown yet");
     expect(at(recording.frames.length - 1)).toContain("<span>Future cards (2025–2027)</span>");
     // Stepping back before the first era event goes back to "not shown yet".
-    expect(at(1)).not.toContain("Era 2 (2001–2008)");
+    expect(at(1)).not.toContain("The Shock (Era 2, 2001–2008)");
   });
 
   it("says Game active before the last step, then the final status and the seed hash at the last", () => {

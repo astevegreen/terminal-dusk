@@ -1,10 +1,12 @@
 import { SIDES, apply, legalAnswers } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import {
+  ERA_1_FREE_BUTTON,
   FIRST_DECK_NOTE,
   firstDeckCardName,
   firstDeckConfig,
   firstDeckEraName,
+  firstDeckEraTitle,
   firstDeckRuleset,
 } from "./firstDeck.ts";
 import { hostCreate } from "./index.ts";
@@ -104,12 +106,20 @@ describe("the first deck as a game", () => {
 });
 
 describe("first-deck era names", () => {
-  it("names an era the deck has by its number and years", () => {
-    expect(firstDeckEraName("era-2")).toBe("Era 2 (2001–2008)");
+  it("names an era the deck has by its name, number and years", () => {
+    expect(firstDeckEraName("era-2")).toBe("The Shock (Era 2, 2001–2008)");
     expect(firstDeckEraName("future")).toBe("Future cards (2025–2027)");
   });
+  it("titles an era without its years", () => {
+    expect(firstDeckEraTitle("era-3")).toBe("The Fracture (Era 3)");
+  });
+  it("offers the free game by Era 1's title", () => {
+    expect(ERA_1_FREE_BUTTON).toBe("Play the free game: The Thaw (Era 1)");
+  });
   it("gives back an era id it has no name for, even one named like an object property", () => {
-    expect(firstDeckEraName("test")).toBe("test");
-    expect(firstDeckEraName("toString")).toBe("toString");
+    for (const read of [firstDeckEraName, firstDeckEraTitle]) {
+      expect(read("test")).toBe("test");
+      expect(read("toString")).toBe("toString");
+    }
   });
 });

@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { answerOnce, liftedCard, stripChips, yourDecision } from "./answer.ts";
 
-const FIRST_DECK_NOTE = "First deck, the base game: 10 turns, Eras 1 to 3 (Era 2 joins on turn 4, Era 3 on turn 6)";
+const FIRST_DECK_NOTE =
+  "First deck, the base game: 10 turns. The Thaw (Era 1) starts, The Shock (Era 2) joins on turn 4, The Fracture (Era 3) on turn 6";
 
 test("play against the AI: pick LIO and tap through a whole game against the worker AI", async ({ page }) => {
   await page.goto("/");
@@ -102,8 +103,10 @@ test("against the AI, the side picker says who each side is and each card shows 
 
 test("the free Era 1 game starts from the home screen and plays its 3 turns to the end (L12)", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Play the free Era 1 game" }).click();
-  await expect(page.getByText("The free game: Era 1 only, 1991 to 2001, 3 turns", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Play the free game: The Thaw (Era 1)" }).click();
+  await expect(
+    page.getByText("The free game: The Thaw (Era 1, 1991–2001) only, 3 turns", { exact: true }),
+  ).toBeVisible();
   await page.getByRole("radio", { name: "Easy" }).check();
   await page.getByRole("button", { name: "Play as LIO" }).click();
   await expect(page.getByTestId("decision")).toBeVisible();

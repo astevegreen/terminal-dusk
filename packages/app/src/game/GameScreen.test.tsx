@@ -200,8 +200,8 @@ describe("the discard pile", () => {
 });
 
 describe("the era line", () => {
-  it("names a first-deck era by its number and years, and the future cards by theirs", () => {
-    expect(html(frameFor("lio"), { era: "era-2" })).toContain("<span>Era 2 (2001–2008)</span>");
+  it("names a first-deck era by its name, number and years, and the future cards by theirs", () => {
+    expect(html(frameFor("lio"), { era: "era-2" })).toContain("<span>The Shock (Era 2, 2001–2008)</span>");
     expect(html(frameFor("lio"), { era: "future" })).toContain("<span>Future cards (2025–2027)</span>");
   });
   it("shows an era id it has no text for as it is", () => {

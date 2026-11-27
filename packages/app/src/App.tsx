@@ -1,6 +1,7 @@
 // The home screen: the game's name, a button to play the six-region map against the AI (A14, #439) first, a button
 // to play against the AI without a map, a button to play online and a button into developer test mode. The AI games and test mode
 // need no account; only Play online asks to sign in.
+import { ERA_1_FREE_BUTTON } from "@terminal-dusk/host/first-deck";
 import { useState } from "react";
 import { OnlineScreen } from "./online/OnlineScreen.tsx";
 import { WatchScreen } from "./online/watch/WatchScreen.tsx";
@@ -133,7 +134,7 @@ export function Home({ onPick }: Readonly<{ onPick: (screen: Screen) => void }>)
         Play the 2025-2027 game
       </button>
       <button type="button" style={TAP} onClick={() => onPick("vsAiFree")}>
-        Play the free Era 1 game
+        {ERA_1_FREE_BUTTON}
       </button>
       <button type="button" style={TAP} onClick={() => onPick("online")}>
         Play online

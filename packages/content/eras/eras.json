@@ -1,0 +1,8 @@
+{
+  "eras": [
+    { "id": "era-1", "label": "Era 1", "name": "The Thaw", "from": 1991, "to": 2001 },
+    { "id": "era-2", "label": "Era 2", "name": "The Shock", "from": 2001, "to": 2008 },
+    { "id": "era-3", "label": "Era 3", "name": "The Fracture", "from": 2008, "to": 2025 },
+    { "id": "future", "label": "Future cards", "from": 2025, "to": 2027 }
+  ]
+}

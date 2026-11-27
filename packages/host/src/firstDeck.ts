@@ -6,6 +6,7 @@
 import {
   ERA_1_CARDS,
   ERA_NAMES,
+  ERA_TITLES,
   FIRST_DECK_CARDS,
   FIRST_DECK_RULESET,
   ERA_1_FREE_SCENARIO,
@@ -18,18 +19,26 @@ import { SIX_REGION_MAP_SCENARIO, TEST_MAP_SCENARIO } from "@terminal-dusk/conte
 import type { CardId, EraId, Ruleset, Setup } from "@terminal-dusk/engine";
 import type { MatchConfig } from "./types.ts";
 
-export const FIRST_DECK_NOTE =
-  "First deck, the base game: 10 turns, Eras 1 to 3 (Era 2 joins on turn 4, Era 3 on turn 6)";
-export const ERA_1_FREE_NOTE = "The free game: Era 1 only, 1991 to 2001, 3 turns";
-export const SCENARIO_2025_2027_NOTE =
-  "The 2025-2027 game: 11 turns, the future cards join on turn 11, Era 3 scores once at the end of 2027";
+const lookUp = (names: Readonly<Record<EraId, string>>, era: EraId): string =>
+  Object.hasOwn(names, era) ? (names[era] ?? era) : era;
+/** An era's shown name, such as "The Shock (Era 2, 2001–2008)"; an id with no name comes back as it is. */
+export const firstDeckEraName = (era: EraId): string => lookUp(ERA_NAMES, era);
+/** The same without the years, such as "The Shock (Era 2)", for where there is no room for them. */
+export const firstDeckEraTitle = (era: EraId): string => lookUp(ERA_TITLES, era);
+
+const ERA_1 = firstDeckEraTitle("era-1");
+const ERA_2 = firstDeckEraTitle("era-2");
+const ERA_3 = firstDeckEraTitle("era-3");
+
+/** The home screen's button for the free game (L12). */
+export const ERA_1_FREE_BUTTON = `Play the free game: ${ERA_1}`;
+export const FIRST_DECK_NOTE = `First deck, the base game: 10 turns. ${ERA_1} starts, ${ERA_2} joins on turn 4, ${ERA_3} on turn 6`;
+export const ERA_1_FREE_NOTE = `The free game: ${firstDeckEraName("era-1")} only, 3 turns`;
+export const SCENARIO_2025_2027_NOTE = `The 2025-2027 game: 11 turns, the future cards join on turn 11, ${ERA_3} scores once at the end of 2027`;
 export const SIX_REGION_MAP_NOTE =
   "First deck on the six-region map (placeholder stabilities, battlegrounds and starting influence)";
 export const firstDeckRuleset: Ruleset = FIRST_DECK_RULESET;
 export { cardName as firstDeckCardName };
-
-/** An era's shown name, such as "Era 2 (2001–2008)"; an id the deck has no name for comes back as it is. */
-export const firstDeckEraName = (era: EraId): string => (Object.hasOwn(ERA_NAMES, era) ? (ERA_NAMES[era] ?? era) : era);
 
 const ASKS = "chooses: ";
 /** The question in a card's rules text: after "chooses: ", up to and including the first "?". */

@@ -29,14 +29,14 @@ describe("the home screen", () => {
       "Play the six-region map",
       "Play against the AI",
       "Play the 2025-2027 game",
-      "Play the free Era 1 game",
+      "Play the free game: The Thaw (Era 1)",
       "Play online",
       "Test mode",
     ]);
     button(tree, "Play the six-region map").press();
     button(tree, "Play against the AI").press();
     button(tree, "Play the 2025-2027 game").press();
-    button(tree, "Play the free Era 1 game").press();
+    button(tree, "Play the free game: The Thaw (Era 1)").press();
     expect(picked).toEqual(["vsAiMap", "vsAi", "vsAiFuture", "vsAiFree"]);
   });
 });
