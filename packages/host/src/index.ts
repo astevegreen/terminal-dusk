@@ -27,3 +27,5 @@ export type {
 } from "./types.ts";
 export { startTutorial, stepTutorial } from "./tutorial/runner.ts";
 export type { TutorialOutput, TutorialRunner } from "./tutorial/runner.ts";
+export { tutorialConfig } from "./tutorial/config.ts";
+export type { TutorialEdition } from "./tutorial/config.ts";
