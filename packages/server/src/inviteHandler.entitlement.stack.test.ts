@@ -33,6 +33,24 @@ await onLocalStack(
       expect(allowed).toEqual({ status: 200, json: { ok: true, code: expect.any(String) } });
       stack.codes.push((allowed.json as { code: string }).code);
     }, 60_000);
+
+    it("a user with no entitlement row still joins a private game by its invite code (#687)", async () => {
+      const owned = await stack.service.from("entitlement").select("platform").eq("player", stack.joiner.id);
+      expect(owned).toMatchObject({ error: null, data: [] });
+
+      const made = await call(await accessToken(stack.host), {
+        action: "create",
+        sides: { mode: "host", hostSide: "lio" },
+        platform: "web",
+      });
+      expect(made.status).toBe(200);
+      const { code } = made.json as { code: string };
+      stack.codes.push(code);
+
+      const joined = await call(await accessToken(stack.joiner), { action: "join", code });
+      expect(joined).toEqual({ status: 200, json: { ok: true, matchId: expect.any(String), side: "sae" } });
+      stack.matchIds.push((joined.json as { matchId: string }).matchId);
+    }, 60_000);
   },
   async (keys) => whyFunctionUnavailable(keys, "invite"),
 );

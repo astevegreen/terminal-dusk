@@ -1,5 +1,6 @@
-// Who may create an online game (docs/architecture.md, Product calls: "Free players cannot create online
-// games"). The server looks up a player's entitlements; the host only decides. Joining is not checked here.
+// Who may create an online game or join a ranked one (docs/architecture.md, Product calls: "Free players cannot
+// create online games"; #687). The server looks up a player's entitlements; the host only decides. Joining a
+// private game by invitation is never checked.
 import type { HostError } from "./types.ts";
 
 /** The platforms a game is played on, and so the platforms an entitlement can be for. */
@@ -47,5 +48,19 @@ export function createOnlineRefusal(entitlements: Entitlement[], platform: Platf
     code: "notEntitled",
     message:
       "Creating an online game needs the full game on this platform. You can still join a private game you are invited to.",
+  };
+}
+
+/**
+ * Null when the player may join a ranked game on `platform`. The rule and the input checks are
+ * createOnlineRefusal's; only the words of the `notEntitled` refusal differ (#687).
+ */
+export function joinRankedRefusal(entitlements: Entitlement[], platform: Platform): HostError | null {
+  const refusal = createOnlineRefusal(entitlements, platform);
+  if (refusal?.code !== "notEntitled") return refusal;
+  return {
+    code: "notEntitled",
+    message:
+      "Joining a ranked game needs the full game on this platform. You can still join a private game you are invited to.",
   };
 }
