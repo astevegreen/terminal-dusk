@@ -18,9 +18,16 @@ export function fakeEntitlements(refreshTokens: Readonly<Record<string, string>>
   /** Every request made, to Auth or to the table. */
   const requests: AuthRequest[] = [];
   const queued: AuthAnswer[] = [];
+  const calls: AuthAnswer[] = [];
   let held: Promise<void> | null = null;
   const fetch: FetchLike = async (url, init) => {
     requests.push({ url, method: init?.method ?? "GET", headers: { ...init?.headers }, body: init?.body ?? null });
+    if (url.includes("/functions/v1/")) {
+      // An Edge Function answers only what the test queued, so a call nobody expected is seen as a server failure.
+      const called = calls.shift() ?? { status: 500, body: {} };
+      if (called === "throw") throw new Error("offline");
+      return reply(called.status, called.body);
+    }
     if (!url.includes("/rest/v1/entitlement")) return auth.fetch(url, init);
     const answer = queued.shift() ?? { status: 200, body: [] };
     if (held) await held;
@@ -33,6 +40,12 @@ export function fakeEntitlements(refreshTokens: Readonly<Record<string, string>>
     auth,
     /** The requests made to the entitlement table. */
     reads: (): AuthRequest[] => requests.filter((r) => r.url.includes("/rest/v1/entitlement")),
+    /** The requests made to Edge Functions. */
+    calls: (): AuthRequest[] => requests.filter((r) => r.url.includes("/functions/v1/")),
+    /** Answers the next call of an Edge Function with this. */
+    answerCall(answer: AuthAnswer): void {
+      calls.push(answer);
+    },
     /** Answers the next read of the table with this. */
     answerNext(answer: AuthAnswer): void {
       queued.push(answer);

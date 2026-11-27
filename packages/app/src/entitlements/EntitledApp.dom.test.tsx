@@ -3,15 +3,14 @@
 // fake Supabase. No request for a signed-out player, a failed check said in words, a sign-in followed by a read, and
 // a running game that an answer arriving late never restarts.
 import { act } from "react";
-import { createRoot } from "react-dom/client";
-import type { Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { appGames } from "../appGames.ts";
 import { playerGames } from "../App.tsx";
 import { SESSION_KEY } from "../online/signIn.ts";
 import type { OnlineSetup } from "../online/OnlineScreen.tsx";
 import { STORED } from "../online/test/signInRig.ts";
 import { memoryStore } from "../platform/storage.ts";
+import { settle, testScreen } from "../test/screen.ts";
 import type { VsAiSession } from "../vsAi/session.ts";
 import { playOut } from "../vsAi/test/scriptedHuman.ts";
 import { standInAi } from "../vsAi/test/standInAi.ts";
@@ -40,30 +39,11 @@ const NOW = STORED.expiresAt - 3_600_000;
 const clock = (): number => NOW;
 const newSeed = (): string => "s";
 const newAiSeed = (): number => 1;
-let screen: HTMLElement;
-let root: Root;
+const { screen, render, press } = testScreen();
 
 beforeEach(() => {
-  vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   made.length = 0;
-  screen = document.body.appendChild(document.createElement("div"));
-  root = createRoot(screen);
 });
-afterEach(async () => {
-  await act(async () => root.unmount());
-  screen.remove();
-  vi.unstubAllGlobals();
-});
-
-const settle = (): Promise<void> => act(() => new Promise<void>((resolve) => setTimeout(resolve, 0)));
-const button = (name: string): HTMLButtonElement | undefined =>
-  [...screen.querySelectorAll("button")].find((b) => b.textContent === name);
-async function press(name: string): Promise<void> {
-  const found = button(name);
-  expect(found, `a button named "${name}"`).toBeDefined();
-  await act(async () => found!.click());
-  await settle();
-}
 
 async function mount(signedIn: boolean, fake = fakeEntitlements({ [STORED.refreshToken]: STORED.userId })) {
   const store = memoryStore();
@@ -74,9 +54,7 @@ async function mount(signedIn: boolean, fake = fakeEntitlements({ [STORED.refres
     platform: "web",
     copy: () => {},
   };
-  await act(async () =>
-    root.render(<EntitledApp clock={clock} newSeed={newSeed} newAiSeed={newAiSeed} {...appGames} online={online} />),
-  );
+  await render(<EntitledApp clock={clock} newSeed={newSeed} newAiSeed={newAiSeed} {...appGames} online={online} />);
   await settle();
   return fake;
 }
@@ -93,9 +71,7 @@ describe("the app with real entitlements (#686)", () => {
   });
 
   it("with no online setup, the player is free", async () => {
-    await act(async () =>
-      root.render(<EntitledApp clock={clock} newSeed={newSeed} newAiSeed={newAiSeed} {...appGames} />),
-    );
+    await render(<EntitledApp clock={clock} newSeed={newSeed} newAiSeed={newAiSeed} {...appGames} />);
     await press("Play the six-region map");
     expect(screen.textContent).toContain(FREE_NOTE);
   });
@@ -164,9 +140,7 @@ describe("the app with real entitlements (#686)", () => {
 
 describe("an answer that arrives while a game runs (#686)", () => {
   const picker = async (game: VsAiGame, ai = standInAi()) => {
-    await act(async () =>
-      root.render(<VsAiScreen clock={clock} newSeed={newSeed} newAiSeed={newAiSeed} makeAi={ai.makeAi} game={game} />),
-    );
+    await render(<VsAiScreen clock={clock} newSeed={newSeed} newAiSeed={newAiSeed} makeAi={ai.makeAi} game={game} />);
     return ai;
   };
   const free = playerGames(appGames, false).vsAi!;

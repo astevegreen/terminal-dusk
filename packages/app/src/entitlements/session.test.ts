@@ -104,6 +104,17 @@ describe("a signed-in player (#686)", () => {
     expect(fake.reads()).toEqual([]);
   });
 
+  it("is failed, not left checking, when there is no token while sign-in still says signed in (#685)", async () => {
+    const { fake, signIn } = await setUp(STORED);
+    const noToken = { ...signIn, accessToken: () => Promise.resolve(null) };
+    const endpoint = { url: "https://fake.supabase.test", anonKey: "fake-anon-key", fetch: fake.fetch };
+    const entitlements = createEntitlementSession({ endpoint, signIn: noToken });
+    entitlements.start();
+    await settle();
+    expect(entitlements.getSnapshot()).toEqual({ owned: [], state: "failed", known: false });
+    expect(fake.reads()).toEqual([]);
+  });
+
   it("takes only the newest read when two overlap", async () => {
     const { fake, entitlements } = await setUp(STORED);
     const release = fake.hold();
@@ -116,6 +127,26 @@ describe("a signed-in player (#686)", () => {
     await second;
     await settle();
     expect(entitlements.getSnapshot().owned).toEqual([WEB_ROW]);
+  });
+
+  it("resolves a reload only once the newest read has answered, even when a later read overtakes it (#685)", async () => {
+    const { fake, entitlements } = await setUp(STORED);
+    entitlements.start();
+    await settle();
+    const releaseFirst = fake.hold();
+    let answered = false;
+    const first = entitlements.reload().then(() => (answered = true));
+    await settle();
+    const releaseSecond = fake.hold();
+    fake.answerNext(OWNS);
+    const second = entitlements.reload();
+    await settle();
+    releaseFirst(); // the overtaken read answers while the newest is still out
+    await settle();
+    expect(answered).toBe(false);
+    releaseSecond();
+    await Promise.all([first, second]);
+    expect(entitlements.getSnapshot()).toMatchObject({ owned: [WEB_ROW], state: "loaded" });
   });
 
   it("reads once when started, stopped and started again (React's development double effect)", async () => {
