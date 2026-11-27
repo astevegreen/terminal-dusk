@@ -98,19 +98,23 @@ test("P1: the night shift merges a held pull request whose hold was only [minor]
   assert.equal(nextNight(night, DOC).mode, "merge");
 });
 
+// A planned comment (a REST call), and the text a planned comment posts.
+const say = (n, body) => [
+  ...["api", "--method", "POST", `repos/{owner}/{repo}/issues/${n}/comments`],
+  ...["-f", `body=${body}`],
+];
+const bodyOf = (step) => step.at(-1).replace(/^body=/, "");
+
 test("P1: a hold needs a [blocker] or --blocker; a refused hold never points at merging", () => {
   const S = snap({ issues: [issue(30, ["lane:rules"])], prs: [pr(130)] });
   const refused = planMove(S, 130, "held", { note: "1. [minor] a.ts:1 naming" });
   assert.match(refused.error, /a hold needs a \[blocker\]/);
   assert.match(refused.do, /move 130 held --blocker --note "<the blockers>"/);
   assert.doesNotMatch(refused.do, /merg/i);
-  assert.deepEqual(planMove(S, 130, "held", { note: "1. [blocker] a.ts:1 wrong" }).steps.at(-1), [
-    "pr",
-    "comment",
-    "130",
-    "--body",
-    "Held: 1. [blocker] a.ts:1 wrong",
-  ]);
+  assert.deepEqual(
+    planMove(S, 130, "held", { note: "1. [blocker] a.ts:1 wrong" }).steps.at(-1),
+    say(130, "Held: 1. [blocker] a.ts:1 wrong"),
+  );
 });
 
 test("P3: agy's blockers, as `gemini-audit pr` prints them (without the tag), hold the pull request", () => {
@@ -125,9 +129,9 @@ test("P3: agy's blockers, as `gemini-audit pr` prints them (without the tag), ho
   assert.ok(untagged.error, "an untagged hold is refused, so the lane is told to add --blocker");
   assert.doesNotMatch(untagged.do, /merg/i);
   const { steps } = planMove(S, 130, "held", { note, blocker: true });
-  assert.deepEqual(steps.at(-1), ["pr", "comment", "130", "--body", "Held: [blocker] a.ts:1 leaks the seed"]);
+  assert.deepEqual(steps.at(-1), say(130, "Held: [blocker] a.ts:1 leaks the seed"));
   assert.ok(!steps.some((s) => s[1] === "merge"));
-  const held = snap({ prs: [heldWith(steps.at(-1)[4])] });
+  const held = snap({ prs: [heldWith(bodyOf(steps.at(-1)))] });
   assert.equal(next(held, DOC, "rules"), null, "the hold stays: nothing merges it");
   const night = (body) => ({
     ...snap({ prs: [heldWith(body, ["held"])] }),
@@ -135,14 +139,14 @@ test("P3: agy's blockers, as `gemini-audit pr` prints them (without the tag), ho
     localMinutes: 3 * 60 + 10,
   });
   assert.equal(nextNight(night("Held: [minor] x"), DOC).mode, "merge", "the night shift would merge a minor hold");
-  assert.equal(nextNight(night(steps.at(-1)[4]), DOC), null, "but not agy's blockers");
+  assert.equal(nextNight(night(bodyOf(steps.at(-1))), DOC), null, "but not agy's blockers");
 });
 
 test("P1: merging with a note comments the minor concerns before auto-merge, and drops held", () => {
   const S = snap({ issues: [issue(30, ["lane:rules"])], prs: [pr(130, { labels: ["lane:rules", "held"] })] });
   assert.deepEqual(planMove(S, 130, "merging", { note: "[minor] a.ts:1 naming" }).steps, [
-    ["pr", "edit", "130", "--remove-label", "held"],
-    ["pr", "comment", "130", "--body", "Merging with notes (they hold nothing): [minor] a.ts:1 naming"],
+    ["api", "--method", "DELETE", "repos/{owner}/{repo}/issues/130/labels/held"],
+    say(130, "Merging with notes (they hold nothing): [minor] a.ts:1 naming"),
     ["pr", "merge", "130", "--auto", "--squash"],
   ]);
 });
@@ -152,7 +156,7 @@ test("P1: merging with a note comments the minor concerns before auto-merge, and
 test("P4: --rail holds with the audit's reason, needs no [blocker], and the status block says so", () => {
   const S = snap({ issues: [issue(30, ["lane:rules"])], prs: [pr(130)] });
   const { steps } = planMove(S, 130, "held", { note: "it removes the e2e step", rail: true });
-  assert.deepEqual(steps.at(-1), ["pr", "comment", "130", "--body", `${HELD_RAIL} it removes the e2e step`]);
+  assert.deepEqual(steps.at(-1), say(130, `${HELD_RAIL} it removes the e2e step`));
   const held = snap({ prs: [heldWith(`${HELD_RAIL} it removes the e2e step`)] });
   assert.deepEqual(status(held, DOC).needsYou, [
     "#130 R130: held by agy's rail audit, which says it loosens a rail; its last comment says how",
@@ -164,14 +168,9 @@ test("P4: --rail holds with the audit's reason, needs no [blocker], and the stat
 test("P2: re-queueing with a note records a machine failure that retries by itself", () => {
   const S = snap({ issues: [issue(5, ["lane:rules", "in-progress"])] });
   assert.deepEqual(planMove(S, 5, "ready", { note: "vitest timed out under host load." }).steps, [
-    ["issue", "edit", "5", "--remove-label", "in-progress", "--add-label", "sprint-ready"],
-    [
-      "issue",
-      "comment",
-      "5",
-      "--body",
-      `${MACHINE} vitest timed out under host load. It retries by itself after 60 minutes.`,
-    ],
+    ["api", "--method", "POST", "repos/{owner}/{repo}/issues/5/labels", "-f", "labels[]=sprint-ready"],
+    ["api", "--method", "DELETE", "repos/{owner}/{repo}/issues/5/labels/in-progress"],
+    say(5, `${MACHINE} vitest timed out under host load. It retries by itself after 60 minutes.`),
   ]);
 });
 

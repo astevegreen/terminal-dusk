@@ -144,7 +144,19 @@ test("move runs the planned gh commands in order; --dry-run only prints them", (
   const dry = fakeGh();
   const d = main(["move", "5", "building", "--dry-run"], { gh: dry.gh, docText: DOC_TEXT, now: NOW, freeMb: 16000 });
   assert.equal(JSON.parse(d.out).dryRun, true);
-  assert.ok(!dry.calls.some((c) => c[1] === "edit"));
+  assert.ok(!dry.calls.some((c) => c.includes("--method")));
+});
+
+test("move exits 1 with error and do when GitHub refuses auto-merge, as it does in a cloud session", () => {
+  const { gh } = fakeGh();
+  const cloud = (args) => {
+    if (args[1] === "merge") throw new Error("gh pr merge 104: HTTP 403: GitHub GraphQL is not available");
+    return gh(args);
+  };
+  const r = main(["move", "104", "merging"], { gh: cloud, docText: DOC_TEXT, now: NOW, freeMb: 16000 });
+  assert.equal(r.code, 1, r.out);
+  assert.match(JSON.parse(r.out).error, /not set to auto-merge.*HTTP 403/);
+  assert.match(JSON.parse(r.out).do, /move 104 merging/);
 });
 
 test("a refused move exits 1 with error and do; a failure exits 2 and says to stop and report", () => {

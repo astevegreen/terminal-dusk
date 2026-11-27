@@ -4,7 +4,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
-import { auditPr, duePrs, pinnedIssueOf, report, specMaterial } from "./gemini-audit.mjs";
+import { auditDuePrs, auditPr, duePrs, pinnedIssue, pinnedIssueOf, report, specMaterial } from "./gemini-audit.mjs";
 import { ORDERS, buildPrompt } from "./gemini/agy.mjs";
 import { NO_API, apiPrompt } from "./gemini/gemini-api.mjs";
 import { verdictMarker } from "./gemini/rails.mjs";
@@ -198,6 +198,107 @@ test("the weekly and narrative audits post on the issue a collaborator opened, n
   const issue = (number, login) => ({ number, title: "Gemini weekly audit", author: { login } });
   assert.equal(pinnedIssueOf([issue(9, "stranger"), issue(4, "greenbeanbot")], "Gemini weekly audit", team), 4);
   assert.equal(pinnedIssueOf([issue(9, "stranger")], "Gemini weekly audit", team), undefined, "so it opens its own");
+});
+
+// --- prs and the repo-wide audits' issue in a cloud session, where `gh pr list` and `gh issue list`, `create` and
+// `pin` use GraphQL and answer 403 ------------------------------------------------------------------------------
+
+const REFUSED = "HTTP 403: GitHub GraphQL is not available";
+const jsonLines = (items) => items.map((i) => JSON.stringify(i)).join("\n");
+
+// gh with these open pull requests and each one's comments; any GraphQL command is refused.
+function listing(open) {
+  const calls = [];
+  const gh = (...args) => {
+    calls.push(args);
+    if (args[0] !== "api") throw new Error(REFUSED);
+    if (args[2] === "repos/{owner}/{repo}/pulls?state=open&per_page=100")
+      return jsonLines(open.map((p) => ({ number: p.number, head: { repo: p.repo ?? REPO }, base: { repo: REPO } })));
+    const n = Number(/issues\/(\d+)\/comments/.exec(args[2])?.[1]);
+    const found = open.find((p) => p.number === n);
+    if (!found) throw new Error(`unexpected gh ${args.join(" ")}`);
+    return restComments(found.comments ?? []);
+  };
+  return { gh, calls };
+}
+
+test("prs lists the open pull requests and their comments through REST, and audits the due ones", () => {
+  const { gh, calls } = listing([
+    { number: 1 },
+    { number: 2, comments: [marked(ME, { verdict: "merge" })] },
+    { number: 3, comments: [marked(ME, { verdict: "retry" })] },
+    { number: 4, repo: { full_name: "stranger/terminal-dusk" } },
+  ]);
+  const audited = [];
+  const logged = [];
+  auditDuePrs({ gh, audit: (n) => (audited.push(n), { pr: n }), post: assert.fail, log: (l) => logged.push(l) });
+  assert.deepEqual(audited, [1, 3]);
+  assert.deepEqual(logged, ['{"pr":1}', '{"pr":3}']);
+  assert.ok(!calls.some((c) => c.join(" ").includes("issues/4/")), "a fork's comments are not even read");
+});
+
+test("prs posts the skipped line on a pull request whose audit fails, and carries on", () => {
+  const { gh } = listing([{ number: 1 }, { number: 2 }]);
+  const posted = [];
+  const audit = (n) => {
+    if (n === 1) throw new Error("no diff");
+    return { pr: n };
+  };
+  auditDuePrs({ gh, audit, post: (...a) => posted.push(a), log: () => {} });
+  assert.deepEqual(posted, [["pr", 1, "Gemini audit skipped: no diff"]]);
+});
+
+const TITLE = "Gemini weekly audit";
+const restIssue = (number, login, extra = {}) => ({ number, title: TITLE, user: { login }, ...extra });
+
+// gh with these open issues, ME as the only collaborator, and `gh issue pin` failing with `pin` when it is given.
+function issueGh(open, { pin } = {}) {
+  const calls = [];
+  const log = [];
+  const gh = (...args) => {
+    calls.push(args);
+    if (args[1] === "repos/{owner}/{repo}/collaborators") return `${ME}\n`;
+    if (args[2] === "repos/{owner}/{repo}/issues?state=open&per_page=100") return jsonLines(open);
+    if (args[2] === "POST" && args[3] === "repos/{owner}/{repo}/issues") return JSON.stringify({ number: 20 });
+    if (args[0] === "issue" && args[1] === "pin") {
+      if (pin) throw new Error(pin);
+      return "";
+    }
+    throw new Error(args[0] === "api" ? `unexpected gh ${args.join(" ")}` : REFUSED);
+  };
+  return { calls, log, io: { gh, dry: false, log: (l) => log.push(l) } };
+}
+
+test("the repo-wide audits find their issue through REST: a collaborator's, not a stranger's or a pull request", () => {
+  const { io, calls } = issueGh([restIssue(9, "stranger"), restIssue(8, ME, { pull_request: {} }), restIssue(4, ME)]);
+  assert.equal(pinnedIssue(TITLE, io), 4);
+  assert.ok(
+    calls.every((c) => c[0] === "api"),
+    JSON.stringify(calls),
+  );
+});
+
+test("a missing issue is opened through REST and pinned with gh", () => {
+  const { io, calls, log } = issueGh([restIssue(9, "stranger")]);
+  assert.equal(pinnedIssue(TITLE, io), 20);
+  assert.deepEqual(calls.at(-1), ["issue", "pin", "20"]);
+  assert.ok(calls.at(-2).includes(`title=${TITLE}`));
+  assert.deepEqual(log, []);
+});
+
+test("a 403 on pinning (no REST route) is logged and the audit goes on; any other failure still stops it", () => {
+  const refused = issueGh([], { pin: `gh issue pin failed: ${REFUSED}` });
+  assert.equal(pinnedIssue(TITLE, refused.io), 20);
+  assert.equal(refused.log.length, 1);
+  assert.match(refused.log[0], /#20 is not pinned.*HTTP 403/);
+  const full = issueGh([], { pin: "gh issue pin failed: Maximum 3 pinned issues per repository" });
+  assert.throws(() => pinnedIssue(TITLE, full.io), /Maximum 3 pinned/);
+});
+
+test("a dry run opens no issue", () => {
+  const { io, calls } = issueGh([]);
+  assert.equal(pinnedIssue(TITLE, { ...io, dry: true }), 0);
+  assert.ok(!calls.some((c) => c.includes("--method") || c[0] === "issue"));
 });
 
 test("specs reads every issue it is given through gh, one spec after another (not the list index as gh)", () => {
