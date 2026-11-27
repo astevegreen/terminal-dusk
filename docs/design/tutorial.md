@@ -39,7 +39,7 @@ already decided in the other files in `docs/design/`; the tutorial adds no rule 
    a third at 5, falls by 1 at each turn's end, and at 6 causes a crisis that costs score. Realign a country in a
    region that is still open.
 6. **The tech race** (turn 3, LIO's first play, a card played for points; owner, 27 Nov 2026, in chat: "Yes",
-   to LIO's first play of turn 3). The learner makes the attempt themselves. Pay the step's cost, then
+   to LIO's first play of turn 3). The learner makes the attempt themselves (when the points pay the cost). Pay the step's cost, then
    draw: on 4 or more the marker moves one step. Each side may try once per turn. A rival card spent on the tech
    race has no event. The chapter explains what each step gives.
 7. **Scoring, winning and the two abilities** (end of turn 3, when Era 1 scores). Each region scores for present,
@@ -91,7 +91,11 @@ taken AI (pulling it back costs 2) and Rwandan Genocide has left the card 1 poin
 track, but "Play Second Chechen War, SAE's card, on the tech race." becomes "Your 1 point can't pay this step's cost
 of 2 this turn. Play Second Chechen War for its points and place influence instead: its event, SAE's, still
 happens.", with the points and cost from the game, and the sentence "All 3 points go to this one try, so any above
-the cost are lost." is left out, since there is no try (owner, 27 Nov 2026, in chat: "As you recommend").
+the cost are lost." is left out, since there is no try (owner, 27 Nov 2026, in chat: "As you recommend"). In that
+case "Played any other way, its event would give SAE 2 points and raise Escalation. Points spent on the tech race
+cancel a rival card's event." becomes "Played this way, its
+event gives SAE 2 points and raises Escalation. Points spent on the tech race would have cancelled it.", with the
+points from the game, which keeps chapter 3's promise true (owner, 27 Nov 2026, in chat: "Approve").
 
 **1. Opening cards and events** (turn 1 opening; play Maastricht Treaty)
 
