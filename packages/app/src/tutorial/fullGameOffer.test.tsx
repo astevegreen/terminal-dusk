@@ -7,6 +7,7 @@ import { flush } from "../vsAi/test/scriptedHuman.ts";
 import { standInAi } from "../vsAi/test/standInAi.ts";
 import { tutorialEdition } from "./edition.ts";
 import { FullGameOffer, OFFER_BUY, OFFER_PLACEHOLDER_LABEL, OFFER_TEXT } from "./FullGameOffer.tsx";
+import { playUntil, pub } from "./test/playTutorial.ts";
 import { createTutorialSession } from "./tutorialSession.ts";
 import type { TutorialSession } from "./tutorialSession.ts";
 import { TutorialGame } from "./TutorialScreen.tsx";
@@ -25,23 +26,6 @@ const start = (edition: TutorialEdition): TutorialSession =>
     makeAi: standInAi().makeAi,
   });
 
-/** Answers for LIO, as the coach allows, until `done` says stop; fails if the game never gets there. */
-async function playUntil(started: TutorialSession, done: (s: TutorialSession) => boolean): Promise<void> {
-  const { session, match } = started;
-  for (let step = 0; step < 2000; step++) {
-    await flush();
-    if (done(started)) return;
-    const frame = session.getSnapshot().frame;
-    if (!frame?.decision) continue;
-    const coaching = match!.coaching();
-    const value = match!.legalAnswers("lio").find((a) => coaching.allows(a));
-    if (value === undefined) throw new Error("the learner is stuck");
-    await session.answer(value);
-    expect(session.getSnapshot().refusal).toBeNull();
-  }
-  throw new Error("the game never got there");
-}
-const pub = (s: TutorialSession) => s.session.getSnapshot().frame!.view.public;
 const draw = (s: TutorialSession, edition: TutorialEdition) =>
   renderToString(<TutorialGame lesson={lesson} started={s} edition={edition} onNewGame={() => {}} />);
 
