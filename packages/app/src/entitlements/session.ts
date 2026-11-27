@@ -23,7 +23,7 @@ export type EntitlementSession = {
   subscribe(listener: () => void): () => void;
   /** Starts the sign-in session and follows it; returns the call that stops following. */
   start(): () => void;
-  /** Reads the signed-in player's rows again; does nothing when signed out. */
+  /** Reads the signed-in player's rows again, resolving once the newest read has answered; does nothing signed out. */
   reload(): Promise<void>;
 };
 
@@ -45,25 +45,35 @@ export function createEntitlementSession({
     for (const listener of listeners) listener();
   };
 
-  /** The read's result; null when there turns out to be no session to read with. */
-  const ask = async (asked: string): Promise<LobbyResult<Entitlement[]> | null> => {
+  const ask = async (asked: string): Promise<LobbyResult<Entitlement[]>> => {
     try {
       const token = await signIn.accessToken();
-      return token === null ? null : await readEntitlements(endpoint, token, asked);
+      // No token for a player sign-in still calls signed in: a failed read, so nothing is left "loading". A real
+      // sign-out has changed the player by now, and `load` drops the answer.
+      return token === null ? refuse("notSignedIn") : await readEntitlements(endpoint, token, asked);
     } catch {
       // The token has expired and could not be refreshed just now: the player is still signed in.
       return refuse("network");
     }
   };
 
-  const load = async (): Promise<void> => {
+  /** The newest read, so one that is overtaken can wait for the answer that counts. */
+  let newest: Promise<void> = Promise.resolve();
+
+  const read = async (asked: string, mine: number): Promise<void> => {
+    const result = await ask(asked);
+    if (mine !== latest) return newest;
+    if (asked !== player) return;
+    publish(result.ok ? { owned: result.value, state: "loaded", known: true } : { ...snapshot, state: "failed" });
+  };
+
+  const load = (): Promise<void> => {
     const asked = player;
-    if (asked === null) return;
+    if (asked === null) return Promise.resolve();
     const mine = ++latest;
     publish({ ...snapshot, state: "loading" });
-    const result = await ask(asked);
-    if (result === null || mine !== latest || asked !== player) return;
-    publish(result.ok ? { owned: result.value, state: "loaded", known: true } : { ...snapshot, state: "failed" });
+    newest = read(asked, mine);
+    return newest;
   };
 
   /** Takes up a change of player: what one player owns is never shown for another. */
