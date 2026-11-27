@@ -36,7 +36,9 @@ await onLocalStack(
       expect(reply.status).toBe(200);
       // Other test files' matches on the same stack may be due too, so only this match's own count is pinned.
       const count = expect.any(Number);
-      expect(reply.json).toEqual({ results: { extended: count, timedOut: count, conflict: count, skipped: count } });
+      expect(reply.json).toEqual({
+        results: { extended: count, timedOut: count, answered: count, conflict: count, skipped: count },
+      });
       expect((reply.json as { results: { timedOut: number } }).results.timedOut).toBeGreaterThanOrEqual(1);
       expect(JSON.stringify(reply.json)).not.toContain(matchId);
       const stored = await new SupabaseStore(game.service).load(matchId);
