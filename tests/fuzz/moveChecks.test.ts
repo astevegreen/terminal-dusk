@@ -49,42 +49,47 @@ describe("the own-moves check", () => {
 });
 
 describe("random map games", () => {
-  it("make every move by the mover's own answer, with points from a rival's card included", () => {
-    let placed = 0;
-    let rivalPoints = 0;
-    let placedWithRivalPoints = 0;
-    for (let game = 0; game < GAMES; game++) {
-      const rng = seededRng(game);
-      const { setup, seed } = randomGame(rng, game);
-      const choose = randomChooser(ruleset, rng);
-      const created = createGame(ruleset, onTestMap(setup), seed);
-      if (!created.ok) throw new Error(`game ${game}: createGame failed: ${created.error.code}`);
-      let state = created.value.state;
-      // The sides now spending points that a step answered by the other side gave them.
-      const fromRival = new Set<Side>();
-      while (state.public.status.kind === "active") {
-        const answer = choose(state)!;
-        const result = apply(ruleset, state, answer);
-        if (!result.ok) throw new Error(`game ${game}: apply failed: ${result.error.code}`);
-        const { events } = result.value;
-        // The game's number is its seed: a failure prints it.
-        expect(() => checkOwnMoves(answer, events), `game ${game}`).not.toThrow();
-        for (const event of events) {
-          if (event.kind === "influencePlaced") {
-            placed++;
-            if (fromRival.has(event.side)) placedWithRivalPoints++;
+  it(
+    "make every move by the mover's own answer, with points from a rival's card included",
+    () => {
+      let placed = 0;
+      let rivalPoints = 0;
+      let placedWithRivalPoints = 0;
+      for (let game = 0; game < GAMES; game++) {
+        const rng = seededRng(game);
+        const { setup, seed } = randomGame(rng, game);
+        const choose = randomChooser(ruleset, rng);
+        const created = createGame(ruleset, onTestMap(setup), seed);
+        if (!created.ok) throw new Error(`game ${game}: createGame failed: ${created.error.code}`);
+        let state = created.value.state;
+        // The sides now spending points that a step answered by the other side gave them.
+        const fromRival = new Set<Side>();
+        while (state.public.status.kind === "active") {
+          const answer = choose(state)!;
+          const result = apply(ruleset, state, answer);
+          if (!result.ok) throw new Error(`game ${game}: apply failed: ${result.error.code}`);
+          const { events } = result.value;
+          // The game's number is its seed: a failure prints it.
+          expect(() => checkOwnMoves(answer, events), `game ${game}`).not.toThrow();
+          for (const event of events) {
+            if (event.kind === "influencePlaced") {
+              placed++;
+              if (fromRival.has(event.side)) placedWithRivalPoints++;
+            }
+            if (event.kind !== "pointsSpent") continue;
+            if ("decisionId" in answer && answer.side !== event.side) {
+              rivalPoints++;
+              fromRival.add(event.side);
+            } else fromRival.delete(event.side);
           }
-          if (event.kind !== "pointsSpent") continue;
-          if ("decisionId" in answer && answer.side !== event.side) {
-            rivalPoints++;
-            fromRival.add(event.side);
-          } else fromRival.delete(event.side);
+          state = result.value.state;
         }
-        state = result.value.state;
       }
-    }
-    expect(placed).toBeGreaterThan(0);
-    expect(rivalPoints).toBeGreaterThan(0);
-    expect(placedWithRivalPoints).toBeGreaterThan(0);
-  });
+      expect(placed).toBeGreaterThan(0);
+      expect(rivalPoints).toBeGreaterThan(0);
+      expect(placedWithRivalPoints).toBeGreaterThan(0);
+      // The time limit grows with the games, as in influence.test.ts: CI's 2,000 take more than Vitest's 5 seconds.
+    },
+    Math.max(120_000, GAMES * 300),
+  );
 });
