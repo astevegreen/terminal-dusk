@@ -509,10 +509,11 @@ Guardrails come first and the engine is proven on a 25-card slice before any ser
    - Gate: someone new finishes a 25-card game on a phone-sized screen without help.
 4. **Online async on the web.** Supabase Pro, `submit`, tables and read rules, deadlines, invite codes, email sign-in codes, email turn alerts, replay archive.
    - Gate: 50 online games with no desyncs and no hidden data visible in browser network traffic.
-5. **Full content and single-player.** All eras, Medium and Hard AI, the arena, tutorial, audio, spectating. Consider an early TestFlight submission here to test Apple's reaction to the content.
+5. **Full content and single-player.** All eras, Medium and Hard AI, the arena, tutorial, audio. Consider an early TestFlight submission here to test Apple's reaction to the content.
    - Gate: arena win-rate targets met; the tutorial passes offline.
 6. **Public web beta and sales.** Glicko-2, matchmaking, web checkout, gift codes, results by side.
    - Gate: stable play and enough data to judge side balance.
+   - After launch: spectating (a list of live public games, polling the public spectator frame; private games are never listed). Whether players may opt out of being watched in ranked games is decided then.
 7. **Steam.** Electron shell, Steamworks, Steam sign-in, Steam Playtest including a Steam Deck test. Request keys no earlier than 3 weeks after creating the app ID.
 8. **Android, then iOS.** Capacitor shells, native push, in-app purchase, haptics, cloud Mac builds, the Google Play content questionnaire, App Store review.
 9. **After v1.** Freeze version 1 of the effect format and the hook list; turn on the ruleset compatibility window; private modded lobbies on web and Steam (Steam Workshop); replay export for tournaments; quick-chat phrases, then friend-only text chat.
