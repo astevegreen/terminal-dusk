@@ -12,7 +12,7 @@ export function receiptRows(service: () => SupabaseClient) {
 
   afterAll(async () => {
     if (used.length === 0) return;
-    for (const table of TABLES) await service().from(table).delete().in("receipt_ref", used);
+    await Promise.all(TABLES.map((table) => service().from(table).delete().in("receipt_ref", used)));
   }, 60_000);
 
   return {
