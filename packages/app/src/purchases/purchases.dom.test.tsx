@@ -17,6 +17,8 @@ import { WEB_PURCHASE_NOTE, webPlatformPurchases } from "../platform/webPlatform
 import { RETURN_DELAYS } from "../platform/webPurchaseReturn.ts";
 import { fakeTimers } from "../transport/test/remoteGame.ts";
 import { OFFER_BUY, OFFER_TEXT } from "../tutorial/FullGameOffer.tsx";
+import { playUntil, pub } from "../tutorial/test/playTutorial.ts";
+import type { TutorialSession } from "../tutorial/tutorialSession.ts";
 import type { VsAiSession } from "../vsAi/session.ts";
 import { playOut } from "../vsAi/test/scriptedHuman.ts";
 import { standInAi } from "../vsAi/test/standInAi.ts";
@@ -37,6 +39,20 @@ vi.mock("../vsAi/session.ts", async () => {
 vi.mock("../vsAi/workerAi.ts", () => ({
   createWorkerAi: (...args: Parameters<ReturnType<typeof standInAi>["makeAi"]>) => opponent.current!.makeAi(...args),
 }));
+/** Every tutorial session the screen has made, in order; the sessions are the real ones. */
+const lessons = vi.hoisted((): TutorialSession[] => []);
+vi.mock("../tutorial/tutorialSession.ts", async () => {
+  const actual = await vi.importActual<typeof import("../tutorial/tutorialSession.ts")>(
+    "../tutorial/tutorialSession.ts",
+  );
+  return {
+    createTutorialSession: (...args: Parameters<typeof actual.createTutorialSession>) => {
+      const session = actual.createTutorialSession(...args);
+      lessons.push(session);
+      return session;
+    },
+  };
+});
 
 const ORIGIN = "https://app.test";
 const CHECKOUT = `${ORIGIN}/pay/?_ptxn=txn_01h8abcDEF`;
@@ -52,6 +68,7 @@ let root: Root;
 beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   made.length = 0;
+  lessons.length = 0;
   opponent.current = standInAi();
   screen = document.body.appendChild(document.createElement("div"));
   root = createRoot(screen);
@@ -158,6 +175,38 @@ describe("the Full Game offer on the web (#685)", () => {
     expect(screen.textContent).not.toContain(WEB_PURCHASE_NOTE);
     expect(button("Restore purchase")).toBeUndefined();
     expect(giftField()).toBeNull();
+  }, 60_000);
+});
+
+describe("the Full Game offer at the tutorial's end, on the web (#685)", () => {
+  /** Plays the tutorial's free game to its end, where the Full Game offer is. */
+  async function finishTutorial(): Promise<void> {
+    await press("Tutorial");
+    await act(() => playUntil(lessons[0]!, (s) => pub(s).status.kind === "over"));
+    await settle();
+    expect(screen.textContent).toContain(OFFER_TEXT);
+  }
+
+  it("has an enabled buy button that, tapped signed out, opens sign-in", async () => {
+    const { opened } = await mount({ signedIn: false });
+    await finishTutorial();
+    expect(screen.textContent).toContain(WEB_PURCHASE_NOTE);
+    expect(button(OFFER_BUY)!.disabled).toBe(false);
+    await press(OFFER_BUY);
+    expect(button("Send code")).toBeDefined();
+    expect(opened).toEqual([]);
+  }, 60_000);
+
+  it("buys, and disappears once Restore purchase finds a web entitlement", async () => {
+    const { fake, opened } = await mount();
+    await finishTutorial();
+    fake.answerCall({ status: 200, body: { ok: true, url: CHECKOUT } });
+    await press(OFFER_BUY);
+    expect(opened).toEqual([CHECKOUT]);
+    expect(giftField(), "the gift code field is on the offer").not.toBeNull();
+    fake.answerNext(OWNS);
+    await press("Restore purchase");
+    expect(screen.textContent).not.toContain(OFFER_TEXT);
   }, 60_000);
 });
 
