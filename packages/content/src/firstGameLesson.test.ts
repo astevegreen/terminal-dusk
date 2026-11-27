@@ -38,15 +38,26 @@ const EXAMPLE: Record<string, string> = {
   "cardPoints:e1-lio-006": "4",
 };
 
-/** `words` with each slot filled from `values`; a slot with no value throws. */
+/**
+ * `words` with each slot filled from `values`; a slot with no value throws. As the host does, " point" or " points"
+ * after a filled number reads "point" after 1 and "points" otherwise (owner, 27 Nov 2026, #701).
+ */
 const fill = (words: string, values: Record<string, string> = EXAMPLE): string => {
   const split = splitLine(words);
   if ("error" in split) throw new Error(split.error);
+  let previous = "";
   return split.pieces
     .map((p) => {
-      if (!("slot" in p)) return p.text;
+      if (!("slot" in p)) {
+        const text = /^\d+$/.test(previous)
+          ? p.text.replace(/^ points?\b/, previous === "1" ? " point" : " points")
+          : p.text;
+        previous = text;
+        return text;
+      }
       const value = values[`${p.slot}:${p.arg}`];
       if (value === undefined) throw new Error(`No example value for {${p.slot}:${p.arg}}.`);
+      previous = value;
       return value;
     })
     .join("");
@@ -125,7 +136,22 @@ describe("its coaching lines", () => {
     const four = approved("With 4 points, a stability-2 country such as Crimea gives a result equal to your draw.");
     const three = approved("With 3 points, a stability-2 country such as Crimea gives a result 1 below your draw.");
     const values = { ...EXAMPLE, "cardPoints:e1-lio-006": "3", "belowDraw:e1-lio-006": "1" };
-    expect(variantSays("intervene", 2).map((s) => fill(s, values))).toEqual([base.replace(four, three)]);
+    expect(fill(variantSays("intervene", 2)[0]!, values)).toBe(base.replace(four, three));
+    // At 1 point: "3 below your draw", and "1 point", as the owner approved (#701).
+    const one = { ...EXAMPLE, "cardPoints:e1-lio-006": "1", "belowDraw:e1-lio-006": "3" };
+    expect(approved('At 1 point it reads "3 below your draw"')).toBeTruthy();
+    expect(fill(variantSays("intervene", 2)[0]!, one)).toBe(
+      base.replace(four, "With 1 point, a stability-2 country such as Crimea gives a result 3 below your draw."),
+    );
+  });
+
+  it("chapter 4, at 5 points, says how far above the draw the result falls, as approved (#701)", () => {
+    const base = fill(step("intervene", 2).say);
+    const four = "With 4 points, a stability-2 country such as Crimea gives a result equal to your draw.";
+    const five = approved("With 5 points, a stability-2 country such as Crimea gives a result 1 above your draw.");
+    const values = { ...EXAMPLE, "cardPoints:e1-lio-006": "5", "aboveDraw:e1-lio-006": "1" };
+    expect(variantSays("intervene", 2)).toHaveLength(2);
+    expect(fill(variantSays("intervene", 2)[1]!, values)).toBe(base.replace(four, five));
   });
 
   it("fill every number of points and every place the doc says comes from the live game from a slot", () => {

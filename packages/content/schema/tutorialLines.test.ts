@@ -46,6 +46,7 @@ describe("a coaching line's slots", () => {
         "pointsBefore",
         "techRaceCost",
         "belowDraw",
+        "aboveDraw",
       ].sort(),
     );
     const card = "e1-sae-001";
@@ -110,6 +111,8 @@ describe("a step's variants", () => {
         "pointsBeforeEqualsAfter",
         "pointsBelowTechRaceCost",
         "resultBelowDraw",
+        "resultAboveDraw",
+        "onePoint",
       ].sort(),
     );
     const both = [

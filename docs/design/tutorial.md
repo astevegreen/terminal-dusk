@@ -89,7 +89,14 @@ approve your recommendation").
 When Desert Storm Coalition's points are not 4, chapter 4's "With 4 points, a stability-2 country such as Crimea
 gives a result equal to your draw." becomes "With 3 points, a stability-2 country such as Crimea gives a result 1
 below your draw." ("2 below" at 2 points), with the points and the difference from the game (owner, 27 Nov 2026, in
-chat: "Approve both"; #700).
+chat: "Approve both"; #700). At 1 point it reads "3 below your draw", and at 5 points (SAE's turn-2 opening can give
+LIO 1 more) "With 5 points, a stability-2 country such as Crimea gives a result 1 above your draw." (owner, 27 Nov
+2026, in chat, accepting the recommended words; #701).
+
+A filled number of points always reads "1 point" or "N points": at 1, chapter 5 reads "Play Budapest Memorandum for
+its 1 point and realign", and chapter 6's "All 3 points go to this one try, so any above the cost are lost." reads
+"Your 1 point goes to this one try." (without "so any above the cost are lost", since nothing is left over). The
+rest of each line stays as written (owner, 27 Nov 2026, in chat: "Approve both"; #701).
 
 In chapter 6, Second Chechen War's points can fall below the cost of the step LIO would try: for example, SAE has
 taken AI (pulling it back costs 2) and Rwandan Genocide has left the card 1 point. Then chapter 6 still explains the

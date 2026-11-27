@@ -43,6 +43,10 @@ function holds(c: Condition, frame: Frame, ruleset: Ruleset): boolean {
       return live.cardPoints(view, live.cardIn(ruleset, c.card), c.side) < live.raceCost(view, c.side);
     case "resultBelowDraw":
       return live.belowDraw(view, live.cardIn(ruleset, c.card), me) > 0;
+    case "resultAboveDraw":
+      return live.belowDraw(view, live.cardIn(ruleset, c.card), me) < 0;
+    case "onePoint":
+      return live.cardPoints(view, live.cardIn(ruleset, c.card), me) === 1;
   }
 }
 
@@ -73,6 +77,10 @@ function slotText(slot: string, arg: string, frame: Frame, ruleset: Ruleset): st
       const below = live.belowDraw(view, card(), me);
       return below > 0 ? String(below) : fail(`{belowDraw:${arg}} is ${below}: the result is not below the draw.`);
     }
+    case "aboveDraw": {
+      const above = -live.belowDraw(view, card(), me);
+      return above > 0 ? String(above) : fail(`{aboveDraw:${arg}} is ${above}: the result is not above the draw.`);
+    }
     default:
       return fail(`unknown slot "${slot}".`);
   }
@@ -88,7 +96,22 @@ export function fillText(words: string, frame: Frame, ruleset: Ruleset): string 
   sameRuleset(frame, ruleset);
   const split = splitLine(words);
   if ("error" in split) return fail(`the line has ${split.error}.`);
-  return split.pieces.map((p) => ("slot" in p ? slotText(p.slot, p.arg, frame, ruleset) : p.text)).join("");
+  let previous = "";
+  return split.pieces
+    .map((p) => {
+      previous = "slot" in p ? slotText(p.slot, p.arg, frame, ruleset) : agree(previous, p.text);
+      return previous;
+    })
+    .join("");
+}
+
+/**
+ * `text` after the filled `number`: a leading " point" or " points" reads "point" after 1 and "points" after any
+ * other number (owner, 27 Nov 2026, #701: "a filled number of points always reads 1 point or N points").
+ */
+function agree(number: string, text: string): string {
+  if (!/^\d+$/.test(number)) return text;
+  return text.replace(/^ points?\b/, number === "1" ? " point" : " points");
 }
 
 /** Picks `line`'s variant for `frame` and fills its words. */

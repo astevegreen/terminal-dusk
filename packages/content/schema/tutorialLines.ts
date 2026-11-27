@@ -28,6 +28,9 @@ export const side = z.enum(["lio", "sae"]);
  *   Cuba, Canada)").
  * - belowDraw: how far below the draw an intervention's result falls in a stability-2 country, with the named card's
  *   points now: 4 minus those points (chapter 4's "a result 1 below your draw"; owner, 27 Nov 2026: "Approve both").
+ * - aboveDraw: how far above the draw that result falls: those points minus 4 (chapter 4's "a result 1 above your
+ *   draw" at 5 points; owner, 27 Nov 2026, #701).
+ * A number slot followed by " point" or " points" is filled as "1 point" or "N points" (owner, 27 Nov 2026, #701).
  */
 export const SLOTS = {
   cardPoints: "card",
@@ -39,6 +42,7 @@ export const SLOTS = {
   influenceIn: "side",
   homeNeighbours: "side",
   belowDraw: "card",
+  aboveDraw: "card",
 } as const satisfies Record<string, "card" | "side">;
 
 export type SlotName = keyof typeof SLOTS;
@@ -107,6 +111,8 @@ export const CONDITIONS = [
   "pointsBeforeEqualsAfter",
   "pointsBelowTechRaceCost",
   "resultBelowDraw",
+  "resultAboveDraw",
+  "onePoint",
 ] as const;
 
 /**
@@ -119,6 +125,8 @@ export const CONDITIONS = [
  *   (chapter 6).
  * - resultBelowDraw: with the named card's points now, an intervention in a stability-2 country gives a result below
  *   the draw, that is the points are below 4 (chapter 4).
+ * - resultAboveDraw: the same result falls above the draw, that is the points are above 4 (chapter 4 at 5 points).
+ * - onePoint: the named card gives the learner exactly 1 point now (chapter 6's "Your 1 point goes to this one try.").
  */
 export const condition = z.discriminatedUnion("kind", [
   z.strictObject({ kind: z.literal("noInfluence"), side }),
@@ -126,6 +134,8 @@ export const condition = z.discriminatedUnion("kind", [
   z.strictObject({ kind: z.literal("pointsBeforeEqualsAfter"), card: era1Card }),
   z.strictObject({ kind: z.literal("pointsBelowTechRaceCost"), card: era1Card, side }),
   z.strictObject({ kind: z.literal("resultBelowDraw"), card: era1Card }),
+  z.strictObject({ kind: z.literal("resultAboveDraw"), card: era1Card }),
+  z.strictObject({ kind: z.literal("onePoint"), card: era1Card }),
 ]);
 
 export type Condition = z.output<typeof condition>;

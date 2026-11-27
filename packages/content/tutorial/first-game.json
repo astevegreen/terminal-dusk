@@ -132,6 +132,10 @@
             {
               "if": [{ "kind": "resultBelowDraw", "card": "e1-lio-006" }],
               "say": "There are no dice: you draw a card numbered 1 to 6 from your Contingency deck. Result = draw + points spent - 2 x the country's stability. If the result is above 0, SAE loses that much influence there, and what is left over becomes yours. With {cardPoints:e1-lio-006} points, a stability-2 country such as Crimea gives a result {belowDraw:e1-lio-006} below your draw. An intervention in a battleground raises Escalation by 1."
+            },
+            {
+              "if": [{ "kind": "resultAboveDraw", "card": "e1-lio-006" }],
+              "say": "There are no dice: you draw a card numbered 1 to 6 from your Contingency deck. Result = draw + points spent - 2 x the country's stability. If the result is above 0, SAE loses that much influence there, and what is left over becomes yours. With {cardPoints:e1-lio-006} points, a stability-2 country such as Crimea gives a result {aboveDraw:e1-lio-006} above your draw. An intervention in a battleground raises Escalation by 1."
             }
           ],
           "allow": [{ "kind": "chooseAction", "action": "intervene" }],
