@@ -163,6 +163,33 @@ describe("the AI and the tech race", () => {
     for (const v of variants) expect([...v.hidden.secret.contingency[side]].sort()).toEqual([2, 5, 5, 7]);
   });
 
+  it("counts LIO's redraw after a reshuffle: a 1 that leaves two cards is redrawn from the rebuilt deck", () => {
+    // A 3-card deck: drawing the 1 leaves 2, so the engine rebuilds the deck from all its cards, the 1 included, and
+    // the redraw comes from that; Resilient institutions is then used up, so the second draw stands, a 1 included.
+    const menu = MENUS.find(
+      (m) => techMenuSide(m) === "lio" && m.public.abilities?.lio.id === "resilientInstitutions",
+    )!;
+    const fresh = { ...menu.public.abilities!.lio, used: 0 };
+    const state = withDeck(menu, "lio", [1, 9, 9]);
+    const view = viewFor(
+      { ...state, public: { ...state.public, abilities: { ...state.public.abilities!, lio: fresh } } },
+      "lio",
+    );
+    const hidden = guessHidden(FIRST_DECK_RULESET, view, "lio", seededRandom(1));
+    const variants = drawVariants(view, hidden, "lio");
+    expect(variants.map((v) => [v.hidden.secret.contingency.lio[0], v.weight])).toEqual([
+      [1, 1 / 3 / 3],
+      [9, (1 / 3 / 3) * 2],
+      [9, 2 / 3],
+    ]);
+    for (const v of variants.slice(0, 2)) {
+      expect(v.view!.public.contingency.lio.left).toEqual([1, 9, 9]);
+      const ability = v.view!.public.abilities!.lio;
+      expect(ability.id === "resilientInstitutions" && ability.used === ability.perTurn).toBe(true);
+    }
+    expect(variants[2]!.view).toBeUndefined();
+  });
+
   it("Medium weighs a sure attempt against placing influence: its choice flips with what placing is worth alone", () => {
     // One menu, one sure deck, the same guess and noise: only the weights that value influence on the map change. They
     // leave the attempt's worth alone while the marker stays short of Quantum Computing, whose era score is a region
