@@ -61,15 +61,15 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - A game with no map has no era in its frame (`packages/engine/src/createGame.ts:84-92` sets it only with a map), so
   against the AI the free game says "Era not shown yet" for its whole length, and the base game until Era 2 starts.
   The app already names the frame's era where there is one (#669); the engine side is lane C's. [27 Nov 2026, #669]
-- At 844x390 the top bar squeezes the era to no width (`packages/app/src/game/gameBars.css`, the plays and the era
-  "give way first", #490) and the Details panel does not show it, so on a phone the status never names the era in
-  play. [26 Nov 2026, screenshots for the era names]
 
 ## Tests and tooling
 
 - On a loaded PC a full `pnpm gate` fails on time-outs in tests the change does not touch: the 5 s limit in
   `packages/ai` (techRace, lookahead, medium's timing), the app's six-region map game and the easy AI fuzz, and the
   100 s engine fuzz (`tests/fuzz/engine.test.ts`). [27 Nov 2026, sound chain]
+- The browser test that plays the free game to its end (`packages/app/e2e/vsAi.e2e.ts:106`) has the 30 s default
+  limit: it takes 2 to 5 s on an idle PC and up to 27 s with the PC busy, and timed out once in a full run. Give it
+  a longer limit. [27 Nov 2026, #674]
 - Agents comment as astevegreen while greenbeanbot is suspended, so after the bot returns a `Blocked:` comment an
   agent posted as the owner can read as the owner's answer (`tools/sprint/rules.mjs:207` `ownerAnswer`): check blocked
   issues then, or mark agent comments so the queue stops relying on the author (7 Nov 2026, review of #540).
