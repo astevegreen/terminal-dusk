@@ -1,0 +1,142 @@
+// The real tutorial lesson's chapters 1-4 (#700) against docs/design/tutorial.md: its first cards, and every coaching
+// line word for word, with its slots filled from the design doc's own example numbers.
+import { readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+import type { Lesson } from "../schema/tutorial.ts";
+import { splitLine } from "../schema/tutorialLines.ts";
+import { TUTORIAL_LESSONS } from "./tutorialLessons.ts";
+
+const doc = readFileSync(new URL("../../../docs/design/tutorial.md", import.meta.url), "utf8")
+  .replace(/\s*\n\s*/g, " ")
+  .replace(/ {2,}/g, " ");
+
+/** The part of the design doc between two headings, with its line breaks joined. */
+const section = (from: string, to: string): string => {
+  const start = doc.indexOf(from);
+  const end = doc.indexOf(to, start);
+  if (start < 0 || end < 0) throw new Error(`The design doc has no section "${from}".`);
+  return doc.slice(start, end);
+};
+/** Every "quoted" text in `text`, in order. */
+const quotes = (text: string): string[] => [...text.matchAll(/"([^"]+)"/g)].map((m) => m[1]!);
+
+/** Whether `fragment` is in the design doc, so a variant built from it uses only approved words. */
+const approved = (fragment: string): string => {
+  expect(doc).toContain(fragment);
+  return fragment;
+};
+
+/** The design doc's own example numbers and places for each slot these chapters use. */
+const EXAMPLE: Record<string, string> = {
+  "eventPoints:e1-lio-001": "1",
+  "influenceIn:lio": "Taiwan",
+  "homeNeighbours:lio": "Mexico, Cuba, Canada",
+  "cardPoints:e1-lio-004": "4",
+  "pointsBefore:e1-sae-008": "1",
+  "pointsAfter:e1-sae-008": "2",
+  "modifierTakesOff:e1-neu-001": "1",
+  "cardPoints:e1-lio-006": "4",
+};
+
+/** `words` with each slot filled from `values`; a slot with no value throws. */
+const fill = (words: string, values: Record<string, string> = EXAMPLE): string => {
+  const split = splitLine(words);
+  if ("error" in split) throw new Error(split.error);
+  return split.pieces
+    .map((p) => {
+      if (!("slot" in p)) return p.text;
+      const value = values[`${p.slot}:${p.arg}`];
+      if (value === undefined) throw new Error(`No example value for {${p.slot}:${p.arg}}.`);
+      return value;
+    })
+    .join("");
+};
+
+const lesson = TUTORIAL_LESSONS.find((l) => l.id === "first-game") as Lesson;
+const steps = lesson.chapters.flatMap((c) => c.steps);
+const step = (chapter: string, index: number) => lesson.chapters.find((c) => c.id === chapter)!.steps[index]!;
+const variantSays = (chapter: string, index: number) => (step(chapter, index).variants ?? []).map((v) => v.say);
+
+describe("the first-game lesson's place among the bundled lessons (#700)", () => {
+  it("comes after the placeholder, which the app still plays, and is marked placeholder until #701", () => {
+    expect(TUTORIAL_LESSONS.map((l) => l.id)).toEqual(["placeholder", "first-game"]);
+    expect(lesson.placeholder).toBe(true);
+    expect(lesson.title).toBe("Your first game");
+  });
+});
+
+describe("its first cards", () => {
+  it("are the 16 cards of 'Cards dealt first', in that order", () => {
+    const dealt = section("## Cards dealt first", "## Coaching words");
+    const cards = [...dealt.matchAll(/e1-(?:lio|sae|neu)-\d{3}/g)].map((m) => m[0]);
+    expect(cards).toHaveLength(16);
+    expect(lesson.deckTop).toEqual(cards);
+  });
+});
+
+describe("its coaching lines", () => {
+  it("are chapters 1-4, with the design doc's titles", () => {
+    expect(lesson.chapters.map((c) => c.title)).toEqual([
+      "Opening cards and events",
+      "Influence and control",
+      "Rival cards",
+      "Intervene and the Contingency deck",
+    ]);
+  });
+
+  it("are every quoted line of chapters 1-4, in order, word for word with the doc's example numbers", () => {
+    const lines = quotes(section("**1. Opening cards and events**", "**5. Escalation and realigning**"));
+    expect(lines).toHaveLength(11);
+    expect(steps.map((s) => fill(s.say))).toEqual(lines);
+  });
+
+  it("chapter 1, when LIO holds no influence, drops its own-influence part as approved", () => {
+    const base = fill(step("opening", 2).say);
+    const own =
+      "You can place where you already have influence (Taiwan), next to it, or next to the United States " +
+      "(Mexico, Cuba, Canada).";
+    const expected = base.replace(own, approved("You can place next to the United States (Mexico, Cuba, Canada)."));
+    expect(expected).not.toBe(base);
+    expect(variantSays("opening", 2).map((s) => fill(s))).toEqual([expected]);
+  });
+
+  it("chapter 3, with Rwandan Genocide, with before and after equal, and with both, reads as approved", () => {
+    const base = fill(step("rival-cards", 1).say);
+    const plain = "Before: 1, plus 1 from Maastricht, minus 1, gives 1 point.";
+    const rwanda = approved(
+      "Before: 1, plus 1 from Maastricht, minus 1, minus 1 from Rwandan Genocide, and never below 1, gives 1 point.",
+    );
+    const after = approved("After: you spend 2,");
+    const equal = approved("After: you also spend 1, so here the order doesn't change your points,");
+    const withRwanda = base.replace(plain, rwanda);
+    const withEqual = base.replace(after, equal);
+    const withBoth = withRwanda.replace(after, equal);
+    expect(new Set([base, withRwanda, withEqual, withBoth]).size).toBe(4);
+    // Before and after are equal when the event first leaves the same points as the card's own: 1 then 1.
+    const equalValues = { ...EXAMPLE, "pointsAfter:e1-sae-008": "1" };
+    const [both, onlyRwanda, onlyEqual] = variantSays("rival-cards", 1);
+    expect(fill(both!, equalValues)).toBe(withBoth);
+    expect(fill(onlyRwanda!)).toBe(withRwanda);
+    expect(fill(onlyEqual!, equalValues)).toBe(withEqual);
+  });
+
+  it("chapter 4, below 4 points, says how far below the draw the result falls, as approved", () => {
+    const base = fill(step("intervene", 2).say);
+    const four = approved("With 4 points, a stability-2 country such as Crimea gives a result equal to your draw.");
+    const three = approved("With 3 points, a stability-2 country such as Crimea gives a result 1 below your draw.");
+    const values = { ...EXAMPLE, "cardPoints:e1-lio-006": "3", "belowDraw:e1-lio-006": "1" };
+    expect(variantSays("intervene", 2).map((s) => fill(s, values))).toEqual([base.replace(four, three)]);
+  });
+
+  it("fill every number of points and every place the doc says comes from the live game from a slot", () => {
+    const slotted = (chapter: string, index: number, slots: string[]) => {
+      const says = [step(chapter, index).say, ...variantSays(chapter, index)].join(" ");
+      for (const slot of slots) expect(says).toContain(`{${slot}}`);
+    };
+    slotted("opening", 2, ["eventPoints:e1-lio-001", "influenceIn:lio", "homeNeighbours:lio"]);
+    slotted("influence", 0, ["cardPoints:e1-lio-004"]);
+    slotted("rival-cards", 1, ["pointsBefore:e1-sae-008", "pointsAfter:e1-sae-008", "modifierTakesOff:e1-neu-001"]);
+    slotted("intervene", 1, ["cardPoints:e1-lio-006"]);
+    slotted("intervene", 2, ["cardPoints:e1-lio-006", "belowDraw:e1-lio-006"]);
+  });
+});

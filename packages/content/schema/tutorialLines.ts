@@ -26,6 +26,8 @@ export const side = z.enum(["lio", "sae"]);
  * - influenceIn: the countries where the side has influence, in map order (chapter 1's "(Taiwan)").
  * - homeNeighbours: the countries next to the side's home box, in the map's homeBox order (chapter 1's "(Mexico,
  *   Cuba, Canada)").
+ * - belowDraw: how far below the draw an intervention's result falls in a stability-2 country, with the named card's
+ *   points now: 4 minus those points (chapter 4's "a result 1 below your draw"; owner, 27 Nov 2026: "Approve both").
  */
 export const SLOTS = {
   cardPoints: "card",
@@ -36,6 +38,7 @@ export const SLOTS = {
   eventPoints: "card",
   influenceIn: "side",
   homeNeighbours: "side",
+  belowDraw: "card",
 } as const satisfies Record<string, "card" | "side">;
 
 export type SlotName = keyof typeof SLOTS;
@@ -103,6 +106,7 @@ export const CONDITIONS = [
   "modifierInForce",
   "pointsBeforeEqualsAfter",
   "pointsBelowTechRaceCost",
+  "resultBelowDraw",
 ] as const;
 
 /**
@@ -113,12 +117,15 @@ export const CONDITIONS = [
  *   (chapter 3).
  * - pointsBelowTechRaceCost: the named card's points now are below the cost of the tech race step the side would try
  *   (chapter 6).
+ * - resultBelowDraw: with the named card's points now, an intervention in a stability-2 country gives a result below
+ *   the draw, that is the points are below 4 (chapter 4).
  */
 export const condition = z.discriminatedUnion("kind", [
   z.strictObject({ kind: z.literal("noInfluence"), side }),
   z.strictObject({ kind: z.literal("modifierInForce"), card: era1Card }),
   z.strictObject({ kind: z.literal("pointsBeforeEqualsAfter"), card: era1Card }),
   z.strictObject({ kind: z.literal("pointsBelowTechRaceCost"), card: era1Card, side }),
+  z.strictObject({ kind: z.literal("resultBelowDraw"), card: era1Card }),
 ]);
 
 export type Condition = z.output<typeof condition>;

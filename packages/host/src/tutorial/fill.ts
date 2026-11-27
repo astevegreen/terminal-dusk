@@ -41,6 +41,8 @@ function holds(c: Condition, frame: Frame, ruleset: Ruleset): boolean {
     }
     case "pointsBelowTechRaceCost":
       return live.cardPoints(view, live.cardIn(ruleset, c.card), c.side) < live.raceCost(view, c.side);
+    case "resultBelowDraw":
+      return live.belowDraw(view, live.cardIn(ruleset, c.card), me) > 0;
   }
 }
 
@@ -66,6 +68,11 @@ function slotText(slot: string, arg: string, frame: Frame, ruleset: Ruleset): st
       return names(live.influenceIn(view, sideOf(arg)));
     case "homeNeighbours":
       return names(live.homeNeighbours(view, sideOf(arg)));
+    case "belowDraw": {
+      // "0 below" and "above" are not approved words: the line's own words cover 4 points, and more has no words yet.
+      const below = live.belowDraw(view, card(), me);
+      return below > 0 ? String(below) : fail(`{belowDraw:${arg}} is ${below}: the result is not below the draw.`);
+    }
     default:
       return fail(`unknown slot "${slot}".`);
   }

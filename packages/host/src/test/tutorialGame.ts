@@ -1,5 +1,5 @@
 // Test helper (#699): a real first-deck tutorial game, played by fixed choices, seen as the learner's (LIO's) frames.
-import { TUTORIAL_LESSONS } from "@terminal-dusk/content";
+import { TUTORIAL_LESSONS, type Lesson } from "@terminal-dusk/content";
 import { legalAnswers, pendingFor, SIDES, type AnswerValue, type Decision, type Side } from "@terminal-dusk/engine";
 import { firstDeckRuleset } from "../firstDeck.ts";
 import { hostCreate } from "../hostCreate.ts";
@@ -22,9 +22,16 @@ export const racingLio: Picker = (side, decision, answers) => {
   return race ?? points ?? answers[0]!;
 };
 
-/** The learner's frame at each point of the game, from the start, until `limit` answers have been given. */
-export function* learnerFrames(pick: Picker = eventsFirst, limit = 400): Generator<Frame> {
-  const created = hostCreate(firstDeckRuleset, tutorialConfig(TUTORIAL_LESSONS[0]!, "full"), "s", 0);
+/**
+ * The learner's frame at each point of `lesson`'s game (the first bundled lesson by default), from the start, until
+ * `limit` answers have been given.
+ */
+export function* learnerFrames(
+  pick: Picker = eventsFirst,
+  limit = 400,
+  lesson: Lesson = TUTORIAL_LESSONS[0]!,
+): Generator<Frame> {
+  const created = hostCreate(firstDeckRuleset, tutorialConfig(lesson, "full"), "s", 0);
   if (!created.ok) throw new Error(created.error.code);
   let host = created.value;
   for (let i = 0; i < limit; i++) {
