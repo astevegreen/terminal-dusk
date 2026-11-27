@@ -47,6 +47,7 @@ function PickButton({ picks, country }: Readonly<{ picks: MapPicks | undefined; 
       className="map-pick"
       style={TAP}
       data-choice={choice.text}
+      disabled={choice.disabled === true}
       onClick={() => picks.answer(choice)}
     >
       {choice.text}

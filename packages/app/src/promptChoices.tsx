@@ -14,9 +14,20 @@ export type PromptPlace = "banner" | { readonly card: CardId };
 
 /**
  * A choice's button text and the answer it sends; `cards` are the cards in the hand it uses, if any, and `country`
- * the country it names, if any (countryChoices.ts).
+ * the country it names, if any (countryChoices.ts). `disabled`: shown but not tappable, because the tutorial's step
+ * does not allow that answer (#641).
  */
-export type Choice = { text: string; value: AnswerValue; cards?: readonly CardId[]; country?: CountryId };
+export type Choice = {
+  text: string;
+  value: AnswerValue;
+  cards?: readonly CardId[];
+  country?: CountryId;
+  disabled?: true;
+};
+
+/** Whether `choice` can be tapped: not marked disabled, and its answer not refused by `allows` when one is given. */
+export const canTap = (choice: Choice, allows?: (value: AnswerValue) => boolean): boolean =>
+  choice.disabled !== true && allows?.(choice.value) !== false;
 
 /** The smallest tap target (.claude/rules/app.md). */
 export const BUTTON_STYLE = { minHeight: 44, minWidth: 44 } as const;
@@ -30,11 +41,23 @@ export const TAP_A_COUNTRY = "Tap a glowing country on the map.";
 /** The question's id, from the decision's id (no useId: tests call prompts as plain functions). */
 const questionIdOf = (decision: Decision): string => `decision-${decision.id}-question`;
 
-function ChoiceButtons({ choices, onAnswer }: Readonly<{ choices: Choice[]; onAnswer: (value: AnswerValue) => void }>) {
+type Allows = ((value: AnswerValue) => boolean) | undefined;
+
+function ChoiceButtons({
+  choices,
+  onAnswer,
+  allows,
+}: Readonly<{ choices: Choice[]; onAnswer: (value: AnswerValue) => void; allows?: Allows }>) {
   return (
     <div>
       {choices.map((choice) => (
-        <button key={choice.text} type="button" style={BUTTON_STYLE} onClick={() => onAnswer(choice.value)}>
+        <button
+          key={choice.text}
+          type="button"
+          style={BUTTON_STYLE}
+          disabled={!canTap(choice, allows)}
+          onClick={() => onAnswer(choice.value)}
+        >
           {choice.text}
         </button>
       ))}
@@ -52,12 +75,15 @@ export function Choices({
   choices,
   onAnswer,
   place,
+  allows,
 }: Readonly<{
   decision: Decision;
   question: string;
   choices: Choice[];
   onAnswer?: ((value: AnswerValue) => void) | undefined;
   place?: PromptPlace | undefined;
+  /** Given: a choice whose answer it refuses is drawn disabled (the tutorial, #641). */
+  allows?: Allows;
 }>) {
   const questionId = questionIdOf(decision);
   if (onAnswer && typeof place === "object") {
@@ -66,7 +92,7 @@ export function Choices({
     // Named by the question in the decision's region, so the question's words are on the screen once.
     return (
       <section role="group" aria-labelledby={questionId} className="lifted-choices">
-        <ChoiceButtons choices={own} onAnswer={onAnswer} />
+        <ChoiceButtons choices={own} onAnswer={onAnswer} allows={allows} />
       </section>
     );
   }
@@ -83,7 +109,7 @@ export function Choices({
       {onCards && <p className="decision-hint">{TAP_A_CARD}</p>}
       {onMap && <p className="decision-hint">{TAP_A_COUNTRY}</p>}
       {onAnswer ? (
-        <ChoiceButtons choices={shown} onAnswer={onAnswer} />
+        <ChoiceButtons choices={shown} onAnswer={onAnswer} allows={allows} />
       ) : (
         <ul>
           {shown.map((choice) => (

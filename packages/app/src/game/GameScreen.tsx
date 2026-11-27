@@ -50,6 +50,11 @@ export type GameScreenProps = {
   points?: CardPoints | undefined;
   /** Present: the waiting decision can be answered. Absent: it is shown read-only. */
   onAnswer?: ((value: AnswerValue) => void) | undefined;
+  /**
+   * Left out: every choice can be tapped. Given (the tutorial, #641): a choice whose answer it refuses is shown
+   * disabled, in the banner, on a lifted card and on the map.
+   */
+  allows?: ((value: AnswerValue) => boolean) | undefined;
   refusal?: string | null | undefined;
   /** What the page keeps out of the way, such as a note: a Menu at the start of the top bar holds it. */
   menu?: ReactNode;
@@ -64,17 +69,23 @@ export type GameScreenProps = {
   soundPace?: Pace;
 };
 
-type PromptData = Pick<GameScreenProps, "frame" | "label" | "question" | "affiliation">;
+type PromptData = Pick<GameScreenProps, "frame" | "label" | "question" | "affiliation" | "allows">;
 
 /** No country to pick: one shared empty list, so the map's `memo` sees the same value from frame to frame. */
 const NO_CHOICES: readonly Choice[] = [];
 
+/** The choices, with each one `allows` refuses marked disabled; the same list when there is no `allows`. */
+function withAllows(choices: readonly Choice[], allows: GameScreenProps["allows"]): readonly Choice[] {
+  if (allows === undefined) return choices;
+  return choices.map((c): Choice => (allows(c.value) ? c : { ...c, disabled: true }));
+}
+
 /** The props every prompt on the screen shares, from the frame and the display data. */
-function shared({ frame, label, question, affiliation }: Readonly<PromptData>) {
+function shared({ frame, label, question, affiliation, allows }: Readonly<PromptData>) {
   const hand = frame.view.mine?.hand ?? [];
   const known = frame.view.mine?.knowledge ?? [];
   const country = countryNames(frame.view.public.map);
-  return { hand, known, label, country, stack: frame.view.public.stack, question, affiliation };
+  return { hand, known, label, country, stack: frame.view.public.stack, question, affiliation, allows };
 }
 
 /**
@@ -123,6 +134,7 @@ export function GameScreen({
   rules,
   points,
   onAnswer,
+  allows,
   refusal,
   menu,
   bar,
@@ -130,11 +142,14 @@ export function GameScreen({
   extraDetails,
   soundPace,
 }: Readonly<GameScreenProps>) {
-  const data = { frame, label, question, affiliation };
+  const data = { frame, label, question, affiliation, allows };
   const chips = chipsOf(frame.view.mine?.hand ?? [], label, points, affiliation);
   // The countries the waiting decision lets this screen pick, which glow on the map (L7, #487).
   const waiting = onAnswer === undefined ? null : frame.decision;
-  const choices = waiting ? countryChoices(waiting, countryNames(frame.view.public.map)) : NO_CHOICES;
+  const choices = withAllows(
+    waiting ? countryChoices(waiting, countryNames(frame.view.public.map)) : NO_CHOICES,
+    allows,
+  );
   return (
     // A game with no map gives its map box only its one line (gameScreen.css).
     <div

@@ -80,7 +80,7 @@ function ZoomableMapInner({
       pick: (country, keyboard) => {
         const now = latest.current;
         const choice = now.byCountry.get(country);
-        if (choice === undefined || now.onAnswer === undefined) return;
+        if (choice === undefined || choice.disabled === true || now.onAnswer === undefined) return;
         const ctl = control.current;
         const big = ctl === null || ctl.scale() >= PICK_SCALE - PICK_SLACK;
         const place = placeOf(now.layout, now.pub, country);

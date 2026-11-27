@@ -13,8 +13,12 @@ export type MapPicks = {
   answer: (choice: Choice) => void;
 };
 
-/** A country's state on the map: glowing when you may pick it, dim when a country decision waits but not for it. */
+/**
+ * A country's state on the map: glowing when you may pick it, dim when a country decision waits but not for it, or
+ * its choice is disabled (the tutorial's step does not allow it, #641).
+ */
 export function pickState(picks: MapPicks | undefined, country: CountryId): PickState {
   if (picks === undefined || picks.choices.size === 0) return null;
-  return picks.choices.has(country) ? "glow" : "dim";
+  const choice = picks.choices.get(country);
+  return choice !== undefined && choice.disabled !== true ? "glow" : "dim";
 }
