@@ -94,7 +94,7 @@ const trigger = z.union([
 
 /**
  * One answer the step allows. It limits only answers of its own `kind`; the fields it leaves out allow any value.
- * `as` is a PlayUse and `action` a PointsAction.
+ * `as` is a PlayUse, `action` a PointsAction, and `event` where a rival card's event goes (rivalEventOrder).
  */
 const matcher = z.strictObject({
   kind: z.enum(ANSWER_KINDS),
@@ -102,7 +102,14 @@ const matcher = z.strictObject({
   as: z.enum(PLAY_USES).exactOptional(),
   action: z.enum(POINTS_ACTIONS).exactOptional(),
   country: name.exactOptional(),
+  event: z.enum(["before", "after"]).exactOptional(),
 });
+
+/**
+ * What a step or variant says: one approved line, or several shown together, each checked as a line (Decision
+ * (architect), #701: chapter 7 shows its four lines at once).
+ */
+const says = z.union([lineText, z.array(lineText).min(1)]);
 
 /**
  * Another full text for a step, used when every condition in `if` holds in the live game. A coach step's variant may
@@ -110,7 +117,7 @@ const matcher = z.strictObject({
  */
 const variant = z.strictObject({
   if: z.array(condition).min(1),
-  say: lineText,
+  say: says,
   allow: z.array(matcher).min(1).exactOptional(),
 });
 
@@ -122,7 +129,7 @@ const variant = z.strictObject({
 const step = z
   .strictObject({
     when: trigger,
-    say: lineText,
+    say: says,
     style: z.enum(["coach", "hint"]).default("coach"),
     allow: z.array(matcher).min(1).exactOptional(),
     variants: z.array(variant).min(1).exactOptional(),

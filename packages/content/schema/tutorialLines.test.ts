@@ -94,6 +94,37 @@ describe("a coaching line's slots", () => {
   });
 });
 
+describe("a step that says several lines (Decision (architect), #701)", () => {
+  const sayList = (say: unknown) => passes(withStep({ when: { start: true }, say }));
+
+  it("passes a list of lines, each checked as a line, in a step or a variant", () => {
+    expect(sayList(["Fine.", "The tech race costs {techRaceCost:lio}."])).toBe(true);
+    const variant = { if: [{ kind: "noInfluence", side: "lio" }], say: ["One.", "Two."] };
+    expect(passes(withStep({ when: { start: true }, say: "x", variants: [variant] }))).toBe(true);
+  });
+
+  it("fails an empty list, or a list with an unknown slot, an empty line or too much text", () => {
+    expect(sayList([])).toBe(false);
+    expect(sayList(["Fine.", "{score:lio}"])).toBe(false);
+    expect(sayList(["Fine.", ""])).toBe(false);
+    expect(sayList(["Fine.", "a".repeat(SAY_MAX + 1)])).toBe(false);
+  });
+
+  it("keeps an aside to one line", () => {
+    const aside = { when: { event: "abilityBonus" }, before: "ch7", say: ["One.", "Two."] };
+    expect(passes({ ...base, asides: [aside] })).toBe(false);
+  });
+});
+
+describe("an allow that names where a rival card's event goes (#701)", () => {
+  const allow = (m: Record<string, unknown>) => passes(withStep({ when: { start: true }, say: "x", allow: [m] }));
+  it("passes before or after, and fails anything else", () => {
+    expect(allow({ kind: "rivalEventOrder", event: "after" })).toBe(true);
+    expect(allow({ kind: "rivalEventOrder", event: "before" })).toBe(true);
+    expect(allow({ kind: "rivalEventOrder", event: "never" })).toBe(false);
+  });
+});
+
 describe("a step's variants", () => {
   const step = { when: { decision: "playCardAs", side: "lio" }, say: chapter6 };
   const below = { kind: "pointsBelowTechRaceCost", card: "e1-sae-001", side: "lio" };

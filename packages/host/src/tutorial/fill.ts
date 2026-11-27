@@ -10,9 +10,11 @@ import type { Matcher } from "./matching.ts";
 
 /** A line as a lesson gives it: its words and, for a step, its variants. */
 export type Line = {
-  say: string;
-  variants?: readonly { if: readonly Condition[]; say: string; allow?: readonly Matcher[] }[];
+  say: Say;
+  variants?: readonly { if: readonly Condition[]; say: Say; allow?: readonly Matcher[] }[];
 };
+/** One line, or several shown together (Decision (architect), #701). */
+type Say = string | readonly string[];
 
 /** The variant chosen (its index, or null for the line's own words), its filled text, and its own allow, if any. */
 export type Filled = { variant: number | null; text: string; allow?: readonly Matcher[] };
@@ -114,13 +116,20 @@ function agree(number: string, text: string): string {
   return text.replace(/^ points?\b/, number === "1" ? " point" : " points");
 }
 
+/** `say` filled: several lines are each filled, then shown together as paragraphs. */
+function fillSay(say: Say, frame: Frame, ruleset: Ruleset): string {
+  return typeof say === "string"
+    ? fillText(say, frame, ruleset)
+    : say.map((l) => fillText(l, frame, ruleset)).join("\n\n");
+}
+
 /** Picks `line`'s variant for `frame` and fills its words. */
 export function fillLine(line: Line, frame: Frame, ruleset: Ruleset): Filled {
   sameRuleset(frame, ruleset);
   const variants = line.variants ?? [];
   const index = variants.findIndex((v) => v.if.every((c) => holds(c, frame, ruleset)));
-  if (index < 0) return { variant: null, text: fillText(line.say, frame, ruleset) };
+  if (index < 0) return { variant: null, text: fillSay(line.say, frame, ruleset) };
   const chosen = variants[index]!;
-  const text = fillText(chosen.say, frame, ruleset);
+  const text = fillSay(chosen.say, frame, ruleset);
   return chosen.allow === undefined ? { variant: index, text } : { variant: index, text, allow: chosen.allow };
 }
