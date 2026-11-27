@@ -38,20 +38,19 @@ already decided in the other files in `docs/design/`; the tutorial adds no rule 
 5. **Escalation and realigning** (turn 2, the second play). Escalation closes one region at 3, a second at 4 and
    a third at 5, falls by 1 at each turn's end, and at 6 causes a crisis that costs score. Realign a country in a
    region that is still open.
-6. **The tech race** (a card played for points; which play is not decided yet, below). Pay the step's cost, then
+6. **The tech race** (turn 3, LIO's first play, a card played for points; owner, 27 Nov 2026, in chat: "Yes",
+   to LIO's first play of turn 3). The learner makes the attempt themselves. Pay the step's cost, then
    draw: on 4 or more the marker moves one step. Each side may try once per turn. A rival card spent on the tech
    race has no event. The chapter explains what each step gives.
 7. **Scoring, winning and the two abilities** (end of turn 3, when Era 1 scores). Each region scores for present,
    ahead or every battleground, plus 1 for each battleground controlled, and the score track moves. The chapter
    explains how a game is won, LIO's Resilient institutions and SAE's Unified command. After it the coaching stops.
 
-Turn 3's other plays before the scoring are free, with light hints only.
+Turn 2's two LIO plays are chapters 4 and 5, and all of a play's points go to one action, so the tech race waits
+for turn 3. Turn 3's second LIO play before the scoring is free, with light hints only.
 
 ## Not decided yet
 
-- Where chapter 6 sits. Turn 2's two LIO plays are chapters 4 and 5, and all of a play's points go to one action,
-  so the learner can't make a tech race attempt in turn 2. Recommended: LIO's first play of turn 3, so the learner
-  makes the attempt themselves; turn 3's second play is then free.
 - The abilities work from turn 1, before chapter 7 explains them: LIO's redraw of a 1 can happen in chapter 4's
   draw, and SAE's Unified command can fire in turns 1 and 2. The coaching must read right when they do.
 - The coaching words for each chapter: short, plain English, in the rules' own terms. Drafts go to the owner for
