@@ -42,12 +42,14 @@ export async function tapAnswer(page: Page, choice: Locator): Promise<boolean> {
   return takenOrRefused(page, button);
 }
 
-/** Taps `buttons` in order until one is not refused; true when an answer was taken. */
+/** Taps `buttons` in order, skipping greyed-out ones (the tutorial's coach greys a choice it refuses, #701), until one
+ *  is not refused; true when an answer was taken. */
 async function tapUntilTaken(page: Page, buttons: Locator): Promise<boolean> {
   const count = await buttons.count();
   for (let i = 0; i < count; i++) {
     const button = await buttons.nth(i).elementHandle();
     if (!button) return true;
+    if (await button.isDisabled()) continue;
     // The tap clears any old "Refused:" line; a taken answer replaces the button.
     await button.click();
     if (await takenOrRefused(page, button)) return true;
@@ -83,17 +85,45 @@ export async function answeredOrRefused(page: Page, question: string | null): Pr
   return result === "taken";
 }
 
+/** Whether a tap at the middle of `button` reaches it, rather than something drawn over it (the game menu, say). */
+const reachable = (button: Locator): Promise<boolean> =>
+  button.evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    const top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+    return top !== null && el.contains(top);
+  });
+
+/** Waits until `button` has stopped moving: the map glides to a new view. */
+async function settled(button: Locator): Promise<void> {
+  let last = "";
+  await expect
+    .poll(async () => {
+      const now = JSON.stringify(await button.boundingBox());
+      const still = now === last;
+      last = now;
+      return still;
+    })
+    .toBe(true);
+}
+
+/** Shows the whole map and waits until `button` has stopped moving. */
+async function wholeMap(page: Page, button: Locator): Promise<void> {
+  await page.getByTestId("map-area").getByRole("button", { name: "Whole map", exact: true }).click();
+  await settled(button);
+}
+
 /**
- * Taps a glowing country as a player would (L7, #487): from the whole map when it is off the map area, then once to
+ * Taps a glowing country as a player would (L7, #487): from the whole map when it is off the map area or covered
+ * there (a panned map can slide a country under the game menu or the coach), then once to
  * zoom in while it is drawn under 44 px tall, then once more to pick it. Returns the button's box at the moment it
- * answered and whether the answer was taken.
+ * answered and whether the answer was taken; not taken, and not tapped, when the zoom left it covered.
  */
 export async function tapCountry(page: Page, button: Locator): Promise<{ box: Box; taken: boolean }> {
   const area = await page.getByTestId("map-area").locator(".dm-view").boundingBox();
   if (area === null) throw new Error("no drawn map");
   let box = await button.boundingBox();
-  if (box === null || !within(box, area)) {
-    await page.getByTestId("map-area").getByRole("button", { name: "Whole map", exact: true }).click();
+  if (box === null || !within(box, area) || !(await reachable(button))) {
+    await wholeMap(page, button);
     box = await button.boundingBox();
   }
   if (box === null) throw new Error("the glowing country has no box");
@@ -103,17 +133,28 @@ export async function tapCountry(page: Page, button: Locator): Promise<{ box: Bo
     await expect.poll(async () => (await button.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(43.5);
     // The zooming tap answered nothing.
     expect(await questionIdOf(page)).toBe(question);
+    await settled(button);
     box = (await button.boundingBox())!;
+    // Zooming can bring the country under the tutorial's coach box, which lies over the map's left side (#642).
+    if (!(await reachable(button))) return { box, taken: false };
   }
   const question = await questionIdOf(page);
   await button.click();
   return { box, taken: await answeredOrRefused(page, question) };
 }
 
-/** Taps each glowing country in turn until one is not refused; true when an answer was taken. */
+/** Taps each glowing country in turn until one is not refused; true when an answer was taken. A country something
+ *  is still drawn over, even on the whole map, is passed over. */
 async function tapCountriesUntilTaken(page: Page): Promise<boolean> {
   const count = await countryButtons(page).count();
-  for (let i = 0; i < count; i++) if ((await tapCountry(page, countryButtons(page).nth(i))).taken) return true;
+  for (let i = 0; i < count; i++) {
+    const button = countryButtons(page).nth(i);
+    if (!(await reachable(button))) {
+      await wholeMap(page, button);
+      if (!(await reachable(button))) continue;
+    }
+    if ((await tapCountry(page, button)).taken) return true;
+  }
   return false;
 }
 

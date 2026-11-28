@@ -33,9 +33,14 @@ export type Played = {
 
 /**
  * Plays `lesson`. `seen` turns each real frame into the one the runner is given (by default, the frame itself), so a
- * test can show the learner a game state the scripted game does not reach.
+ * test can show the learner a game state the scripted game does not reach. `seed` is the game's seed.
  */
-export function playLesson(lesson: Lesson, sae: Picker = eventsFirst, seen: (f: Frame) => Frame = (f) => f): Played {
+export function playLesson(
+  lesson: Lesson,
+  sae: Picker = eventsFirst,
+  seen: (f: Frame) => Frame = (f) => f,
+  seed?: string,
+): Played {
   let runner = startTutorial(lesson);
   let out: TutorialOutput | null = null;
   const played: Played = { lines: [], asked: [], asides: [], over: false };
@@ -49,7 +54,7 @@ export function playLesson(lesson: Lesson, sae: Picker = eventsFirst, seen: (f: 
     }
     return allowed.find((a) => a.kind === "playCardAs" && a.as === "points") ?? allowed[0] ?? answers[0]!;
   };
-  for (const frame of learnerFrames(pick, 200, lesson)) {
+  for (const frame of learnerFrames(pick, 200, lesson, seed)) {
     out = stepTutorial(runner, seen(frame));
     const step = out.chapter === null ? null : `${out.chapter.id}/${out.runner.step}`;
     const started =

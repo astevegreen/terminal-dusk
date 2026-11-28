@@ -26,14 +26,16 @@ export const racingLio: Picker = (side, decision, answers) => {
 
 /**
  * The learner's frame at each point of `lesson`'s game, from the start, until `limit` answers have been given. By
- * default the placeholder lesson's game, which the slot tests' frames were chosen from (#701 moved it second).
+ * default the placeholder lesson's game, which the slot tests' frames were chosen from (#701 moved it second), from
+ * the game seed "s".
  */
 export function* learnerFrames(
   pick: Picker = eventsFirst,
   limit = 400,
   lesson: Lesson = PLACEHOLDER_LESSON,
+  seed = "s",
 ): Generator<Frame> {
-  const created = hostCreate(firstDeckRuleset, tutorialConfig(lesson, "full"), "s", 0);
+  const created = hostCreate(firstDeckRuleset, tutorialConfig(lesson, "full"), seed, 0);
   if (!created.ok) throw new Error(created.error.code);
   let host = created.value;
   for (let i = 0; i < limit; i++) {

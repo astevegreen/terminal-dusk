@@ -4,6 +4,7 @@ import { TUTORIAL_LESSONS, type Lesson } from "@terminal-dusk/content";
 import { techRaceCost, type GameEvent } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
 import { playLesson, type Played, type Showing } from "../test/playLesson.ts";
+import { eventsFirst, type Picker } from "../test/tutorialGame.ts";
 import type { Frame } from "../types.ts";
 
 const lesson = TUTORIAL_LESSONS.find((l) => l.id === "first-game") as Lesson;
@@ -91,6 +92,69 @@ describe("chapter 6 when Second Chechen War can't pay the step", () => {
   });
 });
 
+describe("chapter 6 in a real game where Second Chechen War can't pay the step (the design doc's example)", () => {
+  /**
+   * SAE plays Battle of Mogadishu for its event on turn 2 ("intervention fatigue"), tries the tech race whenever it
+   * may, and opens turn 3 with Rwandan Genocide. From this seed both tries succeed: SAE holds AI, so pulling it back
+   * costs 2, and Rwandan Genocide leaves Second Chechen War 1 point.
+   */
+  const saeAheadOnAi = (): Picker => {
+    let openings = 0;
+    return (side, decision, answers) => {
+      if (side !== "sae") return eventsFirst(side, decision, answers);
+      const kept = (a: (typeof answers)[number]) => !("card" in a) || !["e1-neu-001", "e1-sae-001"].includes(a.card);
+      if (decision.kind === "chooseCard") {
+        if (++openings === 3) return answers.find((a) => "card" in a && a.card === "e1-neu-001")!;
+        return answers.find(kept)!;
+      }
+      const mogadishu = answers.find((a) => a.kind === "playCardAs" && a.card === "e1-sae-001" && a.as === "event");
+      if (openings === 2 && mogadishu !== undefined) return mogadishu;
+      const race = answers.find((a) => a.kind === "chooseAction" && a.action === "techRace");
+      const points = answers.find((a) => a.kind === "playCardAs" && a.as === "points" && kept(a));
+      return race ?? points ?? answers[0]!;
+    };
+  };
+  let seenCost: number | null = null;
+  let seenMarker: number | undefined;
+  const real = playLesson(
+    lesson,
+    saeAheadOnAi(),
+    (f) => {
+      const pub = f.view.public;
+      if (pub.turn === 3 && f.decision?.kind === "playCardAs" && seenMarker === undefined) {
+        seenMarker = pub.techRace?.marker;
+        seenCost = techRaceCost(pub, "lio");
+      }
+      return f;
+    },
+    "seed-0",
+  );
+
+  it("reaches the step: SAE holds AI, so the try costs 2, more than the card's 1 point", () => {
+    expect(seenMarker).toBe(2);
+    expect(seenCost).toBe(2);
+  });
+
+  it("shows the can't-pay lines with the live numbers", () => {
+    expect(text(real, "tech-race/1")).toBe(
+      "Your 1 point can't pay this step's cost of 2 this turn. Play Second Chechen War for its points and place " +
+        "influence instead: its event, SAE's, still happens. Played this way, its event gives SAE 1 point and raises " +
+        "Escalation. Points spent on the tech race would have cancelled it.",
+    );
+    expect(text(real, "tech-race/2")).toBe(
+      "One shared marker starts at parity. Moving it toward your side costs 1 for Networks and Orbit, 2 for AI, 3 " +
+        "for Hypersonics and 4 for Quantum Computing. Pulling SAE's lead back costs what SAE's step cost. Draw: on 4 " +
+        "or more, the marker moves one step. Each side may try once per turn.",
+    );
+  });
+
+  it("allows placing influence, and not the tech race", () => {
+    const action = at(real, "tech-race/3", "chooseAction");
+    expect(action.allowed).toEqual(["chooseAction place"]);
+    expect(action.legal.length).toBeGreaterThan(1);
+  });
+});
+
 describe("chapter 7, scoring, winning and the abilities", () => {
   it("shows its four lines together when Era 1 scores, then the coaching ends", () => {
     const lines = text(game, "scoring/0").split("\n\n");
@@ -129,6 +193,31 @@ describe("the ability asides", () => {
     const shown = g.asides.slice(from).filter((a) => a.aside !== null);
     expect(shown.every((a) => a.step?.startsWith("tech-race/") ?? true)).toBe(true);
     expect(g.asides.find((a) => a.step === "scoring/0")!.aside).toBeNull();
+  });
+
+  it("shows Resilient institutions' line when its redraw comes before chapter 7", () => {
+    const g = playLesson(
+      lesson,
+      undefined,
+      withEvent(redraw, (f) => f.decision?.kind === "chooseCard" && f.view.public.turn === 3),
+    );
+    expect(g.asides.find((a) => a.aside !== null)!.aside).toBe(
+      "Resilient institutions set your 1 aside, and you drew again. Chapter 7 explains.",
+    );
+  });
+
+  it("shows neither ability's line once chapter 7 has started", () => {
+    for (const event of [redraw, bonus]) {
+      const g = playLesson(
+        lesson,
+        undefined,
+        withEvent(event, (f) => f.view.public.turn === 4),
+      );
+      expect(
+        g.asides.every((a) => a.aside === null),
+        event.kind,
+      ).toBe(true);
+    }
   });
 
   it("never shows once chapter 7 has started", () => {

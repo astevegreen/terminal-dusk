@@ -176,3 +176,44 @@ describe("its coaching lines", () => {
     slotted("intervene", 2, ["cardPoints:e1-lio-006", "belowDraw:e1-lio-006"]);
   });
 });
+
+describe("chapter 6's variants (#701)", () => {
+  const all3 = "All 3 points go to this one try, so any above the cost are lost.";
+  it("when Second Chechen War can't pay the step, read as approved, with the doc's example of 1 point and a cost of 2", () => {
+    const values = { ...EXAMPLE, "cardPoints:e1-sae-004": "1", "techRaceCost:lio": "2" };
+    const base = fill(step("tech-race", 1).say, values);
+    const play = "Play Second Chechen War, SAE's card, on the tech race.";
+    const cantPay = approved(
+      "Your 1 point can't pay this step's cost of 2 this turn. Play Second Chechen War for its points and place " +
+        "influence instead: its event, SAE's, still happens.",
+    );
+    const anyOther =
+      "Played any other way, its event would give SAE 2 points and raise Escalation. Points spent on the tech race " +
+      "cancel a rival card's event.";
+    const thisWay = approved(
+      "Played this way, its event gives SAE 2 points and raises Escalation. Points spent on the tech race would " +
+        "have cancelled it.",
+    );
+    const expected = base.replace(play, cantPay).replace(anyOther, thisWay);
+    expect(expected).toBe(`${cantPay} ${thisWay}`);
+    expect(variantSays("tech-race", 1).map((s) => fill(s, values))).toEqual([expected]);
+
+    const track = fill(step("tech-race", 2).say);
+    expect(approved(all3)).toBeTruthy();
+    expect(track).toContain(all3);
+    expect(fill(variantSays("tech-race", 2)[0]!, values)).toBe(track.replace(`${all3} `, ""));
+  });
+
+  it("at 1 point, say the point goes to the one try, without 'so any above the cost are lost', as approved", () => {
+    const values = { ...EXAMPLE, "cardPoints:e1-sae-004": "1" };
+    const track = fill(step("tech-race", 2).say);
+    const one = approved("Your 1 point goes to this one try.");
+    expect(fill(variantSays("tech-race", 2)[1]!, values)).toBe(track.replace(all3, one));
+  });
+
+  it("let the tech race's last step coach placing when the points can't pay, its words unchanged", () => {
+    const [cantPay] = step("tech-race", 3).variants!;
+    expect(cantPay!.say).toBe(step("tech-race", 3).say);
+    expect(cantPay!.allow).toEqual([{ kind: "chooseAction", action: "place" }]);
+  });
+});
