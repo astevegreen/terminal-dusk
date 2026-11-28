@@ -71,6 +71,11 @@ const DOORS: Door[] = [
     name: "createSeek (a ranked search)",
     kind: "ranked",
     covers: [
+      // #682: the seek function calls createSeek for every search, so the same door guards it.
+      "src/functionDeps.ts: ranked or matchmaking code (SeekHandlerDeps, seekFunctionDeps, seekHandler, seeks)",
+      "src/seekEdge.ts: ranked or matchmaking code (SeekHandlerDeps, seekFetchHandler, seekHandler)",
+      "src/seekHandler.ts: ranked or matchmaking code (RankedPreset, SeekDeps, SeekErrorCode, SeekHandlerDeps, SeekHandlerErrorCode, SeekStore, matchmake, ranked, rankedPresets, seek, seekStore, seeks)",
+      "supabase/functions/seek/index.ts: ranked or matchmaking code (seekEdge, seekFetchHandler, seekFunctionDeps)",
       "sql: function pair_seeks writes new match rows",
       "src/matchmake.ts: calls hostCreate",
       "src/matchmake.ts: names hostCreate",

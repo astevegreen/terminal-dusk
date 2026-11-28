@@ -1,0 +1,11 @@
+{
+  "imports": {
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2.117.3",
+    "zod": "npm:zod@4.6.5",
+    "@terminal-dusk/engine": "../../../../engine/src/index.ts",
+    "@terminal-dusk/content": "../../../../content/src/index.ts",
+    "@terminal-dusk/content/first-deck": "../../../../content/src/firstDeck.ts",
+    "@terminal-dusk/host": "../../../../host/src/index.ts",
+    "@terminal-dusk/host/first-deck": "../../../../host/src/firstDeck.ts"
+  }
+}

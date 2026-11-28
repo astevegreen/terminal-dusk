@@ -12,6 +12,9 @@ export const LOBBY_REFUSAL: Record<LobbyRefusal, string> = {
   sideNotChoosable: "This invite already fixes the sides. Join it without picking one.",
   illegalSide: "That side cannot be picked. Pick LIO or SAE.",
   invalidInvite: "Those game settings were not accepted. Check them and try again.",
+  limitReached: "You already have 5 ranked games running, counting searches. Finish one, then search again.",
+  invalidSeek: "That search was not accepted. Check the choices and try again.",
+  ticketNotFound: "That search is already over.",
   tooManyRequests: "Too many tries. Wait a minute, then try again.",
   network: "Cannot reach the server. Check your connection and try again.",
 };
