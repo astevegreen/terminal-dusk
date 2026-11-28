@@ -41,6 +41,7 @@ async function matchmakeWorld(now: () => number = () => 1_700_000_000_000) {
       seeks: {
         create: seeks.create.bind(seeks),
         pair: seeks.pair.bind(seeks),
+        cancel: seeks.cancel.bind(seeks),
         open: () => {
           dueCalls.push(lastClock);
           return seeks.open();

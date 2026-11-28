@@ -206,15 +206,30 @@ export type LobbyViewProps = {
   onBack: () => void;
   /** Opens the game with this match id. */
   onOpen: (matchId: string) => void;
+  /** Opens "Find a ranked game"; the button shows only when this is given (#682). */
+  onFindRanked?: () => void;
   /** The account's other part, beside the lobby's: what the app sells (#685). */
   account?: ReactNode;
 };
 
 /** The signed-in online screen for one lobby snapshot. */
-export function LobbyView({ snapshot, actions, onSignOut, onBack, onOpen, account }: Readonly<LobbyViewProps>) {
+export function LobbyView({
+  snapshot,
+  actions,
+  onSignOut,
+  onBack,
+  onOpen,
+  onFindRanked,
+  account,
+}: Readonly<LobbyViewProps>) {
   return (
     <main style={{ maxWidth: "100%", boxSizing: "border-box" }}>
       <h1>Play online</h1>
+      {onFindRanked && (
+        <button type="button" style={TAP} onClick={onFindRanked}>
+          Find a ranked game
+        </button>
+      )}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
         <NewGame snapshot={snapshot} actions={actions} />
         <JoinGame snapshot={snapshot} actions={actions} />

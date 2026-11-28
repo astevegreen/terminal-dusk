@@ -17,6 +17,9 @@ import type { PurchasesFactory } from "../platform/purchases.ts";
 import { AccountPurchases } from "../purchases/PurchaseControls.tsx";
 import { createLobbySession } from "./lobbySession.ts";
 import type { LobbyOptions, LobbySession } from "./lobbySession.ts";
+import { createRankedSession } from "./rankedSession.ts";
+import type { RankedSession } from "./rankedSession.ts";
+import { RankedScreen } from "./RankedScreen.tsx";
 import { OnlineGameFlow } from "./OnlineGameScreen.tsx";
 import type { PlaySetup } from "./OnlineGameScreen.tsx";
 import type { Timers } from "./timers.ts";
@@ -72,9 +75,15 @@ export function backToLobby(lobby: LobbySession, show: (matchId: string | null) 
   void lobby.refresh();
 }
 
-type LobbyScreenProps = { lobby: LobbySession; signIn: SignIn; onBack: () => void; onOpen: (matchId: string) => void };
+type LobbyScreenProps = {
+  lobby: LobbySession;
+  signIn: SignIn;
+  onBack: () => void;
+  onOpen: (matchId: string) => void;
+  onFindRanked?: (() => void) | undefined;
+};
 
-function LobbyScreen({ lobby, signIn, onBack, onOpen }: Readonly<LobbyScreenProps>) {
+function LobbyScreen({ lobby, signIn, onBack, onOpen, onFindRanked }: Readonly<LobbyScreenProps>) {
   const snapshot = useSyncExternalStore(lobby.subscribe, lobby.getSnapshot, lobby.getSnapshot);
   // start() does nothing once it has begun, so React's development double effect reads My games once.
   useEffect(() => void lobby.start(), [lobby]);
@@ -86,6 +95,7 @@ function LobbyScreen({ lobby, signIn, onBack, onOpen }: Readonly<LobbyScreenProp
       onSignOut={() => void signIn.signOut()}
       onBack={onBack}
       onOpen={onOpen}
+      {...(onFindRanked ? { onFindRanked } : {})}
       account={<AccountPurchases />}
     />
   );
@@ -102,7 +112,14 @@ export function lobbyOptions(online: OnlineSetup, signIn: SignIn, playerId: stri
   };
 }
 
-type FlowProps = { online: OnlineSetup; signIn: SignIn; play: PlaySetup; onBack: () => void };
+type FlowProps = {
+  online: OnlineSetup;
+  signIn: SignIn;
+  play: PlaySetup;
+  onBack: () => void;
+  /** Goes to the game against the AI, for "Play the AI while you wait" (#682). */
+  onPlayAi?: (() => void) | undefined;
+};
 type PlayerProps = FlowProps & { playerId: string };
 
 type LobbyStepProps = PlayerProps & {
@@ -110,10 +127,22 @@ type LobbyStepProps = PlayerProps & {
   /** The match id of the open game, or null for the lobby. */
   open: string | null;
   show: (matchId: string | null) => void;
+  /** Opens "Find a ranked game"; the lobby has no such button when this is left out. */
+  onFindRanked?: (() => void) | undefined;
 };
 
 /** What a signed-in player sees: the open game, keyed by its match id, or else the lobby. */
-export function lobbyStep({ online, signIn, play, onBack, playerId, lobby, open, show }: LobbyStepProps): ReactElement {
+export function lobbyStep({
+  online,
+  signIn,
+  play,
+  onBack,
+  playerId,
+  lobby,
+  open,
+  show,
+  onFindRanked,
+}: LobbyStepProps): ReactElement {
   if (open !== null)
     return (
       <OnlineGameFlow
@@ -126,19 +155,47 @@ export function lobbyStep({ online, signIn, play, onBack, playerId, lobby, open,
         onBack={() => backToLobby(lobby, show)}
       />
     );
-  return <LobbyScreen lobby={lobby} signIn={signIn} onBack={onBack} onOpen={show} />;
+  return <LobbyScreen lobby={lobby} signIn={signIn} onBack={onBack} onOpen={show} onFindRanked={onFindRanked} />;
 }
 
 export function LobbyFlow(props: Readonly<PlayerProps>) {
-  const { online, signIn, playerId } = props;
+  const { online, signIn, playerId, play, onPlayAi } = props;
   const [lobby] = useState(() => createLobbySession(lobbyOptions(online, signIn, playerId)));
   const [open, setOpen] = useState<string | null>(null);
-  return lobbyStep({ ...props, lobby, open, show: setOpen });
+  const [ranked, setRanked] = useState<RankedSession | null>(null);
+  const findRanked = (): void => {
+    setRanked(
+      createRankedSession({
+        endpoint: online.auth,
+        playerId,
+        accessToken: () => signIn.accessToken(),
+        platform: online.platform,
+      }),
+    );
+  };
+  // Opening the game that started returns to the lobby when the game is left, as for a game from My games.
+  const openGame = (matchId: string | null): void => {
+    setRanked(null);
+    setOpen(matchId);
+  };
+  if (ranked !== null && open === null) {
+    return (
+      <RankedScreen
+        session={ranked}
+        timers={play.timers}
+        onOpen={openGame}
+        onPlayAi={onPlayAi ?? (() => setRanked(null))}
+        onFullGame={() => setRanked(null)}
+        onBack={() => setRanked(null)}
+      />
+    );
+  }
+  return lobbyStep({ ...props, lobby, open, show: openGame, onFindRanked: findRanked });
 }
 
 /** What the online screen draws for one sign-in snapshot: the lobby once signed in, else the sign-in steps. */
 export function onlineStep(snapshot: SignInSnapshot, props: Readonly<FlowProps>): ReactElement {
-  const { online, signIn, play, onBack } = props;
+  const { online, signIn, play, onBack, onPlayAi } = props;
   if (snapshot.kind === "signedIn")
     // Keyed by the player, so a different player signing in gets a fresh lobby.
     return (
@@ -149,6 +206,7 @@ export function onlineStep(snapshot: SignInSnapshot, props: Readonly<FlowProps>)
         play={play}
         playerId={snapshot.userId}
         onBack={onBack}
+        onPlayAi={onPlayAi}
       />
     );
   return <SignInView snapshot={snapshot} actions={signIn} onBack={onBack} />;
@@ -162,13 +220,18 @@ export function SignInFlow(props: Readonly<FlowProps>) {
   return onlineStep(snapshot, props);
 }
 
-type SetUpProps = PlaySetup & { online: OnlineSetup; signIn?: SignIn | undefined; onBack: () => void };
+type SetUpProps = PlaySetup & {
+  online: OnlineSetup;
+  signIn?: SignIn | undefined;
+  onBack: () => void;
+  onPlayAi?: (() => void) | undefined;
+};
 
-function SetUpFlow({ online, signIn: given, onBack, ...setup }: Readonly<SetUpProps>) {
+function SetUpFlow({ online, signIn: given, onBack, onPlayAi, ...setup }: Readonly<SetUpProps>) {
   // Made once, so the sign-in, the lobby and each game below keep the same setup across renders.
   const [play] = useState<PlaySetup>(() => setup);
   const [signIn] = useState(() => given ?? createSignIn({ auth: online.auth, store: online.store, now: play.clock }));
-  return <SignInFlow online={online} signIn={signIn} play={play} onBack={onBack} />;
+  return <SignInFlow online={online} signIn={signIn} play={play} onBack={onBack} onPlayAi={onPlayAi} />;
 }
 
 export type OnlineScreenProps = {
@@ -189,6 +252,8 @@ export type OnlineScreenProps = {
   affiliation?: CardAffiliation | undefined;
   /** Returns to the home screen. */
   onBack: () => void;
+  /** Opens the game against the AI, for "Play the AI while you wait" on the ranked screen; left out, that link returns to the lobby. */
+  onPlayAi?: (() => void) | undefined;
 };
 
 export function OnlineScreen({
@@ -202,6 +267,7 @@ export function OnlineScreen({
   points = pointsOf(fixtureRuleset),
   affiliation = fixtureAffiliation,
   onBack,
+  onPlayAi,
 }: Readonly<OnlineScreenProps>) {
   if (!online) return <SignInView snapshot={NOT_SET_UP_SNAPSHOT} actions={null} onBack={onBack} />;
   return (
@@ -216,6 +282,7 @@ export function OnlineScreen({
       points={points}
       affiliation={affiliation}
       onBack={onBack}
+      onPlayAi={onPlayAi}
     />
   );
 }
