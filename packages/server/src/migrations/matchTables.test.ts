@@ -26,6 +26,8 @@ const COLUMNS: Record<Table, string[]> = {
     "updated_at",
     "clock",
     "next_deadline",
+    // A ranked match (20261102000000_rating.sql, #679).
+    "ranked",
   ],
   match_secret: ["match_id", "secret"],
   match_view: ["match_id", "viewer", "seq", "frame"],
