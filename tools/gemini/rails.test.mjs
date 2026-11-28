@@ -6,6 +6,7 @@ import {
   decide,
   diffFiles,
   findings,
+  priorVerdict,
   railAnswer,
   railHits,
   readVerdict,
@@ -217,4 +218,38 @@ test("renaming or copying a rail out of its folder is a rail change: the old pat
   );
   const edited = diff("tools/hooks/gate.mjs", "+x").replace(" b/tools/hooks/", " b/docs/");
   assert.equal(railHits(edited).length, 1, "the a/ path of the header alone");
+});
+
+test("railAnswer's reason stops where the one call's findings start", () => {
+  const answer = railAnswer("LOOSENS: no\nIt adds a job.\n**Findings:**\n[blocker] a.ts:1 wrong");
+  assert.deepEqual(answer, { loosens: false, reason: "It adds a job." });
+});
+
+// --- priorVerdict: what a new commit's review may build on ---------------------------------------------------------
+
+const said = (login, v) => ({ author: { login }, body: verdictMarker({ blockers: [], notes: [], ...v }) });
+const WHERE = { repo: "astevegreen/terminal-dusk", pr: 7 };
+const line = (sha, verdict, extra = {}) => ({ ...WHERE, sha, verdict, ...extra });
+
+test("priorVerdict is the newest own verdict on another commit, only when the ledger recorded it", () => {
+  const comments = [said("me", { sha: "a1", verdict: "merge" }), said("me", { sha: "b2", verdict: "fix" })];
+  assert.equal(priorVerdict(comments, "head", "me", [line("a1", "merge"), line("b2", "fix")], WHERE).sha, "b2");
+  assert.equal(priorVerdict(comments, "head", "me", [line("a1", "merge")], WHERE), null, "b2 is not in the ledger");
+  assert.equal(priorVerdict(comments, "head", "me", [line("b2", "merge")], WHERE), null, "another verdict");
+  assert.equal(priorVerdict(comments, "head", "me", [{ ...line("b2", "fix"), pr: 8 }], WHERE), null, "another pr");
+  assert.equal(priorVerdict(comments, "head", "other", [line("b2", "fix")], WHERE), null, "not this account");
+  assert.equal(priorVerdict(comments, "head", null, [line("b2", "fix")], WHERE), null);
+});
+
+test("priorVerdict passes over retries and skips, and builds a carried merge on the commit agy read", () => {
+  const comments = [
+    said("me", { sha: "a1", verdict: "merge" }),
+    said("me", { sha: "b2", verdict: "merge", from: "a1" }),
+    said("me", { sha: "c3", verdict: "retry" }),
+    said("me", { sha: "d4", verdict: "merge", skipped: true }),
+  ];
+  const ledger = [line("a1", "merge"), line("b2", "merge", { from: "a1" })];
+  const v = priorVerdict(comments, "head", "me", ledger, WHERE);
+  assert.deepEqual([v.sha, v.verdict], ["a1", "merge"]);
+  assert.equal(priorVerdict(comments, "b2", "me", ledger, WHERE).sha, "a1", "never the head itself");
 });

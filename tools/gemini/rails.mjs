@@ -83,7 +83,11 @@ export function railAnswer(response) {
   const text = String(response ?? "");
   const m = /^\W*LOOSENS:\W*(yes|no)\b.*$/im.exec(text);
   if (!m) return { loosens: null, reason: text.trim().slice(0, 800) };
-  const rest = text.slice(m.index + m[0].length).trim();
+  // In the one-call review (a rail prompt appended to the review's), the rail lines end where `Findings:` starts.
+  const rest = text
+    .slice(m.index + m[0].length)
+    .split(/^\W*Findings:/im)[0]
+    .trim();
   return { loosens: m[1].toLowerCase() === "yes", reason: rest.slice(0, 800) || "no reason given" };
 }
 
@@ -159,4 +163,26 @@ export function reusableVerdict(comments, sha, me) {
     .filter((x) => x?.sha === sha)
     .at(-1);
   return v && v.verdict !== "retry" ? v : null;
+}
+
+// The earlier verdict a new commit's review may build on (gemini-audit.mjs, carry-over and delta reviews): the newest
+// one this script's account posted for another commit, other than a retry (which reviewed nothing) or a skip (agy
+// never read it). A carried-over merge builds on the commit agy last read (`from`), so carry-overs never add up past
+// agy.mjs's CARRY. The account is the agents' own login too, so a marker alone is never enough: the verdict counts
+// only when this PC's quota ledger recorded it, for this repository, pull request and commit. Else null, and the
+// review is a full one.
+export function priorVerdict(comments, sha, me, ledger, { repo, pr }) {
+  if (!me) return null;
+  const mine = (c) => String(c.author?.login ?? "").toLowerCase() === me.toLowerCase();
+  const v = comments
+    .filter(mine)
+    .map((c) => readVerdict(c.body))
+    .filter((x) => x?.sha && x.sha !== sha && x.verdict !== "retry" && !x.skipped)
+    .at(-1);
+  if (!v) return null;
+  const base = v.from ?? v.sha;
+  const recorded = ledger.some(
+    (l) => l.repo === repo && l.pr === pr && l.sha === v.sha && l.verdict === v.verdict && (l.from ?? l.sha) === base,
+  );
+  return recorded ? { ...v, sha: base } : null;
 }

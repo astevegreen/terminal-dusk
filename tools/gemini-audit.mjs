@@ -1,28 +1,39 @@
 // Hands Gemini (agy, headless) read-only material and posts its answer to GitHub itself.
 // Gemini never gets GitHub access or write permission; a failed run posts one "skipped" line.
-// Usage: node tools/gemini-audit.mjs specs <issue numbers...> | pr <n> | prs | weekly | narrative [--dry-run]
-// `pr <n>` is the merge gate (tools/gemini/rails.mjs): it audits one pull request, adds the rail audit when the
-// diff touches a rail, posts both, and prints one line of JSON with the verdict (merge, fix, hold or retry).
+// Usage: node tools/gemini-audit.mjs specs <issue numbers...> | pr <n> [--asked "<owner's words>"] | prs | weekly |
+// narrative [--dry-run]
+// `pr <n>` is the merge gate (tools/gemini/rails.mjs): it audits one pull request, asks the rail question in the same
+// call when the diff touches a rail, posts the answer, and prints one line of JSON with the verdict (merge, fix, hold
+// or retry). It runs last, after the reviewer, CI and Sonar (CLAUDE.md, Finishing), and spends agy's quota only
+// where it adds something (owner, 28 Nov 2026): it skips docs-only, test-only, lockfile-only and Dependabot changes
+// and small ones off the high-risk paths and rails; after a fix push it carries a small safe delta over, or reviews
+// only the delta. Every review adds one line to the quota ledger (agy.mjs, LEDGER_FILE).
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
   DEEP_PATHS,
+  appendLedger,
   askFirstAvailable,
   askModel,
   buildPrompt,
   byLine,
+  carryOver,
+  deltaPreamble,
   diffStats,
   pickDepth,
+  readLedger,
   reviewModels,
+  skipReason,
 } from "./gemini/agy.mjs";
 import { CUT_LINE, NO_API, apiFor } from "./gemini/gemini-api.mjs";
-import { decide, railHits, readVerdict, reusableVerdict, verdictMarker } from "./gemini/rails.mjs";
+import { decide, priorVerdict, railHits, readVerdict, reusableVerdict, verdictMarker } from "./gemini/rails.mjs";
 import {
   comment,
   comments,
   createIssue,
+  deltaSince,
   is403,
   issue,
   openIssues,
@@ -34,12 +45,17 @@ import { collaborators, fromFork, trustedComment, trustedIssue } from "./github-
 const ROOT = path.resolve(import.meta.dirname, "..");
 const MARKER = "<!-- gemini-audit -->";
 const MAX_DIFF = 200_000;
-const USAGE = "usage: node tools/gemini-audit.mjs specs <n...> | pr <n> | prs | weekly | narrative [--dry-run]";
+const USAGE =
+  'usage: node tools/gemini-audit.mjs specs <n...> | pr <n> [--asked "<owner\'s words>"] | prs | weekly | narrative [--dry-run]';
+// The ledger names the repository, since every repo on this PC writes to the one file.
+export const REPO = "astevegreen/terminal-dusk";
 const PINNED = { weekly: "Gemini weekly audit", narrative: "How the code is organised" };
 
 const argv = process.argv.slice(2);
 const DRY = argv.includes("--dry-run");
-const [mode, ...numbers] = argv.filter((a) => a !== "--dry-run");
+const at = argv.indexOf("--asked");
+const ASKED = at >= 0 ? argv[at + 1] : undefined;
+const [mode, ...numbers] = argv.filter((a, k) => a !== "--dry-run" && (at < 0 || (k !== at && k !== at + 1)));
 // Made on first use, so importing this file (the tests do) leaves nothing behind.
 let tmp;
 const tmpDir = () => (tmp ??= mkdtempSync(path.join(os.tmpdir(), "gemini-audit-")));
@@ -73,11 +89,13 @@ let listing;
 const agyModels = (args) => (listing ??= run("agy", args));
 
 // what: what is reviewed, for pickDepth; deepPaths: extra path prefixes that make it a deep review; order: which of
-// agy.mjs's ORDERS asks, instead of the depth's (the rail audit's "rail"); api: askModel's `api`, instead of
-// apiFor(what.kind) (the rail audit's NO_API). Returns { model, response, passed, depth, why, note }, so the
-// comment can say which model answered and why it was chosen, and name a Gemini model nobody has sorted yet.
-function askGemini(promptName, material, what, { deepPaths = DEEP_PATHS, order, api = apiFor(what.kind) } = {}) {
-  const text = readFileSync(path.join(ROOT, "tools", "gemini", "prompts", `${promptName}.md`), "utf8");
+// agy.mjs's ORDERS asks, instead of the depth's (a rail change's "rail"); api: askModel's `api`, instead of
+// apiFor(what.kind) (a rail change's NO_API); also: a second prompt appended to the first, so one call answers both
+// (the rail question). Returns { model, response, passed, seconds, tokens, depth, why, note }, so the comment can
+// say which model answered and why it was chosen, and name a Gemini model nobody has sorted yet.
+function askGemini(promptName, material, what, { deepPaths = DEEP_PATHS, order, api = apiFor(what.kind), also } = {}) {
+  const read = (name) => readFileSync(path.join(ROOT, "tools", "gemini", "prompts", `${name}.md`), "utf8");
+  const text = also ? `${read(promptName).trim()}\n\n${read(also)}` : read(promptName);
   let file;
   if (material) {
     file = path.join(tmpDir(), "material.md");
@@ -86,8 +104,8 @@ function askGemini(promptName, material, what, { deepPaths = DEEP_PATHS, order, 
   const prompt = buildPrompt(text, file);
   const pick = pickDepth(what, deepPaths);
   const picked = reviewModels(agyModels, order ?? pick.depth);
-  const answer = askFirstAvailable(picked.models, (model) =>
-    askModel((args) => run("agy", args), prompt, model, ["--add-dir", tmpDir()], api),
+  const answer = askFirstAvailable(picked.models, (model, meter) =>
+    askModel((args) => run("agy", args), prompt, model, ["--add-dir", tmpDir()], api, meter),
   );
   return { ...answer, ...pick, note: picked.note };
 }
@@ -186,47 +204,107 @@ function prMaterial(pr, diff, ghRun) {
   return `# Task spec\n\n${spec}\n# Pull request #${pr.number}\n\n${pr.body ?? ""}\n\n# Diff\n\n\`\`\`diff\n${cut}\`\`\`\n`;
 }
 
-// The merge gate for one pull request: agy's review, plus the deep rail audit when the diff touches a rail. A
-// verdict this script already posted for the same commit is reused, unless it was a retry (rails.mjs,
-// reusableVerdict). io stands in for gh, agy, the comment and the signed-in login in the tests. It reads through
-// REST, so it runs in cloud sessions too, where GraphQL (`gh pr view`) is refused (tools/github-rest.mjs).
-export function auditPr(number, io = { gh, ask: askGemini, post, me: signedIn }) {
+// The rail part of the material: the owner's own words, when they asked for a loosening (`--asked`), so the rail
+// question flags only loosening beyond them (tools/gemini/prompts/rail-audit.md).
+const askedFor = (asked) =>
+  `# What the owner asked for, in their own words\n\n${asked?.trim() || "No owner's words were given: every loosening counts."}\n\n`;
+
+// The ledger line for one review, written once its verdict is known.
+const ledgerLine = (pr, sha, mode, verdict, answer = {}) => ({
+  repo: REPO,
+  pr,
+  sha,
+  mode,
+  depth: answer.depth ?? null,
+  model: answer.model ?? null,
+  passed: (answer.passed ?? []).map((p) => p.model),
+  seconds: answer.seconds ?? 0,
+  tokens: answer.tokens ?? null,
+  verdict,
+});
+
+const LEDGER = { read: readLedger, append: appendLedger };
+
+// The merge gate for one pull request: agy's review, with the rail question in the same call when the diff touches a
+// rail. In order:
+// - a verdict this script already posted for the same commit is reused, unless it was a retry (rails.mjs,
+//   reusableVerdict);
+// - a change agy can't add to (skipReason: Dependabot, lockfiles, tests or docs alone, a small one off the
+//   high-risk paths and rails) merges on the reviewer, CI and Sonar, with a comment saying so;
+// - after an earlier `merge` or `fix` that this PC's ledger recorded (rails.mjs, priorVerdict), a small delta off
+//   the high-risk paths and rails carries the merge over, and anything else is reviewed as the delta alone, with
+//   the earlier verdict as context (agy.mjs, carryOver);
+// - otherwise the whole pull request is reviewed.
+// io stands in for gh, agy, the comment, the signed-in login and the ledger in the tests. It reads through REST, so
+// it runs in cloud sessions too, where GraphQL (`gh pr view`) is refused (tools/github-rest.mjs). asked: the
+// owner's own words, when they asked for a loosening.
+export function auditPr(number, io = { gh, ask: askGemini, post, me: signedIn }, { asked = ASKED } = {}) {
   const ghArgs = (args) => io.gh(...args);
+  const ledger = io.ledger ?? LEDGER;
   const pr = pullRequest(ghArgs, number);
   // The repository is public: a stranger's diff and description never reach agy, and get no verdict.
   if (fromFork(pr)) throw new Error(`pull request #${pr.number} is from a fork, so it is not audited`);
   pr.comments = comments(ghArgs, number);
   // Who this script posts as is asked only when a comment carries a verdict, so a first audit costs no extra call.
   const marked = pr.comments.some((c) => readVerdict(c.body));
-  const old = marked ? reusableVerdict(pr.comments, pr.headRefOid, io.me()) : null;
+  const me = marked ? io.me() : null;
+  const old = marked ? reusableVerdict(pr.comments, pr.headRefOid, me) : null;
   if (old) return { pr: pr.number, ...old, reused: true };
-  const diff = io.gh("pr", "diff", String(number));
-  const what = { kind: "change", ...diffStats(diff) };
-  const hits = railHits(diff);
-  const material = prMaterial(pr, diff, io.gh);
-  const ask = (prompt, opts) => {
-    try {
-      return { ok: true, ...io.ask(prompt, material, what, opts) };
-    } catch (err) {
-      return { ok: false, error: err.message };
-    }
+  const sha = pr.headRefOid;
+  const finish = (verdict, mode, answer, parts) => {
+    io.post("pr", pr.number, [verdictMarker(verdict), ...parts].join("\n\n"));
+    ledger.append({
+      ...ledgerLine(pr.number, sha, mode, verdict.verdict, answer),
+      ...(verdict.from && { from: verdict.from }),
+    });
+    return { pr: pr.number, ...verdict };
   };
-  const review = ask("pr-audit");
-  // Opus or Gemini's fast models may answer a rail audit, never Sonnet (agy.mjs, ORDERS.rail); with none of them
-  // available it can't run, and the verdict is retry. It never goes to the Gemini API, which sees only the diff and the rules files: rails wait
-  // for agy (owner, 7 Nov: "Rails wait for the PC").
-  const rail = hits.length
-    ? ask("rail-audit", { deepPaths: hits.map((h) => h.file), order: "rail", api: NO_API })
-    : null;
-  const verdict = { sha: pr.headRefOid, ...decide({ review, rail, hits }) };
-  const parts = [verdictMarker(verdict), review.ok ? report("pull request", review) : skipped(new Error(review.error))];
-  if (rail) {
-    const label = `rail audit (${hits.map((h) => h.file).join(", ")})`;
-    parts.push(rail.ok ? report(label, rail) : `Gemini ${label} skipped: ${rail.error}`);
+  const diff = io.gh("pr", "diff", String(number));
+  const whole = diffStats(diff);
+  const wholeHits = railHits(diff);
+  const deep = (stats) => pickDepth({ kind: "change", ...stats }).depth === "deep";
+  const skip = skipReason(whole, { deep: deep(whole), rails: wholeHits.length > 0, author: pr.author?.login ?? "" });
+  if (skip) {
+    const why = `agy skipped: ${skip}; the reviewer, CI and Sonar still decide`;
+    const verdict = { sha, verdict: "merge", blockers: [], notes: [], why, skipped: true };
+    return { ...finish(verdict, "skip", {}, [`**Verdict: merge**: ${why}.`]), rails: [] };
   }
-  parts.push(`**Verdict: ${verdict.verdict}**: ${verdict.why}.`);
-  io.post("pr", pr.number, parts.join("\n\n"));
-  return { pr: pr.number, ...verdict, rails: hits.map((h) => h.file) };
+  const prior = marked ? priorVerdict(pr.comments, sha, me, ledger.read(), { repo: REPO, pr: pr.number }) : null;
+  const delta = prior ? deltaSince(ghArgs, prior.sha, sha) : null;
+  let reviewed = { diff, stats: whole, hits: wholeHits, mode: "full", preamble: "" };
+  if (delta) {
+    const stats = diffStats(delta.diff);
+    const hits = railHits(delta.diff);
+    const plan = carryOver(prior, stats, { deep: deep(stats), rails: hits.length > 0 });
+    if (plan.mode === "carry") {
+      const verdict = { sha, verdict: "merge", blockers: [], notes: [], why: plan.why, from: prior.sha };
+      return { ...finish(verdict, "carry", {}, [`**Verdict: merge**: ${plan.why}.`]), rails: [] };
+    }
+    if (plan.mode === "delta")
+      reviewed = { diff: delta.diff, stats, hits, mode: "delta", preamble: `${deltaPreamble(prior)}\n` };
+  }
+  const { hits } = reviewed;
+  const what = { kind: "change", ...reviewed.stats };
+  const material = `${reviewed.preamble}${prMaterial(pr, reviewed.diff, io.gh)}${hits.length ? askedFor(asked) : ""}`;
+  // One call. On a rail change it also asks the rail question (rail-audit.md, appended), answered by Opus or
+  // Gemini's fast models, never Sonnet (agy.mjs, ORDERS.rail); with none of them available it can't run, and the
+  // verdict is retry. It never goes to the Gemini API, which sees only the diff and the rules files: rails wait for
+  // agy (owner, 7 Nov: "Rails wait for the PC").
+  const opts = hits.length ? { also: "rail-audit", order: "rail", api: NO_API } : undefined;
+  let review;
+  try {
+    review = { ok: true, ...io.ask("pr-audit", material, what, opts) };
+  } catch (err) {
+    review = { ok: false, error: err.message, seconds: err.seconds, tokens: err.tokens };
+  }
+  const verdict = { sha, ...decide({ review, rail: hits.length ? review : null, hits }) };
+  const label = hits.length ? `pull request and rails (${hits.map((h) => h.file).join(", ")})` : "pull request";
+  const shown = reviewed.mode === "delta" ? `${label}, changes since ${prior.sha.slice(0, 8)}` : label;
+  const parts = [
+    review.ok ? report(shown, review) : skipped(new Error(review.error)),
+    `**Verdict: ${verdict.verdict}**: ${verdict.why}.`,
+  ];
+  return { ...finish(verdict, reviewed.mode, review, parts), rails: hits.map((h) => h.file) };
 }
 
 // The open pull requests from this repository's own branches without an audit yet, or whose newest audit could not
@@ -274,7 +352,8 @@ function repoWide(promptName, label) {
 if (import.meta.main) {
   try {
     if (mode === "specs") specs();
-    else if (mode === "pr" && /^\d+$/.test(numbers[0] ?? "")) console.log(JSON.stringify(auditPr(Number(numbers[0]))));
+    else if (mode === "pr" && /^\d+$/.test(numbers[0] ?? "") && (at < 0 || ASKED?.trim()))
+      console.log(JSON.stringify(auditPr(Number(numbers[0]))));
     else if (mode === "prs") auditDuePrs();
     else if (mode === "weekly") repoWide("weekly-audit", "weekly");
     else if (mode === "narrative") repoWide("narrative", "how the code is organised,");

@@ -26,9 +26,15 @@ const answering = (out) => {
 };
 const pr = (head) => ({ number: 5, body: null, head: { sha: "abc", repo: head }, base: { repo: OURS } });
 
-test("pullRequest reads the number, body, head commit and whether the branch is in a fork", () => {
+test("pullRequest reads the number, body, head commit, author and whether the branch is in a fork", () => {
   const { gh, calls } = answering(pr(OURS));
-  assert.deepEqual(pullRequest(gh, 5), { number: 5, body: "", headRefOid: "abc", isCrossRepository: false });
+  assert.deepEqual(pullRequest(gh, 5), {
+    number: 5,
+    body: "",
+    headRefOid: "abc",
+    isCrossRepository: false,
+    author: { login: "" },
+  });
   assert.deepEqual(calls, [["api", "repos/{owner}/{repo}/pulls/5"]]);
 });
 
@@ -38,6 +44,11 @@ test("a branch in another repository, or in a deleted fork, is a fork's: it fail
     assert.equal(p.isCrossRepository, true, JSON.stringify(head));
     assert.equal(fromFork(p), true);
   }
+});
+
+test("pullRequest names the pull request's author, for the audit's Dependabot skip", () => {
+  const { gh } = answering({ ...pr(OURS), user: { login: "dependabot[bot]" } });
+  assert.equal(pullRequest(gh, 5).author.login, "dependabot[bot]");
 });
 
 test("comments reads every page, oldest first, as { author: { login }, authorAssociation, body }", () => {
