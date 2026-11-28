@@ -61,7 +61,8 @@ function withDependants(all, changed) {
 export function selectStages(root, files) {
   const all = files === null;
   const touched = (prefix) => all || files.some((f) => f.startsWith(prefix));
-  const rootWide = all || files.some((f) => /^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|tsconfig[^/]*\.json|eslint\.config\.[^/]+)$/.test(f));
+  // eslint-suppressions.json counts: lint fails on a suppression that no longer matches, in any package.
+  const rootWide = all || files.some((f) => /^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|tsconfig[^/]*\.json|eslint\.config\.[^/]+|eslint-suppressions\.json)$/.test(f));
   const packages = workspaces(root);
   const affected = withDependants(packages, packages.map((w) => w.rel).filter((rel) => rootWide || touched(`${rel}/`)));
   const rootScripts = readJson(path.join(root, "package.json"))?.scripts ?? {};
