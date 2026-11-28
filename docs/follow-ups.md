@@ -51,10 +51,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - A game with no map has no era in its frame (`packages/engine/src/createGame.ts:84-92` sets it only with a map), so
   against the AI the free game says "Era not shown yet" for its whole length, and the base game until Era 2 starts.
   The app already names the frame's era where there is one (#669); the engine side is lane C's. [27 Nov 2026, #669]
-- Nothing reads `checkout_unmatched` (`packages/server/supabase/migrations/20261030000000_paddle_receipts.sql`): a
-  buyer who paid with no known player id gets no copy until a person looks. Before web sales open, add a service-role
-  tool that lists those receipts and grants one to a named player (`grantReceipt`), or an alert when a row appears.
-  [27 Nov 2026, #683]
 - Account deletion isn't built (`docs/architecture.md`, "Accounts and purchases"). When it is, it deletes the
   player's `entitlement` rows and nulls `entitlement_chargeback.player` and `platform`
   (`packages/server/supabase/migrations/20261101000000_paddle_chargebacks.sql`) so a later chargeback reversal
@@ -83,14 +79,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 
 - The seek migration repeats one literal several times (SonarCloud on #737): name it once in the SQL. [28 Nov 2026,
   SonarCloud on #737]
-
-- No stack test calls the deployed `checkout` Edge Function over HTTP
-  (`packages/server/supabase/functions/checkout/index.ts`): add `checkoutHandler.stack.test.ts` for 401, 409 and the
-  503 of unset Paddle secrets, which need no Paddle account. [27 Nov 2026, #716]
-
-- No stack test calls the deployed `redeem` Edge Function over HTTP, as `inviteHandler.stack.test.ts` does for
-  `invite` (`packages/server/supabase/functions/redeem/index.ts`): add `redeemHandler.stack.test.ts` with
-  `callFunction`. [27 Nov 2026, reviewer on #710]
 - On a loaded PC a full `pnpm gate` fails on time-outs in tests the change does not touch: the 5 s limit in
   `packages/ai` (techRace, lookahead, medium's timing), the app's six-region map game and the easy AI fuzz, and the
   100 s engine fuzz (`tests/fuzz/engine.test.ts`). [27 Nov 2026, sound chain]
@@ -151,5 +139,7 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - `checkGit` in `tools/hooks/bash-guard.mjs:139-147` never looks at `--delete`, `-d` or a `:branch` refspec, so the
   `git push … task/*`, `design/*` and `claude/*` allow rules in `.claude/settings.json` also let a session delete
   another remote branch unasked: have bash-guard ask about push deletions. [27 Nov 2026, reviewer on #720]
+- `checkout_unmatched` stores no amount, currency or buyer hint, so `tools/unmatched-receipts.mjs list` cannot show them:
+  store them from the Paddle webhook. [28 Nov 2026, #740]
 
 ## Docs
