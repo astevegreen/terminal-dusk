@@ -224,6 +224,44 @@ const ledgerLine = (pr, sha, mode, verdict, answer = {}) => ({
 });
 
 const LEDGER = { read: readLedger, append: appendLedger };
+const deep = (stats) => pickDepth({ kind: "change", ...stats }).depth === "deep";
+const merged = (sha, why, extra = {}) => ({ sha, verdict: "merge", blockers: [], notes: [], why, ...extra });
+
+// What agy reads for this commit: { verdict, mode } when no call is needed (a skip or a carry-over), else
+// { diff, stats, hits, mode, preamble }: the whole pull request, or the delta since `prior` (agy.mjs, carryOver).
+function plan(pr, diff, prior, ghArgs) {
+  const sha = pr.headRefOid;
+  const stats = diffStats(diff);
+  const hits = railHits(diff);
+  const skip = skipReason(stats, { deep: deep(stats), rails: hits.length > 0, author: pr.author?.login ?? "" });
+  if (skip) {
+    const why = `agy skipped: ${skip}; the reviewer, CI and Sonar still decide`;
+    return { mode: "skip", verdict: merged(sha, why, { skipped: true }) };
+  }
+  const whole = { diff, stats, hits, mode: "full", preamble: "" };
+  const delta = prior ? deltaSince(ghArgs, prior.sha, sha) : null;
+  if (!delta) return whole;
+  const part = { diff: delta.diff, stats: diffStats(delta.diff), hits: railHits(delta.diff) };
+  const next = carryOver(prior, part.stats, { deep: deep(part.stats), rails: part.hits.length > 0 });
+  if (next.mode === "carry") return { mode: "carry", verdict: merged(sha, next.why, { from: prior.sha }) };
+  if (next.mode === "delta") return { ...part, mode: "delta", preamble: `${deltaPreamble(prior)}\n` };
+  return whole;
+}
+
+// One call. On a rail change it also asks the rail question (rail-audit.md, appended), answered by Opus or Gemini's
+// fast models, never Sonnet (agy.mjs, ORDERS.rail); with none of them available it can't run, and the verdict is
+// retry. It never goes to the Gemini API, which sees only the diff and the rules files: rails wait for agy (owner,
+// 7 Nov: "Rails wait for the PC"). { ok: true, ...answer } or { ok: false, error, seconds, tokens }.
+function askOnce(ask, material, what, hits) {
+  const opts = hits.length ? { also: "rail-audit", order: "rail", api: NO_API } : undefined;
+  try {
+    return { ok: true, ...ask("pr-audit", material, what, opts) };
+  } catch (err) {
+    return { ok: false, error: err.message, seconds: err.seconds, tokens: err.tokens };
+  }
+}
+
+const IO = { gh, ask: askGemini, post, me: signedIn };
 
 // The merge gate for one pull request: agy's review, with the rail question in the same call when the diff touches a
 // rail. In order:
@@ -238,7 +276,7 @@ const LEDGER = { read: readLedger, append: appendLedger };
 // io stands in for gh, agy, the comment, the signed-in login and the ledger in the tests. It reads through REST, so
 // it runs in cloud sessions too, where GraphQL (`gh pr view`) is refused (tools/github-rest.mjs). asked: the
 // owner's own words, when they asked for a loosening.
-export function auditPr(number, io = { gh, ask: askGemini, post, me: signedIn }, { asked = ASKED } = {}) {
+export function auditPr(number, io = IO, { asked = ASKED } = {}) {
   const ghArgs = (args) => io.gh(...args);
   const ledger = io.ledger ?? LEDGER;
   const pr = pullRequest(ghArgs, number);
@@ -250,61 +288,34 @@ export function auditPr(number, io = { gh, ask: askGemini, post, me: signedIn },
   const me = marked ? io.me() : null;
   const old = marked ? reusableVerdict(pr.comments, pr.headRefOid, me) : null;
   if (old) return { pr: pr.number, ...old, reused: true };
-  const sha = pr.headRefOid;
-  const finish = (verdict, mode, answer, parts) => {
+  const finish = (verdict, mode, answer, parts, rails = []) => {
     io.post("pr", pr.number, [verdictMarker(verdict), ...parts].join("\n\n"));
-    ledger.append({
-      ...ledgerLine(pr.number, sha, mode, verdict.verdict, answer),
-      ...(verdict.from && { from: verdict.from }),
-    });
-    return { pr: pr.number, ...verdict };
+    const line = ledgerLine(pr.number, pr.headRefOid, mode, verdict.verdict, answer);
+    ledger.append(verdict.from ? { ...line, from: verdict.from } : line);
+    return { pr: pr.number, ...verdict, rails };
   };
-  const diff = io.gh("pr", "diff", String(number));
-  const whole = diffStats(diff);
-  const wholeHits = railHits(diff);
-  const deep = (stats) => pickDepth({ kind: "change", ...stats }).depth === "deep";
-  const skip = skipReason(whole, { deep: deep(whole), rails: wholeHits.length > 0, author: pr.author?.login ?? "" });
-  if (skip) {
-    const why = `agy skipped: ${skip}; the reviewer, CI and Sonar still decide`;
-    const verdict = { sha, verdict: "merge", blockers: [], notes: [], why, skipped: true };
-    return { ...finish(verdict, "skip", {}, [`**Verdict: merge**: ${why}.`]), rails: [] };
-  }
-  const prior = marked ? priorVerdict(pr.comments, sha, me, ledger.read(), { repo: REPO, pr: pr.number }) : null;
-  const delta = prior ? deltaSince(ghArgs, prior.sha, sha) : null;
-  let reviewed = { diff, stats: whole, hits: wholeHits, mode: "full", preamble: "" };
-  if (delta) {
-    const stats = diffStats(delta.diff);
-    const hits = railHits(delta.diff);
-    const plan = carryOver(prior, stats, { deep: deep(stats), rails: hits.length > 0 });
-    if (plan.mode === "carry") {
-      const verdict = { sha, verdict: "merge", blockers: [], notes: [], why: plan.why, from: prior.sha };
-      return { ...finish(verdict, "carry", {}, [`**Verdict: merge**: ${plan.why}.`]), rails: [] };
-    }
-    if (plan.mode === "delta")
-      reviewed = { diff: delta.diff, stats, hits, mode: "delta", preamble: `${deltaPreamble(prior)}\n` };
-  }
-  const { hits } = reviewed;
-  const what = { kind: "change", ...reviewed.stats };
-  const material = `${reviewed.preamble}${prMaterial(pr, reviewed.diff, io.gh)}${hits.length ? askedFor(asked) : ""}`;
-  // One call. On a rail change it also asks the rail question (rail-audit.md, appended), answered by Opus or
-  // Gemini's fast models, never Sonnet (agy.mjs, ORDERS.rail); with none of them available it can't run, and the
-  // verdict is retry. It never goes to the Gemini API, which sees only the diff and the rules files: rails wait for
-  // agy (owner, 7 Nov: "Rails wait for the PC").
-  const opts = hits.length ? { also: "rail-audit", order: "rail", api: NO_API } : undefined;
-  let review;
-  try {
-    review = { ok: true, ...io.ask("pr-audit", material, what, opts) };
-  } catch (err) {
-    review = { ok: false, error: err.message, seconds: err.seconds, tokens: err.tokens };
-  }
-  const verdict = { sha, ...decide({ review, rail: hits.length ? review : null, hits }) };
+  const prior = marked
+    ? priorVerdict(pr.comments, pr.headRefOid, me, ledger.read(), { repo: REPO, pr: pr.number })
+    : null;
+  const next = plan(pr, io.gh("pr", "diff", String(number)), prior, ghArgs);
+  if (next.verdict) return finish(next.verdict, next.mode, {}, [`**Verdict: merge**: ${next.verdict.why}.`]);
+  const { hits } = next;
+  const material = `${next.preamble}${prMaterial(pr, next.diff, io.gh)}${hits.length ? askedFor(asked) : ""}`;
+  const review = askOnce(io.ask, material, { kind: "change", ...next.stats }, hits);
+  const verdict = { sha: pr.headRefOid, ...decide({ review, rail: hits.length ? review : null, hits }) };
   const label = hits.length ? `pull request and rails (${hits.map((h) => h.file).join(", ")})` : "pull request";
-  const shown = reviewed.mode === "delta" ? `${label}, changes since ${prior.sha.slice(0, 8)}` : label;
+  const shown = next.mode === "delta" ? `${label}, changes since ${prior.sha.slice(0, 8)}` : label;
   const parts = [
     review.ok ? report(shown, review) : skipped(new Error(review.error)),
     `**Verdict: ${verdict.verdict}**: ${verdict.why}.`,
   ];
-  return { ...finish(verdict, reviewed.mode, review, parts), rails: hits.map((h) => h.file) };
+  return finish(
+    verdict,
+    next.mode,
+    review,
+    parts,
+    hits.map((h) => h.file),
+  );
 }
 
 // The open pull requests from this repository's own branches without an audit yet, or whose newest audit could not

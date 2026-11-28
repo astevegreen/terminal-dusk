@@ -4,20 +4,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
-import {
-  REPO as REPO_NAME,
-  auditDuePrs,
-  auditPr,
-  duePrs,
-  pinnedIssue,
-  pinnedIssueOf,
-  report,
-  specMaterial,
-} from "./gemini-audit.mjs";
+import { auditDuePrs, auditPr, duePrs, pinnedIssue, pinnedIssueOf, report, specMaterial } from "./gemini-audit.mjs";
 import { ME, REPO, SHA, diffOf, fake, restComments } from "./gemini-audit.fake.mjs";
 import { ORDERS, buildPrompt } from "./gemini/agy.mjs";
 import { NO_API, apiPrompt } from "./gemini/gemini-api.mjs";
-import { readVerdict, verdictMarker } from "./gemini/rails.mjs";
+import { verdictMarker } from "./gemini/rails.mjs";
 
 const SCRIPT = path.join(import.meta.dirname, "gemini-audit.mjs");
 const run = (...args) => spawnSync(process.execPath, [SCRIPT, ...args], { encoding: "utf8", windowsHide: true });

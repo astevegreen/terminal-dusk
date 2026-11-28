@@ -81,14 +81,17 @@ export function findings(response) {
 // answer says neither.
 export function railAnswer(response) {
   const text = String(response ?? "");
-  const m = /^\W*LOOSENS:\W*(yes|no)\b.*$/im.exec(text);
-  if (!m) return { loosens: null, reason: text.trim().slice(0, 800) };
+  // Line by line, as flashcards' copy reads it: a multiline pattern whose \W* can cross newlines backtracks on a
+  // long answer.
+  const lines = text.split("\n");
+  const at = lines.findIndex((l) => /^[^\w\n]*LOOSENS:[^\w\n]*(?:yes|no)\b/i.test(l));
+  if (at < 0) return { loosens: null, reason: text.trim().slice(0, 800) };
+  const yes = /^[^\w\n]*LOOSENS:[^\w\n]*yes\b/i.test(lines[at]);
   // In the one-call review (a rail prompt appended to the review's), the rail lines end where `Findings:` starts.
-  const rest = text
-    .slice(m.index + m[0].length)
-    .split(/^\W*Findings:/im)[0]
-    .trim();
-  return { loosens: m[1].toLowerCase() === "yes", reason: rest.slice(0, 800) || "no reason given" };
+  const after = lines.slice(at + 1);
+  const end = after.findIndex((l) => /^[^\w\n]*Findings:/i.test(l));
+  const rest = (end < 0 ? after : after.slice(0, end)).join("\n").trim();
+  return { loosens: yes, reason: rest.slice(0, 800) || "no reason given" };
 }
 
 // What the pull request does next, from the review and the rail audit (null when no rail was touched). Each is
@@ -177,8 +180,7 @@ export function priorVerdict(comments, sha, me, ledger, { repo, pr }) {
   const v = comments
     .filter(mine)
     .map((c) => readVerdict(c.body))
-    .filter((x) => x?.sha && x.sha !== sha && x.verdict !== "retry" && !x.skipped)
-    .at(-1);
+    .findLast((x) => x?.sha && x.sha !== sha && x.verdict !== "retry" && !x.skipped);
   if (!v) return null;
   const base = v.from ?? v.sha;
   const recorded = ledger.some(

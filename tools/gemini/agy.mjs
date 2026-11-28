@@ -80,8 +80,8 @@ export function lightModels(listed, light = LIGHT) {
 
 // The listed Gemini models whose family is in neither LIGHT nor HEAVY: released since this file was last edited.
 export function unsorted(listed, light = LIGHT, heavy = HEAVY) {
-  const known = [...light.map(family), ...heavy];
-  return (listed ?? []).filter((id) => LISTED.test(id) && !known.includes(LISTED.exec(id)[2]));
+  const known = new Set([...light.map(family), ...heavy]);
+  return (listed ?? []).filter((id) => LISTED.test(id) && !known.has(LISTED.exec(id)[2]));
 }
 
 // Claude's two models in agy, as written when agy cannot list its models. With a list, the newest version of each
