@@ -1,0 +1,80 @@
+{
+  "src/authEmailHandler.ts": {
+    "sonarjs/concise-regex": {
+      "count": 2
+    }
+  },
+  "src/authEmailMailpit.stack.test.ts": {
+    "sonarjs/no-nested-template-literals": {
+      "count": 1
+    },
+    "sonarjs/super-linear-regex": {
+      "count": 1
+    }
+  },
+  "src/mailMessages.test.ts": {
+    "sonarjs/prefer-specific-assertions": {
+      "count": 1
+    }
+  },
+  "src/mailMessages.ts": {
+    "sonarjs/concise-regex": {
+      "count": 1
+    }
+  },
+  "src/migrations/seek.test.ts": {
+    "sonarjs/super-linear-regex": {
+      "count": 1
+    }
+  },
+  "src/migrations/sweepJobs.test.ts": {
+    "sonarjs/super-linear-regex": {
+      "count": 1
+    }
+  },
+  "src/paddleSignature.ts": {
+    "sonarjs/concise-regex": {
+      "count": 1
+    }
+  },
+  "src/paddleWebhookHandler.chargeback.test.ts": {
+    "sonarjs/void-use": {
+      "count": 1
+    }
+  },
+  "src/stores.contract.test.ts": {
+    "sonarjs/no-nested-assignment": {
+      "count": 3
+    }
+  },
+  "src/submitHandler.leaks.test.ts": {
+    "sonarjs/prefer-specific-assertions": {
+      "count": 1
+    }
+  },
+  "src/supabaseInviteStore.ts": {
+    "sonarjs/no-nested-template-literals": {
+      "count": 1
+    }
+  },
+  "src/supabaseStore.ts": {
+    "sonarjs/no-nested-template-literals": {
+      "count": 1
+    }
+  },
+  "src/sweepDeadlines.standIn.test.ts": {
+    "sonarjs/misplaced-loop-counter": {
+      "count": 1
+    }
+  },
+  "src/sweepTurnAlerts.test.ts": {
+    "sonarjs/prefer-specific-assertions": {
+      "count": 1
+    }
+  },
+  "src/test/stack.makeUser.test.ts": {
+    "sonarjs/no-clear-text-protocols": {
+      "count": 1
+    }
+  }
+}

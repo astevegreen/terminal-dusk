@@ -1,0 +1,30 @@
+{
+  "src/glicko2.test.ts": {
+    "sonarjs/no-floating-point-equality": {
+      "count": 1
+    }
+  },
+  "src/hostArchive.test.ts": {
+    "sonarjs/misplaced-loop-counter": {
+      "count": 1
+    }
+  },
+  "src/hostDeadline.standIn.test.ts": {
+    "sonarjs/misplaced-loop-counter": {
+      "count": 1
+    }
+  },
+  "src/tutorial/livePoints.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    },
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "src/types.ts": {
+    "sonarjs/redundant-type-aliases": {
+      "count": 1
+    }
+  }
+}

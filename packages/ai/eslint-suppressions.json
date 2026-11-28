@@ -1,0 +1,33 @@
+{
+  "src/hard.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    }
+  },
+  "src/lookahead.test.ts": {
+    "sonarjs/misplaced-loop-counter": {
+      "count": 1
+    }
+  },
+  "src/realign.test.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    },
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "src/rollout.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    },
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "src/unseen.ts": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "src/apply.property.test.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    },
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "src/apply.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    }
+  },
+  "src/cardChecks.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 2
+    }
+  },
+  "src/createGame.test.ts": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "src/escalation.test.ts": {
+    "sonarjs/prefer-specific-assertions": {
+      "count": 1
+    }
+  },
+  "src/mapChecks.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    }
+  },
+  "src/mapTypes.ts": {
+    "sonarjs/redundant-type-aliases": {
+      "count": 2
+    }
+  },
+  "src/omniscient.test.ts": {
+    "sonarjs/no-trivial-assertions": {
+      "count": 1
+    }
+  },
+  "src/refill.test.ts": {
+    "sonarjs/misplaced-loop-counter": {
+      "count": 1
+    }
+  },
+  "src/sha256.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    }
+  },
+  "src/stack.ts": {
+    "sonarjs/no-invariant-returns": {
+      "count": 1
+    }
+  },
+  "src/test/game.ts": {
+    "sonarjs/no-nested-template-literals": {
+      "count": 1
+    }
+  },
+  "src/types.ts": {
+    "sonarjs/redundant-type-aliases": {
+      "count": 5
+    }
+  },
+  "src/views.property.test.ts": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  }
+}
