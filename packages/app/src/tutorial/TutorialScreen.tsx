@@ -33,12 +33,15 @@ const points = pointsOf(firstDeckRuleset);
 const affiliation = (id: CardId) => firstDeckRuleset.cards.find((card) => card.id === id)?.affiliation;
 const NO_COACHING: TutorialCoaching = { text: null, chapter: null, style: null, allows: () => true, over: false };
 
-/** The coach's corner: the placeholder label while the lesson is one, then the chapter and words, or the end line. */
+/**
+ * The coach's corner: the placeholder label while the lesson is one, then the chapter and words, or the end line. A
+ * free game ends at Era 1's scoring, so its last chapter's words arrive with the game's end and show there (#701).
+ */
 export function TutorialCoach({ lesson, coaching }: Readonly<{ lesson: Lesson; coaching: TutorialCoaching }>) {
   return (
     <div className="tutorial-coach">
       {lesson.placeholder && <p className="tutorial-label">{PLACEHOLDER_LABEL}</p>}
-      {coaching.over ? (
+      {coaching.over && coaching.text === null ? (
         <CoachingPanel text={COACHING_OVER} chapter={null} style="hint" />
       ) : (
         <CoachingPanel text={coaching.text} chapter={coaching.chapter} style={coaching.style} />

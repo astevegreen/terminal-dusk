@@ -75,7 +75,19 @@ function playLesson(lesson: Lesson, edition: TutorialEdition, seed: string): Out
     output = stepTutorial(runner, host.frames.lio);
   }
   expect(host.record.status.kind, "the game ends").toBe("over");
-  expect(output.coachingOver, "no coaching once the game is over").toBe(true);
+  // A free game ends at Era 1's scoring, so chapter 7's step shows on the final frame (owner, #701: "Show it at game
+  // end"). The coaching still ends in that frame, and nothing after it is limited.
+  expect(output.coachingOver, "the coaching ends once the game is over").toBe(true);
+  if (edition === "free" && output.coaching !== null && output.chapter !== null) {
+    // Only the lesson's last step may show there, so the coaching ended with it, in the game's last frame.
+    const last = lesson.chapters.at(-1)!;
+    expect(`${output.chapter.id}/${output.runner.step}`, "only the last step shows at game end").toBe(
+      `${last.id}/${last.steps.length - 1}`,
+    );
+    outcome.shown.add(`${output.chapter.id}/${output.runner.step}`);
+    outcome.lines.add(output.coaching);
+    outcome.coachingOverTurn ??= host.frames.lio.view.public.turn;
+  }
   outcome.finalTurn = host.frames.lio.view.public.turn;
   return outcome;
 }
@@ -94,9 +106,12 @@ describe("every bundled tutorial lesson plays to the end (#640)", () => {
             expect([...outcome.shown].toSorted(), `seed ${seed}: every step's words show`).toEqual(steps.toSorted());
             const unfilled = [...outcome.lines].filter((line) => /[{}]/.test(line));
             expect(unfilled, `seed ${seed}: every slot is filled`).toEqual([]);
-            const plain = lesson.chapters.flatMap((c) => c.steps.filter((st) => !/[{}]/.test(st.say) && !st.variants));
-            for (const st of plain)
-              expect(outcome.lines, `seed ${seed}: a line with no slots shows as written`).toContain(st.say);
+            // A step that says several lines shows them joined by a blank line (#701).
+            const written = lesson.chapters.flatMap((c) =>
+              c.steps.filter((st) => !st.variants).map((st) => [st.say].flat().join("\n\n")),
+            );
+            for (const text of written.filter((t) => !/[{}]/.test(t)))
+              expect(outcome.lines, `seed ${seed}: a line with no slots shows as written`).toContain(text);
             expect(outcome.coachingOverTurn, `seed ${seed}: the coaching ends before the game`).not.toBeNull();
             if (edition === "free") expect(outcome.finalTurn, `seed ${seed}: a free game ends on turn 3`).toBe(3);
             else expect(outcome.finalTurn, `seed ${seed}: a full game goes past turn 3`).toBeGreaterThan(3);

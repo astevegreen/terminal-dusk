@@ -32,6 +32,8 @@ vi.mock("./tutorialSession.ts", async () => {
 const lesson = TUTORIAL_LESSONS[0]!;
 const chapterOne = lesson.chapters[0]!;
 const firstWords = chapterOne.steps[0]!.say;
+/** The lesson's last chapter, which a free game shows at its end, Era 1's scoring (owner, #701: "Show it at game end"). */
+const lastChapter = lesson.chapters.at(-1)!;
 /** A whole game takes seconds, and several times as long on a loaded machine. */
 const GAME_LIMIT = 60_000;
 
@@ -144,7 +146,10 @@ describe("after the tutorial's game ends", () => {
     "New game starts a new session, coached again from chapter 1",
     async () => {
       const first = await finishedGame("free");
-      expect(coachText()).toContain(COACHING_OVER);
+      expect(lesson.id, "the screen's lesson is the real one").toBe("first-game");
+      expect(coachText()).toContain(lastChapter.title);
+      expect(coachText()).toContain("That's the coaching. From here it's a normal game.");
+      expect(coachText()).not.toContain(COACHING_OVER);
       expect(coachText()).not.toContain(firstWords);
       const stopped = ai.stops;
 

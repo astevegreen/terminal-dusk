@@ -5,7 +5,7 @@ import { TUTORIAL_LESSONS } from "./tutorialLessons.ts";
 /** Every piece of text a learner can see in `lesson`: its title, its chapters' titles and its steps' words. */
 const shownText = (lesson: Lesson): string[] => [
   lesson.title,
-  ...lesson.chapters.flatMap((chapter) => [chapter.title, ...chapter.steps.map((step) => step.say)]),
+  ...lesson.chapters.flatMap((chapter) => [chapter.title, ...chapter.steps.flatMap((step) => step.say)]),
 ];
 
 /** Why `lesson` is wrongly marked, or null: a lesson not marked placeholder may not say "Placeholder". */
@@ -28,8 +28,8 @@ describe("the bundled tutorial lessons (#640)", () => {
   });
 
   it("the placeholder check catches a lesson that is not marked but says Placeholder", () => {
-    const [first] = TUTORIAL_LESSONS;
-    const unmarked = lessonSchema.parse({ ...first, placeholder: false });
+    const marked = TUTORIAL_LESSONS.find((l) => l.id === "placeholder")!;
+    const unmarked = lessonSchema.parse({ ...marked, placeholder: false });
     expect(placeholderWordError(unmarked)).toMatch(/placeholder/);
     const chapterOnly = lessonSchema.parse({
       ...unmarked,

@@ -24,7 +24,9 @@ export function triggerMatches(trigger: Trigger, frame: Frame): boolean {
 /** Whether `answer` has every field `m` names, with the same value. */
 function answerFits(m: Matcher, answer: AnswerValue): boolean {
   const a = answer as Record<string, unknown>;
-  return (["card", "as", "action", "country"] as const).every((key) => m[key] === undefined || a[key] === m[key]);
+  return (["card", "as", "action", "country", "event"] as const).every(
+    (key) => m[key] === undefined || a[key] === m[key],
+  );
 }
 
 /** The countries a decision offers, for a matcher that names one. */

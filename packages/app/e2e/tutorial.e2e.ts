@@ -1,21 +1,29 @@
-// The tutorial offline (#642, phase 5's gate "the tutorial passes offline"): a guest opens it with the network off,
-// is coached through the first card, sees the hint and the end of the coaching, and the game goes on. A second test
-// plays a free player's tutorial to its end after Era 1 (3 turns), where the result and the Full Game offer show
-// (#647). The coach's box leaves the map's tools free to tap (#666). All run on the built app, as players get it
-// (builtApp.ts).
+// The tutorial offline (#642, phase 5's gate "the tutorial passes offline"): a guest opens the first lesson, "Your
+// first game" (#701), with the network off and is coached through its first card, with the cards the coach refuses
+// greyed out. A second test plays a free player's tutorial to its end after Era 1 (3 turns): the hint shows on the
+// last play, the last chapter's words show at the game's end (owner, #701: "Show it at game end"), and so do the
+// result and the Full Game offer (#647). The coach's box leaves the map's tools free to tap (#666). All run on the
+// built app, as players get it (builtApp.ts).
 import { expect, test } from "@playwright/test";
 import type { Locator, Page } from "@playwright/test";
-import { answerOnce, decisionButtons, yourDecision } from "./answer.ts";
+import { answerOnce, decisionButtons, liftedCard, stripChips, yourDecision } from "./answer.ts";
 import { serveBuiltApp } from "./builtApp.ts";
 import { box, expectNoPageScroll, expectTapTargets } from "./measure.ts";
 import { fixRandom } from "./start.ts";
 import { expectFullGameOffer } from "./fullGameOffer.ts";
 
-// The placeholder lesson's words (packages/content/tutorial/placeholder.json) and the screen's own lines
-// (packages/app/src/tutorial/TutorialScreen.tsx).
-const COACH = "Placeholder: play any card from your hand.";
-const HINT = "Placeholder: a hint, which never limits your answers.";
-const OVER = "Placeholder: coaching is over; the game goes on.";
+// The first lesson's words (packages/content/tutorial/first-game.json).
+const CHAPTER_1 = "Opening cards and events";
+const COACH =
+  "Each turn starts with an opening card. You and SAE each pick one in secret, then both are shown together. An " +
+  "opening card is used only for its event: its action points are not spent. Pick Maastricht Treaty.";
+/** The line once both opening events have happened, which starts like this; its slots are filled from the game. (The
+ *  step between, on SAE's event, ends with LIO's event a moment later, with no decision of the learner's between.) */
+const NEXT = "Maastricht gives you 1 point now. You can place where you already have influence";
+/** The first card play's line, which starts like this; its points are filled from the game. */
+const FIRST_PLAY = "Now the card plays: LIO, SAE, LIO, SAE. Play NATO Enlargement 1999 for its points";
+const HINT = "Your last play before Era 1 scores: look for regions where you are close to present or ahead.";
+const LAST = "That's the coaching. From here it's a normal game.";
 
 let app: Awaited<ReturnType<typeof serveBuiltApp>>;
 test.beforeAll(async () => {
@@ -35,7 +43,10 @@ async function answerUntil(page: Page, line: Locator): Promise<void> {
   await expect(line).toBeVisible();
 }
 
-test("a guest plays the tutorial offline: coached, hinted, then the game goes on", async ({ page, context }) => {
+test("a guest plays the tutorial offline: the first lesson coaches the first card and greys the others", async ({
+  page,
+  context,
+}) => {
   await fixRandom(page, 642);
   await page.goto(app.url);
   await expect(page.getByRole("button", { name: "Tutorial" })).toBeVisible();
@@ -45,24 +56,36 @@ test("a guest plays the tutorial offline: coached, hinted, then the game goes on
 
   // No sign-in: the guest opens it straight from Home.
   await page.getByRole("button", { name: "Tutorial" }).click();
-  await expect(page.locator(".tutorial-coach").getByText("Placeholder lesson", { exact: true })).toBeVisible();
+  // The first lesson is the real one now, so the placeholder label (TutorialScreen.tsx) is gone.
+  await expect(page.locator(".tutorial-coach")).toBeVisible();
+  await expect(page.locator(".tutorial-coach .tutorial-label")).toHaveCount(0);
   const coach = page.getByRole("status", { name: "Coach" });
   await answerUntil(page, coach.getByText(COACH, { exact: true }));
-  await expect(coach.getByText("Placeholder chapter 1", { exact: true })).toBeVisible();
-
-  // A choice the coach refuses is greyed out, never hidden. The placeholder's coach allows every card, so any
-  // disabled button here would be a bug in the limits.
-  const refused = decisionButtons(page).and(page.locator(":disabled"));
-  await expect(refused).toHaveCount(0);
-
-  // Play the card, then the hint, then the end of the coaching.
-  await answerOnce(page);
-  await answerUntil(page, coach.getByText(HINT, { exact: true }));
-  await answerUntil(page, coach.getByText(OVER, { exact: true }));
-
-  // The game goes on: one more play is accepted, and nothing was refused.
+  await expect(coach.getByText(CHAPTER_1, { exact: true })).toBeVisible();
   await yourDecision(page).waitFor();
+
+  // A choice the coach refuses is greyed out, never hidden: every card stays in the hand, and only Maastricht
+  // Treaty's pick can be tapped.
+  const chips = stripChips(page);
+  const cards = await chips.count();
+  expect(cards, "the whole hand shows").toBeGreaterThan(1);
+  let tappable = 0;
+  let greyed = 0;
+  for (let i = 0; i < cards; i++) {
+    const chip = chips.nth(i);
+    if ((await chip.getAttribute("aria-expanded")) !== "true") await chip.click();
+    const buttons = liftedCard(page).getByRole("button");
+    for (let b = 0; b < (await buttons.count()); b++)
+      if (await buttons.nth(b).isDisabled()) greyed++;
+      else tappable++;
+  }
+  expect({ tappable, greyedSome: greyed > 0 }).toEqual({ tappable: 1, greyedSome: true });
+  await expect(decisionButtons(page).and(page.locator(":disabled"))).toHaveCount(0);
+
+  // Pick it: the coach moves on to the next step.
   await answerOnce(page);
+  await answerUntil(page, coach.getByText(NEXT));
+  await expect(coach.getByText(CHAPTER_1, { exact: true })).toBeVisible();
   await expect(page.getByText(/^AI refused:/)).toHaveCount(0);
   await expect(page.getByText("Game over")).toHaveCount(0);
 
@@ -115,12 +138,12 @@ for (const size of [
   { width: 375, height: 667 },
 ]) {
   test(`the coach box stays clear of the map's tools at ${size.width}x${size.height} (#666)`, async ({ page }) => {
-    // The game is answered up to the first coached card held sideways, then the screen takes the size under test.
+    // The game is answered up to the first coached card play held sideways, then the screen takes the size under test.
     await page.setViewportSize({ width: 844, height: 390 });
     await fixRandom(page, 642);
     await page.goto(app.url);
     await page.getByRole("button", { name: "Tutorial" }).click();
-    await answerUntil(page, page.getByRole("status", { name: "Coach" }).getByText(COACH, { exact: true }));
+    await answerUntil(page, page.getByRole("status", { name: "Coach" }).getByText(FIRST_PLAY));
     await yourDecision(page).waitFor();
     await page.setViewportSize(size);
 
@@ -153,12 +176,18 @@ test("a free player's tutorial ends after Era 1 with the result and the Full Gam
   await page.getByRole("button", { name: "Tutorial" }).click();
 
   const gameOver = page.getByTestId("status-bar").getByText(/^Game over: /);
+  const coach = page.getByRole("status", { name: "Coach" });
+  let hinted = false;
   for (let step = 0; step < 200 && !(await gameOver.isVisible()); step++) {
     await yourDecision(page).or(gameOver).first().waitFor();
+    hinted ||= await coach.getByText(HINT, { exact: true }).isVisible();
     if (await gameOver.isVisible()) break;
     await answerOnce(page);
   }
   await expect(gameOver).toBeVisible();
+  expect(hinted, "the hint showed on the last play").toBe(true);
+  // The last chapter's words show with the game's end.
+  await expect(coach.getByText(LAST, { exact: false })).toBeVisible();
   await expect(page.getByTestId("status-bar").getByText("Turn 3 of 3")).toBeVisible();
 
   await expectFullGameOffer(page);

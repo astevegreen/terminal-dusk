@@ -1,58 +1,16 @@
-// The real tutorial lesson's chapters 1-4 (#700), played through a real first-deck tutorial game: the learner follows
+// The real tutorial lesson (#700, #701), played through a real first-deck tutorial game: the learner follows
 // the coaching, SAE plays as the test helper does. It checks the answers each step allows and that each line's slots
 // fill from the live frame.
 import { TUTORIAL_LESSONS, type Lesson } from "@terminal-dusk/content";
-import type { AnswerValue } from "@terminal-dusk/engine";
 import { describe, expect, it } from "vitest";
-import { eventsFirst, learnerFrames, type Picker } from "../test/tutorialGame.ts";
-import { startTutorial, stepTutorial, type TutorialOutput } from "./runner.ts";
+import { playLesson, type Showing } from "../test/playLesson.ts";
 
 const lesson = TUTORIAL_LESSONS.find((l) => l.id === "first-game") as Lesson;
 
-/** A short name for an answer, for comparing lists of them. */
-const named = (a: AnswerValue): string =>
-  [
-    a.kind,
-    "card" in a ? a.card : "",
-    "as" in a ? a.as : "",
-    "action" in a ? a.action : "",
-    "country" in a ? a.country : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+const game = playLesson(lesson);
 
-type Showing = { step: string; decision: string; legal: string[]; allowed: string[] };
-
-/** Plays the lesson's game, the learner taking the first answer the coaching allows; what each frame showed. */
-function playThrough() {
-  let runner = startTutorial(lesson);
-  let out: TutorialOutput | null = null;
-  const lines: { step: string; text: string }[] = [];
-  const asked: Showing[] = [];
-  const pick: Picker = (side, decision, answers) => {
-    if (side !== "lio" || out === null) return eventsFirst(side, decision, answers);
-    const allowed = answers.filter(out.allows);
-    if (out.style !== null && out.chapter !== null) {
-      const step = `${out.chapter.id}/${out.runner.step}`;
-      asked.push({ step, decision: decision.kind, legal: answers.map(named), allowed: allowed.map(named) });
-    }
-    return allowed.find((a) => a.kind === "playCardAs" && a.as === "points") ?? allowed[0] ?? answers[0]!;
-  };
-  for (const frame of learnerFrames(pick, 200, lesson)) {
-    out = stepTutorial(runner, frame);
-    const started =
-      out.runner.active && (!runner.active || runner.step !== out.runner.step || runner.chapter !== out.runner.chapter);
-    if (started) lines.push({ step: `${out.chapter!.id}/${out.runner.step}`, text: out.coaching! });
-    runner = out.runner;
-    if (out.coachingOver) break;
-  }
-  return { lines, asked, over: out?.coachingOver ?? false };
-}
-
-const game = playThrough();
-
-describe("the first-game lesson, played through chapters 1-4", () => {
-  it("shows every step of the four chapters, in order, then ends its coaching", () => {
+describe("the first-game lesson, played through", () => {
+  it("shows every step of the seven chapters, in order, then ends its coaching", () => {
     expect(game.lines.map((l) => l.step)).toEqual([
       "opening/0",
       "opening/1",
@@ -65,6 +23,14 @@ describe("the first-game lesson, played through chapters 1-4", () => {
       "intervene/1",
       "intervene/2",
       "intervene/3",
+      "escalation-realign/0",
+      "escalation-realign/1",
+      "tech-race/0",
+      "tech-race/1",
+      "tech-race/2",
+      "tech-race/3",
+      "tech-race/4",
+      "scoring/0",
     ]);
     expect(game.over).toBe(true);
   });

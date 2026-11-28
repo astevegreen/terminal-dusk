@@ -10,9 +10,11 @@ import type { Matcher } from "./matching.ts";
 
 /** A line as a lesson gives it: its words and, for a step, its variants. */
 export type Line = {
-  say: string;
-  variants?: readonly { if: readonly Condition[]; say: string; allow?: readonly Matcher[] }[];
+  say: Say;
+  variants?: readonly { if: readonly Condition[]; say: Say; allow?: readonly Matcher[] }[];
 };
+/** One line, or several shown together (Decision (architect), #701). */
+type Say = string | readonly string[];
 
 /** The variant chosen (its index, or null for the line's own words), its filled text, and its own allow, if any. */
 export type Filled = { variant: number | null; text: string; allow?: readonly Matcher[] };
@@ -43,6 +45,10 @@ function holds(c: Condition, frame: Frame, ruleset: Ruleset): boolean {
       return live.cardPoints(view, live.cardIn(ruleset, c.card), c.side) < live.raceCost(view, c.side);
     case "resultBelowDraw":
       return live.belowDraw(view, live.cardIn(ruleset, c.card), me) > 0;
+    case "resultAboveDraw":
+      return live.belowDraw(view, live.cardIn(ruleset, c.card), me) < 0;
+    case "onePoint":
+      return live.cardPoints(view, live.cardIn(ruleset, c.card), me) === 1;
   }
 }
 
@@ -73,6 +79,10 @@ function slotText(slot: string, arg: string, frame: Frame, ruleset: Ruleset): st
       const below = live.belowDraw(view, card(), me);
       return below > 0 ? String(below) : fail(`{belowDraw:${arg}} is ${below}: the result is not below the draw.`);
     }
+    case "aboveDraw": {
+      const above = -live.belowDraw(view, card(), me);
+      return above > 0 ? String(above) : fail(`{aboveDraw:${arg}} is ${above}: the result is not above the draw.`);
+    }
     default:
       return fail(`unknown slot "${slot}".`);
   }
@@ -88,7 +98,29 @@ export function fillText(words: string, frame: Frame, ruleset: Ruleset): string 
   sameRuleset(frame, ruleset);
   const split = splitLine(words);
   if ("error" in split) return fail(`the line has ${split.error}.`);
-  return split.pieces.map((p) => ("slot" in p ? slotText(p.slot, p.arg, frame, ruleset) : p.text)).join("");
+  let previous = "";
+  return split.pieces
+    .map((p) => {
+      previous = "slot" in p ? slotText(p.slot, p.arg, frame, ruleset) : agree(previous, p.text);
+      return previous;
+    })
+    .join("");
+}
+
+/**
+ * `text` after the filled `number`: a leading " point" or " points" reads "point" after 1 and "points" after any
+ * other number (owner, 27 Nov 2026, #701: "a filled number of points always reads 1 point or N points").
+ */
+function agree(number: string, text: string): string {
+  if (!/^\d+$/.test(number)) return text;
+  return text.replace(/^ points?\b/, number === "1" ? " point" : " points");
+}
+
+/** `say` filled: several lines are each filled, then shown together as paragraphs. */
+function fillSay(say: Say, frame: Frame, ruleset: Ruleset): string {
+  return typeof say === "string"
+    ? fillText(say, frame, ruleset)
+    : say.map((l) => fillText(l, frame, ruleset)).join("\n\n");
 }
 
 /** Picks `line`'s variant for `frame` and fills its words. */
@@ -96,8 +128,8 @@ export function fillLine(line: Line, frame: Frame, ruleset: Ruleset): Filled {
   sameRuleset(frame, ruleset);
   const variants = line.variants ?? [];
   const index = variants.findIndex((v) => v.if.every((c) => holds(c, frame, ruleset)));
-  if (index < 0) return { variant: null, text: fillText(line.say, frame, ruleset) };
+  if (index < 0) return { variant: null, text: fillSay(line.say, frame, ruleset) };
   const chosen = variants[index]!;
-  const text = fillText(chosen.say, frame, ruleset);
+  const text = fillSay(chosen.say, frame, ruleset);
   return chosen.allow === undefined ? { variant: index, text } : { variant: index, text, allow: chosen.allow };
 }

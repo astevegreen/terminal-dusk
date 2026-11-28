@@ -45,6 +45,8 @@ already decided in the other files in `docs/design/`; the tutorial adds no rule 
 7. **Scoring, winning and the two abilities** (end of turn 3, when Era 1 scores). Each region scores for present,
    ahead or every battleground, plus 1 for each battleground controlled, and the score track moves. The chapter
    explains how a game is won, LIO's Resilient institutions and SAE's Unified command. After it the coaching stops.
+   A free game ends at Era 1's scoring, so there chapter 7 shows at the game's end, beside the result (owner, 27 Nov
+   2026, #701: "Show it at game end").
 
 Turn 2's two LIO plays are chapters 4 and 5, and all of a play's points go to one action, so the tech race waits
 for turn 3. Turn 3's second LIO play before the scoring is free, with light hints only.
@@ -89,7 +91,14 @@ approve your recommendation").
 When Desert Storm Coalition's points are not 4, chapter 4's "With 4 points, a stability-2 country such as Crimea
 gives a result equal to your draw." becomes "With 3 points, a stability-2 country such as Crimea gives a result 1
 below your draw." ("2 below" at 2 points), with the points and the difference from the game (owner, 27 Nov 2026, in
-chat: "Approve both"; #700).
+chat: "Approve both"; #700). At 1 point it reads "3 below your draw", and at 5 points (SAE's turn-2 opening can give
+LIO 1 more) "With 5 points, a stability-2 country such as Crimea gives a result 1 above your draw." (owner, 27 Nov
+2026, in chat, accepting the recommended words; #701).
+
+A filled number of points always reads "1 point" or "N points": at 1, chapter 5 reads "Play Budapest Memorandum for
+its 1 point and realign", and chapter 6's "All 3 points go to this one try, so any above the cost are lost." reads
+"Your 1 point goes to this one try." (without "so any above the cost are lost", since nothing is left over). The
+rest of each line stays as written (owner, 27 Nov 2026, in chat: "Approve both"; #701).
 
 In chapter 6, Second Chechen War's points can fall below the cost of the step LIO would try: for example, SAE has
 taken AI (pulling it back costs 2) and Rwandan Genocide has left the card 1 point. Then chapter 6 still explains the
@@ -190,6 +199,8 @@ points from the game, which keeps chapter 3's promise true (owner, 27 Nov 2026, 
 
 - "Resilient institutions set your 1 aside, and you drew again. Chapter 7 explains."
 - "Unified command: SAE's card played for points counted 1 more. Chapter 7 explains."
+
+The hint stays until the first step of the next chapter shows (owner, 27 Nov 2026, in chat).
 
 ## Not decided yet
 
