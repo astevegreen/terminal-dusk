@@ -218,3 +218,18 @@ test("renaming or copying a rail out of its folder is a rail change: the old pat
   const edited = diff("tools/hooks/gate.mjs", "+x").replace(" b/tools/hooks/", " b/docs/");
   assert.equal(railHits(edited).length, 1, "the a/ path of the header alone");
 });
+
+test("the agents' App's verdict is its own under each of its spellings, and nobody else's", () => {
+  const c = (login, v, sha = "abc") => ({ author: { login }, body: verdictMarker({ sha, ...v }) });
+  const merge = { verdict: "merge", why: "x" };
+  // gh auth status and the REST API name the App greenbean-agent[bot]; gh's JSON greenbean-agent.
+  for (const login of ["greenbean-agent[bot]", "greenbean-agent", "app/greenbean-agent", "Greenbean-Agent[bot]"])
+    assert.deepEqual(
+      reusableVerdict([c(login, merge)], "abc", "greenbean-agent[bot]"),
+      { sha: "abc", ...merge },
+      login,
+    );
+  for (const login of ["astevegreen", "greenbeanbot", "greenbean-agent-x", "stranger"])
+    assert.equal(reusableVerdict([c(login, merge)], "abc", "greenbean-agent[bot]"), null, login);
+  assert.equal(reusableVerdict([c("greenbean-agent[bot]", merge)], "abc", "astevegreen"), null, "the owner's run");
+});

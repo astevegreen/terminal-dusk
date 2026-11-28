@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 import { mkdtempSync, readFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { WHO_AM_I } from "../github-trust.mjs";
 import { eastern, newWindow, nightShiftWork } from "./cue.mjs";
 import { main } from "./queue.mjs";
 import { backlog } from "./rules.mjs";
@@ -82,7 +83,7 @@ test("the night shift gets nothing while this computer's window is open, and wor
     if (key.startsWith("issue list --state all"))
       return JSON.stringify([{ number: 5, title: "[task] R5: x", author: { login: "greenbeanbot" } }]);
     if (key.startsWith("api repos/{owner}/{repo}/collaborators")) return "greenbeanbot\n";
-    if (key === "api user --jq .login") return "greenbeanbot\n"; // the agents' account, not the owner's
+    if (key === WHO_AM_I.join(" ")) return "greenbean-agent[bot]\n"; // the agents' account, not the owner's
     if (args[0] === "api") return "2026-10-27T11:00:00Z\n";
     return "[]";
   };

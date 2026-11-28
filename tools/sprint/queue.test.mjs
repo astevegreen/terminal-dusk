@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { WHO_AM_I } from "../github-trust.mjs";
 import { loadSnapshot, main } from "./queue.mjs";
 
 const FIXTURES = path.join(import.meta.dirname, "fixtures");
@@ -110,9 +111,7 @@ function fakeGh({
         ...(strangers ? [{ ...fork, state: "OPEN" }] : []),
       ]);
     if (key.startsWith("pr list --state open --search")) return "[]";
-    if (key === "api user --jq .login")
-      return `${login}
-`;
+    if (key === WHO_AM_I.join(" ")) return `${login}\n`;
     if (key.startsWith("api repos/{owner}/{repo}/collaborators")) return "astevegreen\ngreenbeanbot\n";
     if (args[0] === "api") return "2026-10-21T11:00:00Z\n";
     if (key.startsWith("issue view")) return JSON.stringify({ body: "" });
@@ -196,13 +195,15 @@ test("signed in as the owner, every command that reads comments refuses before r
       JSON.parse(r.out).error,
       /^gh is signed in as astevegreen, the owner, so the queue would read the agents' own comments/,
     );
-    assert.deepEqual(calls, [["api", "user", "--jq", ".login"]], `${argv.join(" ")} asked GitHub nothing else`);
+    assert.deepEqual(calls, [WHO_AM_I], `${argv.join(" ")} asked GitHub nothing else`);
   }
 });
 
 test("identity says whether the queue can run as the account gh is signed in as", () => {
   const as = (login) => JSON.parse(main(["identity"], { gh: fakeGh({ login }).gh, docText: DOC_TEXT }).out);
   assert.deepEqual(as("greenbeanbot"), { login: "greenbeanbot", ok: true });
+  assert.deepEqual(as("greenbean-agent[bot]"), { login: "greenbean-agent[bot]", ok: true }, "the agents' App");
+  assert.deepEqual(as(""), { login: "", ok: false }, "signed in as nobody");
   assert.deepEqual(as("astevegreen"), { login: "astevegreen", ok: false });
   const { gh, calls } = fakeGh({ login: "astevegreen" });
   assert.match(
@@ -210,7 +211,7 @@ test("identity says whether the queue can run as the account gh is signed in as"
     /^usage:/,
     "usage, not a refusal",
   );
-  assert.ok(!calls.some((c) => c[1] === "user"), "a bad command line is not refused for the account");
+  assert.ok(!calls.some((c) => c[0] === "auth"), "a bad command line is not refused for the account");
 });
 
 test("env names the computer from docs/sprint.md without asking GitHub, and stops while it's a placeholder", () => {

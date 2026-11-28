@@ -26,7 +26,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { collaborators, fromFork, trustedComment, trustedIssue } from "../github-trust.mjs";
+import { collaborators, fromFork, signedInLogin, trustedComment, trustedIssue } from "../github-trust.mjs";
 import { report } from "../sonar.mjs";
 import { cueCommand, nightShiftWork, withLocalWindow } from "./cue.mjs";
 import { stateDir } from "./local-state.mjs";
@@ -221,8 +221,8 @@ function mainDoc() {
 // works only while gh is signed in as another account. Signed in as the owner, every "Held:" or "Blocked:" comment
 // an agent posts would read as the owner's reply and release the work it held.
 export function identity(gh) {
-  const login = gh(["api", "user", "--jq", ".login"]).trim();
-  return { login, ok: login !== OWNER };
+  const login = signedInLogin(gh);
+  return { login, ok: login !== "" && login !== OWNER };
 }
 const READS_COMMENTS = new Set(["has-work", "night-shift", "next", "backlog", "status", "digest", "move"]);
 const ownerRefusal = (login) =>

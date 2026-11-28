@@ -29,7 +29,7 @@ import {
   openPullRequests,
   pullRequest,
 } from "./github-rest.mjs";
-import { collaborators, fromFork, trustedComment, trustedIssue } from "./github-trust.mjs";
+import { collaborators, fromFork, signedInLogin, trustedComment, trustedIssue } from "./github-trust.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const MARKER = "<!-- gemini-audit -->";
@@ -62,10 +62,10 @@ function gh(...args) {
   return r.stdout;
 }
 
-// The login gh is signed in as: the account this script posts its audits under. Read as the YODC queue's
-// `identity` does; the bot while it can sign in, the owner while it is suspended.
+// The login gh is signed in as: the account this script posts its audits under. Read as the queue's
+// `identity` does (github-trust.mjs, signedInLogin): the agents' App, greenbean-agent, or the owner without it.
 function signedIn() {
-  return gh("api", "user", "--jq", ".login").trim();
+  return signedInLogin((args) => gh(...args));
 }
 
 // The models agy offers, asked of `agy models` once per run however many audits it makes (agy.mjs, reviewModels).

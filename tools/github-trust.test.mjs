@@ -1,7 +1,16 @@
 // Whose words on GitHub the tools read, now the repository is public (github-trust.mjs).
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { collaborators, fromFork, trustedComment, trustedIssue } from "./github-trust.mjs";
+import {
+  AGENT_LOGINS,
+  WHO_AM_I,
+  collaborators,
+  fromFork,
+  sameAccount,
+  signedInLogin,
+  trustedComment,
+  trustedIssue,
+} from "./github-trust.mjs";
 
 test("only the owner's and collaborators' comments are trusted", () => {
   assert.equal(trustedComment({ authorAssociation: "OWNER" }), true);
@@ -38,4 +47,37 @@ test("an issue counts only when a collaborator or this repository's own workflow
   for (const login of ["github-actions", "app-github-actions", "stranger"])
     assert.equal(trustedIssue({ author: { login } }, team), false, login);
   assert.equal(trustedIssue({}, team), false, "no author fails closed");
+});
+
+test("the agents' App is trusted under its own logins though it is no collaborator", () => {
+  const team = new Set(["astevegreen", "greenbeanbot"]);
+  for (const login of ["greenbean-agent", "greenbean-agent[bot]", "app/greenbean-agent"])
+    assert.equal(trustedComment({ author: { login }, authorAssociation: "NONE" }), true, login);
+  for (const login of ["greenbean-agent-x", "greenbeanbot", "stranger"])
+    assert.equal(trustedComment({ author: { login }, authorAssociation: "NONE" }), false, login);
+  // An issue's author is the prefixed or bracketed form, which no person can hold.
+  assert.equal(trustedIssue({ author: { login: "app/greenbean-agent" } }, team), true, "gh's form");
+  assert.equal(trustedIssue({ author: { login: "greenbean-agent[bot]" } }, team), true, "the REST form");
+  assert.equal(trustedIssue({ author: { login: "greenbean-agent" } }, team), false, "the plain form");
+  assert.ok(AGENT_LOGINS.has("greenbeanbot"), "the suspended bot's old posts are still the agents'");
+});
+
+test("one account's spellings: case, and the App's three forms", () => {
+  assert.equal(sameAccount("AsteveGreen", "astevegreen"), true);
+  assert.equal(sameAccount("greenbean-agent", "app/greenbean-agent"), true);
+  assert.equal(sameAccount("greenbean-agent[bot]", "greenbean-agent"), true);
+  assert.equal(sameAccount("greenbean-agent[bot]", "greenbeanbot"), false);
+  assert.equal(sameAccount("", ""), false, "no login, no account");
+  assert.equal(sameAccount(undefined, "x"), false);
+});
+
+test("who-am-I asks gh auth status, which an App token can answer, never gh api user", () => {
+  const calls = [];
+  const login = signedInLogin((args) => {
+    calls.push(args);
+    return "greenbean-agent[bot]\n";
+  });
+  assert.equal(login, "greenbean-agent[bot]");
+  assert.deepEqual(calls, [["auth", "status", "--active", "--json", "hosts", "--jq", '.hosts["github.com"][0].login']]);
+  assert.deepEqual(WHO_AM_I, calls[0]);
 });

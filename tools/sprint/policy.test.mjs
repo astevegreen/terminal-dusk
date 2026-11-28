@@ -317,6 +317,7 @@ test("queue digest creates the Decisions issue the first time, then comments the
     if (key.startsWith("issue list --state open")) return JSON.stringify(issues);
     if (key.startsWith("issue list --state all")) return JSON.stringify([{ ...issues[0], state: "OPEN" }]);
     if (key.startsWith("pr list")) return "[]";
+    if (key.startsWith("auth status")) return `${BOT}\n`; // who-am-I: github-trust.mjs, WHO_AM_I
     if (key.startsWith("api ")) return key.includes("/collaborators") ? `${BOT}\n` : "2026-10-21T11:00:00Z\n";
     if (key.startsWith("issue create")) return "https://github.com/o/r/issues/401\n";
     return "";
