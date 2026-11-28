@@ -5,7 +5,11 @@
 import { createOnlineRefusal, joinRankedRefusal } from "@terminal-dusk/host";
 import type { Entitlement, Platform } from "@terminal-dusk/host";
 import { describe, expect, it } from "vitest";
+import { MemoryEntitlementStore } from "./entitlementStore.ts";
 import { createInvite } from "./invite.ts";
+import { createSeek } from "./matchmake.ts";
+import { MemorySeekStore } from "./seekStore.ts";
+import { MemoryStore } from "./store.ts";
 import { handleInvite } from "./inviteHandler.ts";
 import { post } from "./test/handler.ts";
 import { body, inviteHandlerWorld } from "./test/inviteHandler.ts";
@@ -61,6 +65,34 @@ const DOORS: Door[] = [
       return { refusal: reply.error ?? null, stored: (await world.invites.find("CODE0001")) !== null };
     },
   },
+  {
+    // #681: the ticket is the checked step. The matchmake sweep only pairs tickets that passed it, and its
+    // match-making code (the pair_seeks function, hostCreate in matchmake.ts) is covered here.
+    name: "createSeek (a ranked search)",
+    kind: "ranked",
+    covers: [
+      "sql: function pair_seeks writes new match rows",
+      "src/matchmake.ts: calls hostCreate",
+      "src/matchmake.ts: names hostCreate",
+      "src/matchmake.ts: ranked or matchmaking code (MATCHMAKE_STATUSES, MatchmakeDeps, MatchmakeResult, RANKED_LIMIT, RankedPreset, SeekDeps, SeekError, SeekErrorCode, SeekOutcome, SeekStore, SeekTicket, isRankedPreset, joinRankedRefusal, matchmake, ranked, rankedPresets, seekStore, seeks)",
+      "src/rankedPresets.ts: ranked or matchmaking code (RANKED_PRESETS, RankedPreset, isRankedPreset)",
+      "src/seekStore.ts: ranked or matchmaking code (RankedPreset, SeekStore, SeekTicket, rankedPresets, unfinishedRanked)",
+      "src/supabaseSeekStore.ts: calls pair_seeks",
+      "src/supabaseSeekStore.ts: ranked or matchmaking code (Seek, SeekRow, SeekStorageError, SeekStore, SeekTicket, isRankedPreset, rankedPresets, seek, seekStore)",
+      "src/sweepEdge.ts: ranked or matchmaking code (MATCHMAKE_STATUSES, MatchmakeDeps, MatchmakeEdgeDeps, MatchmakeResult, handleMatchmake, matchmake, matchmakeFetchHandler)",
+      "supabase/functions/matchmake/index.ts: ranked or matchmaking code (matchmake, matchmakeFetchHandler, seeks)",
+      "supabase/migrations/20261104000000_seek.sql: ranked or matchmaking code (matchmake, matchmake_job, ranked, seek, seek_player)",
+    ],
+    async tryAs(entitlements, platform) {
+      const matches = new MemoryStore();
+      const seeks = new MemorySeekStore(matches);
+      const store = new MemoryEntitlementStore([]);
+      for (const owned of entitlements) await store.grant(JOINER, owned);
+      const deps = { seeks, entitlements: store, matches, ticketId: () => "ticket-1" };
+      const made = await createSeek(deps, { player: JOINER, platform, preset: "normal", now: INVITE_NOW });
+      return { refusal: made.ok ? null : made.error, stored: (await seeks.open()).length > 0 };
+    },
+  },
 ];
 
 /**
@@ -80,8 +112,8 @@ const RANKED_RESULTS: { marker: string; reason: string }[] = [
     reason: `the match row's ranked column; ${RATES_A_FINISH}`,
   },
   {
-    marker: "src/store.ts: ranked or matchmaking code (ranked_games)",
-    reason: `the in-memory store checks a rating row's count; ${RATES_A_FINISH}`,
+    marker: "src/store.ts: ranked or matchmaking code (ranked, ranked_games, unfinishedRanked)",
+    reason: `the in-memory store checks a rating row's count and counts a player's running ranked matches for the limit; it creates nothing`,
   },
   {
     marker: "src/supabaseStore.ts: ranked or matchmaking code (ranked, ranked_games)",
@@ -128,11 +160,16 @@ describe("audit: every server path to an online match has an entitlement check",
   });
 
   it("every place that makes an online match is behind a create door", () => {
-    expect(found.filter((marker) => !isRankedMarker(marker))).toEqual(covered("create"));
+    // A ranked door also covers the match-making code behind it (the pair_seeks function and its caller).
+    const listed = [...covered("create"), ...covered("ranked").filter((marker) => !isRankedMarker(marker))].sort();
+    expect(found.filter((marker) => !isRankedMarker(marker))).toEqual(listed);
   });
 
-  it("every ranked-join path is behind a ranked door (there is none until #681)", () => {
-    const listed = [...covered("ranked"), ...RANKED_RESULTS.map((result) => result.marker)].sort();
+  it("every ranked-join path is behind a ranked door", () => {
+    const listed = [
+      ...covered("ranked").filter(isRankedMarker),
+      ...RANKED_RESULTS.map((result) => result.marker),
+    ].sort();
     expect(found.filter(isRankedMarker)).toEqual(listed);
   });
 

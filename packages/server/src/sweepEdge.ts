@@ -7,6 +7,8 @@ import type { DeadlineStore } from "./deadlineStore.ts";
 import { serveFetch } from "./edge.ts";
 import type { FetchRequest, MakeResponse } from "./edge.ts";
 import type { HttpReply, HttpRequest } from "./http.ts";
+import { MATCHMAKE_STATUSES, matchmake } from "./matchmake.ts";
+import type { MatchmakeDeps, MatchmakeResult } from "./matchmake.ts";
 import type { MatchStore } from "./store.ts";
 import { sweepDeadlines } from "./sweepDeadlines.ts";
 import type { SweepResult } from "./sweepDeadlines.ts";
@@ -38,6 +40,22 @@ export function handleSweepDeadlines(deps: SweepDeadlinesDeps, request: HttpRequ
 export function handleSweepTurnAlerts(deps: SweepTurnAlertsDeps, request: HttpRequest): Promise<HttpReply> {
   const run = (now: number): Promise<TurnAlertResult[]> => sweepTurnAlerts(deps.alerts, now);
   return handleSweep(deps, request, TURN_ALERT_STATUSES, run);
+}
+
+export type MatchmakeEdgeDeps = SweepAccess & { matchmake: MatchmakeDeps };
+
+/** The plain-data `matchmake` handler (#681): 200 with `{ results: <count of each status> }`, or a refusal. */
+export function handleMatchmake(deps: MatchmakeEdgeDeps, request: HttpRequest): Promise<HttpReply> {
+  const run = (now: number): Promise<MatchmakeResult[]> => matchmake(deps.matchmake, now);
+  return handleSweep(deps, request, MATCHMAKE_STATUSES, run);
+}
+
+/** A fetch-style handler around `handleMatchmake`. */
+export function matchmakeFetchHandler<R>(
+  deps: MatchmakeEdgeDeps,
+  respond: MakeResponse<R>,
+): (request: FetchRequest) => Promise<R> {
+  return serveFetch((request) => handleMatchmake(deps, request), respond);
 }
 
 /** A fetch-style handler around `handleSweepDeadlines`. */
