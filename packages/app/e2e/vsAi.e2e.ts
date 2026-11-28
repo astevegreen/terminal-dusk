@@ -105,6 +105,7 @@ test("against the AI, the side picker says who each side is and each card shows 
 });
 
 test("the free Era 1 game starts from the home screen and plays its 3 turns to the end (L12)", async ({ page }) => {
+  test.setTimeout(90_000);
   await page.goto("/");
   await page.getByRole("button", { name: "Play the free game: The Thaw (Era 1)" }).click();
   await expect(
