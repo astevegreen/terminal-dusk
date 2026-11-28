@@ -51,7 +51,7 @@ function Refusal({ code }: Readonly<{ code: keyof typeof LOBBY_REFUSAL }>) {
 
 function Group({ legend, children }: Readonly<{ legend: string; children: ReactNode }>) {
   return (
-    <fieldset style={{ minWidth: 0 }}>
+    <fieldset style={{ minWidth: 0, margin: 0, padding: "0 4px" }}>
       <legend>{legend}</legend>
       {children}
     </fieldset>
@@ -65,7 +65,10 @@ function Form({
 }: Readonly<Pick<RankedViewProps, "snapshot" | "actions" | "onFullGame">>) {
   const { preset, side, busy, refusal } = snapshot;
   return (
-    <section aria-label="Find a ranked game">
+    <section
+      aria-label="Find a ranked game"
+      style={{ display: "flex", flexWrap: "wrap", gap: 4, alignItems: "flex-start" }}
+    >
       <Group legend="Time for each move">
         {RANKED_PRESETS.map((name) => (
           <Choice
@@ -86,9 +89,9 @@ function Form({
         Search
       </button>
       {refusal === "notEntitled" ? (
-        <div role="alert">
+        <div role="alert" style={{ flexBasis: "100%" }}>
           <p>{FULL_GAME_OFFER}</p>
-          <button type="button" style={TAP} onClick={onFullGame}>
+          <button type="button" style={TAP} onClick={() => onFullGame()}>
             Get the Full Game
           </button>
         </div>
@@ -115,7 +118,7 @@ function Searching({
         <button
           type="button"
           style={{ ...TAP, background: "none", border: "none", textDecoration: "underline" }}
-          onClick={onPlayAi}
+          onClick={() => onPlayAi()}
         >
           {AI_LINK}
         </button>
@@ -147,11 +150,11 @@ export function RankedView(props: Readonly<RankedViewProps>) {
   const { snapshot, onBack } = props;
   return (
     <main style={{ maxWidth: "100%", boxSizing: "border-box", overflowWrap: "anywhere" }}>
-      <h1>Find a ranked game</h1>
+      <h1 style={{ margin: "4px 0", fontSize: "1.25rem" }}>Find a ranked game</h1>
       {snapshot.phase === "form" && <Form {...props} />}
       {snapshot.phase === "searching" && <Searching {...props} />}
       {snapshot.phase === "started" && <Started {...props} />}
-      <button type="button" style={TAP} onClick={onBack}>
+      <button type="button" style={TAP} onClick={() => onBack()}>
         Back
       </button>
     </main>
