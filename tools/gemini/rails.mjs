@@ -83,10 +83,17 @@ export function findings(response) {
 // answer says neither.
 export function railAnswer(response) {
   const text = String(response ?? "");
-  const m = /^\W*LOOSENS:\W*(yes|no)\b.*$/im.exec(text);
-  if (!m) return { loosens: null, reason: text.trim().slice(0, 800) };
-  const rest = text.slice(m.index + m[0].length).trim();
-  return { loosens: m[1].toLowerCase() === "yes", reason: rest.slice(0, 800) || "no reason given" };
+  // Line by line, as flashcards' copy reads it: a multiline pattern whose \W* can cross newlines backtracks on a
+  // long answer.
+  const lines = text.split("\n");
+  const at = lines.findIndex((l) => /^[^\w\n]*LOOSENS:[^\w\n]*(?:yes|no)\b/i.test(l));
+  if (at < 0) return { loosens: null, reason: text.trim().slice(0, 800) };
+  const yes = /^[^\w\n]*LOOSENS:[^\w\n]*yes\b/i.test(lines[at]);
+  // In the one-call review (a rail prompt appended to the review's), the rail lines end where `Findings:` starts.
+  const after = lines.slice(at + 1);
+  const end = after.findIndex((l) => /^[^\w\n]*Findings:/i.test(l));
+  const rest = (end < 0 ? after : after.slice(0, end)).join("\n").trim();
+  return { loosens: yes, reason: rest.slice(0, 800) || "no reason given" };
 }
 
 // What the pull request does next, from the review and the rail audit (null when no rail was touched). Each is
@@ -161,4 +168,25 @@ export function reusableVerdict(comments, sha, me) {
     .filter((x) => x?.sha === sha)
     .at(-1);
   return v && v.verdict !== "retry" ? v : null;
+}
+
+// The earlier verdict a new commit's review may build on (gemini-audit.mjs, carry-over and delta reviews): the newest
+// one this script's account posted for another commit, other than a retry (which reviewed nothing) or a skip (agy
+// never read it). A carried-over merge builds on the commit agy last read (`from`), so carry-overs never add up past
+// agy.mjs's CARRY. The account is the agents' own login too, so a marker alone is never enough: the verdict counts
+// only when this PC's quota ledger recorded it, for this repository, pull request and commit. Else null, and the
+// review is a full one.
+export function priorVerdict(comments, sha, me, ledger, { repo, pr }) {
+  if (!me) return null;
+  const mine = (c) => sameAccount(c.author?.login, me);
+  const v = comments
+    .filter(mine)
+    .map((c) => readVerdict(c.body))
+    .findLast((x) => x?.sha && x.sha !== sha && x.verdict !== "retry" && !x.skipped);
+  if (!v) return null;
+  const base = v.from ?? v.sha;
+  const recorded = ledger.some(
+    (l) => l.repo === repo && l.pr === pr && l.sha === v.sha && l.verdict === v.verdict && (l.from ?? l.sha) === base,
+  );
+  return recorded ? { ...v, sha: base } : null;
 }

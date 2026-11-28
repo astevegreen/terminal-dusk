@@ -99,12 +99,11 @@ test("a small change to a file under each high-risk path the workflow names gets
   assert.equal(pickDepth({ kind: "change", files: ["packages/app/src/App.tsx"], lines: 1 }).depth, "standard");
 });
 
-test("a large change gets a deep review anywhere; a small one elsewhere gets a standard review", () => {
-  assert.deepEqual(pickDepth({ kind: "change", files: ["docs/a.md"], lines: 301 }, ["packages/engine/"]), {
-    depth: "deep",
-    why: "it changes 301 lines",
+test("depth comes from paths alone: a large change off the high-risk paths is a standard review", () => {
+  assert.deepEqual(pickDepth({ kind: "change", files: ["docs/a.md"], lines: 5000 }, ["packages/engine/"]), {
+    depth: "standard",
+    why: "it changes 5000 lines and touches none of the high-risk paths",
   });
-  assert.equal(pickDepth({ kind: "change", files: ["docs/a.md"], lines: 300 }, ["packages/engine/"]).depth, "standard");
 });
 
 test("a diff's stats are its files and its added and removed lines, not its headers", () => {
@@ -128,7 +127,7 @@ test("a diff's stats are its files and its added and removed lines, not its head
 
 test("when the first model answers, the next is never asked", () => {
   const { result, asked } = ask(["a", "b"], { a: "looks fine", b: "unused" });
-  assert.deepEqual(result, { model: "a", response: "looks fine", passed: [] });
+  assert.deepEqual(result, { model: "a", response: "looks fine", passed: [], seconds: 0, tokens: null });
   assert.deepEqual(asked, ["a"]);
 });
 

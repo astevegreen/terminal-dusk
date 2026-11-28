@@ -7,6 +7,22 @@ import os from "node:os";
 import path from "node:path";
 import { geminiApi } from "./gemini-api.mjs";
 
+// What agy is not asked about, what it need not read again, and the quota ledger: tools/gemini/budget.mjs, exported
+// from here as the other copies export them from their agy.mjs.
+export {
+  CARRY,
+  LEDGER_FILE,
+  SMALL,
+  appendLedger,
+  carryOver,
+  deltaPreamble,
+  isDoc,
+  isLockfile,
+  isTest,
+  readLedger,
+  skipReason,
+} from "./budget.mjs";
+
 // Every model runs at high effort; agy names the effort in the model id.
 export const EFFORT = "high";
 
@@ -64,8 +80,8 @@ export function lightModels(listed, light = LIGHT) {
 
 // The listed Gemini models whose family is in neither LIGHT nor HEAVY: released since this file was last edited.
 export function unsorted(listed, light = LIGHT, heavy = HEAVY) {
-  const known = [...light.map(family), ...heavy];
-  return (listed ?? []).filter((id) => LISTED.test(id) && !known.includes(LISTED.exec(id)[2]));
+  const known = new Set([...light.map(family), ...heavy]);
+  return (listed ?? []).filter((id) => LISTED.test(id) && !known.has(LISTED.exec(id)[2]));
 }
 
 // Claude's two models in agy, as written when agy cannot list its models. With a list, the newest version of each
@@ -123,9 +139,6 @@ export function modelName(model) {
   return `${name} (${m[2]})`;
 }
 
-// A change of more than this many lines (added plus removed) gets a deep review wherever it is.
-export const LARGE = 300;
-
 // Where a mistake costs most: the rules, the host and server that keep hidden information hidden, the architecture
 // decisions, and the checks themselves. A change touching one gets the deep review.
 export const DEEP_PATHS = [
@@ -140,14 +153,14 @@ export const DEEP_PATHS = [
 // How deep a review must be, from what it reviews, with the reason in words for the report. The depth picks
 // the order the models are asked in (ORDERS), and is named with its reason in the report.
 // kind: "spec" (a plan, before any code), "repo" (a whole-repo audit) or "change" (a diff's files and lines).
-// deepPaths: the path prefixes where a mistake costs most in this repo.
+// deepPaths: the path prefixes where a mistake costs most in this repo. Depth comes from paths alone (owner, 28 Nov
+// 2026): a size rule would make every batched pull request deep.
 export function pickDepth({ kind, files = [], lines = 0 }, deepPaths = DEEP_PATHS) {
   if (kind === "spec") return { depth: "deep", why: "it is a spec, where a gap is cheapest to fix" };
   if (kind === "repo")
     return { depth: "standard", why: "it reads the whole repo, which has to finish inside the time limit" };
   const hit = files.find((f) => deepPaths.some((p) => f.startsWith(p)));
   if (hit) return { depth: "deep", why: `it touches ${hit}` };
-  if (lines > LARGE) return { depth: "deep", why: `it changes ${lines} lines` };
   return { depth: "standard", why: `it changes ${lines} lines and touches none of the high-risk paths` };
 }
 
@@ -247,16 +260,33 @@ const agyArgs = (prompt, model, extra, timeout = TIMEOUT) => [
 // command (Opus ended a rail audit on `echo blocked`, 28 Oct), or by running out of time (Flash on a 401-line deep
 // review, 5 Nov). Either way its conversation is resumed once, told why, so the reading is not thrown away.
 // Where agy is not installed and GEMINI_API_KEY is set, `api` asks the model instead (see geminiApi).
-export function askModel(run, prompt, model, extra = [], api = geminiApi()) {
-  const first = run(agyArgs(prompt, model, extra));
+// meter, when given, adds up the tokens agy reports for every run, the resume included (replyTokens).
+export function askModel(run, prompt, model, extra = [], api = geminiApi(), meter = null) {
+  const counted = (args) => {
+    const r = run(args);
+    const tokens = replyTokens(r);
+    if (meter && tokens !== null) meter.tokens = (meter.tokens ?? 0) + tokens;
+    return r;
+  };
+  const first = counted(agyArgs(prompt, model, extra));
   if (first.error?.code === "ENOENT" && api) return api(prompt, model);
   try {
     return parseReply(first);
   } catch (err) {
     if (!err.conversation) throw err;
     const resume = [...extra, "--conversation", err.conversation];
-    if (err.timedOut) return parseReply(run(agyArgs(LATE, model, resume, RESUME_TIMEOUT)));
-    return parseReply(run(agyArgs(REFUSED, model, resume)));
+    if (err.timedOut) return parseReply(counted(agyArgs(LATE, model, resume, RESUME_TIMEOUT)));
+    return parseReply(counted(agyArgs(REFUSED, model, resume)));
+  }
+}
+
+// The tokens one agy run reports (its JSON's usage.total_tokens), or null when it reports none.
+export function replyTokens(r) {
+  try {
+    const n = JSON.parse(r?.stdout ?? "")?.usage?.total_tokens;
+    return Number.isFinite(n) ? n : null;
+  } catch {
+    return null;
   }
 }
 
@@ -271,10 +301,12 @@ export function resetsAt(message, now) {
 // 40 seconds finding out again. One file serves every repo on this PC, because the quota is the account's.
 export const QUOTA_FILE = path.join(os.tmpdir(), "agy-quota.json");
 
-export function quotaFile(file = QUOTA_FILE) {
+// fs stands in for the file calls in the tests.
+const FS = { readFileSync, writeFileSync, rename: renameSync, rmSync };
+export function quotaFile(file = QUOTA_FILE, fs = FS) {
   const read = () => {
     try {
-      return JSON.parse(readFileSync(file, "utf8"));
+      return JSON.parse(fs.readFileSync(file, "utf8"));
     } catch {
       return {};
     }
@@ -288,11 +320,17 @@ export function quotaFile(file = QUOTA_FILE) {
       // The whole file, then a rename: several repos' reviews share it, so a reader never sees half of one.
       const tmp = `${file}.${process.pid}.tmp`;
       try {
-        writeFileSync(tmp, JSON.stringify({ ...read(), [model]: until.toISOString() }, null, 2));
-        renameSync(tmp, file);
+        fs.writeFileSync(tmp, JSON.stringify({ ...read(), [model]: until.toISOString() }, null, 2));
+        fs.rename(tmp, file);
       } catch {
-        rmSync(tmp, { force: true });
-        // A review never fails because it could not write down a quota.
+        // A review never fails because it could not write down a quota. The clean-up has its own catch: on Windows
+        // the temp file can still be held (EPERM), and that error would otherwise fail the review instead of moving
+        // on to the next model.
+        try {
+          fs.rmSync(tmp, { force: true });
+        } catch {
+          // Left behind; the next write replaces it.
+        }
       }
     },
   };
@@ -324,9 +362,15 @@ const passedOver = (p) => {
 // Asks each model in turn until one answers, skipping any the store knows is out of usage. Running out of
 // usage, or any reason in PASS_ON, moves on to the next model; anything else (agy missing, not signed in)
 // would fail the same way on every model, so it is thrown with the model's name in front.
-// Returns { model, response, passed }: passed lists the models it went past, for the report.
+// Returns { model, response, passed, seconds, tokens }: passed lists the models it went past, for the report;
+// seconds and tokens cover the whole call, for the ledger (tokens null when agy reported none). `ask(model, meter)`
+// may add to meter.tokens (askModel's meter). An error it throws carries seconds and tokens too.
 export function askFirstAvailable(models, ask, store = quotaFile(), now = Date.now) {
   const passed = [];
+  const meter = { tokens: 0 };
+  const start = now();
+  const spent = () => ({ seconds: Math.round((now() - start) / 100) / 10, tokens: meter.tokens || null });
+  const fail = (message, cause) => Object.assign(new Error(message, cause ? { cause } : undefined), spent());
   for (const model of models) {
     const until = store.outUntil(model, now());
     if (until) {
@@ -334,19 +378,20 @@ export function askFirstAvailable(models, ask, store = quotaFile(), now = Date.n
       continue;
     }
     try {
-      return { model, response: ask(model), passed };
+      const response = ask(model, meter);
+      return { model, response, passed, ...spent() };
     } catch (err) {
-      if (err.stop) throw new Error(`${modelName(model)}: ${err.message}`, { cause: err });
+      if (err.stop) throw fail(`${modelName(model)}: ${err.message}`, err);
       const why = PASS_ON.find(([pattern]) => pattern.test(err.message))?.[1];
       if (USED_UP.test(err.message)) {
         const reset = resetsAt(err.message, now());
         store.markOut(model, reset);
         passed.push({ model, until: reset });
       } else if (why) passed.push({ model, why });
-      else throw new Error(`${modelName(model)}: ${err.message}`, { cause: err });
+      else throw fail(`${modelName(model)}: ${err.message}`, err);
     }
   }
-  throw new Error(`no model answered: ${passed.map(passedOver).join("; ")}`);
+  throw fail(`no model answered: ${passed.map(passedOver).join("; ")}`);
 }
 
 // One line for the report: which model answered, how deep a review it was and why, and whom it stood in for.

@@ -16,7 +16,7 @@ const run = (...args) => spawnSync(process.execPath, [SCRIPT, ...args], { encodi
 test("the usage names the pr <n> merge gate", () => {
   const r = run();
   assert.equal(r.status, 1);
-  assert.match(r.stderr, /usage: .*\| pr <n> \|/);
+  assert.match(r.stderr, /usage: .*\| pr <n> \[--asked "<owner's words>"\] \|/);
 });
 
 test("pr needs a pull request number", () => {
@@ -69,24 +69,52 @@ test("auditPr asks who it is signed in as only when a comment carries a verdict"
   assert.equal(calls.me, 0);
 });
 
-test("auditPr's rail audit asks the rail order (Opus, then Gemini's fast models, never Sonnet); none answering is retry", () => {
+test("auditPr asks the rail question in the same call, in the rail order and never through the Gemini API", () => {
   const { io, calls } = fake({
     diff: diffOf(".github/workflows/ci.yml"),
-    answers: { "rail-audit": new Error("no model answered: Claude Opus 5.5 (high) is out of usage") },
+    answers: { "pr-audit": new Error("no model answered: Claude Opus 5.5 (high) is out of usage") },
   });
   const r = auditPr(7, io);
-  const rail = calls.ask.find((a) => a.prompt === "rail-audit");
-  assert.equal(rail.opts.order, "rail");
-  assert.ok(Object.hasOwn(ORDERS, rail.opts.order));
-  assert.equal(
-    calls.ask.find((a) => a.prompt === "pr-audit").opts?.order,
-    undefined,
-    "the review keeps its depth's order",
-  );
-  assert.equal(rail.opts.api, NO_API, "a rail audit never goes to the Gemini API");
-  assert.equal(calls.ask.find((a) => a.prompt === "pr-audit").opts.api, undefined, "the review may");
+  assert.equal(calls.ask.length, 1, "one call answers the review and the rail question");
+  const [call] = calls.ask;
+  assert.equal(call.prompt, "pr-audit");
+  assert.equal(call.opts.also, "rail-audit");
+  assert.equal(call.opts.order, "rail");
+  assert.ok(Object.hasOwn(ORDERS, call.opts.order));
+  assert.equal(call.opts.api, NO_API, "a rail change never goes to the Gemini API");
   assert.equal(r.verdict, "retry");
   assert.match(calls.post[0].body, /\*\*Verdict: retry\*\*/);
+});
+
+test("a change that touches no rail is reviewed in its depth's order, and may go to the Gemini API", () => {
+  const { io, calls } = fake();
+  auditPr(7, io);
+  assert.deepEqual(calls.ask[0].opts, {});
+});
+
+test("the one call's LOOSENS line decides the rail, and its findings the review", () => {
+  const answer = "LOOSENS: no\nIt adds a job.\nFindings:\n[blocker] .github/workflows/ci.yml:3 wrong";
+  const { io } = fake({ diff: diffOf(".github/workflows/ci.yml"), answers: { "pr-audit": answer } });
+  const r = auditPr(7, io);
+  assert.equal(r.verdict, "fix");
+  assert.deepEqual(r.rails, [".github/workflows/ci.yml"]);
+  const held = fake({
+    diff: diffOf(".github/workflows/ci.yml"),
+    answers: { "pr-audit": "LOOSENS: yes\nIt drops a job." },
+  });
+  assert.equal(auditPr(7, held.io).verdict, "hold");
+});
+
+test("the owner's own words reach a rail change's material, so only loosening beyond them is flagged", () => {
+  const { io, calls } = fake({ diff: diffOf(".github/workflows/ci.yml") });
+  auditPr(7, io, { asked: "drop the macOS job" });
+  assert.match(calls.ask[0].material, /# What the owner asked for, in their own words\n\ndrop the macOS job\n/);
+  const none = fake({ diff: diffOf(".github/workflows/ci.yml") });
+  auditPr(7, none.io, { asked: undefined });
+  assert.match(none.calls.ask[0].material, /No owner's words were given: every loosening counts\./);
+  const plain = fake();
+  auditPr(7, plain.io, { asked: "drop the macOS job" });
+  assert.doesNotMatch(plain.calls.ask[0].material, /What the owner asked for/, "no rail, no rail section");
 });
 
 test("auditPr: agy's review can't run on a change that touches no rail, so it retries and never merges", () => {

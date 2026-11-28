@@ -44,10 +44,10 @@ Task: $ARGUMENTS (in a night run, the mode and number are in your prompt instead
 - `git push -u origin task/<n>`.
 - New work: `gh pr create --draft`, with the pull request template filled in and "Closes #<n>".
   pr or fix mode: comment on the pull request what you changed.
-- By day only (in a night run the coordinator does this): run the `reviewer` agent with
-  "Issue <n>, branch task/<n>." and `node tools/gemini-audit.mjs pr <pr>`, then follow CLAUDE.md, Finishing: fix
-  their [blocker]s once, merge unless a [blocker] is left or the audit's verdict is `hold` or `retry`. [minor]
-  concerns and agy's notes go on the pull request as a comment and never hold it.
+- By day only (in a night run the coordinator does this): follow CLAUDE.md, Finishing, in its order: the
+  `reviewer` agent with "Issue <n>, branch task/<n>.", then CI and Sonar, one fix push, and
+  `node tools/gemini-audit.mjs pr <pr>` last. Merge unless a [blocker] is left or the audit's verdict is `hold` or
+  `retry`. [minor] concerns and agy's notes go on the pull request as a comment and never hold it.
 - Your final message: by day, CLAUDE.md's closing format (What changed, Tests, Follow-ups, Unsure about). In a
   night run or sprint lane, exactly:
 STATUS: DONE | BLOCKED | GATE-FAILED | RETRY

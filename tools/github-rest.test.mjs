@@ -12,6 +12,7 @@ import {
   issue,
   openIssues,
   openPullRequests,
+  deltaSince,
   pullRequest,
   removeLabelArgs,
   reviewRequestArgs,
@@ -26,9 +27,15 @@ const answering = (out) => {
 };
 const pr = (head) => ({ number: 5, body: null, head: { sha: "abc", repo: head }, base: { repo: OURS } });
 
-test("pullRequest reads the number, body, head commit and whether the branch is in a fork", () => {
+test("pullRequest reads the number, body, head commit, author and whether the branch is in a fork", () => {
   const { gh, calls } = answering(pr(OURS));
-  assert.deepEqual(pullRequest(gh, 5), { number: 5, body: "", headRefOid: "abc", isCrossRepository: false });
+  assert.deepEqual(pullRequest(gh, 5), {
+    number: 5,
+    body: "",
+    headRefOid: "abc",
+    isCrossRepository: false,
+    author: { login: "" },
+  });
   assert.deepEqual(calls, [["api", "repos/{owner}/{repo}/pulls/5"]]);
 });
 
@@ -38,6 +45,31 @@ test("a branch in another repository, or in a deleted fork, is a fork's: it fail
     assert.equal(p.isCrossRepository, true, JSON.stringify(head));
     assert.equal(fromFork(p), true);
   }
+});
+
+test("deltaSince reads a head that only adds commits as a diff; a merge, a rebase or a missing commit is null", () => {
+  const answers = (shape) => {
+    const calls = [];
+    const gh = (args) => {
+      calls.push(args);
+      if (shape instanceof Error) throw shape;
+      return args[2] === "--jq" ? JSON.stringify(shape) : "diff --git a/x b/x\n";
+    };
+    return { gh, calls };
+  };
+  const ok = answers({ status: "ahead", merges: 0 });
+  assert.deepEqual(deltaSince(ok.gh, "aaa", "bbb"), { diff: "diff --git a/x b/x\n" });
+  assert.equal(ok.calls[0][1], "repos/{owner}/{repo}/compare/aaa...bbb");
+  assert.match(ok.calls[0][3], /select\(\(\.parents \| length\) > 1\)/);
+  assert.deepEqual(ok.calls[1].slice(2), ["-H", "Accept: application/vnd.github.diff"]);
+  assert.equal(deltaSince(answers({ status: "ahead", merges: 1 }).gh, "a", "b"), null);
+  assert.equal(deltaSince(answers({ status: "diverged", merges: 0 }).gh, "a", "b"), null);
+  assert.equal(deltaSince(answers(new Error("HTTP 404")).gh, "a", "b"), null);
+});
+
+test("pullRequest names the pull request's author, for the audit's Dependabot skip", () => {
+  const { gh } = answering({ ...pr(OURS), user: { login: "dependabot[bot]" } });
+  assert.equal(pullRequest(gh, 5).author.login, "dependabot[bot]");
 });
 
 test("comments reads every page, oldest first, as { author: { login }, authorAssociation, body }", () => {

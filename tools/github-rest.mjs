@@ -7,10 +7,16 @@ import { trustedComment } from "./github-trust.mjs";
 // GitHub refused the request: what a cloud session gets from a `gh` command that needs GraphQL.
 export const is403 = (err) => /HTTP 403|403 Forbidden/.test(err.message);
 
-// The fields auditPr asked `gh pr view --json number,body,headRefOid,isCrossRepository` for.
+// The fields auditPr asked `gh pr view --json number,body,headRefOid,isCrossRepository,author` for.
 export function pullRequest(gh, n) {
   const p = JSON.parse(gh(["api", `repos/{owner}/{repo}/pulls/${n}`]));
-  return { number: p.number, body: p.body ?? "", headRefOid: p.head?.sha, isCrossRepository: crossRepository(p) };
+  return {
+    number: p.number,
+    body: p.body ?? "",
+    headRefOid: p.head?.sha,
+    isCrossRepository: crossRepository(p),
+    author: { login: p.user?.login ?? "" },
+  };
 }
 
 // A branch in another repository than the base's. A deleted fork has no head repository: that fails closed, as a fork.
@@ -115,3 +121,19 @@ export const commentArgs = (n, body) => write("POST", `issues/${n}/comments`, [`
 export const titleArgs = (n, title) => write("PATCH", `issues/${n}`, [`title=${title}`]);
 export const reviewRequestArgs = (n, login) =>
   write("POST", `pulls/${n}/requested_reviewers`, [`reviewers[]=${login}`]);
+
+// The changes since the earlier reviewed commit `from` (gemini-audit.mjs, delta reviews): { diff } when the head only adds commits to it,
+// or null when it can't be read as a delta (a merge of main into the branch, a rebase, a commit GitHub no longer
+// has), and the review is then a full one.
+export function deltaSince(gh, from, head) {
+  const page = `repos/{owner}/{repo}/compare/${from}...${head}`;
+  try {
+    const shape = JSON.parse(
+      gh(["api", page, "--jq", "{status: .status, merges: ([.commits[] | select((.parents | length) > 1)] | length)}"]),
+    );
+    if (shape.status !== "ahead" || shape.merges > 0) return null;
+    return { diff: gh(["api", page, "-H", "Accept: application/vnd.github.diff"]) };
+  } catch {
+    return null;
+  }
+}
