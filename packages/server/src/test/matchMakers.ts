@@ -6,6 +6,8 @@
 export type Sources = Record<string, string>;
 
 const RANKED = /ranked|matchmak|\bseek/i;
+/** Each whole word holding a ranked word, so a marker names them all and a new one in a listed file still shows. */
+const RANKED_WORDS = /\b\w*(?:ranked|matchmak)\w*|\bseek\w*/gi;
 const SQL_HEADER = /create\s+(?:or\s+replace\s+)?function\s+(?:public\.)?(\w+)/gi;
 const SQL_BODY_START = /\bas\s+(\$\w*\$)/gi;
 const SQL_WRITE = /\b(?:insert\s+into|merge\s+into|copy)\s+(?:only\s+)?(?:"?public"?\.)?"?(match_invite|match)\b/gi;
@@ -20,6 +22,10 @@ const sqlCode = (text: string): string => text.replace(/--.*/g, "");
 // A `//` counts as a comment only at the start of a line or after a space, so the one in a URL is kept.
 const tsCode = (text: string): string => text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|\s)\/\/.*/gm, "$1");
 const tablesWritten = (sql: string): string[] => [...sql.matchAll(SQL_WRITE)].map((hit) => hit[1]!.toLowerCase());
+const rankedMarker = (file: string, code: string): string => {
+  const words = [...new Set(Array.from(code.matchAll(RANKED_WORDS), (hit) => hit[0]))].sort(byCodeUnit);
+  return `${file}: ranked or matchmaking code (${words.join(", ")})`;
+};
 const byCodeUnit = (a: string, b: string): number => {
   if (a < b) return -1;
   return a > b ? 1 : 0;
@@ -82,14 +88,14 @@ export function findMatchMakers(sources: Sources): string[] {
   for (const [file, text] of entries.filter(([name]) => name.endsWith(".sql"))) {
     const code = sqlCode(text);
     readSql(file, code, found, writers);
-    if (RANKED.test(code)) found.add(`${file}: ranked or matchmaking code`);
+    if (RANKED.test(code)) found.add(rankedMarker(file, code));
   }
 
   for (const [file, text] of entries.filter(([name]) => !name.endsWith(".sql"))) {
     const code = tsCode(text);
     if (MAKER_NAME.test(code)) found.add(`${file}: names hostCreate`);
     calls.push(...tsCalls(file, code, writers));
-    if (RANKED.test(code)) found.add(`${file}: ranked or matchmaking code`);
+    if (RANKED.test(code)) found.add(rankedMarker(file, code));
   }
   return [...found, ...calls].sort(byCodeUnit);
 }

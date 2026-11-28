@@ -13,6 +13,7 @@ const TOKEN_OF = { alice: "token-alice", bob: "token-bob" } as Record<string, st
 const brokenLoad = (inner: MatchStore): MatchStore => ({
   load: () => Promise.reject(new Error("load failed")),
   commit: (id, seq, write) => inner.commit(id, seq, write),
+  ratings: (players) => inner.ratings(players),
 });
 
 /** One reply of every kind of refusal, for a new match, with each request sent. */

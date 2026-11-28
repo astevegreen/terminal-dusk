@@ -63,6 +63,37 @@ const DOORS: Door[] = [
   },
 ];
 
+/**
+ * Ranked words in files that only rate a ranked match once it has finished (#679): they join or create nothing, so
+ * no door covers them. Each marker is exact, so a new ranked word in one of these files, or a new file, still fails.
+ * When #681 adds the ranked door, the file that joins a ranked match goes in that door's `covers`, not here.
+ */
+const RATES_A_FINISH = "rates a finished ranked match; joins or creates nothing (#679)";
+const RANKED_RESULTS: { marker: string; reason: string }[] = [
+  { marker: "src/matchRow.ts: ranked or matchmaking code (ranked)", reason: `copies match.ranked; ${RATES_A_FINISH}` },
+  {
+    marker: "src/ratings.ts: ranked or matchmaking code (RANKED_RULESETS, ranked, ranked_games)",
+    reason: `decides whether a finish is rated; ${RATES_A_FINISH}`,
+  },
+  {
+    marker: "src/rows.ts: ranked or matchmaking code (ranked)",
+    reason: `the match row's ranked column; ${RATES_A_FINISH}`,
+  },
+  {
+    marker: "src/store.ts: ranked or matchmaking code (ranked_games)",
+    reason: `the in-memory store checks a rating row's count; ${RATES_A_FINISH}`,
+  },
+  {
+    marker: "src/supabaseStore.ts: ranked or matchmaking code (ranked, ranked_games)",
+    reason: `loads match.ranked and reads rating rows; ${RATES_A_FINISH}`,
+  },
+  {
+    marker: "supabase/migrations/20261102000000_rating.sql: ranked or matchmaking code (ranked, ranked_games)",
+    reason: `the rating table and commit_match's rating writes; ${RATES_A_FINISH}`,
+  },
+];
+const fileOf = (marker: string): string => marker.slice(0, marker.indexOf(": "));
+
 /** The server's own code and SQL, as text. Tests and test helpers are not server paths. */
 function serverSources(): Sources {
   const files = import.meta.glob(["./**/*.ts", "../supabase/functions/**/*.ts", "../supabase/**/*.sql"], {
@@ -97,7 +128,15 @@ describe("audit: every server path to an online match has an entitlement check",
   });
 
   it("every ranked-join path is behind a ranked door (there is none until #681)", () => {
-    expect(found.filter(isRankedMarker)).toEqual(covered("ranked"));
+    const listed = [...covered("ranked"), ...RANKED_RESULTS.map((result) => result.marker)].sort();
+    expect(found.filter(isRankedMarker)).toEqual(listed);
+  });
+
+  it("no file listed as only rating a finish makes, opens or joins a match", () => {
+    const listed = new Set(RANKED_RESULTS.map((result) => fileOf(result.marker)));
+    const makers = found.filter((marker) => !isRankedMarker(marker));
+    expect(makers.filter((marker) => listed.has(fileOf(marker)))).toEqual([]);
+    expect(makers.filter((marker) => marker.startsWith("sql: function commit_match"))).toEqual([]);
   });
 
   for (const door of DOORS) {
@@ -188,14 +227,24 @@ describe("audit: the finder reports a new path that nothing covers", () => {
     ]);
   });
 
+  it("names every ranked word in a file, so a new one changes the marker", () => {
+    const rating = "export const rated = (after) => after.ranked === true;";
+    expect(findMatchMakers({ "src/rate.ts": rating })).toEqual(["src/rate.ts: ranked or matchmaking code (ranked)"]);
+    const joining = `${rating}
+export const join = () => joinRankedQueue();`;
+    expect(findMatchMakers({ "src/rate.ts": joining })).toEqual([
+      "src/rate.ts: ranked or matchmaking code (joinRankedQueue, ranked)",
+    ]);
+  });
+
   it("ranked or matchmaking code, in TypeScript or SQL", () => {
     const sources = {
       "src/seek.ts": "export const seek = () => 1;",
       "supabase/migrations/queue.sql": "create table public.ranked_queue (player uuid);",
     };
     expect(findMatchMakers(sources)).toEqual([
-      "src/seek.ts: ranked or matchmaking code",
-      "supabase/migrations/queue.sql: ranked or matchmaking code",
+      "src/seek.ts: ranked or matchmaking code (seek)",
+      "supabase/migrations/queue.sql: ranked or matchmaking code (ranked_queue)",
     ]);
   });
 

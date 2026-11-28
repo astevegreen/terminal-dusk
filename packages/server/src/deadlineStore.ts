@@ -1,7 +1,7 @@
 // The storage port behind the deadline sweep (docs/architecture.md, Decision 5, "Scheduled jobs").
 // MemoryStore and SupabaseStore implement it.
 import type { MatchRecord } from "@terminal-dusk/host";
-import type { CommitResult } from "./store.ts";
+import type { SaveResult } from "./store.ts";
 
 /** What the deadline sweep needs from storage, alongside `MatchStore`. */
 export interface DeadlineStore {
@@ -14,7 +14,7 @@ export interface DeadlineStore {
    * Replaces only the match record (and its `match` row) when the stored seq still equals `expectedSeq`.
    * It writes no frames and no event rows: a grace extension does not move the game on.
    */
-  saveClock(matchId: string, expectedSeq: number, record: MatchRecord): Promise<CommitResult>;
+  saveClock(matchId: string, expectedSeq: number, record: MatchRecord): Promise<SaveResult>;
 }
 
 /** The earliest deadline of an active match with a clock, or `null` when it has none. */

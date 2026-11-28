@@ -119,10 +119,15 @@ describe("submit keeps alerts after a saved move only", () => {
     const notify = recordingNotify(world.notify, calls);
     const deps = { ...world.submitDeps, notify };
     const body = bodyFor(0, world.start.secret, first.side);
-    const conflicting: MatchStore = { load: (id) => world.store.load(id), commit: async () => "conflict" };
+    const conflicting: MatchStore = {
+      load: (id) => world.store.load(id),
+      commit: async () => "conflict",
+      ratings: (players) => world.store.ratings(players),
+    };
     const failing: MatchStore = {
       load: (id) => world.store.load(id),
       commit: () => Promise.reject(new Error("db down")),
+      ratings: (players) => world.store.ratings(players),
     };
     const refusals = [
       await submit(deps, { matchId: MATCH, player: first.player, body: {}, now: NOW }),

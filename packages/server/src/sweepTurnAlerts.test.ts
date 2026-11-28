@@ -122,6 +122,7 @@ describe("sweepTurnAlerts: failures are retried on the next sweep", () => {
     const flaky: MatchStore = {
       load: (id) => (failures-- > 0 ? Promise.reject(new Error("db down")) : world.store.load(id)),
       commit: (id, seq, write) => world.store.commit(id, seq, write),
+      ratings: (players) => world.store.ratings(players),
     };
     const deps = { ...world.deps, store: flaky };
     expect(await sweepTurnAlerts(deps, NOW + D)).toEqual(results(world.waiting, "failed"));

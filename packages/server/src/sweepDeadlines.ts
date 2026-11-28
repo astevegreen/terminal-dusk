@@ -4,7 +4,8 @@
 import type { Ruleset, RulesetId } from "@terminal-dusk/engine";
 import { hostDeadline } from "@terminal-dusk/host";
 import type { DeadlineStore } from "./deadlineStore.ts";
-import type { CommitResult, LoadedMatch, MatchStore, MatchWrite } from "./store.ts";
+import { commitStep } from "./finalize.ts";
+import type { LoadedMatch, MatchStore, MatchWrite, SaveResult } from "./store.ts";
 
 /**
  * One due match's outcome. `extended`: a grace extension was saved. `timedOut`: the deadline step that was saved
@@ -53,8 +54,8 @@ async function sweepOne(
   const write: MatchWrite = { record: result.value.record, secret: result.value.secret, frames: result.value.frames };
   // An extension keeps the seq (the game has not moved on); a loss or draw on time or a stand-in is an accepted step.
   const extended = write.record.seq === record.seq;
-  const saved = await attempt<CommitResult>(() =>
-    extended ? store.saveClock(matchId, record.seq, write.record) : store.commit(matchId, record.seq, write),
+  const saved = await attempt<SaveResult>(() =>
+    extended ? store.saveClock(matchId, record.seq, write.record) : commitStep(store, record, write, now),
   );
   if (!saved.ok) return skip("storageFailed");
   if (saved.value === "conflict") return { matchId, status: "conflict" };

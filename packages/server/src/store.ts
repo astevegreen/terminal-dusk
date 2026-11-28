@@ -1,22 +1,38 @@
 // The storage port behind `submit` (docs/architecture.md, Decision 5), and an in-memory store for tests.
 // The secret is passed through unopened: server code never looks inside the game state.
 import type { Viewer } from "@terminal-dusk/engine";
-import type { Frame, MatchRecord, MatchSecret } from "@terminal-dusk/host";
+import type { Frame, MatchRecord, MatchSecret, PlayerId } from "@terminal-dusk/host";
 import type { DeadlineStore } from "./deadlineStore.ts";
 import { dueIds } from "./deadlineStore.ts";
 import { later } from "./later.ts";
 import { matchRowFor } from "./matchRow.ts";
+import type { RatingRow, RatingWrite } from "./ratings.ts";
 import type { ReadStore, StoredRows } from "./read.ts";
 import { rowsFor } from "./rows.ts";
 
 /** What `load` gives: the readable record and the server-only secret. */
 export type LoadedMatch = { record: MatchRecord; secret: MatchSecret };
 
-/** What `commit` saves, all together: the new record, the new secret and each viewer's latest frame. */
-export type MatchWrite = { record: MatchRecord; secret: MatchSecret; frames: Record<Viewer, Frame> };
+/**
+ * What `commit` saves, all together: the new record, the new secret and each viewer's latest frame, and, for the
+ * step that finishes a ranked game (#679), both players' new rating rows (finalize.ts).
+ */
+export type MatchWrite = {
+  record: MatchRecord;
+  secret: MatchSecret;
+  frames: Record<Viewer, Frame>;
+  ratings?: RatingWrite[];
+};
 
-/** `saved`: all three were written. `conflict`: the stored seq had moved on, so nothing was written. */
-export type CommitResult = "saved" | "conflict";
+/**
+ * `saved`: everything was written. `conflict`: the stored seq had moved on, so nothing was written.
+ * `ratingsMoved`: the seq matched, but a player's stored ranked-game count was no longer the write's `expected`
+ * (another finish rated them first), so nothing was written; finalize.ts reads the ratings again and retries.
+ */
+export type CommitResult = SaveResult | "ratingsMoved";
+
+/** What a save without ratings can answer: `saved` or `conflict`, as for `commit`. */
+export type SaveResult = "saved" | "conflict";
 
 /** Where matches live. The Supabase adapter (a later task) and the in-memory store both implement it. */
 export interface MatchStore {
@@ -24,6 +40,8 @@ export interface MatchStore {
   load(matchId: string): Promise<LoadedMatch | null>;
   /** Saves `write` only when the stored `record.seq` still equals `expectedSeq` (`where seq = expectedSeq`). */
   commit(matchId: string, expectedSeq: number, write: MatchWrite): Promise<CommitResult>;
+  /** The stored rating rows of these players; a player with no row (unrated) has none in the answer. */
+  ratings(players: readonly PlayerId[]): Promise<RatingRow[]>;
 }
 
 const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
@@ -32,11 +50,12 @@ const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
  * A `MatchStore` held in memory. It keeps copies, so callers cannot change what is stored by accident.
  * Alongside each match it keeps the readable rows (rows.ts): every write replaces the `match` row and
  * the three `match_view` rows, and adds three `match_event` rows. `saveClock` replaces only the record
- * and the `match` row.
+ * and the `match` row. It keeps the `rating` rows too, by player.
  */
 export class MemoryStore implements MatchStore, ReadStore, DeadlineStore {
   readonly #matches = new Map<string, MatchWrite>();
   readonly #rows = new Map<string, StoredRows>();
+  readonly #ratings = new Map<PlayerId, RatingRow>();
 
   /** Puts in a match just made by `hostCreate` (seq 0), with its seq 0 rows. Creating through the port is a later task. */
   insert(matchId: string, write: MatchWrite): void {
@@ -62,11 +81,26 @@ export class MemoryStore implements MatchStore, ReadStore, DeadlineStore {
       const found = this.#matches.get(matchId);
       const rows = this.#rows.get(matchId);
       if (!found || !rows || found.record.seq !== expectedSeq) return "conflict";
+      const ratings = write.ratings ?? [];
+      if (ratings.some(({ expected, row }) => (this.#ratings.get(row.player)?.ranked_games ?? 0) !== expected))
+        return "ratingsMoved";
+      for (const { row } of ratings) this.#ratings.set(row.player, copy(row));
       const next = rowsFor(write);
-      this.#matches.set(matchId, copy(write));
+      this.#matches.set(matchId, copy({ record: write.record, secret: write.secret, frames: write.frames }));
       this.#rows.set(matchId, { match: next.match, views: next.views, events: [...rows.events, ...next.events] });
       return "saved";
     });
+  }
+
+  ratings(players: readonly PlayerId[]): Promise<RatingRow[]> {
+    return later(() =>
+      players.flatMap((player) => (this.#ratings.has(player) ? [copy(this.#ratings.get(player)!)] : [])),
+    );
+  }
+
+  /** Puts in a rating row as if an earlier ranked game had written it. For tests. */
+  putRating(row: RatingRow): void {
+    this.#ratings.set(row.player, copy(row));
   }
 
   due(now: number): Promise<string[]> {
@@ -78,8 +112,8 @@ export class MemoryStore implements MatchStore, ReadStore, DeadlineStore {
     );
   }
 
-  saveClock(matchId: string, expectedSeq: number, record: MatchRecord): Promise<CommitResult> {
-    return later((): CommitResult => {
+  saveClock(matchId: string, expectedSeq: number, record: MatchRecord): Promise<SaveResult> {
+    return later((): SaveResult => {
       const found = this.#matches.get(matchId);
       const rows = this.#rows.get(matchId);
       if (!found || !rows || found.record.seq !== expectedSeq) return "conflict";

@@ -22,6 +22,7 @@ export function recordingStore(inner: MatchStore, calls: string[]): MatchStore {
       calls.push("commit");
       return inner.commit(id, seq, write);
     },
+    ratings: (players) => inner.ratings(players),
   };
 }
 

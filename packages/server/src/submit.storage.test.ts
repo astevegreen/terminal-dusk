@@ -46,6 +46,7 @@ describe("submit: a storage failure gives storageFailed and never throws", () =>
     return {
       load: part === "load" ? (fail as () => Promise<LoadedMatch | null>) : (id) => inner.load(id),
       commit: part === "commit" ? (fail as MatchStore["commit"]) : (id, seq, write) => inner.commit(id, seq, write),
+      ratings: (players) => inner.ratings(players),
     };
   };
 

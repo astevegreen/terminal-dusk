@@ -6,6 +6,7 @@ import type { MatchStore, MatchWrite } from "../../store.ts";
 import { bodyFor, nextSide } from "../match.ts";
 import { answered } from "../stackGame.ts";
 import { writeOf } from "../stack.ts";
+import { matchStoreRatingContract } from "./matchStoreRatings.ts";
 
 /** What one contract test works with; `setup` gives a fresh one at the start of each test. */
 export type MatchStoreHarness = {
@@ -14,6 +15,8 @@ export type MatchStoreHarness = {
   fresh(): HostResult;
   /** Puts in a game at seq 0, as a new match is stored outside `commit`. */
   putIn(write: MatchWrite): Promise<void>;
+  /** Removes these players' rating rows, after a rating test. */
+  forgetRatings(players: readonly string[]): Promise<void>;
 };
 
 /** The host's result for the next answer to `start`. */
@@ -22,16 +25,16 @@ const step = (start: HostResult): HostResult => {
   return answered(start, start.record.players[side], bodyFor(start.record.seq, start.secret, side));
 };
 
+/** A game put in at seq 0, and the write of its next step. */
+async function stored(h: MatchStoreHarness) {
+  const start = h.fresh();
+  await h.putIn(writeOf(start));
+  const next = step(start);
+  return { start, matchId: start.record.matchId, next: writeOf(next), after: next };
+}
+
 /** Registers the MatchStore contract tests; call it inside a `describe`. */
 export function matchStoreContract(setup: () => MatchStoreHarness, timeout?: number): void {
-  /** A game put in at seq 0, and the write of its next step. */
-  async function stored(h: MatchStoreHarness) {
-    const start = h.fresh();
-    await h.putIn(writeOf(start));
-    const next = step(start);
-    return { start, matchId: start.record.matchId, next: writeOf(next), after: next };
-  }
-
   it(
     "load gives null for a match that does not exist",
     async () => {
@@ -109,4 +112,6 @@ export function matchStoreContract(setup: () => MatchStoreHarness, timeout?: num
     },
     timeout,
   );
+
+  matchStoreRatingContract(setup, timeout);
 }

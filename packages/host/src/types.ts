@@ -63,6 +63,8 @@ export type MatchRecord = {
   updatedAt: number;
   /** Present exactly when the match was set up with a deadline. */
   clock?: MatchClock;
+  /** Present, and true, only for a ranked match (#679): its finish updates both players' ratings. Never changes. */
+  ranked?: true;
 };
 
 /** What only the host may read (the `match_secret` table). `log` holds the answers, oldest first. */

@@ -32,7 +32,8 @@ const fetchFn = (
 
 /**
  * What the tests seed: a full match between two players, a spare bare match, an invite, an alert, an entitlement,
- * a gift code, a wrong gift code guess, and a refunded and an unmatched receipt under `receipt`.
+ * a gift code, a wrong gift code guess, a refunded and an unmatched receipt under `receipt`, and the LIO player's
+ * rating.
  */
 type Seeded = { matchId: string; spareId: string; code: string; player: string; giftHash: string; receipt: string };
 
@@ -135,6 +136,13 @@ const CATALOGUE: Record<string, Entry> = {
     fresh: (row) => ({ ...row, receipt_ref: freshId() }),
     touch: (row) => ({ reversed_at: Number(row.reversed_at) + 1 }),
   },
+  rating: {
+    scope: (s) => ["player", s.player],
+    public: () => true,
+    player: () => true,
+    fresh: (row) => ({ ...row, player: freshId() }),
+    touch: (row) => ({ rating: Number(row.rating) + 1 }),
+  },
   checkout_unmatched: {
     scope: byReceipt,
     public: nobody,
@@ -227,6 +235,20 @@ await onLocalStack("row-level security across every table on the local Supabase 
     await insert("entitlement_refund", { ...receipt, refunded_at: NOW });
     await insert("entitlement_chargeback", { ...receipt, charged_back_at: NOW });
     await insert("checkout_unmatched", { ...receipt, reason: "noPlayerId", created_at: NOW });
+    await insert("rating", {
+      player: lio!.id,
+      rating: 1662.31,
+      deviation: 290.32,
+      volatility: 0.06,
+      ranked_games: 1,
+      lio_wins: 1,
+      lio_losses: 0,
+      lio_draws: 0,
+      sae_wins: 0,
+      sae_losses: 0,
+      sae_draws: 0,
+      updated_at: NOW,
+    });
   }, 60_000);
 
   afterAll(async () => {
@@ -236,6 +258,7 @@ await onLocalStack("row-level security across every table on the local Supabase 
       await service.from("entitlement").delete().eq("player", seeded.player);
       await service.from("gift_code").delete().eq("code_hash", seeded.giftHash);
       await service.from("gift_code_attempt").delete().eq("player", seeded.player);
+      await service.from("rating").delete().eq("player", seeded.player);
       for (const table of ["entitlement_refund", "entitlement_chargeback", "checkout_unmatched"])
         await service.from(table).delete().eq("receipt_ref", seeded.receipt);
     }

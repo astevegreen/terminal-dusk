@@ -19,7 +19,7 @@ function fakeClient(answer: Answer | "throws") {
     if (answer === "throws") throw new Error(`fetch failed with key ${FAKE_KEY}`);
     return answer;
   };
-  const query = { select: () => query, eq: () => query, maybeSingle: reply };
+  const query = { select: () => query, eq: () => query, in: () => reply(), maybeSingle: reply };
   const db = {
     from: () => query,
     rpc: (fn: string, args: Record<string, unknown>) => {
@@ -66,6 +66,36 @@ describe("SupabaseStore.load", () => {
   });
 });
 
+const RATING_ROW = {
+  player: "alice",
+  rating: 1662.3,
+  deviation: 290.2,
+  volatility: 0.06,
+  ranked_games: 1,
+  lio_wins: 1,
+  lio_losses: 0,
+  lio_draws: 0,
+  sae_wins: 0,
+  sae_losses: 0,
+  sae_draws: 0,
+  updated_at: 1,
+};
+
+describe("SupabaseStore.ratings", () => {
+  it("gives the rating rows the database answers", async () => {
+    const store = new SupabaseStore(fakeClient({ data: [RATING_ROW], error: null }).db);
+    expect(await store.ratings(["alice", "bob"])).toEqual([RATING_ROW]);
+  });
+
+  it("rejects a database error, or no answer, without the key", async () => {
+    for (const answer of [quoting, "throws"] as const) {
+      const error = await thrown(() => new SupabaseStore(fakeClient(answer).db).ratings(["alice"]));
+      expect(shown(error)).not.toContain(FAKE_KEY);
+      expect(error).toMatchObject({ name: "StorageError" });
+    }
+  });
+});
+
 describe("SupabaseStore.commit", () => {
   it("sends O2's rows and the secret to commit_match with the expected seq", async () => {
     const { db, calls } = fakeClient({ data: "saved", error: null });
@@ -81,6 +111,7 @@ describe("SupabaseStore.commit", () => {
           p_secret: start.secret,
           p_views: rows.views,
           p_events: rows.events,
+          p_ratings: null,
         },
       },
     ]);
@@ -89,6 +120,13 @@ describe("SupabaseStore.commit", () => {
   it("gives conflict when the SQL function reports one", async () => {
     const store = new SupabaseStore(fakeClient({ data: "conflict", error: null }).db);
     expect(await store.commit(MATCH, 0, write)).toBe("conflict");
+  });
+
+  it("sends a finish's ratings with it, and passes on a ratingsMoved answer", async () => {
+    const ratings = [{ expected: 0, row: RATING_ROW }];
+    const { db, calls } = fakeClient({ data: "ratingsMoved", error: null });
+    expect(await new SupabaseStore(db).commit(MATCH, 0, { ...write, ratings })).toBe("ratingsMoved");
+    expect(calls[0]?.args.p_ratings).toEqual(ratings);
   });
 
   it("rejects an answer that is neither saved nor conflict", async () => {
