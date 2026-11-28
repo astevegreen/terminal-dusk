@@ -54,7 +54,8 @@ const PINNED = { weekly: "Gemini weekly audit", narrative: "How the code is orga
 const argv = process.argv.slice(2);
 const DRY = argv.includes("--dry-run");
 const at = argv.indexOf("--asked");
-const ASKED = at >= 0 ? argv[at + 1] : undefined;
+// The words after --asked; another flag there is no words, and the usage error says so.
+const ASKED = at >= 0 && !String(argv[at + 1] ?? "").startsWith("--") ? argv[at + 1] : undefined;
 const [mode, ...numbers] = argv.filter((a, k) => a !== "--dry-run" && (at < 0 || (k !== at && k !== at + 1)));
 // Made on first use, so importing this file (the tests do) leaves nothing behind.
 let tmp;
@@ -244,7 +245,9 @@ function plan(pr, diff, prior, ghArgs) {
   const part = { diff: delta.diff, stats: diffStats(delta.diff), hits: railHits(delta.diff) };
   const next = carryOver(prior, part.stats, { deep: deep(part.stats), rails: part.hits.length > 0 });
   if (next.mode === "carry") return { mode: "carry", verdict: merged(sha, next.why, { from: prior.sha }) };
-  if (next.mode === "delta") return { ...part, mode: "delta", preamble: `${deltaPreamble(prior)}\n` };
+  // A delta that touches a rail gets the whole pull request, so the rail question sees every rail edit together.
+  if (next.mode === "delta" && !part.hits.length)
+    return { ...part, mode: "delta", preamble: `${deltaPreamble(prior)}\n` };
   return whole;
 }
 
@@ -253,7 +256,10 @@ function plan(pr, diff, prior, ghArgs) {
 // retry. It never goes to the Gemini API, which sees only the diff and the rules files: rails wait for agy (owner,
 // 7 Nov: "Rails wait for the PC"). { ok: true, ...answer } or { ok: false, error, seconds, tokens }.
 function askOnce(ask, material, what, hits) {
-  const opts = hits.length ? { also: "rail-audit", order: "rail", api: NO_API } : undefined;
+  // The rail files make it a deep review, so the by-line says so.
+  const opts = hits.length
+    ? { also: "rail-audit", order: "rail", api: NO_API, deepPaths: hits.map((h) => h.file) }
+    : undefined;
   try {
     return { ok: true, ...ask("pr-audit", material, what, opts) };
   } catch (err) {
@@ -291,7 +297,8 @@ export function auditPr(number, io = IO, { asked = ASKED } = {}) {
   const finish = (verdict, mode, answer, parts, rails = []) => {
     io.post("pr", pr.number, [verdictMarker(verdict), ...parts].join("\n\n"));
     const line = ledgerLine(pr.number, pr.headRefOid, mode, verdict.verdict, answer);
-    ledger.append(verdict.from ? { ...line, from: verdict.from } : line);
+    // A dry run posts nothing, so it records nothing either: a later review must not build on it.
+    if (!DRY) ledger.append(verdict.from ? { ...line, from: verdict.from } : line);
     return { pr: pr.number, ...verdict, rails };
   };
   const prior = marked

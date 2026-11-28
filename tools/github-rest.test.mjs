@@ -12,6 +12,7 @@ import {
   issue,
   openIssues,
   openPullRequests,
+  deltaSince,
   pullRequest,
   removeLabelArgs,
   reviewRequestArgs,
@@ -44,6 +45,26 @@ test("a branch in another repository, or in a deleted fork, is a fork's: it fail
     assert.equal(p.isCrossRepository, true, JSON.stringify(head));
     assert.equal(fromFork(p), true);
   }
+});
+
+test("deltaSince reads a head that only adds commits as a diff; a merge, a rebase or a missing commit is null", () => {
+  const answers = (shape) => {
+    const calls = [];
+    const gh = (args) => {
+      calls.push(args);
+      if (shape instanceof Error) throw shape;
+      return args[2] === "--jq" ? JSON.stringify(shape) : "diff --git a/x b/x\n";
+    };
+    return { gh, calls };
+  };
+  const ok = answers({ status: "ahead", merges: 0 });
+  assert.deepEqual(deltaSince(ok.gh, "aaa", "bbb"), { diff: "diff --git a/x b/x\n" });
+  assert.equal(ok.calls[0][1], "repos/{owner}/{repo}/compare/aaa...bbb");
+  assert.match(ok.calls[0][3], /select\(\(\.parents \| length\) > 1\)/);
+  assert.deepEqual(ok.calls[1].slice(2), ["-H", "Accept: application/vnd.github.diff"]);
+  assert.equal(deltaSince(answers({ status: "ahead", merges: 1 }).gh, "a", "b"), null);
+  assert.equal(deltaSince(answers({ status: "diverged", merges: 0 }).gh, "a", "b"), null);
+  assert.equal(deltaSince(answers(new Error("HTTP 404")).gh, "a", "b"), null);
 });
 
 test("pullRequest names the pull request's author, for the audit's Dependabot skip", () => {

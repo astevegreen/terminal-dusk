@@ -68,8 +68,8 @@ By day, after opening a pull request, nothing waits for the owner's review: CI, 
    for CI and Sonar (`node tools/sonar.mjs <pr>`), then fix everything CI, Sonar and the reviewer found in one push.
 2. Last, once: `node tools/gemini-audit.mjs pr <n>` (agy's second look; on a diff that touches hooks, gates, git
    hooks, workflows, `.claude/settings*.json`, CODEOWNERS, the audit, GEMINI.md or the root `package.json`, the same
-   call asks whether it loosens a check). When the owner asked for a loosening in their own words, add
-   `--asked "<their words>"`. Verdict `fix`: fix its [blocker]s in one push and run it again; it then reads only the
+   call asks whether it loosens a check). When the owner asked for a loosening in their own words, in chat, add
+   `--asked "<their words>"`, and still comment `Owner's yes:` and add the `Requested:` trailer as in step 4. Verdict `fix`: fix its [blocker]s in one push and run it again; it then reads only the
    changes since. It skips docs-, test- and lockfile-only, Dependabot and small changes off the high-risk paths and
    rails, and carries a `merge` over a small fix push; the reviewer, CI and Sonar still decide those.
 3. `merge`, and no reviewer [blocker] left: `gh pr ready <n>` and `gh pr merge <n> --auto --squash`. [minor]

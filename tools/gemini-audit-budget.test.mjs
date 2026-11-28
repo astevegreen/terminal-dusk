@@ -107,7 +107,7 @@ test("a carried-over merge builds on the commit agy read, so carry-overs never a
   assert.deepEqual(calls.ledger.at(-1).mode, "delta");
 });
 
-test("after a fix, or a delta past the limit or on a rail, agy reads only the delta, told the earlier verdict", () => {
+test("after a fix, or a delta past the limit, agy reads only the delta, told the earlier verdict; on a rail, all of it", () => {
   const { io, calls } = fake({
     comments: [marked(ME, { verdict: "fix", blockers: ["a.ts:1 wrong"] }, "aaa111")],
     ledger: [recorded("aaa111", "fix")],
@@ -121,12 +121,28 @@ test("after a fix, or a delta past the limit or on a rail, agy reads only the de
   assert.doesNotMatch(material, /packages\/app\/src\/x\.ts/, "the whole pull request is not sent again");
   assert.match(calls.post[0].body, /changes since aaa111/);
   const rail = fake({
+    diff: diffOf("packages/app/src/x.ts") + diffOf("tools/git-hooks/pre-push", 2),
     comments: [marked(ME, { verdict: "merge" }, "aaa111")],
     ledger: [recorded("aaa111", "merge")],
     compare: { aaa111: { diff: diffOf("tools/git-hooks/pre-push", 2) } },
   });
   auditPr(7, rail.io);
   assert.equal(rail.calls.ask[0].opts.also, "rail-audit", "a delta on a rail asks the rail question");
+  assert.equal(rail.calls.ledger.at(-1).mode, "full");
+});
+
+test("a delta that touches a rail gets the whole pull request, rail question included", () => {
+  const { io, calls } = fake({
+    diff: diffOf("packages/app/src/x.ts") + diffOf("tools/git-hooks/pre-push", 2),
+    comments: [marked(ME, { verdict: "fix" }, "aaa111")],
+    ledger: [recorded("aaa111", "fix")],
+    compare: { aaa111: { diff: diffOf("tools/git-hooks/pre-push", 2) } },
+  });
+  auditPr(7, io);
+  assert.equal(calls.ask[0].opts.also, "rail-audit");
+  assert.deepEqual(calls.ask[0].opts.deepPaths, ["tools/git-hooks/pre-push"]);
+  assert.doesNotMatch(calls.ask[0].material, /Earlier review/);
+  assert.equal(calls.ledger.at(-1).mode, "full");
 });
 
 test("a verdict marker the ledger never recorded is never built on: the whole pull request is reviewed", () => {
