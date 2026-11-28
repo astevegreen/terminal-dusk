@@ -75,7 +75,15 @@ function playLesson(lesson: Lesson, edition: TutorialEdition, seed: string): Out
     output = stepTutorial(runner, host.frames.lio);
   }
   expect(host.record.status.kind, "the game ends").toBe("over");
-  expect(output.coachingOver, "no coaching once the game is over").toBe(true);
+  // A free game ends at Era 1's scoring, so chapter 7's step shows on the final frame (owner, #701: "Show it at game
+  // end"). The coaching still ends in that frame, and nothing after it is limited.
+  expect(output.coachingOver, "the coaching ends once the game is over").toBe(true);
+  if (output.coaching !== null && output.chapter !== null) {
+    outcome.shown.add(`${output.chapter.id}/${output.runner.step}`);
+    outcome.lines.add(output.coaching);
+    // The step that showed there was the lesson's last, so the coaching ended with it, in the game's last frame.
+    outcome.coachingOverTurn ??= host.frames.lio.view.public.turn;
+  }
   outcome.finalTurn = host.frames.lio.view.public.turn;
   return outcome;
 }

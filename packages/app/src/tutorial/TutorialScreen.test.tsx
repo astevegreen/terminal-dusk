@@ -50,6 +50,13 @@ describe("the tutorial's coach corner", () => {
     expect(out).toContain(`<p class="coaching-text">${COACHING_OVER}</p>`);
     expect(out).not.toContain("coaching-chapter");
   });
+  it("shows the last chapter's words at the game's end when the final frame brought them (#701)", () => {
+    const last = coaching({ text: "Era 1 scores.", chapter: "Scoring", style: "coach", over: true });
+    const out = renderToString(<TutorialCoach lesson={placeholder} coaching={last} />);
+    expect(out).toContain('<h2 class="coaching-chapter">Scoring</h2>');
+    expect(out).toContain('<p class="coaching-text">Era 1 scores.</p>');
+    expect(out).not.toContain(COACHING_OVER);
+  });
 });
 
 describe("the tutorial session", () => {

@@ -62,6 +62,13 @@ function advance(r: TutorialRunner): TutorialRunner {
   return { ...r, active: false, filled: null, coachingOver: true };
 }
 
+/** `r` with its showing step ended when the step's `until` is in `frame`, or, with no `until`, after one frame. */
+function endShowing(r: TutorialRunner, frame: Frame): TutorialRunner {
+  if (!r.active) return r;
+  const until = r.lesson.chapters[r.chapter]!.steps[r.step]!.until;
+  return until === undefined || triggerMatches(until, frame) ? advance(r) : r;
+}
+
 const over = (r: TutorialRunner): TutorialOutput => ({
   runner: r.coachingOver ? r : { ...r, active: false, filled: null, aside: null, coachingOver: true },
   coaching: null,
@@ -71,6 +78,27 @@ const over = (r: TutorialRunner): TutorialOutput => ({
   allows: () => true,
   coachingOver: true,
 });
+
+/**
+ * The game's final frame. A free game ends at Era 1's scoring, so the scoring step's event arrives on the "over"
+ * frame; the owner chose to show it there ("Show it at game end", #701). As in any frame, a showing step ends when
+ * its `until` is in it; then the next step shows when its `when` is in it. The coaching ends in the same frame, so
+ * the line never limits an answer.
+ */
+function final(runner: TutorialRunner, frame: Frame): TutorialOutput {
+  const r = endShowing(runner, frame);
+  const ended = over(r);
+  if (r.coachingOver || r.active) return ended;
+  const chapter = r.lesson.chapters[r.chapter]!;
+  const step = chapter.steps[r.step]!;
+  if (!triggerMatches(step.when, frame)) return ended;
+  return {
+    ...ended,
+    coaching: fillLine(step, frame, r.ruleset).text,
+    chapter: { id: chapter.id, title: chapter.title },
+    style: step.style,
+  };
+}
 
 /** The last chapter a step has shown in: the current one once its first step has shown, else the one before. */
 const shownChapter = (r: TutorialRunner): number => (r.active || r.step > 0 ? r.chapter : r.chapter - 1);
@@ -93,12 +121,10 @@ function withAside(r: TutorialRunner, frame: Frame): TutorialRunner {
  */
 export function stepTutorial(runner: TutorialRunner, frame: Frame): TutorialOutput {
   let r = runner;
-  if (r.coachingOver || frame.view.public.status.kind !== "active") return over(r);
-  if (r.active) {
-    const until = r.lesson.chapters[r.chapter]!.steps[r.step]!.until;
-    if (until === undefined || triggerMatches(until, frame)) r = advance(r);
-    if (r.coachingOver) return over(r);
-  }
+  if (r.coachingOver) return over(r);
+  if (frame.view.public.status.kind !== "active") return final(r, frame);
+  r = endShowing(r, frame);
+  if (r.coachingOver) return over(r);
   const chapter = r.lesson.chapters[r.chapter]!;
   const step = chapter.steps[r.step]!;
   if (!r.active && triggerMatches(step.when, frame)) {
