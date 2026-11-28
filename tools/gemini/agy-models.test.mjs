@@ -2,6 +2,7 @@
 // (agy.mjs, LIGHT, HEAVY and ORDERS). The rest of agy.mjs is tested in agy.test.mjs.
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   CLAUDE,
   HEAVY,
@@ -11,6 +12,7 @@ import {
   claudeModel,
   lightModels,
   listModels,
+  newerFirst,
   parseModels,
   reviewModels,
   unsorted,
@@ -141,4 +143,11 @@ test("agy's Opus and Sonnet review too: a deep review starts on Opus, a standard
     null,
   );
   assert.deepEqual(asks("deep", AGY_MODELS.replace(/^claude-sonnet.*\n/gm, "")), [OPUS, HYDROGEN, FLASH]);
+});
+
+test("newerFirst orders versions number by number, newest first, with no locale", () => {
+  assert.deepEqual(["3.8", "10", "4", "4.5", "9"].sort(newerFirst), ["10", "9", "4.5", "4", "3.8"]);
+  assert.deepEqual(["5-5", "6", "5-10", "5"].sort(newerFirst), ["6", "5-10", "5-5", "5"]);
+  assert.equal(newerFirst("4", "4"), 0);
+  assert.ok(!/\.localeCompare\(/.test(readFileSync(new URL("./agy.mjs", import.meta.url), "utf8")));
 });

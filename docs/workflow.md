@@ -45,7 +45,7 @@ Each participant does the work it is cheapest and best at. Claude's models are s
 | **You**                                    | Game design decisions, approving specs, playing nightly builds, merging held pull requests, running playtests                        | Reading code line by line                                                       |
 | **Claude Opus 5.5** (interactive)          | Co-design sessions, turning decisions into task specs, the reviewer subagent, hard engine work                                       | Routine implementation                                                          |
 | **Claude Sonnet 5.5** (night shift)        | Implementing spec'd tasks with tests, fixing review findings, writing card data                                                      | Design decisions; changing a spec it disagrees with (it stops and asks instead) |
-| **Claude Haiku 5.5** (helper)              | Searching the codebase (a project `Explore` agent), small doc chores                                                                 | Writing game code                                                               |
+| **Claude Haiku 5.5** (helper)              | Finding where code lives (the project `scout` agent), small doc chores                                                               | Writing game code                                                               |
 | **Gemini** (Antigravity app and `agy` CLI) | Research briefs, adversarial audits of specs and pull requests, weekly repo audits, browser testing of the nightly build, idea lists | Editing source code; merging anything                                           |
 | **GitHub Actions**                         | Type checks, lint, boundary checks, tests, fuzzing, deploying the nightly preview                                                    | Anything that uses AI (keeps CI free of Claude usage)                           |
 
@@ -180,7 +180,7 @@ CLI-only traps:
 
 **Inside each task** (the `implement-issue` skill, which the implementer follows in either option)
 
-1. Read the issue and only the files it lists. Use the Haiku `Explore` agent if more searching is needed.
+1. Read the issue and only the files it lists. Use the Haiku `scout` agent ("where is X") or the Sonnet `Explore` agent ("how does X work") if more searching is needed.
 2. Write failing tests from the acceptance criteria first, then implement until they pass.
 3. The gate hook runs the full local gate and won't let the work finish while anything is red (details in Quality gates).
 4. A separate `reviewer` subagent (Opus, read-only, fresh context) compares the diff with the spec and the architecture rules, and returns pass or a list of concerns.
@@ -232,9 +232,10 @@ Max 5x has a 5-hour session limit and a weekly limit, shared across claude.ai, C
 | Night-shift implementation            | Sonnet 5.5 | medium                                      |
 | Engine-core tasks (`model:opus`)      | Opus 5.5   | medium                                      |
 | Reviewer subagent                     | Opus 5.5   | medium; it reads only the diff and the spec |
-| Codebase search (`Explore` override)  | Haiku 5.5  | low                                         |
+| "Where is X" search (`scout`)         | Haiku 5.5  | low                                         |
+| "How does X work" search (`Explore`)  | Sonnet 5.5 | default                                     |
 
-Claude Code's built-in `Explore` agent uses your main model. Defining a project agent also named `Explore` with `model: haiku` makes every search cheap.
+Claude Code's built-in `Explore` agent uses your main model. The project's `scout` (Haiku) answers "where is X" cheaply with `path:line` lines, and the project's `Explore` override (Sonnet) explains how something works, as in the owner's other repos.
 
 **Keep context lean**
 
@@ -365,7 +366,8 @@ GEMINI.md                     Gemini's read-only role
   settings.json               permissions, default model, hook wiring
   rules/                      engine, content, server, app and test rules, loaded by path
   agents/
-    Explore.md                Haiku, read-only: replaces the built-in search agent
+    Explore.md                Sonnet, read-only: "how does X work", replaces the built-in search agent
+    scout.md                  Haiku, read-only: "where is X", path:line answers
     implementer.md            Sonnet, own worktree, turn cap, gate and file-lock hooks
     reviewer.md               Opus, read-only: diff vs spec and architecture
   skills/

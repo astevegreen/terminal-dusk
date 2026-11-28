@@ -1,1 +1,3 @@
 * text=auto eol=lf
+# The git hooks run under sh, which a CRLF line ending breaks even on Windows.
+tools/git-hooks/** text eol=lf

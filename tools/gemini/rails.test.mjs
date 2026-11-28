@@ -192,3 +192,19 @@ test("the verdict marker round-trips, even with --> inside a finding", () => {
   assert.deepEqual(readVerdict(body), v);
   assert.equal(readVerdict("<!-- gemini-audit -->\nold audit, no verdict"), null);
 });
+
+test("renaming or copying a rail out of its folder is a rail change: the old path counts too", () => {
+  const rename = (from, to) =>
+    [`diff --git a/${from} b/${to}`, "similarity index 100%", `rename from ${from}`, `rename to ${to}`].join("\n");
+  assert.deepEqual(railHits(rename("tools/git-hooks/pre-push", "docs/pre-push")), [
+    { file: "tools/git-hooks/pre-push", what: "tools/git-hooks" },
+  ]);
+  assert.deepEqual(diffFiles(rename("tools/git-hooks/pre-push", "docs/pre-push")), [
+    { file: "docs/pre-push", from: "tools/git-hooks/pre-push", changed: [] },
+  ]);
+  const copy = rename("docs/x.md", ".github/workflows/x.yml").replaceAll("rename", "copy");
+  assert.equal(railHits(copy).length, 1, "a copy into a rail");
+  assert.deepEqual(railHits(rename("docs/a.md", "docs/b.md")), []);
+  const edited = diff("tools/hooks/gate.mjs", "+x").replace(" b/tools/hooks/", " b/docs/");
+  assert.equal(railHits(edited).length, 1, "the a/ path of the header alone");
+});

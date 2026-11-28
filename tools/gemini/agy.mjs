@@ -1,7 +1,8 @@
 // How the audits talk to agy: which model reviews what, what every prompt starts with, and how a reply is read.
 // Where agy is not installed (a cloud session), the Gemini models are asked through the Gemini API instead.
-// The same rules are in blockchain-technology-course/tools/agy.mjs and YODC/scripts/lib/agy.mjs: change all three.
-import { readFileSync, writeFileSync } from "node:fs";
+// The same rules are in four copies: this one (terminal-dusk/tools/gemini/agy.mjs), YODC/scripts/lib/agy.mjs,
+// blockchain-technology-course/tools/agy.mjs and flashcards (Korean) tools/gemini/agy.mjs: change all four.
+import { readFileSync, renameSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { geminiApi } from "./gemini-api.mjs";
@@ -26,7 +27,18 @@ export const HEAVY = ["argon", "carbon", "neon"];
 const family = (base) => base.replace(/^gemini-\d+(?:\.\d+)*-/, "");
 // A Gemini model at this effort, as agy lists it: gemini-<version>-<family>-<effort>.
 const LISTED = new RegExp(String.raw`^gemini-(\d+(?:\.\d+)*)-([a-z]+(?:-[a-z]+)*)-${EFFORT}$`);
-const newerFirst = (a, b) => b.localeCompare(a, "en", { numeric: true });
+// Versions ("3.8", "5-5") newest first, number by number, so "10" is newer than "9". No localeCompare: it differs by
+// locale; a tie on every number falls back to a code-unit comparison.
+export function newerFirst(a, b) {
+  const nums = (v) => String(v).split(/[.-]/).map(Number);
+  const [x, y] = [nums(a), nums(b)];
+  for (let i = 0; i < Math.max(x.length, y.length); i++) {
+    const d = (y[i] ?? -1) - (x[i] ?? -1);
+    if (d) return d;
+  }
+  if (a === b) return 0;
+  return a < b ? 1 : -1;
+}
 
 // The model ids in what `agy models` prints: one "<id><tab><name>" line per model.
 export const parseModels = (stdout) => [...(stdout ?? "").matchAll(/^(\S+)\t/gm)].map((m) => m[1]);
@@ -139,9 +151,12 @@ export function pickDepth({ kind, files = [], lines = 0 }, deepPaths = DEEP_PATH
   return { depth: "standard", why: `it changes ${lines} lines and touches none of the high-risk paths` };
 }
 
-// The files a unified diff changes, and how many lines it adds or removes.
+// The files a unified diff changes, and how many lines it adds or removes. A renamed file counts by both paths, so
+// moving a file out of a high-risk path is still a change to that path.
 export function diffStats(diff) {
-  const files = [...diff.matchAll(/^diff --git a\/.+? b\/(.+)$/gm)].map((m) => m[1]);
+  const files = [...diff.matchAll(/^diff --git a\/(.+?) b\/(.+)$/gm)].flatMap((m) =>
+    m[1] === m[2] ? [m[2]] : [m[1], m[2]],
+  );
   const lines = diff.split("\n").filter((l) => /^[+-]/.test(l) && !/^(\+\+\+|---) /.test(l)).length;
   return { files, lines };
 }
@@ -270,8 +285,11 @@ export function quotaFile(file = QUOTA_FILE) {
       return t > now ? new Date(t) : null;
     },
     markOut(model, until) {
+      // The whole file, then a rename: several repos' reviews share it, so a reader never sees half of one.
+      const tmp = `${file}.${process.pid}.tmp`;
       try {
-        writeFileSync(file, JSON.stringify({ ...read(), [model]: until.toISOString() }, null, 2));
+        writeFileSync(tmp, JSON.stringify({ ...read(), [model]: until.toISOString() }, null, 2));
+        renameSync(tmp, file);
       } catch {
         // A review never fails because it could not write down a quota.
       }

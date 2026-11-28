@@ -266,6 +266,19 @@ test("close files the note in done/ with its reason, by full name or slug", () =
   assert.equal(list({ cwd: repo }).out, "no open handoff notes");
 });
 
+test("a saved name without .md resolves, and two notes under one slug name the verb to run", () => {
+  const repo = repoWithNotes();
+  saveDraft(repo, "card-draw");
+  saveDraft(repo, "card-draw", LATER);
+  const both = close("card-draw", "x", { cwd: repo });
+  assert.equal(both.code, 4);
+  assert.match(both.out, /2 open notes named card-draw; ask the owner which one, then run close <name>/);
+  assert.match(claim("card-draw", { cwd: repo }).out, /then run claim <name>/);
+  assert.equal(claim("2026-10-17-1405-card-draw", { cwd: repo }).code, 0);
+  assert.equal(close("2026-10-17-1530-card-draw", "done", { cwd: repo }).code, 0);
+  assert.equal(list({ cwd: repo }).out, "no open handoff notes");
+});
+
 test("close needs a reason, and a note already in done/ gives exit 3", () => {
   const repo = repoWithNotes();
   saveDraft(repo, "card-draw");

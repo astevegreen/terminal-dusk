@@ -30,24 +30,34 @@ export const RAILS = [
 const AGENT_OR_SKILL = /^\.claude\/(agents|skills)\/.+\.md$/;
 const WIRING = /^\s*(?:-\s*)?(?:hooks|matcher|command|tools|disallowedTools|permissionMode)\s*:/;
 
-// Each file a unified diff changes, with its added and removed lines (without the leading + or -).
+// Each file a unified diff changes, with its added and removed lines (without the leading + or -). A rename or copy
+// also carries `from`, the old path: from its `rename from` / `copy from` line, else the `a/` path of the header.
 export function diffFiles(diff) {
   const files = [];
-  for (const line of String(diff).split("\n")) {
-    const head = /^diff --git a\/.+? b\/(.+)$/.exec(line);
-    if (head) files.push({ file: head[1], changed: [] });
+  for (const raw of String(diff).split("\n")) {
+    const line = raw.replace(/\r$/, "");
+    const head = /^diff --git a\/(.+?) b\/(.+)$/.exec(line);
+    const moved = /^(?:rename|copy) from (.+)$/.exec(line);
+    if (head) {
+      const entry = { file: head[2], changed: [] };
+      if (head[1] !== head[2]) entry.from = head[1];
+      files.push(entry);
+    } else if (moved && files.length && !files.at(-1).changed.length) files.at(-1).from = moved[1];
     else if (files.length && /^[+-]/.test(line) && !/^(\+\+\+|---) /.test(line))
       files.at(-1).changed.push(line.slice(1));
   }
   return files;
 }
 
-// The rails a diff touches: [{ file, what }], empty when it touches none.
+// The rails a diff touches: [{ file, what }], empty when it touches none. Both sides of a rename count: moving a rail
+// out of its folder (tools/git-hooks/pre-push to docs/) removes it, so it is audited like any other change to it.
 export function railHits(diff) {
   const hits = [];
-  for (const { file, changed } of diffFiles(diff)) {
-    const rail = RAILS.find((r) => r.test(file));
-    if (rail) hits.push({ file, what: rail.what });
+  for (const { file, from, changed } of diffFiles(diff)) {
+    const hit = (from === undefined ? [file] : [from, file])
+      .map((p) => ({ file: p, rail: RAILS.find((r) => r.test(p)) }))
+      .find((h) => h.rail);
+    if (hit) hits.push({ file: hit.file, what: hit.rail.what });
     else if (AGENT_OR_SKILL.test(file) && changed.some((l) => WIRING.test(l)))
       hits.push({ file, what: "a hook or tool limit in an agent's or skill's front matter" });
   }

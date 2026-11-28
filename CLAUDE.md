@@ -32,7 +32,8 @@ The owner is not a programmer: explain every change in plain English, and prove 
 9. A new DecisionKind or EventKind needs its UI prompt or presentation entry. (type check)
 
 ## How to work
-- Read the task's "Read first" files. Use the Explore agent for anything else; don't read whole folders.
+- Read the task's "Read first" files. For anything else ask the `scout` agent "where is X" and the `Explore` agent
+  "how does X work"; don't read whole folders.
 - Write failing tests from the acceptance criteria first, then the code.
 - Keep files under about 350 lines; split by responsibility.
 - Stay inside the task's scope. By day, add other problems to `docs/follow-ups.md` instead of fixing them; in a

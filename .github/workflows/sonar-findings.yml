@@ -19,6 +19,13 @@ jobs:
     if: github.event.check_run.name == 'SonarCloud Code Analysis'
     runs-on: ubuntu-latest
     timeout-minutes: 3
+    # One mirror at a time per commit, so two SonarCloud results for one commit don't write its check at once. At
+    # job level and keyed by the check's name too: a workflow-level group would let the skipped runs of other
+    # checks on the same commit replace a queued SonarCloud run. A running mirror is never cancelled; a later
+    # result waits for it (GitHub keeps only the newest waiting run, which mirrors the same commit).
+    concurrency:
+      group: sonar-findings-${{ github.event.check_run.head_sha }}-${{ github.event.check_run.name }}
+      cancel-in-progress: false
     permissions:
       contents: read
       checks: write
