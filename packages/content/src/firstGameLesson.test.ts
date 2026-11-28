@@ -174,6 +174,9 @@ describe("its coaching lines", () => {
     slotted("rival-cards", 1, ["pointsBefore:e1-sae-008", "pointsAfter:e1-sae-008", "modifierTakesOff:e1-neu-001"]);
     slotted("intervene", 1, ["cardPoints:e1-lio-006"]);
     slotted("intervene", 2, ["cardPoints:e1-lio-006", "belowDraw:e1-lio-006"]);
+    slotted("escalation-realign", 0, ["cardPoints:e1-lio-002"]);
+    slotted("tech-race", 1, ["cardPoints:e1-sae-004", "eventPoints:e1-sae-004", "techRaceCost:lio"]);
+    slotted("tech-race", 2, ["cardPoints:e1-sae-004"]);
   });
 });
 
