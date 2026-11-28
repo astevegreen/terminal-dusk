@@ -6,6 +6,7 @@
 import { createClient } from "@supabase/supabase-js";
 import type { FetchRequest, MakeResponse } from "../../../src/edge.ts";
 import { secureInviteRandom } from "../../../src/inviteEdge.ts";
+import { SupabaseEntitlementStore } from "../../../src/supabaseEntitlementStore.ts";
 import { SupabaseNotifyStore } from "../../../src/supabaseNotifyStore.ts";
 import { SupabaseSeekStore } from "../../../src/supabaseSeekStore.ts";
 import { matchmakeFetchHandler } from "../../../src/sweepEdge.ts";
@@ -33,7 +34,13 @@ const { matchId, seed } = secureInviteRandom();
 runtime.Deno.serve(
   matchmakeFetchHandler(
     {
-      matchmake: { seeks: new SupabaseSeekStore(db), notify: new SupabaseNotifyStore(db), matchId, seed },
+      matchmake: {
+        seeks: new SupabaseSeekStore(db),
+        entitlements: new SupabaseEntitlementStore(db),
+        notify: new SupabaseNotifyStore(db),
+        matchId,
+        seed,
+      },
       serviceKey,
       now: () => Date.now(),
     },

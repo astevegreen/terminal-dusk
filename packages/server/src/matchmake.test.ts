@@ -1,4 +1,5 @@
 import type { Side } from "@terminal-dusk/engine";
+import type { Platform } from "@terminal-dusk/host";
 import { describe, expect, it } from "vitest";
 import { matchmake, createSeek, RANKED_LIMIT, seededFirstSide } from "./matchmake.ts";
 import type { MatchmakeDeps } from "./matchmake.ts";
@@ -25,14 +26,15 @@ function world(seedOf: (n: number) => string = (n) => `seed-${n}`) {
   let seed = 0;
   const deps: MatchmakeDeps = {
     seeks,
+    entitlements,
     notify,
     matchId: () => `m-${++match}`,
     seed: () => seedOf(++seed),
   };
-  const search = (player: string, now = T0, preset: RankedPreset = "normal", side?: Side) =>
+  const search = (player: string, now = T0, preset: RankedPreset = "normal", side?: Side, platform: Platform = "web") =>
     createSeek(
       { seeks, entitlements, matches, ticketId: () => `t-${++ticket}` },
-      { player, platform: "web", preset, side, now },
+      { player, platform, preset, side, now },
     );
   const rate = (player: string, rating: number) =>
     matches.putRating({
@@ -49,7 +51,7 @@ function world(seedOf: (n: number) => string = (n) => `seed-${n}`) {
       sae_draws: 0,
       updated_at: T0,
     });
-  return { matches, seeks, notify, deps, search, rate };
+  return { matches, seeks, notify, entitlements, deps, search, rate };
 }
 
 const statuses = (results: { status: string }[]) => results.map((r) => r.status);
@@ -122,6 +124,63 @@ describe("matchmaking", () => {
     const [a, b] = await Promise.all([matchmake(w.deps, T0), matchmake(w.deps, T0)]);
     expect(statuses([...a, ...b]).filter((s) => s === "paired")).toHaveLength(1);
     expect(statuses(await matchmake(w.deps, T0))).toEqual([]);
+  });
+
+  it("does not pair a ticket whose player lost the Full Game since searching (#687)", async () => {
+    const w = world();
+    await w.search("p1");
+    await w.search("p2");
+    await w.entitlements.revokeAll("p1");
+    expect(await matchmake(w.deps, T0)).toEqual([]);
+    expect(await w.seeks.open()).toHaveLength(2);
+    expect(w.matches.stored("m-1")).toBeNull();
+  });
+
+  it("does not pair a ticket whose player owns the Full Game only on another platform (#687 AC 3)", async () => {
+    const w = world();
+    await w.search("p1");
+    await w.search("p2");
+    // p1 searched on web, then lost the web copy; a steam copy must not stand in for it.
+    await w.entitlements.revokeAll("p1");
+    await w.entitlements.grant("p1", { platform: "steam", source: "test" });
+    expect(await matchmake(w.deps, T0)).toEqual([]);
+    expect(await w.seeks.open()).toHaveLength(2);
+    expect(w.matches.stored("m-1")).toBeNull();
+  });
+
+  it("pairs a ticket searched on steam by a player who owns it on steam (#687)", async () => {
+    const w = world();
+    await w.entitlements.grant("p1", { platform: "steam", source: "test" });
+    expect((await w.search("p1", T0, "normal", undefined, "steam")).ok).toBe(true);
+    await w.search("p2");
+    expect(statuses(await matchmake(w.deps, T0))).toEqual(["paired"]);
+  });
+
+  it("stores the platform on the ticket", async () => {
+    const w = world();
+    await w.entitlements.grant("p1", { platform: "ios", source: "test" });
+    await w.search("p1", T0, "normal", undefined, "ios");
+    expect((await w.seeks.open()).map((t) => t.platform)).toEqual(["ios"]);
+  });
+
+  it("pairs the tickets that are still entitled and leaves the one that is not (#687)", async () => {
+    const w = world();
+    await w.search("p1");
+    await w.search("p2");
+    await w.search("p3");
+    await w.entitlements.revokeAll("p1");
+    const results = await matchmake(w.deps, T0);
+    expect(statuses(results)).toEqual(["paired"]);
+    expect((await w.seeks.open()).map((t) => t.player)).toEqual(["p1"]);
+  });
+
+  it("leaves tickets alone when the entitlements cannot be read (#687)", async () => {
+    const w = world();
+    await w.search("p1");
+    await w.search("p2");
+    const broken = { forPlayer: () => Promise.reject(new Error("down")) };
+    expect(await matchmake({ ...w.deps, entitlements: broken }, T0)).toEqual([]);
+    expect(await w.seeks.open()).toHaveLength(2);
   });
 
   it("never pairs a player with their own ticket", async () => {
