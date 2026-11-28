@@ -14,6 +14,18 @@ export {
   PLATFORMS,
 } from "./entitlement.ts";
 export type { Entitlement, Platform } from "./entitlement.ts";
+export {
+  DEVIATION_CEILING,
+  DEVIATION_FLOOR,
+  displayRating,
+  isGlicko2Rating,
+  isProvisional,
+  PROVISIONAL_GAMES,
+  START_RATING,
+  TAU,
+  updateRating,
+} from "./glicko2.ts";
+export type { Glicko2Rating, RatedGame } from "./glicko2.ts";
 export type {
   DeadlineRule,
   Frame,

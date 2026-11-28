@@ -19,6 +19,7 @@
     "@terminal-dusk/content": "workspace:*"
   },
   "devDependencies": {
+    "fast-check": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }
