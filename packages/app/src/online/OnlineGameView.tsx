@@ -8,6 +8,8 @@ import { GameScreen } from "../game/GameScreen.tsx";
 import { deadlineDetail, deadlineText, turnText } from "./gameText.ts";
 import { LOBBY_REFUSAL } from "./lobbyText.ts";
 import type { OnlineGame, OnlineGameSnapshot } from "./onlineGame.ts";
+import { RATING_WORDS, ratingChangeText } from "./ratingText.ts";
+import type { RatingChange } from "./ratingText.ts";
 
 const TAP = { minHeight: 44, minWidth: 44 } as const;
 const BAR = { display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12 } as const;
@@ -26,6 +28,8 @@ export type OnlineGameViewProps = {
   /** A card's points for its chip in the hand strip; left out, the chips show names only. */
   points?: CardPoints | undefined;
   affiliation: CardAffiliation;
+  /** The rating change of a ranked game, shown once the game is over; left out, nothing about ratings shows. */
+  ratingChange?: RatingChange | undefined;
   /** Returns to the lobby, after the session is closed. */
   onBack: () => void;
 };
@@ -38,6 +42,7 @@ export function OnlineGameView({
   rules,
   points,
   affiliation,
+  ratingChange,
   onBack,
 }: Readonly<OnlineGameViewProps>) {
   const { frame, turn, deadline } = snapshot;
@@ -55,6 +60,12 @@ export function OnlineGameView({
       </button>
       <p role="status">{turnText(snapshot)}</p>
       {deadlineLine !== null && <p>{deadlineLine}</p>}
+      {turn === "over" && ratingChange?.kind === "changed" && (
+        <p data-testid="rating-change">Rating: {ratingChangeText(ratingChange)}</p>
+      )}
+      {turn === "over" && ratingChange?.kind === "waiting" && (
+        <p data-testid="rating-change">{RATING_WORDS.notUpdated}</p>
+      )}
       {snapshot.signedOut && <p role="alert">{LOBBY_REFUSAL.notSignedIn}</p>}
     </>
   );

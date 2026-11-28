@@ -8,6 +8,8 @@ import type { CardPoints, CardRules } from "../displayText.ts";
 import { createOnlineGame } from "./onlineGame.ts";
 import type { OnlineGame, OnlineGameOptions, OnlineGameSnapshot } from "./onlineGame.ts";
 import { OnlineGameView } from "./OnlineGameView.tsx";
+import { useRatingChange } from "./useRatingChange.ts";
+import type { RatingSource } from "./useRatingChange.ts";
 import type { SignIn } from "./signIn.ts";
 import type { Timers } from "./timers.ts";
 import type { AuthEndpoint } from "../transport/emailAuth.ts";
@@ -68,8 +70,14 @@ export function openGame(start: () => OnlineGame, show: (game: OnlineGame) => vo
 
 type ShownProps = { play: PlaySetup; onBack: () => void };
 
-export function Shown({ game, play, onBack }: Readonly<ShownProps & { game: OnlineGame }>) {
+export function Shown({
+  game,
+  play,
+  onBack,
+  ratings = null,
+}: Readonly<ShownProps & { game: OnlineGame; ratings?: RatingSource | null }>) {
   const snapshot = useSyncExternalStore(game.subscribe, game.getSnapshot, game.getSnapshot);
+  const ratingChange = useRatingChange(ratings, snapshot.turn === "over");
   return (
     <OnlineGameView
       snapshot={snapshot}
@@ -79,6 +87,7 @@ export function Shown({ game, play, onBack }: Readonly<ShownProps & { game: Onli
       rules={play.rules}
       points={play.points}
       affiliation={play.affiliation}
+      ratingChange={ratingChange}
       onBack={onBack}
     />
   );
@@ -95,6 +104,13 @@ export function OnlineGameFlow({ auth, signIn, playerId, matchId, play, onBack }
   // Made once per screen; the screen is keyed by the match id, so another game gets a fresh one.
   const [start] = useState(() => () => createOnlineGame(onlineGameOptions(auth, signIn, playerId, matchId, play)));
   const [game, setGame] = useState<OnlineGame | null>(null);
+  // One source per screen, so the rating reads run once, not on every draw.
+  const [ratings] = useState<RatingSource>(() => ({
+    endpoint: auth,
+    token: () => signIn.accessToken(),
+    playerId,
+    matchId,
+  }));
   useEffect(() => openGame(start, setGame), [start]);
   if (game === null)
     return (
@@ -109,5 +125,5 @@ export function OnlineGameFlow({ auth, signIn, playerId, matchId, play, onBack }
         onBack={onBack}
       />
     );
-  return <Shown game={game} play={play} onBack={onBack} />;
+  return <Shown game={game} play={play} onBack={onBack} ratings={ratings} />;
 }
