@@ -27,6 +27,7 @@ describe("MemoryStore keeps the MatchStore contract", () => {
       fresh: () => created(freshMatchId()),
       putIn: (write) => Promise.resolve(store.insert(write.record.matchId, write)),
       forgetRatings: () => Promise.resolve(),
+      changesOf: (matchId) => Promise.resolve(store.ratingChanges(matchId)),
     };
   });
 });

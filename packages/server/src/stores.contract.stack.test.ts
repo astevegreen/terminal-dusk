@@ -38,6 +38,18 @@ await onLocalStack("the Supabase stores keep the store contracts on the local Su
           .from("rating")
           .delete()
           .in("player", [...players]);
+        await stack.service
+          .from("rating_change")
+          .delete()
+          .in("player", [...players]);
+      },
+      changesOf: async (matchId) => {
+        const { data } = await stack.service
+          .from("rating_change")
+          .select("match_id, player, rating_before, rating_after, ranked_games, created_at")
+          .eq("match_id", matchId)
+          .order("player");
+        return data ?? [];
       },
     }),
     TIMEOUT,

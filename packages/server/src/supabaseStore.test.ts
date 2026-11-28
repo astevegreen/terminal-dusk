@@ -123,7 +123,15 @@ describe("SupabaseStore.commit", () => {
   });
 
   it("sends a finish's ratings with it, and passes on a ratingsMoved answer", async () => {
-    const ratings = [{ expected: 0, row: RATING_ROW }];
+    const change = {
+      match_id: MATCH,
+      player: "alice",
+      rating_before: 1500,
+      rating_after: 1662.3,
+      ranked_games: 1,
+      created_at: 1,
+    };
+    const ratings = [{ expected: 0, row: RATING_ROW, change }];
     const { db, calls } = fakeClient({ data: "ratingsMoved", error: null });
     expect(await new SupabaseStore(db).commit(MATCH, 0, { ...write, ratings })).toBe("ratingsMoved");
     expect(calls[0]?.args.p_ratings).toEqual(ratings);
