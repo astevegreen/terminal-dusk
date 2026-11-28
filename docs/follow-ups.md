@@ -61,8 +61,28 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   cannot give a deleted account a copy. It also clears a used gift code's `gift_code.redeemed_by` without making
   the code usable again: the table's check ties it to `redeemed_at`, so that check changes in a new migration (#710).
   [27 Nov 2026, #683, architect]
+- The web client's `CHECKOUT_CODES` (`packages/app/src/platform/webPurchases.ts:20`) lacks `tooManyRequests`, so a
+  checkout the server rate-limits (#735) shows "network" instead of its own message. Add the code and its text.
+  [28 Nov 2026, reviewer on #735]
+- `SupabaseCheckoutLimitStore.claim` has no direct test: add one that claims up to the limit and then is refused.
+  [28 Nov 2026, agy on #735]
+- ProfileView has no entry point in the app and no Playwright smoke test: link it from a screen and add a smoke test
+  that opens it. [28 Nov 2026, reviewer on #728]
+- `SupabaseSeekStore.open` doesn't page past 1,000 rows (Supabase's default response limit), so a longer seek table
+  is read only in part: page the read. [28 Nov 2026, review of #737]
+- Entitlement isn't rechecked when the matchmaker pairs two seeks (#737), so a player whose copy was refunded since
+  they sought can still be paired: recheck both sides at pairing (#687). [28 Nov 2026, review of #737, #687]
+- The stack tests don't exercise `SupabaseSeekStore.create` or `open` against the real tables: add a stack test for
+  each. [28 Nov 2026, review of #737]
+- No test covers the in-memory seek store's refusal of a duplicate seek, and its keying differs from the SQL's: test
+  the refusal, then make the two key the same way. [28 Nov 2026, review of #738]
+- A Paddle transaction can still be created after `priceTimedOut`: check `cancel.signal.aborted` before the ask, so a
+  timed-out price lookup never ends in a charge the buyer didn't see. [28 Nov 2026, agy on #739]
 
 ## Tests and tooling
+
+- The seek migration repeats one literal several times (SonarCloud on #737): name it once in the SQL. [28 Nov 2026,
+  SonarCloud on #737]
 
 - No stack test calls the deployed `checkout` Edge Function over HTTP
   (`packages/server/supabase/functions/checkout/index.ts`): add `checkoutHandler.stack.test.ts` for 401, 409 and the
