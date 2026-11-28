@@ -104,8 +104,8 @@ describe("chapter 7, scoring, winning and the abilities", () => {
 });
 
 describe("the ability asides", () => {
-  const bonus: GameEvent = { kind: "abilityBonus", visibility: "public", side: "sae", value: 1 } as GameEvent;
-  const redraw: GameEvent = { kind: "abilityRedraw", visibility: "public", side: "lio", value: 1 } as GameEvent;
+  const bonus: GameEvent = { kind: "abilityBonus", visibility: "public", side: "sae", amount: 1 };
+  const redraw: GameEvent = { kind: "abilityRedraw", visibility: "public", side: "lio", deck: "lio", setAside: 1 };
   /** `event` added to the learner's first frame for which `when` holds. */
   const withEvent = (event: GameEvent, when: (f: Frame) => boolean) => {
     let done = false;

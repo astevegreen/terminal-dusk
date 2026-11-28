@@ -42,11 +42,12 @@ const EXAMPLE: Record<string, string> = {
 };
 
 /**
- * `words` with each slot filled from `values`; a slot with no value throws. As the host does, " point" or " points"
+ * `say` with each slot filled from `values`; a slot with no value throws; several lines are joined as the host joins them. As the host does, " point" or " points"
  * after a filled number reads "point" after 1 and "points" otherwise (owner, 27 Nov 2026, #701).
  */
-const fill = (words: string, values: Record<string, string> = EXAMPLE): string => {
-  const split = splitLine(words);
+const fill = (say: string | readonly string[], values: Record<string, string> = EXAMPLE): string => {
+  if (typeof say !== "string") return say.map((line) => fill(line, values)).join("\n\n");
+  const split = splitLine(say);
   if ("error" in split) throw new Error(split.error);
   let previous = "";
   return split.pieces

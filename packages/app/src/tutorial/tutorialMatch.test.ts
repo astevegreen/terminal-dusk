@@ -6,7 +6,9 @@ import { createTutorialMatch, type TutorialMatch } from "./tutorialMatch.ts";
 const SEED = "tutorial-match-1";
 const clock = (): number => 1_700_000_000_000;
 const placeholder = TUTORIAL_LESSONS.find((l) => l.id === "placeholder")!;
-const sayOf = (lesson: Lesson, chapter: number): string => lesson.chapters[chapter]!.steps[0]!.say;
+/** The first step of `chapter`, its lines joined as the coaching panel shows them. */
+const sayOf = (lesson: Lesson, chapter: number): string =>
+  [lesson.chapters[chapter]!.steps[0]!.say].flat().join("\n\n");
 
 function make(lesson: Lesson): TutorialMatch {
   const made = createTutorialMatch(lesson, "full", SEED, clock);

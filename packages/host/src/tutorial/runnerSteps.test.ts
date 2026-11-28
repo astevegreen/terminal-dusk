@@ -11,7 +11,7 @@ import { startTutorial, stepTutorial, type TutorialRunner } from "./runner.ts";
 
 const start = deepFreeze(learnerFrames().next().value!);
 const order = deepFreeze(learnerFrameWhere((f) => f.decision?.kind === "rivalEventOrder", racingLio));
-const redraw: GameEvent = { kind: "abilityRedraw", visibility: "public", side: "lio", value: 1 } as GameEvent;
+const redraw: GameEvent = { kind: "abilityRedraw", visibility: "public", side: "lio", deck: "lio", setAside: 1 };
 const placed: GameEvent = { kind: "influencePlaced", visibility: "public", side: "lio", country: "france", cost: 1 };
 const withEvents = (f: Frame, events: GameEvent[]): Frame => ({ ...f, events });
 

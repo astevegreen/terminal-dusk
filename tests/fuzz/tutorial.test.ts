@@ -94,9 +94,12 @@ describe("every bundled tutorial lesson plays to the end (#640)", () => {
             expect([...outcome.shown].toSorted(), `seed ${seed}: every step's words show`).toEqual(steps.toSorted());
             const unfilled = [...outcome.lines].filter((line) => /[{}]/.test(line));
             expect(unfilled, `seed ${seed}: every slot is filled`).toEqual([]);
-            const plain = lesson.chapters.flatMap((c) => c.steps.filter((st) => !/[{}]/.test(st.say) && !st.variants));
-            for (const st of plain)
-              expect(outcome.lines, `seed ${seed}: a line with no slots shows as written`).toContain(st.say);
+            // A step that says several lines shows them joined by a blank line (#701).
+            const written = lesson.chapters.flatMap((c) =>
+              c.steps.filter((st) => !st.variants).map((st) => [st.say].flat().join("\n\n")),
+            );
+            for (const text of written.filter((t) => !/[{}]/.test(t)))
+              expect(outcome.lines, `seed ${seed}: a line with no slots shows as written`).toContain(text);
             expect(outcome.coachingOverTurn, `seed ${seed}: the coaching ends before the game`).not.toBeNull();
             if (edition === "free") expect(outcome.finalTurn, `seed ${seed}: a free game ends on turn 3`).toBe(3);
             else expect(outcome.finalTurn, `seed ${seed}: a full game goes past turn 3`).toBeGreaterThan(3);
