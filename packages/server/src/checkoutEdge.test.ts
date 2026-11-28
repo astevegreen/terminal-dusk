@@ -16,6 +16,7 @@ const ENV = {
   PADDLE_API_BASE: PADDLE.apiBase,
   PADDLE_API_KEY: PADDLE.apiKey,
   PADDLE_PRICE_ID: PADDLE.priceId,
+  PADDLE_PRODUCT_ID: PADDLE.productId,
   APP_URL: PADDLE.appUrl,
 };
 

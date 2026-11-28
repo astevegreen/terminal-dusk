@@ -7,6 +7,7 @@ export const PADDLE: PaddleSettings = {
   apiBase: "https://paddle.example.test",
   apiKey: "test-paddle-api-key",
   priceId: "pri_test_full_game",
+  productId: "pro_test_full_game",
   appUrl: "https://play.example.test",
 };
 export const TXN_ID = "txn_test0001";
@@ -22,14 +23,33 @@ export const answers = (status: number, body: unknown): Answer => ({ status, jso
 export const created = (url: unknown = PAY_URL): Answer =>
   answers(201, { data: { id: TXN_ID, status: "draft", checkout: { url } }, meta: { request_id: "req_test" } });
 
-/** A fake Paddle: it records every call and answers with `answer` (by default, a made transaction). */
-export function fakePaddle(answer: () => Promise<Answer> = async () => created()) {
+/** The answer to a price read: the price belongs to `product`. */
+export const price = (product: unknown = PADDLE.productId): Answer =>
+  answers(200, {
+    data: { id: PADDLE.priceId, product_id: product, status: "active" },
+    meta: { request_id: "req_test" },
+  });
+
+/**
+ * A fake Paddle: it records every transaction request in `calls` and answers it with `answer` (by default, a made
+ * transaction). The price read (GET /prices/<id>) is kept apart in `priceCalls` and answered with `priceAnswer`
+ * (by default, a price of the full game's product).
+ */
+export function fakePaddle(
+  answer: () => Promise<Answer> = async () => created(),
+  priceAnswer: () => Promise<Answer> = async () => price(),
+) {
   const calls: PaddleCall[] = [];
+  const priceCalls: { url: string; headers: Record<string, string> }[] = [];
   const signals: unknown[] = [];
   const fetch: CheckoutFetch = (url, { method, headers, body, signal }) => {
-    calls.push({ url, method, headers, body: JSON.parse(body) });
+    if (method === "GET") {
+      priceCalls.push({ url, headers });
+      return priceAnswer();
+    }
+    calls.push({ url, method, headers, body: JSON.parse(body ?? "null") });
     signals.push(signal);
     return answer();
   };
-  return { fetch, calls, signals };
+  return { fetch, calls, priceCalls, signals };
 }

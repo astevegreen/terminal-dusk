@@ -36,8 +36,11 @@ function paddleSettings(env: Record<string, string | undefined>): PaddleSettings
   const apiBase = withoutEndSlashes(env.PADDLE_API_BASE ?? "");
   const apiKey = env.PADDLE_API_KEY;
   const priceId = env.PADDLE_PRICE_ID;
+  const productId = env.PADDLE_PRODUCT_ID;
   const appUrl = withoutEndSlashes(env.APP_URL ?? "");
-  return apiBase && apiKey && priceId && appUrl ? { apiBase, apiKey, priceId, appUrl } : undefined;
+  return apiBase && apiKey && priceId && productId && appUrl
+    ? { apiBase, apiKey, priceId, productId, appUrl }
+    : undefined;
 }
 
 function withoutEndSlashes(address: string): string {

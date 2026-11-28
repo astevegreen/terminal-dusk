@@ -10,6 +10,8 @@ export type PaddleSettings = {
   apiKey: string;
   /** The price of the full game. */
   priceId: string;
+  /** The full game's product: the price must belong to it, or the webhook would grant nothing for the sale. */
+  productId: string;
   /** The web app's address, with no slash at the end: Paddle's checkout opens on its /pay/ page. */
   appUrl: string;
 };
@@ -17,10 +19,12 @@ export type PaddleSettings = {
 /** The part of the standard `fetch` the request needs. */
 export type CheckoutFetch = (
   url: string,
-  init: { method: string; headers: Record<string, string>; body: string; signal: unknown },
+  init: { method: string; headers: Record<string, string>; body?: string; signal: unknown },
 ) => Promise<{ status: number; json: () => Promise<unknown> }>;
 
-/** `reason` is a code for the log: `unreachable`, `timedOut`, `status<number>` or `badAnswer`. */
+/** `reason` is a code for the log: `unreachable`, `timedOut`, `status<number>` or `badAnswer`. The price check adds
+ * `priceUnknown` (Paddle has no such price) and `priceNotOfProduct` (it belongs to another product), and prefixes
+ * its other failures with `price`, as in `priceStatus500`. */
 export type CheckoutAddress = { ok: true; url: string } | { ok: false; reason: string };
 
 export type CreateCheckout = (player: PlayerId) => Promise<CheckoutAddress>;
@@ -37,6 +41,16 @@ type Timers = {
 const failed = (reason: string): CheckoutAddress => ({ ok: false, reason });
 
 export function paddleCheckout(settings: PaddleSettings, fetch: CheckoutFetch): CreateCheckout {
+  // A price once confirmed stays confirmed for the life of the function instance; a failure is asked again.
+  let priceChecked = false;
+  const attempt = async (player: PlayerId, signal: unknown): Promise<CheckoutAddress> => {
+    if (!priceChecked) {
+      const bad = await checkPrice(settings, fetch, signal);
+      if (bad !== null) return failed(bad);
+      priceChecked = true;
+    }
+    return ask(settings, fetch, player, signal);
+  };
   return async (player) => {
     const runtime = globalThis as unknown as Timers;
     const cancel = new runtime.AbortController();
@@ -49,11 +63,40 @@ export function paddleCheckout(settings: PaddleSettings, fetch: CheckoutFetch): 
       }, PADDLE_TIMEOUT_MS);
     });
     try {
-      return await Promise.race([ask(settings, fetch, player, cancel.signal), tooSlow]);
+      return await Promise.race([attempt(player, cancel.signal), tooSlow]);
     } finally {
       runtime.clearTimeout(timer);
     }
   };
+}
+
+/** Asks Paddle whose price `priceId` is. Null when it is the full game's product, else a reason code. */
+async function checkPrice(
+  { apiBase, apiKey, priceId, productId }: PaddleSettings,
+  fetch: CheckoutFetch,
+  signal: unknown,
+): Promise<string | null> {
+  let answer: Awaited<ReturnType<CheckoutFetch>>;
+  try {
+    answer = await fetch(`${apiBase}/prices/${encodeURIComponent(priceId)}`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal,
+    });
+  } catch {
+    return "priceUnreachable";
+  }
+  if (answer.status === 404) return "priceUnknown";
+  if (answer.status < 200 || answer.status > 299) return `priceStatus${answer.status}`;
+  try {
+    const body = await answer.json();
+    const data = isPlainObject(body) ? body.data : null;
+    const found = isPlainObject(data) ? data.product_id : null;
+    if (typeof found !== "string" || found === "") return "priceBadAnswer";
+    return found === productId ? null : "priceNotOfProduct";
+  } catch {
+    return "priceBadAnswer";
+  }
 }
 
 async function ask(
