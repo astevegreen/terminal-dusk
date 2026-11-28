@@ -3,6 +3,7 @@
 import type { HostResult } from "@terminal-dusk/host";
 import { freshId } from "../../migrations/localStack.ts";
 import { expect, it } from "vitest";
+import { byPlayerId } from "../../ratings.ts";
 import type { RatingRow, RatingWrite } from "../../ratings.ts";
 import type { MatchWrite } from "../../store.ts";
 import { bodyFor, nextSide } from "../match.ts";
@@ -31,28 +32,28 @@ const step = (start: HostResult): HostResult => {
   return answered(start, start.record.players[side], bodyFor(start.record.seq, start.secret, side));
 };
 
+/** A game put in at seq 0, the write of its next step, and two players no rating row knows yet. */
+async function stored(h: MatchStoreHarness) {
+  const start = h.fresh();
+  await h.putIn(writeOf(start));
+  const players = [freshId(), freshId()].toSorted(byPlayerId) as [string, string];
+  return { start, matchId: start.record.matchId, next: writeOf(step(start)), players };
+}
+
+const withRatings = (write: MatchWrite, ratings: RatingWrite[]): MatchWrite => ({ ...write, ratings });
+
+/** Runs `body`, then removes the players' rating rows whatever happened. */
+async function rated(h: MatchStoreHarness, body: (s: Awaited<ReturnType<typeof stored>>) => Promise<void>) {
+  const s = await stored(h);
+  try {
+    await body(s);
+  } finally {
+    await h.forgetRatings(s.players);
+  }
+}
+
 /** Registers the rating contract tests; `matchStoreContract` calls it. */
 export function matchStoreRatingContract(setup: () => MatchStoreHarness, timeout?: number): void {
-  /** A game put in at seq 0, the write of its next step, and two players no rating row knows yet. */
-  async function stored(h: MatchStoreHarness) {
-    const start = h.fresh();
-    await h.putIn(writeOf(start));
-    const players = [freshId(), freshId()].sort() as [string, string];
-    return { start, matchId: start.record.matchId, next: writeOf(step(start)), players };
-  }
-
-  const withRatings = (write: MatchWrite, ratings: RatingWrite[]): MatchWrite => ({ ...write, ratings });
-
-  /** Runs `body`, then removes the players' rating rows whatever happened. */
-  async function rated(h: MatchStoreHarness, body: (s: Awaited<ReturnType<typeof stored>>) => Promise<void>) {
-    const s = await stored(h);
-    try {
-      await body(s);
-    } finally {
-      await h.forgetRatings(s.players);
-    }
-  }
-
   it(
     "ratings gives nothing for players with no row",
     async () => {
@@ -77,7 +78,7 @@ export function matchStoreRatingContract(setup: () => MatchStoreHarness, timeout
         expect(await h.store.commit(matchId, 0, write)).toBe("saved");
         expect((await h.store.load(matchId))!.record.seq).toBe(1);
         const read = await h.store.ratings([a, b]);
-        expect([...read].sort((x, y) => (x.player < y.player ? -1 : 1))).toEqual(rows);
+        expect(read.toSorted((x, y) => byPlayerId(x.player, y.player))).toEqual(rows);
       });
     },
     timeout,

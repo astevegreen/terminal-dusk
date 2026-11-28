@@ -25,16 +25,16 @@ const step = (start: HostResult): HostResult => {
   return answered(start, start.record.players[side], bodyFor(start.record.seq, start.secret, side));
 };
 
+/** A game put in at seq 0, and the write of its next step. */
+async function stored(h: MatchStoreHarness) {
+  const start = h.fresh();
+  await h.putIn(writeOf(start));
+  const next = step(start);
+  return { start, matchId: start.record.matchId, next: writeOf(next), after: next };
+}
+
 /** Registers the MatchStore contract tests; call it inside a `describe`. */
 export function matchStoreContract(setup: () => MatchStoreHarness, timeout?: number): void {
-  /** A game put in at seq 0, and the write of its next step. */
-  async function stored(h: MatchStoreHarness) {
-    const start = h.fresh();
-    await h.putIn(writeOf(start));
-    const next = step(start);
-    return { start, matchId: start.record.matchId, next: writeOf(next), after: next };
-  }
-
   it(
     "load gives null for a match that does not exist",
     async () => {

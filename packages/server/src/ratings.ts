@@ -77,9 +77,16 @@ const blankRow = (player: PlayerId): RatingRow => ({
   updated_at: 0,
 });
 
+const RESULT_COLUMN = { win: "wins", loss: "losses", draw: "draws" } as const;
+
 /** The result column a side's score adds one to. */
-const columnFor = (side: Side, score: RatedGame["score"]): keyof RatingRow =>
-  `${side}_${score === "win" ? "wins" : score === "loss" ? "losses" : "draws"}`;
+const columnFor = (side: Side, score: RatedGame["score"]): keyof RatingRow => `${side}_${RESULT_COLUMN[score]}`;
+
+/** Orders player ids by their code units, the same on every machine and in every locale. */
+export const byPlayerId = (a: string, b: string): number => {
+  if (a < b) return -1;
+  return a > b ? 1 : 0;
+};
 
 /**
  * Both players' new rows for a finish `isRatedFinish` accepts, ordered by player id (the order the commit locks
@@ -100,5 +107,5 @@ export function ratingWrites(after: MatchRecord, before: readonly RatingRow[], n
     (row[column] as number) += 1;
     writes.push({ expected: mine?.ranked_games ?? 0, row });
   }
-  return writes.toSorted((a, b) => (a.row.player < b.row.player ? -1 : a.row.player > b.row.player ? 1 : 0));
+  return writes.toSorted((a, b) => byPlayerId(a.row.player, b.row.player));
 }
