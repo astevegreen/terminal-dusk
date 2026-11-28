@@ -26,10 +26,13 @@ function required(name: string): string {
 const db = createClient(required("SUPABASE_URL"), required("SUPABASE_SERVICE_ROLE_KEY"), {
   auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
 });
-// PADDLE_* are function secrets and APP_URL the web app's address (#717 sets them). Without all four the function
+// PADDLE_* are function secrets and APP_URL the web app's address (#717 sets them). Without all five the function
 // starts and answers 503.
 const env = Object.fromEntries(
-  ["PADDLE_API_BASE", "PADDLE_API_KEY", "PADDLE_PRICE_ID", "APP_URL"].map((name) => [name, runtime.Deno.env.get(name)]),
+  ["PADDLE_API_BASE", "PADDLE_API_KEY", "PADDLE_PRICE_ID", "PADDLE_PRODUCT_ID", "APP_URL"].map((name) => [
+    name,
+    runtime.Deno.env.get(name),
+  ]),
 );
 const deps = checkoutDeps(env, db, {
   fetch: (url, init) => runtime.fetch(url, init),

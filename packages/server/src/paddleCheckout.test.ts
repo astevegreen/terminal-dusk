@@ -31,14 +31,31 @@ describe("paddleCheckout: how long it waits for Paddle", () => {
 
   it("says timedOut when the cancelled request fails first, as a real fetch does", async () => {
     vi.useFakeTimers();
-    const fetch: CheckoutFetch = (_url, init) =>
-      new Promise((_resolve, reject) => {
-        const signal = init.signal as { addEventListener(type: "abort", listener: () => void): void };
-        signal.addEventListener("abort", () => reject(new Error("The operation was aborted.")));
-      });
-    const asked = paddleCheckout(PADDLE, fetch)("player-alice");
+    const hangingFetch = (hangOn: "GET" | "POST"): CheckoutFetch => {
+      const confirmed = fakePaddle().fetch;
+      return (url, init) =>
+        init.method !== hangOn
+          ? confirmed(url, init)
+          : new Promise((_resolve, reject) => {
+              const signal = init.signal as { addEventListener(type: "abort", listener: () => void): void };
+              signal.addEventListener("abort", () => reject(new Error("The operation was aborted.")));
+            });
+    };
+    const asked = paddleCheckout(PADDLE, hangingFetch("POST"))("player-alice");
     await vi.advanceTimersByTimeAsync(PADDLE_TIMEOUT_MS);
     expect(await asked).toEqual({ ok: false, reason: "timedOut" });
+    const askedPrice = paddleCheckout(PADDLE, hangingFetch("GET"))("player-alice");
+    await vi.advanceTimersByTimeAsync(PADDLE_TIMEOUT_MS);
+    expect(await askedPrice).toEqual({ ok: false, reason: "priceTimedOut" });
+  });
+
+  it("says priceTimedOut when the price read is the one that hangs, and makes no transaction", async () => {
+    vi.useFakeTimers();
+    const paddle = fakePaddle(undefined, never);
+    const asked = paddleCheckout(PADDLE, paddle.fetch)("player-alice");
+    await vi.advanceTimersByTimeAsync(PADDLE_TIMEOUT_MS);
+    expect(await asked).toEqual({ ok: false, reason: "priceTimedOut" });
+    expect(paddle.calls).toEqual([]);
   });
 
   it("leaves no timer running once Paddle has answered", async () => {
