@@ -1,4 +1,4 @@
-// The real tutorial lesson's chapters 1-4 (#700) against docs/design/tutorial.md: its first cards, and every coaching
+// The real tutorial lesson (#700, #701) against docs/design/tutorial.md: its first cards, and every coaching
 // line word for word, with its slots filled from the design doc's own example numbers.
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
@@ -36,6 +36,9 @@ const EXAMPLE: Record<string, string> = {
   "pointsAfter:e1-sae-008": "2",
   "modifierTakesOff:e1-neu-001": "1",
   "cardPoints:e1-lio-006": "4",
+  "cardPoints:e1-lio-002": "2",
+  "eventPoints:e1-sae-004": "2",
+  "cardPoints:e1-sae-004": "3",
 };
 
 /**
@@ -65,6 +68,8 @@ const fill = (words: string, values: Record<string, string> = EXAMPLE): string =
 
 const lesson = TUTORIAL_LESSONS.find((l) => l.id === "first-game") as Lesson;
 const steps = lesson.chapters.flatMap((c) => c.steps);
+/** Each line a step says, a step that says several giving each in order (#701). */
+const said = (say: string | readonly string[]): readonly string[] => (typeof say === "string" ? [say] : say);
 const step = (chapter: string, index: number) => lesson.chapters.find((c) => c.id === chapter)!.steps[index]!;
 const variantSays = (chapter: string, index: number) => (step(chapter, index).variants ?? []).map((v) => v.say);
 
@@ -86,19 +91,23 @@ describe("its first cards", () => {
 });
 
 describe("its coaching lines", () => {
-  it("are chapters 1-4, with the design doc's titles", () => {
+  it("are chapters 1-7, with the design doc's titles", () => {
     expect(lesson.chapters.map((c) => c.title)).toEqual([
       "Opening cards and events",
       "Influence and control",
       "Rival cards",
       "Intervene and the Contingency deck",
+      "Escalation and realigning",
+      "The tech race",
+      "Scoring, winning and the abilities",
     ]);
   });
 
-  it("are every quoted line of chapters 1-4, in order, word for word with the doc's example numbers", () => {
-    const lines = quotes(section("**1. Opening cards and events**", "**5. Escalation and realigning**"));
-    expect(lines).toHaveLength(11);
-    expect(steps.map((s) => fill(s.say))).toEqual(lines);
+  it("are every quoted line of chapters 1-7 and the asides, in order, word for word with the doc's example numbers", () => {
+    const lines = quotes(section("**1. Opening cards and events**", "## Not decided yet"));
+    expect(lines).toHaveLength(25);
+    const asides = (lesson.asides ?? []).map((a) => a.say);
+    expect([...steps.flatMap((s) => said(s.say)), ...asides].map((l) => fill(l))).toEqual(lines);
   });
 
   it("chapter 1, when LIO holds no influence, drops its own-influence part as approved", () => {
