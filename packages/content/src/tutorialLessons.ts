@@ -5,8 +5,5 @@ import { lessonSchema, type Lesson } from "../schema/tutorial.ts";
 import firstGame from "../tutorial/first-game.json" with { type: "json" };
 import placeholder from "../tutorial/placeholder.json" with { type: "json" };
 
-/**
- * Every bundled lesson. The placeholder stays first, so the app keeps playing it until the real lesson, "first-game"
- * (chapters 1-4 so far, #700), is finished in #701.
- */
-export const TUTORIAL_LESSONS: readonly Lesson[] = [lessonSchema.parse(placeholder), lessonSchema.parse(firstGame)];
+/** Every bundled lesson. The real lesson, "first-game", is first, so the app plays it (#701). */
+export const TUTORIAL_LESSONS: readonly Lesson[] = [lessonSchema.parse(firstGame), lessonSchema.parse(placeholder)];

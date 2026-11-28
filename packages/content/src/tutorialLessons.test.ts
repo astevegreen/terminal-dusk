@@ -28,8 +28,8 @@ describe("the bundled tutorial lessons (#640)", () => {
   });
 
   it("the placeholder check catches a lesson that is not marked but says Placeholder", () => {
-    const [first] = TUTORIAL_LESSONS;
-    const unmarked = lessonSchema.parse({ ...first, placeholder: false });
+    const marked = TUTORIAL_LESSONS.find((l) => l.id === "placeholder")!;
+    const unmarked = lessonSchema.parse({ ...marked, placeholder: false });
     expect(placeholderWordError(unmarked)).toMatch(/placeholder/);
     const chapterOnly = lessonSchema.parse({
       ...unmarked,

@@ -74,10 +74,10 @@ const said = (say: string | readonly string[]): readonly string[] => (typeof say
 const step = (chapter: string, index: number) => lesson.chapters.find((c) => c.id === chapter)!.steps[index]!;
 const variantSays = (chapter: string, index: number) => (step(chapter, index).variants ?? []).map((v) => v.say);
 
-describe("the first-game lesson's place among the bundled lessons (#700)", () => {
-  it("comes after the placeholder, which the app still plays, and is marked placeholder until #701", () => {
-    expect(TUTORIAL_LESSONS.map((l) => l.id)).toEqual(["placeholder", "first-game"]);
-    expect(lesson.placeholder).toBe(true);
+describe("the first-game lesson's place among the bundled lessons (#700, #701)", () => {
+  it("comes first, so the app plays it, and is no longer marked placeholder now its chapters are written (#701)", () => {
+    expect(TUTORIAL_LESSONS.map((l) => l.id)).toEqual(["first-game", "placeholder"]);
+    expect(lesson.placeholder).toBe(false);
     expect(lesson.title).toBe("Your first game");
   });
 });

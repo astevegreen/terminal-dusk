@@ -1,7 +1,7 @@
 {
   "id": "first-game",
   "title": "Your first game",
-  "placeholder": true,
+  "placeholder": false,
   "deckTop": [
     "e1-lio-001",
     "e1-lio-004",
