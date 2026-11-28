@@ -148,7 +148,9 @@ describe("after the tutorial's game ends", () => {
       const first = await finishedGame("free");
       expect(lesson.id, "the screen's lesson is the real one").toBe("first-game");
       expect(coachText()).toContain(lastChapter.title);
-      expect(coachText()).toContain("That's the coaching. From here it's a normal game.");
+      // The free game is over, so its last line drops "From here it's a normal game." (owner, 28 Nov 2026, in chat).
+      expect(coachText()).toMatch(/That's the coaching\.$/);
+      expect(coachText()).not.toContain("normal game");
       expect(coachText()).not.toContain(COACHING_OVER);
       expect(coachText()).not.toContain(firstWords);
       const stopped = ai.stops;

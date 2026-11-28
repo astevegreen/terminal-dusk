@@ -17,13 +17,14 @@ const CHAPTER_1 = "Opening cards and events";
 const COACH =
   "Each turn starts with an opening card. You and SAE each pick one in secret, then both are shown together. An " +
   "opening card is used only for its event: its action points are not spent. Pick Maastricht Treaty.";
-/** The line once both opening events have happened, which starts like this; its slots are filled from the game. (The
- *  step between, on SAE's event, ends with LIO's event a moment later, with no decision of the learner's between.) */
+/** The line once both opening events have happened, which starts like this; its slots are filled from the game. It
+ *  shows together with the line on SAE's event, which stays until LIO's next play (owner, 28 Nov 2026, in chat). */
 const NEXT = "Maastricht gives you 1 point now. You can place where you already have influence";
 /** The first card play's line, which starts like this; its points are filled from the game. */
 const FIRST_PLAY = "Now the card plays: LIO, SAE, LIO, SAE. Play NATO Enlargement 1999 for its points";
 const HINT = "Your last play before Era 1 scores: look for regions where you are close to present or ahead.";
-const LAST = "That's the coaching. From here it's a normal game.";
+/** A free game is over by chapter 7, so its last line ends here (owner, 28 Nov 2026, in chat). */
+const LAST = /That's the coaching\.$/;
 
 let app: Awaited<ReturnType<typeof serveBuiltApp>>;
 test.beforeAll(async () => {
@@ -187,7 +188,8 @@ test("a free player's tutorial ends after Era 1 with the result and the Full Gam
   await expect(gameOver).toBeVisible();
   expect(hinted, "the hint showed on the last play").toBe(true);
   // The last chapter's words show with the game's end.
-  await expect(coach.getByText(LAST, { exact: false })).toBeVisible();
+  await expect(coach.locator(".coaching-text")).toHaveText(LAST);
+  await expect(coach).not.toContainText("normal game");
   await expect(page.getByTestId("status-bar").getByText("Turn 3 of 3")).toBeVisible();
 
   await expectFullGameOffer(page);

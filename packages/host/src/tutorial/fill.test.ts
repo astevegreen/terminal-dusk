@@ -122,6 +122,25 @@ describe("each condition, picking its variant from a real game frame", () => {
     ],
   };
 
+  it("gameOver: chapter 7's free-edition ending shows only once the game is over (owner, #701)", () => {
+    const scoring = {
+      say: "That's the coaching. From here it's a normal game.",
+      variants: [{ if: [{ kind: "gameOver" as const }], say: "That's the coaching." }],
+    };
+    const over: Frame = deepFreeze({
+      ...start,
+      view: {
+        ...start.view,
+        public: { ...start.view.public, status: { kind: "over", winner: "lio", reason: "score" } },
+      },
+    });
+    expect(fillLine(scoring, over, firstDeckRuleset)).toEqual({ variant: 0, text: "That's the coaching." });
+    expect(fillLine(scoring, start, firstDeckRuleset)).toEqual({
+      variant: null,
+      text: "That's the coaching. From here it's a normal game.",
+    });
+  });
+
   it("noInfluence: chapter 1 drops its own-influence part when LIO holds nothing", () => {
     expect(fillLine(chapter1, noInfluence, firstDeckRuleset)).toEqual({
       variant: 0,

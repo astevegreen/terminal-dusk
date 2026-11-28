@@ -112,13 +112,30 @@ describe("its coaching lines", () => {
   });
 
   it("chapter 1, when LIO holds no influence, drops its own-influence part as approved", () => {
-    const base = fill(step("opening", 2).say);
+    const base = fill(step("opening", 1).say);
     const own =
       "You can place where you already have influence (Taiwan), next to it, or next to the United States " +
       "(Mexico, Cuba, Canada).";
     const expected = base.replace(own, approved("You can place next to the United States (Mexico, Cuba, Canada)."));
     expect(expected).not.toBe(base);
-    expect(variantSays("opening", 2).map((s) => fill(s))).toEqual([expected]);
+    expect(variantSays("opening", 1).map((s) => fill(s))).toEqual([expected]);
+  });
+
+  it("chapter 1 shows SAE's event line together with Maastricht's, so it stays until LIO's next play (owner)", () => {
+    approved("SAE's event line stays until LIO's next play");
+    expect(lesson.chapters[0]!.steps).toHaveLength(2);
+    const says = [step("opening", 1).say, ...variantSays("opening", 1)];
+    for (const say of says) expect(fill(say).split("\n\n")[0]).toMatch(/^SAE picked Handover of Hong Kong\./);
+    expect(step("opening", 1)).toMatchObject({ until: { decision: "playCardAs", side: "lio", turn: 1 } });
+  });
+
+  it('chapter 7 ends a free game, which is over by then, with "That\'s the coaching." (owner)', () => {
+    const own = fill(step("scoring", 0).say).split("\n\n");
+    expect(own[3]).toBe("That's the coaching. From here it's a normal game.");
+    const variants = step("scoring", 0).variants ?? [];
+    expect(variants.map((v) => v.if)).toEqual([[{ kind: "gameOver" }]]);
+    const free = fill(variants[0]!.say).split("\n\n");
+    expect(free).toEqual([...own.slice(0, 3), approved("That's the coaching.")]);
   });
 
   it("chapter 3, with Rwandan Genocide, with before and after equal, and with both, reads as approved", () => {
@@ -169,7 +186,7 @@ describe("its coaching lines", () => {
       const says = [step(chapter, index).say, ...variantSays(chapter, index)].join(" ");
       for (const slot of slots) expect(says).toContain(`{${slot}}`);
     };
-    slotted("opening", 2, ["eventPoints:e1-lio-001", "influenceIn:lio", "homeNeighbours:lio"]);
+    slotted("opening", 1, ["eventPoints:e1-lio-001", "influenceIn:lio", "homeNeighbours:lio"]);
     slotted("influence", 0, ["cardPoints:e1-lio-004"]);
     slotted("rival-cards", 1, ["pointsBefore:e1-sae-008", "pointsAfter:e1-sae-008", "modifierTakesOff:e1-neu-001"]);
     slotted("intervene", 1, ["cardPoints:e1-lio-006"]);
