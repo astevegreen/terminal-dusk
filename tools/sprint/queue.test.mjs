@@ -14,13 +14,15 @@ const NOW = new Date("2026-10-21T12:00:00Z");
 
 // author: who opened issue #5. strangers: add what someone without access to the repository can write now it is
 // public: an issue of their own (#6), a comment on pull request #104, and a pull request from a fork (#106).
-// login: the account gh is signed in as.
+// login: the account gh is signed in as. app: whether GitHub has a user named greenbean-agent ("free" or "taken");
+// with it, the App comments on pull request #104 under the plain name gh's JSON gives it.
 function fakeGh({
   fail,
   labels = ["lane:rules", "sprint-ready"],
   author = "greenbeanbot",
   strangers = false,
   login = "greenbeanbot",
+  app,
 } = {}) {
   const calls = [];
   const by = (login, authorAssociation, body) => ({
@@ -89,7 +91,9 @@ function fakeGh({
           closingIssuesReferences: [{ number: 4 }],
           comments: strangers
             ? [by("greenbeanbot", "COLLABORATOR", "Fixed."), by("stranger", "NONE", "Held: [blocker] stop")]
-            : [],
+            : app
+              ? [by("greenbean-agent", "NONE", "Held: [blocker] the App's")]
+              : [],
           reviewRequests: [],
           statusCheckRollup: [
             { name: "gate", status: "COMPLETED", conclusion: "SUCCESS" },
@@ -112,6 +116,10 @@ function fakeGh({
       ]);
     if (key.startsWith("pr list --state open --search")) return "[]";
     if (key === WHO_AM_I.join(" ")) return `${login}\n`;
+    if (app && key.startsWith("api users/greenbean-agent")) {
+      if (app === "taken") return "User\n";
+      throw new Error("gh api users/greenbean-agent: gh: Not Found (HTTP 404)");
+    }
     if (key.startsWith("api repos/{owner}/{repo}/collaborators")) return "astevegreen\ngreenbeanbot\n";
     if (args[0] === "api") return "2026-10-21T11:00:00Z\n";
     if (key.startsWith("issue view")) return JSON.stringify({ body: "" });
@@ -319,4 +327,20 @@ test("the night shift never builds an issue a stranger opened, even one labelled
   });
   const theirs = main(["next", "night"], { gh: fakeGh({ labels: ["ready"], author: "stranger" }).gh, ...night });
   assert.equal(JSON.parse(theirs.out), null);
+});
+
+test("the App's comments count while nobody holds its plain name, and a stranger who takes it is not the App", () => {
+  const authors = (app) =>
+    loadSnapshot({ gh: fakeGh({ app }).gh, now: NOW, freeMb: 16000, localMinutes: 12 * 60 }).prs[0].comments.map(
+      (c) => c.author,
+    );
+  assert.deepEqual(authors("free"), ["greenbean-agent"], "the App's Held: holds the work");
+  assert.deepEqual(authors("taken"), [], "a person named greenbean-agent");
+});
+
+test("signed in as nobody, the commands that read comments refuse, and say why", () => {
+  const { gh } = fakeGh({ login: "" });
+  const r = main(["next", "rules"], { gh, docText: DOC_TEXT, now: NOW, freeMb: 16000 });
+  assert.equal(r.code, 2);
+  assert.match(JSON.parse(r.out).error, /^gh is signed in as nobody, so the queue can't tell/);
 });

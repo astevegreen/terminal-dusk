@@ -9,30 +9,53 @@ const TRUSTED = new Set(["OWNER", "COLLABORATOR"]);
 // token, so it can't open one.
 const WORKFLOWS = new Set(["app/github-actions", "github-actions[bot]"]);
 
-// The GitHub App the agents' gh signs in as (greenbean-agent, since 28 Nov 2026). It is not a collaborator, so its
-// authorAssociation is NONE: its logins are trusted by name. gh's JSON names it app/greenbean-agent as an issue's
-// author and greenbean-agent on a comment, the REST API greenbean-agent[bot]. No person's login can hold "/" or
-// "["; the plain form is a person's only if someone takes the name (users/greenbean-agent was 404 on 28 Nov 2026).
-export const APP_LOGINS = new Set(["app/greenbean-agent", "greenbean-agent", "greenbean-agent[bot]"]);
-// Every login the agents' own posts come under: the App's, and the suspended bot account's while its old comments
-// stand. greenbeanbot is trusted as a collaborator, not by name: a deleted account's name can be taken again.
-export const AGENT_LOGINS = new Set([...APP_LOGINS, "greenbeanbot"]);
-const APP_ISSUE_AUTHORS = new Set(["app/greenbean-agent", "greenbean-agent[bot]"]);
+// The GitHub App the agents' gh signs in as (greenbean-agent, since 28 Nov 2026). It is no collaborator, so its
+// authorAssociation is NONE and it is trusted by login. The REST API names it greenbean-agent[bot] and gh's JSON
+// app/greenbean-agent as an issue's author; no person's login can hold "[" or "/". greenbeanbot, the suspended
+// account before it, stays trusted only as a collaborator: a deleted account's name can be taken again.
+const APP = "greenbean-agent";
+const APP_FORMS = new Set([`${APP}[bot]`, `app/${APP}`]);
+const login = (x) => String(x ?? "").toLowerCase();
 
-// Two spellings of one account: the same login in any case, or two of the App's forms.
-export function sameAccount(a, b) {
-  const x = String(a ?? "").toLowerCase();
-  const y = String(b ?? "").toLowerCase();
-  if (!x || !y) return false;
-  return x === y || (APP_LOGINS.has(x) && APP_LOGINS.has(y));
+// gh's JSON names the App's comments plainly, greenbean-agent, the shape of a person's login. That form is the
+// App's only while no account holds the name: plainApp(gh) asks GitHub, and anything but "no such user" (HTTP 404)
+// answers false, so a stranger who takes the name is never read as the agents.
+export function plainApp(gh) {
+  try {
+    gh(["api", `users/${APP}`, "--jq", ".type"]);
+    return false;
+  } catch (err) {
+    return /HTTP 404|Not Found/.test(String(err?.message));
+  }
 }
 
-// The login gh is signed in as. Not `gh api user`: a GitHub App's installation token is refused that call. gh is
-// (args) => stdout.
-export const WHO_AM_I = ["auth", "status", "--active", "--json", "hosts", "--jq", '.hosts["github.com"][0].login'];
-export const signedInLogin = (gh) => gh(WHO_AM_I).trim();
+// Two spellings of one account: the same login in any case, or the App's REST and gh forms.
+export function sameAccount(a, b) {
+  const x = login(a);
+  const y = login(b);
+  if (!x || !y) return false;
+  return x === y || (APP_FORMS.has(x) && APP_FORMS.has(y));
+}
 
-export const trustedComment = (c) => TRUSTED.has(c.authorAssociation) || APP_LOGINS.has(c.author?.login ?? "");
+// The login gh is signed in as, or "" when it is signed in as nobody. Not `gh api user`: a GitHub App's
+// installation token is refused that call. gh is (args) => stdout, and throws when gh fails.
+export const WHO_AM_I = ["auth", "status", "--active", "--json", "hosts", "--jq", '.hosts["github.com"][0].login'];
+export function signedInLogin(gh) {
+  let out;
+  try {
+    out = gh(WHO_AM_I).trim();
+  } catch {
+    return ""; // gh auth status fails when no account is signed in
+  }
+  return out === "null" ? "" : out; // jq's answer when github.com has no account
+}
+
+// A comment by the owner, a collaborator or the App. plain: plainApp()'s answer, for comments read from gh's JSON.
+export function trustedComment(c, { plain = false } = {}) {
+  if (TRUSTED.has(c.authorAssociation)) return true;
+  const who = login(c.author?.login);
+  return APP_FORMS.has(who) || (plain && who === APP);
+}
 
 // A pull request whose branch is in a fork. A missing field fails closed: the caller forgot to ask gh for it.
 export const fromFork = (p) => p.isCrossRepository !== false;
@@ -51,5 +74,5 @@ export function collaborators(gh) {
 // An issue a collaborator, this repository's own workflow or the agents' App opened. team is collaborators()'s set.
 export function trustedIssue(issue, team) {
   const login = issue.author?.login ?? "";
-  return team.has(login) || WORKFLOWS.has(login) || APP_ISSUE_AUTHORS.has(login);
+  return team.has(login) || WORKFLOWS.has(login) || APP_FORMS.has(login.toLowerCase());
 }

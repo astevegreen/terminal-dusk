@@ -2,10 +2,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  AGENT_LOGINS,
   WHO_AM_I,
   collaborators,
   fromFork,
+  plainApp,
   sameAccount,
   signedInLogin,
   trustedComment,
@@ -49,23 +49,38 @@ test("an issue counts only when a collaborator or this repository's own workflow
   assert.equal(trustedIssue({}, team), false, "no author fails closed");
 });
 
-test("the agents' App is trusted under its own logins though it is no collaborator", () => {
+test("the agents' App is trusted under the logins no person can hold, the plain one only when it is free", () => {
   const team = new Set(["astevegreen", "greenbeanbot"]);
-  for (const login of ["greenbean-agent", "greenbean-agent[bot]", "app/greenbean-agent"])
-    assert.equal(trustedComment({ author: { login }, authorAssociation: "NONE" }), true, login);
+  const by = (login) => ({ author: { login }, authorAssociation: "NONE" });
+  for (const login of ["greenbean-agent[bot]", "app/greenbean-agent", "Greenbean-Agent[bot]"])
+    assert.equal(trustedComment(by(login)), true, login);
+  assert.equal(trustedComment(by("greenbean-agent")), false, "the plain form, by default");
+  assert.equal(trustedComment(by("greenbean-agent"), { plain: true }), true, "the plain form, while nobody holds it");
   for (const login of ["greenbean-agent-x", "greenbeanbot", "stranger"])
-    assert.equal(trustedComment({ author: { login }, authorAssociation: "NONE" }), false, login);
-  // An issue's author is the prefixed or bracketed form, which no person can hold.
+    assert.equal(trustedComment(by(login), { plain: true }), false, login);
+  // An issue's author is the prefixed or bracketed form.
   assert.equal(trustedIssue({ author: { login: "app/greenbean-agent" } }, team), true, "gh's form");
   assert.equal(trustedIssue({ author: { login: "greenbean-agent[bot]" } }, team), true, "the REST form");
   assert.equal(trustedIssue({ author: { login: "greenbean-agent" } }, team), false, "the plain form");
-  assert.ok(AGENT_LOGINS.has("greenbeanbot"), "the suspended bot's old posts are still the agents'");
 });
 
-test("one account's spellings: case, and the App's three forms", () => {
+test("the plain greenbean-agent is the App's only while GitHub has no such user", () => {
+  const calls = [];
+  const asked = (answer) => (args) => {
+    calls.push(args);
+    if (answer instanceof Error) throw answer;
+    return answer;
+  };
+  assert.equal(plainApp(asked(new Error("gh api users/greenbean-agent: gh: Not Found (HTTP 404)"))), true);
+  assert.deepEqual(calls[0], ["api", "users/greenbean-agent", "--jq", ".type"]);
+  assert.equal(plainApp(asked("User\n")), false, "someone took the name");
+  assert.equal(plainApp(asked(new Error("HTTP 502: Bad Gateway"))), false, "GitHub didn't answer: fail closed");
+});
+
+test("one account's spellings: case, and the App's REST and gh forms, never the plain one", () => {
   assert.equal(sameAccount("AsteveGreen", "astevegreen"), true);
-  assert.equal(sameAccount("greenbean-agent", "app/greenbean-agent"), true);
-  assert.equal(sameAccount("greenbean-agent[bot]", "greenbean-agent"), true);
+  assert.equal(sameAccount("greenbean-agent[bot]", "app/greenbean-agent"), true);
+  assert.equal(sameAccount("greenbean-agent[bot]", "greenbean-agent"), false);
   assert.equal(sameAccount("greenbean-agent[bot]", "greenbeanbot"), false);
   assert.equal(sameAccount("", ""), false, "no login, no account");
   assert.equal(sameAccount(undefined, "x"), false);
@@ -80,4 +95,13 @@ test("who-am-I asks gh auth status, which an App token can answer, never gh api 
   assert.equal(login, "greenbean-agent[bot]");
   assert.deepEqual(calls, [["auth", "status", "--active", "--json", "hosts", "--jq", '.hosts["github.com"][0].login']]);
   assert.deepEqual(WHO_AM_I, calls[0]);
+  assert.equal(
+    signedInLogin(() => "null\n"),
+    "",
+    "no github.com account: jq prints null",
+  );
+  const nobody = () => {
+    throw new Error("gh auth status: You are not logged into any GitHub hosts");
+  };
+  assert.equal(signedInLogin(nobody), "", "gh signed in nowhere");
 });
