@@ -56,7 +56,8 @@ async function handle(deps: CheckoutHandlerDeps, request: HttpRequest): Promise<
 }
 
 function refused(deps: CheckoutHandlerDeps, code: Code, message: string, reason?: string): HttpReply {
-  log(deps, `checkout error=${code}${reason === undefined ? "" : ` reason=${reason}`}`);
+  const why = reason === undefined ? "" : ` reason=${reason}`;
+  log(deps, `checkout error=${code}${why}`);
   return refusalReply(STATUS[code], code, message);
 }
 
