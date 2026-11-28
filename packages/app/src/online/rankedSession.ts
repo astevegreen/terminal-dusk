@@ -70,7 +70,7 @@ export function createRankedSession(options: RankedOptions): RankedSession {
 
   const publish = (change: Partial<RankedSnapshot>): void => {
     snapshot = { ...snapshot, ...change };
-    for (const listener of [...listeners]) listener();
+    for (const listener of listeners) listener();
   };
 
   const withToken = async <T>(call: (token: string | null) => Promise<LobbyResult<T>>): Promise<LobbyResult<T>> => {
@@ -103,9 +103,15 @@ export function createRankedSession(options: RankedOptions): RankedSession {
       if (started) return;
       started = true;
       publish({ busy: true });
+      // My games first: a pairing between the two reads must not count as a game the player already had.
+      const unreadable = await readKnown();
       const open = await withToken((token) => openSearches(endpoint, token, playerId));
-      const first = open.ok ? open.value[0] : undefined;
-      if (first === undefined || (await readKnown()) !== null) {
+      if (unreadable !== null || !open.ok) {
+        publish({ busy: false, refusal: unreadable ?? (open.ok ? "network" : open.error.code) });
+        return;
+      }
+      const first = open.value[0];
+      if (first === undefined) {
         publish({ busy: false });
         return;
       }
@@ -149,13 +155,14 @@ export function createRankedSession(options: RankedOptions): RankedSession {
         return;
       }
       ticketId = null;
-      publish({ busy: false, phase: "form" });
-      if (!result.ok) {
-        // It was paired just before the cancel: the new game is shown instead.
-        const games = await withToken((token) => myGames(endpoint, token, playerId));
-        const fresh = games.ok ? games.value.find((g) => !known.has(g.matchId)) : undefined;
-        if (fresh !== undefined) publish({ phase: "started", started: fresh });
+      if (result.ok) {
+        publish({ busy: false, phase: "form" });
+        return;
       }
+      // It was paired just before the cancel: the new game is shown instead. Busy stays on until that is known.
+      const games = await withToken((token) => myGames(endpoint, token, playerId));
+      const fresh = games.ok ? games.value.find((g) => !known.has(g.matchId)) : undefined;
+      publish(fresh === undefined ? { busy: false, phase: "form" } : { busy: false, phase: "started", started: fresh });
     },
 
     async poll() {

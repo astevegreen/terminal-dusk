@@ -10,6 +10,8 @@ import { json as body, post } from "./test/handler.ts";
 
 const TOKENS: Record<string, string> = { "token-owner": "owner", "token-free": "free", "token-other": "other" };
 
+const T1 = "00000000-0000-4000-8000-000000000001";
+
 function world() {
   const matches = new MemoryStore();
   const seeks = new MemorySeekStore(matches);
@@ -22,7 +24,7 @@ function world() {
     seeks,
     entitlements,
     matches,
-    ticketId: () => `t-${++n}`,
+    ticketId: () => `00000000-0000-4000-8000-${String(++n).padStart(12, "0")}`,
     authenticate: (token) => Promise.resolve(TOKENS[token] ?? null),
     now: () => 1_700_000_000_000,
   };
@@ -54,8 +56,8 @@ describe("seek handler", () => {
     const w = world();
     const reply = await handleSeek(w.deps, post("token-owner", CREATE));
     expect(reply.status).toBe(200);
-    expect(body(reply)).toEqual({ ok: true, ticketId: "t-1" });
-    expect(await w.seeks.open()).toMatchObject([{ id: "t-1", player: "owner", preset: "normal", side: "lio" }]);
+    expect(body(reply)).toEqual({ ok: true, ticketId: T1 });
+    expect(await w.seeks.open()).toMatchObject([{ id: T1, player: "owner", preset: "normal", side: "lio" }]);
   });
 
   it("takes no side preference as null", async () => {
@@ -91,7 +93,7 @@ describe("seek handler", () => {
   it("cancels the caller's own ticket", async () => {
     const w = world();
     await handleSeek(w.deps, post("token-owner", CREATE));
-    const reply = await handleSeek(w.deps, post("token-owner", { action: "cancel", ticketId: "t-1" }));
+    const reply = await handleSeek(w.deps, post("token-owner", { action: "cancel", ticketId: T1 }));
     expect(reply.status).toBe(200);
     expect(await w.seeks.open()).toEqual([]);
   });
@@ -99,11 +101,27 @@ describe("seek handler", () => {
   it("will not cancel another player's ticket, and says the same as for a ticket that is gone", async () => {
     const w = world();
     await handleSeek(w.deps, post("token-owner", CREATE));
-    const theirs = await handleSeek(w.deps, post("token-other", { action: "cancel", ticketId: "t-1" }));
-    const gone = await handleSeek(w.deps, post("token-owner", { action: "cancel", ticketId: "t-99" }));
+    const theirs = await handleSeek(w.deps, post("token-other", { action: "cancel", ticketId: T1 }));
+    const gone = await handleSeek(
+      w.deps,
+      post("token-owner", { action: "cancel", ticketId: "00000000-0000-4000-8000-000000000099" }),
+    );
     expect(theirs.status).toBe(404);
     expect(gone.body).toBe(theirs.body);
     expect(await w.seeks.open()).toHaveLength(1);
+  });
+
+  it("answers a ticketId that is not a UUID with 404 ticketNotFound, without asking the store", async () => {
+    const w = world();
+    let asked = false;
+    const spy = { ...w.deps, seeks: { cancel: () => ((asked = true), Promise.resolve(false)) } };
+    const reply = await handleSeek(
+      spy as unknown as SeekHandlerDeps,
+      post("token-owner", { action: "cancel", ticketId: "not-a-uuid" }),
+    );
+    expect(reply.status).toBe(404);
+    expect(body(reply)).toMatchObject({ error: { code: "ticketNotFound" } });
+    expect(asked).toBe(false);
   });
 
   it("gives 500 storageFailed when the store throws on cancel", async () => {
@@ -111,7 +129,7 @@ describe("seek handler", () => {
     const broken = { ...w.deps, seeks: { cancel: () => Promise.reject(new Error("db down")) } };
     const reply = await handleSeek(
       broken as unknown as SeekHandlerDeps,
-      post("token-owner", { action: "cancel", ticketId: "t" }),
+      post("token-owner", { action: "cancel", ticketId: T1 }),
     );
     expect(reply.status).toBe(500);
     expect(reply.body).not.toContain("db down");

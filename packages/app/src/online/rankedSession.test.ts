@@ -107,18 +107,44 @@ describe("the ranked search: searching, cancelling and starting", () => {
 
   it("shows a search left open by an earlier visit, with its choices", async () => {
     const r = rankedRig();
-    r.fake.answerNext({ status: 200, body: [seekRow] });
     r.fake.answerNext({ status: 200, body: [] });
+    r.fake.answerNext({ status: 200, body: [seekRow] });
     await r.ranked.start();
     expect(r.ranked.getSnapshot()).toMatchObject({ phase: "searching", preset: "fast", side: "sae" });
+  });
+
+  it("reads My games before the open searches, so a game paired in between is not counted as known", async () => {
+    const r = rankedRig();
+    r.fake.answerNext({ status: 200, body: [] });
+    r.fake.answerNext({ status: 200, body: [seekRow] });
+    await r.ranked.start();
+    expect(r.fake.requests[0]!.url).toContain("/match?");
+    expect(r.fake.requests[1]!.url).toContain("seek?");
+  });
+
+  it("says so, and does not show a blank form, when the search cannot be read", async () => {
+    const r = rankedRig();
+    r.fake.answerNext({ status: 200, body: [] });
+    r.fake.answerNext("throw");
+    await r.ranked.start();
+    expect(r.ranked.getSnapshot()).toMatchObject({ phase: "form", busy: false, refusal: "network" });
+  });
+
+  it("says so when My games cannot be read at the start", async () => {
+    const r = rankedRig();
+    r.fake.answerNext("throw");
+    r.fake.answerNext({ status: 200, body: [seekRow] });
+    await r.ranked.start();
+    expect(r.ranked.getSnapshot()).toMatchObject({ phase: "form", busy: false, refusal: "network" });
   });
 
   it("shows the form when no search is open, and reads the player's own rows only", async () => {
     const r = rankedRig();
     r.fake.answerNext({ status: 200, body: [] });
+    r.fake.answerNext({ status: 200, body: [] });
     await r.ranked.start();
     expect(r.ranked.getSnapshot().phase).toBe("form");
-    expect(r.fake.requests[0]!.url).toContain(`seek?select=id,preset,side&player=eq.${PLAYER}`);
+    expect(r.fake.requests[1]!.url).toContain(`seek?select=id,preset,side&player=eq.${PLAYER}`);
   });
 
   it("shows the new game when the cancel meets a search that was just paired", async () => {
@@ -127,6 +153,18 @@ describe("the ranked search: searching, cancelling and starting", () => {
     r.fake.answerNext({ status: 200, body: [newGame] });
     await r.ranked.cancel();
     expect(r.ranked.getSnapshot()).toMatchObject({ phase: "started", started: { matchId: "m-new" } });
+  });
+
+  it("keeps Search locked until My games has been checked after a cancel that met a paired search", async () => {
+    const r = await searchingRig();
+    r.fake.answerNext({ status: 404, body: refusalBody("ticketNotFound") });
+    r.fake.answerNext({ status: 200, body: [newGame] });
+    const before = r.seen.length;
+    await r.ranked.cancel();
+    const steps = r.seen.slice(before);
+    // Never the idle form in between: Search could be pressed there.
+    expect(steps.some((x) => x.phase === "form" && !x.busy)).toBe(false);
+    expect(steps.at(-1)).toMatchObject({ busy: false, phase: "started" });
   });
 
   it("again returns from a started game to the form", async () => {

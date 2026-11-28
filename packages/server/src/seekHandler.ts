@@ -63,7 +63,11 @@ async function handle(deps: SeekHandlerDeps, request: HttpRequest): Promise<Http
   return reply(200, { ok: true, ticketId: made.value.ticketId });
 }
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 async function cancel(seeks: SeekStore, ticketId: string, player: string): Promise<HttpReply> {
+  // A malformed id is a ticket that does not exist: Postgres would refuse the filter and the reply would be a 500.
+  if (!UUID.test(ticketId)) return refusal("ticketNotFound", "You have no open search with that id.");
   let removed: boolean;
   try {
     removed = await seeks.cancel(ticketId, player);

@@ -3,8 +3,7 @@
 // tests can walk and press it without a browser. The screen scrolls only downward: every part wraps.
 import type { ReactNode } from "react";
 import type { Side } from "@terminal-dusk/engine";
-import { SIDE_NAME } from "./lobbyText.ts";
-import { LOBBY_REFUSAL } from "./lobbyText.ts";
+import { LOBBY_REFUSAL, SIDE_NAME } from "./lobbyText.ts";
 import { RANKED_PRESETS } from "./ranked.ts";
 import type { RankedSession, RankedSnapshot } from "./rankedSession.ts";
 import {
@@ -44,6 +43,10 @@ function Choice({
       {text}
     </button>
   );
+}
+
+function Refusal({ code }: Readonly<{ code: keyof typeof LOBBY_REFUSAL }>) {
+  return <p role="alert">{LOBBY_REFUSAL[code]}</p>;
 }
 
 function Group({ legend, children }: Readonly<{ legend: string; children: ReactNode }>) {
@@ -90,7 +93,7 @@ function Form({
           </button>
         </div>
       ) : (
-        refusal !== null && <p role="alert">{LOBBY_REFUSAL[refusal]}</p>
+        refusal !== null && <Refusal code={refusal} />
       )}
     </section>
   );
@@ -103,7 +106,7 @@ function Searching({
 }: Readonly<Pick<RankedViewProps, "snapshot" | "actions" | "onPlayAi">>) {
   return (
     <section aria-label="Searching">
-      <p role="status">{SEARCHING}</p>
+      <output>{SEARCHING}</output>
       <p>{SEARCHING_HINT}</p>
       <button type="button" style={TAP} disabled={snapshot.busy} onClick={() => void actions.cancel()}>
         Cancel search
@@ -117,7 +120,7 @@ function Searching({
           {AI_LINK}
         </button>
       </p>
-      {snapshot.refusal !== null && <p role="alert">{LOBBY_REFUSAL[snapshot.refusal]}</p>}
+      {snapshot.refusal !== null && <Refusal code={snapshot.refusal} />}
     </section>
   );
 }
@@ -127,7 +130,7 @@ function Started({ snapshot, actions, onOpen }: Readonly<Pick<RankedViewProps, "
   if (game === null) return null;
   return (
     <section aria-label="Game started">
-      <p role="status">{`Your ranked game has started. You play ${SIDE_NAME[game.mySide]}.`}</p>
+      <output>{`Your ranked game has started. You play ${SIDE_NAME[game.mySide]}.`}</output>
       <p>{STARTED_NOTIFICATION_PLACEHOLDER}</p>
       <button type="button" style={TAP} onClick={() => onOpen(game.matchId)}>
         Open the game

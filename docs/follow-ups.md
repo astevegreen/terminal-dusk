@@ -61,6 +61,14 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   cannot give a deleted account a copy. It also clears a used gift code's `gift_code.redeemed_by` without making
   the code usable again: the table's check ties it to `redeemed_at`, so that check changes in a new migration (#710).
   [27 Nov 2026, #683, architect]
+- The started ranked game is guessed as the first new game in My games (`packages/app/src/online/rankedSession.ts`),
+  because match rows carry no ranked flag: an invite game that starts during a search would be shown instead. Add the
+  flag, then use it. [28 Nov 2026, #747 review]
+- `SupabaseSeekStore.cancel` (`packages/server/src/supabaseSeekStore.ts`) has no stack test against Postgres.
+  [28 Nov 2026, #747 review]
+- `seekHandler.ts` has no Door entry of its own in `packages/server/src/onlineDoors.audit.test.ts`; it is listed
+  under createSeek's `covers`, so the audit does not run its free-player, wrong-platform and entitled-player checks
+  through `handleSeek`. [28 Nov 2026, #747 agy audit]
 
 ## Tests and tooling
 
