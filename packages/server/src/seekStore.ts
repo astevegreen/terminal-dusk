@@ -28,6 +28,8 @@ export type PairResult = "paired" | "unavailable";
 export interface SeekStore {
   /** Stores the ticket unless the player's unfinished ranked matches plus open tickets already reach `limit`. One step. */
   create(ticket: SeekTicket, limit: number): Promise<CreateSeekResult>;
+  /** Removes the ticket `id` when it is `player`'s own. True when one was removed; false when none was (no such ticket, or not theirs). */
+  cancel(id: string, player: PlayerId): Promise<boolean>;
   /** Every open ticket, oldest first (by `createdAt`, then id). */
   open(): Promise<SeekTicket[]>;
   /** In one step: when both tickets still exist, removes them and stores the match in `write`. Else stores nothing. */
@@ -57,6 +59,14 @@ export class MemorySeekStore implements SeekStore {
       if (tickets + this.#matches.unfinishedRanked(ticket.player) >= limit) return "limit";
       this.#tickets.set(ticket.id, copy(ticket));
       return "saved";
+    });
+  }
+
+  cancel(id: string, player: PlayerId): Promise<boolean> {
+    return later(() => {
+      if (this.#tickets.get(id)?.player !== player) return false;
+      this.#tickets.delete(id);
+      return true;
     });
   }
 

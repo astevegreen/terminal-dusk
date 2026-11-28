@@ -20,7 +20,7 @@ const COLUMNS = "id, player, rating, preset, side, created_at";
 
 /** A matchmaking storage failure. Its message names only the step and the database's error code. */
 export class SeekStorageError extends Error {
-  constructor(step: "create" | "open" | "pair", reason: string) {
+  constructor(step: "create" | "cancel" | "open" | "pair", reason: string) {
     super(`Seek ${step} failed: ${reason}.`);
     this.name = "SeekStorageError";
   }
@@ -42,7 +42,7 @@ export function ticketFromRow(row: SeekRow): SeekTicket | null {
   };
 }
 
-async function call<T>(step: "create" | "open" | "pair", run: () => PromiseLike<T>): Promise<T> {
+async function call<T>(step: "create" | "cancel" | "open" | "pair", run: () => PromiseLike<T>): Promise<T> {
   try {
     return await run();
   } catch {
@@ -74,6 +74,14 @@ export class SupabaseSeekStore implements SeekStore {
     if (error) throw new SeekStorageError("create", reasonOf(error));
     if (data === "saved" || data === "limit") return data;
     throw new SeekStorageError("create", "the database gave an unexpected answer");
+  }
+
+  async cancel(id: string, player: string): Promise<boolean> {
+    const { data, error } = await call("cancel", () =>
+      this.#db.from("seek").delete().eq("id", id).eq("player", player).select("id"),
+    );
+    if (error) throw new SeekStorageError("cancel", reasonOf(error));
+    return Array.isArray(data) && data.length > 0;
   }
 
   async open(): Promise<SeekTicket[]> {

@@ -142,7 +142,13 @@ export function App({
         />
       );
     }
-    if (screen === "online") return onlineRoute({ clock, game, online, signIn, timers }, () => setScreen("home"));
+    if (screen === "online") {
+      return onlineRoute(
+        { clock, game, online, signIn, timers },
+        () => setScreen("home"),
+        () => setScreen("vsAi"),
+      );
+    }
     return <Home onPick={setScreen} notice={notice} />;
   };
   return <PurchaseDeskContext.Provider value={desk}>{page()}</PurchaseDeskContext.Provider>;
@@ -217,9 +223,11 @@ export function onlineRoute(
     timers: Timers;
   }>,
   onBack: () => void,
+  onPlayAi?: () => void,
 ) {
   return (
     <OnlineScreen
+      onPlayAi={onPlayAi}
       online={online}
       signIn={signIn}
       clock={clock}

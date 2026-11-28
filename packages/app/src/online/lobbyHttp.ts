@@ -16,6 +16,10 @@ export const SERVER_CODES = [
   "sideNotChoosable",
   "illegalSide",
   "invalidInvite",
+  // The ranked search (the seek function, #682).
+  "limitReached",
+  "invalidSeek",
+  "ticketNotFound",
 ] as const;
 
 /** Why a lobby call was refused, as a code the screen can show. */

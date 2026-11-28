@@ -125,6 +125,13 @@ describe("each refusal", () => {
     ["notSignedIn", (r) => (r.fake.answerNext({ status: 401, body: {} }), r.lobby.create())],
     ["tooManyRequests", (r) => (r.fake.answerNext({ status: 429, body: {} }), r.lobby.join("x"))],
     ["network", (r) => (r.fake.answerNext("throw"), r.lobby.refresh())],
+    // The ranked search's codes (#682) share the lobby's reply reading, so any lobby call passes them on with words.
+    ["limitReached", (r) => (r.fake.answerNext({ status: 409, body: refusalBody("limitReached") }), r.lobby.create())],
+    ["invalidSeek", (r) => (r.fake.answerNext({ status: 422, body: refusalBody("invalidSeek") }), r.lobby.create())],
+    [
+      "ticketNotFound",
+      (r) => (r.fake.answerNext({ status: 404, body: refusalBody("ticketNotFound") }), r.lobby.create()),
+    ],
   ];
   for (const [refusal, reach] of cases) {
     it(`shows its own plain message for ${refusal}, announced to screen readers`, async () => {

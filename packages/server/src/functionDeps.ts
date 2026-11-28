@@ -7,11 +7,13 @@ import { supabaseAuthenticate } from "./edge.ts";
 import type { InviteDeps } from "./invite.ts";
 import type { InviteHandlerDeps } from "./inviteHandler.ts";
 import type { RedeemHandlerDeps } from "./redeemHandler.ts";
+import type { SeekHandlerDeps } from "./seekHandler.ts";
 import type { SubmitHandlerDeps } from "./submitHandler.ts";
 import { SupabaseEntitlementStore } from "./supabaseEntitlementStore.ts";
 import { SupabaseGiftCodeStore } from "./supabaseGiftCodeStore.ts";
 import { SupabaseInviteStore } from "./supabaseInviteStore.ts";
 import { SupabaseNotifyStore } from "./supabaseNotifyStore.ts";
+import { SupabaseSeekStore } from "./supabaseSeekStore.ts";
 import { SupabaseStore } from "./supabaseStore.ts";
 
 /** The submit function's deps: the rulesets it runs, the clock and its logger (match ids and seqs only). */
@@ -39,6 +41,21 @@ export function inviteFunctionDeps(
     entitlements: new SupabaseEntitlementStore(db),
     notify: new SupabaseNotifyStore(db),
     ...runtime.random,
+    authenticate: supabaseAuthenticate(db),
+    now: runtime.now,
+  };
+}
+
+/** The seek function's deps: the ticket store, the entitlements and ratings it reads, the clock and a ticket id source. */
+export function seekFunctionDeps(
+  db: SupabaseClient,
+  runtime: { now: () => number; ticketId: () => string },
+): SeekHandlerDeps {
+  return {
+    seeks: new SupabaseSeekStore(db),
+    entitlements: new SupabaseEntitlementStore(db),
+    matches: new SupabaseStore(db),
+    ticketId: runtime.ticketId,
     authenticate: supabaseAuthenticate(db),
     now: runtime.now,
   };
