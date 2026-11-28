@@ -196,6 +196,8 @@ points from the game, which keeps chapter 3's promise true (owner, 27 Nov 2026, 
   aside and you draw again. SAE's ability, Unified command: after SAE plays its own card for its event, its next card
   played for points that turn counts 1 more."
 - "That's the coaching. From here it's a normal game."
+  In the free edition the game is already over by then, so this line drops its second sentence (owner, 28 Nov 2026;
+  see chapter 7 in the chapter list).
 
 **If an ability fires before chapter 7** (the engine's `abilityRedraw` and `abilityBonus` events,
 `packages/engine/src/abilityTypes.ts`), a hint shows:

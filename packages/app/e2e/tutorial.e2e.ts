@@ -17,8 +17,8 @@ const CHAPTER_1 = "Opening cards and events";
 const COACH =
   "Each turn starts with an opening card. You and SAE each pick one in secret, then both are shown together. An " +
   "opening card is used only for its event: its action points are not spent. Pick Maastricht Treaty.";
-/** The line once both opening events have happened, which starts like this; its slots are filled from the game. (The
- *  step between, on SAE's event, ends with LIO's event a moment later, with no decision of the learner's between.) */
+/** The line once both opening events have happened, which starts like this; its slots are filled from the game. It
+ *  shows together with the line on SAE's event, which stays until LIO's next play (owner, 28 Nov 2026, in chat). */
 const NEXT = "Maastricht gives you 1 point now. You can place where you already have influence";
 /** The first card play's line, which starts like this; its points are filled from the game. */
 const FIRST_PLAY = "Now the card plays: LIO, SAE, LIO, SAE. Play NATO Enlargement 1999 for its points";
