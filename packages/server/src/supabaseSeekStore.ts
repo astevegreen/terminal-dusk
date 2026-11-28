@@ -1,6 +1,7 @@
 // The Supabase side of the matchmaking port (docs/architecture.md, Decision 5; #681). It runs only with a client made
 // with the service role key. No error it throws carries a player id, a ticket, a row, the secret, a seed or a key.
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { isPlatform } from "@terminal-dusk/host";
 import { isRankedPreset } from "./rankedPresets.ts";
 import type { CreateSeekResult, PairResult, SeekStore, SeekTicket } from "./seekStore.ts";
 import { rowsFor } from "./rows.ts";
@@ -14,9 +15,10 @@ export type SeekRow = {
   preset: string;
   side: string | null;
   created_at: number;
+  platform: string;
 };
 
-const COLUMNS = "id, player, rating, preset, side, created_at";
+const COLUMNS = "id, player, rating, preset, side, created_at, platform";
 
 /** A matchmaking storage failure. Its message names only the step and the database's error code. */
 export class SeekStorageError extends Error {
@@ -32,7 +34,9 @@ const reasonOf = (error: { code?: string } | null | undefined): string =>
 /** The ticket a row stands for, or null when the row breaks the ticket rules (the table's checks forbid that). */
 export function ticketFromRow(row: SeekRow): SeekTicket | null {
   if (!isRankedPreset(row.preset) || (row.side !== null && row.side !== "lio" && row.side !== "sae")) return null;
+  if (!isPlatform(row.platform)) return null;
   return {
+    platform: row.platform,
     id: row.id,
     player: row.player,
     rating: row.rating,
@@ -69,6 +73,7 @@ export class SupabaseSeekStore implements SeekStore {
         p_side: ticket.side,
         p_created_at: ticket.createdAt,
         p_limit: limit,
+        p_platform: ticket.platform,
       }),
     );
     if (error) throw new SeekStorageError("create", reasonOf(error));

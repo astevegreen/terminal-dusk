@@ -8,6 +8,7 @@ import { hostCreate } from "@terminal-dusk/host";
 import { firstDeckConfig, firstDeckRuleset } from "@terminal-dusk/host/first-deck";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import SEEK_MIGRATION from "../../supabase/migrations/20261104000000_seek.sql?raw";
+import PLATFORM_MIGRATION from "../../supabase/migrations/20261107000000_seek_platform.sql?raw";
 import { RANKED_LIMIT } from "../matchmake.ts";
 import { SupabaseSeekStore } from "../supabaseSeekStore.ts";
 import { makeUser, onLocalStack } from "../test/stack.ts";
@@ -19,14 +20,21 @@ const PERMISSION_DENIED = "42501";
 
 describe("the matchmaking migration's text", () => {
   it("only the service role may run create_seek, pair_seeks and matchmake_job", () => {
-    for (const fn of [
-      "public.create_seek(uuid, uuid, integer, text, text, bigint, integer)",
-      "public.pair_seeks(uuid, uuid, jsonb, jsonb, jsonb, jsonb)",
-      "public.matchmake_job()",
-    ]) {
+    for (const fn of ["public.pair_seeks(uuid, uuid, jsonb, jsonb, jsonb, jsonb)", "public.matchmake_job()"]) {
       expect(SEEK_MIGRATION).toContain(`revoke execute on function ${fn} from public, anon, authenticated;`);
       expect(SEEK_MIGRATION).toContain(`grant execute on function ${fn} to service_role;`);
     }
+    const fn = "public.create_seek(uuid, uuid, integer, text, text, bigint, integer, text)";
+    expect(PLATFORM_MIGRATION).toContain(`revoke execute on function ${fn} from public, anon, authenticated;`);
+    expect(PLATFORM_MIGRATION).toContain(`grant execute on function ${fn} to service_role;`);
+  });
+
+  it("the platform migration replaces the old create_seek and checks the platform name", () => {
+    expect(PLATFORM_MIGRATION).toContain(
+      "drop function public.create_seek(uuid, uuid, integer, text, text, bigint, integer);",
+    );
+    expect(PLATFORM_MIGRATION).toContain("check (platform in ('web', 'steam', 'ios', 'android'))");
+    expect(PLATFORM_MIGRATION).toContain("alter column platform drop default");
   });
 
   it("schedules the matchmake job by name every minute with a call_sweep command", () => {
@@ -78,6 +86,7 @@ await onLocalStack("matchmaking migration on the local Supabase stack", (keys) =
       p_side: null,
       p_created_at: 1_700_000_000_000,
       p_limit: RANKED_LIMIT,
+      p_platform: "web",
       ...over,
     };
   };
@@ -95,6 +104,7 @@ await onLocalStack("matchmaking migration on the local Supabase stack", (keys) =
   it.each([
     ["an unknown preset", { p_preset: "turbo" }],
     ["an unknown side", { p_side: "mid" }],
+    ["an unknown platform", { p_platform: "playstation" }],
   ] as const)(
     "rejects a ticket with %s",
     async (_name, change) => {
@@ -115,9 +125,15 @@ await onLocalStack("matchmaking migration on the local Supabase stack", (keys) =
     expect((await anon.from("seek").select("id")).error?.code).toBe(PERMISSION_DENIED);
     expect(
       (
-        await user!.db
-          .from("seek")
-          .insert({ id: freshId(), player: user!.id, rating: 1500, preset: "normal", side: null, created_at: 0 })
+        await user!.db.from("seek").insert({
+          id: freshId(),
+          player: user!.id,
+          rating: 1500,
+          preset: "normal",
+          side: null,
+          created_at: 0,
+          platform: "web",
+        })
       ).error?.code,
     ).toBe(PERMISSION_DENIED);
     expect((await user!.db.rpc("create_seek", args(user!.id))).error?.code).toBe(PERMISSION_DENIED);

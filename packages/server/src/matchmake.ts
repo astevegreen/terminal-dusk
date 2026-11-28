@@ -5,8 +5,8 @@
 // Plain TypeScript; nothing here logs a player, a seed or a ticket.
 import { SIDES, seedHash } from "@terminal-dusk/engine";
 import type { Seed, Side } from "@terminal-dusk/engine";
-import { hostCreate, joinRankedRefusal, isPlatform, PLATFORMS, START_RATING } from "@terminal-dusk/host";
-import type { HostError, Platform, PlayerId } from "@terminal-dusk/host";
+import { hostCreate, joinRankedRefusal, isPlatform, START_RATING } from "@terminal-dusk/host";
+import type { Entitlement, HostError, Platform, PlayerId } from "@terminal-dusk/host";
 import { firstDeckConfig, firstDeckRuleset } from "@terminal-dusk/host/first-deck";
 import type { EntitlementStore } from "./entitlementStore.ts";
 import type { NotifyStore } from "./notifyStore.ts";
@@ -121,7 +121,10 @@ export async function createSeek(deps: SeekDeps, request: CreateSeekRequest): Pr
     const [row] = await deps.matches.ratings([player]);
     const rating = Math.round(row?.rating ?? START_RATING.rating);
     const ticketId = deps.ticketId();
-    const saved = await deps.seeks.create({ id: ticketId, player, rating, preset, side, createdAt: now }, RANKED_LIMIT);
+    const saved = await deps.seeks.create(
+      { id: ticketId, player, rating, preset, side, createdAt: now, platform },
+      RANKED_LIMIT,
+    );
     if (saved === "limit") return refuse("limitReached", `You can have at most ${RANKED_LIMIT} ranked games running.`);
     return { ok: true, value: { ticketId } };
   } catch {
@@ -146,24 +149,24 @@ export type MatchmakeResult = { status: "paired"; matchId: string } | { status: 
 
 /**
  * The tickets whose player still owns the Full Game (#687): a second check, because a refund or chargeback can remove
- * the entitlement after the ticket was stored. A ticket does not record its platform, so a copy on any platform
- * counts. A player whose entitlements cannot be read is left out this time; their ticket stays for the next sweep.
+ * the entitlement after the ticket was stored. The copy must be on the ticket's own platform: a copy on another one
+ * does not count. A player whose entitlements cannot be read is left out this time; their ticket stays for the next
+ * sweep.
  */
 async function stillEntitled(deps: MatchmakeDeps, tickets: readonly SeekTicket[]): Promise<SeekTicket[]> {
-  const answers = new Map<string, boolean>();
+  const owned = new Map<string, Entitlement[] | null>();
   for (const { player } of tickets) {
-    if (answers.has(player)) continue;
+    if (owned.has(player)) continue;
     try {
-      const owned = await deps.entitlements.forPlayer(player);
-      answers.set(
-        player,
-        PLATFORMS.some((platform) => joinRankedRefusal(owned, platform) === null),
-      );
+      owned.set(player, await deps.entitlements.forPlayer(player));
     } catch {
-      answers.set(player, false);
+      owned.set(player, null);
     }
   }
-  return tickets.filter((ticket) => answers.get(ticket.player) === true);
+  return tickets.filter((ticket) => {
+    const held = owned.get(ticket.player);
+    return held != null && joinRankedRefusal(held, ticket.platform) === null;
+  });
 }
 
 /**

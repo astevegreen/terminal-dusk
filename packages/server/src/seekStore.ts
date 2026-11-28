@@ -1,7 +1,7 @@
 // The matchmaking port (docs/architecture.md, Decision 5, `seek` and "Scheduled jobs", Matchmaking; #681), and an
 // in-memory store for tests. A ticket is one player's search for a ranked game. Tickets persist until paired.
 import type { Side } from "@terminal-dusk/engine";
-import type { PlayerId } from "@terminal-dusk/host";
+import type { Platform, PlayerId } from "@terminal-dusk/host";
 import { later } from "./later.ts";
 import type { RankedPreset } from "./rankedPresets.ts";
 import type { MatchWrite, MemoryStore } from "./store.ts";
@@ -18,6 +18,8 @@ export type SeekTicket = {
   preset: RankedPreset;
   side: Side | null;
   createdAt: number;
+  /** The platform they searched on: the Full Game is checked for exactly this one, again at pairing. */
+  platform: Platform;
 };
 
 /** `saved`: the ticket is stored. `limit`: the player already has `limit` unfinished ranked matches plus tickets. */
