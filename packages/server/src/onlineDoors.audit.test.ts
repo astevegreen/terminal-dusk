@@ -87,6 +87,7 @@ const DOORS: Door[] = [
       "src/sweepEdge.ts: ranked or matchmaking code (MATCHMAKE_STATUSES, MatchmakeDeps, MatchmakeEdgeDeps, MatchmakeResult, handleMatchmake, matchmake, matchmakeFetchHandler)",
       "supabase/functions/matchmake/index.ts: ranked or matchmaking code (matchmake, matchmakeFetchHandler, seeks)",
       "supabase/migrations/20261104000000_seek.sql: ranked or matchmaking code (matchmake, matchmake_job, ranked, seek, seek_player)",
+      "supabase/migrations/20261107000000_seek_platform.sql: ranked or matchmaking code (ranked, seek)",
     ],
     async tryAs(entitlements, platform) {
       const matches = new MemoryStore();

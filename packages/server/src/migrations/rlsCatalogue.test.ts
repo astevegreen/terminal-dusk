@@ -264,6 +264,7 @@ await onLocalStack("row-level security across every table on the local Supabase 
       preset: "normal",
       side: null,
       created_at: NOW,
+      platform: "web",
     });
     await insert("rating", {
       player: lio!.id,

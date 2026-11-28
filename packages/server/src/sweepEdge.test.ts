@@ -38,6 +38,7 @@ async function matchmakeWorld(now: () => number = () => 1_700_000_000_000) {
     serviceKey: SERVICE_KEY,
     now: () => (lastClock = now()),
     matchmake: {
+      entitlements,
       seeks: {
         create: seeks.create.bind(seeks),
         pair: seeks.pair.bind(seeks),
