@@ -33,6 +33,12 @@ await onLocalStack("the Supabase stores keep the store contracts on the local Su
       store: new SupabaseStore(stack.service),
       fresh: () => fresh(),
       putIn: (write) => putIn(stack.service, write),
+      forgetRatings: async (players) => {
+        await stack.service
+          .from("rating")
+          .delete()
+          .in("player", [...players]);
+      },
     }),
     TIMEOUT,
   );

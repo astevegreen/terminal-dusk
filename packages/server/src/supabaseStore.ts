@@ -2,17 +2,23 @@
 // with the service role key: clients can neither read `match_secret` nor run `commit_match`.
 // The secret is passed through unopened, and no error it throws carries a row, the secret, a seed or a key.
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { MatchRecord, MatchSecret } from "@terminal-dusk/host";
+import type { MatchRecord, MatchSecret, PlayerId } from "@terminal-dusk/host";
 import type { DeadlineStore } from "./deadlineStore.ts";
 import { matchRowFor, recordFromRow } from "./matchRow.ts";
 import type { MatchRow } from "./rows.ts";
 import { rowsFor } from "./rows.ts";
-import type { CommitResult, LoadedMatch, MatchStore, MatchWrite } from "./store.ts";
+import type { CommitResult, LoadedMatch, MatchStore, MatchWrite, SaveResult } from "./store.ts";
+import type { RatingRow } from "./ratings.ts";
 
 /** The `match` columns, then the match's `match_secret` row embedded in the same query. */
 const LOAD_COLUMNS =
   "match_id, lio_player, sae_player, ruleset, seed_hash, seed, seq, status, created_at, updated_at, clock, " +
-  "next_deadline, match_secret(secret)";
+  "next_deadline, ranked, match_secret(secret)";
+
+/** The `rating` columns (ratings.ts, `RatingRow`). */
+const RATING_COLUMNS =
+  "player, rating, deviation, volatility, ranked_games, lio_wins, lio_losses, lio_draws, sae_wins, sae_losses, " +
+  "sae_draws, updated_at";
 
 type SecretRow = { secret: MatchSecret };
 type LoadedRow = MatchRow & { match_secret: SecretRow | SecretRow[] | null };
@@ -22,8 +28,8 @@ type LoadedRow = MatchRow & { match_secret: SecretRow | SecretRow[] | null };
  * can be logged: never the database's own message or details, which may quote a row.
  */
 export class StorageError extends Error {
-  /** `matchId` is null for a step about no one match (`due`). */
-  constructor(step: "load" | "commit" | "due" | "saveClock", matchId: string | null, reason: string) {
+  /** `matchId` is null for a step about no one match (`due`, `ratings`). */
+  constructor(step: "load" | "commit" | "ratings" | "due" | "saveClock", matchId: string | null, reason: string) {
     super(`Storage ${step} failed${matchId === null ? "" : ` for match ${matchId}`}: ${reason}.`);
     this.name = "StorageError";
   }
@@ -73,14 +79,31 @@ export class SupabaseStore implements MatchStore, DeadlineStore {
         p_secret: write.secret,
         p_views: rows.views,
         p_events: rows.events,
+        p_ratings: write.ratings ?? null,
       });
     } catch {
       throw new StorageError("commit", matchId, "the database did not answer");
     }
     const { data, error } = answer;
     if (error) throw new StorageError("commit", matchId, reasonOf(error));
-    if (data === "saved" || data === "conflict") return data;
+    if (data === "saved" || data === "conflict" || data === "ratingsMoved") return data;
     throw new StorageError("commit", matchId, "the database gave an unexpected answer");
+  }
+
+  /** The `rating` rows of these players; an unrated player has none. */
+  async ratings(players: readonly PlayerId[]): Promise<RatingRow[]> {
+    let answer;
+    try {
+      answer = await this.#db
+        .from("rating")
+        .select(RATING_COLUMNS)
+        .in("player", [...players]);
+    } catch {
+      throw new StorageError("ratings", null, "the database did not answer");
+    }
+    const { data, error } = answer;
+    if (error) throw new StorageError("ratings", null, reasonOf(error));
+    return data as unknown as RatingRow[];
   }
 
   /** Active matches whose `next_deadline` is at or before `now`, by that deadline, then by match id. */
@@ -106,7 +129,7 @@ export class SupabaseStore implements MatchStore, DeadlineStore {
    * One update of the match row's `clock`, `next_deadline` and `updated_at`, where the seq is still
    * `expectedSeq`. It writes no view or event row: an extension keeps its seq, so new event rows would clash.
    */
-  async saveClock(matchId: string, expectedSeq: number, record: MatchRecord): Promise<CommitResult> {
+  async saveClock(matchId: string, expectedSeq: number, record: MatchRecord): Promise<SaveResult> {
     const row = matchRowFor(record);
     let answer;
     try {

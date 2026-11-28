@@ -45,6 +45,7 @@ export function deadlineWorld(now: () => number = () => DEADLINE_AT): DeadlineWo
     },
     load: (id) => store.load(id),
     commit: (id, seq, write) => store.commit(id, seq, write),
+    ratings: (players) => store.ratings(players),
     saveClock: (id, seq, record) => store.saveClock(id, seq, record),
   };
   return { store, dueCalls, deps: { store: counted, rulesetFor, serviceKey: SERVICE_KEY, now } };

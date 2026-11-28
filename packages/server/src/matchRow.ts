@@ -24,12 +24,14 @@ export function matchRowFor(record: MatchRecord): MatchRow {
     updated_at: record.updatedAt,
     clock: record.clock ? copy(record.clock) : null,
     next_deadline: earliestDeadline(record),
+    ranked: record.ranked === true,
   };
 }
 
 /**
  * The record a `match` row stands for. A null `seed` column gives a record with no `seed` field, and a null
- * `clock` column one with no `clock` field. `next_deadline` is worked out from the clock, so it is not read.
+ * `clock` column one with no `clock` field; a
+ * `ranked` column that is not true gives one with no `ranked` field. `next_deadline` is worked out from the clock, so it is not read.
  */
 export function recordFromRow(row: MatchRow): MatchRecord {
   const record: MatchRecord = {
@@ -44,5 +46,6 @@ export function recordFromRow(row: MatchRow): MatchRecord {
   };
   if (row.seed !== null) record.seed = row.seed;
   if (row.clock !== null) record.clock = copy(row.clock);
+  if (row.ranked === true) record.ranked = true;
   return record;
 }

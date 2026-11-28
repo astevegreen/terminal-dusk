@@ -26,6 +26,7 @@ export function counting(inner: MatchStore): { store: MatchStore; calls: () => n
         calls++;
         return inner.commit(id, seq, write);
       },
+      ratings: (players) => inner.ratings(players),
     },
     calls: () => calls,
   };

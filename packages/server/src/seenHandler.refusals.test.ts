@@ -106,7 +106,7 @@ describe("handleSeen: a storage failure answers 500 with no stored data in the r
 
   it("a failing match read answers 500 storageFailed and marks nothing", async () => {
     const w = await seenWorld();
-    const store: MatchStore = { load: failing, commit: failing };
+    const store: MatchStore = { load: failing, commit: failing, ratings: failing };
     const reply = await handleSeen({ ...w.deps, store }, post("token-alice", { matchId: MATCH, seq: 0 }));
     check(w, reply);
     expect(w.notifyCalls).toEqual([]);

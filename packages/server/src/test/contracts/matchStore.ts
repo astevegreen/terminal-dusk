@@ -6,6 +6,7 @@ import type { MatchStore, MatchWrite } from "../../store.ts";
 import { bodyFor, nextSide } from "../match.ts";
 import { answered } from "../stackGame.ts";
 import { writeOf } from "../stack.ts";
+import { matchStoreRatingContract } from "./matchStoreRatings.ts";
 
 /** What one contract test works with; `setup` gives a fresh one at the start of each test. */
 export type MatchStoreHarness = {
@@ -14,6 +15,8 @@ export type MatchStoreHarness = {
   fresh(): HostResult;
   /** Puts in a game at seq 0, as a new match is stored outside `commit`. */
   putIn(write: MatchWrite): Promise<void>;
+  /** Removes these players' rating rows, after a rating test. */
+  forgetRatings(players: readonly string[]): Promise<void>;
 };
 
 /** The host's result for the next answer to `start`. */
@@ -109,4 +112,6 @@ export function matchStoreContract(setup: () => MatchStoreHarness, timeout?: num
     },
     timeout,
   );
+
+  matchStoreRatingContract(setup, timeout);
 }

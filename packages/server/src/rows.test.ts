@@ -11,6 +11,7 @@ const MATCH_FIELDS = [
   "lio_player",
   "match_id",
   "next_deadline",
+  "ranked",
   "ruleset",
   "sae_player",
   "seed",
@@ -50,7 +51,14 @@ describe("rowsFor: one commit becomes one match row, three view rows and three e
       updated_at: record.updatedAt,
       clock: null,
       next_deadline: null,
+      ranked: false,
     });
+  });
+
+  it("a ranked match's row says ranked, and a match that is not ranked says not", () => {
+    const { record } = created();
+    expect(rowsFor({ ...created(), record: { ...record, ranked: true } }).match.ranked).toBe(true);
+    expect(rowsFor(created()).match.ranked).toBe(false);
   });
 
   it("there is one view row and one event row per viewer, each holding that viewer's frame and its events", () => {

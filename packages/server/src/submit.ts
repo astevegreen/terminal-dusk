@@ -3,6 +3,7 @@
 import type { Ruleset, RulesetId } from "@terminal-dusk/engine";
 import { hostSubmit } from "@terminal-dusk/host";
 import type { HostEffect, HostError, PlayerId, Submission } from "@terminal-dusk/host";
+import { commitStep } from "./finalize.ts";
 import type { NotifyStore } from "./notifyStore.ts";
 import { keepWaiting, queueAlerts } from "./queueAlerts.ts";
 import type { LoadedMatch, MatchStore, MatchWrite } from "./store.ts";
@@ -45,7 +46,7 @@ export async function submit(deps: SubmitDeps, request: SubmitRequest): Promise<
   const result = hostSubmit(ruleset, record, secret, submissionFrom(body, player), now);
   if (!result.ok) return { ok: false, error: result.error };
   const { effects, ...write } = result.value;
-  const committed = await attempt(() => deps.store.commit(matchId, record.seq, write satisfies MatchWrite));
+  const committed = await attempt(() => commitStep(deps.store, record, write satisfies MatchWrite, now));
   if (!committed.ok) return committed;
   if (committed.value === "conflict") return refuse("staleSeq", "The game has moved on since that answer was made.");
   await queueAlerts(deps.notify, matchId, write.record.seq, effects, now);

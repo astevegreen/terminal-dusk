@@ -23,6 +23,7 @@ function expectRefused(reply: HttpReply, status: number, code: string): void {
 const broken = (inner: MatchStore): MatchStore => ({
   load: (id) => inner.load(id),
   commit: () => Promise.reject(new Error("commit failed")),
+  ratings: (players) => inner.ratings(players),
 });
 
 describe("submit handler: methods and CORS", () => {

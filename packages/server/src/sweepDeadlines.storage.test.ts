@@ -14,6 +14,7 @@ const wrap = (inner: MemoryStore, change: Partial<SweepStore>): SweepStore => ({
   due: (now) => inner.due(now),
   load: (id) => inner.load(id),
   commit: (id, seq, write) => inner.commit(id, seq, write),
+  ratings: (players) => inner.ratings(players),
   saveClock: (id, seq, record) => inner.saveClock(id, seq, record),
   ...change,
 });

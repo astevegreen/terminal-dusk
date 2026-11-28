@@ -9,6 +9,7 @@ import { bodyFor, MATCH, nextSide, NOW, setup } from "./test/match.ts";
 const broken = (part: "load" | "commit", inner: MatchStore): MatchStore => ({
   load: part === "load" ? () => Promise.reject(new Error("load failed")) : (id) => inner.load(id),
   commit: part === "commit" ? () => Promise.reject(new Error("commit failed")) : (id, s, w) => inner.commit(id, s, w),
+  ratings: (players) => inner.ratings(players),
 });
 
 /** One result of every error the handler can give, for a new match. */

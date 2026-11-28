@@ -24,6 +24,8 @@ export type MatchRow = {
   clock: MatchClock | null;
   /** The earliest deadline while the game is active, else null: what the deadline sweep looks for. */
   next_deadline: number | null;
+  /** True only for a ranked match (#679), set when it is created; `commit_match` never changes it. */
+  ranked: boolean;
 };
 
 /** One row of the `match_view` table: one viewer's latest frame. */

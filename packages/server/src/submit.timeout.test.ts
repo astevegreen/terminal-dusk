@@ -14,6 +14,7 @@ function counting(inner: MatchStore): { store: MatchStore; commits: () => number
         commits += 1;
         return inner.commit(id, seq, write);
       },
+      ratings: (players) => inner.ratings(players),
     },
     commits: () => commits,
   };

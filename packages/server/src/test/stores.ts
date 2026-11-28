@@ -14,6 +14,7 @@ export function loadTogether(inner: MatchStore, count: number): MatchStore {
       return loaded;
     },
     commit: (matchId, expectedSeq, write) => inner.commit(matchId, expectedSeq, write),
+    ratings: (players) => inner.ratings(players),
   };
 }
 
@@ -27,6 +28,7 @@ export function recording(inner: MatchStore): { store: MatchStore; saved: MatchW
       if (result === "saved") saved.push(write);
       return result;
     },
+    ratings: (players) => inner.ratings(players),
   };
   return { store, saved };
 }
