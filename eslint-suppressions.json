@@ -1,0 +1,799 @@
+{
+  "packages/ai/src/hard.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    }
+  },
+  "packages/ai/src/lookahead.test.ts": {
+    "sonarjs/misplaced-loop-counter": {
+      "count": 1
+    }
+  },
+  "packages/ai/src/realign.test.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    },
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "packages/ai/src/rollout.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    },
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "packages/ai/src/unseen.ts": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "packages/app/e2e-stack/phase4.e2e.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    },
+    "sonarjs/no-skipped-tests": {
+      "count": 1
+    }
+  },
+  "packages/app/e2e/drawnMap.e2e.ts": {
+    "sonarjs/no-fixed-wait-in-tests": {
+      "count": 1
+    }
+  },
+  "packages/app/e2e/eraThemes.test.ts": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    },
+    "sonarjs/super-linear-regex": {
+      "count": 1
+    }
+  },
+  "packages/app/e2e/mapPicking.e2e.ts": {
+    "sonarjs/no-fixed-wait-in-tests": {
+      "count": 1
+    },
+    "sonarjs/no-forced-browser-interaction": {
+      "count": 1
+    }
+  },
+  "packages/app/e2e/watchStack.e2e.ts": {
+    "sonarjs/no-skipped-tests": {
+      "count": 1
+    }
+  },
+  "packages/app/scripts/world-map/geometry.test.mjs": {
+    "sonarjs/regex-complexity": {
+      "count": 1
+    }
+  },
+  "packages/app/src/game/drawerControl.test.ts": {
+    "sonarjs/void-use": {
+      "count": 3
+    }
+  },
+  "packages/app/src/game/largeScreen.test.ts": {
+    "sonarjs/void-use": {
+      "count": 1
+    }
+  },
+  "packages/app/src/game/map/world/worldArt.test.ts": {
+    "sonarjs/regex-complexity": {
+      "count": 2
+    },
+    "sonarjs/super-linear-regex": {
+      "count": 1
+    }
+  },
+  "packages/app/src/game/openOne.test.ts": {
+    "sonarjs/void-use": {
+      "count": 4
+    }
+  },
+  "packages/app/src/online/OnlineGameView.test.tsx": {
+    "sonarjs/void-use": {
+      "count": 1
+    }
+  },
+  "packages/app/src/online/OnlineScreen.game.test.tsx": {
+    "sonarjs/void-use": {
+      "count": 1
+    }
+  },
+  "packages/app/src/online/gameText.test.ts": {
+    "sonarjs/no-identical-functions": {
+      "count": 1
+    },
+    "sonarjs/no-nested-template-literals": {
+      "count": 1
+    }
+  },
+  "packages/app/src/online/matchClock.test.ts": {
+    "sonarjs/no-clear-text-protocols": {
+      "count": 1
+    }
+  },
+  "packages/app/src/online/onlineGame.signedOut.test.ts": {
+    "sonarjs/prefer-specific-assertions": {
+      "count": 1
+    }
+  },
+  "packages/app/src/online/onlineGame.test.ts": {
+    "sonarjs/prefer-specific-assertions": {
+      "count": 3
+    }
+  },
+  "packages/app/src/online/test/lobbyRig.ts": {
+    "sonarjs/use-type-alias": {
+      "count": 1
+    }
+  },
+  "packages/app/src/online/test/onlineRig.ts": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "packages/app/src/online/test/screenTree.ts": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "packages/app/src/online/watch/watchGame.test.ts": {
+    "sonarjs/prefer-specific-assertions": {
+      "count": 1
+    }
+  },
+  "packages/app/src/platform/audio.test.ts": {
+    "sonarjs/no-floating-point-equality": {
+      "count": 3
+    }
+  },
+  "packages/app/src/replay/ReplayScreen.test.tsx": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "packages/app/src/testMode/fixture.ts": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    },
+    "sonarjs/no-nested-template-literals": {
+      "count": 1
+    }
+  },
+  "packages/app/src/testMode/promptTree.ts": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "packages/app/src/transport/emailAuth.ts": {
+    "sonarjs/concise-regex": {
+      "count": 1
+    }
+  },
+  "packages/app/src/transport/localMatch.test.ts": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "packages/app/src/transport/remoteMatch.submit.test.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    }
+  },
+  "packages/app/src/transport/remoteMatch.test.ts": {
+    "sonarjs/prefer-specific-assertions": {
+      "count": 2
+    }
+  },
+  "packages/app/src/transport/remoteMatch.token.test.ts": {
+    "sonarjs/prefer-specific-assertions": {
+      "count": 1
+    }
+  },
+  "packages/app/src/transport/remoteMatch.ts": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "packages/app/src/transport/test/fakeSupabase.ts": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "packages/app/src/transport/test/rehearsal.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    }
+  },
+  "packages/app/src/transport/test/remoteGame.ts": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "packages/app/src/vsAi/workerAi.test.ts": {
+    "sonarjs/public-static-readonly": {
+      "count": 1
+    }
+  },
+  "packages/content/schema/tutorialLines.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    }
+  },
+  "packages/content/src/firstGameLesson.test.ts": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    },
+    "sonarjs/super-linear-regex": {
+      "count": 1
+    }
+  },
+  "packages/content/src/rulesInOrder.test.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    },
+    "sonarjs/no-nested-assignment": {
+      "count": 1
+    },
+    "sonarjs/no-nested-template-literals": {
+      "count": 1
+    },
+    "sonarjs/super-linear-regex": {
+      "count": 2
+    }
+  },
+  "packages/content/src/rulesNumbers.test.ts": {
+    "sonarjs/super-linear-regex": {
+      "count": 2
+    }
+  },
+  "packages/content/src/rulesWording.test.ts": {
+    "sonarjs/super-linear-regex": {
+      "count": 1
+    }
+  },
+  "packages/content/src/scenarioLengths.test.ts": {
+    "sonarjs/misplaced-loop-counter": {
+      "count": 1
+    }
+  },
+  "packages/content/src/test/cardEnds.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    }
+  },
+  "packages/content/src/test/playCard.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    },
+    "sonarjs/no-nested-template-literals": {
+      "count": 1
+    }
+  },
+  "packages/content/src/test/playScenario.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    },
+    "sonarjs/misplaced-loop-counter": {
+      "count": 1
+    }
+  },
+  "packages/engine/src/apply.property.test.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    },
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "packages/engine/src/apply.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    }
+  },
+  "packages/engine/src/cardChecks.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 2
+    }
+  },
+  "packages/engine/src/createGame.test.ts": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "packages/engine/src/escalation.test.ts": {
+    "sonarjs/prefer-specific-assertions": {
+      "count": 1
+    }
+  },
+  "packages/engine/src/mapChecks.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    }
+  },
+  "packages/engine/src/mapTypes.ts": {
+    "sonarjs/redundant-type-aliases": {
+      "count": 2
+    }
+  },
+  "packages/engine/src/omniscient.test.ts": {
+    "sonarjs/no-trivial-assertions": {
+      "count": 1
+    }
+  },
+  "packages/engine/src/refill.test.ts": {
+    "sonarjs/misplaced-loop-counter": {
+      "count": 1
+    }
+  },
+  "packages/engine/src/sha256.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    }
+  },
+  "packages/engine/src/stack.ts": {
+    "sonarjs/no-invariant-returns": {
+      "count": 1
+    }
+  },
+  "packages/engine/src/test/game.ts": {
+    "sonarjs/no-nested-template-literals": {
+      "count": 1
+    }
+  },
+  "packages/engine/src/types.ts": {
+    "sonarjs/redundant-type-aliases": {
+      "count": 5
+    }
+  },
+  "packages/engine/src/views.property.test.ts": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "packages/host/src/glicko2.test.ts": {
+    "sonarjs/no-floating-point-equality": {
+      "count": 1
+    }
+  },
+  "packages/host/src/hostArchive.test.ts": {
+    "sonarjs/misplaced-loop-counter": {
+      "count": 1
+    }
+  },
+  "packages/host/src/hostDeadline.standIn.test.ts": {
+    "sonarjs/misplaced-loop-counter": {
+      "count": 1
+    }
+  },
+  "packages/host/src/tutorial/livePoints.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    },
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "packages/host/src/types.ts": {
+    "sonarjs/redundant-type-aliases": {
+      "count": 1
+    }
+  },
+  "packages/server/src/authEmailHandler.ts": {
+    "sonarjs/concise-regex": {
+      "count": 2
+    }
+  },
+  "packages/server/src/authEmailMailpit.stack.test.ts": {
+    "sonarjs/no-nested-template-literals": {
+      "count": 1
+    },
+    "sonarjs/super-linear-regex": {
+      "count": 1
+    }
+  },
+  "packages/server/src/mailMessages.test.ts": {
+    "sonarjs/prefer-specific-assertions": {
+      "count": 1
+    }
+  },
+  "packages/server/src/mailMessages.ts": {
+    "sonarjs/concise-regex": {
+      "count": 1
+    }
+  },
+  "packages/server/src/migrations/seek.test.ts": {
+    "sonarjs/super-linear-regex": {
+      "count": 1
+    }
+  },
+  "packages/server/src/migrations/sweepJobs.test.ts": {
+    "sonarjs/super-linear-regex": {
+      "count": 1
+    }
+  },
+  "packages/server/src/paddleSignature.ts": {
+    "sonarjs/concise-regex": {
+      "count": 1
+    }
+  },
+  "packages/server/src/paddleWebhookHandler.chargeback.test.ts": {
+    "sonarjs/void-use": {
+      "count": 1
+    }
+  },
+  "packages/server/src/stores.contract.test.ts": {
+    "sonarjs/no-nested-assignment": {
+      "count": 3
+    }
+  },
+  "packages/server/src/submitHandler.leaks.test.ts": {
+    "sonarjs/prefer-specific-assertions": {
+      "count": 1
+    }
+  },
+  "packages/server/src/supabaseInviteStore.ts": {
+    "sonarjs/no-nested-template-literals": {
+      "count": 1
+    }
+  },
+  "packages/server/src/supabaseStore.ts": {
+    "sonarjs/no-nested-template-literals": {
+      "count": 1
+    }
+  },
+  "packages/server/src/sweepDeadlines.standIn.test.ts": {
+    "sonarjs/misplaced-loop-counter": {
+      "count": 1
+    }
+  },
+  "packages/server/src/sweepTurnAlerts.test.ts": {
+    "sonarjs/prefer-specific-assertions": {
+      "count": 1
+    }
+  },
+  "packages/server/src/test/stack.makeUser.test.ts": {
+    "sonarjs/no-clear-text-protocols": {
+      "count": 1
+    }
+  },
+  "tests/fuzz/easy.test.ts": {
+    "sonarjs/unused-import": {
+      "count": 1
+    }
+  },
+  "tests/fuzz/filterChecks.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    },
+    "sonarjs/updated-loop-counter": {
+      "count": 1
+    }
+  },
+  "tests/fuzz/markers.test.ts": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "tests/fuzz/moveChecks.test.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    }
+  },
+  "tests/fuzz/neutral.test.ts": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "tests/fuzz/play.ts": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "tests/fuzz/playedBy.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    },
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "tests/fuzz/removed.test.ts": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "tests/fuzz/reveals.test.ts": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "tests/fuzz/scenario2025To2027.test.ts": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "tests/fuzz/tutorial.test.ts": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    }
+  },
+  "tools/balance/arena.mjs": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    }
+  },
+  "tools/balance/play.mjs": {
+    "sonarjs/no-nested-template-literals": {
+      "count": 1
+    }
+  },
+  "tools/balance/run.mjs": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    }
+  },
+  "tools/balance/stats.mjs": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    },
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "tools/eval/reviewer-eval.mjs": {
+    "sonarjs/no-nested-conditional": {
+      "count": 2
+    }
+  },
+  "tools/gates/boundaries.mjs": {
+    "sonarjs/cognitive-complexity": {
+      "count": 4
+    },
+    "sonarjs/no-nested-conditional": {
+      "count": 2
+    }
+  },
+  "tools/gates/boundary-rules.mjs": {
+    "sonarjs/regex-complexity": {
+      "count": 1
+    }
+  },
+  "tools/gates/content-check.mjs": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    }
+  },
+  "tools/gates/deps-report.mjs": {
+    "sonarjs/no-os-command-from-path": {
+      "count": 1
+    },
+    "sonarjs/super-linear-regex": {
+      "count": 1
+    }
+  },
+  "tools/gates/fuzz-games.mjs": {
+    "sonarjs/no-os-command-from-path": {
+      "count": 1
+    }
+  },
+  "tools/gates/fuzz-games.test.mjs": {
+    "sonarjs/no-os-command-from-path": {
+      "count": 1
+    }
+  },
+  "tools/gates/gate.mjs": {
+    "sonarjs/no-os-command-from-path": {
+      "count": 1
+    },
+    "sonarjs/super-linear-regex": {
+      "count": 1
+    }
+  },
+  "tools/gates/skipped-tests.mjs": {
+    "sonarjs/no-os-command-from-path": {
+      "count": 1
+    }
+  },
+  "tools/gates/suites.mjs": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "tools/gates/test-count.test.mjs": {
+    "sonarjs/no-os-command-from-path": {
+      "count": 1
+    }
+  },
+  "tools/gates/workflows.test.mjs": {
+    "sonarjs/no-nested-assignment": {
+      "count": 1
+    },
+    "sonarjs/super-linear-regex": {
+      "count": 1
+    }
+  },
+  "tools/gemini/gemini-api.mjs": {
+    "sonarjs/no-nested-template-literals": {
+      "count": 1
+    }
+  },
+  "tools/gemini/rails.mjs": {
+    "sonarjs/super-linear-regex": {
+      "count": 2
+    }
+  },
+  "tools/github-rest.test.mjs": {
+    "sonarjs/publicly-writable-directories": {
+      "count": 1
+    }
+  },
+  "tools/handoff-notes.mjs": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    },
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "tools/hooks/bash-guard.mjs": {
+    "sonarjs/cognitive-complexity": {
+      "count": 4
+    },
+    "sonarjs/concise-regex": {
+      "count": 1
+    },
+    "sonarjs/super-linear-regex": {
+      "count": 1
+    }
+  },
+  "tools/hooks/bash-guard.test.mjs": {
+    "sonarjs/publicly-writable-directories": {
+      "count": 1
+    }
+  },
+  "tools/hooks/gate.mjs": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    },
+    "sonarjs/no-os-command-from-path": {
+      "count": 2
+    },
+    "sonarjs/unused-import": {
+      "count": 1
+    }
+  },
+  "tools/hooks/handoff-nudge.mjs": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    },
+    "sonarjs/no-inverted-boolean-check": {
+      "count": 1
+    }
+  },
+  "tools/hooks/quick-check.mjs": {
+    "sonarjs/no-nested-template-literals": {
+      "count": 1
+    }
+  },
+  "tools/hooks/shared.mjs": {
+    "sonarjs/no-os-command-from-path": {
+      "count": 1
+    }
+  },
+  "tools/hooks/shell-words.mjs": {
+    "sonarjs/cognitive-complexity": {
+      "count": 6
+    },
+    "sonarjs/regex-complexity": {
+      "count": 1
+    }
+  },
+  "tools/repo-map.mjs": {
+    "sonarjs/no-os-command-from-path": {
+      "count": 1
+    },
+    "sonarjs/regex-complexity": {
+      "count": 1
+    }
+  },
+  "tools/sonar.mjs": {
+    "sonarjs/no-os-command-from-path": {
+      "count": 1
+    }
+  },
+  "tools/sprint/cue.mjs": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    }
+  },
+  "tools/sprint/local-state.mjs": {
+    "sonarjs/no-os-command-from-path": {
+      "count": 1
+    }
+  },
+  "tools/sprint/moves.mjs": {
+    "sonarjs/cognitive-complexity": {
+      "count": 2
+    },
+    "sonarjs/no-nested-conditional": {
+      "count": 3
+    },
+    "sonarjs/no-nested-template-literals": {
+      "count": 1
+    }
+  },
+  "tools/sprint/policy.test.mjs": {
+    "sonarjs/no-nested-template-literals": {
+      "count": 1
+    }
+  },
+  "tools/sprint/queue.mjs": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    },
+    "sonarjs/no-os-command-from-path": {
+      "count": 2
+    },
+    "sonarjs/super-linear-regex": {
+      "count": 1
+    }
+  },
+  "tools/sprint/queue.test.mjs": {
+    "sonarjs/cognitive-complexity": {
+      "count": 1
+    }
+  },
+  "tools/sprint/replay.mjs": {
+    "sonarjs/cognitive-complexity": {
+      "count": 2
+    },
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "tools/sprint/rules.mjs": {
+    "sonarjs/cognitive-complexity": {
+      "count": 2
+    },
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    },
+    "sonarjs/no-nested-template-literals": {
+      "count": 3
+    }
+  },
+  "tools/sprint/sprint-doc.mjs": {
+    "sonarjs/no-nested-conditional": {
+      "count": 1
+    }
+  },
+  "tools/sprint/usage-limit.mjs": {
+    "sonarjs/regex-complexity": {
+      "count": 1
+    }
+  },
+  "tools/stack-config.test.mjs": {
+    "sonarjs/super-linear-regex": {
+      "count": 1
+    }
+  },
+  "tools/stack-lock-command.mjs": {
+    "sonarjs/no-os-command-from-path": {
+      "count": 1
+    }
+  },
+  "tools/stack-ports.test.mjs": {
+    "sonarjs/no-nested-assignment": {
+      "count": 1
+    }
+  },
+  "tools/unmatched-receipts.test.mjs": {
+    "sonarjs/unused-import": {
+      "count": 1
+    }
+  }
+}
