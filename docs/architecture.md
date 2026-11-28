@@ -276,6 +276,7 @@ Supabase Pro hosts accounts, data and exactly one write path for games: the `sub
 | `match_view` | latest frame per viewer: side A, side B, spectator | that player; the spectator row is public |
 | `match_event` | visible events per step, tagged by viewer, and `stand_in`: the side the host played for in that step, or null (#605) | the matching viewer |
 | `profile`, `rating` | name, Glicko-2 rating, results by side | everyone |
+| `rating_change` | each player's rating before and after one ranked match (written by Finalize) | everyone |
 | `entitlement` | account, platform, source, receipt reference | the owner |
 | `entitlement_refund` | refunded receipt references, so a late payment message cannot restore a copy (#683) | server only |
 | `entitlement_chargeback` | charged-back receipt references: when each was last charged back and reversed, and the buyer meanwhile (#683) | server only |

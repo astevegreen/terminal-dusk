@@ -30,11 +30,22 @@ export type RatingRow = {
   updated_at: number;
 };
 
+/** One row of the `rating_change` table: a player's rating before and after one ranked game (#734). */
+export type RatingChange = {
+  match_id: string;
+  player: PlayerId;
+  rating_before: number;
+  rating_after: number;
+  /** The player's ranked-game count after this game. */
+  ranked_games: number;
+  created_at: number;
+};
+
 /**
  * One player's new row, and how many ranked games their row counted when it was read (0: they had no row). The
  * commit writes the row only while the stored count is still `expected`, so two finishes cannot both use one read.
  */
-export type RatingWrite = { expected: number; row: RatingRow };
+export type RatingWrite = { expected: number; row: RatingRow; change: RatingChange };
 
 const SIDES: readonly Side[] = ["lio", "sae"];
 const other = (side: Side): Side => (side === "lio" ? "sae" : "lio");
@@ -105,7 +116,15 @@ export function ratingWrites(after: MatchRecord, before: readonly RatingRow[], n
     row.ranked_games += 1;
     const column = columnFor(side, score);
     (row[column] as number) += 1;
-    writes.push({ expected: mine?.ranked_games ?? 0, row });
+    const change: RatingChange = {
+      match_id: after.matchId,
+      player: row.player,
+      rating_before: ratingOf(mine).rating,
+      rating_after: row.rating,
+      ranked_games: row.ranked_games,
+      created_at: now,
+    };
+    writes.push({ expected: mine?.ranked_games ?? 0, row, change });
   }
   return writes.toSorted((a, b) => byPlayerId(a.row.player, b.row.player));
 }

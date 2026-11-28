@@ -6,7 +6,7 @@ import type { DeadlineStore } from "./deadlineStore.ts";
 import { dueIds } from "./deadlineStore.ts";
 import { later } from "./later.ts";
 import { matchRowFor } from "./matchRow.ts";
-import type { RatingRow, RatingWrite } from "./ratings.ts";
+import type { RatingChange, RatingRow, RatingWrite } from "./ratings.ts";
 import type { ReadStore, StoredRows } from "./read.ts";
 import { rowsFor } from "./rows.ts";
 
@@ -56,6 +56,7 @@ export class MemoryStore implements MatchStore, ReadStore, DeadlineStore {
   readonly #matches = new Map<string, MatchWrite>();
   readonly #rows = new Map<string, StoredRows>();
   readonly #ratings = new Map<PlayerId, RatingRow>();
+  readonly #changes = new Map<string, RatingChange>();
 
   /** Puts in a match just made by `hostCreate` (seq 0), with its seq 0 rows. Creating through the port is a later task. */
   insert(matchId: string, write: MatchWrite): void {
@@ -84,7 +85,10 @@ export class MemoryStore implements MatchStore, ReadStore, DeadlineStore {
       const ratings = write.ratings ?? [];
       if (ratings.some(({ expected, row }) => (this.#ratings.get(row.player)?.ranked_games ?? 0) !== expected))
         return "ratingsMoved";
-      for (const { row } of ratings) this.#ratings.set(row.player, copy(row));
+      for (const { row, change } of ratings) {
+        this.#ratings.set(row.player, copy(row));
+        this.#changes.set(`${change.match_id}/${change.player}`, copy(change));
+      }
       const next = rowsFor(write);
       this.#matches.set(matchId, copy({ record: write.record, secret: write.secret, frames: write.frames }));
       this.#rows.set(matchId, { match: next.match, views: next.views, events: [...rows.events, ...next.events] });
@@ -96,6 +100,14 @@ export class MemoryStore implements MatchStore, ReadStore, DeadlineStore {
     return later(() =>
       players.flatMap((player) => (this.#ratings.has(player) ? [copy(this.#ratings.get(player)!)] : [])),
     );
+  }
+
+  /** A copy of the rating changes saved for the match, ordered by player id. For tests. */
+  ratingChanges(matchId: string): RatingChange[] {
+    return [...this.#changes.values()]
+      .filter((c) => c.match_id === matchId)
+      .toSorted((a, b) => (a.player < b.player ? -1 : a.player > b.player ? 1 : 0))
+      .map(copy);
   }
 
   /** Puts in a rating row as if an earlier ranked game had written it. For tests. */
