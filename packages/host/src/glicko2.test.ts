@@ -75,8 +75,8 @@ describe("updateRating: the behaviours the issue asks for", () => {
     const next = updateRating(rating(1500, 200), [{ opponent: rating(1500, 200), score: "draw" }])!;
     expect(next.rating).toBe(1500);
     expect(next.deviation).toBeLessThan(200);
-    // Standard Glicko-2: an exactly expected result also lowers volatility a little; it never raises it.
-    expect(next.volatility).toBeLessThanOrEqual(0.06);
+    // Standard Glicko-2 (step 5 always runs): an exactly expected result also lowers volatility a little.
+    expect(next.volatility).toBeLessThan(0.06);
   });
 
   it("a loss lowers the rating and a win raises it", () => {
