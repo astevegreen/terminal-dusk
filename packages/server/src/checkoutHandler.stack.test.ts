@@ -45,10 +45,12 @@ await onLocalStack(
       await cleanUp(service, [], users);
     }, 60_000);
 
-    it("a call with no sign-in, or with a bad token, gets 401 notSignedIn", async () => {
-      expect(await call(null)).toEqual(refusal(401, "notSignedIn"));
+    it("a call with no sign-in, or with a bad token, gets 401; the anon key gets the handler's notSignedIn", async () => {
+      // With no token or a malformed one, Supabase's gateway answers with its own 401 body before the function runs.
+      expect((await call(null)).status).toBe(401);
+      expect((await call("not-a-real-token")).status).toBe(401);
+      // The anon key is a valid token, so it reaches the handler.
       expect(await call(keys.anonKey)).toEqual(refusal(401, "notSignedIn"));
-      expect(await call("not-a-real-token")).toEqual(refusal(401, "notSignedIn"));
     }, 60_000);
 
     it("a player who already owns the full game gets 409 alreadyOwned", async () => {
@@ -64,6 +66,9 @@ await onLocalStack(
       // The refused call was counted, but nothing else was written for the player.
       const owned = await db().from("entitlement").select("platform").eq("player", users[1]!.id);
       expect(owned).toMatchObject({ error: null, data: [] });
+      const counted = await db().from("checkout_attempt").select("player").eq("player", users[1]!.id);
+      expect(counted.error).toBeNull();
+      expect(counted.data?.length).toBeGreaterThan(0);
     }, 60_000);
   },
   async (keys) => whyFunctionUnavailable(keys, "checkout"),

@@ -53,8 +53,13 @@ await onLocalStack(
       await cleanUp(service, [], users);
     }, 60_000);
 
-    it("a call with no sign-in gets 401 notSignedIn", async () => {
-      expect(await call(null, { code: "AAAAA-AAAAA-AAAAA-AAAAA" })).toEqual(refusal(401, "notSignedIn"));
+    it("a call with no sign-in, or with a bad token, gets 401; the anon key gets the handler's notSignedIn", async () => {
+      const body = { code: "AAAAA-AAAAA-AAAAA-AAAAA" };
+      // With no token or a malformed one, Supabase's gateway answers with its own 401 body before the function runs.
+      expect((await call(null, body)).status).toBe(401);
+      expect((await call("not-a-real-token", body)).status).toBe(401);
+      // The anon key is a valid token, so it reaches the handler.
+      expect(await call(keys.anonKey, body)).toEqual(refusal(401, "notSignedIn"));
     }, 60_000);
 
     it("a valid unused gift code grants the full game; the same code again, or an unknown code, is refused", async () => {
