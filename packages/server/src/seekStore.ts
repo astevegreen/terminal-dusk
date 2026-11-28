@@ -34,7 +34,9 @@ export interface SeekStore {
   pair(ids: readonly [string, string], write: MatchWrite): Promise<PairResult>;
 }
 
-const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
+// The server tsconfig has no DOM or Node types, so structuredClone (in Node and Deno) is declared here.
+declare function structuredClone<T>(value: T): T;
+const copy = <T>(value: T): T => structuredClone(value);
 const compareText = (a: string, b: string): number => (a < b ? -1 : Number(a > b));
 
 /** The order tickets are paired in. */

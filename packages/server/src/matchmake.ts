@@ -153,6 +153,8 @@ export async function matchmake(deps: MatchmakeDeps, now: number): Promise<Match
     return [];
   }
   const results: MatchmakeResult[] = [];
+  // One pair at a time on purpose: each pairing is a single store step, and running them together would only
+  // race the stores for no gain (a failure in one never stops the next).
   for (const [first, second] of pairUp(tickets, now)) results.push(await pairOne(deps, first, second, now));
   return results;
 }

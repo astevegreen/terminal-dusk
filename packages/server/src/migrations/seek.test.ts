@@ -1,4 +1,4 @@
-// The matchmaking migration (supabase/migrations/20261103000000_seek.sql, #681). The text checks always run; the rest
+// The matchmaking migration (supabase/migrations/20261104000000_seek.sql, #681). The text checks always run; the rest
 // run on the local Supabase stack, where `pnpm test:migrations` applies every migration to an empty database first.
 // They prove the table's checks, that a player reads only their own tickets and no client writes one, the limit of 5,
 // that pairing is atomic and safe to run twice, and that the matchmake job runs every minute. Without a running local
@@ -7,7 +7,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { hostCreate } from "@terminal-dusk/host";
 import { firstDeckConfig, firstDeckRuleset } from "@terminal-dusk/host/first-deck";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import SEEK_MIGRATION from "../../supabase/migrations/20261103000000_seek.sql?raw";
+import SEEK_MIGRATION from "../../supabase/migrations/20261104000000_seek.sql?raw";
 import { RANKED_LIMIT } from "../matchmake.ts";
 import { SupabaseSeekStore } from "../supabaseSeekStore.ts";
 import { makeUser, onLocalStack } from "../test/stack.ts";
@@ -113,7 +113,13 @@ await onLocalStack("matchmaking migration on the local Supabase stack", (keys) =
     expect(read.data).toEqual([{ id: mine.p_id, player: user!.id }]);
     const anon = client(keys.url, keys.anonKey);
     expect((await anon.from("seek").select("id")).error?.code).toBe(PERMISSION_DENIED);
-    expect((await user!.db.from("seek").insert({ ...mine, id: freshId() })).error).not.toBeNull();
+    expect(
+      (
+        await user!.db
+          .from("seek")
+          .insert({ id: freshId(), player: user!.id, rating: 1500, preset: "normal", side: null, created_at: 0 })
+      ).error?.code,
+    ).toBe(PERMISSION_DENIED);
     expect((await user!.db.rpc("create_seek", args(user!.id))).error?.code).toBe(PERMISSION_DENIED);
   }, 60_000);
 

@@ -167,13 +167,13 @@ describe("matchmaking", () => {
     expect(w.matches.stored("m-1")!.record.players.sae).toBe("p2");
   });
 
-  it("queues the turn alert for the player to move", async () => {
+  it("queues a turn alert for both players, since both have a decision at the start", async () => {
     const w = world();
     await w.search("p1");
     await w.search("p2");
     await matchmake(w.deps, T0);
     const queued = ["p1", "p2"].filter((p) => w.notify.stored("m-1", p) !== null);
-    expect(queued.length).toBeGreaterThan(0);
+    expect(queued).toEqual(["p1", "p2"]);
   });
 
   it("refuses a 6th ranked game, counting running matches and open tickets", async () => {
