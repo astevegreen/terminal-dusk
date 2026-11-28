@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { HttpReply, HttpRequest } from "./http.ts";
-import { handleSweepDeadlines, handleSweepTurnAlerts } from "./sweepEdge.ts";
+import { MemoryEntitlementStore } from "./entitlementStore.ts";
+import { createSeek } from "./matchmake.ts";
+import { MemoryNotifyStore } from "./notifyStore.ts";
+import { MemorySeekStore } from "./seekStore.ts";
+import { MemoryStore } from "./store.ts";
+import { handleMatchmake, handleSweepDeadlines, handleSweepTurnAlerts, matchmakeFetchHandler } from "./sweepEdge.ts";
 import { alertSweepWorld, deadlineWorld, SERVICE_KEY, sweepRequest } from "./test/sweeps.ts";
 
 /** One sweep handler with a fresh world: how to call it and what it ran. */
@@ -13,7 +18,54 @@ type Subject = {
   }>;
 };
 
+/** The matchmake sweep with two compatible tickets waiting; "ran" means the sweep looked at the open tickets. */
+async function matchmakeWorld(now: () => number = () => 1_700_000_000_000) {
+  const matches = new MemoryStore();
+  const seeks = new MemorySeekStore(matches);
+  const entitlements = new MemoryEntitlementStore(
+    ["p1", "p2"].map((player) => ({ player, platform: "web", source: "test" })),
+  );
+  let ticket = 0;
+  for (const player of ["p1", "p2"]) {
+    await createSeek(
+      { seeks, entitlements, matches, ticketId: () => `t-${++ticket}` },
+      { player, platform: "web", preset: "normal", now: 1_700_000_000_000 },
+    );
+  }
+  const dueCalls: number[] = [];
+  let lastClock = Number.NaN;
+  const deps = {
+    serviceKey: SERVICE_KEY,
+    now: () => (lastClock = now()),
+    matchmake: {
+      seeks: {
+        create: seeks.create.bind(seeks),
+        pair: seeks.pair.bind(seeks),
+        open: () => {
+          dueCalls.push(lastClock);
+          return seeks.open();
+        },
+      },
+      notify: new MemoryNotifyStore(),
+      matchId: () => "m-1",
+      seed: () => "seed-1",
+    },
+  };
+  return { deps, seeks, dueCalls };
+}
+
 const subjects: Subject[] = [
+  {
+    name: "matchmake",
+    world: async (now) => {
+      const w = await matchmakeWorld(now);
+      return {
+        call: (request) => handleMatchmake(w.deps, request),
+        ran: () => ({ dueCalls: w.dueCalls, changed: async () => (await w.seeks.open()).length === 0 }),
+        setKey: (key) => (w.deps.serviceKey = key),
+      };
+    },
+  },
   {
     name: "sweep-deadlines",
     world: async (now) => {
@@ -118,5 +170,26 @@ describe.each(subjects)("$name handler: who may run the sweep", (subject) => {
     const w = await subject.world(() => 0);
     expect((await w.call(sweepRequest("POST"))).status).toBe(200);
     expect(w.ran().dueCalls).toEqual([0]);
+  });
+});
+
+describe("matchmake: what the sweep does when allowed", () => {
+  it("the right key pairs the two tickets and the reply counts one paired", async () => {
+    const w = await matchmakeWorld();
+    const reply = await handleMatchmake(w.deps, sweepRequest("POST"));
+    expect(reply.status).toBe(200);
+    expect(JSON.parse(reply.body)).toEqual({ results: { paired: 1, unavailable: 0, failed: 0 } });
+    expect(await w.seeks.open()).toEqual([]);
+  });
+
+  it("the fetch handler refuses a call without the key and runs nothing", async () => {
+    const w = await matchmakeWorld();
+    const handler = matchmakeFetchHandler(w.deps, (body: string | null, init: { status: number }) => ({
+      body,
+      status: init.status,
+    }));
+    const refused = await handler({ method: "POST", headers: { get: () => null }, text: async () => "" });
+    expect(refused.status).toBe(401);
+    expect(await w.seeks.open()).toHaveLength(2);
   });
 });
