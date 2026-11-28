@@ -63,6 +63,14 @@ export class MemoryStore implements MatchStore, ReadStore, DeadlineStore {
     this.#rows.set(matchId, rowsFor(write));
   }
 
+  /** How many ranked matches the player is in that are not over (matchmaking's limit, #681). */
+  unfinishedRanked(player: PlayerId): number {
+    return [...this.#matches.values()].filter(
+      ({ record: r }) =>
+        r.ranked === true && r.status.kind !== "over" && (r.players.lio === player || r.players.sae === player),
+    ).length;
+  }
+
   /** A copy of everything stored for the match, frames included, or `null`. For tests. */
   stored(matchId: string): MatchWrite | null {
     const found = this.#matches.get(matchId);
