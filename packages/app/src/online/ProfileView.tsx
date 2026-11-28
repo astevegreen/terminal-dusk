@@ -3,7 +3,7 @@
 // them. It uses no hooks, so tests can render it without a browser. Rows only, no game state (hard rule 2).
 import { SIDE_NAME } from "./lobbyText.ts";
 import type { PlayerRating } from "./playerRating.ts";
-import { RATING_WORDS, isProvisional, ratingText, recordText } from "./ratingText.ts";
+import { RATING_WORDS, provisionalRow, ratingText, recordText } from "./ratingText.ts";
 
 const TAP = { minHeight: 44, minWidth: 44 } as const;
 const PAGE = { maxWidth: "100%", overflowWrap: "anywhere" } as const;
@@ -24,12 +24,13 @@ export function ProfileView({ name, rating, onBack }: Readonly<ProfileViewProps>
         Back
       </button>
       <h1>{name}</h1>
-      {rating === "loading" && <p role="status">Loading</p>}
+      <p data-testid="placeholder-note">Placeholder: the profile's wording is not final.</p>
+      {rating === "loading" && <output>Loading</output>}
       {rating === "failed" && <p role="alert">{RATING_WORDS.loadFailed}</p>}
       {rating !== "loading" && rating !== "failed" && (
         <>
           <p data-testid="rating">Rating: {ratingText(row)}</p>
-          {isProvisional(row) && <p data-testid="provisional">{RATING_WORDS.provisional}</p>}
+          {provisionalRow(row) && <p data-testid="provisional">{RATING_WORDS.provisional}</p>}
           <p data-testid="record-lio">
             As {SIDE_NAME.lio}: {recordText(row?.lio ?? { wins: 0, losses: 0, draws: 0 })}
           </p>

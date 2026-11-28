@@ -4,6 +4,10 @@
 import { getTable, isObject, outcome, refuse } from "./lobbyHttp.ts";
 import type { LobbyEndpoint, LobbyResult } from "./lobbyHttp.ts";
 
+/** The lobby's refusals, and `badId` for a player id that is not a UUID (refused before any request). */
+export type RatingResult<T> = LobbyResult<T> | { ok: false; error: { code: "badId" } };
+const BAD_ID = { ok: false, error: { code: "badId" } } as const;
+
 /** A side's record: wins, losses and draws. */
 export type Record3 = { wins: number; losses: number; draws: number };
 
@@ -32,7 +36,7 @@ function ratingRow(row: unknown): PlayerRating | null {
     row.sae_draws,
     updated_at,
   ].map(count);
-  if (n.some((v) => v === null)) return null;
+  if (n.includes(null)) return null;
   const [rankedGames, lw, ll, ld, sw, sl, sd, updatedAt] = n as number[];
   return {
     rating,
@@ -48,10 +52,10 @@ export async function playerRating(
   e: LobbyEndpoint,
   token: string | null,
   playerId: string,
-): Promise<LobbyResult<PlayerRating | null>> {
+): Promise<RatingResult<PlayerRating | null>> {
   if (token === null) return refuse("notSignedIn");
   // The id goes into the filter, so anything but a UUID is refused before a request.
-  if (typeof playerId !== "string" || !UUID.test(playerId)) return refuse("notSignedIn");
+  if (typeof playerId !== "string" || !UUID.test(playerId)) return BAD_ID;
   const reply = await getTable(e, token, "rating", [`select=${RATING_COLUMNS}`, `player=eq.${playerId}`]);
   // `outcome` treats null as a malformed reply, so the row travels in a box and "no row" is a box with null.
   const boxed = outcome(reply, (body): { row: PlayerRating | null } | null => {
@@ -76,4 +80,35 @@ export async function matchRanked(
     const row: unknown = body[0];
     return isObject(row) && typeof row.ranked === "boolean" ? row.ranked : null;
   });
+}
+
+/** One player's rating before and after one match, from its `rating_change` row (written by Finalize, #734). */
+export type MatchRatingChange = { before: number; after: number; rankedGames: number };
+
+const finite = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
+
+/** `playerId`'s `rating_change` row for `matchId`, or null while Finalize has not written it (not an error). */
+export async function matchRatingChange(
+  e: LobbyEndpoint,
+  token: string | null,
+  matchId: string,
+  playerId: string,
+): Promise<RatingResult<MatchRatingChange | null>> {
+  if (token === null) return refuse("notSignedIn");
+  if (typeof playerId !== "string" || !UUID.test(playerId)) return BAD_ID;
+  const reply = await getTable(e, token, "rating_change", [
+    "select=rating_before,rating_after,ranked_games",
+    `match_id=eq.${encodeURIComponent(matchId)}`,
+    `player=eq.${playerId}`,
+  ]);
+  const boxed = outcome(reply, (body): { row: MatchRatingChange | null } | null => {
+    if (!Array.isArray(body) || body.length > 1) return null;
+    if (body.length === 0) return { row: null };
+    const r: unknown = body[0];
+    if (!isObject(r)) return null;
+    const games = count(r.ranked_games);
+    if (!finite(r.rating_before) || !finite(r.rating_after) || games === null) return null;
+    return { row: { before: r.rating_before, after: r.rating_after, rankedGames: games } };
+  });
+  return boxed.ok ? { ok: true, value: boxed.value.row } : boxed;
 }
