@@ -122,6 +122,13 @@ const CATALOGUE: Record<string, Entry> = {
     fresh: (row) => row,
     touch: (row) => ({ attempted_at: Number(row.attempted_at) + 1 }),
   },
+  checkout_attempt: {
+    scope: (s) => ["player", s.player],
+    public: nobody,
+    player: nobody,
+    fresh: (row) => row,
+    touch: (row) => ({ attempted_at: Number(row.attempted_at) + 1 }),
+  },
   entitlement_refund: {
     scope: byReceipt,
     public: nobody,
@@ -231,6 +238,7 @@ await onLocalStack("row-level security across every table on the local Supabase 
     await insert("entitlement", { player: lio!.id, platform: "web", source: "rls-test", created_at: NOW });
     await insert("gift_code", { code_hash: seeded.giftHash, platform: "web", created_at: NOW });
     await insert("gift_code_attempt", { player: lio!.id, attempted_at: NOW });
+    await insert("checkout_attempt", { player: lio!.id, attempted_at: NOW });
     const receipt = { source: "rls-test", receipt_ref: seeded.receipt };
     await insert("entitlement_refund", { ...receipt, refunded_at: NOW });
     await insert("entitlement_chargeback", { ...receipt, charged_back_at: NOW });
@@ -258,6 +266,7 @@ await onLocalStack("row-level security across every table on the local Supabase 
       await service.from("entitlement").delete().eq("player", seeded.player);
       await service.from("gift_code").delete().eq("code_hash", seeded.giftHash);
       await service.from("gift_code_attempt").delete().eq("player", seeded.player);
+      await service.from("checkout_attempt").delete().eq("player", seeded.player);
       await service.from("rating").delete().eq("player", seeded.player);
       for (const table of ["entitlement_refund", "entitlement_chargeback", "checkout_unmatched"])
         await service.from(table).delete().eq("receipt_ref", seeded.receipt);
