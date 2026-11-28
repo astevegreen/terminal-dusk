@@ -52,12 +52,18 @@ test("skipping git hooks always asks the owner, in Bash and in PowerShell", () =
   // `git commit *` is allowed, so without these `git commit --no-verify` would run unasked.
   // bash-guard catches the spellings these prefixes miss (git commit -anm, -m x -n); PowerShell has no
   // such hook, so it keeps the broader `* -n *`, which also asks when a message holds " -n ".
-  const patterns = ["git commit *--no-verify*", "git commit -n *", "git push *--no-verify*", "git config core.hooksPath*", "git -c core.hooksPath*"];
+  // Setting or unsetting core.hooksPath asks in every spelling git takes, -C, --git-dir, -ccore.hooksPath and
+  // --config-env included; reading it doesn't (the owner's change, 28 Nov 2026).
+  const patterns = ["git commit *--no-verify*", "git commit -n *", "git push *--no-verify*", "git -C * push *--no-verify*", "git -c core.hooksPath*",
+    "git *config *core.hooksPath *", "git *config *unset*core.hooksPath*", "git *-c core.hooksPath*", "git *-ccore.hooksPath*", "git *--config-env*core.hooksPath*"];
   const rules = [...patterns.map((p) => `Bash(${p})`), ...[...patterns, "git commit * -n *"].map((p) => `PowerShell(${p})`)];
   for (const rule of rules) {
     assert.ok(ask.includes(rule), `${rule} is missing from the ask list`);
     assert.ok(!allow.includes(rule), `${rule} is on the allow list`);
   }
+  // `git config core.hooksPath*` also asked on the plain read `git config core.hooksPath`.
+  for (const rule of ["Bash(git config core.hooksPath*)", "PowerShell(git config core.hooksPath*)"])
+    assert.ok(!ask.includes(rule), `${rule} still asks on a read`);
 });
 
 // P6: what takes effect before any audit runs is guarded where it is written. Settings and the hooks they wire act on

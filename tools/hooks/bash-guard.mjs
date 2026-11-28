@@ -3,9 +3,11 @@
 // With --read-only (the reviewer), only a short list of inspection commands may run.
 // With --unattended (night runs and sprint lanes), owner-only gh commands, skipping git's hooks and shell writes to CI
 // workflows (which run with the repository's secrets once pushed) are blocked too.
-// By day, gh auth and gh secret are `ask` rules, and this hook lets gh api reads and gh repo view
-// through but asks the owner about anything else under gh api or gh repo, and before git's hooks
-// are skipped in any spelling the `ask` rules' prefixes miss (git commit -anm, --no-verif).
+// By day, gh auth and gh secret are `ask` rules. This hook lets gh api reads and gh repo view through, asks the
+// owner about other gh repo commands and about gh api calls that delete, change settings or reach another host, and
+// leaves every other gh api call to the permission rules and auto mode (the owner's change, 28 Nov 2026). It also
+// asks before git's hooks are skipped in any spelling the `ask` rules' prefixes miss (git commit -anm, --no-verif);
+// reading core.hooksPath changes nothing, so it runs.
 import path from "node:path";
 import { readInput, lockedEntry, deny, decide, git, repoRootFor, canonical } from "./shared.mjs";
 import { segments } from "./shell-words.mjs";
@@ -111,9 +113,55 @@ function apiReads(args) {
   return methods.every((m) => m === "GET" || m === "HEAD");
 }
 
-// By day: "read" for gh api reads and gh repo view, "write" for any other gh api or gh repo call, else null.
+// gh api calls that still ask the owner by day: a DELETE, an endpoint that holds the settings of a repository, an
+// organisation or the account, a GraphQL mutation on a repository or its protection or one that deletes or transfers,
+// and a call to another host. Each word is checked with its quotes and backslashes taken out, so quoting can't hide one.
+const unquote = (w) => String(w ?? "").replace(/["'\\]/g, "");
+const API_METHOD_WORD = /^(-[a-zA-Z]*X|--method)$/i;
+const API_DELETE = /^(-[a-zA-Z]*X|--method)[=\s]?delete$/i;
+const API_SETTINGS = [
+  /^\/?repos\/[^/?]+\/[^/?]+(\/(rulesets|branches\/.+\/(protection|rename)|collaborators|invitations|hooks|keys|[\w-]+\/(secrets|variables)|actions\/permissions|environments|pages|transfer|topics|vulnerability-alerts|automated-security-fixes)(\/.*)?)?\/?(\?.*)?$/i,
+  /^\/?(orgs|user|admin|enterprises)(\/.*)?(\?.*)?$/i,
+];
+// Checked only in a GraphQL mutation, so a comment body that says "delete (…)" doesn't ask. Read queries spell
+// `repository(` with a small r.
+const GRAPHQL_OWNER = /\b(delete|transfer)\w*\s*\(|\b\w*(Repository|BranchProtectionRule|Ruleset)\w*\s*\(/;
+// A field (`key=value`, `-fkey=value`, `--field=key=value`) may hold a link; only a bare word is an endpoint URL.
+const FIELD = /^(-[a-zA-Z]+|--[\w-]+=)?[\w.[\]-]+=/;
+const otherHost = (w) => /^--hostname(=|$)/.test(w) || /^GH_(HOST|ENTERPRISE_TOKEN)=/i.test(w) || (w.includes("://") && !FIELD.test(w));
+
+function apiNeedsOwner(words) {
+  const ws = words.map(unquote);
+  const mutation = ws.some((w) => /^\/?graphql([/?#]|$)/i.test(w)) && ws.some((w) => /\bmutation\b/i.test(w));
+  return ws.some((w, i) => API_DELETE.test(w) || (API_METHOD_WORD.test(w) && /^delete$/i.test(ws[i + 1] ?? ""))
+    || API_SETTINGS.some((re) => re.test(w)) || (mutation && GRAPHQL_OWNER.test(w)) || otherHost(w));
+}
+
+// The files a gh command sends to GitHub, never a .env file nor a glob that bash could expand to one: a field's file
+// (-F/--field key=@file, in gh api and gh workflow run), gh api's --input, and gh issue, pr and release's -F,
+// --body-file and --notes-file. Text in a body or a -f field is never read as a file name.
+const FILE_FLAGS = { api: ["--input"], issue: ["-F", "--body-file"], pr: ["-F", "--body-file"], release: ["-F", "--notes-file"] };
+function ghSendsEnv(args) {
+  const { sub } = ghSub(args);
+  const ws = args.map(unquote);
+  // A flag's value: the next word, after `=`, or joined to a short flag (-F.env).
+  const value = (flag, i) => {
+    if (ws[i] === flag) return ws[i + 1];
+    if (ws[i].startsWith(`${flag}=`)) return ws[i].slice(flag.length + 1);
+    return flag === "-F" && ws[i].length > 2 && ws[i].startsWith("-F") ? ws[i].slice(2) : undefined;
+  };
+  const files = [];
+  ws.forEach((_, i) => {
+    for (const flag of FILE_FLAGS[sub] ?? []) files.push(value(flag, i));
+    if (sub === "api" || sub === "workflow") for (const flag of ["-F", "--field"]) files.push(value(flag, i)?.match(/^[^=]*=@(.*)$/)?.[1]);
+  });
+  return files.some((f) => f && (isEnvFile(f) || /[*?[]/.test(f)));
+}
+
+// By day: "read" for gh api reads and gh repo view; "owner" for any other gh repo call and the gh api calls above;
+// "write" for any other gh api call, which the permission rules and auto mode judge; null for anything else.
 // A call bash might read differently from this hook (quotes glued to text, backslashes, a prefix such
-// as GH_HOST=, a path to some other gh, or a $ or backtick that could run a command) counts as a write.
+// as GH_HOST=, a path to some other gh, or a $ or backtick that could run a command) is never a read.
 function ghKind(seg) {
   const { name, args } = commandName(seg.words);
   if (name !== "gh") return null;
@@ -121,8 +169,8 @@ function ghKind(seg) {
   if (sub !== "api" && sub !== "repo") return null;
   const exact = seg.plain && /^gh(\.exe)?$/i.test(seg.words[0]) && !seg.words.some((w) => /[$`]/.test(w));
   const reads = exact && (sub === "api" ? apiReads(rest) : rest.find((a) => !a.startsWith("-")) === "view");
-  if (!reads) return "write";
-  return seg.redirects.length ? null : "read";
+  if (reads) return seg.redirects.length ? null : "read";
+  return sub === "repo" || apiNeedsOwner(seg.words) ? "owner" : "write";
 }
 
 const isEnvFile = (p) => /^\.env(\..*)?$/i.test(path.basename(p ?? ""));
@@ -177,16 +225,35 @@ function commitSkipsHooks(rest) {
   return false;
 }
 
-// Skipping git's hooks: --no-verify on commit or push, commit's -n, or core.hooksPath set from the command line.
+// git config names core.hooksPath to read it (git config core.hooksPath, --get, get) or to change it: a value after
+// the name, an option that unsets, adds, replaces, renames, removes or edits, or a set or unset subcommand. Reading it
+// changes nothing, so only a change counts as skipping the hooks (the owner's change, 28 Nov 2026).
+function configChangesHooksPath(rest) {
+  const i = rest.findIndex((a) => /^core\.hookspath$/i.test(a));
+  if (i < 0) return false;
+  if (rest.some((a) => /^--(un|ad|rep|ren|rem|ed)/i.test(a) || a === "-e" || /^(set|unset|rename-section|remove-section|edit)$/i.test(a)))
+    return true;
+  for (let j = i + 1; j < rest.length; j++) {
+    if (/^(--default|--type|--file|-f|--blob)$/.test(rest[j])) j++; // the option's own value, not the key's
+    else if (!rest[j].startsWith("-")) return true;
+  }
+  return false;
+}
+
+// Skipping git's hooks: --no-verify on commit or push, commit's -n, or core.hooksPath set from the command line or
+// from git's environment (GIT_CONFIG_KEY_<n>, GIT_CONFIG_PARAMETERS). Quotes and backslashes are taken out first, so
+// `core.'hooksPath'` counts too.
 function skipsHooks(seg) {
-  const { name, args } = commandName(seg.words);
+  const words = seg.words.map(unquote);
+  if (words.some((w) => /^GIT_CONFIG_(KEY_\d+|PARAMETERS)=.*core\.hookspath/i.test(w))) return true;
+  const { name, args } = commandName(words);
   if (name !== "git") return false;
   const { sub, rest, globals } = gitSub(args);
-  // -c core.hooksPath=x, a bare -c core.hooksPath (git reads it as "true", a folder with no hooks), or
-  // --config-env core.hooksPath=VAR (which gitSub reads as the subcommand).
-  const setsHooksPath = (a) => /^(--config-env=)?core\.hookspath(=|$)/i.test(a);
+  // -c core.hooksPath=x, -ccore.hooksPath=x, a bare -c core.hooksPath (git reads it as "true", a folder with no
+  // hooks), or --config-env core.hooksPath=VAR (which gitSub reads as the subcommand).
+  const setsHooksPath = (a) => /^(-c|--config-env=)?core\.hookspath(=|$)/i.test(a);
   if (globals.some(setsHooksPath) || setsHooksPath(sub)) return true;
-  if (sub === "config") return rest.some((a) => /^core\.hookspath$/i.test(a));
+  if (sub === "config") return configChangesHooksPath(rest);
   if (sub === "push") return rest.some(isNoVerify);
   return sub === "commit" && commitSkipsHooks(rest);
 }
@@ -228,6 +295,9 @@ function check(seg) {
   if (NETWORK.has(name) || /\bnet\.webclient\b/i.test(seg.words.join(" ")))
     return `${name} reaches the network, which agents may not do from the shell.`;
   if (READERS.has(name) && args.some(isEnvFile)) return ".env files hold secrets and must not be read.";
+  // gh secret set --env-file is the owner's own upload (gh secret always asks).
+  if (name === "gh" && ghSub(args).sub !== "secret" && ghSendsEnv(args))
+    return ".env files hold secrets and must not be sent (nor a glob, which could expand to one).";
   if (REMOVERS.has(name)) {
     const recursive = args.some((a) => /^-[a-zA-Z]*[rR]/.test(a) || /^--recursive$/i.test(a) || /^-recurse$/i.test(a) || /^\/s$/i.test(a));
     const targets = args.filter((a) => !a.startsWith("-") && !/^\/[a-z]$/i.test(a));
@@ -262,9 +332,10 @@ if (unsure) {
 if (!READ_ONLY && !UNATTENDED) {
   if (segs.some(skipsHooks))
     decide("ask", "bash-guard: skipping git's hooks (--no-verify, -n or core.hooksPath) needs the owner's OK.");
+  // Any other gh api write (a comment, a label, a loop over issues) goes to the permission rules and auto mode.
   const kinds = segs.map(ghKind);
-  if (kinds.includes("write"))
-    decide("ask", "bash-guard: gh api calls that can change GitHub, and gh repo commands other than view, need the owner's OK.");
+  if (kinds.includes("owner"))
+    decide("ask", "bash-guard: gh repo commands other than view, and gh api calls that delete, change settings or reach another host, need the owner's OK.");
   if (complete && kinds.length && kinds.every((k) => k === "read"))
     decide("allow", "bash-guard: read-only gh api or gh repo view call.");
 }

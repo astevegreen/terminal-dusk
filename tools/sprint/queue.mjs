@@ -26,7 +26,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { collaborators, fromFork, trustedComment, trustedIssue } from "../github-trust.mjs";
+import { collaborators, fromFork, plainApp, signedInLogin, trustedComment, trustedIssue } from "../github-trust.mjs";
 import { report } from "../sonar.mjs";
 import { cueCommand, nightShiftWork, withLocalWindow } from "./cue.mjs";
 import { stateDir } from "./local-state.mjs";
@@ -60,8 +60,11 @@ function checkOf(c) {
     return { name, state: "FAILURE" };
   return { name, state: ["SUCCESS", "NEUTRAL", "SKIPPED"].includes(raw) ? "SUCCESS" : "PENDING" };
 }
-const commentsOf = (cs = []) =>
-  cs.filter(trustedComment).map((c) => ({ author: c.author?.login ?? "", createdAt: c.createdAt, body: c.body ?? "" }));
+// plain: whether gh's plain greenbean-agent is the App (github-trust.mjs, plainApp).
+const commentsOf = (cs = [], plain = false) =>
+  cs
+    .filter((c) => trustedComment(c, { plain }))
+    .map((c) => ({ author: c.author?.login ?? "", createdAt: c.createdAt, body: c.body ?? "" }));
 const depsOf = (body) => /###\s*Depends on\s*\r?\n+([\s\S]*?)(\r?\n###|$)/i.exec(body ?? "")?.[1].trim() ?? null;
 
 // GitHub's state as a snapshot for rules.mjs: open items in full, closed ones by number and title. The repository
@@ -110,6 +113,7 @@ export function loadSnapshot({
   );
   const mainChangedAt = gh(["api", "repos/{owner}/{repo}/commits/main", "--jq", ".commit.committer.date"]).trim();
   const team = collaborators(gh);
+  const plain = plainApp(gh);
 
   const open = new Map(openIssues.filter((i) => trustedIssue(i, team)).map((i) => [i.number, i]));
   const issues = allIssues.map((i) => {
@@ -122,7 +126,7 @@ export function loadSnapshot({
       state: o ? "OPEN" : i.state,
       labels: (o?.labels ?? []).map((l) => l.name),
       deps: depsOf(o?.body),
-      comments: commentsOf(o?.comments),
+      comments: commentsOf(o?.comments, plain),
     };
   });
   const full = new Map(openPrs.filter((p) => !fromFork(p)).map((p) => [p.number, p]));
@@ -144,7 +148,7 @@ export function loadSnapshot({
         closes: (p.closingIssuesReferences ?? []).map((r) => r.number),
         reviewRequired: awaitingOwner.has(p.number),
         reviewers: (o?.reviewRequests ?? []).map((r) => r.login),
-        comments: commentsOf(o?.comments),
+        comments: commentsOf(o?.comments, plain),
       };
     });
   // Sonar's findings only for pull requests whose Sonar check failed (tools/sonar.mjs, read through GitHub).
@@ -221,12 +225,14 @@ function mainDoc() {
 // works only while gh is signed in as another account. Signed in as the owner, every "Held:" or "Blocked:" comment
 // an agent posts would read as the owner's reply and release the work it held.
 export function identity(gh) {
-  const login = gh(["api", "user", "--jq", ".login"]).trim();
-  return { login, ok: login !== OWNER };
+  const login = signedInLogin(gh);
+  return { login, ok: login !== "" && login !== OWNER };
 }
 const READS_COMMENTS = new Set(["has-work", "night-shift", "next", "backlog", "status", "digest", "move"]);
 const ownerRefusal = (login) =>
-  `gh is signed in as ${login}, the owner, so the queue would read the agents' own comments as the owner's answers. ` +
+  (login
+    ? `gh is signed in as ${login}, the owner, so the queue would read the agents' own comments as the owner's answers. `
+    : "gh is signed in as nobody, so the queue can't tell the agents' comments from the owner's answers. ") +
   "Sprints and the night shift wait until gh is signed in as another account; never run `gh auth switch` yourself";
 
 function option(args, name) {
