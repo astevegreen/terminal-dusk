@@ -89,6 +89,9 @@ describe("useRatingChange reads the match's rating_change row", () => {
     fake.answerNext({ status: 200, body: { nope: true } });
     fake.answerNext({ status: 200, body: [{ ranked: true }] });
     await render(<Probe source={source} over />);
+    // Real time for all four tries 5 ms apart: settle ticks alone finish before the timers on a fast machine (CI
+    // Linux). Waiting longer is safe, because the hook stops after `tries`.
+    await act(() => new Promise<void>((resolve) => setTimeout(resolve, 200)));
     await settleAll();
     expect(out()).toBe("waiting");
     // Tries 1: a failed ranked read; 2: ranked read and a rating_change read; 3 and 4: rating_change reads (500).
