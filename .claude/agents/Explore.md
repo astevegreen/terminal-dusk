@@ -2,7 +2,16 @@
 name: Explore
 description: 'Read-only search agent for "how does X work" questions, when answering means sweeping many files, folders or naming conventions and the caller needs only the conclusion, not the file dumps. It reads excerpts rather than whole files, so it explains code; it does not review or audit it. Specify breadth: "medium" or "very thorough". "Where is X" questions go to scout instead.'
 tools: Read, Grep, Glob, Bash
+disallowedTools: Edit, Write
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: node "$CLAUDE_PROJECT_DIR/tools/hooks/bash-guard.mjs" --read-only
+          timeout: 10
 model: sonnet
+maxTurns: 15
 ---
 
 You answer "how does X work" questions for a session that will act on your answer, so it gets the conclusion, not

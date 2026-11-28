@@ -2,6 +2,14 @@
 name: scout
 description: Locates code for "where is X / what calls Y / what references Z" questions and returns path:line conclusions, 30 lines at most. Read-only. "How does X work" questions go to Explore instead.
 tools: Read, Grep, Glob, Bash
+disallowedTools: Edit, Write
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: node "$CLAUDE_PROJECT_DIR/tools/hooks/bash-guard.mjs" --read-only
+          timeout: 10
 model: haiku
 effort: low
 maxTurns: 15

@@ -60,6 +60,9 @@ export function railHits(diff) {
     if (hit) hits.push({ file: hit.file, what: hit.rail.what });
     else if (AGENT_OR_SKILL.test(file) && changed.some((l) => WIRING.test(l)))
       hits.push({ file, what: "a hook or tool limit in an agent's or skill's front matter" });
+    // An agent or skill moved out of its folder no longer loads, and its hooks and tool limits go with it.
+    else if (from !== undefined && AGENT_OR_SKILL.test(from) && !AGENT_OR_SKILL.test(file))
+      hits.push({ file: from, what: "an agent or skill, with its hooks and tool limits, moved out of .claude/" });
   }
   return hits;
 }

@@ -149,5 +149,8 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   another remote branch unasked: have bash-guard ask about push deletions. [27 Nov 2026, reviewer on #720]
 - `checkout_unmatched` stores no amount, currency or buyer hint, so `tools/unmatched-receipts.mjs list` cannot show them:
   store them from the Paddle webhook. [28 Nov 2026, #740]
+- `.claude/skills/sprint-plan/SKILL.md:45` still sends a "where is X" lookup to the Explore agent; since #751 that
+  is the `scout` agent's job (Explore now answers "how does X work"). Sprint skills were out of #751's scope.
+  [28 Nov 2026, reviewer on #751]
 
 ## Docs

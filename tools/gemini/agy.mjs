@@ -2,7 +2,7 @@
 // Where agy is not installed (a cloud session), the Gemini models are asked through the Gemini API instead.
 // The same rules are in four copies: this one (terminal-dusk/tools/gemini/agy.mjs), YODC/scripts/lib/agy.mjs,
 // blockchain-technology-course/tools/agy.mjs and flashcards (Korean) tools/gemini/agy.mjs: change all four.
-import { readFileSync, renameSync, writeFileSync } from "node:fs";
+import { readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { geminiApi } from "./gemini-api.mjs";
@@ -291,6 +291,7 @@ export function quotaFile(file = QUOTA_FILE) {
         writeFileSync(tmp, JSON.stringify({ ...read(), [model]: until.toISOString() }, null, 2));
         renameSync(tmp, file);
       } catch {
+        rmSync(tmp, { force: true });
         // A review never fails because it could not write down a quota.
       }
     },

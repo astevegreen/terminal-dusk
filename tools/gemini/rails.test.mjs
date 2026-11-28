@@ -205,6 +205,16 @@ test("renaming or copying a rail out of its folder is a rail change: the old pat
   const copy = rename("docs/x.md", ".github/workflows/x.yml").replaceAll("rename", "copy");
   assert.equal(railHits(copy).length, 1, "a copy into a rail");
   assert.deepEqual(railHits(rename("docs/a.md", "docs/b.md")), []);
+  assert.equal(
+    railHits(rename(".claude/agents/implementer.md", "docs/implementer.md")).length,
+    1,
+    "an agent moved out",
+  );
+  assert.deepEqual(
+    railHits(rename(".claude/agents/a.md", ".claude/agents/b.md")),
+    [],
+    "renamed in place, no wiring line",
+  );
   const edited = diff("tools/hooks/gate.mjs", "+x").replace(" b/tools/hooks/", " b/docs/");
   assert.equal(railHits(edited).length, 1, "the a/ path of the header alone");
 });
