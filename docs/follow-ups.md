@@ -51,10 +51,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - A game with no map has no era in its frame (`packages/engine/src/createGame.ts:84-92` sets it only with a map), so
   against the AI the free game says "Era not shown yet" for its whole length, and the base game until Era 2 starts.
   The app already names the frame's era where there is one (#669); the engine side is lane C's. [27 Nov 2026, #669]
-- Nothing reads `checkout_unmatched` (`packages/server/supabase/migrations/20261030000000_paddle_receipts.sql`): a
-  buyer who paid with no known player id gets no copy until a person looks. Before web sales open, add a service-role
-  tool that lists those receipts and grants one to a named player (`grantReceipt`), or an alert when a row appears.
-  [27 Nov 2026, #683]
 - Account deletion isn't built (`docs/architecture.md`, "Accounts and purchases"). When it is, it deletes the
   player's `entitlement` rows and nulls `entitlement_chargeback.player` and `platform`
   (`packages/server/supabase/migrations/20261101000000_paddle_chargebacks.sql`) so a later chargeback reversal
