@@ -127,5 +127,7 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - `checkGit` in `tools/hooks/bash-guard.mjs:139-147` never looks at `--delete`, `-d` or a `:branch` refspec, so the
   `git push … task/*`, `design/*` and `claude/*` allow rules in `.claude/settings.json` also let a session delete
   another remote branch unasked: have bash-guard ask about push deletions. [27 Nov 2026, reviewer on #720]
+- `checkout_unmatched` stores no amount, currency or buyer hint, so `tools/unmatched-receipts.mjs list` cannot show them:
+  store them from the Paddle webhook. [28 Nov 2026, #740]
 
 ## Docs

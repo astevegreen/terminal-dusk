@@ -10,7 +10,7 @@
 // names `supabase status -o env` prints) and never prints the key. A grant is one call to the grant_unmatched_receipt
 // SQL function, which runs in one transaction: it grants fully or changes nothing.
 // The table holds only the receipt, why no player was found, and when; it keeps no amount, currency or buyer hint,
-// so the list shows those.
+// so the list cannot show those.
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -73,7 +73,11 @@ async function list(fetch, base, headers, out, err) {
     err(`The receipts could not be read (${reply.failed}).`);
     return 1;
   }
-  const rows = Array.isArray(reply.body) ? reply.body : [];
+  if (!Array.isArray(reply.body)) {
+    err("The database gave an answer this tool does not know. Nothing was changed.");
+    return 1;
+  }
+  const rows = reply.body;
   if (rows.length === 0) {
     out("No unmatched receipts.");
     return 0;

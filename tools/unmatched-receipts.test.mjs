@@ -3,10 +3,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { main, parseArgs } from "./unmatched-receipts.mjs";
+import { ENV, KEY, URL, runMain } from "./lib/run-main.mjs";
 
-const KEY = "service-role-key-that-must-not-leak";
-const URL = "http://127.0.0.1:44321";
-const ENV = { SUPABASE_URL: URL, SUPABASE_SERVICE_ROLE_KEY: KEY };
 const PLAYER = "123e4567-e89b-42d3-a456-426614174000";
 const GRANT = ["grant", "--receipt", "txn_01", "--player", PLAYER];
 
@@ -20,17 +18,8 @@ function fakeStore(status = 200, body = "granted") {
   return { fetch, requests };
 }
 
-async function run(argv, { env = ENV, store = fakeStore(), now = () => 1_700_000_000_000 } = {}) {
-  const out = [];
-  const err = [];
-  const exit = await main(argv, {
-    env,
-    fetch: store.fetch,
-    now,
-    out: (line) => out.push(line),
-    err: (line) => err.push(line),
-  });
-  return { exit, out, err, store };
+function run(argv, options = {}) {
+  return runMain(main, argv, { store: fakeStore(), ...options });
 }
 
 test("list prints each receipt with its id, time, reason and source, and never the key", async () => {
@@ -77,6 +66,24 @@ test("a refused grant (already granted, no such receipt, no such player) says wh
     assert.match(err[0], words);
     assert.match(err[0], /Nothing was changed/);
   }
+});
+
+test("a refunded or charged-back receipt is refused in plain words, and an unknown answer is not taken as success", async () => {
+  const cases = { refunded: /refunded/, chargedBack: /charged back/, somethingNew: /does not know/ };
+  for (const [answer, words] of Object.entries(cases)) {
+    const { exit, out, err } = await run(GRANT, { store: fakeStore(200, answer) });
+    assert.equal(exit, 1, answer);
+    assert.deepEqual(out, []);
+    assert.match(err[0], words);
+    assert.match(err[0], /Nothing was changed/);
+  }
+});
+
+test("list does not read an answer that is not a list as 'no receipts'", async () => {
+  const { exit, out, err } = await run(["list"], { store: fakeStore(200, { unexpected: true }) });
+  assert.equal(exit, 1);
+  assert.deepEqual(out, []);
+  assert.match(err[0], /does not know/);
 });
 
 test("a failed call names only the status and error code, and a silent store prints none of the thrown text", async () => {

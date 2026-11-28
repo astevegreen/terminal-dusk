@@ -25,10 +25,12 @@ describe("the unmatched-receipt grant migration's text", () => {
     expect(MIGRATION).not.toMatch(/to (?:public|anon|authenticated)\b/);
   });
 
-  it("grants through grant_receipt, with no definer rights and a fixed search path", () => {
-    expect(MIGRATION).toMatch(/public\.grant_receipt\(p_player, 'web', 'paddle', p_receipt_ref, p_now\)/);
-    expect(MIGRATION).not.toMatch(/security definer/);
-    expect(MIGRATION).toMatch(/set search_path = ''/);
+  it("grants through grant_receipt as the caller, and only the account check has definer rights", () => {
+    expect(MIGRATION).toMatch(/public\.grant_receipt\(p_player, 'web', paddle, p_receipt_ref, p_now\)/);
+    expect(MIGRATION.match(/security definer/g)).toHaveLength(1);
+    expect(MIGRATION).toMatch(/create function public\.account_exists[^$]*security definer/);
+    expect(MIGRATION.match(/set search_path = ''/g)).toHaveLength(2);
+    expect(MIGRATION).toMatch(/grant execute on function public\.account_exists\(uuid\) to service_role;/);
   });
 });
 
@@ -96,6 +98,33 @@ await onLocalStack("unmatched-receipt grant on the local Supabase stack", (keys)
     });
     expect([answer.error, answer.data]).toEqual([null, "revoked"]);
     expect(await copies(ref)).toEqual([]);
+  });
+
+  it("a receipt with an open chargeback is refused and nothing changes, so a retry with the right player works", async () => {
+    const ref = receipts.fresh();
+    await unmatched(ref);
+    const held = await stack.service.rpc("chargeback_receipt", { p_source: "paddle", p_receipt_ref: ref, p_at: NOW });
+    expect(held.error).toBeNull();
+    expect(await settle(ref, stack.other.id)).toBe("chargedBack");
+    expect(await copies(ref)).toEqual([]);
+    expect(await waiting(ref)).toHaveLength(1);
+    const buyer = await stack.service.from("entitlement_chargeback").select("player").eq("receipt_ref", ref);
+    expect(buyer.data).toEqual([{ player: null }]);
+  });
+
+  it("a refunded receipt is refused and nothing changes", async () => {
+    const ref = receipts.fresh();
+    await unmatched(ref);
+    const refund = await stack.service.rpc("revoke_receipt", { p_source: "paddle", p_receipt_ref: ref, p_now: NOW });
+    expect(refund.error).toBeNull();
+    expect(await settle(ref, stack.owner.id)).toBe("refunded");
+    expect(await copies(ref)).toEqual([]);
+    expect(await waiting(ref)).toHaveLength(1);
+  });
+
+  it("only the service role can run the account check", async () => {
+    const answer = await stack.other.db.rpc("account_exists", { p_player: stack.other.id });
+    expect(answer.error?.code).toBe(PERMISSION_DENIED);
   });
 
   it.each(["signed-out client", "signed-in user"] as const)("a %s cannot run the function", async (who) => {
