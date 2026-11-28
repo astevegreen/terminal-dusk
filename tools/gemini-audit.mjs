@@ -28,7 +28,15 @@ import {
   skipReason,
 } from "./gemini/agy.mjs";
 import { CUT_LINE, NO_API, apiFor } from "./gemini/gemini-api.mjs";
-import { decide, priorVerdict, railHits, readVerdict, reusableVerdict, verdictMarker } from "./gemini/rails.mjs";
+import {
+  decide,
+  everStopped,
+  priorVerdict,
+  railHits,
+  readVerdict,
+  reusableVerdict,
+  verdictMarker,
+} from "./gemini/rails.mjs";
 import {
   comment,
   comments,
@@ -54,7 +62,9 @@ const PINNED = { weekly: "Gemini weekly audit", narrative: "How the code is orga
 const argv = process.argv.slice(2);
 const DRY = argv.includes("--dry-run");
 const at = argv.indexOf("--asked");
-// The words after --asked; another flag there is no words, and the usage error says so.
+// The words after --asked; another flag there is no words, and the usage error says so. Nothing here can check that
+// the owner said them (agy on #753): they carry the same trust as CLAUDE.md's `Owner's yes:` rule, whose comment and
+// `Requested:` trailer quote the same words where the owner can see them.
 const ASKED = at >= 0 && !String(argv[at + 1] ?? "").startsWith("--") ? argv[at + 1] : undefined;
 const [mode, ...numbers] = argv.filter((a, k) => a !== "--dry-run" && (at < 0 || (k !== at && k !== at + 1)));
 // Made on first use, so importing this file (the tests do) leaves nothing behind.
@@ -230,11 +240,13 @@ const merged = (sha, why, extra = {}) => ({ sha, verdict: "merge", blockers: [],
 
 // What agy reads for this commit: { verdict, mode } when no call is needed (a skip or a carry-over), else
 // { diff, stats, hits, mode, preamble }: the whole pull request, or the delta since `prior` (agy.mjs, carryOver).
-function plan(pr, diff, prior, ghArgs) {
+// stopped: agy once said fix or hold on this pull request (rails.mjs, everStopped), so it is never skipped.
+function plan(pr, diff, prior, stopped, ghArgs) {
   const sha = pr.headRefOid;
   const stats = diffStats(diff);
   const hits = railHits(diff);
-  const skip = skipReason(stats, { deep: deep(stats), rails: hits.length > 0, author: pr.author?.login ?? "" });
+  const skip =
+    !stopped && skipReason(stats, { deep: deep(stats), rails: hits.length > 0, author: pr.author?.login ?? "" });
   if (skip) {
     const why = `agy skipped: ${skip}; the reviewer, CI and Sonar still decide`;
     return { mode: "skip", verdict: merged(sha, why, { skipped: true }) };
@@ -245,7 +257,9 @@ function plan(pr, diff, prior, ghArgs) {
   const part = { diff: delta.diff, stats: diffStats(delta.diff), hits: railHits(delta.diff) };
   const next = carryOver(prior, part.stats, { deep: deep(part.stats), rails: part.hits.length > 0 });
   if (next.mode === "carry") return { mode: "carry", verdict: merged(sha, next.why, { from: prior.sha }) };
-  // A delta that touches a rail gets the whole pull request, so the rail question sees every rail edit together.
+  // A delta that touches a rail gets the whole pull request, so the rail question sees every rail edit together. A
+  // delta that touches none needs no rail question: the verdict it builds on is a merge or a fix, and a rail audit
+  // that found a loosening would have made it a hold, which is never built on.
   if (next.mode === "delta" && !part.hits.length)
     return { ...part, mode: "delta", preamble: `${deltaPreamble(prior)}\n` };
   return whole;
@@ -304,7 +318,8 @@ export function auditPr(number, io = IO, { asked = ASKED } = {}) {
   const prior = marked
     ? priorVerdict(pr.comments, pr.headRefOid, me, ledger.read(), { repo: REPO, pr: pr.number })
     : null;
-  const next = plan(pr, io.gh("pr", "diff", String(number)), prior, ghArgs);
+  const stopped = marked && everStopped(pr.comments, me);
+  const next = plan(pr, io.gh("pr", "diff", String(number)), prior, stopped, ghArgs);
   if (next.verdict) return finish(next.verdict, next.mode, {}, [`**Verdict: merge**: ${next.verdict.why}.`]);
   const { hits } = next;
   const material = `${next.preamble}${prMaterial(pr, next.diff, io.gh)}${hits.length ? askedFor(asked) : ""}`;

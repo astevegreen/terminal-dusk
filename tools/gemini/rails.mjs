@@ -190,3 +190,14 @@ export function priorVerdict(comments, sha, me, ledger, { repo, pr }) {
   );
   return recorded ? { ...v, sha: base } : null;
 }
+
+// Whether agy ever stopped this pull request (fix or hold) in a comment this script's account posted: such a pull
+// request is never skipped afterwards, even when a fix push leaves it small, docs-only or off the rails, so the fix
+// is read (agy on #753; flashcards' rails.mjs has the same function).
+export function everStopped(comments, me) {
+  if (!me) return false;
+  return comments
+    .filter((c) => sameAccount(c.author?.login, me))
+    .map((c) => readVerdict(c.body))
+    .some((v) => v?.verdict === "fix" || v?.verdict === "hold");
+}

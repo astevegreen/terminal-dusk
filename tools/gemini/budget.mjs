@@ -22,16 +22,17 @@ const base = (f) => f.split("/").at(-1);
 export const isLockfile = (f) => LOCKFILES.has(base(f));
 export const isTest = (f) =>
   /(^|\/)(__tests__|tests?|e2e)\//.test(f) || /\.(test|spec)\.[cm]?[jt]sx?$/.test(f) || /(^|\/)test_[^/]*\.py$/.test(f);
-// The instruction files agents follow are rails or near-rails, never docs.
+// Markdown only (a .txt or a file under docs/ can be data a build or a check reads, as flashcards' and YODC's copies
+// say). The instruction files agents follow are rails or near-rails, never docs.
 const INSTRUCTIONS = new Set(["CLAUDE.md", "AGENTS.md", "GEMINI.md"]);
 export const isDoc = (f) =>
-  (/\.(md|txt)$/i.test(f) || f.startsWith("docs/")) &&
-  !INSTRUCTIONS.has(base(f)) &&
-  !f.startsWith(".claude/") &&
-  !f.startsWith(".agents/");
+  /\.md$/i.test(f) && !INSTRUCTIONS.has(base(f)) && !f.startsWith(".claude/") && !f.startsWith(".agents/");
 
 // Why a change is not sent to agy, or null when it is. deep and rails say whether it touches a high-risk path or a
-// rail, which are always sent; author is the pull request's author.
+// rail, which are always sent; author is the pull request's author. Dependabot is skipped before the rail check on
+// purpose (agy on #753): its pull requests bump versions in package.json, lockfiles and workflows, all rails here, so
+// checking rails first would never skip one, and the owner's 28 Nov cuts name Dependabot updates. GitHub sets the
+// author, so no one else's pull request can claim it.
 export function skipReason({ files = [], lines = 0 }, { deep = false, rails = false, author = "" } = {}) {
   if (/^dependabot(\[bot\])?$/i.test(author)) return "it is a Dependabot update";
   if (deep || rails) return null;
