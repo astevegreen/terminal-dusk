@@ -461,9 +461,6 @@
     }
   },
   "tests/fuzz/easy.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    },
     "sonarjs/unused-import": {
       "count": 1
     }
@@ -659,9 +656,6 @@
     }
   },
   "tools/hooks/gate.mjs": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    },
     "sonarjs/no-nested-conditional": {
       "count": 1
     },
@@ -677,11 +671,6 @@
       "count": 1
     },
     "sonarjs/no-inverted-boolean-check": {
-      "count": 1
-    }
-  },
-  "tools/hooks/handoff-nudge.test.mjs": {
-    "no-useless-escape": {
       "count": 1
     }
   },
@@ -803,9 +792,6 @@
     }
   },
   "tools/unmatched-receipts.test.mjs": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    },
     "sonarjs/unused-import": {
       "count": 1
     }
