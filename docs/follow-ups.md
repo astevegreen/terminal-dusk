@@ -21,13 +21,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - `docs/design/map-and-points.md` ("Map numbers", Open) still says the scenario data has not been changed to the
   21 Nov rules; the scenario is `packages/content/scenarios/base-game.json` since #575. Fix it at the next Notion
   promotion. [21 Nov 2026, #575]
-- e2-neu-003's `madeFor: "lio"` mark has no card story that fails without it: add one where SAE plays with
-  Resilient institutions and LIO's 1 from SAE's deck stands, like the mirror stories in `e3-neu-001.test.ts` and
-  `e3-neu-002.test.ts`. [26 Nov 2026, agy on #634]
-- Realigning ignores closed regions: `realignTargets` (`packages/engine/src/influence.ts:72-75`) offers every
-  country where the rival has influence, while intervening checks `isRegionClosed` (`intervening.ts`), and
-  `docs/design/map-and-points.md` ("Thresholds close regions") closes regions to both. The tests mark it as still
-  to do (`realign.test.ts:115`, `placing.test.ts:150`). [27 Nov 2026, architect on the tutorial chain, PR #649]
 
 ## App, host and server
 
@@ -68,15 +61,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   cannot give a deleted account a copy. It also clears a used gift code's `gift_code.redeemed_by` without making
   the code usable again: the table's check ties it to `redeemed_at`, so that check changes in a new migration (#710).
   [27 Nov 2026, #683, architect]
-- Nothing checks that `PADDLE_PRICE_ID` is a price of `PADDLE_PRODUCT_ID`: `checkout` sells the price
-  (`packages/server/src/checkoutEdge.ts`) and the webhook grants a copy only for the product
-  (`paddleWebhookHandler.ts`), so a mismatched pair takes the money and gives nothing. #717's sandbox test purchase
-  shows it for the sandbox; before live sales, check the live pair the same way or compare them in code.
-  [27 Nov 2026, #716]
-- `checkout` makes a new Paddle transaction on every call, with no limit per player
-  (`packages/server/src/checkoutHandler.ts`): one signed-in account calling in a loop piles up drafts in Paddle and
-  can run into Paddle's request limit, which turns every buyer's checkout into a 503. Limit it before web sales open.
-  [27 Nov 2026, #716]
 
 ## Tests and tooling
 
@@ -90,9 +74,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - On a loaded PC a full `pnpm gate` fails on time-outs in tests the change does not touch: the 5 s limit in
   `packages/ai` (techRace, lookahead, medium's timing), the app's six-region map game and the easy AI fuzz, and the
   100 s engine fuzz (`tests/fuzz/engine.test.ts`). [27 Nov 2026, sound chain]
-- The browser test that plays the free game to its end (`packages/app/e2e/vsAi.e2e.ts:106`) has the 30 s default
-  limit: it takes 2 to 5 s on an idle PC and up to 27 s with the PC busy, and timed out once in a full run. Give it
-  a longer limit. [27 Nov 2026, #674]
 - Agents comment as astevegreen while greenbeanbot is suspended, so after the bot returns a `Blocked:` comment an
   agent posted as the owner can read as the owner's answer (`tools/sprint/rules.mjs:207` `ownerAnswer`): check blocked
   issues then, or mark agent comments so the queue stops relying on the author (7 Nov 2026, review of #540).
@@ -137,9 +118,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   verdict `retry` there: the rail audit (`tools/gemini-audit.mjs:215-219`), a diff too long to send whole
   (`tools/gemini/gemini-api.mjs:60`), and spec and repo audits (`gemini-api.mjs:66`). Each is a choice the code comments explain;
   a PR touching a rail waits for a local run. [7 Nov 2026, reviewer on #538]
-- `checkOwnMoves` (`tests/fuzz/moveChecks.ts`) runs only in its own random games, so the `extraSteps` and
-  `reactions` fuzz suites do not check it: call it from the game loop in `tests/fuzz/play.ts`. [26 Nov 2026, agy
-  on #633]
 - `tools/github-rest.mjs` (`isDecisionComment`, `issue`) and `tools/github-trust.mjs` now decide whose comments
   override the spec agy reviews against, and neither is a rail (`tools/gemini/rails.mjs:11-21`), so loosening them
   gets no rail audit: add both. [27 Nov 2026, #672]
