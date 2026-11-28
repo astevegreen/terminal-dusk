@@ -52,6 +52,11 @@ const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
  * the three `match_view` rows, and adds three `match_event` rows. `saveClock` replaces only the record
  * and the `match` row. It keeps the `rating` rows too, by player.
  */
+const comparePlayers = (a: string, b: string): number => {
+  if (a === b) return 0;
+  return a < b ? -1 : 1;
+};
+
 export class MemoryStore implements MatchStore, ReadStore, DeadlineStore {
   readonly #matches = new Map<string, MatchWrite>();
   readonly #rows = new Map<string, StoredRows>();
@@ -85,6 +90,9 @@ export class MemoryStore implements MatchStore, ReadStore, DeadlineStore {
       const ratings = write.ratings ?? [];
       if (ratings.some(({ expected, row }) => (this.#ratings.get(row.player)?.ranked_games ?? 0) !== expected))
         return "ratingsMoved";
+      // The table's primary key (match_id, player) refuses a second change for the same pair.
+      if (ratings.some(({ change }) => this.#changes.has(`${change.match_id}/${change.player}`)))
+        throw new Error("duplicate key value violates unique constraint rating_change_pkey");
       for (const { row, change } of ratings) {
         this.#ratings.set(row.player, copy(row));
         this.#changes.set(`${change.match_id}/${change.player}`, copy(change));
@@ -106,7 +114,7 @@ export class MemoryStore implements MatchStore, ReadStore, DeadlineStore {
   ratingChanges(matchId: string): RatingChange[] {
     return [...this.#changes.values()]
       .filter((c) => c.match_id === matchId)
-      .toSorted((a, b) => (a.player < b.player ? -1 : a.player > b.player ? 1 : 0))
+      .toSorted((a, b) => comparePlayers(a.player, b.player))
       .map(copy);
   }
 

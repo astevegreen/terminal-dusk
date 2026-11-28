@@ -108,14 +108,18 @@ export function matchStoreRatingContract(setup: () => MatchStoreHarness, timeout
     "a commit updates a stored row when its count is still expected",
     async () => {
       const h = setup();
-      await rated(h, async ({ start, matchId, next, players: [a, b] }) => {
+      await rated(h, async ({ matchId, next, players: [a, b] }) => {
         const first = withRatings(next, [writeFor(matchId, 0, rowOf(a, 1))]);
         expect(await h.store.commit(matchId, 0, first)).toBe("saved");
-        const later = withRatings(writeOf(step(step(start))), [
-          writeFor(matchId, 1, rowOf(a, 2, 1600)),
-          writeFor(matchId, 0, rowOf(b, 1)),
+        // A second game: its change rows carry its own match id, as (match_id, player) is unique.
+        const other = h.fresh();
+        await h.putIn(writeOf(other));
+        const otherId = other.record.matchId;
+        const later = withRatings(writeOf(step(other)), [
+          writeFor(otherId, 1, rowOf(a, 2, 1600)),
+          writeFor(otherId, 0, rowOf(b, 1)),
         ]);
-        expect(await h.store.commit(matchId, 1, later)).toBe("saved");
+        expect(await h.store.commit(otherId, 0, later)).toBe("saved");
         expect(await h.store.ratings([a])).toEqual([rowOf(a, 2, 1600)]);
       });
     },

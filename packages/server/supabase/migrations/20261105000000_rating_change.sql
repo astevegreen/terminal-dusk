@@ -104,10 +104,15 @@ begin
       if not found then
         raise exception using errcode = 'TD001', message = 'ratings moved';
       end if;
-      if w -> 'change' is not null and jsonb_typeof(w -> 'change') = 'object' then
-        insert into public.rating_change
-        select * from jsonb_populate_record(null::public.rating_change, w -> 'change');
+      if jsonb_typeof(w -> 'change') is distinct from 'object' then
+        raise exception 'rating write for % has no change object', r.player;
       end if;
+      -- The match and player come from the call, not from the caller's change object.
+      insert into public.rating_change
+      select * from jsonb_populate_record(
+        null::public.rating_change,
+        (w -> 'change') || jsonb_build_object('match_id', p_match_id, 'player', r.player)
+      );
     end loop;
   exception
     when sqlstate 'TD001' then
