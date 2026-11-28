@@ -2,7 +2,8 @@
 // every worktree share them; the folder is git-ignored, so notes are never committed or pushed.
 //   node tools/handoff-notes.mjs save <file>    stamp line 2 (time, branch, HEAD, tree, folder) and file the note
 //   node tools/handoff-notes.mjs list           open notes, newest first
-//   node tools/handoff-notes.mjs claim [name]   move a note to .handoff/done/, print it and what changed since
+//   node tools/handoff-notes.mjs claim [name]   move a note to .handoff/done/, print it and what changed since;
+//                                               name is the note's file name or the slug it was saved under
 //   node tools/handoff-notes.mjs close <name> <reason>   file a note whose work is done (or overtaken) in done/
 // A note exists only for work still open: save refuses one whose Next reads "Complete" with no Decide first or
 // Waiting on, and the SessionStart sweep files any such note that is open and lists notes older than STALE_DAYS.
@@ -144,12 +145,19 @@ export function list({ cwd = process.cwd() } = {}) {
 }
 
 // A full saved name, or the one open note whose slug matches; { code, out } when that is not one note.
-function resolve(name, store) {
+// verb is the command (claim or close) the owner's pick is run with when the slug names several notes.
+function resolve(name, store, verb) {
   name = path.basename(name);
+  if (!name.endsWith(".md") && SAVED.test(`${name}.md`)) name += ".md";
+  // A slug ("card-draw") names the open note saved under it; a full file name names only that note.
   if (SAVED.test(name)) return { name };
-  const matches = openNotes(store).filter((n) => slugOf(n.name) === slugOf(name));
+  const slug = slugOf(name);
+  const matches = openNotes(store).filter((n) => slugOf(n.name) === slug);
   if (matches.length > 1)
-    return { code: 4, out: `${matches.length} open notes named ${slugOf(name)}; ask which:\n${format(matches)}` };
+    return {
+      code: 4,
+      out: `${matches.length} open notes named ${slug}; ask the owner which one, then run ${verb} <name>:\n${format(matches)}`,
+    };
   return { name: matches.length === 1 ? matches[0].name : name };
 }
 
@@ -181,7 +189,7 @@ export function claim(name, { cwd = process.cwd(), now = new Date(), rename = re
       };
     name = notes[0].name;
   }
-  const r = resolve(name, store);
+  const r = resolve(name, store, "claim");
   if (r.code) return r;
   name = r.name;
   const failed = file(store, name, `Resumed: ${stamp(now).text}`, rename);
@@ -200,7 +208,7 @@ export function close(name, reason, { cwd = process.cwd(), now = new Date() } = 
   if (!name || !reason?.trim())
     return { code: 1, out: "usage: close <name> <reason>: say why the note is no longer needed" };
   const store = storeDir(cwd);
-  const r = resolve(name, store);
+  const r = resolve(name, store, "close");
   if (r.code) return r;
   const failed = file(store, r.name, `Closed: ${stamp(now).text}: ${reason.trim()}`);
   return failed ?? { code: 0, out: `closed ${r.name}` };

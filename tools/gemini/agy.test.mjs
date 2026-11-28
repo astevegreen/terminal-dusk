@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
@@ -224,6 +224,11 @@ test("the quota file keeps one reset time per model and survives a missing or br
     assert.deepEqual(store.outUntil(ARGON, NOW), new Date(NOW + HOUR));
     assert.equal(store.outUntil(OPUS, NOW), null);
     assert.deepEqual(Object.keys(JSON.parse(readFileSync(file, "utf8"))), [ARGON, OPUS]);
+    assert.deepEqual(
+      readdirSync(dir),
+      ["quota.json"],
+      "written through a temp file renamed into place, none left over",
+    );
     writeFileSync(file, "not json");
     assert.equal(store.outUntil(ARGON, NOW), null);
   } finally {
@@ -388,4 +393,10 @@ test("when agy is missing or prints something that is not JSON, the reason is re
   assert.throws(() => parseReply({ status: 1, stdout: "", stderr: "sign in first\nmore detail" }), {
     message: "agy exited 1: sign in first",
   });
+});
+
+test("a renamed file's stats name both paths, so a move out of a high-risk path still counts", () => {
+  const diff = "diff --git a/packages/engine/src/a.ts b/docs/a.ts\nrename from x\n";
+  assert.deepEqual(diffStats(diff).files, ["packages/engine/src/a.ts", "docs/a.ts"]);
+  assert.equal(pickDepth({ kind: "change", ...diffStats(diff) }).depth, "deep");
 });

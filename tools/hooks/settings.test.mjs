@@ -113,3 +113,16 @@ for (const agent of ["implementer", "reviewer", "architect"]) {
     assert.ok(tools.includes("WebSearch") && tools.includes("WebFetch"), `disallowedTools: ${tools.join(", ")}`);
   });
 }
+
+test("history-rewriting git, the web downloaders and publishing are denied in Bash and in PowerShell alike", () => {
+  const { deny } = permissions();
+  // PowerShell has no bash-guard behind it, so its deny list is the only stop there; `git -C <dir>` spells the same
+  // commands from another folder.
+  const git = ["push --force *", "push -f *", "push origin main", "push origin main *", "reset --hard *", "clean *", "rebase *", "filter-branch *", "filter-repo *"];
+  const commands = [...git.flatMap((g) => [`git ${g}`, `git -C * ${g}`]), "curl *", "wget *", "npx *", "pnpm dlx *", "npm publish *", "pnpm publish *"];
+  for (const command of commands)
+    for (const shell of ["Bash", "PowerShell"]) assert.ok(deny.includes(`${shell}(${command})`), `${shell}(${command}) is not denied`);
+  // Every Bash deny has its PowerShell twin, so a rule added later can't be left for one shell only.
+  for (const rule of deny.filter((r) => r.startsWith("Bash(")))
+    assert.ok(deny.includes(rule.replace(/^Bash/, "PowerShell")), `${rule} has no PowerShell twin`);
+});
