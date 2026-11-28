@@ -139,6 +139,11 @@ test("a change to the content package or the app's sounds folder runs the conten
   assert.equal(check("packages/app/src/App.tsx"), null);
 });
 
+test("a change to the root ESLint config or its bulk suppressions checks every package", () => {
+  for (const file of ["eslint.config.js", "eslint-suppressions.json"])
+    assert.equal(filtered(selectStages(workspaceRoot(), [file])).length, 7, file);
+});
+
 test("a docs-only change runs no fuzz", () => {
   const stages = selectStages(workspaceRoot(), ["docs/notes.md"]);
   assert.equal(command(stages, "quick fuzz"), null);
