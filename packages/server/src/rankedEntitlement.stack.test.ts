@@ -30,6 +30,7 @@ await onLocalStack("a ranked search on the local Supabase stack needs the Full G
     const real = new SupabaseSeekStore(stack.service);
     return {
       create: (ticket, limit) => real.create(ticket, limit),
+      cancel: (id, player) => real.cancel(id, player),
       open: async () => (await real.open()).filter((ticket) => tickets.includes(ticket.id)),
       pair: (ids, write) => real.pair(ids, write),
     };
