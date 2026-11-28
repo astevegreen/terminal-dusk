@@ -25,6 +25,7 @@ function world(seedOf: (n: number) => string = (n) => `seed-${n}`) {
   let seed = 0;
   const deps: MatchmakeDeps = {
     seeks,
+    entitlements,
     notify,
     matchId: () => `m-${++match}`,
     seed: () => seedOf(++seed),
@@ -49,7 +50,7 @@ function world(seedOf: (n: number) => string = (n) => `seed-${n}`) {
       sae_draws: 0,
       updated_at: T0,
     });
-  return { matches, seeks, notify, deps, search, rate };
+  return { matches, seeks, notify, entitlements, deps, search, rate };
 }
 
 const statuses = (results: { status: string }[]) => results.map((r) => r.status);
@@ -122,6 +123,36 @@ describe("matchmaking", () => {
     const [a, b] = await Promise.all([matchmake(w.deps, T0), matchmake(w.deps, T0)]);
     expect(statuses([...a, ...b]).filter((s) => s === "paired")).toHaveLength(1);
     expect(statuses(await matchmake(w.deps, T0))).toEqual([]);
+  });
+
+  it("does not pair a ticket whose player lost the Full Game since searching (#687)", async () => {
+    const w = world();
+    await w.search("p1");
+    await w.search("p2");
+    await w.entitlements.revokeAll("p1");
+    expect(await matchmake(w.deps, T0)).toEqual([]);
+    expect(await w.seeks.open()).toHaveLength(2);
+    expect(w.matches.stored("m-1")).toBeNull();
+  });
+
+  it("pairs the tickets that are still entitled and leaves the one that is not (#687)", async () => {
+    const w = world();
+    await w.search("p1");
+    await w.search("p2");
+    await w.search("p3");
+    await w.entitlements.revokeAll("p1");
+    const results = await matchmake(w.deps, T0);
+    expect(statuses(results)).toEqual(["paired"]);
+    expect((await w.seeks.open()).map((t) => t.player)).toEqual(["p1"]);
+  });
+
+  it("leaves tickets alone when the entitlements cannot be read (#687)", async () => {
+    const w = world();
+    await w.search("p1");
+    await w.search("p2");
+    const broken = { forPlayer: () => Promise.reject(new Error("down")) };
+    expect(await matchmake({ ...w.deps, entitlements: broken }, T0)).toEqual([]);
+    expect(await w.seeks.open()).toHaveLength(2);
   });
 
   it("never pairs a player with their own ticket", async () => {

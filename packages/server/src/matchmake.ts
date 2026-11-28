@@ -5,7 +5,7 @@
 // Plain TypeScript; nothing here logs a player, a seed or a ticket.
 import { SIDES, seedHash } from "@terminal-dusk/engine";
 import type { Seed, Side } from "@terminal-dusk/engine";
-import { hostCreate, joinRankedRefusal, isPlatform, START_RATING } from "@terminal-dusk/host";
+import { hostCreate, joinRankedRefusal, isPlatform, PLATFORMS, START_RATING } from "@terminal-dusk/host";
 import type { HostError, Platform, PlayerId } from "@terminal-dusk/host";
 import { firstDeckConfig, firstDeckRuleset } from "@terminal-dusk/host/first-deck";
 import type { EntitlementStore } from "./entitlementStore.ts";
@@ -129,9 +129,13 @@ export async function createSeek(deps: SeekDeps, request: CreateSeekRequest): Pr
   }
 }
 
-/** What the sweep needs: the ticket store, the random parts (injected so tests repeat), and the notify queue. */
+/**
+ * What the sweep needs: the ticket store, the entitlements (checked again at pairing), the random parts (injected so
+ * tests repeat), and the notify queue.
+ */
 export type MatchmakeDeps = {
   seeks: SeekStore;
+  entitlements: EntitlementStore;
   matchId: () => string;
   seed: () => Seed;
   notify: NotifyStore | undefined;
@@ -141,7 +145,29 @@ export const MATCHMAKE_STATUSES = ["paired", "unavailable", "failed"] as const;
 export type MatchmakeResult = { status: "paired"; matchId: string } | { status: "unavailable" | "failed" };
 
 /**
- * Pairs every compatible pair of open tickets at `now` and creates their matches. One pair's failure never stops the
+ * The tickets whose player still owns the Full Game (#687): a second check, because a refund or chargeback can remove
+ * the entitlement after the ticket was stored. A ticket does not record its platform, so a copy on any platform
+ * counts. A player whose entitlements cannot be read is left out this time; their ticket stays for the next sweep.
+ */
+async function stillEntitled(deps: MatchmakeDeps, tickets: readonly SeekTicket[]): Promise<SeekTicket[]> {
+  const answers = new Map<string, boolean>();
+  for (const { player } of tickets) {
+    if (answers.has(player)) continue;
+    try {
+      const owned = await deps.entitlements.forPlayer(player);
+      answers.set(
+        player,
+        PLATFORMS.some((platform) => joinRankedRefusal(owned, platform) === null),
+      );
+    } catch {
+      answers.set(player, false);
+    }
+  }
+  return tickets.filter((ticket) => answers.get(ticket.player) === true);
+}
+
+/**
+ * Pairs every compatible pair of open tickets at `now` and creates their matches. A ticket whose player no longer owns the Full Game is not paired. One pair's failure never stops the
  * others, and the sweep never throws. A match is ranked, uses loss on time and the preset's deadline, and both
  * players are queued their turn alert.
  */
@@ -155,7 +181,8 @@ export async function matchmake(deps: MatchmakeDeps, now: number): Promise<Match
   const results: MatchmakeResult[] = [];
   // One pair at a time on purpose: each pairing is a single store step, and running them together would only
   // race the stores for no gain (a failure in one never stops the next).
-  for (const [first, second] of pairUp(tickets, now)) results.push(await pairOne(deps, first, second, now));
+  const entitled = await stillEntitled(deps, tickets);
+  for (const [first, second] of pairUp(entitled, now)) results.push(await pairOne(deps, first, second, now));
   return results;
 }
 
