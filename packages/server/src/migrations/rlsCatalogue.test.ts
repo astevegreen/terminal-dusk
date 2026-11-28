@@ -150,6 +150,13 @@ const CATALOGUE: Record<string, Entry> = {
     fresh: (row) => ({ ...row, player: freshId() }),
     touch: (row) => ({ rating: Number(row.rating) + 1 }),
   },
+  rating_change: {
+    scope: (s) => ["player", s.player],
+    public: () => true,
+    player: () => true,
+    fresh: (row) => ({ ...row, match_id: `rls-${freshId()}` }),
+    touch: (row) => ({ rating_after: Number(row.rating_after) + 1 }),
+  },
   seek: {
     scope: (s) => ["player", s.player],
     public: nobody,
@@ -272,6 +279,8 @@ await onLocalStack("row-level security across every table on the local Supabase 
       sae_draws: 0,
       updated_at: NOW,
     });
+    const change = { player: lio!.id, rating_before: 1500, rating_after: 1662.5, ranked_games: 1, created_at: NOW };
+    await insert("rating_change", { ...change, match_id: `rls-${seeded.receipt}` });
   }, 60_000);
 
   afterAll(async () => {
@@ -284,6 +293,7 @@ await onLocalStack("row-level security across every table on the local Supabase 
       await service.from("seek").delete().eq("player", seeded.player);
       await service.from("checkout_attempt").delete().eq("player", seeded.player);
       await service.from("rating").delete().eq("player", seeded.player);
+      await service.from("rating_change").delete().eq("player", seeded.player);
       for (const table of ["entitlement_refund", "entitlement_chargeback", "checkout_unmatched"])
         await service.from(table).delete().eq("receipt_ref", seeded.receipt);
     }

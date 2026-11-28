@@ -1,5 +1,6 @@
 // The MatchStore contract: what both MemoryStore and SupabaseStore must do, checked only through the port, so
 // one suite runs against the fake (stores.contract.test.ts) and the real tables (stores.contract.stack.test.ts).
+import type { RatingChange } from "../../ratings.ts";
 import type { HostResult } from "@terminal-dusk/host";
 import { expect, it } from "vitest";
 import type { MatchStore, MatchWrite } from "../../store.ts";
@@ -17,6 +18,8 @@ export type MatchStoreHarness = {
   putIn(write: MatchWrite): Promise<void>;
   /** Removes these players' rating rows, after a rating test. */
   forgetRatings(players: readonly string[]): Promise<void>;
+  /** The saved rating changes of a match, ordered by player id; the harness also removes them after the test. */
+  changesOf(matchId: string): Promise<RatingChange[]>;
 };
 
 /** The host's result for the next answer to `start`. */

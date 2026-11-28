@@ -51,10 +51,6 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - A game with no map has no era in its frame (`packages/engine/src/createGame.ts:84-92` sets it only with a map), so
   against the AI the free game says "Era not shown yet" for its whole length, and the base game until Era 2 starts.
   The app already names the frame's era where there is one (#669); the engine side is lane C's. [27 Nov 2026, #669]
-- Nothing reads `checkout_unmatched` (`packages/server/supabase/migrations/20261030000000_paddle_receipts.sql`): a
-  buyer who paid with no known player id gets no copy until a person looks. Before web sales open, add a service-role
-  tool that lists those receipts and grants one to a named player (`grantReceipt`), or an alert when a row appears.
-  [27 Nov 2026, #683]
 - Account deletion isn't built (`docs/architecture.md`, "Accounts and purchases"). When it is, it deletes the
   player's `entitlement` rows and nulls `entitlement_chargeback.player` and `platform`
   (`packages/server/supabase/migrations/20261101000000_paddle_chargebacks.sql`) so a later chargeback reversal
@@ -69,16 +65,28 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - `seekHandler.ts` has no Door entry of its own in `packages/server/src/onlineDoors.audit.test.ts`; it is listed
   under createSeek's `covers`, so the audit does not run its free-player, wrong-platform and entitled-player checks
   through `handleSeek`. [28 Nov 2026, #747 agy audit]
+- The web client's `CHECKOUT_CODES` (`packages/app/src/platform/webPurchases.ts:20`) lacks `tooManyRequests`, so a
+  checkout the server rate-limits (#735) shows "network" instead of its own message. Add the code and its text.
+  [28 Nov 2026, reviewer on #735]
+- `SupabaseCheckoutLimitStore.claim` has no direct test: add one that claims up to the limit and then is refused.
+  [28 Nov 2026, agy on #735]
+- ProfileView has no entry point in the app and no Playwright smoke test: link it from a screen and add a smoke test
+  that opens it. [28 Nov 2026, reviewer on #728]
+- `SupabaseSeekStore.open` doesn't page past 1,000 rows (Supabase's default response limit), so a longer seek table
+  is read only in part: page the read. [28 Nov 2026, review of #737]
+- Entitlement isn't rechecked when the matchmaker pairs two seeks (#737), so a player whose copy was refunded since
+  they sought can still be paired: recheck both sides at pairing (#687). [28 Nov 2026, review of #737, #687]
+- The stack tests don't exercise `SupabaseSeekStore.create` or `open` against the real tables: add a stack test for
+  each. [28 Nov 2026, review of #737]
+- No test covers the in-memory seek store's refusal of a duplicate seek, and its keying differs from the SQL's: test
+  the refusal, then make the two key the same way. [28 Nov 2026, review of #738]
+- A Paddle transaction can still be created after `priceTimedOut`: check `cancel.signal.aborted` before the ask, so a
+  timed-out price lookup never ends in a charge the buyer didn't see. [28 Nov 2026, agy on #739]
 
 ## Tests and tooling
 
-- No stack test calls the deployed `checkout` Edge Function over HTTP
-  (`packages/server/supabase/functions/checkout/index.ts`): add `checkoutHandler.stack.test.ts` for 401, 409 and the
-  503 of unset Paddle secrets, which need no Paddle account. [27 Nov 2026, #716]
-
-- No stack test calls the deployed `redeem` Edge Function over HTTP, as `inviteHandler.stack.test.ts` does for
-  `invite` (`packages/server/supabase/functions/redeem/index.ts`): add `redeemHandler.stack.test.ts` with
-  `callFunction`. [27 Nov 2026, reviewer on #710]
+- The seek migration repeats one literal several times (SonarCloud on #737): name it once in the SQL. [28 Nov 2026,
+  SonarCloud on #737]
 - On a loaded PC a full `pnpm gate` fails on time-outs in tests the change does not touch: the 5 s limit in
   `packages/ai` (techRace, lookahead, medium's timing), the app's six-region map game and the easy AI fuzz, and the
   100 s engine fuzz (`tests/fuzz/engine.test.ts`). [27 Nov 2026, sound chain]
@@ -139,5 +147,7 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
 - `checkGit` in `tools/hooks/bash-guard.mjs:139-147` never looks at `--delete`, `-d` or a `:branch` refspec, so the
   `git push … task/*`, `design/*` and `claude/*` allow rules in `.claude/settings.json` also let a session delete
   another remote branch unasked: have bash-guard ask about push deletions. [27 Nov 2026, reviewer on #720]
+- `checkout_unmatched` stores no amount, currency or buyer hint, so `tools/unmatched-receipts.mjs list` cannot show them:
+  store them from the Paddle webhook. [28 Nov 2026, #740]
 
 ## Docs

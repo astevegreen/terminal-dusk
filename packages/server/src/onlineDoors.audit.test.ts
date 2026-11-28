@@ -128,6 +128,10 @@ const RANKED_RESULTS: { marker: string; reason: string }[] = [
     marker: "supabase/migrations/20261102000000_rating.sql: ranked or matchmaking code (ranked, ranked_games)",
     reason: `the rating table and commit_match's rating writes; ${RATES_A_FINISH}`,
   },
+  {
+    marker: "supabase/migrations/20261105000000_rating_change.sql: ranked or matchmaking code (ranked_games)",
+    reason: `the rating_change table and commit_match's change writes; ${RATES_A_FINISH}`,
+  },
 ];
 const fileOf = (marker: string): string => marker.slice(0, marker.indexOf(": "));
 

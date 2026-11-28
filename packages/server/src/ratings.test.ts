@@ -76,6 +76,20 @@ describe("ratingWrites: both players' new rows", () => {
     expect(writes[0]!.row).toMatchObject({ ranked_games: 1, lio_losses: 1, sae_wins: 0, updated_at: NOW });
   });
 
+  it("each write carries a change: the rating before and after, the count after, the match and the time", () => {
+    const { after } = finished();
+    for (const { row, change } of ratingWrites(after, [], NOW)!) {
+      expect(change).toEqual({
+        match_id: after.matchId,
+        player: row.player,
+        rating_before: START_RATING.rating,
+        rating_after: row.rating,
+        ranked_games: 1,
+        created_at: NOW,
+      });
+    }
+  });
+
   it("no winner is a draw for each side", () => {
     const { after } = finished();
     const [alice, bob] = ratingWrites(overWith(after, null), [], NOW)!;
