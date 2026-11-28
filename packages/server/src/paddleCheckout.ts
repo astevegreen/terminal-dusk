@@ -24,7 +24,7 @@ export type CheckoutFetch = (
 
 /** `reason` is a code for the log: `unreachable`, `timedOut`, `status<number>` or `badAnswer`. The price check adds
  * `priceUnknown` (Paddle has no such price) and `priceNotOfProduct` (it belongs to another product), and prefixes
- * its other failures with `price`, as in `priceStatus500`. */
+ * its other failures with `price`, as in `priceStatus500` and `priceTimedOut`. */
 export type CheckoutAddress = { ok: true; url: string } | { ok: false; reason: string };
 
 export type CreateCheckout = (player: PlayerId) => Promise<CheckoutAddress>;
@@ -58,7 +58,7 @@ export function paddleCheckout(settings: PaddleSettings, fetch: CheckoutFetch): 
     const tooSlow = new Promise<CheckoutAddress>((resolve) => {
       timer = runtime.setTimeout(() => {
         // Resolve first: a real fetch fails as soon as it is cancelled, and that must still read as a time-out.
-        resolve(failed("timedOut"));
+        resolve(failed(priceChecked ? "timedOut" : "priceTimedOut"));
         cancel.abort();
       }, PADDLE_TIMEOUT_MS);
     });

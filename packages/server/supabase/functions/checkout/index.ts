@@ -37,6 +37,7 @@ const env = Object.fromEntries(
 const deps = checkoutDeps(env, db, {
   fetch: (url, init) => runtime.fetch(url, init),
   log: (line) => runtime.console.log(line),
+  now: () => Date.now(),
 });
 
 runtime.Deno.serve(checkoutFetchHandler(deps, (body, init) => new runtime.Response(body, init)));

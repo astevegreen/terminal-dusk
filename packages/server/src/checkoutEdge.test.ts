@@ -4,8 +4,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it } from "vitest";
 import { checkoutDeps, checkoutFetchHandler } from "./checkoutEdge.ts";
 import type { FetchRequest } from "./edge.ts";
+import { MemoryCheckoutLimitStore } from "./checkoutLimitStore.ts";
 import { MemoryEntitlementStore } from "./entitlementStore.ts";
 import { paddleCheckout } from "./paddleCheckout.ts";
+import { SupabaseCheckoutLimitStore } from "./supabaseCheckoutLimitStore.ts";
 import { SupabaseEntitlementStore } from "./supabaseEntitlementStore.ts";
 import { fakePaddle, PADDLE, PAY_URL } from "./test/checkout.ts";
 
@@ -32,6 +34,8 @@ describe("checkout Edge Function glue: fetch requests to handleCheckout and back
     {
       authenticate: async (token) => (token === "token-alice" ? "player-alice" : null),
       entitlements: new MemoryEntitlementStore(),
+      limit: new MemoryCheckoutLimitStore(),
+      now: () => 1_700_000_000_000,
       checkout: paddleCheckout(PADDLE, paddle.fetch),
     },
     make,
@@ -61,6 +65,7 @@ describe("checkoutDeps", () => {
   it("reads Paddle's settings and the app's address from the environment, and reads copies from Supabase", async () => {
     const { deps, calls } = await asked(ENV);
     expect(deps.entitlements).toBeInstanceOf(SupabaseEntitlementStore);
+    expect(deps.limit).toBeInstanceOf(SupabaseCheckoutLimitStore);
     expect(calls).toEqual([
       expect.objectContaining({
         url: "https://paddle.example.test/transactions",

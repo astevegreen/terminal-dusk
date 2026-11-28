@@ -7,6 +7,7 @@ import { serveFetch, supabaseAuthenticate } from "./edge.ts";
 import type { FetchRequest, MakeResponse } from "./edge.ts";
 import { paddleCheckout } from "./paddleCheckout.ts";
 import type { CheckoutFetch, PaddleSettings } from "./paddleCheckout.ts";
+import { SupabaseCheckoutLimitStore } from "./supabaseCheckoutLimitStore.ts";
 import { SupabaseEntitlementStore } from "./supabaseEntitlementStore.ts";
 
 /** The function's whole behaviour as a fetch handler. */
@@ -20,12 +21,14 @@ export function checkoutFetchHandler<R>(
 export function checkoutDeps(
   env: Record<string, string | undefined>,
   db: SupabaseClient,
-  runtime: { fetch: CheckoutFetch; log: (line: string) => void },
+  runtime: { fetch: CheckoutFetch; log: (line: string) => void; now?: () => number },
 ): CheckoutHandlerDeps {
   const settings = paddleSettings(env);
   return {
     authenticate: supabaseAuthenticate(db),
     entitlements: new SupabaseEntitlementStore(db),
+    limit: new SupabaseCheckoutLimitStore(db),
+    now: runtime.now ?? (() => Date.now()),
     checkout: settings && paddleCheckout(settings, runtime.fetch),
     log: runtime.log,
   };
