@@ -23,7 +23,7 @@ export const restComments = (comments) =>
 // its shape for the --jq read, its diff for the other. undefined when args are not such a read.
 function compareAnswer(compare, args) {
   const cmp = /^repos\/\{owner\}\/\{repo\}\/compare\/(\w+)\.\.\.(\w+)$/.exec(args[1] ?? "");
-  const c = args[0] === "api" && cmp && cmp[2] === SHA ? compare[cmp[1]] : undefined;
+  const c = args[0] === "api" && cmp?.[2] === SHA ? compare[cmp[1]] : undefined;
   if (!c) return undefined;
   return args[2] === "--jq" ? JSON.stringify({ status: c.status ?? "ahead", merges: c.merges ?? 0 }) : c.diff;
 }

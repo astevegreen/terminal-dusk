@@ -79,6 +79,31 @@ test("every review writes one ledger line with its mode, depth, model, seconds, 
   ]);
 });
 
+test("a pull request agy once stopped is read again, even when a fix push leaves it small or docs-only", () => {
+  for (const [verdict, diff] of [
+    ["fix", diffOf("packages/app/src/x.ts", 10)],
+    ["hold", diffOf("docs/follow-ups.md", 200)],
+  ]) {
+    const { io, calls } = fake({ diff, comments: [marked(ME, { verdict }, "aaa111")] });
+    auditPr(7, io);
+    assert.equal(calls.ask.length, 1, verdict);
+    assert.notEqual(calls.ledger.at(-1).mode, "skip", verdict);
+  }
+  // Only a fix or hold from the audit's own account stops a pull request: its own merge, retry or skip does not,
+  // and a pasted marker from anyone else is ignored.
+  for (const comment of [
+    marked(ME, { verdict: "merge" }, "aaa111"),
+    marked(ME, { verdict: "retry" }, "aaa111"),
+    marked(ME, { verdict: "merge", skipped: true }, "aaa111"),
+    marked("stranger", { verdict: "fix" }, "aaa111"),
+  ]) {
+    const { io, calls } = fake({ diff: diffOf("packages/app/src/x.ts", 10), comments: [comment] });
+    auditPr(7, io);
+    assert.equal(calls.ask.length, 0, comment.author.login);
+    assert.equal(calls.ledger.at(-1).mode, "skip");
+  }
+});
+
 const recorded = (sha, verdict, extra = {}) => ({ repo: REPO_NAME, pr: 7, sha, verdict, mode: "full", ...extra });
 
 test("a merge the ledger recorded carries over a small delta off the high-risk paths and rails, with no call", () => {

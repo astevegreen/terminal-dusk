@@ -54,6 +54,8 @@ test("an instruction file, a skill or an agent is never a doc", () => {
   ])
     assert.equal(isDoc(f), false, f);
   assert.equal(isDoc("docs/follow-ups.md"), true);
+  // Markdown only: a .txt or a file under docs/ can be data a build or a check reads.
+  for (const f of ["notes.txt", "docs/repo-map.json", "docs/design/map.svg"]) assert.equal(isDoc(f), false, f);
   assert.equal(skipReason({ files: ["CLAUDE.md"], lines: 100 }), null);
 });
 
