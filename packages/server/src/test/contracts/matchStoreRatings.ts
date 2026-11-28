@@ -109,10 +109,10 @@ export function matchStoreRatingContract(setup: () => MatchStoreHarness, timeout
         const first = withRatings(next, [{ expected: 0, row: rowOf(a, 1) }]);
         expect(await h.store.commit(matchId, 0, first)).toBe("saved");
         const after = writeOf(step(step(start)));
-        // b's row is fine, a's says 0 games but a has 1: the whole step is refused, b's row too.
+        // b's row is written first and is fine; a's says 0 games but a has 1. The whole step is undone, b's row too.
         const moved = withRatings(after, [
-          { expected: 0, row: rowOf(a, 1, 1700) },
           { expected: 0, row: rowOf(b, 1) },
+          { expected: 0, row: rowOf(a, 1, 1700) },
         ]);
         expect(await h.store.commit(matchId, 1, moved)).toBe("ratingsMoved");
         expect((await h.store.load(matchId))!.record.seq).toBe(1);
