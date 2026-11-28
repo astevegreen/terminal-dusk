@@ -20,6 +20,8 @@ export const RAILS = [
   { test: (f) => f === "package.json", what: "the root package.json, whose scripts run the gate" },
 ];
 
+import { sameAccount } from "../github-trust.mjs";
+
 // The models that audit a rail, in order: Opus, then Gemini's fast models, newest first (agy.mjs, ORDERS.rail;
 // tools/gemini-audit.mjs asks for that order). It is the owner's 28 Oct 2026 order (Argon, Opus, then Flash) without
 // Argon, whose usage is too small (owner, 19 Nov 2026). Never Sonnet: the Claude reviewer already covers that family.
@@ -152,7 +154,7 @@ export function readVerdict(body) {
 // saw. A retry is never reused: the audit runs again. comments: gh's { author: { login }, body }, oldest first.
 export function reusableVerdict(comments, sha, me) {
   if (!me) return null;
-  const mine = (c) => String(c.author?.login ?? "").toLowerCase() === me.toLowerCase();
+  const mine = (c) => sameAccount(c.author?.login, me);
   const v = comments
     .filter(mine)
     .map((c) => readVerdict(c.body))
