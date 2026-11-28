@@ -144,6 +144,7 @@ describe("a step's variants", () => {
         "resultBelowDraw",
         "resultAboveDraw",
         "onePoint",
+        "gameOver",
       ].sort(),
     );
     const both = [

@@ -47,23 +47,13 @@
         {
           "when": {
             "event": "pointsSpent",
-            "side": "sae",
-            "turn": 1
-          },
-          "say": "SAE picked Handover of Hong Kong. The card with more action points goes first: Hong Kong has 4 and Maastricht 2, so SAE's event happens first. On a tie, LIO's pick would go first, whichever side's card it is.",
-          "until": {
-            "event": "pointsSpent",
-            "side": "lio",
-            "turn": 1
-          }
-        },
-        {
-          "when": {
-            "event": "pointsSpent",
             "side": "lio",
             "turn": 1
           },
-          "say": "Maastricht gives you {eventPoints:e1-lio-001} point now. You can place where you already have influence ({influenceIn:lio}), next to it, or next to the United States ({homeNeighbours:lio}). For the rest of this turn, each time you spend points, you spend 1 more.",
+          "say": [
+            "SAE picked Handover of Hong Kong. The card with more action points goes first: Hong Kong has 4 and Maastricht 2, so SAE's event happens first. On a tie, LIO's pick would go first, whichever side's card it is.",
+            "Maastricht gives you {eventPoints:e1-lio-001} point now. You can place where you already have influence ({influenceIn:lio}), next to it, or next to the United States ({homeNeighbours:lio}). For the rest of this turn, each time you spend points, you spend 1 more."
+          ],
           "variants": [
             {
               "if": [
@@ -72,7 +62,10 @@
                   "side": "lio"
                 }
               ],
-              "say": "Maastricht gives you {eventPoints:e1-lio-001} point now. You can place next to the United States ({homeNeighbours:lio}). For the rest of this turn, each time you spend points, you spend 1 more."
+              "say": [
+                "SAE picked Handover of Hong Kong. The card with more action points goes first: Hong Kong has 4 and Maastricht 2, so SAE's event happens first. On a tie, LIO's pick would go first, whichever side's card it is.",
+                "Maastricht gives you {eventPoints:e1-lio-001} point now. You can place next to the United States ({homeNeighbours:lio}). For the rest of this turn, each time you spend points, you spend 1 more."
+              ]
             }
           ],
           "allow": [
@@ -525,6 +518,21 @@
             "You win at once by reaching your end of the track. Otherwise, after 2025 scores, the side the track leans towards wins. If it's even, the side ahead on the tech race wins, and if that's even too, it's a draw. The track started 7 steps towards SAE.",
             "LIO's ability, Resilient institutions: the first time each turn a draw from your own deck shows a 1, it is set aside and you draw again. SAE's ability, Unified command: after SAE plays its own card for its event, its next card played for points that turn counts 1 more.",
             "That's the coaching. From here it's a normal game."
+          ],
+          "variants": [
+            {
+              "if": [
+                {
+                  "kind": "gameOver"
+                }
+              ],
+              "say": [
+                "Era 1 is over, and every region scores in turn. In each region a side scores only its highest level: present (it controls at least one country), ahead (more countries and more battlegrounds than its rival), or every battleground. Each battleground controlled adds 1. The score track moves by the difference.",
+                "You win at once by reaching your end of the track. Otherwise, after 2025 scores, the side the track leans towards wins. If it's even, the side ahead on the tech race wins, and if that's even too, it's a draw. The track started 7 steps towards SAE.",
+                "LIO's ability, Resilient institutions: the first time each turn a draw from your own deck shows a 1, it is set aside and you draw again. SAE's ability, Unified command: after SAE plays its own card for its event, its next card played for points that turn counts 1 more.",
+                "That's the coaching."
+              ]
+            }
           ],
           "until": {
             "decision": "playCardAs",

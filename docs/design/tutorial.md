@@ -23,7 +23,9 @@ already decided in the other files in `docs/design/`; the tutorial adds no rule 
 
 1. **Opening cards and events** (turn 1, the opening pick). Both sides pick in secret, and the picks are revealed
    together. The card with more action points goes first; on a tie, LIO's pick goes first, whichever side's card it
-   is. An opening card is used only for its event.
+   is. An opening card is used only for its event. SAE's event line stays until LIO's next play: it shows together
+   with Maastricht's line, as SAE's event and LIO's come one straight after the other (owner, 28 Nov 2026, in chat:
+   "Approve your recommendations").
 2. **Influence and control** (turn 1, LIO's first play). Play a card for its action points and place influence
    where LIO already has influence, next to it, or next to its home box. A country is controlled when a side's
    influence is at least its stability and at least the rival's plus its stability. Placing in a country the
@@ -46,7 +48,8 @@ already decided in the other files in `docs/design/`; the tutorial adds no rule 
    ahead or every battleground, plus 1 for each battleground controlled, and the score track moves. The chapter
    explains how a game is won, LIO's Resilient institutions and SAE's Unified command. After it the coaching stops.
    A free game ends at Era 1's scoring, so there chapter 7 shows at the game's end, beside the result (owner, 27 Nov
-   2026, #701: "Show it at game end").
+   2026, #701: "Show it at game end"). There the game is already over, so the last line reads "That's the
+   coaching." (owner, 28 Nov 2026, in chat: "Approve your recommendations").
 
 Turn 2's two LIO plays are chapters 4 and 5, and all of a play's points go to one action, so the tech race waits
 for turn 3. Turn 3's second LIO play before the scoring is free, with light hints only.
@@ -115,7 +118,7 @@ points from the game, which keeps chapter 3's promise true (owner, 27 Nov 2026, 
 
 - "Each turn starts with an opening card. You and SAE each pick one in secret, then both are shown together. An
   opening card is used only for its event: its action points are not spent. Pick Maastricht Treaty."
-- After the reveal: "SAE picked Handover of Hong Kong. The card with more action points goes first: Hong Kong has 4
+- With LIO's event, shown together with the next line: "SAE picked Handover of Hong Kong. The card with more action points goes first: Hong Kong has 4
   and Maastricht 2, so SAE's event happens first. On a tie, LIO's pick would go first, whichever side's card it is."
 - "Maastricht gives you 1 point now. You can place where you already have influence (Taiwan), next to it, or next
   to the United States (Mexico, Cuba, Canada). For the rest of this turn, each time you spend points, you spend 1

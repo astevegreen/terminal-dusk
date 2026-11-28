@@ -113,6 +113,7 @@ export const CONDITIONS = [
   "resultBelowDraw",
   "resultAboveDraw",
   "onePoint",
+  "gameOver",
 ] as const;
 
 /**
@@ -127,6 +128,7 @@ export const CONDITIONS = [
  *   the draw, that is the points are below 4 (chapter 4).
  * - resultAboveDraw: the same result falls above the draw, that is the points are above 4 (chapter 4 at 5 points).
  * - onePoint: the named card gives the learner exactly 1 point now (chapter 6's "Your 1 point goes to this one try.").
+ * - gameOver: the game is over, as a free game is once Era 1 scores (chapter 7's last line).
  */
 export const condition = z.discriminatedUnion("kind", [
   z.strictObject({ kind: z.literal("noInfluence"), side }),
@@ -136,6 +138,7 @@ export const condition = z.discriminatedUnion("kind", [
   z.strictObject({ kind: z.literal("resultBelowDraw"), card: era1Card }),
   z.strictObject({ kind: z.literal("resultAboveDraw"), card: era1Card }),
   z.strictObject({ kind: z.literal("onePoint"), card: era1Card }),
+  z.strictObject({ kind: z.literal("gameOver") }),
 ]);
 
 export type Condition = z.output<typeof condition>;

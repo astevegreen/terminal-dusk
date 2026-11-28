@@ -49,6 +49,8 @@ function holds(c: Condition, frame: Frame, ruleset: Ruleset): boolean {
       return live.belowDraw(view, live.cardIn(ruleset, c.card), me) < 0;
     case "onePoint":
       return live.cardPoints(view, live.cardIn(ruleset, c.card), me) === 1;
+    case "gameOver":
+      return view.public.status.kind !== "active";
   }
 }
 

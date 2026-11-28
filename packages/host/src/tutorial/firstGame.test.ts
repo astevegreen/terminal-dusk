@@ -14,7 +14,6 @@ describe("the first-game lesson, played through", () => {
     expect(game.lines.map((l) => l.step)).toEqual([
       "opening/0",
       "opening/1",
-      "opening/2",
       "influence/0",
       "influence/1",
       "rival-cards/0",
@@ -38,7 +37,10 @@ describe("the first-game lesson, played through", () => {
   it("fills each line's slots from the live frame", () => {
     for (const { text } of game.lines) expect(text).not.toMatch(/[{}]/);
     const text = (step: string) => game.lines.find((l) => l.step === step)!.text;
-    expect(text("opening/2")).toMatch(
+    // SAE's event line shows together with Maastricht's, until LIO's next play (owner, 28 Nov 2026, in chat).
+    const [hongKong, maastricht] = text("opening/1").split("\n\n");
+    expect(hongKong).toMatch(/^SAE picked Handover of Hong Kong\. The card with more action points goes first/);
+    expect(maastricht).toMatch(
       /^Maastricht gives you 1 point now\. You can place where you already have influence \(Taiwan\), next to it, or next to the United States \(Mexico, Cuba, Canada\)\./,
     );
     expect(text("influence/0")).toContain("so 4 to spend.");
@@ -73,7 +75,7 @@ describe("the answers each step allows", () => {
   });
 
   it("chapters 1-3 allow placing only, and chapter 4 intervening only", () => {
-    for (const step of ["opening/2", "influence/0", "rival-cards/1"]) {
+    for (const step of ["opening/1", "influence/0", "rival-cards/1"]) {
       const shown = at(step, "chooseAction");
       expect(shown.allowed, step).toEqual(["chooseAction place"]);
       expect(shown.legal.length, step).toBeGreaterThan(1);
