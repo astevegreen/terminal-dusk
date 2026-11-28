@@ -120,6 +120,47 @@ describe("Finalize: a ranked game's finish updates both ratings once, with the f
   });
 });
 
+describe("Finalize: each rated finish records both players' rating change (#734)", () => {
+  it("a rated finish writes 2 rows with the right before and after, a first game starting at the start rating", async () => {
+    const { store, deps } = rankedWorld(rankedMatch());
+    store.putRating(playedRow(PLAYERS.lio, 4, 1700));
+    expect((await resign(deps, "ranked-1", PLAYERS.sae)).ok).toBe(true);
+    const rows = await ratingsOf(store);
+    const changes = store.ratingChanges("ranked-1");
+    expect(changes).toHaveLength(2);
+    const by = Object.fromEntries(changes.map((c) => [c.player, c]));
+    expect(by[PLAYERS.lio]).toEqual({
+      match_id: "ranked-1",
+      player: PLAYERS.lio,
+      rating_before: 1700,
+      rating_after: rows[PLAYERS.lio]!.rating,
+      ranked_games: 5,
+      created_at: NOW + 1,
+    });
+    expect(by[PLAYERS.sae]).toMatchObject({
+      rating_before: START_RATING.rating,
+      rating_after: rows[PLAYERS.sae]!.rating,
+      ranked_games: 1,
+    });
+  });
+
+  it("an unranked finish writes none", async () => {
+    const { store, deps } = rankedWorld(rankedMatch({ ranked: false }));
+    await resign(deps, "ranked-1", PLAYERS.lio);
+    expect(store.ratingChanges("ranked-1")).toEqual([]);
+  });
+
+  it("a ratingsMoved retry leaves none behind from the refused tries, and one pair at the end", async () => {
+    const match = rankedMatch();
+    const { store, deps } = rankedWorld(match);
+    const failing = rankedWorld(match);
+    await resign({ ...deps, store: racing(failing.store, RATING_TRIES) }, "ranked-1", PLAYERS.lio);
+    expect(failing.store.ratingChanges("ranked-1")).toEqual([]);
+    await resign(deps, "ranked-1", PLAYERS.lio);
+    expect(store.ratingChanges("ranked-1")).toHaveLength(2);
+  });
+});
+
 describe("Finalize: anything but a ranked game's finish updates nothing", () => {
   it.each([
     ["a game that is not ranked", { ranked: false }],

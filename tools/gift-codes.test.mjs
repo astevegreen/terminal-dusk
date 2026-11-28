@@ -4,10 +4,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { main, parseArgs } from "./gift-codes.mjs";
+import { ENV, KEY, URL, runMain } from "./lib/run-main.mjs";
 
-const KEY = "service-role-key-that-must-not-leak";
-const URL = "http://127.0.0.1:44321";
-const ENV = { SUPABASE_URL: URL, SUPABASE_SERVICE_ROLE_KEY: KEY };
 const SHAPE = /^[2-9A-HJKMNP-Z]{5}(-[2-9A-HJKMNP-Z]{5}){3}$/;
 const sha256 = (text) => createHash("sha256").update(text).digest("hex");
 
@@ -21,18 +19,8 @@ function fakeStore(status = 201, body = "") {
   return { fetch, requests };
 }
 
-/** Runs main and keeps what it printed. */
-async function run(argv, { env = ENV, store = fakeStore(), now = () => 1_700_000_000_000 } = {}) {
-  const out = [];
-  const err = [];
-  const exit = await main(argv, {
-    env,
-    fetch: store.fetch,
-    now,
-    out: (line) => out.push(line),
-    err: (line) => err.push(line),
-  });
-  return { exit, out, err, store };
+function run(argv, options = {}) {
+  return runMain(main, argv, { store: fakeStore(), ...options });
 }
 
 test("--platform web --count N prints N new codes, each once, and exits 0", async () => {

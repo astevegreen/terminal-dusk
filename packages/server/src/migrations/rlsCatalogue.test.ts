@@ -33,7 +33,7 @@ const fetchFn = (
 /**
  * What the tests seed: a full match between two players, a spare bare match, an invite, an alert, an entitlement,
  * a gift code, a wrong gift code guess, a refunded and an unmatched receipt under `receipt`, and the LIO player's
- * rating.
+ * rating and a matchmaking ticket.
  */
 type Seeded = { matchId: string; spareId: string; code: string; player: string; giftHash: string; receipt: string };
 
@@ -122,6 +122,13 @@ const CATALOGUE: Record<string, Entry> = {
     fresh: (row) => row,
     touch: (row) => ({ attempted_at: Number(row.attempted_at) + 1 }),
   },
+  checkout_attempt: {
+    scope: (s) => ["player", s.player],
+    public: nobody,
+    player: nobody,
+    fresh: (row) => row,
+    touch: (row) => ({ attempted_at: Number(row.attempted_at) + 1 }),
+  },
   entitlement_refund: {
     scope: byReceipt,
     public: nobody,
@@ -141,6 +148,20 @@ const CATALOGUE: Record<string, Entry> = {
     public: () => true,
     player: () => true,
     fresh: (row) => ({ ...row, player: freshId() }),
+    touch: (row) => ({ rating: Number(row.rating) + 1 }),
+  },
+  rating_change: {
+    scope: (s) => ["player", s.player],
+    public: () => true,
+    player: () => true,
+    fresh: (row) => ({ ...row, match_id: `rls-${freshId()}` }),
+    touch: (row) => ({ rating_after: Number(row.rating_after) + 1 }),
+  },
+  seek: {
+    scope: (s) => ["player", s.player],
+    public: nobody,
+    player: () => true,
+    fresh: (row) => ({ ...row, id: freshId() }),
     touch: (row) => ({ rating: Number(row.rating) + 1 }),
   },
   checkout_unmatched: {
@@ -231,10 +252,19 @@ await onLocalStack("row-level security across every table on the local Supabase 
     await insert("entitlement", { player: lio!.id, platform: "web", source: "rls-test", created_at: NOW });
     await insert("gift_code", { code_hash: seeded.giftHash, platform: "web", created_at: NOW });
     await insert("gift_code_attempt", { player: lio!.id, attempted_at: NOW });
+    await insert("checkout_attempt", { player: lio!.id, attempted_at: NOW });
     const receipt = { source: "rls-test", receipt_ref: seeded.receipt };
     await insert("entitlement_refund", { ...receipt, refunded_at: NOW });
     await insert("entitlement_chargeback", { ...receipt, charged_back_at: NOW });
     await insert("checkout_unmatched", { ...receipt, reason: "noPlayerId", created_at: NOW });
+    await insert("seek", {
+      id: freshId(),
+      player: lio!.id,
+      rating: 1500,
+      preset: "normal",
+      side: null,
+      created_at: NOW,
+    });
     await insert("rating", {
       player: lio!.id,
       rating: 1662.31,
@@ -249,6 +279,8 @@ await onLocalStack("row-level security across every table on the local Supabase 
       sae_draws: 0,
       updated_at: NOW,
     });
+    const change = { player: lio!.id, rating_before: 1500, rating_after: 1662.5, ranked_games: 1, created_at: NOW };
+    await insert("rating_change", { ...change, match_id: `rls-${seeded.receipt}` });
   }, 60_000);
 
   afterAll(async () => {
@@ -258,7 +290,10 @@ await onLocalStack("row-level security across every table on the local Supabase 
       await service.from("entitlement").delete().eq("player", seeded.player);
       await service.from("gift_code").delete().eq("code_hash", seeded.giftHash);
       await service.from("gift_code_attempt").delete().eq("player", seeded.player);
+      await service.from("seek").delete().eq("player", seeded.player);
+      await service.from("checkout_attempt").delete().eq("player", seeded.player);
       await service.from("rating").delete().eq("player", seeded.player);
+      await service.from("rating_change").delete().eq("player", seeded.player);
       for (const table of ["entitlement_refund", "entitlement_chargeback", "checkout_unmatched"])
         await service.from(table).delete().eq("receipt_ref", seeded.receipt);
     }

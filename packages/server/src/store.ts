@@ -6,7 +6,7 @@ import type { DeadlineStore } from "./deadlineStore.ts";
 import { dueIds } from "./deadlineStore.ts";
 import { later } from "./later.ts";
 import { matchRowFor } from "./matchRow.ts";
-import type { RatingRow, RatingWrite } from "./ratings.ts";
+import type { RatingChange, RatingRow, RatingWrite } from "./ratings.ts";
 import type { ReadStore, StoredRows } from "./read.ts";
 import { rowsFor } from "./rows.ts";
 
@@ -52,15 +52,29 @@ const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
  * the three `match_view` rows, and adds three `match_event` rows. `saveClock` replaces only the record
  * and the `match` row. It keeps the `rating` rows too, by player.
  */
+const comparePlayers = (a: string, b: string): number => {
+  if (a === b) return 0;
+  return a < b ? -1 : 1;
+};
+
 export class MemoryStore implements MatchStore, ReadStore, DeadlineStore {
   readonly #matches = new Map<string, MatchWrite>();
   readonly #rows = new Map<string, StoredRows>();
   readonly #ratings = new Map<PlayerId, RatingRow>();
+  readonly #changes = new Map<string, RatingChange>();
 
   /** Puts in a match just made by `hostCreate` (seq 0), with its seq 0 rows. Creating through the port is a later task. */
   insert(matchId: string, write: MatchWrite): void {
     this.#matches.set(matchId, copy(write));
     this.#rows.set(matchId, rowsFor(write));
+  }
+
+  /** How many ranked matches the player is in that are not over (matchmaking's limit, #681). */
+  unfinishedRanked(player: PlayerId): number {
+    return [...this.#matches.values()].filter(
+      ({ record: r }) =>
+        r.ranked === true && r.status.kind !== "over" && (r.players.lio === player || r.players.sae === player),
+    ).length;
   }
 
   /** A copy of everything stored for the match, frames included, or `null`. For tests. */
@@ -84,7 +98,13 @@ export class MemoryStore implements MatchStore, ReadStore, DeadlineStore {
       const ratings = write.ratings ?? [];
       if (ratings.some(({ expected, row }) => (this.#ratings.get(row.player)?.ranked_games ?? 0) !== expected))
         return "ratingsMoved";
-      for (const { row } of ratings) this.#ratings.set(row.player, copy(row));
+      // The table's primary key (match_id, player) refuses a second change for the same pair.
+      if (ratings.some(({ change }) => this.#changes.has(`${change.match_id}/${change.player}`)))
+        throw new Error("duplicate key value violates unique constraint rating_change_pkey");
+      for (const { row, change } of ratings) {
+        this.#ratings.set(row.player, copy(row));
+        this.#changes.set(`${change.match_id}/${change.player}`, copy(change));
+      }
       const next = rowsFor(write);
       this.#matches.set(matchId, copy({ record: write.record, secret: write.secret, frames: write.frames }));
       this.#rows.set(matchId, { match: next.match, views: next.views, events: [...rows.events, ...next.events] });
@@ -96,6 +116,14 @@ export class MemoryStore implements MatchStore, ReadStore, DeadlineStore {
     return later(() =>
       players.flatMap((player) => (this.#ratings.has(player) ? [copy(this.#ratings.get(player)!)] : [])),
     );
+  }
+
+  /** A copy of the rating changes saved for the match, ordered by player id. For tests. */
+  ratingChanges(matchId: string): RatingChange[] {
+    return [...this.#changes.values()]
+      .filter((c) => c.match_id === matchId)
+      .toSorted((a, b) => comparePlayers(a.player, b.player))
+      .map(copy);
   }
 
   /** Puts in a rating row as if an earlier ranked game had written it. For tests. */

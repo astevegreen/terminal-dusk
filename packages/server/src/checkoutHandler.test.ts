@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { handleCheckout } from "./checkoutHandler.ts";
 import type { CheckoutHandlerDeps } from "./checkoutHandler.ts";
+import { CHECKOUT_LIMIT, CHECKOUT_WINDOW_MS, MemoryCheckoutLimitStore } from "./checkoutLimitStore.ts";
+import type { CheckoutLimitStore } from "./checkoutLimitStore.ts";
 import { MemoryEntitlementStore } from "./entitlementStore.ts";
 import type { EntitlementRow, EntitlementStore } from "./entitlementStore.ts";
 import { preflight } from "./http.ts";
 import type { HttpReply, HttpRequest } from "./http.ts";
 import { paddleCheckout } from "./paddleCheckout.ts";
-import { answers, created, fakePaddle, PADDLE, PAY_URL } from "./test/checkout.ts";
+import { answers, created, fakePaddle, PADDLE, PAY_URL, price } from "./test/checkout.ts";
 
+const NOW = 1_700_000_000_000;
 const TOKENS: Record<string, string> = { "token-alice": "player-alice", "token-bob": "player-bob" };
 
 const post = (token: string | null, body = "{}"): HttpRequest => ({
@@ -29,6 +32,8 @@ function world({ owned = [], paddle = fakePaddle(), change = {} }: World = {}) {
   const deps: CheckoutHandlerDeps = {
     authenticate: async (token) => TOKENS[token] ?? null,
     entitlements: new MemoryEntitlementStore(owned),
+    limit: new MemoryCheckoutLimitStore(),
+    now: () => NOW,
     checkout: paddleCheckout(PADDLE, paddle.fetch),
     log: (line) => logs.push(line),
     ...change,
@@ -202,7 +207,136 @@ describe("handleCheckout: a signed-in player gets a Paddle checkout address", ()
     expect(lines).toHaveLength(worlds.length);
     for (const line of lines) expect(line).toMatch(/^checkout (outcome=\w+|error=\w+( reason=\w+)?)$/);
     for (const text of [...lines, ...refusals]) {
-      expect(text).not.toMatch(/test-paddle-api-key|token-alice|player-alice|pri_test|_ptxn|example\.test/);
+      expect(text).not.toMatch(/test-paddle-api-key|token-alice|player-alice|pri_test|pro_test|_ptxn|example\.test/);
     }
+  });
+});
+
+describe("handleCheckout: the price must be a price of the full game's product", () => {
+  const refusedWith = async (paddle: ReturnType<typeof fakePaddle>, reason: string) => {
+    const w = world({ paddle });
+    const reply = await handleCheckout(w.deps, post("token-alice"));
+    expectRefusal(reply, 503, "checkoutUnavailable");
+    expect(paddle.calls).toEqual([]);
+    expect(w.logs).toEqual([`checkout error=checkoutUnavailable reason=${reason}`]);
+  };
+
+  it("match: reads the price from Paddle, then makes the transaction", async () => {
+    const w = world();
+    const reply = await handleCheckout(w.deps, post("token-alice"));
+    expect(reply.status).toBe(200);
+    expect(w.paddle.priceCalls).toEqual([
+      {
+        url: "https://paddle.example.test/prices/pri_test_full_game",
+        headers: { Authorization: "Bearer test-paddle-api-key" },
+      },
+    ]);
+    expect(w.paddle.calls).toHaveLength(1);
+  });
+
+  it("mismatch: 503 checkoutUnavailable, no transaction, and the log names the misconfiguration", async () => {
+    await refusedWith(
+      fakePaddle(undefined, async () => price("pro_some_other_product")),
+      "priceNotOfProduct",
+    );
+  });
+
+  it("unknown price: 503 checkoutUnavailable, no transaction", async () => {
+    await refusedWith(
+      fakePaddle(undefined, async () => answers(404, { error: { code: "not_found" } })),
+      "priceUnknown",
+    );
+  });
+
+  it("Paddle failing on the price read: 503 checkoutUnavailable, no transaction", async () => {
+    await refusedWith(
+      fakePaddle(undefined, async () => answers(500, {})),
+      "priceStatus500",
+    );
+    const down = async (): Promise<never> => {
+      throw new Error("down");
+    };
+    await refusedWith(fakePaddle(undefined, down), "priceUnreachable");
+    await refusedWith(
+      fakePaddle(undefined, async () => answers(200, { data: {} })),
+      "priceBadAnswer",
+    );
+  });
+
+  it("asks about the price once while it is confirmed, and again after a failure", async () => {
+    let ok = false;
+    const paddle = fakePaddle(undefined, async () => (ok ? price() : answers(500, {})));
+    const w = world({ paddle });
+    expect((await handleCheckout(w.deps, post("token-alice"))).status).toBe(503);
+    ok = true;
+    expect((await handleCheckout(w.deps, post("token-alice"))).status).toBe(200);
+    expect((await handleCheckout(w.deps, post("token-alice"))).status).toBe(200);
+    expect(paddle.priceCalls).toHaveLength(2);
+  });
+});
+
+describe("handleCheckout: calls per player are limited", () => {
+  const calls = async (w: ReturnType<typeof world>, token: string, count: number) => {
+    const replies: HttpReply[] = [];
+    for (let i = 0; i < count; i++) replies.push(await handleCheckout(w.deps, post(token)));
+    return replies;
+  };
+
+  it("a player over the limit in the window gets 429 tooManyRequests and no Paddle call is made", async () => {
+    const w = world();
+    const replies = await calls(w, "token-alice", CHECKOUT_LIMIT);
+    expect(replies.every((r) => r.status === 200)).toBe(true);
+    expect(w.paddle.calls).toHaveLength(CHECKOUT_LIMIT);
+    expectRefusal(await handleCheckout(w.deps, post("token-alice")), 429, "tooManyRequests");
+    expect(w.paddle.calls).toHaveLength(CHECKOUT_LIMIT);
+  });
+
+  it("calls under the limit all succeed", async () => {
+    const w = world();
+    const replies = await calls(w, "token-alice", CHECKOUT_LIMIT);
+    expect(replies.map((r) => json(r).url)).toEqual(Array(CHECKOUT_LIMIT).fill(PAY_URL));
+  });
+
+  it("the limit is per player: another player is not affected", async () => {
+    const w = world();
+    await calls(w, "token-alice", CHECKOUT_LIMIT + 1);
+    expect((await handleCheckout(w.deps, post("token-bob"))).status).toBe(200);
+  });
+
+  it("the player can open a checkout again once the window has passed", async () => {
+    let now = NOW;
+    const w = world({ change: { now: () => now } });
+    await calls(w, "token-alice", CHECKOUT_LIMIT);
+    expectRefusal(await handleCheckout(w.deps, post("token-alice")), 429, "tooManyRequests");
+    now = NOW + CHECKOUT_WINDOW_MS + 1;
+    expect((await handleCheckout(w.deps, post("token-alice"))).status).toBe(200);
+  });
+
+  it("calls that fail at Paddle still count, and refused calls are not counted again", async () => {
+    const w = world({ paddle: fakePaddle(async () => answers(500, {})) });
+    const replies = await calls(w, "token-alice", CHECKOUT_LIMIT);
+    expect(replies.every((r) => r.status === 503)).toBe(true);
+    expectRefusal(await handleCheckout(w.deps, post("token-alice")), 429, "tooManyRequests");
+  });
+
+  it("a player who already owns the game is told so and does not use up calls", async () => {
+    const w = world({ owned: [{ player: "player-alice", platform: "web", source: "paddle" }] });
+    const replies = await calls(w, "token-alice", CHECKOUT_LIMIT + 2);
+    expect(replies.every((r) => r.status === 409)).toBe(true);
+  });
+
+  it("a limit store failure answers 500 internalError and makes no Paddle call", async () => {
+    const limit: CheckoutLimitStore = { claim: () => Promise.reject(new Error("db down")) };
+    const w = world({ change: { limit } });
+    expectRefusal(await handleCheckout(w.deps, post("token-alice")), 500, "internalError");
+    expect(w.paddle.calls).toHaveLength(0);
+  });
+
+  it("the refusal is logged with its code only", async () => {
+    const w = world();
+    await calls(w, "token-alice", CHECKOUT_LIMIT);
+    w.logs.length = 0;
+    await handleCheckout(w.deps, post("token-alice"));
+    expect(w.logs).toEqual(["checkout error=tooManyRequests"]);
   });
 });
