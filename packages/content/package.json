@@ -11,7 +11,7 @@
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
-    "lint": "eslint . --format ../../tools/eslint-formatter.mjs",
+    "lint": "cd ../.. && eslint packages/content --format tools/eslint-formatter.mjs",
     "test": "vitest run"
   },
   "dependencies": {

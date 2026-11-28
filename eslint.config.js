@@ -12,9 +12,10 @@ export default defineConfig(
   globalIgnores(["**/node_modules/", "**/dist/", "**/coverage/"]),
   js.configs.recommended,
   tseslint.configs.recommended,
-  // SonarCloud's rules, run locally. Findings that already existed on 28 Nov 2026 are recorded per package
-  // in eslint-suppressions.json (ESLint bulk suppressions): lint fails on any new finding and on a
-  // suppression that no longer matches, so the files can only shrink. Prune with
+  // SonarCloud's rules, run locally. Findings that already existed on 28 Nov 2026 are recorded in the root
+  // eslint-suppressions.json (ESLint bulk suppressions; paths are relative to the repo root, so each package's
+  // `lint` script runs from the root, like the edit-time check). Lint fails on any new finding and on a
+  // suppression that no longer matches, so the file can only shrink. Prune it with
   // `pnpm exec eslint . --prune-suppressions`; never run --suppress-all again to silence new findings.
   sonarjs.configs.recommended,
   {
