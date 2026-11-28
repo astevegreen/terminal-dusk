@@ -11,6 +11,7 @@ import type { GameScreenProps } from "../game/GameScreen.tsx";
 import { cardAffiliation, cardName, cardQuestion } from "../testMode/fixture.ts";
 import { nextMove, settle } from "../transport/test/remoteGame.ts";
 import type { OnlineGameSnapshot } from "./onlineGame.ts";
+import type { RatingChange } from "./ratingText.ts";
 import { LOADING_SNAPSHOT } from "./OnlineGameScreen.tsx";
 import { OnlineGameView } from "./OnlineGameView.tsx";
 import type { OnlineGameActions } from "./OnlineGameView.tsx";
@@ -310,5 +311,36 @@ describe("signed out (#536)", () => {
     const out = page({ ...LOADING_SNAPSHOT, signedOut: true });
     expect(alert(out)).toBe(SIGNED_OUT);
     expect(turnLine(out)).toBe("Loading the game");
+  });
+});
+
+describe("the rating change line on the result screen", () => {
+  const over = async () =>
+    withStatus((await started()).game.getSnapshot(), { kind: "over", winner: "lio", reason: "x" });
+  const render = (snapshot: OnlineGameSnapshot, ratingChange?: RatingChange): string =>
+    renderToString(
+      <OnlineGameView
+        snapshot={snapshot}
+        game={null}
+        label={cardName}
+        question={cardQuestion}
+        affiliation={cardAffiliation}
+        ratingChange={ratingChange}
+        onBack={() => {}}
+      />,
+    ).replaceAll("<!-- -->", "");
+  it("shows 1512, up 12 after a ranked game is over", async () => {
+    expect(render(await over(), { kind: "changed", after: 1512, change: 12 })).toContain("Rating: 1512, up 12");
+  });
+  it("says the rating has not updated yet, with no number, while the row is old", async () => {
+    const out = render(await over(), { kind: "waiting" });
+    expect(out).toContain("Your rating has not updated yet");
+    expect(out).not.toContain("up ");
+  });
+  it("shows nothing for an unranked game, or while the game is on", async () => {
+    expect(render(await over(), { kind: "none" })).not.toContain("rating-change");
+    expect(render(await over())).not.toContain("rating-change");
+    const live = (await started()).game.getSnapshot();
+    expect(render(live, { kind: "changed", after: 1512, change: 12 })).not.toContain("rating-change");
   });
 });
