@@ -68,8 +68,21 @@ it. Sessions add to it by day; sprint lanes file follow-up issues instead. Movin
   cannot give a deleted account a copy. It also clears a used gift code's `gift_code.redeemed_by` without making
   the code usable again: the table's check ties it to `redeemed_at`, so that check changes in a new migration (#710).
   [27 Nov 2026, #683, architect]
+- Nothing checks that `PADDLE_PRICE_ID` is a price of `PADDLE_PRODUCT_ID`: `checkout` sells the price
+  (`packages/server/src/checkoutEdge.ts`) and the webhook grants a copy only for the product
+  (`paddleWebhookHandler.ts`), so a mismatched pair takes the money and gives nothing. #717's sandbox test purchase
+  shows it for the sandbox; before live sales, check the live pair the same way or compare them in code.
+  [27 Nov 2026, #716]
+- `checkout` makes a new Paddle transaction on every call, with no limit per player
+  (`packages/server/src/checkoutHandler.ts`): one signed-in account calling in a loop piles up drafts in Paddle and
+  can run into Paddle's request limit, which turns every buyer's checkout into a 503. Limit it before web sales open.
+  [27 Nov 2026, #716]
 
 ## Tests and tooling
+
+- No stack test calls the deployed `checkout` Edge Function over HTTP
+  (`packages/server/supabase/functions/checkout/index.ts`): add `checkoutHandler.stack.test.ts` for 401, 409 and the
+  503 of unset Paddle secrets, which need no Paddle account. [27 Nov 2026, #716]
 
 - No stack test calls the deployed `redeem` Edge Function over HTTP, as `inviteHandler.stack.test.ts` does for
   `invite` (`packages/server/supabase/functions/redeem/index.ts`): add `redeemHandler.stack.test.ts` with
